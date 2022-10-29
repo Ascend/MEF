@@ -1,0 +1,109 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ascend-edge-manager
+  namespace: mindx-edge
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: pods-ascend-edge-manager-role
+rules:
+  - apiGroups: [""]
+    resources: ["secrets","nodes","pods","pods/log","namespaces"]
+    verbs: ["*"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["*"]
+  - apiGroups: ["node.k8s.io"]
+    resources: ["runtimeclasses"]
+    verbs: ["*"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: ascend-edge-manager-rolebinding
+subjects:
+  - kind: ServiceAccount
+    name: ascend-edge-manager
+    namespace: mindx-edge
+roleRef:
+  kind: ClusterRole
+  name: pods-ascend-edge-manager-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ascend-edge-manager
+  namespace: mindx-edge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ascend-edge-manager
+  template:
+    metadata:
+      labels:
+        app: ascend-edge-manager
+    spec:
+      nodeSelector:
+        masterselector: dls-master-node
+      automountServiceAccountToken: false
+      imagePullSecrets:
+        - name: image-pull-secret
+      serviceAccountName: ascend-edge-manager
+      containers:
+        - name: ascend-edge-manager
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          image: ascend-edge-manager:v2.0.4
+          resources:
+            requests:
+              memory: 500Mi
+              cpu: 500m
+            limits:
+              memory: 500Mi
+              cpu: 500m
+          imagePullPolicy: IfNotPresent
+          command: [ "/bin/bash", "-c", "--"]
+          # NOTE: HTTPS is enabled by default
+          args: ["./edge-manager -ip=0.0.0.0 -port=8101"]
+          volumeMounts:
+            - name: ascend-edgemanager-log
+              mountPath: /var/log/mindx-edge/ascend-edge-manager
+            - name: localtime
+              mountPath: /etc/localtime
+            - name: kmc
+              mountPath: /etc/mindx-edge
+      volumes:
+        - name: ascend-edgemanager-log
+          hostPath:
+            path: /var/log/mindx-edge/ascend-edge-manager
+            type: Directory
+        - name: localtime
+          hostPath:
+            path: /etc/localtime
+        - name: kmc
+          hostPath:
+            path: /etc/mindx-edge
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ascend-edge-manager
+  namespace: mindx-edge
+  labels:
+    app: ascend-edge-manager
+spec:
+  ports:
+    - name: mindx-edge
+      port: 8101
+      targetPort: 8101
+      protocol: TCP
+  selector:
+    app: ascend-edge-manager
+  type: ClusterIP
