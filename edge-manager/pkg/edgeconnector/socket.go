@@ -4,7 +4,6 @@
 package edgeconnector
 
 import (
-	"fmt"
 	"huawei.com/mindx/common/hwlog"
 )
 
@@ -47,22 +46,7 @@ func (s *Socket) SendToEdge(nodeID string) {
 }
 
 func (s *Socket) dispatch(nodeID string) {
-	conn := s.server.allClients[nodeID]
-	mt, message, err := conn.ReadMessage()
-	if err != nil {
-		hwlog.RunLog.Error("websocket read error: ", err)
-		if err = conn.Close(); err != nil {
-			fmt.Print("close websocket connection error: ", err)
-			return
-		}
-		return
-	}
 
-	if err = conn.WriteMessage(mt, message); err != nil {
-		hwlog.RunLog.Error("send msg to edge-installer failed: ", err)
-		s.server.CloseConnection(nodeID)
-		return
-	}
 }
 
 // Enable indicates whether this module is enabled
