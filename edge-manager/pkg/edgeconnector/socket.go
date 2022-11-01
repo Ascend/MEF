@@ -37,7 +37,7 @@ func (s *Socket) initSocket() error {
 
 // SendToEdge sends message to edge-installer
 func (s *Socket) SendToEdge(nodeID string) {
-	hwlog.RunLog.Info("start send message to edge-installer")
+	hwlog.RunLog.Info("start sending message to edge-installer")
 	if !s.server.IsClientConnected(nodeID) {
 		hwlog.RunLog.Errorf("edge-installer %v is disconnected", nodeID)
 		return
