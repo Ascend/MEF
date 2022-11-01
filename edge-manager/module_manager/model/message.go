@@ -1,9 +1,16 @@
 package model
 
+import (
+	"crypto/rand"
+	"encoding/hex"
+	"time"
+)
+
 type header struct {
-	id       string
-	parentId string
-	isSync   bool
+	id        string
+	parentId  string
+	isSync    bool
+	timestamp int64
 }
 
 type router struct {
@@ -19,6 +26,78 @@ type Message struct {
 	content interface{}
 }
 
+const messageIdSize = 16
+const messageIdVersion = 4
+const messageIdStringBufferSize = 36
+
+type messageIdGenerator struct {
+	buffer [messageIdSize]byte
+}
+
+func (g *messageIdGenerator) random() error {
+	if _, err := rand.Read(g.buffer[:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (g *messageIdGenerator) setVersion() {
+	g.buffer[6] = (g.buffer[6] & 0x0f) | (messageIdVersion << 4)
+}
+
+func (g *messageIdGenerator) setVariant() {
+	g.buffer[8] = g.buffer[8]&(0xff>>2) | (0x02 << 6)
+}
+
+func (g *messageIdGenerator) toString() string {
+	buf := make([]byte, messageIdStringBufferSize)
+
+	hex.Encode(buf[0:8], g.buffer[0:4])
+	buf[8] = '-'
+	hex.Encode(buf[9:13], g.buffer[4:6])
+	buf[13] = '-'
+	hex.Encode(buf[14:18], g.buffer[6:8])
+	buf[18] = '-'
+	hex.Encode(buf[19:23], g.buffer[8:10])
+	buf[23] = '-'
+	hex.Encode(buf[24:], g.buffer[10:])
+
+	return string(buf)
+}
+
+func (g *messageIdGenerator) String() (string, error) {
+	if err := g.random(); err != nil {
+		return "", err
+	}
+	g.setVersion()
+	g.setVariant()
+	return g.toString(), nil
+}
+
+func (msg *Message) GetId() string {
+	return msg.header.id
+}
+
+func (msg *Message) GetParentId() string {
+	return msg.header.parentId
+}
+
+func (msg *Message) SetParentId(parentId string) {
+	msg.header.parentId = parentId
+}
+
+func (msg *Message) GetIsSync() bool {
+	return msg.header.isSync
+}
+
+func (msg *Message) SetIsSync(isSync bool) {
+	msg.header.isSync = isSync
+}
+
+func (msg *Message) GetTimestamp() int64 {
+	return msg.header.timestamp
+}
+
 func (msg *Message) GetSource() string {
 	return msg.router.source
 }
@@ -27,15 +106,58 @@ func (msg *Message) GetDestination() string {
 	return msg.router.destination
 }
 
-func (msg *Message) GetId() string {
-	return msg.header.id
+func (msg *Message) GetOption() string {
+	return msg.router.option
 }
 
-func (msg *Message) SetParentId(parentId string) {
-	msg.header.parentId = parentId
+func (msg *Message) GetResource() string {
+	return msg.router.resource
 }
 
-func (msg *Message) GetParentId() string {
-	return msg.header.parentId
+func (msg *Message) SetRouter(source, destination, option, resource string) {
+	msg.router.source = source
+	msg.router.destination = destination
+	msg.router.option = option
+	msg.router.resource = resource
 }
 
+func (msg *Message) GetContent() interface{} {
+	return msg.content
+}
+
+func (msg *Message) FillContent(content interface{}) {
+	msg.content = content
+}
+
+func (msg *Message) NewResponse() (*Message, error) {
+	var respMsg *Message
+	var err error
+
+	if respMsg, err = NewMessage(); err != nil {
+		return nil, err
+	}
+	respMsg.header.parentId = msg.header.id
+	respMsg.header.isSync = msg.header.isSync
+
+	respMsg.router.source = msg.router.destination
+	respMsg.router.destination = msg.router.source
+	respMsg.router.resource = msg.router.resource
+
+	return respMsg, nil
+}
+
+func NewMessage() (*Message, error) {
+	var msgId string
+	var err error
+	generator := messageIdGenerator{}
+
+	if msgId, err = generator.String(); err != nil {
+		return nil, err
+	}
+
+	msg := Message{}
+	msg.header.id = msgId
+	msg.header.timestamp = time.Now().UnixNano() / 1e6
+
+	return &msg, nil
+}

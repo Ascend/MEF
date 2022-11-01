@@ -4,6 +4,7 @@ import (
 	"edge-manager/module_manager/context"
 	"edge-manager/module_manager/model"
 	"fmt"
+	"time"
 )
 
 var enabledModule map[string]model.Module
@@ -61,4 +62,22 @@ func Unregistry(m model.Module)  {
 	} else {
 		delete(disabledModule, m.Name())
 	}
+}
+
+func ReceiveMessage(moduleName string) (*model.Message, error) {
+	return moduleContext.Receive(moduleName)
+}
+
+func SendMessage(m *model.Message) error {
+	if m == nil {
+		return fmt.Errorf("input is invalid weh send msg")
+	}
+	if m.GetParentId() == "" {
+		return moduleContext.Send(m)
+	}
+	return moduleContext.SendResp(m)
+}
+
+func SendSyncMessage(m *model.Message, dutation time.Duration) (*model.Message, error) {
+	return moduleContext.SendSync(m, dutation)
 }
