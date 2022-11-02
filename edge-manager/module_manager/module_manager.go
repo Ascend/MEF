@@ -40,7 +40,7 @@ func isModuleExised(m model.Module) bool {
 	return false
 }
 
- // Registry registry new module
+// Registry registry new module
 func Registry(m model.Module) error {
 	if m == nil {
 		return fmt.Errorf("input is invalid when registry module")

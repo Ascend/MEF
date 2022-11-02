@@ -1,3 +1,5 @@
+// Copyright (c) Huawei Technologies Co., Ltd. 2022. All rights reserved.
+
 package model
 
 import (
@@ -56,7 +58,7 @@ func TestCreateResponeMsg(t *testing.T) {
 	var respMsg *Message
 	var err error
 
-	if newMsg, err = NewMessage(); err != nil {
+	if newMsg, err = NewMessage(); err != nil || newMsg == nil {
 		t.Errorf("create new message fail")
 		return
 	}
@@ -64,7 +66,7 @@ func TestCreateResponeMsg(t *testing.T) {
 	newMsg.SetIsSync(true)
 	newMsg.SetRouter("src", "dst", "update", "pod")
 
-	if respMsg, err = newMsg.NewResponse(); err != nil {
+	if respMsg, err = newMsg.NewResponse(); err != nil || respMsg == nil {
 		t.Errorf("create respone message fail")
 		return
 	}

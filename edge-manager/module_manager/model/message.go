@@ -3,6 +3,7 @@ package model
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"time"
 )
 
@@ -48,6 +49,11 @@ const messageIdRandomThirdPartBegin = 6
 const messageIdRandomFourthPartBegin = 8
 const messageIdRandomFifthPartBegin = 10
 
+const messageIdVersionMask = 0x0f
+const messageIdVariantMask = 0xff
+
+const messgeIdTimestampMask = 1e6
+
 type messageIdGenerator struct {
 	buffer [messageIdSize]byte
 }
@@ -60,25 +66,29 @@ func (g *messageIdGenerator) random() error {
 }
 
 func (g *messageIdGenerator) setVersion() {
-	g.buffer[messageIdVersionIndex] = (g.buffer[messageIdVersionIndex] & 0x0f) | (messageIdVersion << 4)
+	g.buffer[messageIdVersionIndex] = (g.buffer[messageIdVersionIndex] & messageIdVersionMask) | (messageIdVersion << 4)
 }
 
 func (g *messageIdGenerator) setVariant() {
-	g.buffer[messageIdVariantIndex] = g.buffer[messageIdVariantIndex]&(0xff>>2) | (0x02 << 6)
+	g.buffer[messageIdVariantIndex] = g.buffer[messageIdVariantIndex]&(messageIdVariantMask>>2) | (0x02 << 6)
 }
 
 func (g *messageIdGenerator) toString() string {
 	buf := make([]byte, messageIdStringBufferSize)
 
-	hex.Encode(buf[messageIdHexFirstPartBegin:messageIdHexFirstPartEnd], g.buffer[messageIdRandomFirstPartBegin:messageIdRandomSecondPartBegin])
+	hex.Encode(buf[messageIdHexFirstPartBegin:messageIdHexFirstPartEnd],
+		g.buffer[messageIdRandomFirstPartBegin:messageIdRandomSecondPartBegin])
 	buf[messageIdHexFirstPartEnd] = '-'
-	hex.Encode(buf[messageIdHexSecondPartBegin:messageIdHexSecondPartEnd], g.buffer[messageIdRandomSecondPartBegin:messageIdRandomThirdPartBegin])
+	hex.Encode(buf[messageIdHexSecondPartBegin:messageIdHexSecondPartEnd],
+		g.buffer[messageIdRandomSecondPartBegin:messageIdRandomThirdPartBegin])
 	buf[messageIdHexSecondPartEnd] = '-'
-	hex.Encode(buf[messageIdHexThirdPartBegin:messageIdHexThirdPartEnd], g.buffer[messageIdRandomThirdPartBegin:messageIdRandomFourthPartBegin])
+	hex.Encode(buf[messageIdHexThirdPartBegin:messageIdHexThirdPartEnd],
+		g.buffer[messageIdRandomThirdPartBegin:messageIdRandomFourthPartBegin])
 	buf[messageIdHexThirdPartEnd] = '-'
-	hex.Encode(buf[messageIdHexFourthPartBegin:messageIdHexFourthPartEnd], g.buffer[messageIdRandomFourthPartBegin:messageIdRandomFifthPartBegin])
+	hex.Encode(buf[messageIdHexFourthPartBegin:messageIdHexFourthPartEnd],
+		g.buffer[messageIdRandomFourthPartBegin:messageIdRandomFifthPartBegin])
 	buf[messageIdHexFourthPartEnd] = '-'
-	hex.Encode(buf[messageIdHexFifthPartBegin:], g.buffer[10:])
+	hex.Encode(buf[messageIdHexFifthPartBegin:], g.buffer[messageIdRandomFifthPartBegin:])
 
 	return string(buf)
 }
@@ -166,8 +176,8 @@ func (msg *Message) NewResponse() (*Message, error) {
 	var respMsg *Message
 	var err error
 
-	if respMsg, err = NewMessage(); err != nil {
-		return nil, err
+	if respMsg, err = NewMessage(); err != nil || respMsg == nil {
+		return nil, fmt.Errorf("create new message fail when create new response")
 	}
 	respMsg.header.parentId = msg.header.id
 	respMsg.header.isSync = msg.header.isSync
@@ -191,7 +201,7 @@ func NewMessage() (*Message, error) {
 
 	msg := Message{}
 	msg.header.id = msgId
-	msg.header.timestamp = time.Now().UnixNano() / 1e6
+	msg.header.timestamp = time.Now().UnixNano() / messgeIdTimestampMask
 
 	return &msg, nil
 }
