@@ -4,12 +4,14 @@ import (
 	"edge-manager/module_manager/context"
 	"edge-manager/module_manager/model"
 	"fmt"
+	"time"
 )
 
 var enabledModule map[string]model.Module
 var disabledModule map[string]model.Module
 var moduleContext context.ModuleMessageContext
 
+// ModuleManagerInit module manager init
 func ModuleManagerInit()  {
 	enabledModule = make(map[string]model.Module)
 	disabledModule = make(map[string]model.Module)
@@ -38,6 +40,7 @@ func isModuleExised(m model.Module) bool {
 	return false
 }
 
+// Registry registry new module
 func Registry(m model.Module) error {
 	if m == nil {
 		return fmt.Errorf("input is invalid when registry module")
@@ -54,6 +57,7 @@ func Registry(m model.Module) error {
 	return nil
 }
 
+// Unregistry unregistry module
 func Unregistry(m model.Module)  {
 	if m.Enable() {
 		delete(enabledModule, m.Name())
@@ -61,4 +65,25 @@ func Unregistry(m model.Module)  {
 	} else {
 		delete(disabledModule, m.Name())
 	}
+}
+
+// ReceiveMessage receive inner message
+func ReceiveMessage(moduleName string) (*model.Message, error) {
+	return moduleContext.Receive(moduleName)
+}
+
+// SendMessage send message
+func SendMessage(m *model.Message) error {
+	if m == nil {
+		return fmt.Errorf("input is invalid weh send msg")
+	}
+	if m.GetParentId() == "" {
+		return moduleContext.Send(m)
+	}
+	return moduleContext.SendResp(m)
+}
+
+// SendSyncMessage send sync message
+func SendSyncMessage(m *model.Message, dutation time.Duration) (*model.Message, error) {
+	return moduleContext.SendSync(m, dutation)
 }
