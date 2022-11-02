@@ -65,6 +65,7 @@ func (g *messageIdGenerator) toString() string {
 	return string(buf)
 }
 
+// String get message id string
 func (g *messageIdGenerator) String() (string, error) {
 	if err := g.random(); err != nil {
 		return "", err
@@ -74,46 +75,57 @@ func (g *messageIdGenerator) String() (string, error) {
 	return g.toString(), nil
 }
 
+// GetId get message id
 func (msg *Message) GetId() string {
 	return msg.header.id
 }
 
+// GetParentId get message parent id
 func (msg *Message) GetParentId() string {
 	return msg.header.parentId
 }
 
+// SetParentId set message parent id
 func (msg *Message) SetParentId(parentId string) {
 	msg.header.parentId = parentId
 }
 
+// GetIsSync get message to is sync or not
 func (msg *Message) GetIsSync() bool {
 	return msg.header.isSync
 }
 
+// SetIsSync set message to is sync or not
 func (msg *Message) SetIsSync(isSync bool) {
 	msg.header.isSync = isSync
 }
 
+// GetTimestamp get message timestamp
 func (msg *Message) GetTimestamp() int64 {
 	return msg.header.timestamp
 }
 
+// GetSource get message source
 func (msg *Message) GetSource() string {
 	return msg.router.source
 }
 
+// GetDestination get message destination
 func (msg *Message) GetDestination() string {
 	return msg.router.destination
 }
 
+// GetOption get message option
 func (msg *Message) GetOption() string {
 	return msg.router.option
 }
 
+// GetResource get message resource
 func (msg *Message) GetResource() string {
 	return msg.router.resource
 }
 
+// SetRouter set the message router
 func (msg *Message) SetRouter(source, destination, option, resource string) {
 	msg.router.source = source
 	msg.router.destination = destination
@@ -121,14 +133,17 @@ func (msg *Message) SetRouter(source, destination, option, resource string) {
 	msg.router.resource = resource
 }
 
+// GetContent get the message content
 func (msg *Message) GetContent() interface{} {
 	return msg.content
 }
 
+// FillContent fill the message content
 func (msg *Message) FillContent(content interface{}) {
 	msg.content = content
 }
 
+// NewResponse create new inner respone
 func (msg *Message) NewResponse() (*Message, error) {
 	var respMsg *Message
 	var err error
@@ -146,6 +161,7 @@ func (msg *Message) NewResponse() (*Message, error) {
 	return respMsg, nil
 }
 
+// NewMessage create new inner message
 func NewMessage() (*Message, error) {
 	var msgId string
 	var err error
