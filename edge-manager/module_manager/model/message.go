@@ -50,7 +50,11 @@ const messageIdRandomFourthPartBegin = 8
 const messageIdRandomFifthPartBegin = 10
 
 const messageIdVersionMask = 0x0f
+const messageIdVersionOffset = 4
 const messageIdVariantMask = 0xff
+const messageIdVariantMaskOffset = 2
+const messageIdVariantConst = 0x02
+const messageIdVariantConstOffset = 6
 
 const messgeIdTimestampMask = 1e6
 
@@ -66,11 +70,14 @@ func (g *messageIdGenerator) random() error {
 }
 
 func (g *messageIdGenerator) setVersion() {
-	g.buffer[messageIdVersionIndex] = (g.buffer[messageIdVersionIndex] & messageIdVersionMask) | (messageIdVersion << 4)
+	g.buffer[messageIdVersionIndex] = (g.buffer[messageIdVersionIndex] & messageIdVersionMask) |
+		(messageIdVersion << messageIdVersionOffset)
 }
 
 func (g *messageIdGenerator) setVariant() {
-	g.buffer[messageIdVariantIndex] = g.buffer[messageIdVariantIndex]&(messageIdVariantMask>>2) | (0x02 << 6)
+	g.buffer[messageIdVariantIndex] =
+		g.buffer[messageIdVariantIndex]&(messageIdVariantMask>>messageIdVariantMaskOffset) |
+			(messageIdVariantConst << messageIdVariantConstOffset)
 }
 
 func (g *messageIdGenerator) toString() string {
