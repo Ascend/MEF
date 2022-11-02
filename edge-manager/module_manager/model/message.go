@@ -29,6 +29,24 @@ type Message struct {
 const messageIdSize = 16
 const messageIdVersion = 4
 const messageIdStringBufferSize = 36
+const messageIdVersionIndex = 6
+const messageIdVariantIndex = 8
+
+const messageIdHexFirstPartBegin = 0
+const messageIdHexFirstPartEnd = 8
+const messageIdHexSecondPartBegin = 9
+const messageIdHexSecondPartEnd = 13
+const messageIdHexThirdPartBegin = 14
+const messageIdHexThirdPartEnd = 18
+const messageIdHexFourthPartBegin = 19
+const messageIdHexFourthPartEnd = 23
+const messageIdHexFifthPartBegin = 24
+
+const messageIdRandomFirstPartBegin = 0
+const messageIdRandomSecondPartBegin = 4
+const messageIdRandomThirdPartBegin = 6
+const messageIdRandomFourthPartBegin = 8
+const messageIdRandomFifthPartBegin = 10
 
 type messageIdGenerator struct {
 	buffer [messageIdSize]byte
@@ -42,25 +60,25 @@ func (g *messageIdGenerator) random() error {
 }
 
 func (g *messageIdGenerator) setVersion() {
-	g.buffer[6] = (g.buffer[6] & 0x0f) | (messageIdVersion << 4)
+	g.buffer[messageIdVersionIndex] = (g.buffer[messageIdVersionIndex] & 0x0f) | (messageIdVersion << 4)
 }
 
 func (g *messageIdGenerator) setVariant() {
-	g.buffer[8] = g.buffer[8]&(0xff>>2) | (0x02 << 6)
+	g.buffer[messageIdVariantIndex] = g.buffer[messageIdVariantIndex]&(0xff>>2) | (0x02 << 6)
 }
 
 func (g *messageIdGenerator) toString() string {
 	buf := make([]byte, messageIdStringBufferSize)
 
-	hex.Encode(buf[0:8], g.buffer[0:4])
-	buf[8] = '-'
-	hex.Encode(buf[9:13], g.buffer[4:6])
-	buf[13] = '-'
-	hex.Encode(buf[14:18], g.buffer[6:8])
-	buf[18] = '-'
-	hex.Encode(buf[19:23], g.buffer[8:10])
-	buf[23] = '-'
-	hex.Encode(buf[24:], g.buffer[10:])
+	hex.Encode(buf[messageIdHexFirstPartBegin:messageIdHexFirstPartEnd], g.buffer[messageIdRandomFirstPartBegin:messageIdRandomSecondPartBegin])
+	buf[messageIdHexFirstPartEnd] = '-'
+	hex.Encode(buf[messageIdHexSecondPartBegin:messageIdHexSecondPartEnd], g.buffer[messageIdRandomSecondPartBegin:messageIdRandomThirdPartBegin])
+	buf[messageIdHexSecondPartEnd] = '-'
+	hex.Encode(buf[messageIdHexThirdPartBegin:messageIdHexThirdPartEnd], g.buffer[messageIdRandomThirdPartBegin:messageIdRandomFourthPartBegin])
+	buf[messageIdHexThirdPartEnd] = '-'
+	hex.Encode(buf[messageIdHexFourthPartBegin:messageIdHexFourthPartEnd], g.buffer[messageIdRandomFourthPartBegin:messageIdRandomFifthPartBegin])
+	buf[messageIdHexFourthPartEnd] = '-'
+	hex.Encode(buf[messageIdHexFifthPartBegin:], g.buffer[10:])
 
 	return string(buf)
 }
