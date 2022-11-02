@@ -44,9 +44,9 @@ func NewWebsocketServer() (*WebSocketServer, error) {
 // StartWebsocketServer starts a websocket server
 func (w *WebSocketServer) StartWebsocketServer() {
 	http.HandleFunc("/", w.ServeHTTP)
-	hwlog.RunLog.Info("websocket server is listening....")
+	hwlog.RunLog.Info("websocket server is listening...")
 	if err := w.server.ListenAndServe(); err != nil {
-		hwlog.RunLog.Error("error during websocket server listening: ", err)
+		hwlog.RunLog.Errorf("error during websocket server listening: %v", err)
 		return
 	}
 }
@@ -61,7 +61,7 @@ func (w *WebSocketServer) ServeHTTP(resp http.ResponseWriter, req *http.Request)
 	}
 	conn, err := upgrader.Upgrade(resp, req, nil)
 	if err != nil {
-		hwlog.RunLog.Error("error during connection upgrade: ", err)
+		hwlog.RunLog.Errorf("error during connection upgrade: %v", err)
 		return
 	}
 	hwlog.RunLog.Info("websocket connection is ok")
@@ -83,7 +83,7 @@ func (w *WebSocketServer) IsClientConnected(nodeID string) bool {
 func (w *WebSocketServer) CloseConnection(nodeID string) {
 	w.SetClientStatus(nodeID, Offline)
 	if err := w.server.Close(); err != nil {
-		hwlog.RunLog.Error("close websocket connection error: ", err)
+		hwlog.RunLog.Errorf("close websocket connection error: %v", err)
 	}
 }
 

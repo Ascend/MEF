@@ -21,7 +21,7 @@ func (s *Socket) Name() string {
 // Start initializes the websocket server
 func (s *Socket) Start() {
 	if err := s.initSocket(); err != nil {
-		hwlog.RunLog.Error("start websocket server failed, error: ", err)
+		hwlog.RunLog.Errorf("start websocket server failed, error: %v", err)
 	}
 	go s.server.StartWebsocketServer()
 }
