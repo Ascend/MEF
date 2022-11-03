@@ -104,9 +104,10 @@ func (context *channelContext) SendSync(msg *model.Message, duration time.Durati
 		return nil, fmt.Errorf("msg is nil for channel context send sync")
 	}
 
-	var timeount time.Duration
+	timeout := duration
 	if duration <= 0 {
-		timeount = defaultMsgTimeout
+		fmt.Printf("reset timeout\n")
+		timeout = defaultMsgTimeout
 	}
 
 	var reqChannel chan model.Message
@@ -129,7 +130,7 @@ func (context *channelContext) SendSync(msg *model.Message, duration time.Durati
 
 	select {
 	case resp = <-respChannel:
-	case <-time.After(timeount):
+	case <-time.After(timeout):
 		return nil, fmt.Errorf("receive resp timeount for send sync")
 	}
 
