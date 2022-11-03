@@ -2,7 +2,7 @@ package module_manager
 
 import (
 	"edge-manager/module_manager/model"
-	"fmt"
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
@@ -42,10 +42,8 @@ func TestEnableModuleRegistry(t *testing.T) {
 	ModuleManagerInit()
 
 	m := testEnabledModule{}
-
-	if err := Registry(m); err != nil {
-		t.Errorf("registry test fail")
-	}
+	err := Registry(m)
+	assert.Nil(t, err)
 
 	// 去注册恢复默认状态
 	Unregistry(m)
@@ -56,10 +54,8 @@ func TestDisabledModuleRegistry(t *testing.T) {
 	ModuleManagerInit()
 
 	m := testDisabledModule{}
-
-	if err := Registry(m); err != nil {
-		t.Errorf("registry test fail")
-	}
+	err := Registry(m)
+	assert.Nil(t, err)
 
 	// 去注册恢复默认状态
 	Unregistry(m)
@@ -71,13 +67,12 @@ func TestEnabledModuleRepeatedRegistration(t *testing.T) {
 
 	m := testEnabledModule{}
 
-	if err := Registry(m); err != nil {
-		t.Errorf("registry test fail")
-	}
+	err := Registry(m)
+	assert.Nil(t, err)
 
-	if err := Registry(m); err == nil || err.Error() != "module existed" {
-		t.Errorf("repeated registration test fail")
-	}
+	err = Registry(m)
+	assert.NotNil(t, err)
+	assert.Error(t, err, "module existed")
 
 	// 去注册恢复默认状态
 	Unregistry(m)
@@ -89,19 +84,19 @@ func TestDisabledModuleRepeatedRegistration(t *testing.T) {
 
 	m := testDisabledModule{}
 
-	if err := Registry(m); err != nil {
-		t.Errorf("registry test fail")
-	}
+	err := Registry(m)
+	assert.Nil(t, err)
 
-	if err := Registry(m); err == nil || err.Error() != "module existed" {
-		t.Errorf("repeated registration test fail")
-	}
+	err = Registry(m)
+	assert.NotNil(t, err)
+	assert.Error(t, err, "module existed")
 
 	// 去注册恢复默认状态
 	Unregistry(m)
 }
 
 type SyncMessageSender struct {
+	TestFramework *testing.T
 }
 
 func (msg *SyncMessageSender) Name() string {
@@ -114,23 +109,23 @@ func (msg *SyncMessageSender) Enable() bool {
 
 func (msg *SyncMessageSender) Start() {
 	newMsg, err := model.NewMessage()
-	if err != nil || newMsg == nil {
-		panic("create new msg fail when test send message")
-	}
+	assert.Nil(msg.TestFramework, err)
+	assert.NotNil(msg.TestFramework, newMsg)
+
 	newMsg.SetRouter("TestSyncMessageSender", "TestMessageReceiver", "update", "app")
 	newMsg.FillContent("message content")
 
 	respMsg, err := SendSyncMessage(newMsg, 1*time.Second)
-	if err != nil || respMsg == nil {
-		panic(fmt.Sprintf("send sync msg fail when test send sync message: %v", err))
-	}
+	assert.Nil(msg.TestFramework, err)
+	assert.NotNil(msg.TestFramework, respMsg)
+
 	respContent, success := respMsg.GetContent().(string)
-	if !success || respContent != "response message content" {
-		panic("received response invalid in sync message sender")
-	}
+	assert.True(msg.TestFramework, success)
+	assert.Equal(msg.TestFramework, respContent, "response message content")
 }
 
 type MessageReceiver struct {
+	TestFramework *testing.T
 }
 
 func (msg *MessageReceiver) Name() string {
@@ -143,30 +138,27 @@ func (msg *MessageReceiver) Enable() bool {
 
 func (msg *MessageReceiver) Start() {
 	receivedMsg, err := ReceiveMessage("TestMessageReceiver")
-	if err != nil || receivedMsg == nil {
-		panic("receiver message fail in message receiver")
-	}
+	assert.Nil(msg.TestFramework, err)
+	assert.NotNil(msg.TestFramework, receivedMsg)
+
 	content, success := receivedMsg.GetContent().(string)
-	if !success || content != "message content" {
-		panic("message content is error in message receiver")
-	}
+	assert.True(msg.TestFramework, success)
+	assert.Equal(msg.TestFramework, content, "message content")
+
 	respMsg, err := receivedMsg.NewResponse()
-	if err != nil || respMsg == nil {
-		panic("create response message fail in message receiver")
-	}
+	assert.Nil(msg.TestFramework, err)
+	assert.NotNil(msg.TestFramework, respMsg)
 
 	respMsg.FillContent("response message content")
 	err = SendMessage(respMsg)
-	if err != nil {
-		panic("send response message fail in message receiver")
-	}
+	assert.Nil(msg.TestFramework, err)
 }
 
 func TestSendSyncMessage(t *testing.T) {
 	ModuleManagerInit()
 
-	sender := SyncMessageSender{}
-	receiver := MessageReceiver{}
+	sender := SyncMessageSender{TestFramework: t}
+	receiver := MessageReceiver{TestFramework: t}
 
 	_ = Registry(&sender)
 	_ = Registry(&receiver)
