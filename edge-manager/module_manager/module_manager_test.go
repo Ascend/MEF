@@ -102,54 +102,52 @@ func TestDisabledModuleRepeatedRegistration(t *testing.T) {
 }
 
 type SyncMessageSender struct {
-	
 }
 
-func (msg *SyncMessageSender)Name() string {
+func (msg *SyncMessageSender) Name() string {
 	return "TestSyncMessageSender"
 }
 
-func (msg *SyncMessageSender)Enable() bool {
+func (msg *SyncMessageSender) Enable() bool {
 	return true
 }
 
-func (msg *SyncMessageSender)Start() {
+func (msg *SyncMessageSender) Start() {
 	newMsg, err := model.NewMessage()
-	if err != nil || newMsg == nil{
+	if err != nil || newMsg == nil {
 		panic("create new msg fail when test send message")
 	}
 	newMsg.SetRouter("TestSyncMessageSender", "TestMessageReceiver", "update", "app")
 	newMsg.FillContent("message content")
 
-	respMsg, err := SendSyncMessage(newMsg, 1 * time.Second)
+	respMsg, err := SendSyncMessage(newMsg, 1*time.Second)
 	if err != nil || respMsg == nil {
 		panic(fmt.Sprintf("send sync msg fail when test send sync message: %v", err))
 	}
-	respContent := respMsg.GetContent().(string)
-	if respContent != "response message content" {
+	respContent, success := respMsg.GetContent().(string)
+	if !success || respContent != "response message content" {
 		panic("received response invalid in sync message sender")
 	}
 }
 
 type MessageReceiver struct {
-
 }
 
-func (msg *MessageReceiver)Name() string {
+func (msg *MessageReceiver) Name() string {
 	return "TestMessageReceiver"
 }
 
-func (msg *MessageReceiver)Enable() bool {
+func (msg *MessageReceiver) Enable() bool {
 	return true
 }
 
-func (msg *MessageReceiver)Start()  {
+func (msg *MessageReceiver) Start() {
 	receivedMsg, err := ReceiveMessage("TestMessageReceiver")
 	if err != nil || receivedMsg == nil {
 		panic("receiver message fail in message receiver")
 	}
-	content := receivedMsg.GetContent().(string)
-	if content != "message content" {
+	content, success := receivedMsg.GetContent().(string)
+	if !success || content != "message content" {
 		panic("message content is error in message receiver")
 	}
 	respMsg, err := receivedMsg.NewResponse()
@@ -164,7 +162,7 @@ func (msg *MessageReceiver)Start()  {
 	}
 }
 
-func TestSendSyncMessage(t *testing.T)  {
+func TestSendSyncMessage(t *testing.T) {
 	ModuleManagerInit()
 
 	sender := SyncMessageSender{}
@@ -176,7 +174,8 @@ func TestSendSyncMessage(t *testing.T)  {
 	Start()
 
 	// 等待模块协程完成业务
-	time.Sleep(2*time.Second)
+	const waitFinishTime = 2 * time.Second
+	time.Sleep(waitFinishTime)
 
 	Unregistry(&sender)
 	Unregistry(&receiver)
