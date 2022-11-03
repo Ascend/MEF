@@ -106,7 +106,6 @@ func (context *channelContext) SendSync(msg *model.Message, duration time.Durati
 
 	timeout := duration
 	if duration <= 0 {
-		fmt.Printf("reset timeout\n")
 		timeout = defaultMsgTimeout
 	}
 
