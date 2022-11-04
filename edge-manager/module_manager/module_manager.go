@@ -67,6 +67,13 @@ func Unregistry(m model.Module)  {
 	}
 }
 
+// Start start the module manager
+func Start()  {
+	for _, module := range enabledModule{
+		go module.Start()
+	}
+}
+
 // ReceiveMessage receive inner message
 func ReceiveMessage(moduleName string) (*model.Message, error) {
 	return moduleContext.Receive(moduleName)

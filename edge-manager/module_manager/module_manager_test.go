@@ -1,7 +1,10 @@
 package module_manager
 
 import (
+	"edge-manager/module_manager/model"
+	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 type testEnabledModule struct {
@@ -39,10 +42,8 @@ func TestEnableModuleRegistry(t *testing.T) {
 	ModuleManagerInit()
 
 	m := testEnabledModule{}
-
-	if err := Registry(m); err != nil {
-		t.Errorf("registry test fail")
-	}
+	err := Registry(m)
+	assert.Nil(t, err)
 
 	// 去注册恢复默认状态
 	Unregistry(m)
@@ -53,10 +54,8 @@ func TestDisabledModuleRegistry(t *testing.T) {
 	ModuleManagerInit()
 
 	m := testDisabledModule{}
-
-	if err := Registry(m); err != nil {
-		t.Errorf("registry test fail")
-	}
+	err := Registry(m)
+	assert.Nil(t, err)
 
 	// 去注册恢复默认状态
 	Unregistry(m)
@@ -68,13 +67,12 @@ func TestEnabledModuleRepeatedRegistration(t *testing.T) {
 
 	m := testEnabledModule{}
 
-	if err := Registry(m); err != nil {
-		t.Errorf("registry test fail")
-	}
+	err := Registry(m)
+	assert.Nil(t, err)
 
-	if err := Registry(m); err == nil || err.Error() != "module existed" {
-		t.Errorf("repeated registration test fail")
-	}
+	err = Registry(m)
+	assert.NotNil(t, err)
+	assert.Error(t, err, "module existed")
 
 	// 去注册恢复默认状态
 	Unregistry(m)
@@ -86,14 +84,92 @@ func TestDisabledModuleRepeatedRegistration(t *testing.T) {
 
 	m := testDisabledModule{}
 
-	if err := Registry(m); err != nil {
-		t.Errorf("registry test fail")
-	}
+	err := Registry(m)
+	assert.Nil(t, err)
 
-	if err := Registry(m); err == nil || err.Error() != "module existed" {
-		t.Errorf("repeated registration test fail")
-	}
+	err = Registry(m)
+	assert.NotNil(t, err)
+	assert.Error(t, err, "module existed")
 
 	// 去注册恢复默认状态
 	Unregistry(m)
+}
+
+type SyncMessageSender struct {
+	TestFramework *testing.T
+}
+
+func (msg *SyncMessageSender) Name() string {
+	return "TestSyncMessageSender"
+}
+
+func (msg *SyncMessageSender) Enable() bool {
+	return true
+}
+
+func (msg *SyncMessageSender) Start() {
+	newMsg, err := model.NewMessage()
+	assert.Nil(msg.TestFramework, err)
+	assert.NotNil(msg.TestFramework, newMsg)
+
+	newMsg.SetRouter("TestSyncMessageSender", "TestMessageReceiver", "update", "app")
+	newMsg.FillContent("message content")
+
+	respMsg, err := SendSyncMessage(newMsg, 1*time.Second)
+	assert.Nil(msg.TestFramework, err)
+	assert.NotNil(msg.TestFramework, respMsg)
+
+	respContent, success := respMsg.GetContent().(string)
+	assert.True(msg.TestFramework, success)
+	assert.Equal(msg.TestFramework, respContent, "response message content")
+}
+
+type MessageReceiver struct {
+	TestFramework *testing.T
+}
+
+func (msg *MessageReceiver) Name() string {
+	return "TestMessageReceiver"
+}
+
+func (msg *MessageReceiver) Enable() bool {
+	return true
+}
+
+func (msg *MessageReceiver) Start() {
+	receivedMsg, err := ReceiveMessage("TestMessageReceiver")
+	assert.Nil(msg.TestFramework, err)
+	assert.NotNil(msg.TestFramework, receivedMsg)
+
+	content, success := receivedMsg.GetContent().(string)
+	assert.True(msg.TestFramework, success)
+	assert.Equal(msg.TestFramework, content, "message content")
+
+	respMsg, err := receivedMsg.NewResponse()
+	assert.Nil(msg.TestFramework, err)
+	assert.NotNil(msg.TestFramework, respMsg)
+
+	respMsg.FillContent("response message content")
+	err = SendMessage(respMsg)
+	assert.Nil(msg.TestFramework, err)
+}
+
+func TestSendSyncMessage(t *testing.T) {
+	ModuleManagerInit()
+
+	sender := SyncMessageSender{TestFramework: t}
+	receiver := MessageReceiver{TestFramework: t}
+
+	_ = Registry(&sender)
+	_ = Registry(&receiver)
+
+	Start()
+
+	// 等待模块协程完成业务
+	const waitFinishTime = 2 * time.Second
+	time.Sleep(waitFinishTime)
+
+	Unregistry(&sender)
+	Unregistry(&receiver)
+
 }
