@@ -8,7 +8,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"sync"
 
 	"huawei.com/mindx/common/hwlog"
 
@@ -28,7 +27,6 @@ const (
 var (
 	dbPath string
 	gormDB *gorm.DB
-	once   sync.Once
 )
 
 func init() {
@@ -38,8 +36,8 @@ func init() {
 
 // InitDB init database client
 func InitDB() error {
-	db := GetDb()
-	if db == nil {
+	initDbConnection()
+	if gormDB == nil {
 		return fmt.Errorf("initialise database failed")
 	}
 	return nil
@@ -47,7 +45,6 @@ func InitDB() error {
 
 // GetDb connection data
 func GetDb() *gorm.DB {
-	once.Do(initDbConnection)
 	return gormDB
 }
 

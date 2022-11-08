@@ -49,7 +49,6 @@ spec:
     spec:
       nodeSelector:
         masterselector: dls-master-node
-      automountServiceAccountToken: false
       imagePullSecrets:
         - name: image-pull-secret
       serviceAccountName: ascend-edge-manager
@@ -73,16 +72,16 @@ spec:
           # NOTE: HTTPS is enabled by default
           args: ["./edge-manager -ip=0.0.0.0 -port=8101"]
           volumeMounts:
-            - name: ascend-edgemanager-log
-              mountPath: /var/log/mindx-edge/ascend-edge-manager
+            - name: edgemanager-log
+              mountPath: /var/log/mindx-edge/edge-manager
             - name: localtime
               mountPath: /etc/localtime
             - name: kmc
               mountPath: /etc/mindx-edge
       volumes:
-        - name: ascend-edgemanager-log
+        - name: edgemanager-log
           hostPath:
-            path: /var/log/mindx-edge/ascend-edge-manager
+            path: /var/log/mindx-edge/edge-manager
             type: Directory
         - name: localtime
           hostPath:
