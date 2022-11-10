@@ -4,36 +4,34 @@ import (
 	"edge-manager/module_manager/context"
 	"edge-manager/module_manager/model"
 	"fmt"
+	"sync"
 	"time"
 )
 
-var enabledModule map[string]model.Module
-var disabledModule map[string]model.Module
+var enabledModule sync.Map
+var disabledModule sync.Map
 var moduleContext context.ModuleMessageContext
 
 // ModuleManagerInit module manager init
 func ModuleManagerInit()  {
-	enabledModule = make(map[string]model.Module)
-	disabledModule = make(map[string]model.Module)
 	moduleContext = context.GetContent()
 }
 
 func registryEnabledModule(m model.Module) error {
-	enabledModule[m.Name()] = m
-
+	enabledModule.Store(m.Name(), m)
 	return moduleContext.Registry(m.Name())
 }
 
 func registryDisabledModule(m model.Module) {
-	disabledModule[m.Name()] = m
+	disabledModule.Store(m.Name(), m)
 }
 
 func isModuleExised(m model.Module) bool {
-	if _, existed := enabledModule[m.Name()]; existed {
+	if _, existed := enabledModule.Load(m.Name()); existed {
 		return true
 	}
 
-	if _, existed := disabledModule[m.Name()]; existed {
+	if _, existed := disabledModule.Load(m.Name()); existed {
 		return true
 	}
 
@@ -60,18 +58,23 @@ func Registry(m model.Module) error {
 // Unregistry unregistry module
 func Unregistry(m model.Module)  {
 	if m.Enable() {
-		delete(enabledModule, m.Name())
+		enabledModule.Delete(m.Name())
 		_ = moduleContext.Unregistry(m.Name())
 	} else {
-		delete(disabledModule, m.Name())
+		disabledModule.Delete(m.Name())
 	}
 }
 
 // Start start the module manager
 func Start()  {
-	for _, module := range enabledModule{
+	enabledModule.Range(func(key, value interface{}) bool {
+		module := value.(model.Module)
+		if module == nil {
+			return true
+		}
 		go module.Start()
-	}
+		return true
+	})
 }
 
 // ReceiveMessage receive inner message

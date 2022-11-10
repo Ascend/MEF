@@ -10,19 +10,24 @@ import (
 const defaultMsgTimeout = 30 * time.Second
 
 type channelContext struct {
-	channels map[string]chan model.Message
+	channels sync.Map
 
-	anonChannels map[string]chan model.Message
-	anonChsLock  sync.RWMutex
+	anonChannels sync.Map
 }
 
 func (context *channelContext) findChannel(moduleName string) (chan model.Message, error) {
-	var channel chan model.Message
+	var channel interface{}
 	var ok bool
-	if channel, ok = context.channels[moduleName]; !ok {
+
+	if channel, ok = context.channels.Load(moduleName); !ok {
 		return nil, fmt.Errorf("can not find channel by name %s", moduleName)
 	}
-	return channel, nil
+
+	rChannel := channel.(chan model.Message)
+	if rChannel == nil {
+		return nil, fmt.Errorf("is not model message channel %s", moduleName)
+	}
+	return rChannel, nil
 }
 
 func (context *channelContext) sendMsgByChannel(channel chan model.Message, msg *model.Message) error {
@@ -38,10 +43,9 @@ func (context *channelContext) addAnonChannel(id string, channel chan model.Mess
 	if id == "" || channel == nil {
 		return
 	}
-	defer context.anonChsLock.Unlock()
 
-	context.anonChsLock.Lock()
-	context.anonChannels[id] = channel
+	context.anonChannels.Store(id, channel)
+
 	return
 }
 
@@ -50,28 +54,33 @@ func (context *channelContext) getAnonChannel(id string) (chan model.Message, er
 		return nil, fmt.Errorf("get anon channel fail(%s)", id)
 	}
 
-	var channel chan model.Message
+	var channel interface{}
 	var ok bool
-	defer context.anonChsLock.Unlock()
-	context.anonChsLock.Lock()
-	if channel, ok = context.anonChannels[id]; !ok {
+
+	if channel, ok = context.anonChannels.Load(id); !ok {
 		return nil, fmt.Errorf("can not find anon channel by id %s", id)
 	}
-	return channel, nil
+
+	rChannel := channel.(chan model.Message)
+	if rChannel == nil {
+		return nil, fmt.Errorf("is not model message channel %s", id)
+	}
+	return rChannel, nil
 }
 
 func (context *channelContext) deleteAnonChannel(id string) {
-	var channel chan model.Message
+	var channel interface{}
 	var ok bool
 
-	context.anonChsLock.Lock()
-	if channel, ok = context.anonChannels[id]; !ok {
-		context.anonChsLock.Unlock()
+	if channel, ok = context.anonChannels.Load(id); !ok {
 		return
 	}
-	delete(context.anonChannels, id)
-	context.anonChsLock.Unlock()
-	close(channel)
+	context.anonChannels.Delete(id)
+	rChannel := channel.(chan model.Message)
+	if rChannel == nil {
+		return
+	}
+	close(rChannel)
 }
 
 func (context *channelContext) Send(msg *model.Message) error {
@@ -151,33 +160,31 @@ func (context *channelContext) SendResp(msg *model.Message) error {
 }
 
 func (context *channelContext) Registry(moduleName string) error {
-	if _, existed := context.channels[moduleName]; existed {
+	if _, existed := context.channels.Load(moduleName); existed {
 		return fmt.Errorf("channel by module %s existed", moduleName)
 	}
-	context.channels[moduleName] = make(chan model.Message)
+	context.channels.Store(moduleName, make(chan model.Message))
 	return nil
 }
 
 func (context *channelContext) Unregistry(moduleName string) error {
-	var channel chan model.Message
+	var channel interface{}
 	var existed bool
 
-	if channel, existed = context.channels[moduleName]; !existed {
+	if channel, existed = context.channels.Load(moduleName); !existed {
 		return fmt.Errorf("delete %s channel not existed", moduleName)
 	}
 
-	delete(context.channels, moduleName)
-	close(channel)
+	context.channels.Delete(moduleName)
+	rChannel := channel.(chan model.Message)
+	if rChannel == nil {
+		return fmt.Errorf("delete %s channel is not model message channel", moduleName)
+	}
+	close(rChannel)
 	return nil
-}
-
-func (context *channelContext) init() {
-	context.channels = make(map[string]chan model.Message)
-	context.anonChannels = make(map[string]chan model.Message)
 }
 
 func NewChannelContext() *channelContext {
 	c := channelContext{}
-	c.init()
 	return &c
 }
