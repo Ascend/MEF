@@ -23,8 +23,8 @@ func (context *channelContext) findChannel(moduleName string) (chan model.Messag
 		return nil, fmt.Errorf("can not find channel by name %s", moduleName)
 	}
 
-	rChannel := channel.(chan model.Message)
-	if rChannel == nil {
+	rChannel, ok := channel.(chan model.Message)
+	if !ok {
 		return nil, fmt.Errorf("is not model message channel %s", moduleName)
 	}
 	return rChannel, nil
@@ -61,8 +61,8 @@ func (context *channelContext) getAnonChannel(id string) (chan model.Message, er
 		return nil, fmt.Errorf("can not find anon channel by id %s", id)
 	}
 
-	rChannel := channel.(chan model.Message)
-	if rChannel == nil {
+	rChannel, ok := channel.(chan model.Message)
+	if !ok {
 		return nil, fmt.Errorf("is not model message channel %s", id)
 	}
 	return rChannel, nil
@@ -76,8 +76,8 @@ func (context *channelContext) deleteAnonChannel(id string) {
 		return
 	}
 	context.anonChannels.Delete(id)
-	rChannel := channel.(chan model.Message)
-	if rChannel == nil {
+	rChannel, ok := channel.(chan model.Message)
+	if !ok {
 		return
 	}
 	close(rChannel)
@@ -176,8 +176,8 @@ func (context *channelContext) Unregistry(moduleName string) error {
 	}
 
 	context.channels.Delete(moduleName)
-	rChannel := channel.(chan model.Message)
-	if rChannel == nil {
+	rChannel, ok := channel.(chan model.Message)
+	if !ok {
 		return fmt.Errorf("delete %s channel is not model message channel", moduleName)
 	}
 	close(rChannel)

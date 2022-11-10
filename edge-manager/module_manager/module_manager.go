@@ -68,8 +68,8 @@ func Unregistry(m model.Module)  {
 // Start start the module manager
 func Start()  {
 	enabledModule.Range(func(key, value interface{}) bool {
-		module := value.(model.Module)
-		if module == nil {
+		module, ok := value.(model.Module)
+		if !ok {
 			return true
 		}
 		go module.Start()
