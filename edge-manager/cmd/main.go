@@ -10,7 +10,6 @@ import (
 	"edge-manager/pkg/restfulservice"
 	"flag"
 	"fmt"
-	"golang.org/x/net/context"
 
 	"edge-manager/pkg/common"
 	"edge-manager/pkg/database"
