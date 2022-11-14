@@ -10,13 +10,13 @@ import (
 	"edge-manager/pkg/restfulservice"
 	"flag"
 	"fmt"
-
-	"github.com/gin-gonic/gin"
+	"golang.org/x/net/context"
 
 	"edge-manager/pkg/common"
 	"edge-manager/pkg/database"
 
 	"huawei.com/mindx/common/hwlog"
+	gocontext "context"
 )
 
 const (
@@ -54,14 +54,15 @@ func main() {
 	if err := initResourse(); err != nil {
 		return
 	}
-	gin.SetMode(gin.ReleaseMode)
-	g := gin.New()
-	if err := register(g); err != nil {
+	if err := register(); err != nil {
 		hwlog.RunLog.Error("register error")
 		return
 	}
-	hwlog.RunLog.Info("start http server now...")
-	g.Run(fmt.Sprintf(":%d", port))
+
+	ctx, cancel := gocontext.WithCancel(gocontext.Background())
+	defer cancel()
+	<- ctx.Done()
+	hwlog.RunLog.Infof("")
 }
 
 func init() {
@@ -109,9 +110,9 @@ func initResourse() error {
 
 }
 
-func register(g *gin.Engine) error {
+func register() error {
 	module_manager.ModuleManagerInit()
-	if err := module_manager.Registry(restfulservice.NewRestfulService(true, g)); err != nil {
+	if err := module_manager.Registry(restfulservice.NewRestfulService(true, port)); err != nil {
 		return err
 	}
 	if err := module_manager.Registry(nodemanager.NewNodeManager(true)); err != nil {
