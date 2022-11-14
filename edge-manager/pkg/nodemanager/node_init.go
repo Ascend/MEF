@@ -35,18 +35,16 @@ func (node *nodeManager) Name() string {
 }
 
 func (node *nodeManager) Enable() bool {
+	if node.enable {
+		if err := initNodeTable(); err != nil {
+			hwlog.RunLog.Errorf("module (%s) init database table failed, cannot enable", common.NodeManagerName)
+			return !node.enable
+		}
+	}
 	return node.enable
 }
 
 func (node *nodeManager) Start() {
-	if err := database.CreateTableIfNotExists(NodeGroup{}); err != nil {
-		hwlog.RunLog.Error("create node group database table failed")
-		return
-	}
-	if err := database.CreateTableIfNotExists(NodeInfo{}); err != nil {
-		hwlog.RunLog.Error("create node database table failed")
-		return
-	}
 	for {
 		select {
 		case _, ok := <-node.ctx.Done():
@@ -81,6 +79,22 @@ func (node *nodeManager) Start() {
 	}
 }
 
+func initNodeTable() error {
+	if err := database.CreateTableIfNotExists(NodeGroup{}); err != nil {
+		hwlog.RunLog.Error("create node group database table failed")
+		return err
+	}
+	if err := database.CreateTableIfNotExists(NodeInfo{}); err != nil {
+		hwlog.RunLog.Error("create node database table failed")
+		return err
+	}
+	if err := database.CreateTableIfNotExists(NodeRelation{}); err != nil {
+		hwlog.RunLog.Error("create node database table failed")
+		return err
+	}
+	return nil
+}
+
 func methodSelect(req *model.Message) *common.RespMsg {
 	var res common.RespMsg
 	method, exit := nodeMethodList()[combine(req.GetOption(), req.GetResource())]
@@ -93,7 +107,10 @@ func methodSelect(req *model.Message) *common.RespMsg {
 
 func nodeMethodList() map[string]handlerFunc {
 	return map[string]handlerFunc{
-		combine(common.Create, common.Node): CreateNode,
+		combine(common.Create, common.Node):        createNode,
+		combine(common.Create, common.NodeGroup):   createGroup,
+		combine(common.List, common.Node):          listNode,
+		combine(common.List, common.NodeUnManaged): listNodeUnManaged,
 	}
 }
 

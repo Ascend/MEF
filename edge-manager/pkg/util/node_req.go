@@ -10,3 +10,9 @@ type CreateEdgeNodeReq struct {
 	UniqueName  string `json:"uniqueName"`
 	NodeGroup   string `json:"nodeGroup,omitempty"`
 }
+
+// CreateNodeGroupReq Create edge node group
+type CreateNodeGroupReq struct {
+	Description   string `json:"description"`
+	NodeGroupName string `json:"nodeGroupName"`
+}

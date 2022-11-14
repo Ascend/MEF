@@ -24,11 +24,6 @@ func upgradeSfw(c *gin.Context) {
 		option:      common.Upgrade,
 		resource:    common.Software,
 	}
-	respMsg, err := sendSyncMessageByRestful(upgradeSfwReq, &router)
-	if err != nil {
-		common.ConstructResp(c, common.ErrorsSendSyncMessageByRestful, "", nil)
-		return
-	}
-	resp := marshalResponse(respMsg)
+	resp := sendSyncMessageByRestful(upgradeSfwReq, &router)
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }

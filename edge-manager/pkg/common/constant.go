@@ -34,6 +34,8 @@ const (
 
 	// Node resource node
 	Node = "node"
+	// NodeUnManaged resource node unmanaged
+	NodeUnManaged = "nodeUnManaged"
 	// NodeGroup resource nodeGroup
 	NodeGroup = "nodeGroup"
 	// Software resource software
@@ -48,6 +50,10 @@ const (
 	MaxPort = 65535
 	// MinPort is port min value
 	MinPort = 1025
+	// BaseHex  Base Parse integer need params
+	BaseHex = 10
+	// BitSize64 Base Parse integer need params
+	BitSize64 = 64
 )
 
 const (
