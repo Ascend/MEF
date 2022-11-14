@@ -95,6 +95,34 @@ func TestDisabledModuleRepeatedRegistration(t *testing.T) {
 	Unregistry(m)
 }
 
+// 使能模块的重复去注册测试
+func TestEnabledModuleRepeatedUnregistration(t *testing.T) {
+	ModuleManagerInit()
+
+	m := testEnabledModule{}
+
+	err := Registry(m)
+	assert.Nil(t, err)
+
+	// 去注册恢复默认状态
+	Unregistry(m)
+	Unregistry(m)
+}
+
+// 去使能模块的重复去注册测试
+func TestDisenabledModuleRepeatedUnregistration(t *testing.T) {
+	ModuleManagerInit()
+
+	m := testDisabledModule{}
+
+	err := Registry(m)
+	assert.Nil(t, err)
+
+	// 去注册恢复默认状态
+	Unregistry(m)
+	Unregistry(m)
+}
+
 type SyncMessageSender struct {
 	TestFramework *testing.T
 }
