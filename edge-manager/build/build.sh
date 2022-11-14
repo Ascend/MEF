@@ -13,15 +13,18 @@ if [ -f "$VER_FILE" ]; then
   #cut the chars after ':'
   build_version=${line#*:}
 fi
+
 OUTPUT_NAME="edge-manager"
 DOCKER_FILE_NAME="Dockerfile"
 arch=$(arch 2>&1)
 echo "Build Architecture is" "${arch}"
 sed -i "s/edge-manager:.*/edge-manager:${build_version}/" "${TOP_DIR}/build/${OUTPUT_NAME}.yaml"
+
 function clean() {
   rm -rf "${TOP_DIR}/output"
   mkdir -p "${TOP_DIR}/output"
 }
+
 function build() {
   cd "${TOP_DIR}/cmd"
   export CGO_ENABLED=1
@@ -38,6 +41,7 @@ function build() {
     exit 1
   fi
 }
+
 function mv_file() {
   mv "${TOP_DIR}/cmd/${OUTPUT_NAME}" "${TOP_DIR}/output"
   cp "${TOP_DIR}/build/${OUTPUT_NAME}".yaml "${TOP_DIR}/output/${OUTPUT_NAME}-${build_version}".yaml
@@ -45,9 +49,11 @@ function mv_file() {
   chmod 400 "${TOP_DIR}/output/"*
   chmod 500 "${TOP_DIR}/output/${OUTPUT_NAME}"
 }
+
 function main() {
   clean
   build
   mv_file
 }
+
 main

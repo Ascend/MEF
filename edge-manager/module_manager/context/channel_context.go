@@ -3,6 +3,7 @@ package context
 import (
 	"edge-manager/module_manager/model"
 	"fmt"
+	"huawei.com/mindx/common/hwlog"
 	"sync"
 	"time"
 )
@@ -138,7 +139,9 @@ func (context *channelContext) SendSync(msg *model.Message, duration time.Durati
 
 	select {
 	case resp = <-respChannel:
+		hwlog.RunLog.Debug("receive resp for send sync")
 	case <-time.After(timeout):
+		hwlog.RunLog.Error("receive resp timeount for send sync")
 		return nil, fmt.Errorf("receive resp timeount for send sync")
 	}
 

@@ -4,13 +4,18 @@
 package main
 
 import (
+	"edge-manager/module_manager"
+	"edge-manager/pkg/kubeclient"
+	"edge-manager/pkg/nodemanager"
+	"edge-manager/pkg/restfulservice"
 	"flag"
 	"fmt"
+
+	"github.com/gin-gonic/gin"
 
 	"edge-manager/pkg/common"
 	"edge-manager/pkg/database"
 
-	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
 )
 
@@ -23,23 +28,23 @@ const (
 var (
 	serverRunConf = &hwlog.LogConfig{LogFileName: runLogFile}
 	serverOpConf  = &hwlog.LogConfig{LogFileName: operateLogFile}
-	// BuildName the program name
-	BuildName string
-	// BuildVersion the program version
-	BuildVersion string
-	port         int
-	ip           string
-	version      bool
+	buildName     string
+	buildVersion  string
+	port          int
+	ip            string
+	version       bool
+	// Kubeconfig Kube config path
+	Kubeconfig string
 )
 
 func main() {
 	flag.Parse()
 	if version {
-		fmt.Printf("%s version: %s\n", BuildName, BuildVersion)
+		fmt.Printf("%s version: %s\n", buildName, buildVersion)
 		return
 	}
 	if err := common.InitHwlogger(serverRunConf, serverOpConf); err != nil {
-		fmt.Printf("initialize hwlog failed, %s\n.", err.Error())
+		fmt.Printf("initialize hwlog failed, %s.\n", err.Error())
 		return
 	}
 	if err := common.BaseParamValid(port, ip); err != nil {
@@ -49,9 +54,14 @@ func main() {
 	if err := initResourse(); err != nil {
 		return
 	}
-	r := initGin()
+	gin.SetMode(gin.ReleaseMode)
+	g := gin.New()
+	if err := register(g); err != nil {
+		hwlog.RunLog.Error("register error")
+		return
+	}
 	hwlog.RunLog.Info("start http server now...")
-	r.Run()
+	g.Run(fmt.Sprintf(":%d", port))
 }
 
 func init() {
@@ -61,6 +71,8 @@ func init() {
 		"The listen ip of the service,0.0.0.0 is not recommended when install on Multi-NIC host")
 	flag.BoolVar(&version, "version", false, "Output the program version")
 
+	flag.StringVar(&Kubeconfig, "kubeconfig", "",
+		"The k8s master config file")
 	// hwOpLog configuration
 	flag.IntVar(&serverOpConf.LogLevel, "operateLogLevel", 0,
 		"Operation log level, -1-debug, 0-info, 1-warning, 2-error, 3-dpanic, 4-panic, 5-fatal (default 0)")
@@ -82,23 +94,29 @@ func init() {
 		"Maximum number of backup run logs, range (0, 30]")
 }
 
-func initGin() *gin.Engine {
-	gin.SetMode(gin.ReleaseMode)
-	r := gin.New()
-	r.GET("/edgemanager/v1/version", versionQuery)
-	return r
-}
-
 func initResourse() error {
+	restfulservice.BuildNameStr = buildName
+	restfulservice.BuildVersionStr = buildVersion
 	if err := database.InitDB(); err != nil {
-		hwlog.RunLog.Info("init database failed")
+		hwlog.RunLog.Error("init database failed")
+		return err
+	}
+	if _, err := kubeclient.NewClientK8s(); err != nil {
+		hwlog.RunLog.Error("init k8s failed")
 		return err
 	}
 	return nil
+
 }
 
-func versionQuery(c *gin.Context) {
-	msg := fmt.Sprintf("%s version: %s", BuildName, BuildVersion)
-	hwlog.OpLog.Infof("query edge manager version: %s successfully", msg)
-	common.ConstructResp(c, common.Success, "", msg)
+func register(g *gin.Engine) error {
+	module_manager.ModuleManagerInit()
+	if err := module_manager.Registry(restfulservice.NewRestfulService(true, g)); err != nil {
+		return err
+	}
+	if err := module_manager.Registry(nodemanager.NewNodeManager(true)); err != nil {
+		return err
+	}
+	module_manager.Start()
+	return nil
 }
