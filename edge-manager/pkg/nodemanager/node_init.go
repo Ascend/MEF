@@ -65,17 +65,17 @@ func (node *nodeManager) Start() {
 		}
 		msg := methodSelect(req)
 		if msg == nil {
-			hwlog.RunLog.Error("%s get method by option and resource failed", common.NodeManagerName)
+			hwlog.RunLog.Errorf("%s get method by option and resource failed", common.NodeManagerName)
 			continue
 		}
 		resp, err := req.NewResponse()
 		if err != nil {
-			hwlog.RunLog.Error("%s new response failed", common.NodeManagerName)
+			hwlog.RunLog.Errorf("%s new response failed", common.NodeManagerName)
 			continue
 		}
 		resp.FillContent(msg)
 		if err = module_manager.SendMessage(resp); err != nil {
-			hwlog.RunLog.Error("%s send response failed", common.NodeManagerName)
+			hwlog.RunLog.Errorf("%s send response failed", common.NodeManagerName)
 			continue
 		}
 	}

@@ -10,14 +10,14 @@ function call_component_test(){
   cd ${TOP_DIR}/$1/build
   dos2unix test.sh
   chmod +x test.sh
-  sh test.sh
+  sh -x test.sh
   if [[ $? -ne 0 ]]; then
      exit 1
   fi
   sudo cp -rf ${TOP_DIR}/$1/test/api*.html ${TOP_DIR}/test/results/
   sudo cp -rf ${TOP_DIR}/$1/test/unit-tests*.xml ${TOP_DIR}/test/results/
 
-  echo "************************component($1) test end."
+  echo "************************component($1) test end. "
 }
 
 sudo mkdir -p ${TOP_DIR}/test/results/
