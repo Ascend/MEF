@@ -4,12 +4,12 @@
 package edgeconnector
 
 import (
-	"edge-manager/pkg/edgeconnector/common"
 	"fmt"
-	"github.com/gorilla/websocket"
-	"huawei.com/mindx/common/hwlog"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/websocket"
+	"huawei.com/mindx/common/hwlog"
 )
 
 // WebSocketServer defines the websocket server config
@@ -27,22 +27,20 @@ const (
 	Offline = false
 )
 
-// NewWebsocketServer instantiates WebSocketServer struct
-func NewWebsocketServer() (*WebSocketServer, error) {
+func newWebsocketServer() (*WebSocketServer, error) {
 	s := WebSocketServer{
 		server: &http.Server{
 			Addr: fmt.Sprintf("%s:%s", Config.ServerAddress, Config.Port),
 		},
-		WriteDeadline: common.WriteDeadline,
-		ReadDeadline:  common.ReadDeadline,
+		WriteDeadline: WriteDeadline,
+		ReadDeadline:  ReadDeadline,
 		allClients:    make(map[string]*websocket.Conn),
 		isConnMap:     make(map[string]bool),
 	}
 	return &s, nil
 }
 
-// StartWebsocketServer starts a websocket server
-func (w *WebSocketServer) StartWebsocketServer() {
+func (w *WebSocketServer) startWebsocketServer() {
 	http.HandleFunc("/", w.ServeHTTP)
 	hwlog.RunLog.Info("websocket server is listening...")
 	if err := w.server.ListenAndServe(); err != nil {
@@ -53,8 +51,8 @@ func (w *WebSocketServer) StartWebsocketServer() {
 
 func (w *WebSocketServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	var upgrader = websocket.Upgrader{
-		ReadBufferSize:  common.ReadBufferSize,
-		WriteBufferSize: common.WriteBufferSize,
+		ReadBufferSize:  ReadBufferSize,
+		WriteBufferSize: WriteBufferSize,
 		CheckOrigin: func(r *http.Request) bool {
 			return true
 		},
@@ -64,6 +62,7 @@ func (w *WebSocketServer) ServeHTTP(resp http.ResponseWriter, req *http.Request)
 		hwlog.RunLog.Errorf("error during connection upgrade: %v", err)
 		return
 	}
+
 	hwlog.RunLog.Info("websocket connection is ok")
 	nodeID := req.Header.Get("SerialNumber")
 	w.allClients[nodeID] = conn

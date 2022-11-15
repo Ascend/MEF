@@ -5,6 +5,8 @@ package main
 
 import (
 	"edge-manager/module_manager"
+	"edge-manager/pkg/edgeconnector"
+	"edge-manager/pkg/edgeinstaller"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/nodemanager"
 	"edge-manager/pkg/restfulservice"
@@ -51,7 +53,7 @@ func main() {
 		hwlog.RunLog.Error(err)
 		return
 	}
-	if err := initResourse(); err != nil {
+	if err := initResource(); err != nil {
 		return
 	}
 	gin.SetMode(gin.ReleaseMode)
@@ -94,7 +96,7 @@ func init() {
 		"Maximum number of backup run logs, range (0, 30]")
 }
 
-func initResourse() error {
+func initResource() error {
 	restfulservice.BuildNameStr = buildName
 	restfulservice.BuildVersionStr = buildVersion
 	if err := database.InitDB(); err != nil {
@@ -115,6 +117,12 @@ func register(g *gin.Engine) error {
 		return err
 	}
 	if err := module_manager.Registry(nodemanager.NewNodeManager(true)); err != nil {
+		return err
+	}
+	if err := module_manager.Registry(edgeconnector.NewSocket(true)); err != nil {
+		return err
+	}
+	if err := module_manager.Registry(edgeinstaller.NewInstaller(true)); err != nil {
 		return err
 	}
 	module_manager.Start()
