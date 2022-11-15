@@ -15,6 +15,9 @@ func IsIpValid(ip string) (bool,error) {
 	if parsedIp.To4() == nil && parsedIp.To16() == nil {
 		return false, fmt.Errorf("IP must be a valid IP address")
 	}
+	if parsedIp.Equal(net.IPv4bcast) {
+		return false, fmt.Errorf("IP can't be a broadcast address")
+	}
 	if parsedIp.IsMulticast() {
 		return false, fmt.Errorf("IP can't be a multicast address")
 	}
