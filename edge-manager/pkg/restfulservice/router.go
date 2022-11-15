@@ -8,6 +8,7 @@ import (
 	"edge-manager/module_manager/model"
 	"edge-manager/pkg/common"
 	"encoding/json"
+
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
 )
@@ -22,12 +23,20 @@ type router struct {
 func setRouter(engine *gin.Engine) {
 	engine.Use(gin.Recovery())
 	nodeRouter(engine)
+	wsRouter(engine)
 }
 
 func nodeRouter(engine *gin.Engine) {
 	v1 := engine.Group("/edgemanager/v1/node")
 	{
 		v1.POST("/", createEdgeNode)
+	}
+}
+
+func wsRouter(engine *gin.Engine) {
+	v1 := engine.Group("/edgemanager/v1/ws")
+	{
+		v1.POST("/", upgradeSfw)
 	}
 }
 

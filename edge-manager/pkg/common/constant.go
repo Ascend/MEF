@@ -10,6 +10,12 @@ const (
 	RestfulServiceName = "RestfulService"
 	// NodeManagerName NodeManager
 	NodeManagerName = "NodeManager"
+	// EdgeConnectorName edge-connector
+	EdgeConnectorName = "edge-connector"
+	// EdgeInstallerName edge-installer
+	EdgeInstallerName = "edge-installer"
+	// SoftwareRepositoryName software repository
+	SoftwareRepositoryName = "software repository"
 
 	// Create option create
 	Create = "create"
@@ -17,15 +23,21 @@ const (
 	Delete = "delete"
 	// Update option update
 	Update = "update"
+	// Upgrade option upgrade
+	Upgrade = "upgrade"
+	// Query option query
+	Query = "query"
 	// Get option get
 	Get = "get"
-	// List option to get resource list
+	// List option get resource list
 	List = "list"
 
 	// Node resource node
 	Node = "node"
 	// NodeGroup resource nodeGroup
 	NodeGroup = "nodeGroup"
+	// Software resource software
+	Software = "software"
 
 	// ResponseTimeout Response timeout time
 	ResponseTimeout = 3 * time.Second
