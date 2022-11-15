@@ -21,7 +21,7 @@ var (
 type restfulService struct {
 	enable bool
 	engine *gin.Engine
-	port int
+	port   int
 }
 
 func initGin() *gin.Engine {
@@ -33,7 +33,7 @@ func initGin() *gin.Engine {
 func NewRestfulService(enable bool, port int) *restfulService {
 	nm := &restfulService{
 		enable: enable,
-		port: port,
+		port:   port,
 		engine: initGin(),
 	}
 	return nm

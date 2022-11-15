@@ -14,8 +14,8 @@ import (
 	"edge-manager/pkg/common"
 	"edge-manager/pkg/database"
 
+	"context"
 	"huawei.com/mindx/common/hwlog"
-	gocontext "context"
 )
 
 const (
@@ -58,9 +58,9 @@ func main() {
 		return
 	}
 
-	ctx, cancel := gocontext.WithCancel(gocontext.Background())
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	<- ctx.Done()
+	<-ctx.Done()
 	hwlog.RunLog.Infof("")
 }
 
