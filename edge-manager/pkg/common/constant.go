@@ -32,8 +32,8 @@ const (
 )
 
 const (
-	maxPort = 65535
-	minPort = 1025
+	MaxPort = 65535
+	MinPort = 1025
 )
 
 const (

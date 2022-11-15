@@ -1,13 +1,9 @@
 package checker
 
-import (
-	"fmt"
-)
-
 // IsPortInRange check port is in range or not
-func IsPortInRange(minPort, maxPort, port int) (bool,error) {
+func IsPortInRange(minPort, maxPort, port int) (bool) {
 	if port < minPort || port > maxPort {
-		return false, fmt.Errorf("port %d is not in range [%d, %d]", port, minPort, maxPort)
+		return false
 	}
-	return true, nil
+	return true
 }

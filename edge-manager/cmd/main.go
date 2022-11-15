@@ -5,6 +5,7 @@ package main
 
 import (
 	"edge-manager/module_manager"
+	"edge-manager/pkg/common/checker"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/nodemanager"
 	"edge-manager/pkg/restfulservice"
@@ -46,7 +47,15 @@ func main() {
 		fmt.Printf("initialize hwlog failed, %s.\n", err.Error())
 		return
 	}
-	if err := common.BaseParamValid(port, ip); err != nil {
+	if inRanage := checker.IsPortInRange(common.MinPort, common.MaxPort, port); !inRanage {
+		hwlog.RunLog.Error("port %d is not in [%d, %d]", port, common.MinPort, common.MaxPort)
+		return
+	}
+	if valid, err := checker.IsIpValid(ip); !valid {
+		hwlog.RunLog.Error(err)
+		return
+	}
+	if valid, err := checker.IsIpInHost(ip); !valid {
 		hwlog.RunLog.Error(err)
 		return
 	}
