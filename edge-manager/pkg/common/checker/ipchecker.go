@@ -1,3 +1,6 @@
+// Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
+
+// Package checker to check ip
 package checker
 
 import (
@@ -48,6 +51,8 @@ func IsIpInHost(ip string) (bool, error) {
 			ip = v.IP
 		case *net.IPAddr:
 			ip = v.IP
+		default:
+			hwlog.RunLog.Error("unexpected type %T", v)
 		}
 		if ip != nil && ip.Equal(parsedIp) {
 			return true, nil
