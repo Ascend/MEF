@@ -6,7 +6,6 @@ package restfulservice
 import (
 	"edge-manager/pkg/common"
 	"fmt"
-
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
 )
@@ -22,6 +21,7 @@ type restfulService struct {
 	enable bool
 	engine *gin.Engine
 	port   int
+	ip     string
 }
 
 func initGin() *gin.Engine {
@@ -30,10 +30,11 @@ func initGin() *gin.Engine {
 }
 
 // NewRestfulService new restful service
-func NewRestfulService(enable bool, port int) *restfulService {
+func NewRestfulService(enable bool, ip string, port int) *restfulService {
 	nm := &restfulService{
 		enable: enable,
 		port:   port,
+		ip:     ip,
 		engine: initGin(),
 	}
 	return nm
@@ -51,7 +52,7 @@ func (r *restfulService) Start() {
 	r.engine.GET("/edgemanager/v1/version", versionQuery)
 
 	hwlog.RunLog.Info("start http server now...")
-	err := r.engine.Run(fmt.Sprintf(":%d", r.port))
+	err := r.engine.Run(fmt.Sprintf("%s:%d", r.ip, r.port))
 	if err != nil {
 		hwlog.RunLog.Errorf("start restful at %d fail", r.port)
 	}

@@ -111,7 +111,7 @@ func initResourse() error {
 
 func register() error {
 	module_manager.ModuleManagerInit()
-	if err := module_manager.Registry(restfulservice.NewRestfulService(true, port)); err != nil {
+	if err := module_manager.Registry(restfulservice.NewRestfulService(true, ip, port)); err != nil {
 		return err
 	}
 	if err := module_manager.Registry(nodemanager.NewNodeManager(true)); err != nil {
