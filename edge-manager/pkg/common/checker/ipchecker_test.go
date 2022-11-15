@@ -7,14 +7,18 @@ import (
 
 func TestIsIpValid(t *testing.T) {
 	testIp := "11.111.11.1"
-	assert.True(t, IsIpValid(testIp))
+	valid, _ := IsIpValid(testIp)
+	assert.True(t, valid)
 
 	testIp = "127.0.0.1"
-	assert.True(t, IsIpValid(testIp))
+	valid, _ = IsIpValid(testIp)
+	assert.True(t, valid)
 
 	testIp = "255.255.255.255"
-	assert.False(t, IsIpValid(testIp))
+	valid, _ = IsIpValid(testIp)
+	assert.False(t, valid)
 
 	testIp = "0.0.0.0"
-	assert.False(t, IsIpValid(testIp))
+	valid, _ = IsIpValid(testIp)
+	assert.False(t, valid)
 }
