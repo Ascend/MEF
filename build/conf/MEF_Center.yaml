@@ -1,0 +1,35 @@
+component: MEF_Center
+product: MEF_Center
+systemEnv:
+  - workspace
+  - processor
+  - version
+TOP_DIR: "{{systemEnv.workspace}}/{{component}}"
+MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/edge-manager"
+compile:
+  input:
+    dependency:
+      - name: edge-manager
+        version: "1.0"
+        type: opensource
+        buildFile: "{{MANAGER_DIR}}/build/conf"
+    files:
+      exclude:
+        - remove: ["{{TOP_DIR}}/output/"]
+        - makedir:
+            path: "{{TOP_DIR}}/output"
+  process:
+    language: go
+    compilePath:
+    parameters:
+  output:
+    files:
+      include:
+        - copy:
+            src:
+              - '{{MANAGER_DIR}}/output/*.zip'
+            des: "{{TOP_DIR}}/output/"
+        - mode:
+            src:
+              - "{{TOP_DIR}}/output/*"
+            mode: "400"

@@ -6,16 +6,19 @@ package main
 import (
 	"edge-manager/module_manager"
 	"edge-manager/pkg/common/checker"
+	"edge-manager/pkg/edgeconnector"
+	"edge-manager/pkg/edgeinstaller"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/nodemanager"
 	"edge-manager/pkg/restfulservice"
 	"flag"
 	"fmt"
 
+	"github.com/gin-gonic/gin"
+
 	"edge-manager/pkg/common"
 	"edge-manager/pkg/database"
 
-	"context"
 	"huawei.com/mindx/common/hwlog"
 )
 
@@ -59,18 +62,17 @@ func main() {
 		hwlog.RunLog.Error(err)
 		return
 	}
-	if err := initResourse(); err != nil {
+	if err := initResource(); err != nil {
 		return
 	}
-	if err := register(); err != nil {
+	gin.SetMode(gin.ReleaseMode)
+	g := gin.New()
+	if err := register(g); err != nil {
 		hwlog.RunLog.Error("register error")
 		return
 	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	<-ctx.Done()
-	hwlog.RunLog.Infof("")
+	hwlog.RunLog.Info("start http server now...")
+	g.Run(fmt.Sprintf(":%d", port))
 }
 
 func init() {
@@ -103,7 +105,7 @@ func init() {
 		"Maximum number of backup run logs, range (0, 30]")
 }
 
-func initResourse() error {
+func initResource() error {
 	restfulservice.BuildNameStr = buildName
 	restfulservice.BuildVersionStr = buildVersion
 	if err := database.InitDB(); err != nil {
@@ -118,12 +120,18 @@ func initResourse() error {
 
 }
 
-func register() error {
+func register(g *gin.Engine) error {
 	module_manager.ModuleManagerInit()
-	if err := module_manager.Registry(restfulservice.NewRestfulService(true, ip, port)); err != nil {
+	if err := module_manager.Registry(restfulservice.NewRestfulService(true, g)); err != nil {
 		return err
 	}
 	if err := module_manager.Registry(nodemanager.NewNodeManager(true)); err != nil {
+		return err
+	}
+	if err := module_manager.Registry(edgeconnector.NewSocket(true)); err != nil {
+		return err
+	}
+	if err := module_manager.Registry(edgeinstaller.NewInstaller(true)); err != nil {
 		return err
 	}
 	module_manager.Start()
