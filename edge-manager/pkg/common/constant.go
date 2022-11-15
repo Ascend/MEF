@@ -32,7 +32,7 @@ const (
 )
 
 const (
-	maxPort = 40000
+	maxPort = 65535
 	minPort = 1025
 )
 
