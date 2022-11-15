@@ -1,4 +1,4 @@
-FROM ubuntu:18.04 as build
+FROM ubuntu:20.04 as build
 RUN useradd -d /home/hwMindX -u 9000 -m -s  /usr/sbin/nologin hwMindX
 WORKDIR /home/hwMindX
 COPY edge-manager .
