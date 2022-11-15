@@ -6,25 +6,40 @@ import (
 )
 
 func TestIsIpValid(t *testing.T) {
-	ipTestCase := []struct{
-		ip	string
+	ipTestCase := []struct {
+		ip        string
 		expResult bool
-	} {
+		errMsg    string
+	}{
 		{
-			ip: "11.111.11.1",
+			ip:        "11.111.11.1",
 			expResult: true,
+			errMsg:    nil,
 		},
 		{
-			ip: "127.0.0.1",
+			ip:        "127.0.0.1",
 			expResult: true,
+			errMsg:    nil,
 		},
 		{
-			ip: "255.255.255.255",
+			ip:        "255.255.255.255",
 			expResult: false,
+			errMsg:    "IP can't be a broadcast address",
 		},
 		{
-			ip: "0.0.0.0",
+			ip:        "0.0.0.0",
 			expResult: false,
+			errMsg:    "IP can't be an all zeros address",
+		},
+		{
+			ip:        "::",
+			expResult: false,
+			errMsg:    "IP can't be an all zeros address",
+		},
+		{
+			ip:        "224.1.1.1",
+			expResult: false,
+			errMsg:    "IP can't be a multicast address",
 		},
 	}
 
