@@ -20,6 +20,8 @@ const (
 	CertManagerName = "CertManager"
 	// SoftwareRepositoryName software repository
 	SoftwareRepositoryName = "software repository"
+	// TemplateManagerName TemplateManager module name
+	TemplateManagerName = "TemplateManager"
 
 	// Create option create
 	Create = "create"
@@ -52,7 +54,8 @@ const (
 	ServiceCert = "service cert"
 	// CSR resource csr
 	CSR = "csr"
-
+	// AppTemplate resource app template
+	AppTemplate = "AppTemplate"
 	// ResponseTimeout Response timeout time
 	ResponseTimeout = 3 * time.Second
 )
@@ -75,9 +78,6 @@ const (
 	DefaultPage = 1
 	// ErrDbUniqueFailed sqlite error UNIQUE constraint failed
 	ErrDbUniqueFailed = "UNIQUE constraint failed"
-)
-
-const (
 	// TimeFormat time format
 	TimeFormat = "2006-01-02 15:04:05"
 )

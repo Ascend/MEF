@@ -15,6 +15,7 @@ func setRouter(engine *gin.Engine) {
 	engine.Use(gin.Recovery())
 	nodeRouter(engine)
 	wsRouter(engine)
+	templateRouter(engine)
 }
 
 func nodeRouter(engine *gin.Engine) {
@@ -39,6 +40,17 @@ func wsRouter(engine *gin.Engine) {
 	v1 := engine.Group("/edgemanager/v1/ws")
 	{
 		v1.POST("/", upgradeSfw)
+	}
+}
+
+func templateRouter(engine *gin.Engine) {
+	v1 := engine.Group("/edgemanager/v1/apptemplate")
+	{
+		v1.POST("/", createTemplate)
+		v1.POST("/delete", deleteTemplate)
+		v1.PUT("/", modifyTemplate)
+		v1.GET("/", getTemplateDetail)
+		v1.GET("/list", getTemplates)
 	}
 }
 

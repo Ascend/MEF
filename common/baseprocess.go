@@ -6,8 +6,10 @@ package common
 import (
 	"encoding/json"
 	"errors"
+
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -107,4 +109,68 @@ func GetEdgeMgrWorkPath() (string, bool) {
 	}
 
 	return currentDir, true
+}
+
+// GetIntParams get int params from param dictionary
+func GetIntParams(paramDic map[string][]string, paramName string, values *[]int) error {
+	if paramDic == nil || values == nil {
+		return errors.New("param is nil")
+	}
+	if results, ok := paramDic[paramName]; ok {
+		for _, result := range results {
+			intVal, err := strconv.Atoi(result)
+			if err != nil {
+				hwlog.RunLog.Errorf("convert string to int failed")
+				return errors.New("get param failed")
+			}
+			*values = append(*values, intVal)
+		}
+		return nil
+	}
+	return errors.New("param not found")
+}
+
+// GetUintParams get uint params from param dictionary
+func GetUintParams(paramDic map[string][]string, paramName string, values *[]uint64) error {
+	if paramDic == nil || values == nil {
+		return errors.New("param is nil")
+	}
+	if results, ok := paramDic[paramName]; ok {
+		for _, result := range results {
+			uintVal, err := strconv.ParseUint(result, BaseHex, BitSize64)
+			if err != nil {
+				hwlog.RunLog.Errorf("convert string to int failed")
+				return errors.New("get param failed")
+			}
+			*values = append(*values, uintVal)
+		}
+		return nil
+	}
+	return errors.New("param not found")
+}
+
+// GetUintParam get uint param from param dictionary
+func GetUintParam(paramDic map[string][]string, paramName string, value *uint64) error {
+	var values []uint64
+	if err := GetUintParams(paramDic, paramName, &values); err != nil {
+		return err
+	}
+	if len(values) == 0 {
+		return errors.New("param not found")
+	}
+	*value = values[0]
+	return nil
+}
+
+// GetIntParam get int param from param dictionary
+func GetIntParam(paramDic map[string][]string, paramName string, value *int) error {
+	var values []int
+	if err := GetIntParams(paramDic, paramName, &values); err != nil {
+		return err
+	}
+	if len(values) == 0 {
+		return errors.New("param not found")
+	}
+	*value = values[0]
+	return nil
 }
