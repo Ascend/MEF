@@ -5,6 +5,7 @@ package main
 
 import (
 	"edge-manager/module_manager"
+	"edge-manager/pkg/common/checker"
 	"edge-manager/pkg/edgeconnector"
 	"edge-manager/pkg/edgeinstaller"
 	"edge-manager/pkg/kubeclient"
@@ -49,7 +50,15 @@ func main() {
 		fmt.Printf("initialize hwlog failed, %s.\n", err.Error())
 		return
 	}
-	if err := common.BaseParamValid(port, ip); err != nil {
+	if inRanage := checker.IsPortInRange(common.MinPort, common.MaxPort, port); !inRanage {
+		hwlog.RunLog.Error("port %d is not in [%d, %d]", port, common.MinPort, common.MaxPort)
+		return
+	}
+	if valid, err := checker.IsIpValid(ip); !valid {
+		hwlog.RunLog.Error(err)
+		return
+	}
+	if valid, err := checker.IsIpInHost(ip); !valid {
 		hwlog.RunLog.Error(err)
 		return
 	}
@@ -113,7 +122,7 @@ func initResource() error {
 
 func register(g *gin.Engine) error {
 	module_manager.ModuleManagerInit()
-	if err := module_manager.Registry(restfulservice.NewRestfulService(true, g)); err != nil {
+	if err := module_manager.Registry(restfulservice.NewRestfulService(true, ip, port)); err != nil {
 		return err
 	}
 	if err := module_manager.Registry(nodemanager.NewNodeManager(true)); err != nil {

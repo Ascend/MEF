@@ -44,8 +44,10 @@ const (
 )
 
 const (
-	maxPort = 40000
-	minPort = 1025
+	// MaxPort is port max value
+	MaxPort = 65535
+	// MinPort is port min value
+	MinPort = 1025
 )
 
 const (
