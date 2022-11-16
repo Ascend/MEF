@@ -2,7 +2,9 @@ package module_manager
 
 import (
 	"edge-manager/module_manager/model"
+	"edge-manager/pkg/common"
 	"github.com/stretchr/testify/assert"
+	"huawei.com/mindx/common/hwlog"
 	"testing"
 	"time"
 )
@@ -200,4 +202,15 @@ func TestSendSyncMessage(t *testing.T) {
 	Unregistry(&sender)
 	Unregistry(&receiver)
 
+}
+
+func TestMain(m *testing.M) {
+	hwRunLogConfig := &hwlog.LogConfig{
+		OnlyToStdout: true,
+	}
+	hwOpLogConfig := &hwlog.LogConfig{
+		OnlyToStdout: true,
+	}
+	common.InitHwlogger(hwRunLogConfig, hwOpLogConfig)
+	m.Run()
 }

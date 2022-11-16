@@ -4,11 +4,11 @@ set -e
 CUR_DIR=$(dirname $(readlink -f $0))
 TOP_DIR=$(realpath "${CUR_DIR}"/..)
 export GO111MODULE="on"
+export GOPATH="/opt/buildtools/go"
 export PATH=$GOPATH/bin:$PATH
 
 function execute_edge_manager_ut() {
-  echo "to delete, current dir:$CUR_DIR"
-  if ! (go test -gcflags=-l -mod=mod -v -coverprofile cov.out ${TOP_DIR}/... >./$file_input); then
+  if ! (go test -gcflags=-l -v -mod=mod -coverprofile cov.out ${TOP_DIR}/... >./$file_input); then
     echo '****** edge-manager go test cases error! ******'
     exit 1
   else
@@ -20,9 +20,9 @@ function execute_edge_manager_ut() {
 }
 
 file_input='testEdgeManager.txt'
-file_detail_output='api_edge-manager.html'
+file_detail_output='api.html'
 DB_PATH="/etc/mindx-edge/edge-manager/"
-ut_xml_output="unit-tests_edge-manager.xml"
+ut_xml_output="unit-tests.xml"
 echo "************************************* Start Edge-Manager LLT Test *************************************"
 echo "to delete, current dir:$CUR_DIR"
 mkdir -p "${DB_PATH}"

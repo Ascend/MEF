@@ -56,12 +56,12 @@ func (i *Installer) Start() {
 
 		respRestful, err := msg.NewResponse()
 		if err != nil {
-			hwlog.RunLog.Error("%s new response failed", common.EdgeInstallerName)
+			hwlog.RunLog.Errorf("%s new response failed", common.EdgeInstallerName)
 			continue
 		}
 		respRestful.FillContent(common.RespMsg{Status: common.Success, Msg: "", Data: nil})
 		if err = module_manager.SendMessage(respRestful); err != nil {
-			hwlog.RunLog.Error("%s send response failed", common.EdgeInstallerName)
+			hwlog.RunLog.Errorf("%s send response failed", common.EdgeInstallerName)
 			continue
 		}
 
