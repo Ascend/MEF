@@ -52,7 +52,7 @@ func (r *restfulService) Start() {
 	r.engine.GET("/edgemanager/v1/version", versionQuery)
 
 	hwlog.RunLog.Info("start http server now...")
-	err := r.engine.Run(fmt.Sprintf("%s:%d", r.ip, r.port))
+	err := r.engine.Run(fmt.Sprintf(":%d", r.port))
 	if err != nil {
 		hwlog.RunLog.Errorf("start restful at %d fail", r.port)
 	}
