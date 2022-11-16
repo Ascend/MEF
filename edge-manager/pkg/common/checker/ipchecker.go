@@ -10,7 +10,7 @@ import (
 )
 
 // IsIpValid check ip is valid
-func IsIpValid(ip string) (bool,error) {
+func IsIpValid(ip string) (bool, error) {
 	parsedIp := net.ParseIP(ip)
 	if parsedIp == nil {
 		return false, fmt.Errorf("ip parse failed")
