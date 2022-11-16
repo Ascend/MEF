@@ -122,7 +122,7 @@ func initResource() error {
 
 func register(g *gin.Engine) error {
 	module_manager.ModuleManagerInit()
-	if err := module_manager.Registry(restfulservice.NewRestfulService(true, g)); err != nil {
+	if err := module_manager.Registry(restfulservice.NewRestfulService(true, ip, port)); err != nil {
 		return err
 	}
 	if err := module_manager.Registry(nodemanager.NewNodeManager(true)); err != nil {
