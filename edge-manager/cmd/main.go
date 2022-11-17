@@ -50,7 +50,7 @@ func main() {
 		return
 	}
 	if inRanage := checker.IsPortInRange(common.MinPort, common.MaxPort, port); !inRanage {
-		hwlog.RunLog.Error("port %d is not in [%d, %d]", port, common.MinPort, common.MaxPort)
+		hwlog.RunLog.Errorf("port %d is not in [%d, %d]", port, common.MinPort, common.MaxPort)
 		return
 	}
 	if valid, err := checker.IsIpValid(ip); !valid {

@@ -52,7 +52,7 @@ func IsIpInHost(ip string) (bool, error) {
 		case *net.IPAddr:
 			ip = v.IP
 		default:
-			hwlog.RunLog.Error("unexpected type %T", v)
+			hwlog.RunLog.Errorf("unexpected type %T", v)
 		}
 		if ip != nil && ip.Equal(parsedIp) {
 			return true, nil
