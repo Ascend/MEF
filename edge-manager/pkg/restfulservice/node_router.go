@@ -75,3 +75,46 @@ func createEdgeNodeGroup(c *gin.Context) {
 	resp := sendSyncMessageByRestful(string(reqContent), &router)
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }
+
+func getNodeDetail(c *gin.Context) {
+	res, err := common.BindUriWithJSON(c)
+	if err != nil {
+		hwlog.OpLog.Error("get node detail: get input parameter failed")
+		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
+	}
+	router := router{
+		source:      common.RestfulServiceName,
+		destination: common.NodeManagerName,
+		option:      common.Get,
+		resource:    common.Node,
+	}
+	resp := sendSyncMessageByRestful(string(res), &router)
+	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+}
+
+func modifyNode(c *gin.Context) {
+	res, err := c.GetRawData()
+	if err != nil {
+		hwlog.OpLog.Error("create node: get input parameter failed")
+		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
+	}
+	router := router{
+		source:      common.RestfulServiceName,
+		destination: common.NodeManagerName,
+		option:      common.Update,
+		resource:    common.Node,
+	}
+	resp := sendSyncMessageByRestful(string(res), &router)
+	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+}
+
+func getNodeStatistics(c *gin.Context) {
+	router := router{
+		source:      common.RestfulServiceName,
+		destination: common.NodeManagerName,
+		option:      common.Get,
+		resource:    common.NodeStatistics,
+	}
+	resp := sendSyncMessageByRestful("", &router)
+	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+}

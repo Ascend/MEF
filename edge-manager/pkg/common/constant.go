@@ -38,6 +38,8 @@ const (
 	NodeUnManaged = "nodeUnManaged"
 	// NodeGroup resource nodeGroup
 	NodeGroup = "nodeGroup"
+	// NodeStatistics node statistics
+	NodeStatistics = "nodeStatistics"
 	// Software resource software
 	Software = "software"
 
