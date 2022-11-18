@@ -7,7 +7,9 @@ import (
 	"edge-manager/module_manager"
 	"edge-manager/module_manager/model"
 	"edge-manager/pkg/common"
+	"edge-manager/pkg/util"
 	"encoding/json"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
@@ -27,9 +29,15 @@ func setRouter(engine *gin.Engine) {
 }
 
 func nodeRouter(engine *gin.Engine) {
-	v1 := engine.Group("/edgemanager/v1/node")
+	node := engine.Group("/edgemanager/v1/node")
 	{
-		v1.POST("/", createEdgeNode)
+		node.POST("/", createEdgeNode)
+		node.GET("/list/managed", listNodeManaged)
+		node.GET("/list/unmanaged", listNodeUnManaged)
+	}
+	nodeGroup := engine.Group("/edgemanager/v1/nodegroup")
+	{
+		nodeGroup.POST("/", createEdgeNodeGroup)
 	}
 }
 
@@ -40,20 +48,20 @@ func wsRouter(engine *gin.Engine) {
 	}
 }
 
-func sendSyncMessageByRestful(input interface{}, router *router) (*model.Message, error) {
+func sendSyncMessageByRestful(input interface{}, router *router) common.RespMsg {
 	msg, err := model.NewMessage()
 	if err != nil {
-		hwlog.RunLog.Error("create new message error")
-		return nil, err
+		hwlog.RunLog.Error("new message error")
+		return common.RespMsg{Status: common.ErrorsSendSyncMessageByRestful, Msg: "", Data: nil}
 	}
 	msg.SetRouter(router.source, router.destination, router.option, router.resource)
 	msg.FillContent(input)
 	respMsg, err := module_manager.SendSyncMessage(msg, common.ResponseTimeout)
 	if err != nil {
 		hwlog.RunLog.Error("get response error")
-		return nil, err
+		return common.RespMsg{Status: common.ErrorsSendSyncMessageByRestful, Msg: "", Data: nil}
 	}
-	return respMsg, nil
+	return marshalResponse(respMsg)
 }
 
 func marshalResponse(respMsg *model.Message) common.RespMsg {
@@ -67,4 +75,21 @@ func marshalResponse(respMsg *model.Message) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "", Data: nil}
 	}
 	return resp
+}
+
+func pageUtil(c *gin.Context) (util.ListReq, error) {
+	input := util.ListReq{}
+	var err error
+	// for slice page on ucd
+	input.PageNum, err = strconv.ParseUint(c.Query("pageNum"), common.BaseHex, common.BitSize64)
+	if err != nil {
+		return input, err
+	}
+	input.PageSize, err = strconv.ParseUint(c.Query("pageSize"), common.BaseHex, common.BitSize64)
+	if err != nil {
+		return input, err
+	}
+	// for fuzzy query
+	input.Name = c.Query("name")
+	return input, nil
 }

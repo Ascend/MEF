@@ -4,24 +4,61 @@
 package kubeclient
 
 import (
+	"context"
 	"fmt"
+	"k8s.io/api/core/v1"
+
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/k8stool"
-
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
 )
 
-// ClientK8s ClientK8s struct
-type ClientK8s struct {
-	Clientset kubernetes.Interface
+var k8sClient *Client
+
+// Client k8s client
+type Client struct {
+	kubeClient *kubernetes.Clientset
 }
 
 // NewClientK8s create ClientK8s
-func NewClientK8s() (*ClientK8s, error) {
+func NewClientK8s() (*Client, error) {
 	client, err := k8stool.K8sClientFor("", "")
-	if err != nil {
+	if err != nil || client == nil {
 		return nil, fmt.Errorf("failed to create kube client: %v", err)
 	}
 	hwlog.RunLog.Info("init k8s success")
-	return &ClientK8s{Clientset: client}, nil
+	k8sClient = &Client{
+		kubeClient: client,
+	}
+	return k8sClient, nil
+}
+
+// GetKubeClient get k8s client
+func GetKubeClient() *Client {
+	return k8sClient
+}
+
+// GetNode get node
+func (ki *Client) GetNode(nodeName string) (*v1.Node, error) {
+	return ki.kubeClient.CoreV1().Nodes().Get(context.Background(), nodeName, metav1.GetOptions{})
+}
+
+// ListNode list nodes
+func (ki *Client) ListNode() (*v1.NodeList, error) {
+	return ki.kubeClient.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{FieldSelector: ""})
+}
+
+// GetPod get pod by namespace and name
+func (ki *Client) GetPod(pod *v1.Pod) (*v1.Pod, error) {
+	return ki.kubeClient.CoreV1().Pods(pod.Namespace).Get(context.Background(), pod.Name, metav1.GetOptions{})
+}
+
+// GetPodList is to get pod list
+func (ki *Client) GetPodList() (*v1.PodList, error) {
+	selector := fields.SelectorFromSet(fields.Set{"spec.nodeName": ""})
+	return ki.kubeClient.CoreV1().Pods(v1.NamespaceAll).List(context.Background(), metav1.ListOptions{
+		FieldSelector: selector.String(),
+	})
 }

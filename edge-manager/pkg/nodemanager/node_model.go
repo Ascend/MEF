@@ -23,15 +23,19 @@ type NodeServiceImpl struct {
 
 // NodeService for node method to operate db
 type NodeService interface {
-	CreateNode(*NodeInfo) error
-	DeleteNodeByName(*NodeInfo) error
-	GetNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
+	createNode(*NodeInfo) error
+	deleteNodeByName(*NodeInfo) error
+	listNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
+	listUnManagedNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
+	getNodeByUniqueName(string) (*NodeInfo, error)
+	getNodeByID(int64) (*NodeInfo, error)
 
-	CreateNodeGroup(*NodeGroup) error
-	GetNodeGroupsByName(uint64, uint64, string) (*[]NodeGroup, error)
+	createNodeGroup(*NodeGroup) error
+	getNodeGroupsByName(uint64, uint64, string) (*[]NodeGroup, error)
+	getNodeGroupByID(int64) (*NodeGroup, error)
 
-	AddNodeToGroup(*NodeRelation) error
-	DeleteNodeToGroup(*NodeRelation) error
+	deleteNodeToGroup(*NodeRelation) error
+	countNodeByGroup(groupID int64) (int64, error)
 }
 
 // GetTableCount get table count
@@ -53,45 +57,68 @@ func NodeServiceInstance() NodeService {
 }
 
 // CreateNode Create Node Db
-func (n *NodeServiceImpl) CreateNode(nodeInfo *NodeInfo) error {
+func (n *NodeServiceImpl) createNode(nodeInfo *NodeInfo) error {
 	return n.db.Model(NodeInfo{}).Create(nodeInfo).Error
 }
 
 // CreateNodeGroup Create Node Db
-func (n *NodeServiceImpl) CreateNodeGroup(nodeGroup *NodeGroup) error {
+func (n *NodeServiceImpl) createNodeGroup(nodeGroup *NodeGroup) error {
 	return n.db.Model(NodeGroup{}).Create(nodeGroup).Error
 }
 
 // DeleteNodeByName delete node
-func (n *NodeServiceImpl) DeleteNodeByName(nodeInfo *NodeInfo) error {
-	return database.GetDb().Model(&NodeInfo{}).Where("node_name = ?",
+func (n *NodeServiceImpl) deleteNodeByName(nodeInfo *NodeInfo) error {
+	return n.db.Model(&NodeInfo{}).Where("node_name = ?",
 		nodeInfo.NodeName).Delete(nodeInfo).Error
 }
 
 // GetNodesByName return SQL result
-func (n *NodeServiceImpl) GetNodesByName(page, pageSize uint64, nodeName string) (*[]NodeInfo, error) {
+func (n *NodeServiceImpl) listNodesByName(page, pageSize uint64, nodeName string) (*[]NodeInfo, error) {
 	var nodes []NodeInfo
 	return &nodes,
-		database.GetDb().Scopes(getNodeByLikeName(page, pageSize, nodeName)).
+		n.db.Where("is_managed = ?", managed).Scopes(getNodeByLikeName(page, pageSize, nodeName)).
+			Find(&nodes).Error
+}
+
+// listUnManagedNodesByName return SQL result
+func (n *NodeServiceImpl) listUnManagedNodesByName(page, pageSize uint64, nodeName string) (*[]NodeInfo, error) {
+	var nodes []NodeInfo
+	return &nodes,
+		n.db.Where("is_managed = ?", unmanaged).Scopes(getNodeByLikeName(page, pageSize, nodeName)).
 			Find(&nodes).Error
 }
 
 // GetNodeGroupsByName return SQL result
-func (n *NodeServiceImpl) GetNodeGroupsByName(page, pageSize uint64, nodeGroup string) (*[]NodeGroup, error) {
+func (n *NodeServiceImpl) getNodeGroupsByName(page, pageSize uint64, nodeGroup string) (*[]NodeGroup, error) {
 	var nodes []NodeGroup
 	return &nodes,
-		database.GetDb().Scopes(getNodeByLikeName(page, pageSize, nodeGroup)).
+		n.db.Scopes(getNodeByLikeName(page, pageSize, nodeGroup)).
 			Find(&nodes).Error
 }
 
-// AddNodeToGroup add Node Db
-func (n *NodeServiceImpl) AddNodeToGroup(relation *NodeRelation) error {
-	return n.db.Model(NodeRelation{}).Create(relation).Error
+// DeleteNodeToGroup delete Node Db
+func (n *NodeServiceImpl) deleteNodeToGroup(relation *NodeRelation) error {
+	return n.db.Model(NodeRelation{}).Delete(relation).Error
 }
 
-// DeleteNodeToGroup delete Node Db
-func (n *NodeServiceImpl) DeleteNodeToGroup(relation *NodeRelation) error {
-	return n.db.Model(NodeRelation{}).Delete(relation).Error
+func (n *NodeServiceImpl) getNodeByUniqueName(name string) (*NodeInfo, error) {
+	var node NodeInfo
+	return &node, n.db.Model(NodeInfo{}).Where("unique_name=?", name).First(&node).Error
+}
+
+func (n *NodeServiceImpl) countNodeByGroup(groupID int64) (int64, error) {
+	var num int64
+	return num, n.db.Model(NodeRelation{}).Where("group_id = ?", groupID).Count(&num).Error
+}
+
+func (n *NodeServiceImpl) getNodeGroupByID(groupID int64) (*NodeGroup, error) {
+	var nodeGroup NodeGroup
+	return &nodeGroup, n.db.Model(NodeGroup{}).Where("id = ?", groupID).First(&nodeGroup).Error
+}
+
+func (n *NodeServiceImpl) getNodeByID(nodeID int64) (*NodeInfo, error) {
+	var node NodeInfo
+	return &node, n.db.Model(NodeRelation{}).Where("id = ?", nodeID).First(&node).Error
 }
 
 func getNodeByLikeName(page, pageSize uint64, nodeName string) func(db *gorm.DB) *gorm.DB {
