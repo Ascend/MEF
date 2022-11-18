@@ -1,9 +1,13 @@
+// Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
+
+// Package appmanager to init app manager repository
 package appmanager
 
 import (
 	"sync"
 
 	"gorm.io/gorm"
+	"huawei.com/mindx/common/hwlog"
 
 	"edge-manager/pkg/common"
 	"edge-manager/pkg/database"
@@ -21,10 +25,8 @@ type AppRepositoryImpl struct {
 
 // AppRepository for app method to operate db
 type AppRepository interface {
-	CreateApp(*AppInfo, *AppContainer) error
-	//ListApp(*AppInfo) error
-	//DeleteAppByName(*AppInfo) error
-	//GetAppsByName(uint64, uint64, string) (*[]AppInfo, error)
+	createApp(*AppInfo, *AppContainer) error
+	listAppsByName(uint64, uint64, string) (*[]AppInfo, error)
 }
 
 // GetTableCount get table count
@@ -45,48 +47,30 @@ func AppRepositoryInstance() AppRepository {
 	return appRepository
 }
 
-// CreateApp Create application Db
-func (a *AppRepositoryImpl) CreateApp(appInfo *AppInfo, container *AppContainer) error {
+// createApp Create application Db
+func (a *AppRepositoryImpl) createApp(appInfo *AppInfo, container *AppContainer) error {
 	if err := a.db.Model(AppInfo{}).Create(appInfo).Error; err != nil {
+		hwlog.RunLog.Infof("create appInfo db failed")
 		return err
 	}
-	return a.db.Model(AppContainer{}).Create(AppContainer{}).Error
+	if err := a.db.Model(AppContainer{}).Create(container).Error; err != nil {
+		hwlog.RunLog.Infof("create appContainer db failed")
+		return err
+	}
+	return nil
 }
 
-//// DeleteApp Delete application Db
-//func (a *AppRepositoryImpl) DeleteApp(appInfo *AppInfo) error {
-//	return a.db.Model(AppInfo{}).Delete(appInfo).Error
-//}
+// listAppsByName return applications list from SQL
+func (a *AppRepositoryImpl) listAppsByName(page, pageSize uint64, appName string) (*[]AppInfo, error) {
+	var apps []AppInfo
+	return &apps, a.db.Scopes(getAppByLikeName(page, pageSize, appName)).Find(&apps).Error
+}
 
-// UP
-//func (a *AppRepositoryImpl) UpdateApp(appInfo *AppInfo) error {
-//	return a.db.Model(AppInfo{}).Update(appInfo).Error
-//}
-//
-//
-//func (a *AppRepositoryImpl) ListApp(appInfo *AppInfo) error {
-//	return a.db.Model(AppInfo{}).
-//}
-//
-//// DeleteAppByName delete app
-//func (a *AppRepositoryImpl) DeleteAppByName(appInfo *AppInfo) error {
-//	return database.GetDb().Model(&AppInfo{}).Where("app_name = ?",
-//		appInfo.AppName).Delete(appInfo).Error
-//}
-//
-//// GetAppsByName return SQL result
-//func (a *AppRepositoryImpl) GetAppsByName(page, pageSize uint64, appName string) (*[]AppInfo, error) {
-//	var nodes []AppInfo
-//	return &nodes,
-//		database.GetDb().Scopes(getAppByLikeName(page, pageSize, appName)).
-//			Find(&nodes).Error
-//}
-//
-//func getAppByLikeName(page, pageSize uint64, appName string) func(db *gorm.DB) *gorm.DB {
-//	return func(db *gorm.DB) *gorm.DB {
-//		return db.Scopes(paginate(page, pageSize)).Where("app_name like ?", "%"+appName+"%")
-//	}
-//}
+func getAppByLikeName(page, pageSize uint64, appName string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Scopes(paginate(page, pageSize)).Where("app_name like ?", "%"+appName+"%")
+	}
+}
 
 func paginate(page, pageSize uint64) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {

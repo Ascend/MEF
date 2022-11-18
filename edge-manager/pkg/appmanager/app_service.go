@@ -1,9 +1,13 @@
+// Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
+
+// Package appmanager to init app manager service
 package appmanager
 
 import (
 	"strings"
 	"time"
 
+	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
 
 	"edge-manager/pkg/common"
@@ -13,32 +17,32 @@ import (
 // CreateApp Create application
 func CreateApp(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start create app")
-	req, ok := input.(util.CreateAppReq)
-	if !ok {
-		hwlog.RunLog.Error("create app convert request error")
-		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
+	var req util.CreateAppReq
+	if err := common.ParamConvert(input, &req); err != nil {
+		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
+
 	total, err := GetTableCount(AppInfo{})
 	if err != nil {
-		hwlog.RunLog.Error("get app table num failed")
+		hwlog.RunLog.Errorf("get app table num failed")
 		return common.RespMsg{Status: "", Msg: "get app table num failed", Data: nil}
 	}
 	if total >= MaxApp {
-		hwlog.RunLog.Error("app number is enough, can not create")
+		hwlog.RunLog.Errorf("app number is enough, can not create")
 		return common.RespMsg{Status: "", Msg: "app number is enough, can not create", Data: nil}
 	}
 	app := getAppInfo(req)
 	container := getAppContainer(req, app.CreatedAt, app.ModifiedAt)
 
-	if err = AppRepositoryInstance().CreateApp(app, container); err != nil {
+	if err = AppRepositoryInstance().createApp(app, container); err != nil {
 		if strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
-			hwlog.RunLog.Error("app name is duplicate")
+			hwlog.RunLog.Errorf("app name is duplicate")
 			return common.RespMsg{Status: "", Msg: "app name is duplicate", Data: nil}
 		}
-		hwlog.RunLog.Error("app db create failed")
+		hwlog.RunLog.Errorf("app db create failed")
 		return common.RespMsg{Status: "", Msg: "db create failed", Data: nil}
 	}
-	hwlog.RunLog.Info("app db create success")
+	hwlog.RunLog.Infof("app db create success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
@@ -64,25 +68,41 @@ func getAppContainer(req util.CreateAppReq, createdAt, modifiedAt string) *AppCo
 		Npu:           req.Npu,
 		ImageName:     req.ImageName,
 		ImageVersion:  req.ImageVersion,
-		Command:       req.Command,
+		ContainerPort: req.ContainerPort,
+		Command:       getCommand(req.Command),
 		Env:           req.Env,
-		ContainerHost: HostAddr{req.HostIp, req.HostPort},
-		ContainerUser: UserInfo{req.UserId, req.GroupId},
+		UserID:        req.UserId,
+		GroupID:       req.GroupId,
+		HostIp:        req.HostIp,
+		HostPort:      req.HostPort,
 	}
 }
 
-//func DeployApp(input interface{}) common.RespMsg {
-//
-//}
-//
-//func UndeployApp() {
-//
-//}
-//
-//func GetApp() {
-//
-//}
-//
-//func DeleteApp() {
-//
-//}
+func getCommand(reqCommand []string) string {
+	res := ""
+	for _, str := range reqCommand {
+		res += str + ";"
+	}
+	return res
+}
+
+// ListApp get app list
+func ListApp(input interface{}) common.RespMsg {
+	hwlog.RunLog.Infof("start list app")
+	var req util.ListReq
+	if err := common.ParamConvert(input, &req); err != nil {
+		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	}
+
+	apps, err := AppRepositoryInstance().listAppsByName(req.PageNum, req.PageSize, req.Name)
+	if err == nil {
+		hwlog.RunLog.Infof("list app success")
+		return common.RespMsg{Status: common.Success, Msg: "", Data: apps}
+	}
+	if err == gorm.ErrRecordNotFound {
+		hwlog.RunLog.Infof("dont have any app")
+		return common.RespMsg{Status: common.Success, Msg: "dont have any app", Data: nil}
+	}
+	hwlog.RunLog.Errorf("list app failed")
+	return common.RespMsg{Status: "", Msg: "list app failed", Data: nil}
+}

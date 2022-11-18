@@ -5,11 +5,12 @@ package nodemanager
 
 const (
 	// TimeFormat used for friendly display
-	TimeFormat = "2006-01-02 15:04:05"
-	// MaxNode MaxNode num 20000
-	MaxNode = 20000
-	// MaxNodeGroup MaxNodeGroup num 100
-	MaxNodeGroup = 100
+	TimeFormat      = "2006-01-02 15:04:05"
+	maxNode         = 1024
+	maxNodeGroup    = 1024
+	maxNodePerGroup = 1024
+	managed         = 1
+	unmanaged       = 0
 )
 
 // node status

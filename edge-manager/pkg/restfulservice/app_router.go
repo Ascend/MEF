@@ -5,32 +5,40 @@ package restfulservice
 
 import (
 	"edge-manager/pkg/common"
-	"edge-manager/pkg/util"
-
 	"github.com/gin-gonic/gin"
 
 	"huawei.com/mindx/common/hwlog"
 )
 
 func createApp(c *gin.Context) {
-	var reqContent util.CreateEdgeNodeReq
-	if err := c.ShouldBindJSON(&reqContent); err != nil {
-		hwlog.OpLog.Error("create app: convert request body failed")
-		common.ConstructResp(c, common.ErrorParseBody, "", nil)
-		return
+	res, err := c.GetRawData()
+	if err != nil {
+		hwlog.OpLog.Error("create app: get input parameter failed")
+		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
 	}
-
 	router := router{
 		source:      common.RestfulServiceName,
 		destination: common.AppManagerName,
 		option:      common.Create,
 		resource:    common.App,
 	}
-	respMsg, err := sendSyncMessageByRestful(reqContent, &router)
+	resp := sendSyncMessageByRestful(string(res), &router)
+	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+}
+
+func listApp(c *gin.Context) {
+	input, err := pageUtil(c)
 	if err != nil {
-		common.ConstructResp(c, common.ErrorsSendSyncMessageByRestful, "", nil)
+		hwlog.OpLog.Error("list app: get input parameter failed")
+		common.ConstructResp(c, common.ErrorParseBody, "", nil)
 		return
 	}
-	resp := marshalResponse(respMsg)
+	router := router{
+		source:      common.RestfulServiceName,
+		destination: common.AppManagerName,
+		option:      common.List,
+		resource:    common.App,
+	}
+	resp := sendSyncMessageByRestful(input, &router)
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }

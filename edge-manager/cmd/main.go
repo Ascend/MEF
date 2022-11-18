@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"edge-manager/module_manager"
 	"edge-manager/pkg/appmanager"
 	"edge-manager/pkg/common/checker"
@@ -14,8 +15,6 @@ import (
 	"edge-manager/pkg/restfulservice"
 	"flag"
 	"fmt"
-
-	"github.com/gin-gonic/gin"
 
 	"edge-manager/pkg/common"
 	"edge-manager/pkg/database"
@@ -52,28 +51,23 @@ func main() {
 		return
 	}
 	if inRanage := checker.IsPortInRange(common.MinPort, common.MaxPort, port); !inRanage {
-		hwlog.RunLog.Error("port %d is not in [%d, %d]", port, common.MinPort, common.MaxPort)
+		hwlog.RunLog.Errorf("port %d is not in [%d, %d]", port, common.MinPort, common.MaxPort)
 		return
 	}
 	if valid, err := checker.IsIpValid(ip); !valid {
 		hwlog.RunLog.Error(err)
 		return
 	}
-	if valid, err := checker.IsIpInHost(ip); !valid {
-		hwlog.RunLog.Error(err)
-		return
-	}
 	if err := initResource(); err != nil {
 		return
 	}
-	gin.SetMode(gin.ReleaseMode)
-	g := gin.New()
-	if err := register(g); err != nil {
+	if err := register(); err != nil {
 		hwlog.RunLog.Error("register error")
 		return
 	}
-	hwlog.RunLog.Info("start http server now...")
-	g.Run(fmt.Sprintf(":%d", port))
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	<-ctx.Done()
 }
 
 func init() {
@@ -121,7 +115,7 @@ func initResource() error {
 
 }
 
-func register(g *gin.Engine) error {
+func register() error {
 	module_manager.ModuleManagerInit()
 	if err := module_manager.Registry(restfulservice.NewRestfulService(true, ip, port)); err != nil {
 		return err
