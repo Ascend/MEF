@@ -5,6 +5,7 @@ package main
 
 import (
 	"edge-manager/module_manager"
+	"edge-manager/pkg/appmanager"
 	"edge-manager/pkg/common/checker"
 	"edge-manager/pkg/edgeconnector"
 	"edge-manager/pkg/edgeinstaller"
@@ -126,6 +127,9 @@ func register(g *gin.Engine) error {
 		return err
 	}
 	if err := module_manager.Registry(nodemanager.NewNodeManager(true)); err != nil {
+		return err
+	}
+	if err := module_manager.Registry(appmanager.NewAppManager(true)); err != nil {
 		return err
 	}
 	if err := module_manager.Registry(edgeconnector.NewSocket(true)); err != nil {

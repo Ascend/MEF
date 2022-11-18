@@ -10,6 +10,8 @@ const (
 	RestfulServiceName = "RestfulService"
 	// NodeManagerName NodeManager
 	NodeManagerName = "NodeManager"
+	// AppManagerName AppManagerName
+	AppManagerName = "AppManager"
 	// EdgeConnectorName edge-connector
 	EdgeConnectorName = "edge-connector"
 	// EdgeInstallerName edge-installer
@@ -31,9 +33,15 @@ const (
 	Get = "get"
 	// List option get resource list
 	List = "list"
+	// Deploy option deploy application
+	Deploy = "deploy"
+	// Undeploy option undeploy application
+	Undeploy = "undeploy"
 
 	// Node resource node
 	Node = "node"
+	// App resource app
+	App = "app"
 	// NodeGroup resource nodeGroup
 	NodeGroup = "nodeGroup"
 	// Software resource software
