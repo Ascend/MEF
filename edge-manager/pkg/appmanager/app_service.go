@@ -86,23 +86,23 @@ func getCommand(reqCommand []string) string {
 	return res
 }
 
-// ListApp get app list
-func ListApp(input interface{}) common.RespMsg {
-	hwlog.RunLog.Infof("start list app")
+// ListAppDeployed get appInstances list
+func ListAppDeployed(input interface{}) common.RespMsg {
+	hwlog.RunLog.Infof("start list deployed apps")
 	var req util.ListReq
 	if err := common.ParamConvert(input, &req); err != nil {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	apps, err := AppRepositoryInstance().listAppsByName(req.PageNum, req.PageSize, req.Name)
+	apps, err := AppRepositoryInstance().listAppsDeployed(req.PageNum, req.PageSize)
 	if err == nil {
-		hwlog.RunLog.Infof("list app success")
+		hwlog.RunLog.Infof("list deployed apps success")
 		return common.RespMsg{Status: common.Success, Msg: "", Data: apps}
 	}
 	if err == gorm.ErrRecordNotFound {
-		hwlog.RunLog.Infof("dont have any app")
-		return common.RespMsg{Status: common.Success, Msg: "dont have any app", Data: nil}
+		hwlog.RunLog.Infof("dont have any deployed apps")
+		return common.RespMsg{Status: common.Success, Msg: "dont have any deployed apps", Data: nil}
 	}
-	hwlog.RunLog.Errorf("list app failed")
-	return common.RespMsg{Status: "", Msg: "list app failed", Data: nil}
+	hwlog.RunLog.Errorf("list deployed apps failed")
+	return common.RespMsg{Status: "", Msg: "list deployed apps failed", Data: nil}
 }

@@ -26,7 +26,7 @@ type AppRepositoryImpl struct {
 // AppRepository for app method to operate db
 type AppRepository interface {
 	createApp(*AppInfo, *AppContainer) error
-	listAppsByName(uint64, uint64, string) (*[]AppInfo, error)
+	listAppsDeployed(uint64, uint64) (*[]int, error)
 }
 
 // GetTableCount get table count
@@ -60,16 +60,10 @@ func (a *AppRepositoryImpl) createApp(appInfo *AppInfo, container *AppContainer)
 	return nil
 }
 
-// listAppsByName return applications list from SQL
-func (a *AppRepositoryImpl) listAppsByName(page, pageSize uint64, appName string) (*[]AppInfo, error) {
-	var apps []AppInfo
-	return &apps, a.db.Scopes(getAppByLikeName(page, pageSize, appName)).Find(&apps).Error
-}
-
-func getAppByLikeName(page, pageSize uint64, appName string) func(db *gorm.DB) *gorm.DB {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Scopes(paginate(page, pageSize)).Where("app_name like ?", "%"+appName+"%")
-	}
+// listAppsDeployed return appInstances id list from SQL
+func (a *AppRepositoryImpl) listAppsDeployed(page, pageSize uint64) (*[]int, error) {
+	var appsInstances []int
+	return &appsInstances, a.db.Scopes(paginate(page, pageSize)).Find("id", &appsInstances).Error
 }
 
 func paginate(page, pageSize uint64) func(db *gorm.DB) *gorm.DB {

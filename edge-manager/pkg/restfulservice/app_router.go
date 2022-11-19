@@ -26,10 +26,10 @@ func createApp(c *gin.Context) {
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }
 
-func listApp(c *gin.Context) {
+func listAppsDeployed(c *gin.Context) {
 	input, err := pageUtil(c)
 	if err != nil {
-		hwlog.OpLog.Error("list app: get input parameter failed")
+		hwlog.OpLog.Error("list deployed apps: get input parameter failed")
 		common.ConstructResp(c, common.ErrorParseBody, "", nil)
 		return
 	}

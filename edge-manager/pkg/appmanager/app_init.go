@@ -105,7 +105,7 @@ func initAppTable() error {
 func appMethodList() map[string]handlerFunc {
 	return map[string]handlerFunc{
 		combine(common.Create, common.App): CreateApp,
-		combine(common.List, common.App):   ListApp,
+		combine(common.List, common.App):   ListAppDeployed,
 	}
 }
 

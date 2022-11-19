@@ -46,7 +46,7 @@ func appRouter(engine *gin.Engine) {
 	app := engine.Group("/edgemanager/v1/app")
 	{
 		app.POST("/", createApp)
-		app.GET("/list", listApp)
+		app.GET("/", listAppsDeployed)
 
 	}
 }
