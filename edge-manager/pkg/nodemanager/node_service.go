@@ -66,7 +66,7 @@ func getNodeDetail(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("modify node check parameters failed")
 		return common.RespMsg{Status: "", Msg: "check parameters failed", Data: nil}
 	}
-	nodeInfo, err := NodeServiceInstance().getNodeById(req.Id)
+	nodeInfo, err := NodeServiceInstance().getNodeByID(req.Id)
 	if err != nil {
 		hwlog.RunLog.Error("get node detail db query error")
 		return common.RespMsg{Status: "", Msg: "db query error", Data: nil}
@@ -76,7 +76,7 @@ func getNodeDetail(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("get node detail db query error")
 		return common.RespMsg{Status: "", Msg: "db query error", Data: nil}
 	}
-	nodeGroup, err := NodeServiceInstance().getGroupById(nodeRelation.GroupID)
+	nodeGroup, err := NodeServiceInstance().getNodeGroupByID(nodeRelation.GroupID)
 	if err != nil {
 		hwlog.RunLog.Error("get node detail db query error")
 		return common.RespMsg{Status: "", Msg: "db query error", Data: nil}

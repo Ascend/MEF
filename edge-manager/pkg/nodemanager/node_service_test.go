@@ -74,6 +74,8 @@ func TestAll(t *testing.T) {
 		convey.Convey("get node detail should success", testGetNodeDetail)
 		convey.Convey("modify node should success", testModifyNode)
 		convey.Convey("get nod statistics should success", testGetNodeStatistics)
+		convey.Convey("list node group should success", testListNodeGroup)
+		convey.Convey("get node group detail should success", testGetNodeGroupDetail)
 	})
 }
 
@@ -134,6 +136,27 @@ func testGetNodeStatistics() {
 	convey.So(counts[statusOffline], convey.ShouldEqual, 1)
 	convey.So(counts, convey.ShouldContainKey, statusUnknown)
 	convey.So(counts[statusUnknown], convey.ShouldEqual, 0)
+}
+
+func testListNodeGroup() {
+	resp := listEdgeNodeGroup("")
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
+	convey.So(resp.Data, convey.ShouldHaveSameTypeAs, util.ListNodeGroupResp{})
+	respData, _ := resp.Data.(util.ListNodeGroupResp)
+	convey.So(len(respData), convey.ShouldEqual, 1)
+	group := respData[0]
+	convey.So(group.NodeCount, convey.ShouldEqual, 1)
+}
+
+func testGetNodeGroupDetail() {
+	req := map[string][]string{"id": {"1"}}
+	reqBytes, err := json.Marshal(req)
+	convey.So(err, convey.ShouldBeNil)
+	resp := getEdgeNodeGroupDetail(string(reqBytes))
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
+	convey.So(resp.Data, convey.ShouldHaveSameTypeAs, util.GetNodeGroupDetailResp{})
+	respData, _ := resp.Data.(util.GetNodeGroupDetailResp)
+	convey.So(len(respData.Nodes), convey.ShouldEqual, 1)
 }
 
 func createGroupAndRelation(nodeId int64) {

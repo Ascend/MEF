@@ -28,6 +28,9 @@ type GetNodeDetailReq struct {
 	Id int64 `json:"id"`
 }
 
+// GetNodeGroupDetailReq request object
+type GetNodeGroupDetailReq = GetNodeDetailReq
+
 // UnmarshalJSON custom JSON unmarshal
 func (req *GetNodeDetailReq) UnmarshalJSON(input []byte) error {
 	objMap := make(map[string][]string)
@@ -81,3 +84,34 @@ func (req ModifyNodeGroupReq) Check() error {
 
 // GetNodeStatisticsResp node statistics data
 type GetNodeStatisticsResp = map[string]int64
+
+// ListNodeGroupResp response object for listNodeGroup
+type ListNodeGroupResp = []ListNodeGroupRespItem
+
+// ListNodeGroupRespItem group data
+type ListNodeGroupRespItem struct {
+	GroupID       int64  `json:"groupID"`
+	NodeGroupName string `json:"nodeGroupName"`
+	Description   string `json:"description"`
+	CreateAt      string `json:"createAt"`
+	NodeCount     int64  `json:"nodeCount"`
+}
+
+// GetNodeGroupDetailResp response object for nodeGroupDetail
+type GetNodeGroupDetailResp struct {
+	ID          int64                        `json:"ID"`
+	GroupName   string                       `json:"groupName"`
+	Description string                       `json:"description"`
+	CreateAt    string                       `json:"createAt"`
+	Nodes       []GetNodeGroupDetailRespItem `json:"nodes"`
+}
+
+// GetNodeGroupDetailRespItem Node data
+type GetNodeGroupDetailRespItem struct {
+	NodeID      int64  `json:"nodeID"`
+	NodeName    string `json:"nodeName"`
+	Description string `json:"description"`
+	Status      string `json:"status"`
+	CreateAt    string `json:"createAt"`
+	UpdateAt    string `json:"updateAt"`
+}
