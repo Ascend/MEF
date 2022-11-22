@@ -4,6 +4,7 @@
 package checker
 
 import (
+	"errors"
 	"fmt"
 	"huawei.com/mindx/common/hwlog"
 	"net"
@@ -13,22 +14,22 @@ import (
 func IsIpValid(ip string) (bool, error) {
 	parsedIp := net.ParseIP(ip)
 	if parsedIp == nil {
-		return false, fmt.Errorf("ip parse failed")
+		return false, errors.New("ip parse failed")
 	}
 	if parsedIp.To4() == nil && parsedIp.To16() == nil {
-		return false, fmt.Errorf("IP must be a valid IP address")
+		return false, errors.New("IP must be a valid IP address")
 	}
 	if parsedIp.Equal(net.IPv4bcast) {
-		return false, fmt.Errorf("IP can't be a broadcast address")
+		return false, errors.New("IP can't be a broadcast address")
 	}
 	if parsedIp.IsMulticast() {
-		return false, fmt.Errorf("IP can't be a multicast address")
+		return false, errors.New("IP can't be a multicast address")
 	}
 	if parsedIp.IsLinkLocalUnicast() {
-		return false, fmt.Errorf("IP can't be a link-local unicast address")
+		return false, errors.New("IP can't be a link-local unicast address")
 	}
 	if parsedIp.IsUnspecified() {
-		return false, fmt.Errorf("IP can't be an all zeros address")
+		return false, errors.New("IP can't be an all zeros address")
 	}
 	return true, nil
 }
@@ -37,12 +38,12 @@ func IsIpValid(ip string) (bool, error) {
 func IsIpInHost(ip string) (bool, error) {
 	parsedIp := net.ParseIP(ip)
 	if parsedIp == nil {
-		return false, fmt.Errorf("ip parse failed")
+		return false, errors.New("ip parse failed")
 	}
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
-		hwlog.RunLog.Errorf("get host ip list fail")
-		return false, fmt.Errorf("get host ip list fail")
+		hwlog.RunLog.Error("get host ip list fail")
+		return false, errors.New("get host ip list fail")
 	}
 	for _, addr := range addrs {
 		var ip net.IP

@@ -70,6 +70,4 @@ const (
 const (
 	// TimeFormat time format
 	TimeFormat = "2006-01-02 15:04:05"
-	// AppTemplateGroupVersionsLimit app template group sub versions count limit
-	AppTemplateGroupVersionsLimit = 100
 )
