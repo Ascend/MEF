@@ -4,11 +4,12 @@
 package nodemanager
 
 import (
-	"edge-manager/pkg/common"
 	"edge-manager/pkg/util"
-	"huawei.com/mindx/common/hwlog"
 	"strings"
 	"time"
+
+	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
 )
 
 // CreateGroup Create Node Group

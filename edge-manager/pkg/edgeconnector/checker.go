@@ -4,7 +4,7 @@
 package edgeconnector
 
 import (
-	"edge-manager/pkg/common"
+	"edge-manager/pkg/util"
 	"errors"
 	"net"
 	"strconv"
@@ -48,7 +48,7 @@ func (base *baseInfo) checkPort() error {
 	if err != nil {
 		return errors.New("convert port to int failed")
 	}
-	if !common.CheckInt(portInt, MinPort, MaxPort) {
+	if !util.CheckInt(portInt, MinPort, MaxPort) {
 		hwlog.RunLog.Errorf("check port failed, port is out of range [%d,%d]",
 			MinPort, MaxPort)
 		return errors.New("check port failed")
@@ -58,12 +58,12 @@ func (base *baseInfo) checkPort() error {
 }
 
 func (base *baseInfo) checkName() error {
-	if !common.CheckInt(len(base.UserName), MinNameLength, MaxNameLength) {
+	if !util.CheckInt(len(base.UserName), MinNameLength, MaxNameLength) {
 		hwlog.RunLog.Errorf("check username length failed, username length is out of range [%d,%d]",
 			MinNameLength, MaxNameLength)
 		return errors.New("check username length failed")
 	}
-	if !common.CheckNameFormat(base.UserName) {
+	if !util.CheckNameFormat(base.UserName) {
 		hwlog.RunLog.Error("check username format failed, it contains invalid characters")
 		return errors.New("check username format failed")
 	}
@@ -72,7 +72,7 @@ func (base *baseInfo) checkName() error {
 }
 
 func (base *baseInfo) checkPwd() error {
-	if !common.CheckInt(len(base.Password), MinPwdLength, MaxPwdLength) {
+	if !util.CheckInt(len(base.Password), MinPwdLength, MaxPwdLength) {
 		hwlog.RunLog.Errorf("check password failed, password length is out of range [%d,%d]",
 			MinPwdLength, MaxPwdLength)
 		return errors.New("check password failed")

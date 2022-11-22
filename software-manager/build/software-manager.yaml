@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ascend-software-manager
+  namespace: mindx-edge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ascend-software-manager
+  template:
+    metadata:
+      labels:
+        app: ascend-software-manager
+    spec:
+      nodeSelector:
+        masterselector: dls-master-node
+      imagePullSecrets:
+        - name: image-pull-secret
+      serviceAccountName: ascend-software-manager
+      containers:
+        - name: ascend-software-manager
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          image: ascend-software-manager:v2.0.4
+          resources:
+            requests:
+              memory: 500Mi
+              cpu: 500m
+            limits:
+              memory: 500Mi
+              cpu: 500m
+          imagePullPolicy: IfNotPresent
+          command: [ "/bin/bash", "-c", "--"]
+          # NOTE: HTTPS is enabled by default
+          args: ["./software-manager -ip=0.0.0.0 -port=8102"]
+          volumeMounts:
+            - name: softwaremanager-log
+              mountPath: /var/log/mindx-edge/software-manager
+            - name: localtime
+              mountPath: /etc/localtime
+            - name: kmc
+              mountPath: /etc/mindx-edge
+      volumes:
+        - name: softwaremanager-log
+          hostPath:
+            path: /var/log/mindx-edge/software-manager
+            type: Directory
+        - name: localtime
+          hostPath:
+            path: /etc/localtime
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ascend-software-manager
+  namespace: mindx-edge
+  labels:
+    app: ascend-software-manager
+spec:
+  ports:
+    - name: mindx-edge-software
+      port: 8102
+      targetPort: 8102
+      protocol: TCP
+  selector:
+    app: ascend-software-manager
+  type: ClusterIP

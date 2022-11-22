@@ -1,9 +1,15 @@
+// Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
+
+// Package context to start module_manager context
 package context
 
-import "time"
-import "edge-manager/module_manager/model"
+import (
+	"time"
 
+	"huawei.com/mindxedge/base/modulemanager/model"
+)
 
+// ModuleMessageContext for message context interface
 type ModuleMessageContext interface {
 	Registry(moduleName string) error
 	Unregistry(moduleName string) error

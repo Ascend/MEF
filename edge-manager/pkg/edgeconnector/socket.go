@@ -5,12 +5,14 @@ package edgeconnector
 
 import (
 	"context"
-	"edge-manager/module_manager"
-	"edge-manager/module_manager/model"
-	"edge-manager/pkg/common"
 	"edge-manager/pkg/database"
+	"edge-manager/pkg/util"
 	"encoding/json"
 	"time"
+
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/modulemanager"
+	"huawei.com/mindxedge/base/modulemanager/model"
 
 	"github.com/gorilla/websocket"
 	"huawei.com/mindx/common/hwlog"
@@ -68,12 +70,12 @@ func (s *Socket) receiveFromModule() {
 			return
 		default:
 		}
-		msg, err := module_manager.ReceiveMessage(s.Name())
+		msg, err := modulemanager.ReceiveMessage(s.Name())
 		if err != nil {
 			hwlog.RunLog.Errorf("receive message from channel failed, error: %v", err)
 			continue
 		}
-		if !common.CheckInnerMsg(msg) {
+		if !util.CheckInnerMsg(msg) {
 			hwlog.RunLog.Error("message receive from module is invalid")
 			continue
 		}

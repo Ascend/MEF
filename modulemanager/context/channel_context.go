@@ -1,11 +1,16 @@
+// Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
+
+// Package context to start module_manager context
 package context
 
 import (
-	"edge-manager/module_manager/model"
+	"errors"
 	"fmt"
-	"huawei.com/mindx/common/hwlog"
 	"sync"
 	"time"
+
+	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 const defaultMsgTimeout = 30 * time.Second
@@ -105,7 +110,13 @@ func (context *channelContext) Receive(moduleName string) (*model.Message, error
 	if channel, err = context.findChannel(moduleName); err != nil {
 		return nil, err
 	}
-	msg := <-channel
+	if channel == nil {
+		return nil, errors.New("channel is nil")
+	}
+	msg, ok := <-channel
+	if !ok {
+		return nil, errors.New("channel is close")
+	}
 	return &msg, nil
 }
 
@@ -157,7 +168,9 @@ func (context *channelContext) SendResp(msg *model.Message) error {
 	if err != nil {
 		return err
 	}
-
+	if annoChannel == nil {
+		return errors.New("annoChannel is nil")
+	}
 	annoChannel <- *msg
 	return nil
 }
@@ -187,6 +200,7 @@ func (context *channelContext) Unregistry(moduleName string) error {
 	return nil
 }
 
+// NewChannelContext new channel context
 func NewChannelContext() *channelContext {
 	c := channelContext{}
 	return &c

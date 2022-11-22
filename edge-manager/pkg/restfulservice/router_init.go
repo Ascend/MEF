@@ -4,10 +4,11 @@
 package restfulservice
 
 import (
-	"edge-manager/pkg/common"
 	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
 )
 
 var (

@@ -15,11 +15,11 @@ if [ -f "$VER_FILE" ]; then
   build_version=${line#*:}
 fi
 
-OUTPUT_NAME="edge-manager"
+OUTPUT_NAME="software-manager"
 DOCKER_FILE_NAME="Dockerfile"
 arch=$(arch 2>&1)
 echo "Build Architecture is" "${arch}"
-sed -i "s/edge-manager:.*/edge-manager:${build_version}/" "${TOP_DIR}/build/${OUTPUT_NAME}.yaml"
+sed -i "s/software-manager:.*/software-manager:${build_version}/" "${TOP_DIR}/build/${OUTPUT_NAME}.yaml"
 
 function clean() {
   rm -rf "${TOP_DIR}/output"

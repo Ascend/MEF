@@ -4,13 +4,14 @@
 package apptemplatemanager
 
 import (
-	"edge-manager/pkg/common"
 	"edge-manager/pkg/database"
 	"errors"
-	"gorm.io/gorm"
-	"huawei.com/mindx/common/hwlog"
 	"strings"
 	"sync"
+
+	"gorm.io/gorm"
+	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
 )
 
 var (
