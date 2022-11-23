@@ -4,11 +4,12 @@
 package nodemanager
 
 import (
-	"edge-manager/pkg/common"
 	"edge-manager/pkg/util"
 	"fmt"
 	"strings"
 	"time"
+
+	"huawei.com/mindxedge/base/common"
 
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"

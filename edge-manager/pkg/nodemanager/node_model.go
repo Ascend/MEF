@@ -4,11 +4,11 @@
 package nodemanager
 
 import (
-	"edge-manager/pkg/common"
 	"edge-manager/pkg/database"
 	"sync"
 
 	"gorm.io/gorm"
+	"huawei.com/mindxedge/base/common"
 )
 
 var (

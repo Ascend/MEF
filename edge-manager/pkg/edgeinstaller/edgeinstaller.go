@@ -5,11 +5,13 @@ package edgeinstaller
 
 import (
 	"context"
-	"edge-manager/module_manager"
-	"edge-manager/module_manager/model"
-	"edge-manager/pkg/common"
+	"edge-manager/pkg/util"
 	"encoding/json"
 	"time"
+
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/modulemanager"
+	"huawei.com/mindxedge/base/modulemanager/model"
 
 	"huawei.com/mindx/common/hwlog"
 )
@@ -45,11 +47,11 @@ func (i *Installer) Start() {
 			return
 		default:
 		}
-		msg, err := module_manager.ReceiveMessage(i.Name())
+		msg, err := modulemanager.ReceiveMessage(i.Name())
 		if err != nil {
 			return
 		}
-		if !common.CheckInnerMsg(msg) {
+		if !util.CheckInnerMsg(msg) {
 			hwlog.RunLog.Error("message receive from module is invalid")
 			continue
 		}
@@ -60,7 +62,7 @@ func (i *Installer) Start() {
 			continue
 		}
 		respRestful.FillContent(common.RespMsg{Status: common.Success, Msg: "", Data: nil})
-		if err = module_manager.SendMessage(respRestful); err != nil {
+		if err = modulemanager.SendMessage(respRestful); err != nil {
 			hwlog.RunLog.Errorf("%s send response failed", common.EdgeInstallerName)
 			continue
 		}
@@ -87,7 +89,7 @@ func (i *Installer) sendSyncToModule(msg *model.Message) *model.Message {
 	}
 	sendMsg.SetRouter(common.EdgeInstallerName, destination, common.Query, common.Software)
 	sendMsg.SetIsSync(true)
-	resp, err := module_manager.SendSyncMessage(sendMsg, WaitSfwSyncTime)
+	resp, err := modulemanager.SendSyncMessage(sendMsg, WaitSfwSyncTime)
 	if err != nil {
 		hwlog.RunLog.Errorf("wait sync message failed, error: %v", err)
 		return nil
@@ -129,7 +131,7 @@ func mergeContentAndSend(msg, resp *model.Message) {
 	respMsg.SetRouter(common.EdgeInstallerName, common.EdgeConnectorName, common.Upgrade, common.Software)
 	respMsg.FillContent(content)
 	respMsg.SetIsSync(false)
-	if err = module_manager.SendMessage(respMsg); err != nil {
+	if err = modulemanager.SendMessage(respMsg); err != nil {
 		hwlog.RunLog.Errorf("send message failed, error: %v", err)
 		return
 	}

@@ -4,19 +4,20 @@
 package nodemanager
 
 import (
-	"edge-manager/pkg/common"
 	"edge-manager/pkg/database"
 	"edge-manager/pkg/util"
 	"encoding/json"
+	"os"
+	"strconv"
+	"testing"
+	"time"
+
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
-	"os"
-	"strconv"
-	"testing"
-	"time"
+	"huawei.com/mindxedge/base/common"
 )
 
 var (
@@ -70,12 +71,14 @@ func TestAll(t *testing.T) {
 	createGroupAndRelation(1)
 	convey.Convey("node manager function test", t, func() {
 
-		convey.Convey("create nod should success", testCreateNode)
+		convey.Convey("create node should success", testCreateNode)
 		convey.Convey("get node detail should success", testGetNodeDetail)
 		convey.Convey("modify node should success", testModifyNode)
 		convey.Convey("get nod statistics should success", testGetNodeStatistics)
 		convey.Convey("list node group should success", testListNodeGroup)
 		convey.Convey("get node group detail should success", testGetNodeGroupDetail)
+		convey.Convey("create node group should success", testCreateNodeGroup)
+		convey.Convey("list node should success", testListNode)
 	})
 }
 
@@ -89,6 +92,17 @@ func testCreateNode() {
 	reqBytes, err := json.Marshal(req)
 	convey.So(err, convey.ShouldBeNil)
 	resp := createNode(string(reqBytes))
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
+}
+
+func testCreateNodeGroup() {
+	req := util.CreateNodeGroupReq{
+		Description:   "my-desc",
+		NodeGroupName: "node-group-name",
+	}
+	reqBytes, err := json.Marshal(req)
+	convey.So(err, convey.ShouldBeNil)
+	resp := createGroup(string(reqBytes))
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
@@ -146,6 +160,17 @@ func testListNodeGroup() {
 	convey.So(len(respData), convey.ShouldEqual, 1)
 	group := respData[0]
 	convey.So(group.NodeCount, convey.ShouldEqual, 1)
+}
+
+func testListNode() {
+	req := util.ListReq{
+		PageSize: 1,
+		PageNum:  1,
+	}
+	reqBytes, err := json.Marshal(req)
+	convey.So(err, convey.ShouldBeNil)
+	resp := listNode(string(reqBytes))
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
 func testGetNodeGroupDetail() {

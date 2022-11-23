@@ -4,23 +4,12 @@
 package restfulservice
 
 import (
-	"edge-manager/module_manager"
-	"edge-manager/module_manager/model"
-	"edge-manager/pkg/common"
 	"edge-manager/pkg/util"
-	"encoding/json"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
 )
-
-type router struct {
-	source      string
-	destination string
-	option      string
-	resource    string
-}
 
 func setRouter(engine *gin.Engine) {
 	engine.Use(gin.Recovery())
@@ -51,35 +40,6 @@ func wsRouter(engine *gin.Engine) {
 	{
 		v1.POST("/", upgradeSfw)
 	}
-}
-
-func sendSyncMessageByRestful(input interface{}, router *router) common.RespMsg {
-	msg, err := model.NewMessage()
-	if err != nil {
-		hwlog.RunLog.Error("new message error")
-		return common.RespMsg{Status: common.ErrorsSendSyncMessageByRestful, Msg: "", Data: nil}
-	}
-	msg.SetRouter(router.source, router.destination, router.option, router.resource)
-	msg.FillContent(input)
-	respMsg, err := module_manager.SendSyncMessage(msg, common.ResponseTimeout)
-	if err != nil {
-		hwlog.RunLog.Error("get response error")
-		return common.RespMsg{Status: common.ErrorsSendSyncMessageByRestful, Msg: "", Data: nil}
-	}
-	return marshalResponse(respMsg)
-}
-
-func marshalResponse(respMsg *model.Message) common.RespMsg {
-	content := respMsg.GetContent()
-	respStr, err := json.Marshal(content)
-	if err != nil {
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "", Data: nil}
-	}
-	var resp common.RespMsg
-	if err := json.Unmarshal(respStr, &resp); err != nil {
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "", Data: nil}
-	}
-	return resp
 }
 
 func pageUtil(c *gin.Context) (util.ListReq, error) {

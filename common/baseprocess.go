@@ -6,16 +6,57 @@ package common
 import (
 	"encoding/json"
 	"errors"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
-	"strings"
+	"huawei.com/mindxedge/base/modulemanager"
+	"huawei.com/mindxedge/base/modulemanager/model"
 )
+
+// Router router struct
+type Router struct {
+	Source      string
+	Destination string
+	Option      string
+	Resource    string
+}
 
 // ClearSliceByteMemory clears slice in memory
 func ClearSliceByteMemory(sliceByte []byte) {
 	for i := 0; i < len(sliceByte); i++ {
 		sliceByte[i] = 0
 	}
+}
+
+// SendSyncMessageByRestful send sync message by restful
+func SendSyncMessageByRestful(input interface{}, router *Router) RespMsg {
+	msg, err := model.NewMessage()
+	if err != nil {
+		hwlog.RunLog.Error("new message error")
+		return RespMsg{Status: ErrorsSendSyncMessageByRestful, Msg: "", Data: nil}
+	}
+	msg.SetRouter(router.Source, router.Destination, router.Option, router.Resource)
+	msg.FillContent(input)
+	respMsg, err := modulemanager.SendSyncMessage(msg, ResponseTimeout)
+	if err != nil {
+		hwlog.RunLog.Error("get response error")
+		return RespMsg{Status: ErrorsSendSyncMessageByRestful, Msg: "", Data: nil}
+	}
+	return marshalResponse(respMsg)
+}
+
+func marshalResponse(respMsg *model.Message) RespMsg {
+	content := respMsg.GetContent()
+	respStr, err := json.Marshal(content)
+	if err != nil {
+		return RespMsg{Status: ErrorGetResponse, Msg: "", Data: nil}
+	}
+	var resp RespMsg
+	if err := json.Unmarshal(respStr, &resp); err != nil {
+		return RespMsg{Status: ErrorGetResponse, Msg: "", Data: nil}
+	}
+	return resp
 }
 
 // ParamConvert convert request parameter from restful module

@@ -1,19 +1,23 @@
-package module_manager
+// Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
+
+// Package modulemanager to start module_manager server
+package modulemanager
 
 import (
-	"edge-manager/module_manager/context"
-	"edge-manager/module_manager/model"
 	"fmt"
 	"sync"
 	"time"
+
+	"huawei.com/mindxedge/base/modulemanager/context"
+	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 var enabledModule sync.Map
 var disabledModule sync.Map
 var moduleContext context.ModuleMessageContext
 
-// ModuleManagerInit module manager init
-func ModuleManagerInit()  {
+// ModuleInit module manager init
+func ModuleInit() {
 	moduleContext = context.GetContent()
 }
 
@@ -56,7 +60,7 @@ func Registry(m model.Module) error {
 }
 
 // Unregistry unregistry module
-func Unregistry(m model.Module)  {
+func Unregistry(m model.Module) {
 	if m.Enable() {
 		enabledModule.Delete(m.Name())
 		_ = moduleContext.Unregistry(m.Name())
@@ -66,7 +70,7 @@ func Unregistry(m model.Module)  {
 }
 
 // Start start the module manager
-func Start()  {
+func Start() {
 	enabledModule.Range(func(key, value interface{}) bool {
 		module, ok := value.(model.Module)
 		if !ok {

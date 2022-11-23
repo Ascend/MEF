@@ -4,11 +4,11 @@
 package restfulservice
 
 import (
-	"edge-manager/pkg/common"
 	"edge-manager/pkg/util"
 
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
 )
 
 func upgradeSfw(c *gin.Context) {
@@ -18,12 +18,12 @@ func upgradeSfw(c *gin.Context) {
 		common.ConstructResp(c, common.ErrorParseBody, "", nil)
 		return
 	}
-	router := router{
-		source:      common.RestfulServiceName,
-		destination: common.EdgeInstallerName,
-		option:      common.Upgrade,
-		resource:    common.Software,
+	router := common.Router{
+		Source:      common.RestfulServiceName,
+		Destination: common.EdgeInstallerName,
+		Option:      common.Upgrade,
+		Resource:    common.Software,
 	}
-	resp := sendSyncMessageByRestful(upgradeSfwReq, &router)
+	resp := common.SendSyncMessageByRestful(upgradeSfwReq, &router)
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }

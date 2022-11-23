@@ -1,5 +1,6 @@
-// Copyright (c) Huawei Technologies Co., Ltd. 2022. All rights reserved.
+// Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
 
+// Package model to start module_manager model
 package model
 
 import (
