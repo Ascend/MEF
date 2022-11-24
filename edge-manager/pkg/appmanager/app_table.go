@@ -41,8 +41,8 @@ type AppInstance struct {
 	ID          int64  `gorm:"type:Integer;primaryKey;autoIncrement:true"`
 	PodName     string `gorm:"type:char(42);unique;not null"`
 	NodeName    string `gorm:"type:char(64);not null"`
-	NodeGroupID uint64 `gorm:"type:Integer;not null"`
-	status      string `gorm:"type:char(50);not null"`
+	NodeGroupID int64  `gorm:"type:Integer;not null"`
+	Status      string `gorm:"type:char(50);not null"`
 	VersionID   string `gorm:"not null"`
 	CreatedAt   string `gorm:"type:time;not null"`
 	ChangedAt   string `gorm:"type:time;not null"`

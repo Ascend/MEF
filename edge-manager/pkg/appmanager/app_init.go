@@ -50,31 +50,31 @@ func (app *appManager) Start() {
 		select {
 		case _, ok := <-app.ctx.Done():
 			if !ok {
-				hwlog.RunLog.Infof("catch stop signal channel is closed")
+				hwlog.RunLog.Info("catch stop signal channel is closed")
 			}
-			hwlog.RunLog.Infof("has listened stop signal")
+			hwlog.RunLog.Info("has listened stop signal")
 			return
 		default:
 		}
 		req, err := module_manager.ReceiveMessage(common.AppManagerName)
-		hwlog.RunLog.Debugf("%s receive requst from restful service", common.AppManagerName)
+		hwlog.RunLog.Debug("%s receive requst from restful service", common.AppManagerName)
 		if err != nil {
-			hwlog.RunLog.Errorf("%s receive requst from restful service failed", common.AppManagerName)
+			hwlog.RunLog.Error("%s receive requst from restful service failed", common.AppManagerName)
 			continue
 		}
 		msg := methodSelect(req)
 		if msg == nil {
-			hwlog.RunLog.Errorf("%s get method by option and resource failed", common.AppManagerName)
+			hwlog.RunLog.Error("%s get method by option and resource failed", common.AppManagerName)
 			continue
 		}
 		resp, err := req.NewResponse()
 		if err != nil {
-			hwlog.RunLog.Errorf("%s new response failed", common.AppManagerName)
+			hwlog.RunLog.Error("%s new response failed", common.AppManagerName)
 			continue
 		}
 		resp.FillContent(msg)
 		if err = module_manager.SendMessage(resp); err != nil {
-			hwlog.RunLog.Errorf("%s send response failed", common.AppManagerName)
+			hwlog.RunLog.Error("%s send response failed", common.AppManagerName)
 			continue
 		}
 	}
@@ -92,11 +92,11 @@ func methodSelect(req *model.Message) *common.RespMsg {
 
 func initAppTable() error {
 	if err := database.CreateTableIfNotExists(AppInfo{}); err != nil {
-		hwlog.RunLog.Errorf("create app information database table failed")
+		hwlog.RunLog.Error("create app information database table failed")
 		return err
 	}
 	if err := database.CreateTableIfNotExists(AppContainer{}); err != nil {
-		hwlog.RunLog.Errorf("create app container database table failed")
+		hwlog.RunLog.Error("create app container database table failed")
 		return err
 	}
 	return nil
@@ -106,6 +106,7 @@ func appMethodList() map[string]handlerFunc {
 	return map[string]handlerFunc{
 		combine(common.Create, common.App): CreateApp,
 		combine(common.List, common.App):   ListAppDeployed,
+		combine(common.Deploy, common.App): DeployApp,
 	}
 }
 

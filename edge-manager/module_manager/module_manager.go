@@ -1,11 +1,12 @@
 package module_manager
 
 import (
-	"edge-manager/module_manager/context"
-	"edge-manager/module_manager/model"
 	"fmt"
 	"sync"
 	"time"
+
+	"edge-manager/module_manager/context"
+	"edge-manager/module_manager/model"
 )
 
 var enabledModule sync.Map
@@ -13,7 +14,7 @@ var disabledModule sync.Map
 var moduleContext context.ModuleMessageContext
 
 // ModuleManagerInit module manager init
-func ModuleManagerInit()  {
+func ModuleManagerInit() {
 	moduleContext = context.GetContent()
 }
 
@@ -56,7 +57,7 @@ func Registry(m model.Module) error {
 }
 
 // Unregistry unregistry module
-func Unregistry(m model.Module)  {
+func Unregistry(m model.Module) {
 	if m.Enable() {
 		enabledModule.Delete(m.Name())
 		_ = moduleContext.Unregistry(m.Name())
@@ -66,7 +67,7 @@ func Unregistry(m model.Module)  {
 }
 
 // Start start the module manager
-func Start()  {
+func Start() {
 	enabledModule.Range(func(key, value interface{}) bool {
 		module, ok := value.(model.Module)
 		if !ok {

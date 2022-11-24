@@ -5,19 +5,19 @@ package main
 
 import (
 	"context"
+	"flag"
+	"fmt"
+
 	"edge-manager/module_manager"
 	"edge-manager/pkg/appmanager"
+	"edge-manager/pkg/common"
 	"edge-manager/pkg/common/checker"
+	"edge-manager/pkg/database"
 	"edge-manager/pkg/edgeconnector"
 	"edge-manager/pkg/edgeinstaller"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/nodemanager"
 	"edge-manager/pkg/restfulservice"
-	"flag"
-	"fmt"
-
-	"edge-manager/pkg/common"
-	"edge-manager/pkg/database"
 
 	"huawei.com/mindx/common/hwlog"
 )

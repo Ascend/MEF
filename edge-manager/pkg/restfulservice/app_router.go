@@ -4,10 +4,10 @@
 package restfulservice
 
 import (
-	"edge-manager/pkg/common"
 	"github.com/gin-gonic/gin"
-
 	"huawei.com/mindx/common/hwlog"
+
+	"edge-manager/pkg/common"
 )
 
 func createApp(c *gin.Context) {
@@ -37,6 +37,23 @@ func listAppsDeployed(c *gin.Context) {
 		source:      common.RestfulServiceName,
 		destination: common.AppManagerName,
 		option:      common.List,
+		resource:    common.App,
+	}
+	resp := sendSyncMessageByRestful(input, &router)
+	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+}
+
+func deployApp(c *gin.Context) {
+	input, err := pageUtil(c)
+	if err != nil {
+		hwlog.OpLog.Error("deploy app: get input parameter failed")
+		common.ConstructResp(c, common.ErrorParseBody, "", nil)
+		return
+	}
+	router := router{
+		source:      common.RestfulServiceName,
+		destination: common.AppManagerName,
+		option:      common.Deploy,
 		resource:    common.App,
 	}
 	resp := sendSyncMessageByRestful(input, &router)

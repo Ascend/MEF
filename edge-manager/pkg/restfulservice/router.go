@@ -4,15 +4,16 @@
 package restfulservice
 
 import (
-	"edge-manager/module_manager"
-	"edge-manager/module_manager/model"
-	"edge-manager/pkg/common"
-	"edge-manager/pkg/util"
 	"encoding/json"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
+
+	"edge-manager/module_manager"
+	"edge-manager/module_manager/model"
+	"edge-manager/pkg/common"
+	"edge-manager/pkg/util"
 )
 
 type router struct {
@@ -47,7 +48,7 @@ func appRouter(engine *gin.Engine) {
 	{
 		app.POST("/", createApp)
 		app.GET("/", listAppsDeployed)
-
+		app.POST("/deploy", deployApp)
 	}
 }
 

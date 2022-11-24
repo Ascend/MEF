@@ -4,6 +4,7 @@
 package appmanager
 
 import (
+	"edge-manager/pkg/kubeclient"
 	"strings"
 	"time"
 
@@ -40,7 +41,7 @@ func CreateApp(input interface{}) common.RespMsg {
 			return common.RespMsg{Status: "", Msg: "app name is duplicate", Data: nil}
 		}
 		hwlog.RunLog.Errorf("app db create failed")
-		return common.RespMsg{Status: "", Msg: "db create failed", Data: nil}
+		return common.RespMsg{Status: "", Msg: "app db create failed", Data: nil}
 	}
 	hwlog.RunLog.Infof("app db create success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
@@ -50,8 +51,8 @@ func getAppInfo(req util.CreateAppReq) *AppInfo {
 	return &AppInfo{
 		AppName:     req.AppName,
 		Description: req.Description,
-		CreatedAt:   time.Now().Format(TimeFormat),
-		ModifiedAt:  time.Now().Format(TimeFormat),
+		CreatedAt:   time.Now().Format(common.TimeFormat),
+		ModifiedAt:  time.Now().Format(common.TimeFormat),
 	}
 }
 
@@ -105,4 +106,33 @@ func ListAppDeployed(input interface{}) common.RespMsg {
 	}
 	hwlog.RunLog.Errorf("list deployed apps failed")
 	return common.RespMsg{Status: "", Msg: "list deployed apps failed", Data: nil}
+}
+
+// DeployApp deploy application on node group
+func DeployApp(input interface{}) common.RespMsg {
+	hwlog.RunLog.Infof("start deploy app")
+	var req util.DeployAppReq
+	if err := common.ParamConvert(input, &req); err != nil {
+		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	}
+
+	appInstanceInfo, err := AppRepositoryInstance().getAppAndNodeGroupInfo(req.AppName, req.NodeGroupName)
+	if err != nil {
+		hwlog.RunLog.Error("get app and node group information failed")
+		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	}
+
+	daemonset, err := kubeclient.GetKubeClient().InitDaemonSet(appInstanceInfo)
+	if err != nil {
+		hwlog.RunLog.Error("app daemonset init failed")
+		return common.RespMsg{Status: "", Msg: "app daemonset init failed", Data: nil}
+	}
+	daemonset, err = kubeclient.GetKubeClient().CreateDaemonSet(daemonset)
+	if err != nil {
+		hwlog.RunLog.Error("app daemonset create failed")
+		return common.RespMsg{Status: "", Msg: "app daemonset create failed", Data: nil}
+	}
+
+	hwlog.RunLog.Infof("app daemonset create success")
+	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }

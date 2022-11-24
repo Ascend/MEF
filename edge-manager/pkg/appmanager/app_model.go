@@ -4,6 +4,7 @@
 package appmanager
 
 import (
+	"edge-manager/pkg/nodemanager"
 	"sync"
 
 	"gorm.io/gorm"
@@ -26,7 +27,9 @@ type AppRepositoryImpl struct {
 // AppRepository for app method to operate db
 type AppRepository interface {
 	createApp(*AppInfo, *AppContainer) error
-	listAppsDeployed(uint64, uint64) (*[]int, error)
+	listAppsDeployed(uint64, uint64) (*[]AppInstance, error)
+	getAppAndNodeGroupInfo(string, string) (*AppInstanceInfo, error)
+	deployApp(*AppInstance) error
 }
 
 // GetTableCount get table count
@@ -50,20 +53,43 @@ func AppRepositoryInstance() AppRepository {
 // createApp Create application Db
 func (a *AppRepositoryImpl) createApp(appInfo *AppInfo, container *AppContainer) error {
 	if err := a.db.Model(AppInfo{}).Create(appInfo).Error; err != nil {
-		hwlog.RunLog.Infof("create appInfo db failed")
+		hwlog.RunLog.Error("create appInfo db failed")
 		return err
 	}
 	if err := a.db.Model(AppContainer{}).Create(container).Error; err != nil {
-		hwlog.RunLog.Infof("create appContainer db failed")
+		hwlog.RunLog.Error("create appContainer db failed")
 		return err
 	}
 	return nil
 }
 
-// listAppsDeployed return appInstances id list from SQL
-func (a *AppRepositoryImpl) listAppsDeployed(page, pageSize uint64) (*[]int, error) {
-	var appsInstances []int
-	return &appsInstances, a.db.Scopes(paginate(page, pageSize)).Find("id", &appsInstances).Error
+// listAppsDeployed return appInstances list from SQL
+func (a *AppRepositoryImpl) listAppsDeployed(page, pageSize uint64) (*[]AppInstance, error) {
+	var appsInstances []AppInstance
+	return &appsInstances, a.db.Model(AppInstance{}).Scopes(paginate(page, pageSize)).Find(&appsInstances).Error
+}
+
+// getAppAndNodeGroupInfo get application and node group information for deploy
+func (a *AppRepositoryImpl) getAppAndNodeGroupInfo(appName string, nodeGroupName string) (*AppInstanceInfo, error) {
+	var appInstanceInfo *AppInstanceInfo
+	if err := a.db.Model(AppInfo{}).Where("app_name = ?", appName).First(&appInstanceInfo.AppInfo).Error; err != nil {
+		hwlog.RunLog.Error("find appInfo db failed")
+		return nil, err
+	}
+	if err := a.db.Model(AppContainer{}).Where("app_name = ?", appName).First(&appInstanceInfo.AppContainer).Error; err != nil {
+		hwlog.RunLog.Error("find appContainer db failed")
+		return nil, err
+	}
+	if err := a.db.Model(nodemanager.NodeGroup{}).Where("nodegroup_name = ?", nodeGroupName).First(appInstanceInfo.NodeGroup).Error; err != nil {
+		hwlog.RunLog.Error("find nodeGroup db failed")
+		return nil, err
+	}
+	return appInstanceInfo, nil
+}
+
+// deployApp deploy app on node group
+func (a *AppRepositoryImpl) deployApp(appInstance *AppInstance) error {
+	return a.db.Model(AppInstance{}).Create(appInstance).Error
 }
 
 func paginate(page, pageSize uint64) func(db *gorm.DB) *gorm.DB {
