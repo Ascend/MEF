@@ -4,11 +4,11 @@
 package nodemanager
 
 import (
-	"edge-manager/pkg/common"
 	"edge-manager/pkg/database"
 	"sync"
 
 	"gorm.io/gorm"
+	"huawei.com/mindxedge/base/common"
 )
 
 var (
@@ -36,6 +36,12 @@ type NodeService interface {
 
 	deleteNodeToGroup(*NodeRelation) error
 	countNodeByGroup(groupID int64) (int64, error)
+
+	getNodeRelationByNodeId(int64) (*NodeRelation, error)
+	updateNode(int64, map[string]interface{}) error
+	countNodesByStatus(string) (int64, error)
+	listNodeGroup() (*[]NodeGroup, error)
+	listNodeRelationsByGroupId(int64) (*[]NodeRelation, error)
 }
 
 // GetTableCount get table count
@@ -118,13 +124,51 @@ func (n *NodeServiceImpl) getNodeGroupByID(groupID int64) (*NodeGroup, error) {
 
 func (n *NodeServiceImpl) getNodeByID(nodeID int64) (*NodeInfo, error) {
 	var node NodeInfo
-	return &node, n.db.Model(NodeRelation{}).Where("id = ?", nodeID).First(&node).Error
+	return &node, n.db.Model(NodeInfo{}).Where("id = ?", nodeID).First(&node).Error
 }
 
 func getNodeByLikeName(page, pageSize uint64, nodeName string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Scopes(paginate(page, pageSize)).Where("node_name like ?", "%"+nodeName+"%")
 	}
+}
+
+// GetNodeRelationByNodeId get nodeRelation
+func (n *NodeServiceImpl) getNodeRelationByNodeId(id int64) (*NodeRelation, error) {
+	var nodeRelation NodeRelation
+	return &nodeRelation,
+		database.GetDb().Where(&NodeRelation{NodeID: id}).
+			First(&nodeRelation).Error
+}
+
+// UpdateNode update node
+func (n *NodeServiceImpl) updateNode(id int64, columns map[string]interface{}) error {
+	return database.GetDb().Model(&NodeInfo{}).Where("`id` = ?", id).
+		UpdateColumns(columns).Error
+}
+
+// getNodeStatistics get node count by status
+func (n *NodeServiceImpl) countNodesByStatus(status string) (int64, error) {
+	var nodeCount int64
+	return nodeCount,
+		database.GetDb().Model(&NodeInfo{}).
+			Where(&NodeInfo{Status: status}).
+			Count(&nodeCount).Error
+}
+
+func (n *NodeServiceImpl) listNodeGroup() (*[]NodeGroup, error) {
+	var nodeGroups []NodeGroup
+	return &nodeGroups,
+		database.GetDb().Model(&NodeGroup{}).
+			Find(&nodeGroups).Error
+}
+
+func (n *NodeServiceImpl) listNodeRelationsByGroupId(groupId int64) (*[]NodeRelation, error) {
+	var relations []NodeRelation
+	return &relations,
+		database.GetDb().Model(&NodeRelation{}).
+			Where(&NodeRelation{GroupID: groupId}).
+			Find(&relations).Error
 }
 
 func paginate(page, pageSize uint64) func(db *gorm.DB) *gorm.DB {

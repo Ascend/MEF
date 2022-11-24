@@ -5,9 +5,10 @@ package nodemanager
 
 import (
 	"context"
-	"edge-manager/module_manager"
-	"edge-manager/module_manager/model"
-	"edge-manager/pkg/common"
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/modulemanager"
+	"huawei.com/mindxedge/base/modulemanager/model"
+
 	"edge-manager/pkg/database"
 	"fmt"
 
@@ -55,7 +56,7 @@ func (node *nodeManager) Start() {
 			return
 		default:
 		}
-		req, err := module_manager.ReceiveMessage(common.NodeManagerName)
+		req, err := modulemanager.ReceiveMessage(common.NodeManagerName)
 		hwlog.RunLog.Debugf("%s revice requst from restful service", common.NodeManagerName)
 		if err != nil {
 			hwlog.RunLog.Errorf("%s revice requst from restful service failed", common.NodeManagerName)
@@ -72,7 +73,7 @@ func (node *nodeManager) Start() {
 			continue
 		}
 		resp.FillContent(msg)
-		if err = module_manager.SendMessage(resp); err != nil {
+		if err = modulemanager.SendMessage(resp); err != nil {
 			hwlog.RunLog.Errorf("%s send response failed", common.NodeManagerName)
 			continue
 		}
@@ -111,6 +112,11 @@ func nodeMethodList() map[string]handlerFunc {
 		combine(common.Create, common.NodeGroup):   createGroup,
 		combine(common.List, common.Node):          listNode,
 		combine(common.List, common.NodeUnManaged): listNodeUnManaged,
+		combine(common.Get, common.Node):           getNodeDetail,
+		combine(common.Update, common.Node):        modifyNode,
+		combine(common.Get, common.NodeStatistics): getNodeStatistics,
+		combine(common.List, common.NodeGroup):     listEdgeNodeGroup,
+		combine(common.Get, common.NodeGroup):      getEdgeNodeGroupDetail,
 	}
 }
 

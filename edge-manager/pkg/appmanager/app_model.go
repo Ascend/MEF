@@ -4,15 +4,26 @@
 package appmanager
 
 import (
-	"edge-manager/pkg/nodemanager"
 	"sync"
 
-	"gorm.io/gorm"
-	"huawei.com/mindx/common/hwlog"
-
-	"edge-manager/pkg/common"
 	"edge-manager/pkg/database"
+	"edge-manager/pkg/nodemanager"
+
+	"gorm.io/gorm"
+
+	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
 )
+
+// AppInstanceInfo encapsulate app instance information
+type AppInstanceInfo struct {
+	// AppInfo is app information
+	AppInfo AppInfo
+	// AppContainer is app container information
+	AppContainer AppContainer
+	// NodeGroup is node group information of app
+	NodeGroup nodemanager.NodeGroup
+}
 
 var (
 	repositoryInitOnce sync.Once
@@ -26,8 +37,8 @@ type AppRepositoryImpl struct {
 
 // AppRepository for app method to operate db
 type AppRepository interface {
-	createApp(*AppInfo, *AppContainer) error
-	listAppsDeployed(uint64, uint64) (*[]AppInstance, error)
+	createApp(*AppInfo, []*AppContainer) error
+	listAppsInfo(uint64, uint64, string) (*[]AppInfo, error)
 	getAppAndNodeGroupInfo(string, string) (*AppInstanceInfo, error)
 	deployApp(*AppInstance) error
 }
@@ -51,40 +62,50 @@ func AppRepositoryInstance() AppRepository {
 }
 
 // createApp Create application Db
-func (a *AppRepositoryImpl) createApp(appInfo *AppInfo, container *AppContainer) error {
+func (a *AppRepositoryImpl) createApp(appInfo *AppInfo, containers []*AppContainer) error {
 	if err := a.db.Model(AppInfo{}).Create(appInfo).Error; err != nil {
 		hwlog.RunLog.Error("create appInfo db failed")
 		return err
 	}
-	if err := a.db.Model(AppContainer{}).Create(container).Error; err != nil {
-		hwlog.RunLog.Error("create appContainer db failed")
-		return err
+	for _, container := range containers {
+		if err := a.db.Model(AppContainer{}).Create(container).Error; err != nil {
+			hwlog.RunLog.Error("create appContainer db failed")
+			return err
+		}
 	}
 	return nil
 }
 
-// listAppsDeployed return appInstances list from SQL
-func (a *AppRepositoryImpl) listAppsDeployed(page, pageSize uint64) (*[]AppInstance, error) {
-	var appsInstances []AppInstance
-	return &appsInstances, a.db.Model(AppInstance{}).Scopes(paginate(page, pageSize)).Find(&appsInstances).Error
+// listAppsInfo return appInfo list from SQL
+func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) (*[]AppInfo, error) {
+	var appsInfo []AppInfo
+	return &appsInfo, a.db.Model(AppInfo{}).Scopes(getAppInfoByLikeName(page, pageSize, name)).Find(&appsInfo).Error
 }
 
 // getAppAndNodeGroupInfo get application and node group information for deploy
 func (a *AppRepositoryImpl) getAppAndNodeGroupInfo(appName string, nodeGroupName string) (*AppInstanceInfo, error) {
-	var appInstanceInfo *AppInstanceInfo
-	if err := a.db.Model(AppInfo{}).Where("app_name = ?", appName).First(&appInstanceInfo.AppInfo).Error; err != nil {
+	var appInfo AppInfo
+	if err := a.db.Model(AppInfo{}).Where("app_name = ?", appName).First(&appInfo).Error; err != nil {
 		hwlog.RunLog.Error("find appInfo db failed")
 		return nil, err
 	}
-	if err := a.db.Model(AppContainer{}).Where("app_name = ?", appName).First(&appInstanceInfo.AppContainer).Error; err != nil {
+	var appContainer AppContainer
+	if err := a.db.Model(AppContainer{}).
+		Where("app_name = ?", appName).First(&appContainer).Error; err != nil {
 		hwlog.RunLog.Error("find appContainer db failed")
 		return nil, err
 	}
-	if err := a.db.Model(nodemanager.NodeGroup{}).Where("nodegroup_name = ?", nodeGroupName).First(appInstanceInfo.NodeGroup).Error; err != nil {
+	var nodeGroup nodemanager.NodeGroup
+	if err := a.db.Model(nodemanager.NodeGroup{}).
+		Where("group_name = ?", nodeGroupName).First(&nodeGroup).Error; err != nil {
 		hwlog.RunLog.Error("find nodeGroup db failed")
 		return nil, err
 	}
-	return appInstanceInfo, nil
+	return &AppInstanceInfo{
+		AppInfo:      appInfo,
+		AppContainer: appContainer,
+		NodeGroup:    nodeGroup,
+	}, nil
 }
 
 // deployApp deploy app on node group
@@ -102,5 +123,11 @@ func paginate(page, pageSize uint64) func(db *gorm.DB) *gorm.DB {
 		}
 		offset := (page - 1) * pageSize
 		return db.Offset(int(offset)).Limit(int(pageSize))
+	}
+}
+
+func getAppInfoByLikeName(page, pageSize uint64, appName string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Scopes(paginate(page, pageSize)).Where("node_name like ?", "%"+appName+"%")
 	}
 }

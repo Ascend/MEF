@@ -4,24 +4,12 @@
 package restfulservice
 
 import (
-	"encoding/json"
+	"edge-manager/pkg/util"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"huawei.com/mindx/common/hwlog"
-
-	"edge-manager/module_manager"
-	"edge-manager/module_manager/model"
-	"edge-manager/pkg/common"
-	"edge-manager/pkg/util"
+	"huawei.com/mindxedge/base/common"
 )
-
-type router struct {
-	source      string
-	destination string
-	option      string
-	resource    string
-}
 
 func setRouter(engine *gin.Engine) {
 	engine.Use(gin.Recovery())
@@ -34,12 +22,17 @@ func nodeRouter(engine *gin.Engine) {
 	node := engine.Group("/edgemanager/v1/node")
 	{
 		node.POST("/", createEdgeNode)
+		node.GET("/:id", getNodeDetail)
+		node.PUT("/", modifyNode)
+		node.GET("/num", getNodeStatistics)
 		node.GET("/list/managed", listNodeManaged)
 		node.GET("/list/unmanaged", listNodeUnManaged)
 	}
 	nodeGroup := engine.Group("/edgemanager/v1/nodegroup")
 	{
 		nodeGroup.POST("/", createEdgeNodeGroup)
+		nodeGroup.GET("/", listEdgeNodeGroup)
+		nodeGroup.GET("/:id", getEdgeNodeGroupDetail)
 	}
 }
 
@@ -47,7 +40,7 @@ func appRouter(engine *gin.Engine) {
 	app := engine.Group("/edgemanager/v1/app")
 	{
 		app.POST("/", createApp)
-		app.GET("/", listAppsDeployed)
+		app.GET("/list", listAppsInfo)
 		app.POST("/deploy", deployApp)
 	}
 }
@@ -57,35 +50,6 @@ func wsRouter(engine *gin.Engine) {
 	{
 		v1.POST("/", upgradeSfw)
 	}
-}
-
-func sendSyncMessageByRestful(input interface{}, router *router) common.RespMsg {
-	msg, err := model.NewMessage()
-	if err != nil {
-		hwlog.RunLog.Error("new message error")
-		return common.RespMsg{Status: common.ErrorsSendSyncMessageByRestful, Msg: "", Data: nil}
-	}
-	msg.SetRouter(router.source, router.destination, router.option, router.resource)
-	msg.FillContent(input)
-	respMsg, err := module_manager.SendSyncMessage(msg, common.ResponseTimeout)
-	if err != nil {
-		hwlog.RunLog.Error("get response error")
-		return common.RespMsg{Status: common.ErrorsSendSyncMessageByRestful, Msg: "", Data: nil}
-	}
-	return marshalResponse(respMsg)
-}
-
-func marshalResponse(respMsg *model.Message) common.RespMsg {
-	content := respMsg.GetContent()
-	respStr, err := json.Marshal(content)
-	if err != nil {
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "", Data: nil}
-	}
-	var resp common.RespMsg
-	if err := json.Unmarshal(respStr, &resp); err != nil {
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "", Data: nil}
-	}
-	return resp
 }
 
 func pageUtil(c *gin.Context) (util.ListReq, error) {

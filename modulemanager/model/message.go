@@ -1,3 +1,6 @@
+// Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
+
+// Package model to start module_manager model
 package model
 
 import (
@@ -21,6 +24,7 @@ type router struct {
 	resource    string
 }
 
+// Message message struct
 type Message struct {
 	header  header
 	router  router

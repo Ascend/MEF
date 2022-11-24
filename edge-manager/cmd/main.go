@@ -8,10 +8,7 @@ import (
 	"flag"
 	"fmt"
 
-	"edge-manager/module_manager"
 	"edge-manager/pkg/appmanager"
-	"edge-manager/pkg/common"
-	"edge-manager/pkg/common/checker"
 	"edge-manager/pkg/database"
 	"edge-manager/pkg/edgeconnector"
 	"edge-manager/pkg/edgeinstaller"
@@ -20,6 +17,9 @@ import (
 	"edge-manager/pkg/restfulservice"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/checker"
+	"huawei.com/mindxedge/base/modulemanager"
 )
 
 const (
@@ -116,22 +116,22 @@ func initResource() error {
 }
 
 func register() error {
-	module_manager.ModuleManagerInit()
-	if err := module_manager.Registry(restfulservice.NewRestfulService(true, ip, port)); err != nil {
+	modulemanager.ModuleInit()
+	if err := modulemanager.Registry(restfulservice.NewRestfulService(true, ip, port)); err != nil {
 		return err
 	}
-	if err := module_manager.Registry(nodemanager.NewNodeManager(true)); err != nil {
+	if err := modulemanager.Registry(nodemanager.NewNodeManager(true)); err != nil {
 		return err
 	}
-	if err := module_manager.Registry(appmanager.NewAppManager(true)); err != nil {
+	if err := modulemanager.Registry(appmanager.NewAppManager(true)); err != nil {
 		return err
 	}
-	if err := module_manager.Registry(edgeconnector.NewSocket(true)); err != nil {
+	if err := modulemanager.Registry(edgeconnector.NewSocket(true)); err != nil {
 		return err
 	}
-	if err := module_manager.Registry(edgeinstaller.NewInstaller(true)); err != nil {
+	if err := modulemanager.Registry(edgeinstaller.NewInstaller(true)); err != nil {
 		return err
 	}
-	module_manager.Start()
+	modulemanager.Start()
 	return nil
 }

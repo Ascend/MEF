@@ -5,18 +5,19 @@ package appmanager
 
 // AppInfo is app db table info
 type AppInfo struct {
-	ID          uint64 `gorm:"type:integer;primaryKey;autoIncrement:true"`
-	AppName     string `gorm:"type:char(128);unique;not null"`
-	Description string `gorm:"type:char(255);" json:"description"`
-	AppGroupID  uint64 `gorm:"type:integer;not null"`
-	CreatedAt   string `gorm:"type:char(19);not null"`
-	ModifiedAt  string `gorm:"type:char(19);not null"`
+	ID            uint64         `gorm:"type:integer;primaryKey;autoIncrement:true"`
+	AppName       string         `gorm:"type:char(128);unique;not null"`
+	Description   string         `gorm:"type:char(255);" json:"description"`
+	CreatedAt     string         `gorm:"type:char(19);not null"`
+	ModifiedAt    string         `gorm:"type:char(19);not null"`
+	NodeGroupName string         `gorm:"type:char(128)"`
+	Containers    []AppContainer `gorm:"type:text;not null"`
 }
 
 // AppContainer containers belonging to the same App share the same AppName.
 type AppContainer struct {
 	ID            uint64 `gorm:"type:integer;primaryKey;autoIncrement:true"`
-	AppName       string `gorm:"type:varchar(32);not null"`
+	AppName       string `gorm:"type:varchar(32)"`
 	CreatedAt     string `gorm:"type:char(19);not null"`
 	ModifiedAt    string `gorm:"type:char(19);not null"`
 	ContainerName string `gorm:"type:varchar(32);not null"`
@@ -43,7 +44,7 @@ type AppInstance struct {
 	NodeName    string `gorm:"type:char(64);not null"`
 	NodeGroupID int64  `gorm:"type:Integer;not null"`
 	Status      string `gorm:"type:char(50);not null"`
-	VersionID   string `gorm:"not null"`
+	AppID       string `gorm:"not null"`
 	CreatedAt   string `gorm:"type:time;not null"`
 	ChangedAt   string `gorm:"type:time;not null"`
 }

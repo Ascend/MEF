@@ -4,9 +4,10 @@
 package edgeconnector
 
 import (
-	"edge-manager/pkg/common"
 	"edge-manager/pkg/database"
 	"time"
+
+	"huawei.com/mindxedge/base/common"
 )
 
 func createConnInfoDb(connInfo *ConnInfo) error {

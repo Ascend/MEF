@@ -1,13 +1,13 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
 // Package common base checker used
-package common
+package util
 
 import (
-	"edge-manager/module_manager/model"
 	"regexp"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 // CheckInnerMsg checks internal messages

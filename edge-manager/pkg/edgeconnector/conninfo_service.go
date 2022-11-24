@@ -4,16 +4,17 @@
 package edgeconnector
 
 import (
-	"edge-manager/module_manager/model"
-	"edge-manager/pkg/common"
+	"edge-manager/pkg/util"
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 // UpdateTableConnInfo updates item in table conn_infos
 func UpdateTableConnInfo(msg *model.Message) *ConnInfo {
-	if !common.CheckInnerMsg(msg) {
+	if !util.CheckInnerMsg(msg) {
 		hwlog.RunLog.Error("message receive from module is invalid")
 		return nil
 	}

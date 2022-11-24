@@ -1,20 +1,23 @@
-package module_manager
+// Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
+
+// Package modulemanager to start module_manager server
+package modulemanager
 
 import (
 	"fmt"
 	"sync"
 	"time"
 
-	"edge-manager/module_manager/context"
-	"edge-manager/module_manager/model"
+	"huawei.com/mindxedge/base/modulemanager/context"
+	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 var enabledModule sync.Map
 var disabledModule sync.Map
 var moduleContext context.ModuleMessageContext
 
-// ModuleManagerInit module manager init
-func ModuleManagerInit() {
+// ModuleInit module manager init
+func ModuleInit() {
 	moduleContext = context.GetContent()
 }
 

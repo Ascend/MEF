@@ -7,12 +7,12 @@ import (
 	"context"
 	"fmt"
 
-	"huawei.com/mindx/common/hwlog"
-
-	"edge-manager/module_manager"
-	"edge-manager/module_manager/model"
-	"edge-manager/pkg/common"
 	"edge-manager/pkg/database"
+
+	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/modulemanager"
+	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 type handlerFunc func(req interface{}) common.RespMsg
@@ -56,25 +56,25 @@ func (app *appManager) Start() {
 			return
 		default:
 		}
-		req, err := module_manager.ReceiveMessage(common.AppManagerName)
-		hwlog.RunLog.Debug("%s receive requst from restful service", common.AppManagerName)
+		req, err := modulemanager.ReceiveMessage(common.AppManagerName)
+		hwlog.RunLog.Debugf("%s receive requst from restful service", common.AppManagerName)
 		if err != nil {
-			hwlog.RunLog.Error("%s receive requst from restful service failed", common.AppManagerName)
+			hwlog.RunLog.Errorf("%s receive requst from restful service failed", common.AppManagerName)
 			continue
 		}
 		msg := methodSelect(req)
 		if msg == nil {
-			hwlog.RunLog.Error("%s get method by option and resource failed", common.AppManagerName)
+			hwlog.RunLog.Errorf("%s get method by option and resource failed", common.AppManagerName)
 			continue
 		}
 		resp, err := req.NewResponse()
 		if err != nil {
-			hwlog.RunLog.Error("%s new response failed", common.AppManagerName)
+			hwlog.RunLog.Errorf("%s new response failed", common.AppManagerName)
 			continue
 		}
 		resp.FillContent(msg)
-		if err = module_manager.SendMessage(resp); err != nil {
-			hwlog.RunLog.Error("%s send response failed", common.AppManagerName)
+		if err = modulemanager.SendMessage(resp); err != nil {
+			hwlog.RunLog.Errorf("%s send response failed", common.AppManagerName)
 			continue
 		}
 	}
@@ -105,7 +105,7 @@ func initAppTable() error {
 func appMethodList() map[string]handlerFunc {
 	return map[string]handlerFunc{
 		combine(common.Create, common.App): CreateApp,
-		combine(common.List, common.App):   ListAppDeployed,
+		combine(common.List, common.App):   ListAppInfo,
 		combine(common.Deploy, common.App): DeployApp,
 	}
 }

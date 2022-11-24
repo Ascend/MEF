@@ -6,8 +6,7 @@ package restfulservice
 import (
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
-
-	"edge-manager/pkg/common"
+	"huawei.com/mindxedge/base/common"
 )
 
 func createApp(c *gin.Context) {
@@ -16,46 +15,46 @@ func createApp(c *gin.Context) {
 		hwlog.OpLog.Error("create app: get input parameter failed")
 		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
 	}
-	router := router{
-		source:      common.RestfulServiceName,
-		destination: common.AppManagerName,
-		option:      common.Create,
-		resource:    common.App,
+	router := common.Router{
+		Source:      common.RestfulServiceName,
+		Destination: common.AppManagerName,
+		Option:      common.Create,
+		Resource:    common.App,
 	}
-	resp := sendSyncMessageByRestful(string(res), &router)
+	resp := common.SendSyncMessageByRestful(string(res), &router)
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }
 
-func listAppsDeployed(c *gin.Context) {
+func listAppsInfo(c *gin.Context) {
 	input, err := pageUtil(c)
 	if err != nil {
 		hwlog.OpLog.Error("list deployed apps: get input parameter failed")
 		common.ConstructResp(c, common.ErrorParseBody, "", nil)
 		return
 	}
-	router := router{
-		source:      common.RestfulServiceName,
-		destination: common.AppManagerName,
-		option:      common.List,
-		resource:    common.App,
+	router := common.Router{
+		Source:      common.RestfulServiceName,
+		Destination: common.AppManagerName,
+		Option:      common.List,
+		Resource:    common.App,
 	}
-	resp := sendSyncMessageByRestful(input, &router)
+	resp := common.SendSyncMessageByRestful(input, &router)
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }
 
 func deployApp(c *gin.Context) {
-	input, err := pageUtil(c)
+	res, err := c.GetRawData()
 	if err != nil {
 		hwlog.OpLog.Error("deploy app: get input parameter failed")
 		common.ConstructResp(c, common.ErrorParseBody, "", nil)
 		return
 	}
-	router := router{
-		source:      common.RestfulServiceName,
-		destination: common.AppManagerName,
-		option:      common.Deploy,
-		resource:    common.App,
+	router := common.Router{
+		Source:      common.RestfulServiceName,
+		Destination: common.AppManagerName,
+		Option:      common.Deploy,
+		Resource:    common.App,
 	}
-	resp := sendSyncMessageByRestful(input, &router)
+	resp := common.SendSyncMessageByRestful(string(res), &router)
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }

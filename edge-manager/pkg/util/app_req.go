@@ -5,7 +5,13 @@ package util
 
 // CreateAppReq Create application
 type CreateAppReq struct {
-	AppName       string   `json:"appName"`
+	AppName     string         `json:"appName"`
+	Version     string         `json:"version"`
+	Description string         `json:"description"`
+	Containers  []ContainerReq `json:"containers"`
+}
+
+type ContainerReq struct {
 	ContainerName string   `json:"containerName"`
 	CpuRequest    string   `json:"cpuRequest"`
 	CpuLimit      string   `json:"cpuLimit"`
@@ -15,13 +21,17 @@ type CreateAppReq struct {
 	ImageName     string   `json:"imageName"`
 	ImageVersion  string   `json:"imageVersion"`
 	Command       []string `json:"command"`
-	Env           string   `json:"env"`
+	Env           []EnvReq `json:"env"`
 	ContainerPort string   `json:"containerPort"`
 	HostIp        string   `json:"hostIp"`
 	HostPort      int      `json:"hostPort"`
 	UserId        int      `json:"userId"`
 	GroupId       int      `json:"groupId"`
-	Description   string   `json:"description"`
+}
+
+type EnvReq struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 // UpdateAppReq Update application

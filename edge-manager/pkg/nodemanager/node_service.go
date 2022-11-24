@@ -4,16 +4,17 @@
 package nodemanager
 
 import (
+	"edge-manager/pkg/util"
 	"fmt"
 	"strings"
 	"time"
 
+	"huawei.com/mindxedge/base/common"
+
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
 
-	"edge-manager/pkg/common"
 	"edge-manager/pkg/kubeclient"
-	"edge-manager/pkg/util"
 )
 
 // CreateNode Create Node
@@ -52,6 +53,95 @@ func createNode(input interface{}) common.RespMsg {
 	}
 	hwlog.RunLog.Info("node db create success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
+}
+
+// getNodeDetail get node detail
+func getNodeDetail(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start get node detail")
+	var req util.GetNodeDetailReq
+	if err := common.ParamConvert(input, &req); err != nil {
+		hwlog.RunLog.Error("get node detail convert request error")
+		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
+	}
+	if err := req.Check(); err != nil {
+		hwlog.RunLog.Error("modify node check parameters failed")
+		return common.RespMsg{Status: "", Msg: "check parameters failed", Data: nil}
+	}
+	nodeInfo, err := NodeServiceInstance().getNodeByID(req.Id)
+	if err != nil {
+		hwlog.RunLog.Error("get node detail db query error")
+		return common.RespMsg{Status: "", Msg: "db query error", Data: nil}
+	}
+	nodeRelation, err := NodeServiceInstance().getNodeRelationByNodeId(req.Id)
+	if err != nil {
+		hwlog.RunLog.Error("get node detail db query error")
+		return common.RespMsg{Status: "", Msg: "db query error", Data: nil}
+	}
+	nodeGroup, err := NodeServiceInstance().getNodeGroupByID(nodeRelation.GroupID)
+	if err != nil {
+		hwlog.RunLog.Error("get node detail db query error")
+		return common.RespMsg{Status: "", Msg: "db query error", Data: nil}
+	}
+	resp := util.GetNodeDetailResp{
+		Id:          nodeInfo.ID,
+		NodeName:    nodeInfo.NodeName,
+		UniqueName:  nodeInfo.UniqueName,
+		Description: nodeInfo.Description,
+		Status:      nodeInfo.Status,
+		CreatedAt:   nodeInfo.CreatedAt,
+		UpdatedAt:   nodeInfo.UpdateAt,
+		Cpu:         nodeInfo.CPUCore,
+		Memory:      nodeInfo.Memory,
+		Npu:         nodeInfo.NPUType,
+		NodeType:    nodeInfo.NodeType,
+		NodeGroup:   nodeGroup.GroupName,
+	}
+	hwlog.RunLog.Info("node detail db query success")
+	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
+}
+
+func modifyNode(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start modify node")
+	var req util.ModifyNodeGroupReq
+	if err := common.ParamConvert(input, &req); err != nil {
+		hwlog.RunLog.Error("modify node convert request error")
+		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
+	}
+	if err := req.Check(); err != nil {
+		hwlog.RunLog.Error("modify node check parameters failed")
+		return common.RespMsg{Status: "", Msg: "check parameters failed", Data: nil}
+	}
+	updatedColumns := map[string]interface{}{
+		"NodeName":    req.NodeName,
+		"Description": req.Description,
+	}
+	err := NodeServiceInstance().updateNode(req.NodeId, updatedColumns)
+	if err != nil {
+		if strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
+			hwlog.RunLog.Error("node name is duplicate")
+			return common.RespMsg{Status: "", Msg: "node name is duplicate", Data: nil}
+		}
+		hwlog.RunLog.Error("modify node db update error")
+		return common.RespMsg{Status: "", Msg: "db update error", Data: nil}
+	}
+	hwlog.RunLog.Info("modify node db update success")
+	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
+}
+
+func getNodeStatistics(interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start get node statistics")
+	resp := make(map[string]int64)
+	allNodeStatus := []string{statusReady, statusNotReady, statusOffline, statusUnknown}
+	for _, status := range allNodeStatus {
+		nodeCount, err := NodeServiceInstance().countNodesByStatus(status)
+		if err != nil {
+			hwlog.RunLog.Error("get node statistics db query error")
+			return common.RespMsg{Status: "", Msg: "db query error", Data: nil}
+		}
+		resp[status] = nodeCount
+	}
+	hwlog.RunLog.Info("get node statistics db query success")
+	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
 // ListNode get node list

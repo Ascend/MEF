@@ -1,12 +1,16 @@
-package module_manager
+// Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
+
+// Package modulemanager to start module_manager server
+package modulemanager
 
 import (
-	"edge-manager/module_manager/model"
-	"edge-manager/pkg/common"
-	"github.com/stretchr/testify/assert"
-	"huawei.com/mindx/common/hwlog"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 type testEnabledModule struct {

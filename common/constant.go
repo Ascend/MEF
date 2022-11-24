@@ -46,6 +46,8 @@ const (
 	App = "app"
 	// NodeGroup resource nodeGroup
 	NodeGroup = "nodeGroup"
+	// NodeStatistics node statistics
+	NodeStatistics = "nodeStatistics"
 	// Software resource software
 	Software = "software"
 
@@ -76,6 +78,4 @@ const (
 const (
 	// TimeFormat time format
 	TimeFormat = "2006-01-02 15:04:05"
-	// AppTemplateGroupVersionsLimit app template group sub versions count limit
-	AppTemplateGroupVersionsLimit = 100
 )
