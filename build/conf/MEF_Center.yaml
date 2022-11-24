@@ -5,14 +5,19 @@ systemEnv:
   - processor
   - version
 TOP_DIR: "{{systemEnv.workspace}}/{{component}}"
-MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/edge-manager"
+EDGE_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/edge-manager"
+SOFTWARE_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/software-manager"
 compile:
   input:
     dependency:
       - name: edge-manager
         version: "1.0"
         type: opensource
-        buildFile: "{{MANAGER_DIR}}/build/conf"
+        buildFile: "{{EDGE_MANAGER_DIR}}/build/conf"
+      - name: software-manager
+        version: "1.0"
+        type: opensource
+        buildFile: "{{SOFTWARE_MANAGER_DIR}}/build/conf"
     files:
       exclude:
         - remove: ["{{TOP_DIR}}/output/"]
@@ -27,7 +32,11 @@ compile:
       include:
         - copy:
             src:
-              - '{{MANAGER_DIR}}/output/*.zip'
+              - '{{EDGE_MANAGER_DIR}}/output/*.zip'
+            des: "{{TOP_DIR}}/output/"
+        - copy:
+            src:
+              - '{{SOFTWARE_MANAGER_DIR}}/output/*.zip'
             des: "{{TOP_DIR}}/output/"
         - mode:
             src:
