@@ -42,8 +42,6 @@ spec:
               mountPath: /var/log/mindx-edge/software-manager
             - name: localtime
               mountPath: /etc/localtime
-            - name: kmc
-              mountPath: /etc/mindx-edge
       volumes:
         - name: softwaremanager-log
           hostPath:

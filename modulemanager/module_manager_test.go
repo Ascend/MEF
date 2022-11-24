@@ -4,12 +4,13 @@
 package modulemanager
 
 import (
+	"context"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
@@ -45,7 +46,7 @@ func (testDisabledModule) Start() {
 
 // 使能模块的注册测试
 func TestEnableModuleRegistry(t *testing.T) {
-	ModuleManagerInit()
+	ModuleInit()
 
 	m := testEnabledModule{}
 	err := Registry(m)
@@ -57,7 +58,7 @@ func TestEnableModuleRegistry(t *testing.T) {
 
 // 去使能模块的注册测试
 func TestDisabledModuleRegistry(t *testing.T) {
-	ModuleManagerInit()
+	ModuleInit()
 
 	m := testDisabledModule{}
 	err := Registry(m)
@@ -69,7 +70,7 @@ func TestDisabledModuleRegistry(t *testing.T) {
 
 // 使用模块的重复注册测试
 func TestEnabledModuleRepeatedRegistration(t *testing.T) {
-	ModuleManagerInit()
+	ModuleInit()
 
 	m := testEnabledModule{}
 
@@ -86,7 +87,7 @@ func TestEnabledModuleRepeatedRegistration(t *testing.T) {
 
 // 去使能模块的重复注册测试
 func TestDisabledModuleRepeatedRegistration(t *testing.T) {
-	ModuleManagerInit()
+	ModuleInit()
 
 	m := testDisabledModule{}
 
@@ -103,7 +104,7 @@ func TestDisabledModuleRepeatedRegistration(t *testing.T) {
 
 // 使能模块的重复去注册测试
 func TestEnabledModuleRepeatedUnregistration(t *testing.T) {
-	ModuleManagerInit()
+	ModuleInit()
 
 	m := testEnabledModule{}
 
@@ -117,7 +118,7 @@ func TestEnabledModuleRepeatedUnregistration(t *testing.T) {
 
 // 去使能模块的重复去注册测试
 func TestDisenabledModuleRepeatedUnregistration(t *testing.T) {
-	ModuleManagerInit()
+	ModuleInit()
 
 	m := testDisabledModule{}
 
@@ -189,7 +190,7 @@ func (msg *MessageReceiver) Start() {
 }
 
 func TestSendSyncMessage(t *testing.T) {
-	ModuleManagerInit()
+	ModuleInit()
 
 	sender := SyncMessageSender{TestFramework: t}
 	receiver := MessageReceiver{TestFramework: t}
@@ -208,13 +209,29 @@ func TestSendSyncMessage(t *testing.T) {
 
 }
 
-func TestMain(m *testing.M) {
+// initHwLogger 不能调用common.InitHwlogger，会有循环依赖的问题
+func initHwLogger() error {
 	hwRunLogConfig := &hwlog.LogConfig{
 		OnlyToStdout: true,
 	}
 	hwOpLogConfig := &hwlog.LogConfig{
 		OnlyToStdout: true,
 	}
-	common.InitHwlogger(hwRunLogConfig, hwOpLogConfig)
+	err := hwlog.InitRunLogger(hwRunLogConfig, context.Background())
+	if err != nil {
+		return err
+	}
+	err = hwlog.InitOperateLogger(hwOpLogConfig, context.Background())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func TestMain(m *testing.M) {
+	if err := initHwLogger(); err != nil {
+		fmt.Printf("failed to initialize hwlog, errror=%v", err)
+		return
+	}
 	m.Run()
 }
