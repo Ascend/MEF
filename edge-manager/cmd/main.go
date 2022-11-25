@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	"edge-manager/pkg/certmanager"
 	"edge-manager/pkg/edgeconnector"
 	"edge-manager/pkg/edgeinstaller"
 	"edge-manager/pkg/kubeclient"
@@ -125,6 +126,9 @@ func register() error {
 		return err
 	}
 	if err := modulemanager.Registry(edgeconnector.NewSocket(true)); err != nil {
+		return err
+	}
+	if err := modulemanager.Registry(certmanager.NewCertManager(true)); err != nil {
 		return err
 	}
 	if err := modulemanager.Registry(edgeinstaller.NewInstaller(true)); err != nil {
