@@ -23,12 +23,11 @@ import (
 var (
 	gormInstance *gorm.DB
 	dbPath       = "./test.db"
-	logPath      = "./test.log"
 )
 
 func setup() {
 	var err error
-	logConfig := &hwlog.LogConfig{LogFileName: logPath, MaxBackups: 1, MaxAge: 7}
+	logConfig := &hwlog.LogConfig{OnlyToStdout: true}
 	if err = common.InitHwlogger(logConfig, logConfig); err != nil {
 		hwlog.RunLog.Errorf("init hwlog failed, %v", err)
 	}

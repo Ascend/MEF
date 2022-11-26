@@ -6,6 +6,8 @@ package common
 import (
 	"encoding/json"
 	"errors"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -63,13 +65,13 @@ func marshalResponse(respMsg *model.Message) RespMsg {
 func ParamConvert(input interface{}, reqType interface{}) error {
 	inputStr, ok := input.(string)
 	if !ok {
-		hwlog.RunLog.Error("create node conver request error1")
+		hwlog.RunLog.Error("create node convert request error1")
 		return errors.New("convert request error")
 	}
 	dec := json.NewDecoder(strings.NewReader(inputStr))
 	if err := dec.Decode(reqType); err != nil {
-		hwlog.RunLog.Error("create node conver request error3")
-		return errors.New("decode requst error")
+		hwlog.RunLog.Error("create node convert request error3")
+		return errors.New("decode request error")
 	}
 	return nil
 }
@@ -88,4 +90,21 @@ func BindUriWithJSON(c *gin.Context) ([]byte, error) {
 		obj[v.Key] = append(params, v.Value)
 	}
 	return json.Marshal(obj)
+}
+
+// GetEdgeMgrWorkPath gets edge-manager work path
+func GetEdgeMgrWorkPath() (string, bool) {
+	currentDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		hwlog.RunLog.Errorf("get edge-manager work absolute path error: %v", err)
+		return "", false
+	}
+
+	currentDir, err = filepath.EvalSymlinks(currentDir)
+	if err != nil {
+		hwlog.RunLog.Errorf("get edge-manager work real path error: %v", err)
+		return "", false
+	}
+
+	return currentDir, true
 }

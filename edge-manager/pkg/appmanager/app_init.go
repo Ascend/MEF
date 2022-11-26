@@ -7,12 +7,12 @@ import (
 	"context"
 	"fmt"
 
-	"edge-manager/pkg/database"
-
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
+
+	"edge-manager/pkg/database"
 )
 
 type handlerFunc func(req interface{}) common.RespMsg
@@ -95,10 +95,6 @@ func initAppTable() error {
 		hwlog.RunLog.Error("create app information database table failed")
 		return err
 	}
-	if err := database.CreateTableIfNotExists(AppContainer{}); err != nil {
-		hwlog.RunLog.Error("create app container database table failed")
-		return err
-	}
 	return nil
 }
 
@@ -107,6 +103,7 @@ func appMethodList() map[string]handlerFunc {
 		combine(common.Create, common.App): CreateApp,
 		combine(common.List, common.App):   ListAppInfo,
 		combine(common.Deploy, common.App): DeployApp,
+		combine(common.Delete, common.App): DeleteApp,
 	}
 }
 

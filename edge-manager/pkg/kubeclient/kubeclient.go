@@ -7,15 +7,13 @@ import (
 	"context"
 	"fmt"
 
+	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/k8stool"
 	appv1 "k8s.io/api/apps/v1"
-
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
-
-	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/k8stool"
 )
 
 var k8sClient *Client

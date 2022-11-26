@@ -5,36 +5,37 @@ package appmanager
 
 // AppInfo is app db table info
 type AppInfo struct {
-	ID            uint64         `gorm:"type:integer;primaryKey;autoIncrement:true"`
-	AppName       string         `gorm:"type:char(128);unique;not null"`
-	Description   string         `gorm:"type:char(255);" json:"description"`
-	CreatedAt     string         `gorm:"type:char(19);not null"`
-	ModifiedAt    string         `gorm:"type:char(19);not null"`
-	NodeGroupName string         `gorm:"type:char(128)"`
-	Containers    []AppContainer `gorm:"type:text;not null"`
+	ID            uint64 `gorm:"type:integer;primaryKey;autoIncrement:true"`
+	AppName       string `gorm:"type:char(128);unique;not null"`
+	Version       string `gorm:"type:char(128);not null"`
+	Description   string `gorm:"type:char(255);" json:"description"`
+	CreatedAt     string `gorm:"type:char(19);not null"`
+	ModifiedAt    string `gorm:"type:char(19);not null"`
+	NodeGroupName string `gorm:"type:char(128)"`
+	Containers    string `gorm:"type:text;not null" json:"containers"`
 }
 
 // AppContainer containers belonging to the same App share the same AppName.
 type AppContainer struct {
-	ID            uint64 `gorm:"type:integer;primaryKey;autoIncrement:true"`
-	AppName       string `gorm:"type:varchar(32)"`
-	CreatedAt     string `gorm:"type:char(19);not null"`
-	ModifiedAt    string `gorm:"type:char(19);not null"`
-	ContainerName string `gorm:"type:varchar(32);not null"`
-	ImageName     string `gorm:"type:varchar(64);not null"`
-	ImageVersion  string `gorm:"type:varchar(16);not null"`
-	CpuRequest    string `gorm:"type:varchar(7);not null"`
-	CpuLimit      string `gorm:"type:varchar(7)"`
-	MemoryRequest string `gorm:"type:varchar(7);not null"`
-	MemoryLimit   string `gorm:"type:varchar(7)"`
-	Npu           string `gorm:"type:varchar(5)"`
-	Env           string `gorm:"type:text"`
-	UserID        int    `gorm:"type:integer"`
-	GroupID       int    `gorm:"type:integer"`
-	ContainerPort string `gorm:"type:varchar(5)"`
-	HostIp        string `gorm:"type:varchar(15)"`
-	HostPort      int    `gorm:"type:integer"`
-	Command       string `gorm:"type:text"`
+	ID            uint64 `gorm:"type:integer;primaryKey;autoIncrement:true" json:"id"`
+	AppName       string `gorm:"type:varchar(32)" json:"appName"`
+	CreatedAt     string `gorm:"type:char(19);not null" json:"createdAt"`
+	ModifiedAt    string `gorm:"type:char(19);not null" json:"modifiedAt"`
+	ContainerName string `gorm:"type:varchar(32);not null" json:"containerName"`
+	ImageName     string `gorm:"type:varchar(64);not null" json:"imageName"`
+	ImageVersion  string `gorm:"type:varchar(16);not null" json:"imageVersion"`
+	CpuRequest    string `gorm:"type:varchar(7);not null" json:"cpuRequest"`
+	CpuLimit      string `gorm:"type:varchar(7)" json:"cpuLimit"`
+	MemoryRequest string `gorm:"type:varchar(7);not null" json:"memoryRequest"`
+	MemoryLimit   string `gorm:"type:varchar(7)" json:"memoryLimit"`
+	Npu           string `gorm:"type:varchar(5)" json:"npu"`
+	Env           string `gorm:"type:text" json:"env"`
+	UserID        int    `gorm:"type:integer" json:"userID"`
+	GroupID       int    `gorm:"type:integer" json:"groupID"`
+	ContainerPort string `gorm:"type:varchar(5)" json:"containerPort"`
+	HostIp        string `gorm:"type:varchar(15)" json:"hostIp"`
+	HostPort      int    `gorm:"type:integer" json:"hostPort"`
+	Command       string `gorm:"type:text" json:"command"`
 }
 
 // AppInstance is application instance

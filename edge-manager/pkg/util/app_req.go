@@ -11,27 +11,36 @@ type CreateAppReq struct {
 	Containers  []ContainerReq `json:"containers"`
 }
 
+// ContainerReq encapsulate container request
 type ContainerReq struct {
-	ContainerName string   `json:"containerName"`
-	CpuRequest    string   `json:"cpuRequest"`
-	CpuLimit      string   `json:"cpuLimit"`
-	MemRequest    string   `json:"memRequest"`
-	MemLimit      string   `json:"memLimit"`
-	Npu           string   `json:"npu"`
-	ImageName     string   `json:"imageName"`
-	ImageVersion  string   `json:"imageVersion"`
-	Command       []string `json:"command"`
-	Env           []EnvReq `json:"env"`
-	ContainerPort string   `json:"containerPort"`
-	HostIp        string   `json:"hostIp"`
-	HostPort      int      `json:"hostPort"`
-	UserId        int      `json:"userId"`
-	GroupId       int      `json:"groupId"`
+	ContainerName string         `json:"containerName"`
+	CpuRequest    string         `json:"cpuRequest"`
+	CpuLimit      string         `json:"cpuLimit"`
+	MemRequest    string         `json:"memRequest"`
+	MemLimit      string         `json:"memLimit"`
+	Npu           string         `json:"npu"`
+	ImageName     string         `json:"imageName"`
+	ImageVersion  string         `json:"imageVersion"`
+	Command       []string       `json:"command"`
+	Env           []EnvReq       `json:"env"`
+	ContainerPort []PortTransfer `json:"containerPort"`
+	UserId        int            `json:"userId"`
+	GroupId       int            `json:"groupId"`
 }
 
+// EnvReq encapsulate env request
 type EnvReq struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
+}
+
+// PortTransfer provide ports mapping
+type PortTransfer struct {
+	Name          string `json:"name"`
+	Proto         string `json:"proto"`
+	ContainerPort int32  `json:"containerPort"`
+	HostIp        string `json:"hostIp"`
+	HostPort      int32  `json:"hostPort"`
 }
 
 // UpdateAppReq Update application

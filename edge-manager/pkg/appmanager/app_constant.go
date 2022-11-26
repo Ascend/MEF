@@ -6,4 +6,10 @@ package appmanager
 const (
 	// MaxApp MaxApp num 1000
 	MaxApp = 1000
+	// AppNodeSelectorKey for select node
+	AppNodeSelectorKey = "appmanager"
+	// AppNodeSelectorValue for select node
+	AppNodeSelectorValue = "test"
+	// AppLabel for app label
+	AppLabel = "v1"
 )

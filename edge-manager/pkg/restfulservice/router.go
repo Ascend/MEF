@@ -4,11 +4,12 @@
 package restfulservice
 
 import (
-	"edge-manager/pkg/util"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindxedge/base/common"
+
+	"edge-manager/pkg/util"
 )
 
 func setRouter(engine *gin.Engine) {
@@ -42,6 +43,7 @@ func appRouter(engine *gin.Engine) {
 		app.POST("/", createApp)
 		app.GET("/list", listAppsInfo)
 		app.POST("/deploy", deployApp)
+		app.DELETE("/", deleteApp)
 	}
 }
 

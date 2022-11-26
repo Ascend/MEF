@@ -8,18 +8,19 @@ import (
 	"flag"
 	"fmt"
 
+	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/checker"
+	"huawei.com/mindxedge/base/modulemanager"
+
 	"edge-manager/pkg/appmanager"
+	"edge-manager/pkg/certmanager"
 	"edge-manager/pkg/database"
 	"edge-manager/pkg/edgeconnector"
 	"edge-manager/pkg/edgeinstaller"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/nodemanager"
 	"edge-manager/pkg/restfulservice"
-
-	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/checker"
-	"huawei.com/mindxedge/base/modulemanager"
 )
 
 const (
@@ -127,6 +128,9 @@ func register() error {
 		return err
 	}
 	if err := modulemanager.Registry(edgeconnector.NewSocket(true)); err != nil {
+		return err
+	}
+	if err := modulemanager.Registry(certmanager.NewCertManager(true)); err != nil {
 		return err
 	}
 	if err := modulemanager.Registry(edgeinstaller.NewInstaller(true)); err != nil {
