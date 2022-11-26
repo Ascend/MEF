@@ -12,6 +12,11 @@ const (
 	ReadBufferSize        = 1024
 	WriteBufferSize       = 1024
 	ReadInstallerDeadline = 5 * time.Minute
+
+	WriteRetryCount     = 5
+	WriteCenterDeadline = 60 * time.Second
+
+	TimeWaitServiceCertTime = 15 * time.Second
 )
 
 // related table conn_infos

@@ -6,6 +6,8 @@ package common
 import (
 	"encoding/json"
 	"errors"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -88,4 +90,21 @@ func BindUriWithJSON(c *gin.Context) ([]byte, error) {
 		obj[v.Key] = append(params, v.Value)
 	}
 	return json.Marshal(obj)
+}
+
+// GetEdgeMgrWorkPath gets edge-manager work path
+func GetEdgeMgrWorkPath() (string, bool) {
+	currentDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		hwlog.RunLog.Errorf("get edge-manager work absolute path error: %v", err)
+		return "", false
+	}
+
+	currentDir, err = filepath.EvalSymlinks(currentDir)
+	if err != nil {
+		hwlog.RunLog.Errorf("get edge-manager work real path error: %v", err)
+		return "", false
+	}
+
+	return currentDir, true
 }

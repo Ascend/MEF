@@ -4,9 +4,14 @@
 package edgeconnector
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
+
+	"huawei.com/mindxedge/base/modulemanager/model"
 
 	"github.com/gorilla/websocket"
 	"huawei.com/mindx/common/hwlog"
@@ -27,8 +32,8 @@ const (
 	Offline = false
 )
 
-func newWebsocketServer() (*WebSocketServer, error) {
-	s := WebSocketServer{
+func newWebsocketServer() *WebSocketServer {
+	return &WebSocketServer{
 		server: &http.Server{
 			Addr: fmt.Sprintf("%s:%s", Config.ServerAddress, Config.Port),
 		},
@@ -37,7 +42,6 @@ func newWebsocketServer() (*WebSocketServer, error) {
 		allClients:    make(map[string]*websocket.Conn),
 		isConnMap:     make(map[string]bool),
 	}
-	return &s, nil
 }
 
 func (w *WebSocketServer) startWebsocketServer() {
@@ -67,6 +71,45 @@ func (w *WebSocketServer) ServeHTTP(resp http.ResponseWriter, req *http.Request)
 	nodeID := req.Header.Get("SerialNumber")
 	w.allClients[nodeID] = conn
 	w.notifyTasks(nodeID)
+}
+
+// Send sends message to edge-installer
+func (w *WebSocketServer) Send(message *model.Message, nodeId string) error {
+	conn := w.allClients[nodeId]
+
+	if err := conn.SetWriteDeadline(time.Now().Add(WriteCenterDeadline)); err != nil {
+		hwlog.RunLog.Error("write message time out")
+		return err
+	}
+
+	var err error
+	for i := 0; i < WriteRetryCount; i++ {
+		err = conn.WriteJSON(message)
+		if err == nil {
+			return nil
+		}
+	}
+
+	return errors.New("max retry count to send to edge-installer")
+}
+
+// Receive receives message from edge-installer
+func (w *WebSocketServer) Receive(conn *websocket.Conn) (*model.Message, error) {
+	var message *model.Message
+	_, r, err := conn.NextReader()
+	if err != nil {
+		hwlog.RunLog.Errorf("read error is %v", err)
+		return message, err
+	}
+	err = json.NewDecoder(r).Decode(&message)
+	if err == io.EOF {
+		err = io.ErrUnexpectedEOF
+	}
+	if err != nil {
+		hwlog.RunLog.Errorf("read json failed, error: %v", err)
+		return message, err
+	}
+	return message, nil
 }
 
 func (w *WebSocketServer) notifyTasks(nodeID string) {

@@ -6,6 +6,8 @@ package common
 import "time"
 
 const (
+	// MEF software name
+	MEF = "MEF"
 	// RestfulServiceName RestfulService
 	RestfulServiceName = "RestfulService"
 	// NodeManagerName NodeManager
@@ -14,6 +16,8 @@ const (
 	EdgeConnectorName = "edge-connector"
 	// EdgeInstallerName edge-installer
 	EdgeInstallerName = "edge-installer"
+	// CertManagerName CertManager
+	CertManagerName = "CertManager"
 	// SoftwareRepositoryName software repository
 	SoftwareRepositoryName = "software repository"
 
@@ -27,6 +31,8 @@ const (
 	Upgrade = "upgrade"
 	// Query option query
 	Query = "query"
+	// Issue option issue
+	Issue = "issue"
 	// Get option get
 	Get = "get"
 	// List option get resource list
@@ -42,6 +48,10 @@ const (
 	NodeStatistics = "nodeStatistics"
 	// Software resource software
 	Software = "software"
+	// ServiceCert resource service cert
+	ServiceCert = "service cert"
+	// CSR resource csr
+	CSR = "csr"
 
 	// ResponseTimeout Response timeout time
 	ResponseTimeout = 3 * time.Second
