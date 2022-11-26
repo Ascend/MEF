@@ -10,6 +10,8 @@ import (
 	"edge-manager/pkg/edgeinstaller"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/nodemanager"
+
+	"edge-manager/pkg/apptemplatemanager"
 	"edge-manager/pkg/restfulservice"
 	"flag"
 	"fmt"
@@ -132,6 +134,9 @@ func register() error {
 		return err
 	}
 	if err := modulemanager.Registry(edgeinstaller.NewInstaller(true)); err != nil {
+		return err
+	}
+	if err := modulemanager.Registry(apptemplatemanager.NewTemplateManager(true)); err != nil {
 		return err
 	}
 	modulemanager.Start()
