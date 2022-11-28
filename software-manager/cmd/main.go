@@ -39,7 +39,10 @@ func main() {
 		fmt.Printf("initialize hwlog failed, %s.\n", err.Error())
 		return
 	}
-	softwaremanager.InitDatabase(softwaremanager.RepositoryFilesPath)
+	err := softwaremanager.InitDatabase(softwaremanager.RepositoryFilesPath)
+	if err != nil {
+		return
+	}
 	if inRanage := checker.IsPortInRange(common.MinPort, common.MaxPort, softwaremanager.Port); !inRanage {
 		hwlog.RunLog.Errorf("port %d is not in [%d, %d]", softwaremanager.Port, common.MinPort, common.MaxPort)
 		return

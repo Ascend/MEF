@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
@@ -37,10 +38,11 @@ const (
 
 // SoftwareRecord is to define the struct of software record table
 type softwareRecord struct {
-	gorm.Model
-	ContentType string
-	Version     string
-	FileSize    float64
+	ID          uint `gorm:"primarykey"`
+	CreatedAt   time.Time
+	ContentType string  `gorm:"type:varchar(64);not null"`
+	Version     string  `gorm:"unique;type:varchar(64);not null"`
+	FileSize    float64 `gorm:"type:float(64);not null"`
 }
 
 func init() {
@@ -54,27 +56,29 @@ func init() {
 }
 
 // InitDatabase is to init the database table for repository
-func InitDatabase(repositoryFilesPath string) {
-	relPath, err := filepath.Abs(repositoryFilesPath + "/repository.db")
+func InitDatabase(repositoryFilesPath string) error {
+	relPath, err := filepath.Abs(filepath.Join(repositoryFilesPath, "/repository.db"))
 	if err != nil {
 		hwlog.RunLog.Error("File path standardization fail")
-		return
+		return err
 	}
 	db, err := gorm.Open(sqlite.Open(relPath), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent)})
 	if err != nil {
 		hwlog.RunLog.Error("Init database connection failed")
-		return
+		return err
 	}
-	if err = os.Chmod(repositoryFilesPath+"/repository.db", dBFileMode); err != nil {
+	if err = os.Chmod(relPath, dBFileMode); err != nil {
 		hwlog.RunLog.Error("Chmod for database file error")
-		return
+		return err
 	}
 	err = db.AutoMigrate(&softwareRecord{})
 	if err != nil {
 		hwlog.RunLog.Error("Migrate database error")
+		return err
 	}
 	gormDB = db
+	return nil
 }
 func deleteSoftware(input interface{}) common.RespMsg {
 	info, ok := input.(restfulservice.SoftwareInfo)

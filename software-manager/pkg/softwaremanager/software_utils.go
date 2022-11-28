@@ -3,9 +3,12 @@
 package softwaremanager
 
 import (
+	"fmt"
+	"huawei.com/mindx/common/utils"
 	"io"
 	"mime/multipart"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -14,17 +17,6 @@ import (
 
 const edgeCore = "edgecore"
 const edgeInstaller = "edgeinstaller"
-
-func pathExists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true, nil
-	}
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	return false, err
-}
 
 func checkFields(contentType string, version string) bool {
 	if contentType != edgeCore && contentType != edgeInstaller {
@@ -55,18 +47,13 @@ func checkSoftwareExist(contentType string, version string) string {
 	if len(softwareRecords) == 0 || len(softwareRecords) != 1 {
 		return ""
 	}
-	dst := RepositoryFilesPath + "/" + contentType + "/" + contentType + "_" + version
-	return dst + "/" + contentType + ".zip"
-
+	dst := filepath.Join(RepositoryFilesPath, contentType, fmt.Sprintf("%s%s%s", contentType, "_", version))
+	return filepath.Join(dst, fmt.Sprintf("%s%s", contentType, ".zip"))
 }
 
 func creatDir(contentType string, version string) string {
-	dst := RepositoryFilesPath + "/" + contentType + "/" + contentType + "_" + version
-	b, err := pathExists(dst)
-	if err != nil {
-		hwlog.RunLog.Error("Path checking error")
-		return ""
-	}
+	dst := filepath.Join(RepositoryFilesPath, contentType, contentType+"_"+version)
+	b := utils.IsExist(dst)
 	if !b {
 		err := os.MkdirAll(dst, os.ModePerm)
 		if err != nil {
