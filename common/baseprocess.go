@@ -6,6 +6,7 @@ package common
 import (
 	"encoding/json"
 	"errors"
+
 	"os"
 	"path/filepath"
 	"strconv"
@@ -66,8 +67,8 @@ func marshalResponse(respMsg *model.Message) RespMsg {
 func ParamConvert(input interface{}, reqType interface{}) error {
 	inputStr, ok := input.(string)
 	if !ok {
-		hwlog.RunLog.Error("create node conver request error1")
-		return errors.New("convert requst error")
+		hwlog.RunLog.Error("create node convert request error1")
+		return errors.New("convert request error")
 	}
 	dec := json.NewDecoder(strings.NewReader(inputStr))
 	if err := dec.Decode(reqType); err != nil {
