@@ -54,6 +54,25 @@ func (req GetNodeDetailReq) Check() error {
 	return nil
 }
 
+// BatchDeleteNodeReq batch delete node
+type BatchDeleteNodeReq []int64
+
+// Check request validator
+func (req BatchDeleteNodeReq) Check() error {
+	return nil
+}
+
+// BatchDeleteNodeRelationReq delete node relation
+type BatchDeleteNodeRelationReq struct {
+	GroupID int64   `json:"groupID"`
+	NodeIDs []int64 `json:"nodeIDs"`
+}
+
+// Check request validator
+func (req BatchDeleteNodeRelationReq) Check() error {
+	return nil
+}
+
 // GetNodeDetailResp nodeDetail
 type GetNodeDetailResp struct {
 	Id          int64  `json:"ID"`

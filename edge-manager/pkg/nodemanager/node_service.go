@@ -4,8 +4,11 @@
 package nodemanager
 
 import (
+	"bytes"
 	"edge-manager/pkg/util"
+	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -16,6 +19,8 @@ import (
 
 	"edge-manager/pkg/kubeclient"
 )
+
+var nodeNotFoundPattern = regexp.MustCompile(`nodes "([^"]+)" not found`)
 
 // CreateNode Create Node
 func createNode(input interface{}) common.RespMsg {
@@ -72,15 +77,9 @@ func getNodeDetail(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("get node detail db query error")
 		return common.RespMsg{Status: "", Msg: "db query error", Data: nil}
 	}
-	nodeRelation, err := NodeServiceInstance().getNodeRelationByNodeId(req.Id)
+	nodeGroupName, err := joinNodeGroups(req.Id)
 	if err != nil {
-		hwlog.RunLog.Error("get node detail db query error")
-		return common.RespMsg{Status: "", Msg: "db query error", Data: nil}
-	}
-	nodeGroup, err := NodeServiceInstance().getNodeGroupByID(nodeRelation.GroupID)
-	if err != nil {
-		hwlog.RunLog.Error("get node detail db query error")
-		return common.RespMsg{Status: "", Msg: "db query error", Data: nil}
+		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 	resp := util.GetNodeDetailResp{
 		Id:          nodeInfo.ID,
@@ -94,7 +93,7 @@ func getNodeDetail(input interface{}) common.RespMsg {
 		Memory:      nodeInfo.Memory,
 		Npu:         nodeInfo.NPUType,
 		NodeType:    nodeInfo.NodeType,
-		NodeGroup:   nodeGroup.GroupName,
+		NodeGroup:   nodeGroupName,
 	}
 	hwlog.RunLog.Info("node detail db query success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
@@ -224,4 +223,148 @@ func autoAddUnmanagedNode() error {
 		hwlog.RunLog.Debugf("auto create unmanaged node %s", node.Name)
 	}
 	return nil
+}
+
+func batchDeleteNode(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start delete node")
+	var req util.BatchDeleteNodeReq
+	if err := common.ParamConvert(input, &req); err != nil {
+		hwlog.RunLog.Errorf("failed to delete node, error: %v", err)
+		return common.RespMsg{Msg: err.Error()}
+	}
+	if err := req.Check(); err != nil {
+		hwlog.RunLog.Errorf("failed to delete node, error: %v", err)
+		return common.RespMsg{Msg: err.Error()}
+	}
+	var deleteCount int64
+	for _, nodeID := range req {
+		if err := deleteSingleNode(nodeID); err != nil {
+			hwlog.RunLog.Warnf("failed to delete node, error: err=%v", err)
+			continue
+		}
+		deleteCount += 1
+	}
+	hwlog.RunLog.Info("delete node success")
+	return common.RespMsg{Status: common.Success, Data: deleteCount}
+}
+
+func deleteSingleNode(nodeID int64) error {
+	nodeInfo, err := NodeServiceInstance().getNodeByID(nodeID)
+	if err != nil {
+		return errors.New("db query failed")
+	}
+
+	groupLabels := make([]string, 0, 4)
+	node, err := kubeclient.GetKubeClient().GetNode(nodeInfo.UniqueName)
+	if err != nil && isNodeNotFound(err) {
+		hwlog.RunLog.Warnf("k8s query node failed, err=%v", err)
+	} else if err != nil {
+		return errors.New("k8s query node failed")
+	} else {
+		for _, label := range node.Labels {
+			if strings.HasPrefix(label, common.NodeGroupLabelPrefix) {
+				groupLabels = append(groupLabels, label)
+			}
+		}
+	}
+	if err = NodeServiceInstance().deleteNodeByName(&NodeInfo{NodeName: nodeInfo.NodeName}); err != nil {
+		return errors.New("db delete failed")
+	}
+	if err = NodeServiceInstance().deleteRelationsToNode(nodeID); err != nil {
+		return errors.New("db delete failed")
+	}
+	if len(groupLabels) > 0 {
+		_, err = kubeclient.GetKubeClient().DeleteNodeLabels(nodeInfo.UniqueName, groupLabels)
+		if err != nil && isNodeNotFound(err) {
+			hwlog.RunLog.Warnf("k8s delete label failed, err=%v", err)
+		} else if err != nil {
+			return errors.New("k8s delete label failed")
+		}
+	}
+	err = kubeclient.GetKubeClient().DeleteNode(nodeInfo.UniqueName)
+	if err != nil && isNodeNotFound(err) {
+		hwlog.RunLog.Warnf("k8s delete node failed, err=%v", err)
+	} else if err != nil {
+		return errors.New("k8s delete node failed")
+	}
+	return nil
+}
+
+func batchDeleteNodeRelation(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start delete node relation")
+	var req util.BatchDeleteNodeRelationReq
+	if err := common.ParamConvert(input, &req); err != nil {
+		hwlog.RunLog.Errorf("failed to delete node relation, error: %v", err)
+		return common.RespMsg{Msg: err.Error()}
+	}
+	if err := req.Check(); err != nil {
+		hwlog.RunLog.Errorf("failed to delete node relation, error: %v", err)
+		return common.RespMsg{Msg: err.Error()}
+	}
+	nodeGroup, err := NodeServiceInstance().getNodeGroupByID(req.GroupID)
+	if err != nil {
+		hwlog.RunLog.Error("failed to delete node relation, error: db query failed")
+		return common.RespMsg{Msg: "db query failed"}
+	}
+	var deleteCount int64
+	for _, nodeID := range req.NodeIDs {
+		if err = deleteSingleNodeRelation(nodeGroup, nodeID); err != nil {
+			hwlog.RunLog.Warnf("failed to delete node relation, error: err=%v", err)
+			continue
+		}
+		deleteCount += 1
+	}
+	hwlog.RunLog.Info("delete node relation success")
+	return common.RespMsg{Status: common.Success, Data: deleteCount}
+}
+
+func deleteSingleNodeRelation(nodeGroup *NodeGroup, nodeID int64) error {
+	nodeInfo, err := NodeServiceInstance().getNodeByID(nodeID)
+	if err != nil {
+		return errors.New("db query failed")
+	}
+	rowsAffected, err := NodeServiceInstance().deleteRelation(&NodeRelation{NodeID: nodeID, GroupID: nodeGroup.ID})
+	if err != nil {
+		return errors.New("db delete failed")
+	}
+	if rowsAffected < 1 {
+		return errors.New("no such relation")
+	}
+	nodeLabel := fmt.Sprintf("%s%d", common.NodeGroupLabelPrefix, nodeGroup.ID)
+	_, err = kubeclient.GetKubeClient().DeleteNodeLabels(nodeInfo.UniqueName, []string{nodeLabel})
+	if err != nil && isNodeNotFound(err) {
+		hwlog.RunLog.Warnf("k8s delete label failed, err=%v", err)
+	} else if err != nil {
+		return errors.New("k8s delete label failed")
+	}
+	return nil
+}
+
+func isNodeNotFound(err error) bool {
+	return nodeNotFoundPattern.MatchString(err.Error())
+}
+
+func joinNodeGroups(nodeID int64) (string, error) {
+	relations, err := NodeServiceInstance().getRelationsByNodeID(nodeID)
+	if err != nil {
+		hwlog.RunLog.Error("get node detail db query error")
+		return "", errors.New("db query error")
+	}
+	nodeGroupName := ""
+	if len(*relations) > 0 {
+		var buffer bytes.Buffer
+		for index, relation := range *relations {
+			nodeGroup, err := NodeServiceInstance().getNodeGroupByID(relation.GroupID)
+			if err != nil {
+				hwlog.RunLog.Error("get node detail db query error")
+				return "", errors.New("db query error")
+			}
+			if index != 0 {
+				buffer.WriteString(",")
+			}
+			buffer.WriteString(nodeGroup.GroupName)
+		}
+		nodeGroupName = buffer.String()
+	}
+	return nodeGroupName, nil
 }

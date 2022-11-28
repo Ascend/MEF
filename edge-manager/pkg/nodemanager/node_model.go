@@ -37,8 +37,10 @@ type NodeService interface {
 	deleteNodeToGroup(*NodeRelation) error
 	countNodeByGroup(groupID int64) (int64, error)
 
-	getNodeRelationByNodeId(int64) (*NodeRelation, error)
+	getRelationsByNodeID(int64) (*[]NodeRelation, error)
 	updateNode(int64, map[string]interface{}) error
+	deleteRelationsToNode(int64) error
+	deleteRelation(*NodeRelation) (int64, error)
 	countNodesByStatus(string) (int64, error)
 	listNodeGroup() (*[]NodeGroup, error)
 	listNodeRelationsByGroupId(int64) (*[]NodeRelation, error)
@@ -134,17 +136,30 @@ func getNodeByLikeName(page, pageSize uint64, nodeName string) func(db *gorm.DB)
 }
 
 // GetNodeRelationByNodeId get nodeRelation
-func (n *NodeServiceImpl) getNodeRelationByNodeId(id int64) (*NodeRelation, error) {
-	var nodeRelation NodeRelation
+func (n *NodeServiceImpl) getRelationsByNodeID(id int64) (*[]NodeRelation, error) {
+	var nodeRelation []NodeRelation
 	return &nodeRelation,
 		database.GetDb().Where(&NodeRelation{NodeID: id}).
-			First(&nodeRelation).Error
+			Find(&nodeRelation).Error
 }
 
 // UpdateNode update node
 func (n *NodeServiceImpl) updateNode(id int64, columns map[string]interface{}) error {
 	return database.GetDb().Model(&NodeInfo{}).Where("`id` = ?", id).
 		UpdateColumns(columns).Error
+}
+
+func (n *NodeServiceImpl) deleteRelationsToNode(id int64) error {
+	return database.GetDb().Model(&NodeRelation{}).
+		Where(&NodeRelation{NodeID: id}).
+		Delete(&NodeRelation{}).Error
+}
+
+func (n *NodeServiceImpl) deleteRelation(relation *NodeRelation) (int64, error) {
+	stmt := database.GetDb().Model(&NodeRelation{}).
+		Where(&NodeRelation{NodeID: relation.NodeID, GroupID: relation.GroupID}).
+		Delete(&NodeRelation{})
+	return stmt.RowsAffected, stmt.Error
 }
 
 // getNodeStatistics get node count by status

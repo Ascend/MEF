@@ -56,6 +56,8 @@ const (
 	NodeGroup = "nodeGroup"
 	// NodeStatistics node statistics
 	NodeStatistics = "nodeStatistics"
+	// NodeRelation node relation
+	NodeRelation = "nodeRelation"
 	// Software resource software
 	Software = "software"
 	// ServiceCert resource service cert
@@ -88,4 +90,6 @@ const (
 	ErrDbUniqueFailed = "UNIQUE constraint failed"
 	// TimeFormat time format
 	TimeFormat = "2006-01-02 15:04:05"
+	// NodeGroupLabelPrefix k8s label prefix for node group
+	NodeGroupLabelPrefix = "huawei.com/MEF-Node"
 )
