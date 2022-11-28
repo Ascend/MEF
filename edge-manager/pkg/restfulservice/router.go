@@ -4,16 +4,18 @@
 package restfulservice
 
 import (
-	"edge-manager/pkg/util"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindxedge/base/common"
+
+	"edge-manager/pkg/util"
 )
 
 func setRouter(engine *gin.Engine) {
 	engine.Use(gin.Recovery())
 	nodeRouter(engine)
+	appRouter(engine)
 	wsRouter(engine)
 	templateRouter(engine)
 }
@@ -33,6 +35,16 @@ func nodeRouter(engine *gin.Engine) {
 		nodeGroup.POST("/", createEdgeNodeGroup)
 		nodeGroup.GET("/", listEdgeNodeGroup)
 		nodeGroup.GET("/:id", getEdgeNodeGroupDetail)
+	}
+}
+
+func appRouter(engine *gin.Engine) {
+	app := engine.Group("/edgemanager/v1/app")
+	{
+		app.POST("/", createApp)
+		app.GET("/list", listAppsInfo)
+		app.POST("/deploy", deployApp)
+		app.DELETE("/", deleteApp)
 	}
 }
 

@@ -6,10 +6,11 @@ package kubeclient
 import (
 	"context"
 	"fmt"
-	"k8s.io/api/core/v1"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/k8stool"
+	appv1 "k8s.io/api/apps/v1"
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
@@ -61,4 +62,9 @@ func (ki *Client) GetPodList() (*v1.PodList, error) {
 	return ki.kubeClient.CoreV1().Pods(v1.NamespaceAll).List(context.Background(), metav1.ListOptions{
 		FieldSelector: selector.String(),
 	})
+}
+
+// CreateDaemonSet create daemonset
+func (ki *Client) CreateDaemonSet(dm *appv1.DaemonSet) (*appv1.DaemonSet, error) {
+	return ki.kubeClient.AppsV1().DaemonSets("default").Create(context.Background(), dm, metav1.CreateOptions{})
 }
