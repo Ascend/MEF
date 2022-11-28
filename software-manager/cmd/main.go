@@ -9,7 +9,6 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
 	"huawei.com/mindxedge/base/modulemanager"
@@ -20,14 +19,11 @@ import (
 const (
 	runLogFile     = "/var/log/mindx-edge/software-manager/run.log"
 	operateLogFile = "/var/log/mindx-edge/software-manager/operate.log"
-	defaultPort    = 8102
 )
 
 var (
 	serverRunConf = &hwlog.LogConfig{}
 	serverOpConf  = &hwlog.LogConfig{}
-	ip            string
-	port          int
 	version       bool
 	buildName     string
 	buildVersion  string
@@ -43,11 +39,15 @@ func main() {
 		fmt.Printf("initialize hwlog failed, %s.\n", err.Error())
 		return
 	}
-	if inRanage := checker.IsPortInRange(common.MinPort, common.MaxPort, port); !inRanage {
-		hwlog.RunLog.Errorf("port %d is not in [%d, %d]", port, common.MinPort, common.MaxPort)
+	err := softwaremanager.InitDatabase(softwaremanager.RepositoryFilesPath)
+	if err != nil {
 		return
 	}
-	if valid, err := checker.IsIpValid(ip); !valid {
+	if inRanage := checker.IsPortInRange(common.MinPort, common.MaxPort, softwaremanager.Port); !inRanage {
+		hwlog.RunLog.Errorf("port %d is not in [%d, %d]", softwaremanager.Port, common.MinPort, common.MaxPort)
+		return
+	}
+	if valid, err := checker.IsIpValid(softwaremanager.IP); !valid {
 		hwlog.RunLog.Error(err)
 		return
 	}
@@ -61,13 +61,8 @@ func main() {
 }
 
 func init() {
-	flag.IntVar(&port, "port", defaultPort,
-		"The server port of the http service,range[1025-40000]")
-	flag.StringVar(&ip, "ip", "",
-		"The listen ip of the service,0.0.0.0 is not recommended when install on Multi-NIC host")
 	flag.BoolVar(&version, "version", false,
 		"Output the program version")
-
 	// hwOpLog configuration
 	flag.IntVar(&serverOpConf.LogLevel, "operateLogLevel", 0,
 		"Operation log level, -1-debug, 0-info, 1-warning, 2-error, 3-dpanic, 4-panic, 5-fatal (default 0)")
@@ -87,11 +82,13 @@ func init() {
 		"Run log file path. If the file size exceeds 20MB, will be rotated")
 	flag.IntVar(&serverRunConf.MaxBackups, "runLogMaxBackups", hwlog.DefaultMaxBackups,
 		"Maximum number of backup run logs, range (0, 30]")
+
 }
 
 func register() error {
 	modulemanager.ModuleInit()
-	if err := modulemanager.Registry(restfulservice.NewRestfulService(true, ip, port)); err != nil {
+	if err := modulemanager.Registry(restfulservice.
+		NewRestfulService(true, softwaremanager.IP, softwaremanager.Port)); err != nil {
 		return err
 	}
 	if err := modulemanager.Registry(softwaremanager.NewSoftwareManager(true)); err != nil {

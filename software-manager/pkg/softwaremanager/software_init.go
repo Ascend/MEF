@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
@@ -81,7 +80,13 @@ func methodSelect(req *model.Message) *common.RespMsg {
 }
 
 func nodeMethodList() map[string]handlerFunc {
-	return map[string]handlerFunc{}
+	return map[string]handlerFunc{
+		combine(common.Delete, common.Software): deleteSoftware,
+		combine(common.Get, common.Software):    downloadSoftware,
+		combine(common.Update, common.Software): uploadSoftware,
+		combine(common.Get, common.Repository):  getRepository,
+		combine(common.Get, common.URL):         getURL,
+	}
 }
 
 func combine(option, resource string) string {

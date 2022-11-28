@@ -58,8 +58,6 @@ const (
 	NodeStatistics = "nodeStatistics"
 	// NodeRelation node relation
 	NodeRelation = "nodeRelation"
-	// Software resource software
-	Software = "software"
 	// ServiceCert resource service cert
 	ServiceCert = "service cert"
 	// CSR resource csr
@@ -68,6 +66,13 @@ const (
 	AppTemplate = "AppTemplate"
 	// ResponseTimeout Response timeout time
 	ResponseTimeout = 3 * time.Second
+
+	// Software resource software
+	Software = "software"
+	// Repository resource
+	Repository = "repository"
+	// URL link
+	URL = "url"
 )
 
 const (
