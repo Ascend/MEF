@@ -56,8 +56,8 @@ const (
 	NodeGroup = "nodeGroup"
 	// NodeStatistics node statistics
 	NodeStatistics = "nodeStatistics"
-	// Software resource software
-	Software = "software"
+	// NodeRelation node relation
+	NodeRelation = "nodeRelation"
 	// ServiceCert resource service cert
 	ServiceCert = "service cert"
 	// CSR resource csr
@@ -66,6 +66,13 @@ const (
 	AppTemplate = "AppTemplate"
 	// ResponseTimeout Response timeout time
 	ResponseTimeout = 3 * time.Second
+
+	// Software resource software
+	Software = "software"
+	// Repository resource
+	Repository = "repository"
+	// URL link
+	URL = "url"
 )
 
 const (
@@ -88,4 +95,6 @@ const (
 	ErrDbUniqueFailed = "UNIQUE constraint failed"
 	// TimeFormat time format
 	TimeFormat = "2006-01-02 15:04:05"
+	// NodeGroupLabelPrefix k8s label prefix for node group
+	NodeGroupLabelPrefix = "huawei.com/MEF-Node"
 )

@@ -3,6 +3,8 @@ module software-manager
 require (
 	huawei.com/mindx/common/hwlog v0.0.0
 	huawei.com/mindxedge/base v0.0.1
+	gorm.io/driver/sqlite v1.4.3
+	gorm.io/gorm v1.24.0
 )
 
 replace (

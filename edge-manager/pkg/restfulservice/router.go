@@ -41,6 +41,11 @@ func nodeRouter(engine *gin.Engine) {
 		nodeGroup.POST("/", createEdgeNodeGroup)
 		nodeGroup.GET("/", listEdgeNodeGroup)
 		nodeGroup.GET("/:id", getEdgeNodeGroupDetail)
+		nodeGroup.POST("/delete", deleteNodeFromGroup)
+	}
+	batchNode := engine.Group("/edgemanager/v1/batch/node")
+	{
+		batchNode.POST("/", deleteNode)
 	}
 }
 
