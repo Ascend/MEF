@@ -108,15 +108,17 @@ func methodSelect(req *model.Message) *common.RespMsg {
 
 func nodeMethodList() map[string]handlerFunc {
 	return map[string]handlerFunc{
-		combine(common.Create, common.Node):        createNode,
-		combine(common.Create, common.NodeGroup):   createGroup,
-		combine(common.List, common.Node):          listNode,
-		combine(common.List, common.NodeUnManaged): listNodeUnManaged,
-		combine(common.Get, common.Node):           getNodeDetail,
-		combine(common.Update, common.Node):        modifyNode,
-		combine(common.Get, common.NodeStatistics): getNodeStatistics,
-		combine(common.List, common.NodeGroup):     listEdgeNodeGroup,
-		combine(common.Get, common.NodeGroup):      getEdgeNodeGroupDetail,
+		combine(common.Create, common.Node):         createNode,
+		combine(common.Create, common.NodeGroup):    createGroup,
+		combine(common.List, common.Node):           listNode,
+		combine(common.List, common.NodeUnManaged):  listNodeUnManaged,
+		combine(common.Get, common.Node):            getNodeDetail,
+		combine(common.Update, common.Node):         modifyNode,
+		combine(common.Delete, common.Node):         batchDeleteNode,
+		combine(common.Delete, common.NodeRelation): batchDeleteNodeRelation,
+		combine(common.Get, common.NodeStatistics):  getNodeStatistics,
+		combine(common.List, common.NodeGroup):      listEdgeNodeGroup,
+		combine(common.Get, common.NodeGroup):       getEdgeNodeGroupDetail,
 	}
 }
 
