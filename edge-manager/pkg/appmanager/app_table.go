@@ -15,6 +15,13 @@ type AppInfo struct {
 	Containers    string `gorm:"type:text;not null" json:"containers"`
 }
 
+// AppDeployInfo is app db table info
+type AppDeployInfo struct {
+	ID        uint64 `gorm:"type:integer;primaryKey;autoIncrement:true"`
+	GroupName string `gorm:"size:255;unique;not null"`
+	AppName   string `gorm:"type:char(128);not null"`
+}
+
 // AppContainer containers belonging to the same App share the same AppName.
 type AppContainer struct {
 	ID            uint64 `gorm:"type:integer;primaryKey;autoIncrement:true" json:"id"`

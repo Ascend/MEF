@@ -62,7 +62,8 @@ type AppRepository interface {
 	updateApp(column string, value interface{}) error
 	queryApp(appId string) (AppInfo, error)
 	listAppsInfo(uint64, uint64, string) (*ListReturnInfo, error)
-	getAppAndNodeGroupInfo(string, string) (*AppInstanceInfo, error)
+	getAppInfo(appName string) (*AppInfo, error)
+	getNodeGroupInfo(nodeGroupName string) (*nodemanager.NodeGroup, error)
 	deployApp(*AppInstance) error
 	deleteApp(string) error
 }
@@ -146,23 +147,25 @@ func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) (*L
 	}, nil
 }
 
-// getAppAndNodeGroupInfo get application and node group information for deploy
-func (a *AppRepositoryImpl) getAppAndNodeGroupInfo(appName string, nodeGroupName string) (*AppInstanceInfo, error) {
-	appInfo, err := a.getAppInfoByName(appName)
-	if err != nil {
-		hwlog.RunLog.Error("get appInfo failed when deploy")
+// getAppInfo get application info
+func (a *AppRepositoryImpl) getAppInfo(appName string) (*AppInfo, error) {
+	var appInfo *AppInfo
+	if err := a.db.Model(AppInfo{}).Where("app_name = ?", appName).First(&appInfo).Error; err != nil {
+		hwlog.RunLog.Error("find app db failed")
 		return nil, err
 	}
+	return appInfo, nil
+}
+
+// getNodeGroupInfo get a group information
+func (a *AppRepositoryImpl) getNodeGroupInfo(nodeGroupName string) (*nodemanager.NodeGroup, error) {
 	var nodeGroup nodemanager.NodeGroup
 	if err := a.db.Model(nodemanager.NodeGroup{}).
 		Where("group_name = ?", nodeGroupName).First(&nodeGroup).Error; err != nil {
-		hwlog.RunLog.Error("find nodeGroup db failed")
+		hwlog.RunLog.Error("find nodeGroup failed")
 		return nil, err
 	}
-	return &AppInstanceInfo{
-		AppInfo:   *appInfo,
-		NodeGroup: nodeGroup,
-	}, nil
+	return &nodeGroup, nil
 }
 
 // deployApp deploy app on node group
@@ -188,15 +191,6 @@ func (a *AppRepositoryImpl) getAppInfoById(appId string) (*AppInfo, error) {
 	var appInfo *AppInfo
 	if err := a.db.Model(AppInfo{}).Where("id = ?", appId).First(&appInfo).Error; err != nil {
 		hwlog.RunLog.Error("find app from db by id failed")
-		return nil, err
-	}
-	return appInfo, nil
-}
-
-func (a *AppRepositoryImpl) getAppInfoByName(appName string) (*AppInfo, error) {
-	var appInfo *AppInfo
-	if err := a.db.Model(AppInfo{}).Where("app_name = ?", appName).First(&appInfo).Error; err != nil {
-		hwlog.RunLog.Error("find app db failed")
 		return nil, err
 	}
 	return appInfo, nil
