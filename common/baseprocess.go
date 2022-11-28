@@ -6,7 +6,6 @@ package common
 import (
 	"encoding/json"
 	"errors"
-
 	"os"
 	"path/filepath"
 	"strconv"
