@@ -59,6 +59,7 @@ type AppRepositoryImpl struct {
 // AppRepository for app method to operate db
 type AppRepository interface {
 	createApp(*AppInfo) error
+	updateApp(column string, value interface{}) error
 	queryApp(appId string) (AppInfo, error)
 	listAppsInfo(uint64, uint64, string) (*ListReturnInfo, error)
 	getAppAndNodeGroupInfo(string, string) (*AppInstanceInfo, error)
@@ -87,6 +88,15 @@ func AppRepositoryInstance() AppRepository {
 // createApp Create application Db
 func (a *AppRepositoryImpl) createApp(appInfo *AppInfo) error {
 	if err := a.db.Model(AppInfo{}).Create(appInfo).Error; err != nil {
+		hwlog.RunLog.Error("create appInfo db failed")
+		return err
+	}
+	return nil
+}
+
+// updateApp query application from db
+func (a *AppRepositoryImpl) updateApp(column string, value interface{}) error {
+	if err := a.db.Model(AppInfo{}).Update(column, value).Error; err != nil {
 		hwlog.RunLog.Error("create appInfo db failed")
 		return err
 	}

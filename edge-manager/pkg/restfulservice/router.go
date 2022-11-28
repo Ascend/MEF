@@ -49,6 +49,7 @@ func appRouter(engine *gin.Engine) {
 	{
 		app.POST("/", createApp)
 		app.GET("/:id", queryApp)
+		app.PATCH("/:id", updateApp)
 		app.GET("/list", listAppsInfo)
 		app.POST("/deploy", deployApp)
 		app.DELETE("/", deleteApp)

@@ -45,8 +45,8 @@ type PortTransfer struct {
 
 // UpdateAppReq Update application
 type UpdateAppReq struct {
-	AppID     uint64 `json:"appID"`
-	ImageName string `json:"imageName"`
+	Id         string   `json:"id"`
+	ImageNames []string `json:"imageNames"`
 }
 
 // DeleteAppReq Delete application

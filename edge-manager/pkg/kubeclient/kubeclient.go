@@ -68,3 +68,8 @@ func (ki *Client) GetPodList() (*v1.PodList, error) {
 func (ki *Client) CreateDaemonSet(dm *appv1.DaemonSet) (*appv1.DaemonSet, error) {
 	return ki.kubeClient.AppsV1().DaemonSets("default").Create(context.Background(), dm, metav1.CreateOptions{})
 }
+
+// UpdateDaemonSet Update daemonset
+func (ki *Client) UpdateDaemonSet(dm *appv1.DaemonSet) (*appv1.DaemonSet, error) {
+	return ki.kubeClient.AppsV1().DaemonSets("default").Update(context.Background(), dm, metav1.UpdateOptions{})
+}
