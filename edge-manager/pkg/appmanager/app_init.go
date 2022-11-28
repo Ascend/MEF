@@ -57,9 +57,9 @@ func (app *appManager) Start() {
 		default:
 		}
 		req, err := modulemanager.ReceiveMessage(common.AppManagerName)
-		hwlog.RunLog.Debugf("%s receive requst from restful service", common.AppManagerName)
+		hwlog.RunLog.Infof("%s receive request from restful service", common.AppManagerName)
 		if err != nil {
-			hwlog.RunLog.Errorf("%s receive requst from restful service failed", common.AppManagerName)
+			hwlog.RunLog.Errorf("%s receive request from restful service failed", common.AppManagerName)
 			continue
 		}
 		msg := methodSelect(req)

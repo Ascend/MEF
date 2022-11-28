@@ -30,7 +30,7 @@ type ContainerReq struct {
 
 // EnvReq encapsulate env request
 type EnvReq struct {
-	Key   string `json:"key"`
+	Name  string `json:"name"`
 	Value string `json:"value"`
 }
 

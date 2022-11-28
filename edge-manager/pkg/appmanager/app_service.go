@@ -214,7 +214,7 @@ func getEnv(envInfo []util.EnvReq) []v1.EnvVar {
 	var envs []v1.EnvVar
 	for _, env := range envInfo {
 		envs = append(envs, v1.EnvVar{
-			Name:  env.Key,
+			Name:  env.Name,
 			Value: env.Value,
 		})
 	}
