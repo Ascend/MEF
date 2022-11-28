@@ -41,22 +41,6 @@ func queryApp(c *gin.Context) {
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }
 
-func updateApp(c *gin.Context) {
-	res, err := c.GetRawData()
-	if err != nil {
-		hwlog.OpLog.Error("update app: get input parameter failed")
-		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
-	}
-	router := common.Router{
-		Source:      common.RestfulServiceName,
-		Destination: common.AppManagerName,
-		Option:      common.Update,
-		Resource:    common.App,
-	}
-	resp := common.SendSyncMessageByRestful(string(res), &router)
-	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
-}
-
 func listAppsInfo(c *gin.Context) {
 	input, err := pageUtil(c)
 	if err != nil {

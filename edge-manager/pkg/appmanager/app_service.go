@@ -69,7 +69,7 @@ func QueryApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "query app info failed", Data: nil}
 	}
 
-	var resp util.CreateAppReq
+	var resp AppReturnInfo
 	resp.Version = appInfo.Version
 	resp.AppName = appInfo.AppName
 	resp.Description = appInfo.Description
@@ -133,49 +133,18 @@ func DeployApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	daemonSet, err := InitDaemonSet(appInstanceInfo)
+	daemonset, err := InitDaemonSet(appInstanceInfo)
 	if err != nil {
-		hwlog.RunLog.Error("app daemonSet init failed")
-		return common.RespMsg{Status: "", Msg: "app daemonSet init failed", Data: nil}
+		hwlog.RunLog.Error("app daemonset init failed")
+		return common.RespMsg{Status: "", Msg: "app daemonset init failed", Data: nil}
 	}
-	daemonSet, err = kubeclient.GetKubeClient().CreateDaemonSet(daemonSet)
+	daemonset, err = kubeclient.GetKubeClient().CreateDaemonSet(daemonset)
 	if err != nil {
-		hwlog.RunLog.Error("app daemonSet create failed")
-		return common.RespMsg{Status: "", Msg: "app daemonSet create failed", Data: nil}
+		hwlog.RunLog.Error("app daemonset create failed")
+		return common.RespMsg{Status: "", Msg: "app daemonset create failed", Data: nil}
 	}
 
-	hwlog.RunLog.Info("app daemonSet create success")
-	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
-}
-
-// UpdateApp update application
-func UpdateApp(input interface{}) common.RespMsg {
-	hwlog.RunLog.Info("start update app")
-	var req util.UpdateAppReq
-	if err := common.ParamConvert(input, &req); err != nil {
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
-	}
-
-	appInfo, err := AppRepositoryInstance().queryApp(req.Id)
-	if err != nil {
-		hwlog.RunLog.Error("get app info failed")
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
-	}
-
-	if err := json.Unmarshal([]byte(apInfo.Containers),)
-	for appInfo.Containers
-	daemonSet, err := InitDaemonSet(appInstanceInfo)
-	if err != nil {
-		hwlog.RunLog.Error("app daemonSet init failed")
-		return common.RespMsg{Status: "", Msg: "app daemonSet init failed", Data: nil}
-	}
-	daemonSet, err = kubeclient.GetKubeClient().CreateDaemonSet(daemonSet)
-	if err != nil {
-		hwlog.RunLog.Error("app daemonSet create failed")
-		return common.RespMsg{Status: "", Msg: "app daemonSet create failed", Data: nil}
-	}
-
-	hwlog.RunLog.Info("app daemonSet create success")
+	hwlog.RunLog.Info("app daemonset create success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
@@ -194,11 +163,11 @@ func DeleteApp(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
-// InitDaemonSet init daemonSet
+// InitDaemonSet init daemonset
 func InitDaemonSet(app *AppInstanceInfo) (*appv1.DaemonSet, error) {
 	containers, err := getContainers(app.AppInfo)
 	if err != nil {
-		hwlog.RunLog.Error("app daemonSet get containers failed")
+		hwlog.RunLog.Error("app daemonset get containers failed")
 		return nil, err
 	}
 	tmpSpec := v1.PodSpec{}
@@ -239,7 +208,7 @@ func getContainers(appContainer AppInfo) ([]v1.Container, error) {
 	for _, containerInfo := range containerInfos {
 		resources, err := getResources(containerInfo)
 		if err != nil {
-			hwlog.RunLog.Error("app daemonSet get resource failed")
+			hwlog.RunLog.Error("app daemonset get resource failed")
 			return nil, err
 		}
 
