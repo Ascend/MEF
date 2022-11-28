@@ -72,7 +72,7 @@ func ParamConvert(input interface{}, reqType interface{}) error {
 	}
 	dec := json.NewDecoder(strings.NewReader(inputStr))
 	if err := dec.Decode(reqType); err != nil {
-		hwlog.RunLog.Error("create node convert request error3")
+		hwlog.RunLog.Errorf("create node convert request error:%s", err.Error())
 		return errors.New("decode request error")
 	}
 	return nil

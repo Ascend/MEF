@@ -54,6 +54,35 @@ func CreateApp(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
+// QueryApp app info
+func QueryApp(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start query app info")
+	var appId string
+	appId, ok := input.(string)
+	if !ok {
+		hwlog.RunLog.Error("query app info failed")
+		return common.RespMsg{Status: "", Msg: "query app info failed", Data: nil}
+	}
+	appInfo, err := AppRepositoryInstance().queryApp(appId)
+	if err != nil {
+		hwlog.RunLog.Error("query app info failed")
+		return common.RespMsg{Status: "", Msg: "query app info failed", Data: nil}
+	}
+
+	var resp util.CreateAppReq
+	resp.Version = appInfo.Version
+	resp.AppName = appInfo.AppName
+	resp.Description = appInfo.Description
+
+	if err = json.Unmarshal([]byte(appInfo.Containers), &resp.Containers); err != nil {
+		hwlog.RunLog.Error("unmarshal containers info failed")
+		return common.RespMsg{Status: "", Msg: "unmarshal containers info failed", Data: nil}
+	}
+
+	hwlog.RunLog.Info("query app success")
+	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
+}
+
 func getAppInfo(req util.CreateAppReq) (*AppInfo, error) {
 	containers, err := json.Marshal(req.Containers)
 	if err != nil {
