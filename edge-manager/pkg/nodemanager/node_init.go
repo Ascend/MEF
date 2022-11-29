@@ -115,6 +115,8 @@ func nodeMethodList() map[string]handlerFunc {
 		combine(common.Get, common.Node):            getNodeDetail,
 		combine(common.Update, common.Node):         modifyNode,
 		combine(common.Delete, common.Node):         batchDeleteNode,
+		combine(common.Add, common.Node):            addUnManagedNode,
+		combine(common.Add, common.NodeRelation):    addNodeRelation,
 		combine(common.Delete, common.NodeRelation): batchDeleteNodeRelation,
 		combine(common.Get, common.NodeStatistics):  getNodeStatistics,
 		combine(common.List, common.NodeGroup):      listEdgeNodeGroup,

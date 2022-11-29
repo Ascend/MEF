@@ -45,6 +45,8 @@ const (
 	Deploy = "deploy"
 	// Undeploy option undeploy application
 	Undeploy = "undeploy"
+	// Add option add
+	Add = "add"
 
 	// Node resource node
 	Node = "node"

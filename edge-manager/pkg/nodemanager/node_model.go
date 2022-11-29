@@ -29,6 +29,8 @@ type NodeService interface {
 	listUnManagedNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
 	getNodeByUniqueName(string) (*NodeInfo, error)
 	getNodeByID(int64) (*NodeInfo, error)
+	getManagedNodeByID(int64) (*NodeInfo, error)
+	countGroupsByNode(int64) (int64, error)
 
 	createNodeGroup(*NodeGroup) error
 	getNodeGroupsByName(uint64, uint64, string) (*[]NodeGroup, error)
@@ -44,6 +46,7 @@ type NodeService interface {
 	countNodesByStatus(string) (int64, error)
 	listNodeGroup(uint64, uint64, string) (*[]NodeGroup, error)
 	listNodeRelationsByGroupId(int64) (*[]NodeRelation, error)
+	addNodeToGroup(*[]NodeRelation) error
 }
 
 // GetTableCount get table count
@@ -181,6 +184,21 @@ func (n *NodeServiceImpl) listNodeRelationsByGroupId(groupId int64) (*[]NodeRela
 	var relations []NodeRelation
 	return &relations,
 		n.db.Model(&NodeRelation{}).Where(&NodeRelation{GroupID: groupId}).Find(&relations).Error
+}
+
+func (n *NodeServiceImpl) getManagedNodeByID(nodeID int64) (*NodeInfo, error) {
+	var node NodeInfo
+	return &node, n.db.Model(NodeInfo{}).Where("id = ? and is_managed = ?", nodeID, managed).First(&node).Error
+}
+
+// AddNodeToGroup add Node Db
+func (n *NodeServiceImpl) addNodeToGroup(relation *[]NodeRelation) error {
+	return n.db.Model(NodeRelation{}).Create(relation).Error
+}
+
+func (n *NodeServiceImpl) countGroupsByNode(nodeID int64) (int64, error) {
+	var num int64
+	return num, n.db.Model(NodeRelation{}).Where("node_id = ?", nodeID).Count(&num).Error
 }
 
 func paginate(page, pageSize uint64) func(db *gorm.DB) *gorm.DB {

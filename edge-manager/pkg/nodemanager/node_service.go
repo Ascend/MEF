@@ -113,6 +113,7 @@ func modifyNode(input interface{}) common.RespMsg {
 	updatedColumns := map[string]interface{}{
 		"NodeName":    req.NodeName,
 		"Description": req.Description,
+		"UpdateAt":    time.Now().Format(TimeFormat),
 	}
 	err := NodeServiceInstance().updateNode(req.NodeId, updatedColumns)
 	if err != nil {
@@ -152,8 +153,12 @@ func listNode(input interface{}) common.RespMsg {
 	}
 	nodes, err := NodeServiceInstance().listNodesByName(req.PageNum, req.PageSize, req.Name)
 	if err == nil {
+		resp := ListNodesResp{
+			Nodes: nodes,
+			Total: len(*nodes),
+		}
 		hwlog.RunLog.Info("list node success")
-		return common.RespMsg{Status: common.Success, Msg: "", Data: nodes}
+		return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 	}
 	if err == gorm.ErrRecordNotFound {
 		hwlog.RunLog.Info("dont have any managed node")
@@ -177,8 +182,12 @@ func listNodeUnManaged(input interface{}) common.RespMsg {
 
 	nodes, err := NodeServiceInstance().listUnManagedNodesByName(req.PageNum, req.PageSize, req.Name)
 	if err == nil {
+		resp := ListNodesResp{
+			Nodes: nodes,
+			Total: len(*nodes),
+		}
 		hwlog.RunLog.Info("list node unmanaged success")
-		return common.RespMsg{Status: common.Success, Msg: "", Data: nodes}
+		return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 	}
 	if err == gorm.ErrRecordNotFound {
 		hwlog.RunLog.Info("dont have any unmanaged node")
@@ -367,4 +376,98 @@ func joinNodeGroups(nodeID int64) (string, error) {
 		nodeGroupName = buffer.String()
 	}
 	return nodeGroupName, nil
+}
+
+func addNodeRelation(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start add node to group")
+	var req AddNodeToGroupReq
+	if err := common.ParamConvert(input, &req); err != nil {
+		hwlog.RunLog.Error("add node to group convert request error")
+		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
+	}
+	total, err := NodeServiceInstance().countNodeByGroup(req.GroupID)
+	if err != nil {
+		hwlog.RunLog.Error("get node in group table num failed")
+		return common.RespMsg{Status: "", Msg: "get node in group table num failed", Data: nil}
+	}
+	num := total + int64(len(req.NodeID))
+	if num > maxNodePerGroup {
+		hwlog.RunLog.Error("node in group number is enough, connot create")
+		return common.RespMsg{Status: "", Msg: "node in group number is enough, connot create", Data: nil}
+	}
+
+	if err := addNode(req); err != nil {
+		hwlog.RunLog.Warn(err.Error())
+		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
+}
+
+func addNode(req AddNodeToGroupReq) error {
+	var errorNode string
+	nodeGroup, err := NodeServiceInstance().getNodeGroupByID(req.GroupID)
+	if err != nil {
+		return errors.New("dont have this node group")
+	}
+	var nodeRelation []NodeRelation
+	for i, id := range req.NodeID {
+		nodeDb, err := NodeServiceInstance().getManagedNodeByID(id)
+		if err != nil {
+			errorNode = fmt.Sprintf("%d,%s", id, errorNode)
+			hwlog.RunLog.Errorf("no found node id %d", id)
+			continue
+		}
+		label := make(map[string]string)
+		label[fmt.Sprintf("%s%d", common.NodeGroupLabelPrefix, nodeGroup.ID)] = ""
+		if _, err := kubeclient.GetKubeClient().AddNodeLabels(nodeDb.UniqueName, label); err != nil {
+			hwlog.RunLog.Errorf("node(%s) patch label(%d) error", nodeDb.NodeName, nodeGroup.ID)
+			continue
+		}
+		relation := NodeRelation{
+			NodeID:    req.NodeID[i],
+			GroupID:   req.GroupID,
+			CreatedAt: time.Now().Format(TimeFormat)}
+		nodeRelation = append(nodeRelation, relation)
+	}
+	if len(nodeRelation) == 0 {
+		return errors.New("all node failed to join group")
+	}
+	if err = nodeServiceInstance.addNodeToGroup(&nodeRelation); err != nil {
+		return errors.New("add node relations to db error")
+	}
+	if errorNode != "" {
+		return fmt.Errorf("not fount node id:%s", errorNode)
+	}
+	return nil
+}
+
+func addUnManagedNode(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start add unmanaged node")
+	var req AddUnManagedNodeReq
+	if err := common.ParamConvert(input, &req); err != nil {
+		hwlog.RunLog.Error("add unmanaged node convert request error")
+		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
+	}
+	// todo nodePerGroup and groupPerNode  limit count
+	updatedColumns := map[string]interface{}{
+		"NodeName":    req.NodeName,
+		"Description": req.Description,
+		"IsManaged":   managed,
+		"UpdateAt":    time.Now().Format(TimeFormat),
+	}
+	if err := NodeServiceInstance().updateNode(req.NodeID, updatedColumns); err != nil {
+		hwlog.RunLog.Error("add unmanaged node error")
+		return common.RespMsg{Status: "", Msg: "add unmanaged node error", Data: nil}
+	}
+	var errorGroup string
+	for _, id := range req.GroupID {
+		addReq := AddNodeToGroupReq{NodeID: []int64{req.NodeID}, GroupID: id}
+		if err := addNode(addReq); err != nil {
+			errorGroup = fmt.Sprintf("%d,%s", id, errorGroup)
+		}
+	}
+	if errorGroup != "" {
+		return common.RespMsg{Status: "", Msg: fmt.Sprintf("cannot join group:%s", errorGroup), Data: nil}
+	}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
