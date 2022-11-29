@@ -95,6 +95,7 @@ func initAppTable() error {
 		hwlog.RunLog.Error("create app information database table failed")
 		return err
 	}
+
 	return nil
 }
 

@@ -49,7 +49,7 @@ func appRouter(engine *gin.Engine) {
 	{
 		app.POST("/", createApp)
 		app.GET("/:id", queryApp)
-		app.PATCH("/:id", updateApp)
+		app.PATCH("/", updateApp)
 		app.GET("/list", listAppsInfo)
 		app.POST("/deploy", deployApp)
 		app.DELETE("/", deleteApp)
@@ -91,16 +91,16 @@ func pageUtil(c *gin.Context) (util.ListReq, error) {
 	return input, nil
 }
 
-func getReqAppId(c *gin.Context) (string, error) {
+func getReqAppId(c *gin.Context) (uint64, error) {
 	appId := c.Param("id")
 	if appId == "" {
-		return "", errors.New("app id is null")
+		return 0, errors.New("app id is null")
 	}
 
-	_, err := strconv.ParseUint(appId, idNumbBase, idNumbBitSize)
+	value, err := strconv.ParseUint(appId, idNumbBase, idNumbBitSize)
 	if err != nil {
-		return "", errors.New("app id is invalid")
+		return 0, errors.New("app id is invalid")
 	}
 
-	return appId, nil
+	return value, nil
 }

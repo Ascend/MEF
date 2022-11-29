@@ -5,6 +5,7 @@ package appmanager
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
@@ -17,6 +18,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"edge-manager/pkg/kubeclient"
+	"edge-manager/pkg/nodemanager"
 	"edge-manager/pkg/util"
 )
 
@@ -57,8 +59,7 @@ func CreateApp(input interface{}) common.RespMsg {
 // QueryApp app info
 func QueryApp(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start query app info")
-	var appId string
-	appId, ok := input.(string)
+	appId, ok := input.(uint64)
 	if !ok {
 		hwlog.RunLog.Error("query app info failed")
 		return common.RespMsg{Status: "", Msg: "query app info failed", Data: nil}
@@ -70,6 +71,7 @@ func QueryApp(input interface{}) common.RespMsg {
 	}
 
 	var resp util.CreateAppReq
+	resp.AppId = appInfo.ID
 	resp.Version = appInfo.Version
 	resp.AppName = appInfo.AppName
 	resp.Description = appInfo.Description
@@ -90,6 +92,7 @@ func getAppInfo(req util.CreateAppReq) (*AppInfo, error) {
 		return nil, err
 	}
 	return &AppInfo{
+		ID:          req.AppId,
 		AppName:     req.AppName,
 		Description: req.Description,
 		Containers:  string(containers),
@@ -127,20 +130,26 @@ func DeployApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	appInstanceInfo, err := AppRepositoryInstance().getAppAndNodeGroupInfo(req.AppName, req.NodeGroupName)
+	appInfo, err := AppRepositoryInstance().getAppInfo(req.AppId)
 	if err != nil {
-		hwlog.RunLog.Error("get app and node group information failed")
+		hwlog.RunLog.Error("get app information failed")
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	daemonSet, err := InitDaemonSet(appInstanceInfo)
+	nodeGroup, err := AppRepositoryInstance().getNodeGroupInfo(req.NodeGroupName)
 	if err != nil {
-		hwlog.RunLog.Error("app daemonSet init failed")
+		hwlog.RunLog.Error("get node group information failed")
+		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	}
+
+	daemonSet, err := InitDaemonSet(&appInfo, nodeGroup.Label)
+	if err != nil {
+		hwlog.RunLog.Error("app daemonSet init failed: %s", err.Error())
 		return common.RespMsg{Status: "", Msg: "app daemonSet init failed", Data: nil}
 	}
 	daemonSet, err = kubeclient.GetKubeClient().CreateDaemonSet(daemonSet)
 	if err != nil {
-		hwlog.RunLog.Error("app daemonSet create failed")
+		hwlog.RunLog.Error("app daemonSet create failed: %s", err.Error())
 		return common.RespMsg{Status: "", Msg: "app daemonSet create failed", Data: nil}
 	}
 
@@ -148,68 +157,57 @@ func DeployApp(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
+func updateNodeGroupDaemonSet(appInfo *AppInfo, nodeGroups []nodemanager.NodeGroup) error {
+	for _, nodeGroup := range nodeGroups {
+		daemonSet, err := InitDaemonSet(appInfo, nodeGroup.Label)
+		if err != nil {
+			return fmt.Errorf("init daemon set failded")
+		}
+		daemonSet, err = kubeclient.GetKubeClient().UpdateDaemonSet(daemonSet)
+		if err != nil {
+			return fmt.Errorf("update daemon set failded")
+		}
+	}
+
+	return nil
+}
+
 // UpdateApp update application
 func UpdateApp(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start update app")
-	var req util.UpdateAppReq
-	if err := common.ParamConvert(input, &req); err != nil {
+	var req util.CreateAppReq
+	var err error
+	if err = common.ParamConvert(input, &req); err != nil {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	appInstanceInfo, err := AppRepositoryInstance().getAppAndNodeGroupInfo(req.AppName, req.NodeGroupName)
+	appInfo, err := getAppInfo(req)
 	if err != nil {
-		hwlog.RunLog.Error("get app and node group information failed")
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+		hwlog.RunLog.Error("get app info failed ")
+		return common.RespMsg{Status: "", Msg: "get app info failed", Data: nil}
 	}
 
-	var appReq util.CreateAppReq
-	if err := json.Unmarshal([]byte(appInfo.Containers), &appReq); err != nil {
-		hwlog.RunLog.Error("unmarshal app container failed")
-		return common.RespMsg{Status: "", Msg: "unmarshal app container failed", Data: nil}
-	}
-	if len(appReq.Containers) != len(req.ImageNames) {
-		hwlog.RunLog.Error("update app failed: because image number not match")
-		return common.RespMsg{Status: "", Msg: "update app failed: because image number not match", Data: nil}
-	}
-
-	for idx := range appReq.Containers {
-		appReq.Containers[idx].ImageName = req.ImageNames[idx]
-	}
-
-	var containerContent []byte
-	if containerContent, err = json.Marshal(appReq.Containers); err != nil {
-		hwlog.RunLog.Error("marshal container failed")
-		return common.RespMsg{Status: "", Msg: "marshal container failed", Data: nil}
-	}
-
-	if err = AppRepositoryInstance().updateApp("containers", containerContent); err != nil {
+	if err = AppRepositoryInstance().updateApp(appInfo.ID, "containers", appInfo.Containers); err != nil {
 		if strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
-			hwlog.RunLog.Error("app name is duplicate")
-			return common.RespMsg{Status: "", Msg: "app name is duplicate", Data: nil}
+			hwlog.RunLog.Error("update app to db failed")
+			return common.RespMsg{Status: "", Msg: "update app to db failed", Data: nil}
 		}
-		hwlog.RunLog.Error("app db create failed")
-		return common.RespMsg{Status: "", Msg: "app db create failed", Data: nil}
-	}
-	hwlog.RunLog.Info("app db create success")
-
-	appInstanceInfo, err := AppRepositoryInstance().getAppAndNodeGroupInfo(req.AppName, req.NodeGroupName)
-	if err != nil {
-		hwlog.RunLog.Error("get app and node group information failed")
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+		hwlog.RunLog.Error("update app to db failed")
+		return common.RespMsg{Status: "", Msg: "update app to db failed", Data: nil}
 	}
 
-	daemonSet, err := InitDaemonSet(appInstanceInfo)
+	nodeGroups, err := AppRepositoryInstance().queryNodeGroup(req.AppId)
 	if err != nil {
-		hwlog.RunLog.Error("app daemonSet init failed")
-		return common.RespMsg{Status: "", Msg: "app daemonSet init failed", Data: nil}
-	}
-	daemonSet, err = kubeclient.GetKubeClient().UpdateDaemonSet(daemonSet)
-	if err != nil {
-		hwlog.RunLog.Error("app daemonSet create failed")
-		return common.RespMsg{Status: "", Msg: "app daemonSet create failed", Data: nil}
+		hwlog.RunLog.Error("get node group failed ")
+		return common.RespMsg{Status: "", Msg: "get node group failed", Data: nil}
 	}
 
-	hwlog.RunLog.Info("app daemonSet create success")
+	if err = updateNodeGroupDaemonSet(appInfo, nodeGroups); err != nil {
+		hwlog.RunLog.Error("update node group daemon set failed ")
+		return common.RespMsg{Status: "", Msg: "update node group daemon set failed", Data: nil}
+	}
+
+	hwlog.RunLog.Info("app daemonSet update success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
@@ -220,7 +218,7 @@ func DeleteApp(input interface{}) common.RespMsg {
 	if err := common.ParamConvert(input, &req); err != nil {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
-	if err := AppRepositoryInstance().deleteApp(req.AppName); err != nil {
+	if err := AppRepositoryInstance().deleteApp(req.AppId); err != nil {
 		hwlog.RunLog.Error("app db delete failed")
 		return common.RespMsg{Status: "", Msg: "app db delete failed", Data: nil}
 	}
@@ -229,8 +227,8 @@ func DeleteApp(input interface{}) common.RespMsg {
 }
 
 // InitDaemonSet init daemonSet
-func InitDaemonSet(app *AppInstanceInfo) (*appv1.DaemonSet, error) {
-	containers, err := getContainers(app.AppInfo)
+func InitDaemonSet(appInfo *AppInfo, nodeLabel string) (*appv1.DaemonSet, error) {
+	containers, err := getContainers(appInfo)
 	if err != nil {
 		hwlog.RunLog.Error("app daemonSet get containers failed")
 		return nil, err
@@ -250,7 +248,7 @@ func InitDaemonSet(app *AppInstanceInfo) (*appv1.DaemonSet, error) {
 	}
 	return &appv1.DaemonSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: app.AppInfo.AppName,
+			Name: appInfo.AppName,
 		},
 		Spec: appv1.DaemonSetSpec{
 			Selector: &metav1.LabelSelector{
@@ -263,7 +261,7 @@ func InitDaemonSet(app *AppInstanceInfo) (*appv1.DaemonSet, error) {
 	}, nil
 }
 
-func getContainers(appContainer AppInfo) ([]v1.Container, error) {
+func getContainers(appContainer *AppInfo) ([]v1.Container, error) {
 	var containerInfos []util.ContainerReq
 	if err := json.Unmarshal([]byte(appContainer.Containers), &containerInfos); err != nil {
 		hwlog.RunLog.Error("app containers unmarshal failed")

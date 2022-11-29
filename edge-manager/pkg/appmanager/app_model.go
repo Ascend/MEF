@@ -36,7 +36,7 @@ type ListReturnInfo struct {
 
 // AppReturnInfo encapsulate app information for return
 type AppReturnInfo struct {
-	ID            uint64              `json:"id"`
+	AppId         uint64              `json:"appId"`
 	AppName       string              `json:"appName"`
 	Version       string              `json:"version"`
 	Description   string              `json:"description"`
@@ -59,13 +59,14 @@ type AppRepositoryImpl struct {
 // AppRepository for app method to operate db
 type AppRepository interface {
 	createApp(*AppInfo) error
-	updateApp(column string, value interface{}) error
-	queryApp(appId string) (AppInfo, error)
+	updateApp(appId uint64, column string, value interface{}) error
+	queryApp(appId uint64) (AppInfo, error)
+	queryNodeGroup(appId uint64) ([]nodemanager.NodeGroup, error)
 	listAppsInfo(uint64, uint64, string) (*ListReturnInfo, error)
-	getAppInfo(appName string) (*AppInfo, error)
+	getAppInfo(appId uint64) (AppInfo, error)
 	getNodeGroupInfo(nodeGroupName string) (*nodemanager.NodeGroup, error)
 	deployApp(*AppInstance) error
-	deleteApp(string) error
+	deleteApp(appId uint64) error
 }
 
 // GetTableCount get table count
@@ -89,31 +90,53 @@ func AppRepositoryInstance() AppRepository {
 // createApp Create application Db
 func (a *AppRepositoryImpl) createApp(appInfo *AppInfo) error {
 	if err := a.db.Model(AppInfo{}).Create(appInfo).Error; err != nil {
-		hwlog.RunLog.Error("create appInfo db failed")
+		hwlog.RunLog.Error("create appInfo db failed, %s", err.Error())
 		return err
 	}
 	return nil
 }
 
-// updateApp query application from db
-func (a *AppRepositoryImpl) updateApp(column string, value interface{}) error {
-	if err := a.db.Model(AppInfo{}).Update(column, value).Error; err != nil {
-		hwlog.RunLog.Error("create appInfo db failed")
+// updateApp update application
+func (a *AppRepositoryImpl) updateApp(appId uint64, column string, value interface{}) error {
+	if err := a.db.Model(AppInfo{}).Where("id = ?", appId).Update(column, value).Error; err != nil {
+		hwlog.RunLog.Errorf("update appInfo to db failed, %s", err.Error())
 		return err
 	}
 	return nil
 }
 
 // queryApp query application from db
-func (a *AppRepositoryImpl) queryApp(appId string) (AppInfo, error) {
-	var appInfo *AppInfo
+func (a *AppRepositoryImpl) queryApp(appId uint64) (AppInfo, error) {
+	var appInfo AppInfo
 	var err error
-	if appInfo, err = a.getAppInfoById(appId); err != nil {
-		hwlog.RunLog.Errorf("query app id [%s] info from db failed", appId)
-		return *appInfo, fmt.Errorf("query app id [%s] info from db failed", appId)
+	if appInfo, err = a.getAppInfo(appId); err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return appInfo, fmt.Errorf("app %s not exist", appId)
+		}
+		return appInfo, fmt.Errorf("query app id [%s] info from db failed", appId)
 	}
 
-	return *appInfo, nil
+	return appInfo, nil
+}
+
+// queryApp query node group from db
+func (a *AppRepositoryImpl) queryNodeGroup(appId uint64) ([]nodemanager.NodeGroup, error) {
+	var nodeGroups []nodemanager.NodeGroup
+	var appInstances []AppInstance
+	if err := database.GetDb().Model(AppInstance{}).Where("id = ?", appId).Find(&appInstances).Error; err != nil {
+		return nil, errors.New("get app instance failed")
+	}
+
+	for _, appInstance := range appInstances {
+		var nodeGroup *nodemanager.NodeGroup
+		var err error
+		if nodeGroup, err = a.getNodeGroupInfo(appInstance.NodeGroupName); err != nil {
+			return nil, errors.New("get node group info failed")
+		}
+		nodeGroups = append(nodeGroups, *nodeGroup)
+	}
+
+	return nodeGroups, nil
 }
 
 // listAppsInfo return appInfo list from SQL
@@ -131,14 +154,13 @@ func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) (*L
 			return nil, err
 		}
 		appReturnInfos = append(appReturnInfos, AppReturnInfo{
-			ID:            app.ID,
-			AppName:       app.AppName,
-			Version:       app.Version,
-			Description:   app.Description,
-			CreatedAt:     app.CreatedAt,
-			ModifiedAt:    app.ModifiedAt,
-			NodeGroupName: app.NodeGroupName,
-			Containers:    containers,
+			AppId:       app.ID,
+			AppName:     app.AppName,
+			Version:     app.Version,
+			Description: app.Description,
+			CreatedAt:   app.CreatedAt,
+			ModifiedAt:  app.ModifiedAt,
+			Containers:  containers,
 		})
 	}
 	return &ListReturnInfo{
@@ -148,11 +170,11 @@ func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) (*L
 }
 
 // getAppInfo get application info
-func (a *AppRepositoryImpl) getAppInfo(appName string) (*AppInfo, error) {
-	var appInfo *AppInfo
-	if err := a.db.Model(AppInfo{}).Where("app_name = ?", appName).First(&appInfo).Error; err != nil {
+func (a *AppRepositoryImpl) getAppInfo(appId uint64) (AppInfo, error) {
+	var appInfo AppInfo
+	if err := a.db.Model(AppInfo{}).Where("id = ?", appId).First(&appInfo).Error; err != nil {
 		hwlog.RunLog.Error("find app db failed")
-		return nil, err
+		return appInfo, err
 	}
 	return appInfo, nil
 }
@@ -173,27 +195,22 @@ func (a *AppRepositoryImpl) deployApp(appInstance *AppInstance) error {
 	return a.db.Model(AppInstance{}).Create(appInstance).Error
 }
 
-// deleteApp delete app by name
-func (a *AppRepositoryImpl) deleteApp(appName string) error {
-	appInfo, err := a.getAppInfoByName(appName)
+// deleteApp delete app
+func (a *AppRepositoryImpl) deleteApp(appId uint64) error {
+	appInfo, err := a.getAppInfo(appId)
 	if err != nil {
 		hwlog.RunLog.Error("get appInfo failed when delete")
 		return err
 	}
-	if appInfo.NodeGroupName != "" {
+	nodeGroups, err := a.queryNodeGroup(appId)
+	if err != nil {
+		return err
+	}
+	if len(nodeGroups) == 0 {
 		hwlog.RunLog.Error("app is referenced, can not delete")
 		return errors.New("app is referenced, can not delete ")
 	}
 	return a.db.Model(AppInfo{}).Delete(appInfo).Error
-}
-
-func (a *AppRepositoryImpl) getAppInfoById(appId string) (*AppInfo, error) {
-	var appInfo *AppInfo
-	if err := a.db.Model(AppInfo{}).Where("id = ?", appId).First(&appInfo).Error; err != nil {
-		hwlog.RunLog.Error("find app from db by id failed")
-		return nil, err
-	}
-	return appInfo, nil
 }
 
 func paginate(page, pageSize uint64) func(db *gorm.DB) *gorm.DB {
