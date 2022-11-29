@@ -11,7 +11,7 @@ import (
 
 // CreateEdgeNodeReq Create edge node
 type CreateEdgeNodeReq struct {
-	Description string `json:"description"`
+	Description string `json:"description,omitempty"`
 	NodeName    string `json:"nodeName"`
 	UniqueName  string `json:"uniqueName"`
 	NodeGroup   string `json:"nodeGroup,omitempty"`
@@ -19,7 +19,7 @@ type CreateEdgeNodeReq struct {
 
 // CreateNodeGroupReq Create edge node group
 type CreateNodeGroupReq struct {
-	Description   string `json:"description"`
+	Description   string `json:"description,omitempty"`
 	NodeGroupName string `json:"nodeGroupName"`
 }
 
@@ -136,4 +136,24 @@ type GetNodeGroupDetailRespItem struct {
 	Status      string `json:"status"`
 	CreateAt    string `json:"createAt"`
 	UpdateAt    string `json:"updateAt"`
+}
+
+// AddNodeToGroupReq Create edge node group
+type AddNodeToGroupReq struct {
+	NodeID  []int64 `json:"nodeId"`
+	GroupID int64   `json:"groupId"`
+}
+
+// AddUnManagedNodeReq add unmanaged node
+type AddUnManagedNodeReq struct {
+	NodeID      int64   `json:"nodeId"`
+	NodeName    string  `json:"name"`
+	GroupID     []int64 `json:"groupId,omitempty"`
+	Description string  `json:"description,omitempty"`
+}
+
+// ListNodesResp list nodes response
+type ListNodesResp struct {
+	Nodes *[]NodeInfo `json:"nodes"`
+	Total int         `json:"total"`
 }
