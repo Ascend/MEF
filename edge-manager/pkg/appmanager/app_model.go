@@ -28,9 +28,9 @@ type AppInstanceInfo struct {
 // ListReturnInfo encapsulate app list
 type ListReturnInfo struct {
 	// AppInfo is app information
-	AppInfo []AppReturnInfo
+	appInfo []AppReturnInfo
 	// Total is num of appInfos
-	Total int
+	total int
 }
 
 // AppReturnInfo encapsulate app information for return
@@ -108,7 +108,6 @@ func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) (*L
 		appReturnInfos = append(appReturnInfos, AppReturnInfo{
 			ID:            app.ID,
 			AppName:       app.AppName,
-			Version:       app.Version,
 			Description:   app.Description,
 			CreatedAt:     app.CreatedAt,
 			ModifiedAt:    app.ModifiedAt,
@@ -117,8 +116,8 @@ func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) (*L
 		})
 	}
 	return &ListReturnInfo{
-		AppInfo: appReturnInfos,
-		Total:   len(appsInfo),
+		appInfo: appReturnInfos,
+		total:   len(appsInfo),
 	}, nil
 }
 

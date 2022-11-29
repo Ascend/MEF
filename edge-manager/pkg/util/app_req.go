@@ -6,7 +6,6 @@ package util
 // CreateAppReq Create application
 type CreateAppReq struct {
 	AppName     string         `json:"appName"`
-	Version     string         `json:"version"`
 	Description string         `json:"description"`
 	Containers  []ContainerReq `json:"containers"`
 }
