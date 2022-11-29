@@ -152,13 +152,19 @@ func getNodeStatistics(c *gin.Context) {
 }
 
 func listEdgeNodeGroup(c *gin.Context) {
+	input, err := pageUtil(c)
+	if err != nil {
+		hwlog.OpLog.Error("list node group: get input parameter failed")
+		common.ConstructResp(c, common.ErrorParseBody, "", nil)
+		return
+	}
 	router := common.Router{
 		Source:      common.RestfulServiceName,
 		Destination: common.NodeManagerName,
 		Option:      common.List,
 		Resource:    common.NodeGroup,
 	}
-	resp := common.SendSyncMessageByRestful("", &router)
+	resp := common.SendSyncMessageByRestful(input, &router)
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }
 

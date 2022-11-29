@@ -25,7 +25,7 @@ var nodeNotFoundPattern = regexp.MustCompile(`nodes "([^"]+)" not found`)
 // CreateNode Create Node
 func createNode(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start create node")
-	var req util.CreateEdgeNodeReq
+	var req CreateEdgeNodeReq
 	if err := common.ParamConvert(input, &req); err != nil {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
@@ -63,7 +63,7 @@ func createNode(input interface{}) common.RespMsg {
 // getNodeDetail get node detail
 func getNodeDetail(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start get node detail")
-	var req util.GetNodeDetailReq
+	var req GetNodeDetailReq
 	if err := common.ParamConvert(input, &req); err != nil {
 		hwlog.RunLog.Error("get node detail convert request error")
 		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
@@ -81,7 +81,7 @@ func getNodeDetail(input interface{}) common.RespMsg {
 	if err != nil {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
-	resp := util.GetNodeDetailResp{
+	resp := GetNodeDetailResp{
 		Id:          nodeInfo.ID,
 		NodeName:    nodeInfo.NodeName,
 		UniqueName:  nodeInfo.UniqueName,
@@ -101,7 +101,7 @@ func getNodeDetail(input interface{}) common.RespMsg {
 
 func modifyNode(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start modify node")
-	var req util.ModifyNodeGroupReq
+	var req ModifyNodeGroupReq
 	if err := common.ParamConvert(input, &req); err != nil {
 		hwlog.RunLog.Error("modify node convert request error")
 		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
@@ -146,9 +146,9 @@ func getNodeStatistics(interface{}) common.RespMsg {
 // ListNode get node list
 func listNode(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start list node managed")
-	var req util.ListReq
-	if err := common.ParamConvert(input, &req); err != nil {
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	req, ok := input.(util.ListReq)
+	if !ok {
+		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
 	}
 	nodes, err := NodeServiceInstance().listNodesByName(req.PageNum, req.PageSize, req.Name)
 	if err == nil {
@@ -170,9 +170,9 @@ func listNodeUnManaged(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "auto add unmanaged node filed", Data: nil}
 	}
 	hwlog.RunLog.Info("start list node unmanaged")
-	var req util.ListReq
-	if err := common.ParamConvert(input, &req); err != nil {
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	req, ok := input.(util.ListReq)
+	if !ok {
+		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
 	}
 
 	nodes, err := NodeServiceInstance().listUnManagedNodesByName(req.PageNum, req.PageSize, req.Name)
@@ -227,7 +227,7 @@ func autoAddUnmanagedNode() error {
 
 func batchDeleteNode(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start delete node")
-	var req util.BatchDeleteNodeReq
+	var req BatchDeleteNodeReq
 	if err := common.ParamConvert(input, &req); err != nil {
 		hwlog.RunLog.Errorf("failed to delete node, error: %v", err)
 		return common.RespMsg{Msg: err.Error()}
@@ -292,7 +292,7 @@ func deleteSingleNode(nodeID int64) error {
 
 func batchDeleteNodeRelation(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start delete node relation")
-	var req util.BatchDeleteNodeRelationReq
+	var req BatchDeleteNodeRelationReq
 	if err := common.ParamConvert(input, &req); err != nil {
 		hwlog.RunLog.Errorf("failed to delete node relation, error: %v", err)
 		return common.RespMsg{Msg: err.Error()}

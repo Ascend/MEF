@@ -8,10 +8,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	appv1 "k8s.io/api/apps/v1"
+	"strings"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/k8stool"
-	appv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -88,10 +89,9 @@ func (ki *Client) DeleteNodeLabels(nodeName string, labelNames []string) (*v1.No
 	}
 	patch := make([]map[string]interface{}, 0, len(labelNames))
 	for _, labelName := range labelNames {
-		labelPath := labelResourcePrefix + labelName
 		op := map[string]interface{}{
 			keyOp:   opRemove,
-			keyPath: labelPath,
+			keyPath: ki.makeLabelPath(labelName),
 		}
 		patch = append(patch, op)
 	}
@@ -105,10 +105,9 @@ func (ki *Client) AddNodeLabels(nodeName string, labels map[string]string) (*v1.
 	}
 	patch := make([]map[string]interface{}, 0, len(labels))
 	for name, value := range labels {
-		labelPath := labelResourcePrefix + name
 		op := map[string]interface{}{
 			keyOp:    opAdd,
-			keyPath:  labelPath,
+			keyPath:  ki.makeLabelPath(name),
 			keyValue: value,
 		}
 		patch = append(patch, op)
@@ -116,6 +115,7 @@ func (ki *Client) AddNodeLabels(nodeName string, labels map[string]string) (*v1.
 	return ki.patchNode(nodeName, patch)
 }
 
+// patchNode use "json" patch type
 func (ki *Client) patchNode(nodeName string, patch []map[string]interface{}) (*v1.Node, error) {
 	patchBytes, err := json.Marshal(patch)
 	if err != nil {
@@ -123,6 +123,13 @@ func (ki *Client) patchNode(nodeName string, patch []map[string]interface{}) (*v
 	}
 	return ki.kubeClient.CoreV1().Nodes().
 		Patch(context.Background(), nodeName, types.JSONPatchType, patchBytes, metav1.PatchOptions{})
+}
+
+// makeLabelPath make valid JSON Pointer(rfc6901)
+func (ki *Client) makeLabelPath(name string) string {
+	name = strings.ReplaceAll(name, "~", "~0")
+	name = strings.ReplaceAll(name, "/", "~1")
+	return labelResourcePrefix + name
 }
 
 // CreateDaemonSet create daemonset
