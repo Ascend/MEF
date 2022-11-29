@@ -215,3 +215,20 @@ func getEdgeNodeGroupDetail(c *gin.Context) {
 	resp := common.SendSyncMessageByRestful(string(res), &router)
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }
+
+func batchDeleteNodeGroup(c *gin.Context) {
+	reqContent, err := c.GetRawData()
+	if err != nil {
+		hwlog.OpLog.Error("batch delete node group: get input parameter failed")
+		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
+	}
+
+	router := common.Router{
+		Source:      common.RestfulServiceName,
+		Destination: common.NodeManagerName,
+		Option:      common.Delete,
+		Resource:    common.NodeGroup,
+	}
+	resp := common.SendSyncMessageByRestful(string(reqContent), &router)
+	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+}

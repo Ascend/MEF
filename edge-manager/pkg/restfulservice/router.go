@@ -45,6 +45,7 @@ func nodeRouter(engine *gin.Engine) {
 		nodeGroup.GET("/:id", getEdgeNodeGroupDetail)
 		nodeGroup.POST("/add", addNodeToGroup)
 		nodeGroup.POST("/delete", deleteNodeFromGroup)
+		nodeGroup.POST("/batchdelete", batchDeleteNodeGroup)
 	}
 }
 
