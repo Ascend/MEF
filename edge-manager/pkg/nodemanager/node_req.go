@@ -157,3 +157,8 @@ type ListNodesResp struct {
 	Nodes *[]NodeInfo `json:"nodes"`
 	Total int         `json:"total"`
 }
+
+// BatchDeleteNodeGroupReq batch delete node group
+type BatchDeleteNodeGroupReq struct {
+	GroupID []int64 `json:"groupID"`
+}

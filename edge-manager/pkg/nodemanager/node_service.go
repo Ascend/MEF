@@ -471,3 +471,47 @@ func addUnManagedNode(input interface{}) common.RespMsg {
 	}
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
+
+func batchDeleteNodeGroup(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start batch delete node group")
+	var req BatchDeleteNodeGroupReq
+	if err := common.ParamConvert(input, &req); err != nil {
+		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	}
+	var delSuccessGroupID []int64
+	for _, groupID := range req.GroupID {
+		nodeGroup, err := NodeServiceInstance().getNodeGroupByID(groupID)
+		if err != nil {
+			hwlog.RunLog.Errorf("get node group by group id %d failed", groupID)
+			continue
+		}
+		relations, err := NodeServiceInstance().listNodeRelationsByGroupId(groupID)
+		if err != nil {
+			hwlog.RunLog.Errorf("get relations between node and node group by group id %d failed", groupID)
+			continue
+		}
+		var operationSuccessTimes int64
+		for _, relation := range *relations {
+			if err := deleteSingleNodeRelation(nodeGroup, relation.NodeID); err != nil {
+				hwlog.RunLog.Errorf("patch node state failed:%v", err)
+				continue
+			}
+			if err = NodeServiceInstance().deleteNodeToGroup(&relation); err != nil {
+				hwlog.RunLog.Errorf("delete relation %v from db failed:%v", relation, err)
+				continue
+			}
+			operationSuccessTimes++
+		}
+		if operationSuccessTimes == int64(len(*relations)) {
+			if err = NodeServiceInstance().deleteNodeGroup(groupID); err != nil {
+				hwlog.RunLog.Errorf("delete node group by group id %d failed:%v", groupID, err)
+				continue
+			}
+			delSuccessGroupID = append(delSuccessGroupID, groupID)
+		}
+	}
+	if len(delSuccessGroupID) > 0 {
+		return common.RespMsg{Status: common.Success, Msg: "batch delete node group success", Data: delSuccessGroupID}
+	}
+	return common.RespMsg{Status: "", Msg: "batch delete node group failed", Data: nil}
+}
