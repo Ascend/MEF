@@ -7,6 +7,7 @@ import (
 	"edge-manager/pkg/util"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"sync"
 
 	"gorm.io/gorm"
@@ -58,6 +59,7 @@ type AppRepositoryImpl struct {
 // AppRepository for app method to operate db
 type AppRepository interface {
 	createApp(*AppInfo) error
+	queryApp(appId string) (AppInfo, error)
 	listAppsInfo(uint64, uint64, string) (*ListReturnInfo, error)
 	getAppAndNodeGroupInfo(string, string) (*AppInstanceInfo, error)
 	deployApp(*AppInstance) error
@@ -89,6 +91,18 @@ func (a *AppRepositoryImpl) createApp(appInfo *AppInfo) error {
 		return err
 	}
 	return nil
+}
+
+// queryApp query application from db
+func (a *AppRepositoryImpl) queryApp(appId string) (AppInfo, error) {
+	var appInfo *AppInfo
+	var err error
+	if appInfo, err = a.getAppInfoById(appId); err != nil {
+		hwlog.RunLog.Errorf("query app id [%s] info from db failed", appId)
+		return *appInfo, fmt.Errorf("query app id [%s] info from db failed", appId)
+	}
+
+	return *appInfo, nil
 }
 
 // listAppsInfo return appInfo list from SQL
@@ -157,6 +171,15 @@ func (a *AppRepositoryImpl) deleteApp(appName string) error {
 		return errors.New("app is referenced, can not delete ")
 	}
 	return a.db.Model(AppInfo{}).Delete(appInfo).Error
+}
+
+func (a *AppRepositoryImpl) getAppInfoById(appId string) (*AppInfo, error) {
+	var appInfo *AppInfo
+	if err := a.db.Model(AppInfo{}).Where("id = ?", appId).First(&appInfo).Error; err != nil {
+		hwlog.RunLog.Error("find app from db by id failed")
+		return nil, err
+	}
+	return appInfo, nil
 }
 
 func (a *AppRepositoryImpl) getAppInfoByName(appName string) (*AppInfo, error) {
