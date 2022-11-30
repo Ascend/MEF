@@ -8,6 +8,7 @@ import (
 	"errors"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
+	"strconv"
 	"time"
 )
 
@@ -16,8 +17,8 @@ type AppTemplateDto struct {
 	Id             uint64         `json:"id"`
 	Name           string         `json:"name"`
 	Description    string         `json:"description"`
-	CreateTime     string         `json:"create_time"`
-	LastModifyTime string         `json:"last_modify_time"`
+	CreateTime     string         `json:"createTime"`
+	LastModifyTime string         `json:"lastModifyTime"`
 	Containers     []ContainerDto `json:"containers"`
 }
 
@@ -26,25 +27,25 @@ type TemplateSummaryDto struct {
 	Id             uint64 `json:"id"`
 	Name           string `json:"name"`
 	Description    string `json:"description"`
-	CreateTime     string `json:"create_time"`
-	LastModifyTime string `json:"last_modify_time"`
+	CreateTime     string `json:"createTime"`
+	LastModifyTime string `json:"lastModifyTime"`
 }
 
 // ContainerDto app template version container dto
 type ContainerDto struct {
 	Id             uint64    `json:"id"`
 	Name           string    `json:"name"`
-	ImageName      string    `json:"image_name"`
-	ImageVersion   string    `json:"image_version"`
-	CpuRequest     string    `json:"cpu_request"`
-	CpuLimit       string    `json:"cpu_limit"`
-	MemRequest     string    `json:"mem_request"`
-	MemLimit       string    `json:"mem_limit"`
+	ImageName      string    `json:"imageName"`
+	ImageVersion   string    `json:"imageVersion"`
+	CpuRequest     string    `json:"cpuRequest"`
+	CpuLimit       string    `json:"cpuLimit"`
+	MemRequest     string    `json:"memRequest"`
+	MemLimit       string    `json:"memLimit"`
 	Npu            string    `json:"npu"`
 	Env            []Dic     `json:"env"`
-	ContainerUser  string    `json:"container_user"`
-	ContainerGroup string    `json:"container_group"`
-	PortMaps       []PortMap `json:"port_maps"`
+	ContainerUser  string    `json:"containerUser"`
+	ContainerGroup string    `json:"containerGroup"`
+	PortMaps       []PortMap `json:"portMaps"`
 	Command        []string  `json:"command"`
 }
 
@@ -74,9 +75,9 @@ type Dic struct {
 // PortMap container port mapping config
 type PortMap struct {
 	Protocol      string `json:"protocol"`
-	ContainerPort string `json:"container_port"`
-	HostIp        string `json:"host_ip"`
-	HostPort      string `json:"host_port"`
+	ContainerPort string `json:"containerPort"`
+	HostIp        string `json:"hostIp"`
+	HostPort      string `json:"hostPort"`
 }
 
 // ToDb convert app template dto to db model
@@ -211,7 +212,67 @@ func (dto *ContainerDto) ToDb(container *TemplateContainerDb) error {
 
 // Check whether app template dto is valid
 func (dto *AppTemplateDto) Check() error {
-	return nil
+	validator := common.NewValidator().ValidateAppName("name", dto.Name).
+		ValidateAppDesc("description", dto.Description)
+	validateTemplateContainers(validator, "containers", dto.Containers)
+	return validator.Error()
+}
+
+func validateTemplateContainers(v *common.Validator, paramName string, containers []ContainerDto) {
+	v.ValidateCount(paramName, len(containers), common.AppTemplateContainersMin, common.AppTemplateContainersMax)
+	for i, container := range containers {
+		prefix := paramName + "[" + strconv.Itoa(i) + "]."
+		v.ValidateUnique(prefix+"name", "name", container.Name).
+			ValidateContainerName(prefix+"name", container.Name).
+			ValidateImageName(prefix+"imageName", container.ImageName).
+			ValidateImageVersion(prefix+"imageVersion", container.ImageVersion).
+			ValidateCpu(prefix+"cpuRequest", container.CpuRequest).
+			ValidateMemory(prefix+"memRequest", container.MemRequest)
+		if container.CpuLimit != "" {
+			v.ValidateCpu(prefix+"cpuLimit", container.CpuRequest).
+				ValidateGtEq(prefix+"cpuLimit", prefix+"cpuRequest", container.CpuLimit, container.CpuRequest)
+		}
+		if container.MemLimit != "" {
+			v.ValidateMemory(prefix+"memLimit", container.MemRequest).
+				ValidateGtEq(prefix+"memLimit", prefix+"memRequest", container.MemLimit, container.MemRequest)
+		}
+		if container.Npu != "" {
+			v.ValidateNpu(prefix+"npu", container.Npu)
+		}
+		if container.ContainerUser != "" {
+			v.ValidateContainerUid(prefix+"containerUser", container.ContainerUser)
+		}
+		if container.ContainerGroup != "" {
+			v.ValidateContainerGid(prefix+"containerGroup", container.ContainerGroup)
+		}
+		if container.Env != nil {
+			ValidateEnv(v, prefix+"env", container.Env)
+		}
+		if container.PortMaps != nil {
+			ValidatePortMaps(v, prefix+"portMaps", container.PortMaps)
+		}
+	}
+}
+
+// ValidatePortMaps validate port maps
+func ValidatePortMaps(v *common.Validator, paramName string, portMaps []PortMap) {
+	v.ValidateCount(paramName, len(portMaps), 0, common.PortMapsMax)
+	for j, pm := range portMaps {
+		prefixPm := paramName + "[" + strconv.Itoa(j) + "]."
+		v.ValidateContainerPort(prefixPm+"containerPort", pm.ContainerPort).
+			ValidateHostPort(prefixPm+"hostPort", pm.HostPort).
+			ValidateHostIp(prefixPm+"hostIp", pm.HostIp).
+			ValidatePortProtocol(prefixPm+"protocol", pm.Protocol)
+	}
+}
+
+// ValidateEnv validate environment variables
+func ValidateEnv(v *common.Validator, paramName string, env []Dic) {
+	v.ValidateCount(paramName, len(env), 0, common.EnvCountMax)
+	for j, kv := range env {
+		prefixEnv := paramName + "[" + strconv.Itoa(j) + "]."
+		v.ValidateEnvKey(prefixEnv+"key", kv.Key).ValidateEnvValue(prefixEnv+"value", kv.Value)
+	}
 }
 
 // UnmarshalJSON custom JSON unmarshal

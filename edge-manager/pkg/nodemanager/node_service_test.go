@@ -82,7 +82,7 @@ func TestAll(t *testing.T) {
 }
 
 func testCreateNode() {
-	req := util.CreateEdgeNodeReq{
+	req := CreateEdgeNodeReq{
 		Description: "my-desc",
 		NodeName:    "node-name",
 		UniqueName:  "unique-name",
@@ -95,7 +95,7 @@ func testCreateNode() {
 }
 
 func testCreateNodeGroup() {
-	req := util.CreateNodeGroupReq{
+	req := CreateNodeGroupReq{
 		Description:   "my-desc",
 		NodeGroupName: "node-group-name",
 	}
@@ -115,8 +115,8 @@ func testGetNodeDetailInternal(description, nodeName, uniqueName, nodeGroup stri
 	convey.So(err, convey.ShouldBeNil)
 	resp := getNodeDetail(string(reqBytes))
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
-	convey.So(resp.Data, convey.ShouldHaveSameTypeAs, util.GetNodeDetailResp{})
-	node, _ := resp.Data.(util.GetNodeDetailResp)
+	convey.So(resp.Data, convey.ShouldHaveSameTypeAs, GetNodeDetailResp{})
+	node, _ := resp.Data.(GetNodeDetailResp)
 	convey.So(node.Description, convey.ShouldEqual, description)
 	convey.So(node.NodeName, convey.ShouldEqual, nodeName)
 	convey.So(node.UniqueName, convey.ShouldEqual, uniqueName)
@@ -124,7 +124,7 @@ func testGetNodeDetailInternal(description, nodeName, uniqueName, nodeGroup stri
 }
 
 func testModifyNode() {
-	req := util.ModifyNodeGroupReq{
+	req := ModifyNodeGroupReq{
 		NodeId:      1,
 		Description: "my-desc-new",
 		NodeName:    "node-name-new",
@@ -139,8 +139,8 @@ func testModifyNode() {
 func testGetNodeStatistics() {
 	resp := getNodeStatistics("")
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
-	convey.So(resp.Data, convey.ShouldHaveSameTypeAs, util.GetNodeStatisticsResp{})
-	counts, _ := resp.Data.(util.GetNodeStatisticsResp)
+	convey.So(resp.Data, convey.ShouldHaveSameTypeAs, GetNodeStatisticsResp{})
+	counts, _ := resp.Data.(GetNodeStatisticsResp)
 	convey.So(counts, convey.ShouldContainKey, statusReady)
 	convey.So(counts[statusReady], convey.ShouldEqual, 0)
 	convey.So(counts, convey.ShouldContainKey, statusNotReady)
@@ -152,12 +152,13 @@ func testGetNodeStatistics() {
 }
 
 func testListNodeGroup() {
-	resp := listEdgeNodeGroup("")
+	req := util.ListReq{PageSize: 5, PageNum: 1, Name: ""}
+	resp := listEdgeNodeGroup(req)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
-	convey.So(resp.Data, convey.ShouldHaveSameTypeAs, util.ListNodeGroupResp{})
-	respData, _ := resp.Data.(util.ListNodeGroupResp)
-	convey.So(len(respData), convey.ShouldEqual, 1)
-	group := respData[0]
+	convey.So(resp.Data, convey.ShouldHaveSameTypeAs, ListNodeGroupResp{})
+	respData, _ := resp.Data.(ListNodeGroupResp)
+	convey.So(len(respData.Groups), convey.ShouldEqual, 1)
+	group := respData.Groups[0]
 	convey.So(group.NodeCount, convey.ShouldEqual, 1)
 }
 
@@ -166,9 +167,7 @@ func testListNode() {
 		PageSize: 1,
 		PageNum:  1,
 	}
-	reqBytes, err := json.Marshal(req)
-	convey.So(err, convey.ShouldBeNil)
-	resp := listNode(string(reqBytes))
+	resp := listNode(req)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
@@ -178,8 +177,8 @@ func testGetNodeGroupDetail() {
 	convey.So(err, convey.ShouldBeNil)
 	resp := getEdgeNodeGroupDetail(string(reqBytes))
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
-	convey.So(resp.Data, convey.ShouldHaveSameTypeAs, util.GetNodeGroupDetailResp{})
-	respData, _ := resp.Data.(util.GetNodeGroupDetailResp)
+	convey.So(resp.Data, convey.ShouldHaveSameTypeAs, GetNodeGroupDetailResp{})
+	respData, _ := resp.Data.(GetNodeGroupDetailResp)
 	convey.So(len(respData.Nodes), convey.ShouldEqual, 1)
 }
 

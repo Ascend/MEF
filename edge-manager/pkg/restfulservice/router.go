@@ -31,21 +31,21 @@ func nodeRouter(engine *gin.Engine) {
 	{
 		node.POST("/", createEdgeNode)
 		node.GET("/:id", getNodeDetail)
-		node.PUT("/", modifyNode)
+		node.PATCH("/", modifyNode)
 		node.GET("/num", getNodeStatistics)
+		node.POST("/batchdelete", deleteNode)
 		node.GET("/list/managed", listNodeManaged)
 		node.GET("/list/unmanaged", listNodeUnManaged)
+		node.POST("/add", addUnManagedNode)
 	}
 	nodeGroup := engine.Group("/edgemanager/v1/nodegroup")
 	{
 		nodeGroup.POST("/", createEdgeNodeGroup)
 		nodeGroup.GET("/", listEdgeNodeGroup)
 		nodeGroup.GET("/:id", getEdgeNodeGroupDetail)
+		nodeGroup.POST("/add", addNodeToGroup)
 		nodeGroup.POST("/delete", deleteNodeFromGroup)
-	}
-	batchNode := engine.Group("/edgemanager/v1/batch/node")
-	{
-		batchNode.POST("/", deleteNode)
+		nodeGroup.POST("/batchdelete", batchDeleteNodeGroup)
 	}
 }
 
