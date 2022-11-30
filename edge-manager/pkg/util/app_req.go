@@ -44,12 +44,6 @@ type PortTransfer struct {
 	HostPort      int32  `json:"hostPort"`
 }
 
-// UpdateAppReq Update application
-type UpdateAppReq struct {
-	AppId      uint64   `json:"appId"`
-	ImageNames []string `json:"imageNames"`
-}
-
 // DeleteAppReq Delete application
 type DeleteAppReq struct {
 	AppId uint64 `json:"appId"`
@@ -69,5 +63,5 @@ type UndeployAppReq struct {
 
 // GetAppByAppIdReq get app by application id
 type GetAppByAppIdReq struct {
-	AppId int `json:"appId"`
+	AppId uint64 `json:"appId"`
 }

@@ -144,12 +144,12 @@ func DeployApp(input interface{}) common.RespMsg {
 
 	daemonSet, err := InitDaemonSet(&appInfo, nodeGroup.Label)
 	if err != nil {
-		hwlog.RunLog.Error("app daemonSet init failed: %s", err.Error())
+		hwlog.RunLog.Errorf("app daemonSet init failed: %s", err.Error())
 		return common.RespMsg{Status: "", Msg: "app daemonSet init failed", Data: nil}
 	}
 	daemonSet, err = kubeclient.GetKubeClient().CreateDaemonSet(daemonSet)
 	if err != nil {
-		hwlog.RunLog.Error("app daemonSet create failed: %s", err.Error())
+		hwlog.RunLog.Errorf("app daemonSet create failed: %s", err.Error())
 		return common.RespMsg{Status: "", Msg: "app daemonSet create failed", Data: nil}
 	}
 
@@ -161,11 +161,11 @@ func updateNodeGroupDaemonSet(appInfo *AppInfo, nodeGroups []nodemanager.NodeGro
 	for _, nodeGroup := range nodeGroups {
 		daemonSet, err := InitDaemonSet(appInfo, nodeGroup.Label)
 		if err != nil {
-			return fmt.Errorf("init daemon set failded")
+			return fmt.Errorf("init daemon set failded: %s", err.Error())
 		}
 		daemonSet, err = kubeclient.GetKubeClient().UpdateDaemonSet(daemonSet)
 		if err != nil {
-			return fmt.Errorf("update daemon set failded")
+			return fmt.Errorf("update daemon set failded: %s", err.Error())
 		}
 	}
 
