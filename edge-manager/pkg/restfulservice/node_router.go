@@ -43,6 +43,22 @@ func listNodeUnManaged(c *gin.Context) {
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }
 
+func addUnManagedNode(c *gin.Context) {
+	res, err := c.GetRawData()
+	if err != nil {
+		hwlog.OpLog.Error("add unmanaged node: get input parameter failed")
+		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
+	}
+	router := common.Router{
+		Source:      common.RestfulServiceName,
+		Destination: common.NodeManagerName,
+		Option:      common.Add,
+		Resource:    common.Node,
+	}
+	resp := common.SendSyncMessageByRestful(string(res), &router)
+	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+}
+
 func listNodeManaged(c *gin.Context) {
 	input, err := pageUtil(c)
 	if err != nil {
@@ -108,6 +124,54 @@ func modifyNode(c *gin.Context) {
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }
 
+func deleteNode(c *gin.Context) {
+	res, err := c.GetRawData()
+	if err != nil {
+		hwlog.OpLog.Error("delete node: get input parameter failed")
+		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
+	}
+	router := common.Router{
+		Source:      common.RestfulServiceName,
+		Destination: common.NodeManagerName,
+		Option:      common.Delete,
+		Resource:    common.Node,
+	}
+	resp := common.SendSyncMessageByRestful(string(res), &router)
+	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+}
+
+func addNodeToGroup(c *gin.Context) {
+	res, err := c.GetRawData()
+	if err != nil {
+		hwlog.OpLog.Error("add node to group: get input parameter failed")
+		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
+	}
+	router := common.Router{
+		Source:      common.RestfulServiceName,
+		Destination: common.NodeManagerName,
+		Option:      common.Add,
+		Resource:    common.NodeRelation,
+	}
+	resp := common.SendSyncMessageByRestful(string(res), &router)
+	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+}
+
+func deleteNodeFromGroup(c *gin.Context) {
+	res, err := c.GetRawData()
+	if err != nil {
+		hwlog.OpLog.Error("delete node from group: get input parameter failed")
+		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
+	}
+	router := common.Router{
+		Source:      common.RestfulServiceName,
+		Destination: common.NodeManagerName,
+		Option:      common.Delete,
+		Resource:    common.NodeRelation,
+	}
+	resp := common.SendSyncMessageByRestful(string(res), &router)
+	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+}
+
 func getNodeStatistics(c *gin.Context) {
 	router := common.Router{
 		Source:      common.RestfulServiceName,
@@ -120,13 +184,19 @@ func getNodeStatistics(c *gin.Context) {
 }
 
 func listEdgeNodeGroup(c *gin.Context) {
+	input, err := pageUtil(c)
+	if err != nil {
+		hwlog.OpLog.Error("list node group: get input parameter failed")
+		common.ConstructResp(c, common.ErrorParseBody, "", nil)
+		return
+	}
 	router := common.Router{
 		Source:      common.RestfulServiceName,
 		Destination: common.NodeManagerName,
 		Option:      common.List,
 		Resource:    common.NodeGroup,
 	}
-	resp := common.SendSyncMessageByRestful("", &router)
+	resp := common.SendSyncMessageByRestful(input, &router)
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }
 
@@ -143,5 +213,22 @@ func getEdgeNodeGroupDetail(c *gin.Context) {
 		Resource:    common.NodeGroup,
 	}
 	resp := common.SendSyncMessageByRestful(string(res), &router)
+	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+}
+
+func batchDeleteNodeGroup(c *gin.Context) {
+	reqContent, err := c.GetRawData()
+	if err != nil {
+		hwlog.OpLog.Error("batch delete node group: get input parameter failed")
+		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
+	}
+
+	router := common.Router{
+		Source:      common.RestfulServiceName,
+		Destination: common.NodeManagerName,
+		Option:      common.Delete,
+		Resource:    common.NodeGroup,
+	}
+	resp := common.SendSyncMessageByRestful(string(reqContent), &router)
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }

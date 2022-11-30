@@ -70,7 +70,7 @@ func QueryApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "query app info failed", Data: nil}
 	}
 
-	var resp util.CreateAppReq
+	var resp AppReturnInfo
 	resp.AppId = appInfo.ID
 	resp.Version = appInfo.Version
 	resp.AppName = appInfo.AppName

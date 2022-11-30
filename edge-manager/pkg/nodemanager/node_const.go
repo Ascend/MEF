@@ -9,16 +9,15 @@ const (
 	maxNode         = 1024
 	maxNodeGroup    = 1024
 	maxNodePerGroup = 1024
+	maxGroupPerNode = 10
 	managed         = 1
 	unmanaged       = 0
 )
 
 // node status
 const (
-	statusReady    = "Ready"
-	statusOffline  = "Offline"
-	statusNotReady = "NotReady"
-	statusUnknown  = "Unknown"
-
-	NodeGroupLabel = "ascend-mef-group"
+	statusReady    = "ready"
+	statusOffline  = "offline"
+	statusNotReady = "notReady"
+	statusUnknown  = "unknown"
 )

@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
-
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager/model"
@@ -35,8 +34,7 @@ func (r *restfulService) Start() {
 	r.engine.Use(common.LoggerAdapter())
 	setRouter(r.engine)
 	hwlog.RunLog.Info("start http server now...")
-	err := r.engine.Run(fmt.Sprintf(":%d", r.port))
-	if err != nil {
+	if err := r.engine.Run(fmt.Sprintf(":%d", r.port)); err != nil {
 		hwlog.RunLog.Errorf("start restful at %d fail", r.port)
 	}
 }
