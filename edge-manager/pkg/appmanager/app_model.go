@@ -36,14 +36,14 @@ type ListReturnInfo struct {
 
 // AppReturnInfo encapsulate app information for return
 type AppReturnInfo struct {
-	AppId         uint64              `json:"appId"`
-	AppName       string              `json:"appName"`
-	Version       string              `json:"version"`
-	Description   string              `json:"description"`
-	CreatedAt     string              `json:"createdAt"`
-	ModifiedAt    string              `json:"modifiedAt"`
-	NodeGroupName string              `json:"nodeGroupName"`
-	Containers    []util.ContainerReq `json:"containers"`
+	AppId         uint64           `json:"appId"`
+	AppName       string           `json:"appName"`
+	Version       string           `json:"version"`
+	Description   string           `json:"description"`
+	CreatedAt     string           `json:"createdAt"`
+	ModifiedAt    string           `json:"modifiedAt"`
+	NodeGroupName string           `json:"nodeGroupName"`
+	Containers    []util.Container `json:"containers"`
 }
 
 var (
@@ -140,7 +140,7 @@ func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) (*L
 	}
 	var appReturnInfos []AppReturnInfo
 	for _, app := range appsInfo {
-		var containers []util.ContainerReq
+		var containers []util.Container
 		if err := json.Unmarshal([]byte(app.Containers), &containers); err != nil {
 			hwlog.RunLog.Error("containers unmarshal failed")
 			return nil, err

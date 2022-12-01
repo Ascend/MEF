@@ -262,7 +262,7 @@ func InitDaemonSet(appInfo *AppInfo, nodeLabel string) (*appv1.DaemonSet, error)
 }
 
 func getContainers(appContainer *AppInfo) ([]v1.Container, error) {
-	var containerInfos []util.ContainerReq
+	var containerInfos []util.Container
 	if err := json.Unmarshal([]byte(appContainer.Containers), &containerInfos); err != nil {
 		hwlog.RunLog.Error("app containers unmarshal failed")
 		return nil, err
@@ -276,19 +276,20 @@ func getContainers(appContainer *AppInfo) ([]v1.Container, error) {
 		}
 
 		containers = append(containers, v1.Container{
-			Name:            containerInfo.ContainerName,
-			Image:           containerInfo.ImageName,
+			Name:            containerInfo.Name,
+			Image:           containerInfo.Image,
 			ImagePullPolicy: v1.PullIfNotPresent,
 			Command:         containerInfo.Command,
+			Args:            containerInfo.Args,
 			Env:             getEnv(containerInfo.Env),
-			Ports:           getPorts(containerInfo.ContainerPort),
+			Ports:           getPorts(containerInfo.Ports),
 			Resources:       resources,
 		})
 	}
 	return containers, nil
 }
 
-func getPorts(containerPorts []util.PortTransfer) []v1.ContainerPort {
+func getPorts(containerPorts []util.ContainerPort) []v1.ContainerPort {
 	var ports []v1.ContainerPort
 	for _, port := range containerPorts {
 		ports = append(ports, v1.ContainerPort{
@@ -302,7 +303,7 @@ func getPorts(containerPorts []util.PortTransfer) []v1.ContainerPort {
 	return ports
 }
 
-func getEnv(envInfo []util.EnvReq) []v1.EnvVar {
+func getEnv(envInfo []util.EnvVar) []v1.EnvVar {
 	var envs []v1.EnvVar
 	for _, env := range envInfo {
 		envs = append(envs, v1.EnvVar{
@@ -313,7 +314,7 @@ func getEnv(envInfo []util.EnvReq) []v1.EnvVar {
 	return envs
 }
 
-func getResources(appContainer util.ContainerReq) (v1.ResourceRequirements, error) {
+func getResources(appContainer util.Container) (v1.ResourceRequirements, error) {
 	var Requests map[v1.ResourceName]resource.Quantity
 	var limits map[v1.ResourceName]resource.Quantity
 

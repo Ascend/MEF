@@ -28,7 +28,7 @@ func createApp(c *gin.Context) {
 func queryApp(c *gin.Context) {
 	appId, err := getReqAppId(c)
 	if err != nil {
-		hwlog.OpLog.Errorf("query app info failed: %s", err.Error())
+		hwlog.RunLog.Errorf("get app id failed: %s", err.Error())
 		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
 	}
 	router := common.Router{
@@ -37,6 +37,7 @@ func queryApp(c *gin.Context) {
 		Option:      common.Query,
 		Resource:    common.App,
 	}
+
 	resp := common.SendSyncMessageByRestful(appId, &router)
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }
