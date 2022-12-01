@@ -5,6 +5,7 @@ package util
 
 // CreateAppReq Create application
 type CreateAppReq struct {
+	AppId       uint64         `json:"appId"`
 	AppName     string         `json:"appName"`
 	Version     string         `json:"version"`
 	Description string         `json:"description"`
@@ -43,30 +44,24 @@ type PortTransfer struct {
 	HostPort      int32  `json:"hostPort"`
 }
 
-// UpdateAppReq Update application
-type UpdateAppReq struct {
-	AppID     uint64 `json:"appID"`
-	ImageName string `json:"imageName"`
-}
-
 // DeleteAppReq Delete application
 type DeleteAppReq struct {
-	AppName string `json:"appName"`
+	AppId uint64 `json:"appId"`
 }
 
 // DeployAppReq Deploy application
 type DeployAppReq struct {
-	AppName       string `json:"appName"`
+	AppId         uint64 `json:"appId"`
 	NodeGroupName string `json:"nodeGroupName"`
 }
 
 // UndeployAppReq Undeploy application
 type UndeployAppReq struct {
-	AppName       string `json:"appName"`
+	AppId         uint64 `json:"appId"`
 	NodeGroupName string `json:"nodeGroupName"`
 }
 
 // GetAppByAppIdReq get app by application id
 type GetAppByAppIdReq struct {
-	AppId int `json:"appId"`
+	AppId uint64 `json:"appId"`
 }

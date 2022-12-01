@@ -8,12 +8,13 @@ import (
 	"flag"
 	"fmt"
 
+	"software-manager/pkg/restfulservice"
+	"software-manager/pkg/softwaremanager"
+
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
 	"huawei.com/mindxedge/base/modulemanager"
-	"software-manager/pkg/restfulservice"
-	"software-manager/pkg/softwaremanager"
 )
 
 const (
@@ -39,9 +40,8 @@ func main() {
 		fmt.Printf("initialize hwlog failed, %s.\n", err.Error())
 		return
 	}
-	err := softwaremanager.InitDatabase(softwaremanager.RepositoryFilesPath)
-	if err != nil {
-		return
+	if err := softwaremanager.InitDB(); err != nil {
+		hwlog.RunLog.Errorf(err.Error())
 	}
 	if inRanage := checker.IsPortInRange(common.MinPort, common.MaxPort, softwaremanager.Port); !inRanage {
 		hwlog.RunLog.Errorf("port %d is not in [%d, %d]", softwaremanager.Port, common.MinPort, common.MaxPort)
@@ -72,7 +72,6 @@ func init() {
 		"Operation log file path. If the file size exceeds 20MB, will be rotated")
 	flag.IntVar(&serverOpConf.MaxBackups, "operateLogMaxBackups", hwlog.DefaultMaxBackups,
 		"Maximum number of backup operation logs, range (0, 30]")
-
 	// hwRunLog configuration
 	flag.IntVar(&serverRunConf.LogLevel, "runLogLevel", 0,
 		"Run log level, -1-debug, 0-info, 1-warning, 2-error, 3-dpanic, 4-panic, 5-fatal (default 0)")

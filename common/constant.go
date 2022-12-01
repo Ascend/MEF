@@ -45,6 +45,8 @@ const (
 	Deploy = "deploy"
 	// Undeploy option undeploy application
 	Undeploy = "undeploy"
+	// Add option add
+	Add = "add"
 
 	// Node resource node
 	Node = "node"
@@ -97,4 +99,76 @@ const (
 	TimeFormat = "2006-01-02 15:04:05"
 	// NodeGroupLabelPrefix k8s label prefix for node group
 	NodeGroupLabelPrefix = "huawei.com/MEF-Node"
+)
+
+// regex patterns
+const (
+	// RegAppTemplate regex pattern of app template version name
+	RegAppTemplate = `^[a-zA-Z]([-_a-zA-Z0-9]{0,62}[a-zA-Z0-9])?$`
+	// RegContainerName regex pattern of container name
+	RegContainerName = `^[a-zA-Z]([_a-zA-Z0-9]{0,30}[a-zA-Z0-9])?$`
+	// RegImageName regex pattern of image name
+	RegImageName = `^[a-zA-Z]([-_a-zA-Z0-9]{0,62}[a-zA-Z0-9])?$`
+	// RegImageVersion regex pattern of image version
+	RegImageVersion = `^[a-zA-Z]([-_a-zA-Z0-9]{0,14}[a-zA-Z0-9])?$`
+	// RegEnvKey regex pattern of environment variable key
+	RegEnvKey = `^[a-zA-Z]([_a-zA-Z0-9]{0,2046}[a-zA-Z0-9])?$`
+)
+
+// protocol
+const (
+	Tcp = "TCP"
+	Udp = "UDP"
+)
+
+// field constraints
+const (
+	// AppTemplateContainersMin app template containers min count
+	AppTemplateContainersMin = 1
+	// AppTemplateContainersMax app template containers max count
+	AppTemplateContainersMax = 10
+	// AppTemplateDesMin app template group description min length
+	AppTemplateDesMin = 0
+	// AppTemplateDesMax app template group description max length
+	AppTemplateDesMax = 255
+	// CpuMin container CPU min value
+	CpuMin = 0.01
+	// CpuMax container CPU max value
+	CpuMax = 1000
+	// CpuDecimalsNum CPU number of decimal places
+	CpuDecimalsNum = 2
+	// MemoryMin container memory min value
+	MemoryMin = 4
+	// MemoryMax container memory max value
+	MemoryMax = 1024000
+	// NpuMin NPU min value
+	NpuMin = 0.01
+	// NpuMax NPU max value
+	NpuMax = 32
+	// NpuDecimalsNum NPU number of decimal places
+	NpuDecimalsNum = 2
+	// EnvCountMax environment variables max count
+	EnvCountMax = 256
+	// ContainerUserIdMin container min user id
+	ContainerUserIdMin = 1
+	// ContainerUserIdMax container max user id
+	ContainerUserIdMax = 65535
+	// ContainerGroupIdMin container min group id
+	ContainerGroupIdMin = 1
+	// ContainerGroupIdMax container max group id
+	ContainerGroupIdMax = 65535
+	// ContainerPortMin container port min value
+	ContainerPortMin = 1
+	// ContainerPortMax container port max value
+	ContainerPortMax = 65535
+	// HostPortMin host port min value
+	HostPortMin = 1
+	// HostPortMax host port max value
+	HostPortMax = 65535
+	// PortMapsMax port maps max count
+	PortMapsMax = 16
+	// TemplateEnvValueMin environment variable value min length
+	TemplateEnvValueMin = 1
+	// TemplateEnvValueMax environment variable value max length
+	TemplateEnvValueMax = 2048
 )
