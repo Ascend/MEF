@@ -12,4 +12,6 @@ const (
 	AppNodeSelectorValue = "test"
 	// AppLabel for app label
 	AppLabel = "v1"
+	// DeviceType for Ascend device
+	DeviceType = "huawei.com/davinci-mini"
 )

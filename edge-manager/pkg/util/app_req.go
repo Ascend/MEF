@@ -21,6 +21,7 @@ type ContainerReq struct {
 	ImageName     string         `json:"imageName"`
 	ImageVersion  string         `json:"imageVersion"`
 	Command       []string       `json:"command"`
+	Args          []string       `json:"args"`
 	Env           []EnvReq       `json:"env"`
 	ContainerPort []PortTransfer `json:"containerPort"`
 	UserId        int            `json:"userId"`
@@ -61,7 +62,13 @@ type DeployAppReq struct {
 
 // UndeployAppReq Undeploy application
 type UndeployAppReq struct {
-	AppName       string `json:"appName"`
+	AppName  string     `json:"appName"`
+	NodeInfo []NodeInfo `json:"nodeInfo"`
+}
+
+// NodeInfo get node and group
+type NodeInfo struct {
+	NodeID        int64  `json:"nodeID"`
 	NodeGroupName string `json:"nodeGroupName"`
 }
 

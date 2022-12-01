@@ -5,14 +5,13 @@ package appmanager
 
 // AppInfo is app db table info
 type AppInfo struct {
-	ID            uint64 `gorm:"type:integer;primaryKey;autoIncrement:true"`
-	AppName       string `gorm:"type:char(128);unique;not null"`
-	Description   string `gorm:"type:char(255);" json:"description"`
-	CreatedAt     string `gorm:"type:char(19);not null"`
-	ModifiedAt    string `gorm:"type:char(19);not null"`
-	NodeGroupName string `gorm:"type:char(128)"`
-	Status        string `gorm:"type:char(128)"`
-	Containers    string `gorm:"type:text;not null" json:"containers"`
+	ID          uint64 `gorm:"type:integer;primaryKey;autoIncrement:true"`
+	AppName     string `gorm:"type:char(128);unique;not null"`
+	Description string `gorm:"type:char(255);" json:"description"`
+	CreatedAt   string `gorm:"type:char(19);not null"`
+	ModifiedAt  string `gorm:"type:char(19);not null"`
+	Status      string `gorm:"type:char(128)"`
+	Containers  string `gorm:"type:text;not null" json:"containers"`
 }
 
 // AppContainer containers belonging to the same App share the same AppName.
@@ -40,12 +39,13 @@ type AppContainer struct {
 
 // AppInstance is application instance
 type AppInstance struct {
-	ID          int64  `gorm:"type:Integer;primaryKey;autoIncrement:true"`
-	PodName     string `gorm:"type:char(42);unique;not null"`
-	NodeName    string `gorm:"type:char(64);not null"`
-	NodeGroupID int64  `gorm:"type:Integer;not null"`
-	Status      string `gorm:"type:char(50);not null"`
-	AppID       string `gorm:"not null"`
-	CreatedAt   string `gorm:"type:time;not null"`
-	ChangedAt   string `gorm:"type:time;not null"`
+	ID            int64  `gorm:"type:Integer;primaryKey;autoIncrement:true"`
+	PodName       string `gorm:"type:char(42);unique;not null"`
+	NodeName      string `gorm:"type:char(64);not null"`
+	NodeGroupName string `gorm:"type:char(64);not null"`
+	NodeGroupID   int64  `gorm:"type:Integer;not null"`
+	Status        string `gorm:"type:char(50);not null"`
+	AppID         string `gorm:"not null"`
+	CreatedAt     string `gorm:"type:time;not null"`
+	ChangedAt     string `gorm:"type:time;not null"`
 }

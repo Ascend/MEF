@@ -5,6 +5,7 @@ package appmanager
 
 import (
 	"encoding/json"
+	"strconv"
 	"strings"
 	"time"
 
@@ -70,7 +71,8 @@ func QueryApp(input interface{}) common.RespMsg {
 	}
 
 	var resp AppReturnInfo
-	resp.Version = appInfo.Version
+	resp.ID = appInfo.ID
+	resp.Status = appInfo.Status
 	resp.AppName = appInfo.AppName
 	resp.Description = appInfo.Description
 
@@ -107,16 +109,23 @@ func ListAppInfo(input interface{}) common.RespMsg {
 	}
 
 	apps, err := AppRepositoryInstance().listAppsInfo(req.PageNum, req.PageSize, req.Name)
-	if err == nil {
-		hwlog.RunLog.Info("list deployed apps success")
-		return common.RespMsg{Status: common.Success, Msg: "", Data: apps}
-	}
 	if err == gorm.ErrRecordNotFound {
 		hwlog.RunLog.Info("dont have any deployed apps")
 		return common.RespMsg{Status: common.Success, Msg: "dont have any deployed apps", Data: nil}
 	}
-	hwlog.RunLog.Error("list apps failed")
-	return common.RespMsg{Status: "", Msg: "list apps failed", Data: nil}
+	if err != nil {
+		hwlog.RunLog.Error("get apps Infos list failed")
+		return common.RespMsg{Status: "", Msg: "get apps Infos list failed", Data: nil}
+	}
+
+	total, err := AppRepositoryInstance().countListAppsInfo(req.Name)
+	if err == nil {
+		apps.total = total
+		hwlog.RunLog.Info("count apps Infos list failed")
+		return common.RespMsg{Status: common.Success, Msg: "list apps Infos success", Data: apps}
+	}
+	hwlog.RunLog.Error("count apps Infos list failed")
+	return common.RespMsg{Status: "", Msg: "count apps Infos list failed", Data: nil}
 }
 
 // DeployApp deploy application on node group
@@ -128,6 +137,35 @@ func DeployApp(input interface{}) common.RespMsg {
 	}
 
 	appInstanceInfo, err := AppRepositoryInstance().getAppAndNodeGroupInfo(req.AppName, req.NodeGroupName)
+	if err != nil {
+		hwlog.RunLog.Error("get app and node group information failed")
+		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	}
+
+	daemonset, err := InitDaemonSet(appInstanceInfo)
+	if err != nil {
+		hwlog.RunLog.Error("app daemonset init failed")
+		return common.RespMsg{Status: "", Msg: "app daemonset init failed", Data: nil}
+	}
+	daemonset, err = kubeclient.GetKubeClient().CreateDaemonSet(daemonset)
+	if err != nil {
+		hwlog.RunLog.Error("app daemonset create failed")
+		return common.RespMsg{Status: "", Msg: "app daemonset create failed", Data: nil}
+	}
+
+	hwlog.RunLog.Info("app daemonset create success")
+	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
+}
+
+// UndeployApp undeploy application on node group
+func UndeployApp(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start undeploy app")
+	var req util.UndeployAppReq
+	if err := common.ParamConvert(input, &req); err != nil {
+		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	}
+
+	appInstanceInfo, err := AppRepositoryInstance().getAppAndNodeGroupInfo(req.AppName)
 	if err != nil {
 		hwlog.RunLog.Error("get app and node group information failed")
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
@@ -173,7 +211,7 @@ func InitDaemonSet(app *AppInstanceInfo) (*appv1.DaemonSet, error) {
 	tmpSpec := v1.PodSpec{}
 	tmpSpec.Containers = containers
 	tmpSpec.NodeSelector = map[string]string{
-		AppNodeSelectorKey: AppNodeSelectorValue,
+		common.NodeGroupLabelPrefix + strconv.FormatInt(app.NodeGroup.ID, 10): app.AppInfo.AppName,
 	}
 	template := v1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
@@ -217,6 +255,7 @@ func getContainers(appContainer AppInfo) ([]v1.Container, error) {
 			Image:           containerInfo.ImageName,
 			ImagePullPolicy: v1.PullIfNotPresent,
 			Command:         containerInfo.Command,
+			Args:            containerInfo.Args,
 			Env:             getEnv(containerInfo.Env),
 			Ports:           getPorts(containerInfo.ContainerPort),
 			Resources:       resources,
@@ -253,29 +292,51 @@ func getEnv(envInfo []util.EnvReq) []v1.EnvVar {
 func getResources(appContainer util.ContainerReq) (v1.ResourceRequirements, error) {
 	var Requests map[v1.ResourceName]resource.Quantity
 	var limits map[v1.ResourceName]resource.Quantity
+	var device v1.ResourceName
 
 	cpuRequest, err := resource.ParseQuantity(appContainer.CpuRequest)
 	if err != nil {
 		hwlog.RunLog.Error("parse cpu request failed")
 		return v1.ResourceRequirements{}, err
 	}
-	cpuLimit, err := resource.ParseQuantity(appContainer.CpuLimit)
-	if err != nil {
-		hwlog.RunLog.Error("parse cpu limits failed")
-		return v1.ResourceRequirements{}, err
-	}
+
 	memRequest, err := resource.ParseQuantity(appContainer.MemRequest)
 	if err != nil {
 		hwlog.RunLog.Error("parse memory request failed")
 		return v1.ResourceRequirements{}, err
 	}
-	memLimits, err := resource.ParseQuantity(appContainer.MemLimit)
-	if err != nil {
-		hwlog.RunLog.Error("parse memory limits failed")
-		return v1.ResourceRequirements{}, err
+
+	if appContainer.Npu != "" {
+		device = DeviceType
+		deviceValue, err := resource.ParseQuantity(appContainer.Npu)
+		if err != nil {
+			hwlog.RunLog.Error("parse npu resource failed")
+			return v1.ResourceRequirements{}, err
+		}
+		Requests = map[v1.ResourceName]resource.Quantity{
+			v1.ResourceCPU: cpuRequest, v1.ResourceMemory: memRequest, device: deviceValue}
+		limits = map[v1.ResourceName]resource.Quantity{
+			v1.ResourceCPU: cpuRequest, v1.ResourceMemory: memRequest, device: deviceValue}
+	} else {
+		Requests = map[v1.ResourceName]resource.Quantity{v1.ResourceCPU: cpuRequest, v1.ResourceMemory: memRequest}
+		limits = map[v1.ResourceName]resource.Quantity{v1.ResourceCPU: cpuRequest, v1.ResourceMemory: memRequest}
 	}
-	Requests = map[v1.ResourceName]resource.Quantity{v1.ResourceCPU: cpuRequest, v1.ResourceMemory: memRequest}
-	limits = map[v1.ResourceName]resource.Quantity{v1.ResourceCPU: cpuLimit, v1.ResourceMemory: memLimits}
+	if appContainer.CpuLimit != "" {
+		cpuLimit, err := resource.ParseQuantity(appContainer.CpuLimit)
+		if err != nil {
+			hwlog.RunLog.Error("parse cpu limits failed")
+			return v1.ResourceRequirements{}, err
+		}
+		limits[v1.ResourceCPU] = cpuLimit
+	}
+	if appContainer.MemLimit != "" {
+		memLimits, err := resource.ParseQuantity(appContainer.MemLimit)
+		if err != nil {
+			hwlog.RunLog.Error("parse memory limits failed")
+			return v1.ResourceRequirements{}, err
+		}
+		limits[v1.ResourceMemory] = memLimits
+	}
 
 	return v1.ResourceRequirements{
 		Limits:   limits,
