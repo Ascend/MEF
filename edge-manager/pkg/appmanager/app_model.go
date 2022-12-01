@@ -36,7 +36,7 @@ type ListReturnInfo struct {
 
 // AppReturnInfo encapsulate app information for return
 type AppReturnInfo struct {
-	ID            uint64              `json:"id"`
+	AppId         uint64              `json:"appId"`
 	AppName       string              `json:"appName"`
 	Status        string              `json:"status"`
 	Description   string              `json:"description"`
@@ -59,12 +59,16 @@ type AppRepositoryImpl struct {
 // AppRepository for app method to operate db
 type AppRepository interface {
 	createApp(*AppInfo) error
-	queryApp(appId string) (AppInfo, error)
+	updateApp(appId uint64, column string, value interface{}) error
+	queryApp(appId uint64) (AppInfo, error)
 	listAppsInfo(uint64, uint64, string) (*ListReturnInfo, error)
 	countListAppsInfo(string) (int64, error)
-	getAppAndNodeGroupInfo(string, string) (*AppInstanceInfo, error)
+	getGroupNameByAppName(string) (string, error)
+	getAppInfoById(appId uint64) (*AppInfo, error)
+	getAppInstanceById(string) (*AppInstance, error)
 	deployApp(*AppInstance) error
 	deleteApp(uint64) error
+	BatchDeleteAppInstance(uint64, uint64) error
 }
 
 // GetTableCount get table count
@@ -88,25 +92,30 @@ func AppRepositoryInstance() AppRepository {
 // createApp Create application Db
 func (a *AppRepositoryImpl) createApp(appInfo *AppInfo) error {
 	if err := a.db.Model(AppInfo{}).Create(appInfo).Error; err != nil {
-		hwlog.RunLog.Error("create appInfo db failed")
+		hwlog.RunLog.Errorf("create app failed: %s", err.Error())
 		return err
 	}
 	return nil
 }
 
-// queryApp query application from db
-func (a *AppRepositoryImpl) queryApp(appId string) (AppInfo, error) {
+func (a *AppRepositoryImpl) updateApp(appId uint64, column string, value interface{}) error {
+	if err := a.db.Model(AppInfo{}).Where("id = ?", appId).Update(column, value).Error; err != nil {
+		hwlog.RunLog.Errorf("update app failed: %s", err.Error())
+		return err
+	}
+	return nil
+}
+
+func (a *AppRepositoryImpl) queryApp(appId uint64) (AppInfo, error) {
 	var appInfo *AppInfo
 	var err error
 	if appInfo, err = a.getAppInfoById(appId); err != nil {
-		hwlog.RunLog.Errorf("query app id [%s] info from db failed", appId)
-		return *appInfo, fmt.Errorf("query app id [%s] info from db failed", appId)
+		return *appInfo, fmt.Errorf("query app id [%d] info from db failed", appId)
 	}
 
 	return *appInfo, nil
 }
 
-// listAppsInfo return appInfo list from SQL
 func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) (*ListReturnInfo, error) {
 	var appsInfo []AppInfo
 	if err := a.db.Model(AppInfo{}).Scopes(getAppInfoByLikeName(page, pageSize, name)).Find(&appsInfo).Error; err != nil {
@@ -121,9 +130,8 @@ func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) (*L
 			return nil, err
 		}
 		appReturnInfos = append(appReturnInfos, AppReturnInfo{
-			ID:          app.ID,
+			AppId:       app.ID,
 			AppName:     app.AppName,
-			Status:      app.Status,
 			Description: app.Description,
 			CreatedAt:   app.CreatedAt,
 			ModifiedAt:  app.ModifiedAt,
@@ -145,26 +153,6 @@ func (a *AppRepositoryImpl) countListAppsInfo(name string) (int64, error) {
 	return totalAppInfo, nil
 }
 
-// getAppAndNodeGroupInfo get application and node group information for deploy
-func (a *AppRepositoryImpl) getAppAndNodeGroupInfo(appName string, nodeGroupName string) (*AppInstanceInfo, error) {
-	appInfo, err := a.getAppInfoByName(appName)
-	if err != nil {
-		hwlog.RunLog.Error("get appInfo failed when deploy")
-		return nil, err
-	}
-	var nodeGroup nodemanager.NodeGroup
-	if err := a.db.Model(nodemanager.NodeGroup{}).
-		Where("group_name = ?", nodeGroupName).First(&nodeGroup).Error; err != nil {
-		hwlog.RunLog.Error("find nodeGroup db failed")
-		return nil, err
-	}
-	return &AppInstanceInfo{
-		AppInfo:   *appInfo,
-		NodeGroup: nodeGroup,
-	}, nil
-}
-
-// deployApp deploy app on node group
 func (a *AppRepositoryImpl) deployApp(appInstance *AppInstance) error {
 	return a.db.Model(AppInstance{}).Create(appInstance).Error
 }
@@ -244,8 +232,9 @@ func getAppInfoByLikeName(page, pageSize uint64, appName string) func(db *gorm.D
 }
 
 func (a *AppRepositoryImpl) getAppInstanceById(appId string) (*AppInstance, error) {
-	var appInstance *AppInstance
-	if err := a.db.Model(AppInstance{}).Where("id = ?", appId).First(&appInstance).Error; err != nil {
+	var appInstance []AppInstance
+
+	if err := a.db.Model(AppInstance{}).Where("id = ?", appId).Find(&appInstance).Error; err != nil {
 		hwlog.RunLog.Error("find app instance from db by id failed")
 		return nil, err
 	}

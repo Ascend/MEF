@@ -11,24 +11,25 @@ import (
 )
 
 type header struct {
-	id        string
-	parentId  string
-	isSync    bool
-	timestamp int64
+	Id        string `json:"id"`
+	ParentId  string `json:"parent_id"`
+	IsSync    bool   `json:"is_sync"`
+	Timestamp int64  `json:"timestamp"`
+	Version   string `json:"version"`
 }
 
 type router struct {
-	source      string
-	destination string
-	option      string
-	resource    string
+	Source      string `json:"source"`
+	Destination string `json:"destination"`
+	Option      string `json:"option"`
+	Resource    string `json:"resource"`
 }
 
 // Message message struct
 type Message struct {
-	header  header
-	router  router
-	content interface{}
+	Header  header      `json:"header"`
+	Router  router      `json:"router"`
+	Content interface{} `json:"content"`
 }
 
 const messageIdSize = 16
@@ -60,7 +61,7 @@ const messageIdVariantMaskOffset = 2
 const messageIdVariantConst = 0x02
 const messageIdVariantConstOffset = 6
 
-const messgeIdTimestampMask = 1e6
+const messageIdTimestampMask = 1e6
 
 type messageIdGenerator struct {
 	buffer [messageIdSize]byte
@@ -116,70 +117,70 @@ func (g *messageIdGenerator) String() (string, error) {
 
 // GetId get message id
 func (msg *Message) GetId() string {
-	return msg.header.id
+	return msg.Header.Id
 }
 
 // GetParentId get message parent id
 func (msg *Message) GetParentId() string {
-	return msg.header.parentId
+	return msg.Header.ParentId
 }
 
 // SetParentId set message parent id
 func (msg *Message) SetParentId(parentId string) {
-	msg.header.parentId = parentId
+	msg.Header.ParentId = parentId
 }
 
 // GetIsSync get message to is sync or not
 func (msg *Message) GetIsSync() bool {
-	return msg.header.isSync
+	return msg.Header.IsSync
 }
 
 // SetIsSync set message to is sync or not
 func (msg *Message) SetIsSync(isSync bool) {
-	msg.header.isSync = isSync
+	msg.Header.IsSync = isSync
 }
 
 // GetTimestamp get message timestamp
 func (msg *Message) GetTimestamp() int64 {
-	return msg.header.timestamp
+	return msg.Header.Timestamp
 }
 
 // GetSource get message source
 func (msg *Message) GetSource() string {
-	return msg.router.source
+	return msg.Router.Source
 }
 
 // GetDestination get message destination
 func (msg *Message) GetDestination() string {
-	return msg.router.destination
+	return msg.Router.Destination
 }
 
 // GetOption get message option
 func (msg *Message) GetOption() string {
-	return msg.router.option
+	return msg.Router.Option
 }
 
 // GetResource get message resource
 func (msg *Message) GetResource() string {
-	return msg.router.resource
+	return msg.Router.Resource
 }
 
 // SetRouter set the message router
 func (msg *Message) SetRouter(source, destination, option, resource string) {
-	msg.router.source = source
-	msg.router.destination = destination
-	msg.router.option = option
-	msg.router.resource = resource
+	msg.Router.Source = source
+	msg.Router.Destination = destination
+	msg.Router.Option = option
+	msg.Router.Resource = resource
 }
 
 // GetContent get the message content
 func (msg *Message) GetContent() interface{} {
-	return msg.content
+	return msg.Content
 }
 
 // FillContent fill the message content
 func (msg *Message) FillContent(content interface{}) {
-	msg.content = content
+	msg.Content = content
 }
 
 // NewResponse create new inner respone
@@ -190,12 +191,12 @@ func (msg *Message) NewResponse() (*Message, error) {
 	if respMsg, err = NewMessage(); err != nil || respMsg == nil {
 		return nil, fmt.Errorf("create new message fail when create new response")
 	}
-	respMsg.header.parentId = msg.header.id
-	respMsg.header.isSync = msg.header.isSync
+	respMsg.Header.ParentId = msg.Header.Id
+	respMsg.Header.IsSync = msg.Header.IsSync
 
-	respMsg.router.source = msg.router.destination
-	respMsg.router.destination = msg.router.source
-	respMsg.router.resource = msg.router.resource
+	respMsg.Router.Source = msg.Router.Destination
+	respMsg.Router.Destination = msg.Router.Source
+	respMsg.Router.Resource = msg.Router.Resource
 
 	return respMsg, nil
 }
@@ -211,8 +212,9 @@ func NewMessage() (*Message, error) {
 	}
 
 	msg := Message{}
-	msg.header.id = msgId
-	msg.header.timestamp = time.Now().UnixNano() / messgeIdTimestampMask
+	msg.Header.Id = msgId
+	msg.Header.Timestamp = time.Now().UnixNano() / messageIdTimestampMask
+	msg.Header.Version = "1.0"
 
 	return &msg, nil
 }
