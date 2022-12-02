@@ -53,8 +53,16 @@ func CreateApp(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("app db create failed")
 		return common.RespMsg{Status: "", Msg: "app db create failed", Data: nil}
 	}
+	appInfo, err := AppRepositoryInstance().getAppInfoByName(app.AppName)
+	if err != nil {
+		hwlog.RunLog.Error("get app id failed when create")
+		return common.RespMsg{Status: "", Msg: "get app id failed when create", Data: nil}
+	}
+	createReturnInfo := CreateReturnInfo{
+		AppId: appInfo.ID,
+	}
 	hwlog.RunLog.Info("app db create success")
-	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: createReturnInfo}
 }
 
 // QueryApp app info
@@ -110,8 +118,8 @@ func ListAppInfo(input interface{}) common.RespMsg {
 
 	apps, err := AppRepositoryInstance().listAppsInfo(req.PageNum, req.PageSize, req.Name)
 	if err == gorm.ErrRecordNotFound {
-		hwlog.RunLog.Info("dont have any deployed apps")
-		return common.RespMsg{Status: common.Success, Msg: "dont have any deployed apps", Data: nil}
+		hwlog.RunLog.Info("dont have any apps")
+		return common.RespMsg{Status: common.Success, Msg: "dont have any apps", Data: nil}
 	}
 	if err != nil {
 		hwlog.RunLog.Error("get apps Infos list failed")
@@ -119,13 +127,13 @@ func ListAppInfo(input interface{}) common.RespMsg {
 	}
 
 	total, err := AppRepositoryInstance().countListAppsInfo(req.Name)
-	if err == nil {
-		apps.total = total
-		hwlog.RunLog.Info("count apps Infos list failed")
-		return common.RespMsg{Status: common.Success, Msg: "list apps Infos success", Data: apps}
+	if err != nil {
+		hwlog.RunLog.Error("count apps Infos list failed")
+		return common.RespMsg{Status: "", Msg: "count apps Infos list failed", Data: nil}
 	}
-	hwlog.RunLog.Error("count apps Infos list failed")
-	return common.RespMsg{Status: "", Msg: "count apps Infos list failed", Data: nil}
+	apps.Total = total
+	hwlog.RunLog.Info("list apps Infos success")
+	return common.RespMsg{Status: common.Success, Msg: "list apps Infos success", Data: apps}
 }
 
 // DeployApp deploy application on node group
@@ -136,55 +144,32 @@ func DeployApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	appInfo, err := AppRepositoryInstance().getAppInfo(req.AppId)
+	appInfo, err := AppRepositoryInstance().getAppInfoById(req.AppId)
 	if err != nil {
 		hwlog.RunLog.Error("get app information failed")
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
-
-	nodeReq, err := json.Marshal(nodemanager.GetNodeDetailResp{
-		NodeGroup: req.NodeGroupName,
-	})
-	if err != nil {
-		hwlog.RunLog.Error("marshal nodeReq failed")
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	for _, nodeGroup := range req.NodeGroupInfo {
+		daemonSet, err := InitDaemonSet(appInfo, nodeGroup)
+		if err != nil {
+			hwlog.RunLog.Errorf("app daemonSet init failed: %s", err.Error())
+			return common.RespMsg{Status: "", Msg: "app daemonSet init failed", Data: nil}
+		}
+		daemonSet, err = kubeclient.GetKubeClient().CreateDaemonSet(daemonSet)
+		if err != nil {
+			hwlog.RunLog.Errorf("app daemonSet create failed: %s", err.Error())
+			return common.RespMsg{Status: "", Msg: "app daemonSet create failed", Data: nil}
+		}
+		hwlog.RunLog.Infof("%s daemonSet create on node group %s", appInfo.AppName, nodeGroup.NodeGroupName)
 	}
 
-	router := common.Router{
-		Source:      common.RestfulServiceName,
-		Destination: common.NodeManagerName,
-		Option:      common.Get,
-		Resource:    common.Node,
-	}
-	resp := common.SendSyncMessageByRestful(string(nodeReq), &router)
-	if resp.Status != common.Success || resp.Data == nil {
-		hwlog.RunLog.Error("get node info failed when deploy app")
-		return common.RespMsg{Status: "", Msg: resp.Msg, Data: nil}
-	}
-	nodeInfo, ok := resp.Data.(nodemanager.GetNodeDetailResp)
-	if !ok {
-		hwlog.RunLog.Error("wrong nodeInfo when deploy app")
-		return common.RespMsg{Status: "", Msg: "wrong nodeInfo when deploy app", Data: nil}
-	}
-
-	daemonSet, err := InitDaemonSet(&appInfo, nodeInfo)
-	if err != nil {
-		hwlog.RunLog.Errorf("app daemonSet init failed: %s", err.Error())
-		return common.RespMsg{Status: "", Msg: "app daemonSet init failed", Data: nil}
-	}
-	daemonSet, err = kubeclient.GetKubeClient().CreateDaemonSet(daemonSet)
-	if err != nil {
-		hwlog.RunLog.Errorf("app daemonSet create failed: %s", err.Error())
-		return common.RespMsg{Status: "", Msg: "app daemonSet create failed", Data: nil}
-	}
-
-	hwlog.RunLog.Info("app daemonSet create success")
+	hwlog.RunLog.Info("all app daemonSets create success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
-func updateNodeGroupDaemonSet(appInfo *AppInfo, nodeGroups []nodemanager.NodeGroup) error {
+func updateNodeGroupDaemonSet(appInfo *AppInfo, nodeGroups []util.NodeGroupInfo) error {
 	for _, nodeGroup := range nodeGroups {
-		daemonSet, err := InitDaemonSet(appInfo, nodeGroup.Label)
+		daemonSet, err := InitDaemonSet(appInfo, nodeGroup)
 		if err != nil {
 			return fmt.Errorf("init daemon set failded: %s", err.Error())
 		}
@@ -203,35 +188,6 @@ func UpdateApp(input interface{}) common.RespMsg {
 	var req util.CreateAppReq
 	var err error
 	if err = common.ParamConvert(input, &req); err != nil {
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
-	}
-
-	daemonset, err := InitDaemonSet(appInstanceInfo)
-	if err != nil {
-		hwlog.RunLog.Error("app daemonset init failed")
-		return common.RespMsg{Status: "", Msg: "app daemonset init failed", Data: nil}
-	}
-	daemonset, err = kubeclient.GetKubeClient().CreateDaemonSet(daemonset)
-	if err != nil {
-		hwlog.RunLog.Error("app daemonset create failed")
-		return common.RespMsg{Status: "", Msg: "app daemonset create failed", Data: nil}
-	}
-
-	hwlog.RunLog.Info("app daemonset create success")
-	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
-}
-
-// UndeployApp undeploy application on node group
-func UndeployApp(input interface{}) common.RespMsg {
-	hwlog.RunLog.Info("start undeploy app")
-	var req util.UndeployAppReq
-	if err := common.ParamConvert(input, &req); err != nil {
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
-	}
-
-	appInstanceInfo, err := AppRepositoryInstance().getAppInstanceById(req.AppId)
-	if err != nil {
-		hwlog.RunLog.Error("get app and node group information failed")
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
@@ -265,6 +221,51 @@ func UndeployApp(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
+// UndeployApp undeploy application on node group
+func UndeployApp(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start undeploy app")
+	var req util.UndeployAppReq
+	if err := common.ParamConvert(input, &req); err != nil {
+		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	}
+	for _, nodeInfo := range req.NodeInfo {
+		appInstanceInfo, err := AppRepositoryInstance().getAppInstanceByIdAndGroup(req.AppId, nodeInfo.NodeGroupName)
+		if err != nil {
+			hwlog.RunLog.Error("get app instances failed when undeploy")
+			return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+		}
+
+		deleteNode := nodemanager.BatchDeleteNodeRelationReq{
+			GroupID: appInstanceInfo.NodeGroupID,
+			NodeIDs: []int64{nodeInfo.NodeID},
+		}
+		router := common.Router{
+			Source:      common.RestfulServiceName,
+			Destination: common.NodeManagerName,
+			Option:      common.Delete,
+			Resource:    common.NodeRelation,
+		}
+		res, err := json.Marshal(deleteNode)
+		if err != nil {
+			hwlog.RunLog.Error("marshals delete node failed when undeploy")
+			return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+		}
+		resp := common.SendSyncMessageByRestful(string(res), &router)
+		if resp.Status != common.Success {
+			hwlog.RunLog.Error("delete node from group failed when undeploy")
+			return common.RespMsg{Status: "", Msg: "delete node from group failed when undeploy", Data: nil}
+		}
+		if err = AppRepositoryInstance().deleteAppInstanceByIdAndGroup(req.AppId, nodeInfo.NodeGroupName); err != nil {
+			hwlog.RunLog.Error("delete app instance failed when undeploy")
+			return common.RespMsg{Status: "", Msg: "delete app instance failed when undeploy", Data: nil}
+		}
+		hwlog.RunLog.Infof("delete app %d instance success", appInstanceInfo.ID)
+	}
+
+	hwlog.RunLog.Info("app undeploy success")
+	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
+}
+
 // DeleteApp delete application by appName
 func DeleteApp(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start delete app")
@@ -272,8 +273,8 @@ func DeleteApp(input interface{}) common.RespMsg {
 	if err := common.ParamConvert(input, &req); err != nil {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
-	for _, AppId := range req.AppIdList {
-		if err := AppRepositoryInstance().deleteApp(AppId); err != nil {
+	for _, appId := range req.AppIdList {
+		if err := AppRepositoryInstance().deleteApp(appId); err != nil {
 			hwlog.RunLog.Error("app db delete failed")
 			return common.RespMsg{Status: "", Msg: "app db delete failed", Data: nil}
 		}
@@ -284,7 +285,7 @@ func DeleteApp(input interface{}) common.RespMsg {
 }
 
 // InitDaemonSet init daemonSet
-func InitDaemonSet(appInfo *AppInfo, nodeInfo nodemanager.GetNodeDetailResp) (*appv1.DaemonSet, error) {
+func InitDaemonSet(appInfo *AppInfo, nodeInfo util.NodeGroupInfo) (*appv1.DaemonSet, error) {
 	containers, err := getContainers(appInfo)
 	if err != nil {
 		hwlog.RunLog.Error("app daemonSet get containers failed")
@@ -293,12 +294,14 @@ func InitDaemonSet(appInfo *AppInfo, nodeInfo nodemanager.GetNodeDetailResp) (*a
 	tmpSpec := v1.PodSpec{}
 	tmpSpec.Containers = containers
 	tmpSpec.NodeSelector = map[string]string{
-		common.NodeGroupLabelPrefix + strconv.FormatInt(nodeInfo.Id, 10): appInfo.AppName,
+		common.NodeGroupLabelPrefix + strconv.FormatInt(nodeInfo.NodeGroupID, DecimalScale): nodeInfo.NodeGroupName,
 	}
 	template := v1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
-				common.AppManagerName: appInfo.AppName,
+				common.AppManagerName: AppLabel,
+				AppName:               appInfo.AppName,
+				AppId:                 strconv.FormatInt(int64(appInfo.ID), DecimalScale),
 			},
 		},
 		Spec: tmpSpec,
@@ -310,7 +313,9 @@ func InitDaemonSet(appInfo *AppInfo, nodeInfo nodemanager.GetNodeDetailResp) (*a
 		Spec: appv1.DaemonSetSpec{
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					common.AppManagerName: appInfo.AppName,
+					common.AppManagerName: AppLabel,
+					AppName:               appInfo.AppName,
+					AppId:                 strconv.FormatInt(int64(appInfo.ID), DecimalScale),
 				},
 			},
 			Template: template,
@@ -319,7 +324,7 @@ func InitDaemonSet(appInfo *AppInfo, nodeInfo nodemanager.GetNodeDetailResp) (*a
 }
 
 func getContainers(appContainer *AppInfo) ([]v1.Container, error) {
-	var containerInfos []util.ContainerReq
+	var containerInfos []util.Container
 	if err := json.Unmarshal([]byte(appContainer.Containers), &containerInfos); err != nil {
 		hwlog.RunLog.Error("app containers unmarshal failed")
 		return nil, err
@@ -333,20 +338,20 @@ func getContainers(appContainer *AppInfo) ([]v1.Container, error) {
 		}
 
 		containers = append(containers, v1.Container{
-			Name:            containerInfo.ContainerName,
-			Image:           containerInfo.ImageName,
+			Name:            containerInfo.Name,
+			Image:           containerInfo.Image + ":" + containerInfo.ImageVersion,
 			ImagePullPolicy: v1.PullIfNotPresent,
 			Command:         containerInfo.Command,
 			Args:            containerInfo.Args,
 			Env:             getEnv(containerInfo.Env),
-			Ports:           getPorts(containerInfo.ContainerPort),
+			Ports:           getPorts(containerInfo.Ports),
 			Resources:       resources,
 		})
 	}
 	return containers, nil
 }
 
-func getPorts(containerPorts []util.PortTransfer) []v1.ContainerPort {
+func getPorts(containerPorts []util.ContainerPort) []v1.ContainerPort {
 	var ports []v1.ContainerPort
 	for _, port := range containerPorts {
 		ports = append(ports, v1.ContainerPort{
@@ -360,7 +365,7 @@ func getPorts(containerPorts []util.PortTransfer) []v1.ContainerPort {
 	return ports
 }
 
-func getEnv(envInfo []util.EnvReq) []v1.EnvVar {
+func getEnv(envInfo []util.EnvVar) []v1.EnvVar {
 	var envs []v1.EnvVar
 	for _, env := range envInfo {
 		envs = append(envs, v1.EnvVar{
@@ -371,7 +376,7 @@ func getEnv(envInfo []util.EnvReq) []v1.EnvVar {
 	return envs
 }
 
-func getResources(appContainer util.ContainerReq) (v1.ResourceRequirements, error) {
+func getResources(appContainer util.Container) (v1.ResourceRequirements, error) {
 	var Requests map[v1.ResourceName]resource.Quantity
 	var limits map[v1.ResourceName]resource.Quantity
 	var device v1.ResourceName
@@ -381,13 +386,11 @@ func getResources(appContainer util.ContainerReq) (v1.ResourceRequirements, erro
 		hwlog.RunLog.Error("parse cpu request failed")
 		return v1.ResourceRequirements{}, err
 	}
-
 	memRequest, err := resource.ParseQuantity(appContainer.MemRequest)
 	if err != nil {
 		hwlog.RunLog.Error("parse memory request failed")
 		return v1.ResourceRequirements{}, err
 	}
-
 	if appContainer.Npu != "" {
 		device = DeviceType
 		deviceValue, err := resource.ParseQuantity(appContainer.Npu)
@@ -403,25 +406,37 @@ func getResources(appContainer util.ContainerReq) (v1.ResourceRequirements, erro
 		Requests = map[v1.ResourceName]resource.Quantity{v1.ResourceCPU: cpuRequest, v1.ResourceMemory: memRequest}
 		limits = map[v1.ResourceName]resource.Quantity{v1.ResourceCPU: cpuRequest, v1.ResourceMemory: memRequest}
 	}
-	if appContainer.CpuLimit != "" {
-		cpuLimit, err := resource.ParseQuantity(appContainer.CpuLimit)
-		if err != nil {
-			hwlog.RunLog.Error("parse cpu limits failed")
-			return v1.ResourceRequirements{}, err
-		}
-		limits[v1.ResourceCPU] = cpuLimit
+	limits, err = getLimits(appContainer.CpuLimit, appContainer.MemLimit, limits)
+	if err != nil {
+		hwlog.RunLog.Error("get limits resource failed")
+		return v1.ResourceRequirements{}, err
 	}
-	if appContainer.MemLimit != "" {
-		memLimits, err := resource.ParseQuantity(appContainer.MemLimit)
-		if err != nil {
-			hwlog.RunLog.Error("parse memory limits failed")
-			return v1.ResourceRequirements{}, err
-		}
-		limits[v1.ResourceMemory] = memLimits
-	}
-
 	return v1.ResourceRequirements{
 		Limits:   limits,
 		Requests: Requests,
 	}, nil
+}
+
+func getLimits(cpuLimit string, memLimit string, limitMap map[v1.ResourceName]resource.Quantity) (
+	map[v1.ResourceName]resource.Quantity, error) {
+	if limitMap == nil {
+		return nil, fmt.Errorf("limit map is nil")
+	}
+	if cpuLimit != "" {
+		res, err := resource.ParseQuantity(cpuLimit)
+		if err != nil {
+			hwlog.RunLog.Error("parse cpu limits failed")
+			return limitMap, err
+		}
+		limitMap[v1.ResourceCPU] = res
+	}
+	if memLimit != "" {
+		res, err := resource.ParseQuantity(memLimit)
+		if err != nil {
+			hwlog.RunLog.Error("parse memory limits failed")
+			return limitMap, err
+		}
+		limitMap[v1.ResourceMemory] = res
+	}
+	return limitMap, nil
 }

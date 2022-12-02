@@ -4,18 +4,13 @@
 package restfulservice
 
 import (
-	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/util"
-)
-
-const (
-	idNumbBase    = 10
-	idNumbBitSize = 64
 )
 
 func setRouter(engine *gin.Engine) {
@@ -53,11 +48,12 @@ func appRouter(engine *gin.Engine) {
 	app := engine.Group("/edgemanager/v1/app")
 	{
 		app.POST("/", createApp)
-		app.GET("/:id", queryApp)
+		app.GET("/", queryApp)
 		app.PATCH("/", updateApp)
 		app.GET("/list", listAppsInfo)
 		app.POST("/deploy", deployApp)
 		app.DELETE("/", deleteApp)
+		app.POST("/undeploy", undeployApp)
 	}
 }
 
@@ -97,14 +93,9 @@ func pageUtil(c *gin.Context) (util.ListReq, error) {
 }
 
 func getReqAppId(c *gin.Context) (uint64, error) {
-	appId := c.Param("id")
-	if appId == "" {
-		return 0, errors.New("app id is null")
-	}
-
-	value, err := strconv.ParseUint(appId, idNumbBase, idNumbBitSize)
+	value, err := strconv.ParseUint(c.Query("appId"), common.BaseHex, common.BitSize64)
 	if err != nil {
-		return 0, errors.New("app id is invalid")
+		return 0, fmt.Errorf("app id is invalid")
 	}
 
 	return value, nil
