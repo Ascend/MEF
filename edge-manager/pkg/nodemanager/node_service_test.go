@@ -57,8 +57,25 @@ func mockGetDb() *gorm.DB {
 	return gormInstance
 }
 
+type fakeNodeStatusService struct {
+}
+
+func (s *fakeNodeStatusService) ListNodeStatus() map[string]string {
+	return map[string]string{}
+}
+
+func (s *fakeNodeStatusService) GetNodeStatus(string) string {
+	return statusOffline
+}
+
+func mockNodeStatusServiceInstance() NodeStatusService {
+	return &fakeNodeStatusService{}
+}
+
 func TestMain(m *testing.M) {
-	patches := gomonkey.ApplyFunc(database.GetDb, mockGetDb)
+	patches := gomonkey.
+		ApplyFunc(database.GetDb, mockGetDb).
+		ApplyFunc(NodeStatusServiceInstance, mockNodeStatusServiceInstance)
 	defer patches.Reset()
 	setup()
 	code := m.Run()

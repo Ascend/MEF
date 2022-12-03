@@ -44,10 +44,10 @@ type NodeService interface {
 	updateNode(int64, map[string]interface{}) error
 	deleteRelationsToNode(int64) error
 	deleteRelation(*NodeRelation) (int64, error)
-	countNodesByStatus(string) (int64, error)
 	listNodeRelationsByGroupId(int64) (*[]NodeRelation, error)
 	addNodeToGroup(*[]NodeRelation) error
 	deleteNodeGroup(groupID int64) error
+	listNodes() (*[]NodeInfo, error)
 }
 
 // GetTableCount get table count
@@ -176,13 +176,6 @@ func (n *NodeServiceImpl) deleteRelation(relation *NodeRelation) (int64, error) 
 	return stmt.RowsAffected, stmt.Error
 }
 
-// getNodeStatistics get node count by status
-func (n *NodeServiceImpl) countNodesByStatus(status string) (int64, error) {
-	var nodeCount int64
-	return nodeCount,
-		n.db.Model(&NodeInfo{}).Where(&NodeInfo{Status: status}).Count(&nodeCount).Error
-}
-
 func (n *NodeServiceImpl) listNodeRelationsByGroupId(groupId int64) (*[]NodeRelation, error) {
 	var relations []NodeRelation
 	return &relations,
@@ -206,6 +199,11 @@ func (n *NodeServiceImpl) countGroupsByNode(nodeID int64) (int64, error) {
 
 func (n *NodeServiceImpl) deleteNodeGroup(groupID int64) error {
 	return n.db.Model(NodeGroup{}).Where("`id` = ?", groupID).Delete(&NodeGroup{}).Error
+}
+
+func (n *NodeServiceImpl) listNodes() (*[]NodeInfo, error) {
+	var nodes []NodeInfo
+	return &nodes, n.db.Model(NodeInfo{}).Find(&nodes).Error
 }
 
 func paginate(page, pageSize uint64) func(db *gorm.DB) *gorm.DB {
