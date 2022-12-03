@@ -190,7 +190,6 @@ func createGroupAndRelation(nodeId int64) {
 	nodeGroup := NodeGroup{
 		Description: "my-description",
 		GroupName:   "my-group",
-		Label:       "my-label",
 		CreatedAt:   time.Now().Format(TimeFormat),
 		UpdateAt:    time.Now().Format(TimeFormat),
 	}

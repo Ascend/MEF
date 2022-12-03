@@ -142,7 +142,7 @@ func DeployApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	daemonSet, err := InitDaemonSet(&appInfo, nodeGroup.Label)
+	daemonSet, err := InitDaemonSet(&appInfo, nodeGroup.ID)
 	if err != nil {
 		hwlog.RunLog.Errorf("app daemonSet init failed: %s", err.Error())
 		return common.RespMsg{Status: "", Msg: "app daemonSet init failed", Data: nil}
@@ -159,7 +159,7 @@ func DeployApp(input interface{}) common.RespMsg {
 
 func updateNodeGroupDaemonSet(appInfo *AppInfo, nodeGroups []nodemanager.NodeGroup) error {
 	for _, nodeGroup := range nodeGroups {
-		daemonSet, err := InitDaemonSet(appInfo, nodeGroup.Label)
+		daemonSet, err := InitDaemonSet(appInfo, nodeGroup.ID)
 		if err != nil {
 			return fmt.Errorf("init daemon set failded: %s", err.Error())
 		}
@@ -227,7 +227,7 @@ func DeleteApp(input interface{}) common.RespMsg {
 }
 
 // InitDaemonSet init daemonSet
-func InitDaemonSet(appInfo *AppInfo, nodeLabel string) (*appv1.DaemonSet, error) {
+func InitDaemonSet(appInfo *AppInfo, nodeGroupId int64) (*appv1.DaemonSet, error) {
 	containers, err := getContainers(appInfo)
 	if err != nil {
 		hwlog.RunLog.Error("app daemonSet get containers failed")
