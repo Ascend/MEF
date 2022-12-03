@@ -5,8 +5,7 @@ package nodemanager
 
 import (
 	"encoding/json"
-	"errors"
-	"strconv"
+	"github.com/gin-gonic/gin/binding"
 )
 
 // CreateEdgeNodeReq Create edge node
@@ -25,7 +24,7 @@ type CreateNodeGroupReq struct {
 
 // GetNodeDetailReq request object
 type GetNodeDetailReq struct {
-	Id int64 `json:"id"`
+	Id int64 `json:"id" uri:"id"`
 }
 
 // GetNodeGroupDetailReq request object
@@ -33,19 +32,17 @@ type GetNodeGroupDetailReq = GetNodeDetailReq
 
 // UnmarshalJSON custom JSON unmarshal
 func (req *GetNodeDetailReq) UnmarshalJSON(input []byte) error {
+	return unmarshalUriParams(input, req)
+}
+
+func unmarshalUriParams(input []byte, obj interface{}) error {
 	objMap := make(map[string][]string)
 	if err := json.Unmarshal(input, &objMap); err != nil {
 		return err
 	}
-	idStr, ok := objMap["id"]
-	if !ok || len(idStr) != 1 {
-		return errors.New("bad data format")
-	}
-	id, err := strconv.Atoi(idStr[0])
-	if err != nil {
+	if err := binding.Uri.BindUri(objMap, obj); err != nil {
 		return err
 	}
-	req.Id = int64(id)
 	return nil
 }
 
@@ -65,7 +62,7 @@ func (req BatchDeleteNodeReq) Check() error {
 // BatchDeleteNodeRelationReq delete node relation
 type BatchDeleteNodeRelationReq struct {
 	GroupID int64   `json:"groupId"`
-	NodeIDs []int64 `json:"nodeIds"`
+	NodeIDs []int64 `json:"nodeId"`
 }
 
 // Check request validator
@@ -106,7 +103,7 @@ type GetNodeStatisticsResp = map[string]int64
 
 // ListNodeGroupResp response object for listNodeGroup
 type ListNodeGroupResp struct {
-	Total  uint64                  `json:"total"`
+	Total  int64                   `json:"total"`
 	Groups []ListNodeGroupRespItem `json:"groups"`
 }
 
@@ -121,11 +118,7 @@ type ListNodeGroupRespItem struct {
 
 // GetNodeGroupDetailResp response object for nodeGroupDetail
 type GetNodeGroupDetailResp struct {
-	ID          int64                        `json:"id"`
-	GroupName   string                       `json:"groupName"`
-	Description string                       `json:"description"`
-	CreateAt    string                       `json:"createAt"`
-	Nodes       []GetNodeGroupDetailRespItem `json:"nodes"`
+	Nodes []GetNodeGroupDetailRespItem `json:"nodes"`
 }
 
 // GetNodeGroupDetailRespItem Node data
