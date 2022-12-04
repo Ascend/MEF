@@ -4,7 +4,6 @@
 package appmanager
 
 import (
-	"edge-manager/pkg/util"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -17,34 +16,6 @@ import (
 	"edge-manager/pkg/database"
 	"edge-manager/pkg/nodemanager"
 )
-
-// AppInstanceInfo encapsulate app instance information
-type AppInstanceInfo struct {
-	// AppInfo is app information
-	AppInfo AppInfo
-	// NodeGroup is node group information of app
-	NodeGroup nodemanager.NodeGroup
-}
-
-// ListReturnInfo encapsulate app list
-type ListReturnInfo struct {
-	// AppInfo is app information
-	AppInfo []AppReturnInfo
-	// Total is num of appInfos
-	Total int
-}
-
-// AppReturnInfo encapsulate app information for return
-type AppReturnInfo struct {
-	AppId         uint64           `json:"appId"`
-	AppName       string           `json:"appName"`
-	Version       string           `json:"version"`
-	Description   string           `json:"description"`
-	CreatedAt     string           `json:"createdAt"`
-	ModifiedAt    string           `json:"modifiedAt"`
-	NodeGroupName string           `json:"nodeGroupName"`
-	Containers    []util.Container `json:"containers"`
-}
 
 var (
 	repositoryInitOnce sync.Once
@@ -67,6 +38,7 @@ type AppRepository interface {
 	getNodeGroupInfo(nodeGroupName string) (*nodemanager.NodeGroup, error)
 	deployApp(*AppInstance) error
 	deleteApp(appId uint64) error
+	listAppInstances(appId uint64) ([]AppInstance, error)
 }
 
 // GetTableCount get table count
@@ -140,7 +112,7 @@ func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) (*L
 	}
 	var appReturnInfos []AppReturnInfo
 	for _, app := range appsInfo {
-		var containers []util.Container
+		var containers []Container
 		if err := json.Unmarshal([]byte(app.Containers), &containers); err != nil {
 			hwlog.RunLog.Error("containers unmarshal failed")
 			return nil, err
@@ -199,6 +171,15 @@ func (a *AppRepositoryImpl) deleteApp(appId uint64) error {
 		return errors.New("app is referenced, can not delete ")
 	}
 	return a.db.Model(AppInfo{}).Delete(appInfo).Error
+}
+
+func (a *AppRepositoryImpl) listAppInstances(appId uint64) ([]AppInstance, error) {
+	var deployedApps []AppInstance
+	if err := a.db.Model(AppInstance{}).Where("app_id = ?", appId).Find(&deployedApps).Error; err != nil {
+		hwlog.RunLog.Error("list app instances db failed")
+		return nil, err
+	}
+	return deployedApps, nil
 }
 
 func paginate(page, pageSize uint64) func(db *gorm.DB) *gorm.DB {

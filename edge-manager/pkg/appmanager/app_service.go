@@ -25,7 +25,7 @@ import (
 // CreateApp Create application
 func CreateApp(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start create app")
-	var req util.CreateAppReq
+	var req CreateAppReq
 	if err := common.ParamConvert(input, &req); err != nil {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
@@ -85,7 +85,7 @@ func QueryApp(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
-func getAppInfo(req util.CreateAppReq) (*AppInfo, error) {
+func getAppInfo(req CreateAppReq) (*AppInfo, error) {
 	containers, err := json.Marshal(req.Containers)
 	if err != nil {
 		hwlog.RunLog.Error("marshal containers failed")
@@ -125,7 +125,7 @@ func ListAppInfo(input interface{}) common.RespMsg {
 // DeployApp deploy application on node group
 func DeployApp(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start deploy app")
-	var req util.DeployAppReq
+	var req DeployAppReq
 	if err := common.ParamConvert(input, &req); err != nil {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
@@ -175,7 +175,7 @@ func updateNodeGroupDaemonSet(appInfo *AppInfo, nodeGroups []nodemanager.NodeGro
 // UpdateApp update application
 func UpdateApp(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start update app")
-	var req util.CreateAppReq
+	var req CreateAppReq
 	var err error
 	if err = common.ParamConvert(input, &req); err != nil {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
@@ -214,7 +214,7 @@ func UpdateApp(input interface{}) common.RespMsg {
 // DeleteApp delete application by appName
 func DeleteApp(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start delete app")
-	var req util.DeleteAppReq
+	var req DeleteAppReq
 	if err := common.ParamConvert(input, &req); err != nil {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
@@ -224,6 +224,34 @@ func DeleteApp(input interface{}) common.RespMsg {
 	}
 	hwlog.RunLog.Info("app db delete success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
+}
+
+// ListAppInstances get deployed apps' list
+func ListAppInstances(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start list app instances")
+	var appInstanceResp []AppInstanceResp
+	var appId uint64
+	appId, ok := input.(uint64)
+	if !ok {
+		hwlog.RunLog.Error("list app instances failed, param type is not integer")
+		return common.RespMsg{Status: "", Msg: "param type is not integer", Data: nil}
+	}
+	deployedApps, err := AppRepositoryInstance().listAppInstances(appId)
+	if err != nil {
+		hwlog.RunLog.Error("list app instances db failed")
+		return common.RespMsg{Status: "", Msg: "list app instances db failed", Data: nil}
+	}
+	for _, instance := range deployedApps {
+		resp := AppInstanceResp{
+			AppName:       instance.AppName,
+			NodeGroupName: instance.NodeGroupName,
+			NodeName:      instance.NodeName,
+			NodeStatus:    "",
+			AppStatus:     instance.Status,
+		}
+		appInstanceResp = append(appInstanceResp, resp)
+	}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: appInstanceResp}
 }
 
 // InitDaemonSet init daemonSet
@@ -262,7 +290,7 @@ func InitDaemonSet(appInfo *AppInfo, nodeGroupId int64) (*appv1.DaemonSet, error
 }
 
 func getContainers(appContainer *AppInfo) ([]v1.Container, error) {
-	var containerInfos []util.Container
+	var containerInfos []Container
 	if err := json.Unmarshal([]byte(appContainer.Containers), &containerInfos); err != nil {
 		hwlog.RunLog.Error("app containers unmarshal failed")
 		return nil, err
@@ -289,7 +317,7 @@ func getContainers(appContainer *AppInfo) ([]v1.Container, error) {
 	return containers, nil
 }
 
-func getPorts(containerPorts []util.ContainerPort) []v1.ContainerPort {
+func getPorts(containerPorts []ContainerPort) []v1.ContainerPort {
 	var ports []v1.ContainerPort
 	for _, port := range containerPorts {
 		ports = append(ports, v1.ContainerPort{
@@ -303,7 +331,7 @@ func getPorts(containerPorts []util.ContainerPort) []v1.ContainerPort {
 	return ports
 }
 
-func getEnv(envInfo []util.EnvVar) []v1.EnvVar {
+func getEnv(envInfo []EnvVar) []v1.EnvVar {
 	var envs []v1.EnvVar
 	for _, env := range envInfo {
 		envs = append(envs, v1.EnvVar{
@@ -314,7 +342,7 @@ func getEnv(envInfo []util.EnvVar) []v1.EnvVar {
 	return envs
 }
 
-func getResources(appContainer util.Container) (v1.ResourceRequirements, error) {
+func getResources(appContainer Container) (v1.ResourceRequirements, error) {
 	var Requests map[v1.ResourceName]resource.Quantity
 	var limits map[v1.ResourceName]resource.Quantity
 

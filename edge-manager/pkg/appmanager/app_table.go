@@ -22,7 +22,8 @@ type AppInstance struct {
 	NodeGroupName string `gorm:"type:char(64);not null"`
 	NodeGroupID   int64  `gorm:"type:Integer;not null"`
 	Status        string `gorm:"type:char(50);not null"`
-	AppID         string `gorm:"not null"`
+	AppID         int64  `gorm:"type:Integer;not null"`
+	AppName       string `gorm:"type:char(128);not null"`
 	CreatedAt     string `gorm:"type:time;not null"`
 	ChangedAt     string `gorm:"type:time;not null"`
 }

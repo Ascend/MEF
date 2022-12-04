@@ -1,7 +1,7 @@
 // Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
 
-// Package util to init util service
-package util
+// Package appmanager to init util service
+package appmanager
 
 // CreateAppReq Create application
 type CreateAppReq struct {
@@ -65,4 +65,33 @@ type UndeployAppReq struct {
 // GetAppByAppIdReq get app by application id
 type GetAppByAppIdReq struct {
 	AppId uint64 `json:"appId"`
+}
+
+// AppInstanceResp encapsulate app instance information for return
+type AppInstanceResp struct {
+	AppName       string `json:"appName"`
+	NodeGroupName string `json:"nodeGroupName"`
+	NodeName      string `json:"nodeName"`
+	NodeStatus    string `json:"nodeStatus"`
+	AppStatus     string `json:"appStatus"`
+}
+
+// ListReturnInfo encapsulate app list
+type ListReturnInfo struct {
+	// AppInfo is app information
+	AppInfo []AppReturnInfo
+	// Total is num of appInfos
+	Total int
+}
+
+// AppReturnInfo encapsulate app information for return
+type AppReturnInfo struct {
+	AppId         uint64      `json:"appId"`
+	AppName       string      `json:"appName"`
+	Version       string      `json:"version"`
+	Description   string      `json:"description"`
+	CreatedAt     string      `json:"createdAt"`
+	ModifiedAt    string      `json:"modifiedAt"`
+	NodeGroupName string      `json:"nodeGroupName"`
+	Containers    []Container `json:"containers"`
 }

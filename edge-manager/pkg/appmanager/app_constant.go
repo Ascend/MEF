@@ -3,6 +3,8 @@
 // Package appmanager to init node manager const
 package appmanager
 
+import "time"
+
 const (
 	// MaxApp MaxApp num 1000
 	MaxApp = 1000
@@ -12,4 +14,10 @@ const (
 	AppNodeSelectorValue = "test"
 	// AppLabel for app label
 	AppLabel = "v1"
+	// AppName for pod label
+	AppName = "appname"
+	// AppID for pod label
+	AppID = "appid"
+
+	informerSyncInterval = time.Duration(30) * time.Second
 )
