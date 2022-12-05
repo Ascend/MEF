@@ -27,6 +27,7 @@ type AppInstanceInfo struct {
 	NodeGroup nodemanager.NodeGroup `json:"nodeGroup"`
 }
 
+// CreateReturnInfo for create app
 type CreateReturnInfo struct {
 	AppId uint64 `json:"appId"`
 }
@@ -73,7 +74,7 @@ type AppRepository interface {
 	getAppInstanceByIdAndGroup(uint64, string) (*AppInstance, error)
 	getAppInfoByName(string) (*AppInfo, error)
 	deployApp(*AppInstance) error
-	deleteApp(uint64) error
+	deleteAppById(uint64) error
 	deleteAppInstanceByIdAndGroup(uint64, string) error
 	queryNodeGroup(uint64) ([]util.NodeGroupInfo, error)
 }
@@ -96,7 +97,6 @@ func AppRepositoryInstance() AppRepository {
 	return appRepository
 }
 
-// createApp Create application Db
 func (a *AppRepositoryImpl) createApp(appInfo *AppInfo) error {
 	if err := a.db.Model(AppInfo{}).Create(appInfo).Error; err != nil {
 		hwlog.RunLog.Errorf("create app failed: %s", err.Error())
@@ -140,7 +140,6 @@ func (a *AppRepositoryImpl) queryNodeGroup(appId uint64) ([]util.NodeGroupInfo, 
 	return nodeGroups, nil
 }
 
-// listAppsInfo return appInfo list from SQL
 func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) (*ListReturnInfo, error) {
 	var appsInfo []AppInfo
 	if err := a.db.Model(AppInfo{}).Scopes(getAppInfoByLikeName(page, pageSize, name)).Find(&appsInfo).Error; err != nil {
@@ -154,16 +153,16 @@ func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) (*L
 			hwlog.RunLog.Error("containers unmarshal failed")
 			return nil, err
 		}
-		appInstances, err := a.queryNodeGroup(app.ID)
+		NodeGroupInfos, err := a.queryNodeGroup(app.ID)
 		if err != nil {
 			hwlog.RunLog.Error("get node group name failed when list")
 			return nil, err
 		}
 		nodeGroupName := ""
 		var nodeGroupIDs []int64
-		for _, appInstance := range appInstances {
-			nodeGroupName += appInstance.NodeGroupName + ";"
-			nodeGroupIDs = append(nodeGroupIDs, appInstance.NodeGroupID)
+		for _, nodeGroupInfo := range NodeGroupInfos {
+			nodeGroupName += nodeGroupInfo.NodeGroupName + ";"
+			nodeGroupIDs = append(nodeGroupIDs, nodeGroupInfo.NodeGroupID)
 		}
 		appReturnInfos = append(appReturnInfos, AppReturnInfo{
 			AppId:         app.ID,
@@ -181,7 +180,6 @@ func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) (*L
 	}, nil
 }
 
-// listAppsInfo return appInfo list from SQL
 func (a *AppRepositoryImpl) countListAppsInfo(name string) (int64, error) {
 	var totalAppInfo int64
 	if err := a.db.Model(AppInfo{}).Where("app_name like ?", "%"+name+"%").Count(&totalAppInfo).Error; err != nil {
@@ -191,28 +189,24 @@ func (a *AppRepositoryImpl) countListAppsInfo(name string) (int64, error) {
 	return totalAppInfo, nil
 }
 
-// deployApp deploy app on node group
 func (a *AppRepositoryImpl) deployApp(appInstance *AppInstance) error {
 	return a.db.Model(AppInstance{}).Create(appInstance).Error
 }
 
-// deleteApp delete app by name
-func (a *AppRepositoryImpl) deleteApp(appId uint64) error {
+func (a *AppRepositoryImpl) deleteAppById(appId uint64) error {
 	appInfo, err := a.getAppInfoById(appId)
 	if err != nil {
 		hwlog.RunLog.Error("get appInfo failed when delete")
 		return err
 	}
 	err = a.db.Where("app_name = ?", appInfo.AppName).First(&AppInstance{}).Error
+	if err == nil {
+		hwlog.RunLog.Error("app is referenced, can not delete")
+		return errors.New("app is referenced, can not delete ")
+	}
 	if err != gorm.ErrRecordNotFound {
-		if err == nil {
-			hwlog.RunLog.Error("app is referenced, can not delete")
-			return errors.New("app is referenced, can not delete ")
-		}
-		if err != nil {
-			hwlog.RunLog.Error("find app instance failed when delete app")
-			return errors.New("find app instance failed when delete app")
-		}
+		hwlog.RunLog.Error("find app instance failed when delete app")
+		return errors.New("find app instance failed when delete app")
 	}
 
 	return a.db.Model(AppInfo{}).Delete(appInfo).Error

@@ -19,7 +19,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"edge-manager/pkg/kubeclient"
-	"edge-manager/pkg/nodemanager"
 	"edge-manager/pkg/util"
 )
 
@@ -221,51 +220,6 @@ func UpdateApp(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
-// UndeployApp undeploy application on node group
-func UndeployApp(input interface{}) common.RespMsg {
-	hwlog.RunLog.Info("start undeploy app")
-	var req util.UndeployAppReq
-	if err := common.ParamConvert(input, &req); err != nil {
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
-	}
-	for _, nodeInfo := range req.NodeInfo {
-		appInstanceInfo, err := AppRepositoryInstance().getAppInstanceByIdAndGroup(req.AppId, nodeInfo.NodeGroupName)
-		if err != nil {
-			hwlog.RunLog.Error("get app instances failed when undeploy")
-			return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
-		}
-
-		deleteNode := nodemanager.BatchDeleteNodeRelationReq{
-			GroupID: appInstanceInfo.NodeGroupID,
-			NodeIDs: []int64{nodeInfo.NodeID},
-		}
-		router := common.Router{
-			Source:      common.RestfulServiceName,
-			Destination: common.NodeManagerName,
-			Option:      common.Delete,
-			Resource:    common.NodeRelation,
-		}
-		res, err := json.Marshal(deleteNode)
-		if err != nil {
-			hwlog.RunLog.Error("marshals delete node failed when undeploy")
-			return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
-		}
-		resp := common.SendSyncMessageByRestful(string(res), &router)
-		if resp.Status != common.Success {
-			hwlog.RunLog.Error("delete node from group failed when undeploy")
-			return common.RespMsg{Status: "", Msg: "delete node from group failed when undeploy", Data: nil}
-		}
-		if err = AppRepositoryInstance().deleteAppInstanceByIdAndGroup(req.AppId, nodeInfo.NodeGroupName); err != nil {
-			hwlog.RunLog.Error("delete app instance failed when undeploy")
-			return common.RespMsg{Status: "", Msg: "delete app instance failed when undeploy", Data: nil}
-		}
-		hwlog.RunLog.Infof("delete app %d instance success", appInstanceInfo.ID)
-	}
-
-	hwlog.RunLog.Info("app undeploy success")
-	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
-}
-
 // DeleteApp delete application by appName
 func DeleteApp(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start delete app")
@@ -274,7 +228,7 @@ func DeleteApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 	for _, appId := range req.AppIdList {
-		if err := AppRepositoryInstance().deleteApp(appId); err != nil {
+		if err := AppRepositoryInstance().deleteAppById(appId); err != nil {
 			hwlog.RunLog.Error("app db delete failed")
 			return common.RespMsg{Status: "", Msg: "app db delete failed", Data: nil}
 		}
