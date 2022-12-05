@@ -81,12 +81,13 @@ func getNodeDetail(input interface{}) common.RespMsg {
 	if err != nil {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
+	status := NodeStatusServiceInstance().GetNodeStatus(nodeInfo.UniqueName)
 	resp := GetNodeDetailResp{
 		Id:          nodeInfo.ID,
 		NodeName:    nodeInfo.NodeName,
 		UniqueName:  nodeInfo.UniqueName,
 		Description: nodeInfo.Description,
-		Status:      nodeInfo.Status,
+		Status:      status,
 		CreatedAt:   nodeInfo.CreatedAt,
 		UpdatedAt:   nodeInfo.UpdateAt,
 		Cpu:         nodeInfo.CPUCore,
@@ -130,17 +131,29 @@ func modifyNode(input interface{}) common.RespMsg {
 
 func getNodeStatistics(interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start get node statistics")
-	resp := make(map[string]int64)
-	allNodeStatus := []string{statusReady, statusNotReady, statusOffline, statusUnknown}
-	for _, status := range allNodeStatus {
-		nodeCount, err := NodeServiceInstance().countNodesByStatus(status)
-		if err != nil {
-			hwlog.RunLog.Error("get node statistics db query error")
-			return common.RespMsg{Status: "", Msg: "db query error", Data: nil}
-		}
-		resp[status] = nodeCount
+	resp := map[string]int64{
+		statusReady:    0,
+		statusNotReady: 0,
+		statusUnknown:  0,
+		statusOffline:  0,
 	}
-	hwlog.RunLog.Info("get node statistics db query success")
+	nodes, err := NodeServiceInstance().listNodes()
+	if err != nil {
+		hwlog.RunLog.Error("failed to get node statistics, db query failed")
+		return common.RespMsg{Msg: "db query failed"}
+	}
+	statusMap := NodeStatusServiceInstance().ListNodeStatus()
+	for _, node := range *nodes {
+		status := statusOffline
+		if nodeStatus, ok := statusMap[node.UniqueName]; ok {
+			status = nodeStatus
+		}
+		if _, ok := resp[status]; !ok {
+			continue
+		}
+		resp[status] += 1
+	}
+	hwlog.RunLog.Info("get node statistics success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
@@ -153,6 +166,10 @@ func listNode(input interface{}) common.RespMsg {
 	}
 	nodes, err := NodeServiceInstance().listNodesByName(req.PageNum, req.PageSize, req.Name)
 	if err == nil {
+		for i := range *nodes {
+			nodePtr := &(*nodes)[i]
+			nodePtr.Status = NodeStatusServiceInstance().GetNodeStatus(nodePtr.UniqueName)
+		}
 		resp := ListNodesResp{
 			Nodes: nodes,
 			Total: len(*nodes),
@@ -182,6 +199,10 @@ func listNodeUnManaged(input interface{}) common.RespMsg {
 
 	nodes, err := NodeServiceInstance().listUnManagedNodesByName(req.PageNum, req.PageSize, req.Name)
 	if err == nil {
+		for i := range *nodes {
+			nodePtr := &(*nodes)[i]
+			nodePtr.Status = NodeStatusServiceInstance().GetNodeStatus(nodePtr.UniqueName)
+		}
 		resp := ListNodesResp{
 			Nodes: nodes,
 			Total: len(*nodes),

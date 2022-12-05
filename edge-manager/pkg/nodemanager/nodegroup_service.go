@@ -103,11 +103,12 @@ func getEdgeNodeGroupDetail(input interface{}) common.RespMsg {
 			hwlog.RunLog.Error("node group db query failed")
 			return common.RespMsg{Status: "", Msg: "db query failed", Data: nil}
 		}
+		status := NodeStatusServiceInstance().GetNodeStatus(node.UniqueName)
 		nodeResp := GetNodeGroupDetailRespItem{
 			NodeID:      node.ID,
 			NodeName:    node.NodeName,
 			Description: node.Description,
-			Status:      node.Status,
+			Status:      status,
 			CreateAt:    node.CreatedAt,
 			UpdateAt:    node.UpdateAt,
 		}
