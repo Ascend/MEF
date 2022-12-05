@@ -52,7 +52,7 @@ func main() {
 		fmt.Printf("initialize hwlog failed, %s.\n", err.Error())
 		return
 	}
-	if inRanage := checker.IsPortInRange(common.MinPort, common.MaxPort, port); !inRanage {
+	if inRange := checker.IsPortInRange(common.MinPort, common.MaxPort, port); !inRange {
 		hwlog.RunLog.Errorf("port %d is not in [%d, %d]", port, common.MinPort, common.MaxPort)
 		return
 	}

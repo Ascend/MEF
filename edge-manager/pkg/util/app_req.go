@@ -7,7 +7,6 @@ package util
 type CreateAppReq struct {
 	AppId       uint64      `json:"appId"`
 	AppName     string      `json:"appName"`
-	Version     string      `json:"version"`
 	Description string      `json:"description"`
 	Containers  []Container `json:"containers"`
 }
@@ -47,18 +46,30 @@ type ContainerPort struct {
 
 // DeleteAppReq Delete application
 type DeleteAppReq struct {
-	AppId uint64 `json:"appId"`
+	AppIdList []uint64 `json:"appId"`
 }
 
 // DeployAppReq Deploy application
 type DeployAppReq struct {
-	AppId         uint64 `json:"appId"`
-	NodeGroupName string `json:"nodeGroupName"`
+	AppId         uint64          `json:"appId"`
+	NodeGroupInfo []NodeGroupInfo `json:"nodeGroupInfo"`
 }
 
 // UndeployAppReq Undeploy application
 type UndeployAppReq struct {
-	AppId         uint64 `json:"appId"`
+	AppId    uint64     `json:"appId"`
+	NodeInfo []NodeInfo `json:"nodeInfo"`
+}
+
+// NodeInfo get node info
+type NodeInfo struct {
+	NodeID        int64  `json:"nodeID"`
+	NodeGroupName string `json:"nodeGroupName"`
+}
+
+// NodeGroupInfo get group info
+type NodeGroupInfo struct {
+	NodeGroupID   int64  `json:"nodeGroupID"`
 	NodeGroupName string `json:"nodeGroupName"`
 }
 
