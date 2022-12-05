@@ -18,7 +18,7 @@ var appPattern = appParaPattern{patterns: map[string]string{
 	"appName":           "^[a-z]([a-z0-9-]{0,30}[a-z0-9]){0,1}$",
 	"appDescription":    `^[\S]{0,512}$`,
 	"containerName":     "^[a-z0-9]([a-z0-9-]{0,30}[a-z0-9]){0,1}$",
-	"containerImage":    "^[a-z]([a-z0-9_./-]{0,30}[a-z0-9]){0,1}$",
+	"containerImage":    "^[a-z0-9]([a-z0-9_./-]{0,30}[a-z0-9]){0,1}$",
 	"imageVersion":      "^[a-zA-Z0-9_.-]{1,32}$",
 	"containerCommand":  "^[a-zA-Z0-9 _./-]{0,31}[a-zA-Z0-9]$",
 	"containerArgs":     "^[a-zA-Z0-9 _./-]{0,31}[a-zA-Z0-9]$",
@@ -35,7 +35,7 @@ func (a *appParaPattern) getPattern(key string) (string, bool) {
 }
 
 type containerParaChecker struct {
-	container *util.Container
+	container *Container
 }
 
 func (c *containerParaChecker) checkContainerNameValid() error {
@@ -146,7 +146,7 @@ func (c *containerParaChecker) checkContainerEnvValid() error {
 }
 
 type portParaChecker struct {
-	port *util.ContainerPort
+	port *ContainerPort
 }
 
 func (c *portParaChecker) checkPortName() error {
@@ -238,7 +238,7 @@ func (c *containerParaChecker) checkGroupIdValid() error {
 }
 
 type appCreatParaChecker struct {
-	req *util.CreateAppReq
+	req *CreateAppReq
 }
 
 func (c *appCreatParaChecker) checkAppNameValid() error {
@@ -304,7 +304,7 @@ func (c *appCreatParaChecker) Check() error {
 }
 
 type appDeployParaChecker struct {
-	req *util.DeployAppReq
+	req *DeployAppReq
 }
 
 func (c *appDeployParaChecker) checkNodeGroupNameValid() error {
