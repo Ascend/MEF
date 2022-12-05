@@ -34,6 +34,7 @@ type NodeService interface {
 
 	createNodeGroup(*NodeGroup) error
 	getNodeGroupsByName(uint64, uint64, string) (*[]NodeGroup, error)
+	countNodeGroupsByName(string) (int64, error)
 	getNodeGroupByID(int64) (*NodeGroup, error)
 
 	deleteNodeToGroup(*NodeRelation) error
@@ -43,11 +44,10 @@ type NodeService interface {
 	updateNode(int64, map[string]interface{}) error
 	deleteRelationsToNode(int64) error
 	deleteRelation(*NodeRelation) (int64, error)
-	countNodesByStatus(string) (int64, error)
-	listNodeGroup(uint64, uint64, string) (*[]NodeGroup, error)
 	listNodeRelationsByGroupId(int64) (*[]NodeRelation, error)
 	addNodeToGroup(*[]NodeRelation) error
 	deleteNodeGroup(groupID int64) error
+	listNodes() (*[]NodeInfo, error)
 }
 
 // GetTableCount get table count
@@ -101,11 +101,24 @@ func (n *NodeServiceImpl) listUnManagedNodesByName(page, pageSize uint64, nodeNa
 }
 
 // GetNodeGroupsByName return SQL result
-func (n *NodeServiceImpl) getNodeGroupsByName(page, pageSize uint64, nodeGroup string) (*[]NodeGroup, error) {
-	var nodes []NodeGroup
-	return &nodes,
-		n.db.Scopes(getNodeByLikeName(page, pageSize, nodeGroup)).
-			Find(&nodes).Error
+func (n *NodeServiceImpl) getNodeGroupsByName(pageNum, pageSize uint64, nodeGroup string) (*[]NodeGroup, error) {
+	var nodeGroups []NodeGroup
+	return &nodeGroups,
+		n.db.Scopes(paginate(pageNum, pageSize), whereGroupNameLike(nodeGroup)).
+			Find(&nodeGroups).Error
+}
+
+func (n *NodeServiceImpl) countNodeGroupsByName(nodeGroup string) (int64, error) {
+	var nodeGroupCount int64
+	return nodeGroupCount,
+		n.db.Model(&NodeGroup{}).Scopes(whereGroupNameLike(nodeGroup)).
+			Count(&nodeGroupCount).Error
+}
+
+func whereGroupNameLike(nodeGroupName string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("group_name like ?", "%"+nodeGroupName+"%")
+	}
 }
 
 // DeleteNodeToGroup delete Node Db
@@ -163,25 +176,6 @@ func (n *NodeServiceImpl) deleteRelation(relation *NodeRelation) (int64, error) 
 	return stmt.RowsAffected, stmt.Error
 }
 
-// getNodeStatistics get node count by status
-func (n *NodeServiceImpl) countNodesByStatus(status string) (int64, error) {
-	var nodeCount int64
-	return nodeCount,
-		n.db.Model(&NodeInfo{}).Where(&NodeInfo{Status: status}).Count(&nodeCount).Error
-}
-
-func (n *NodeServiceImpl) listNodeGroup(pageNum uint64, pageSize uint64, name string) (*[]NodeGroup, error) {
-	var nodeGroups []NodeGroup
-	return &nodeGroups,
-		n.db.Scopes(getNodeGroupByLikeName(pageNum, pageSize, name)).Find(&nodeGroups).Error
-}
-
-func getNodeGroupByLikeName(page, pageSize uint64, nodeGroupName string) func(db *gorm.DB) *gorm.DB {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Scopes(paginate(page, pageSize)).Where("group_name like ?", "%"+nodeGroupName+"%")
-	}
-}
-
 func (n *NodeServiceImpl) listNodeRelationsByGroupId(groupId int64) (*[]NodeRelation, error) {
 	var relations []NodeRelation
 	return &relations,
@@ -205,6 +199,11 @@ func (n *NodeServiceImpl) countGroupsByNode(nodeID int64) (int64, error) {
 
 func (n *NodeServiceImpl) deleteNodeGroup(groupID int64) error {
 	return n.db.Model(NodeGroup{}).Where("`id` = ?", groupID).Delete(&NodeGroup{}).Error
+}
+
+func (n *NodeServiceImpl) listNodes() (*[]NodeInfo, error) {
+	var nodes []NodeInfo
+	return &nodes, n.db.Model(NodeInfo{}).Find(&nodes).Error
 }
 
 func paginate(page, pageSize uint64) func(db *gorm.DB) *gorm.DB {

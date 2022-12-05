@@ -6,10 +6,27 @@ package appmanager
 const (
 	// MaxApp MaxApp num 1000
 	MaxApp = 1000
-	// AppNodeSelectorKey for select node
-	AppNodeSelectorKey = "appmanager"
-	// AppNodeSelectorValue for select node
-	AppNodeSelectorValue = "test"
-	// AppLabel for app label
+	// DecimalScale for int to string
+	DecimalScale = 10
+	// AppLabel for label pod
 	AppLabel = "v1"
+	// AppName for label app pod
+	AppName = "appname"
+	// AppId for label app pod
+	AppId = "appid"
+	// DeviceType for Ascend device
+	DeviceType = "huawei.com/davinci-mini"
+
+	portMapMaxCount  = 16
+	envMaxCount      = 256
+	minContainerPort = 1
+	maxContainerPort = 65535
+	minHostPort      = 1024
+	maxHostPort      = 65535
+	minUserId        = 1
+	maxUserId        = 65535
+	minGroupId       = 1
+	maxGroupId       = 65535
+	commandMaxCount  = 16
+	argsMaxCount     = 16
 )
