@@ -4,11 +4,12 @@
 package nodemanager
 
 import (
-	"edge-manager/pkg/util"
 	"strings"
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
+
+	"edge-manager/pkg/util"
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -19,6 +20,10 @@ func createGroup(input interface{}) common.RespMsg {
 	if err := common.ParamConvert(input, &req); err != nil {
 		hwlog.RunLog.Error("create node group conver request error")
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	}
+	if err := req.Check(); err != nil {
+		hwlog.RunLog.Error("create node group validate parameters error")
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
 	}
 	total, err := GetTableCount(NodeGroup{})
 	if err != nil {

@@ -5,19 +5,18 @@ package nodemanager
 
 import (
 	"bytes"
-	"edge-manager/pkg/util"
 	"errors"
 	"fmt"
 	"regexp"
 	"strings"
 	"time"
 
-	"huawei.com/mindxedge/base/common"
-
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
 
 	"edge-manager/pkg/kubeclient"
+	"edge-manager/pkg/util"
+	"huawei.com/mindxedge/base/common"
 )
 
 var nodeNotFoundPattern = regexp.MustCompile(`nodes "([^"]+)" not found`)
@@ -28,6 +27,9 @@ func createNode(input interface{}) common.RespMsg {
 	var req CreateEdgeNodeReq
 	if err := common.ParamConvert(input, &req); err != nil {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	}
+	if err := req.Check(); err != nil {
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
 	}
 
 	total, err := GetTableCount(NodeInfo{})
@@ -69,8 +71,8 @@ func getNodeDetail(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
 	}
 	if err := req.Check(); err != nil {
-		hwlog.RunLog.Error("modify node check parameters failed")
-		return common.RespMsg{Status: "", Msg: "check parameters failed", Data: nil}
+		hwlog.RunLog.Error("get node detail check parameters failed")
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
 	}
 	nodeInfo, err := NodeServiceInstance().GetNodeByID(req.Id)
 	if err != nil {
@@ -102,14 +104,14 @@ func getNodeDetail(input interface{}) common.RespMsg {
 
 func modifyNode(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start modify node")
-	var req ModifyNodeGroupReq
+	var req ModifyNodeReq
 	if err := common.ParamConvert(input, &req); err != nil {
 		hwlog.RunLog.Error("modify node convert request error")
 		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
 	}
 	if err := req.Check(); err != nil {
 		hwlog.RunLog.Error("modify node check parameters failed")
-		return common.RespMsg{Status: "", Msg: "check parameters failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
 	}
 	updatedColumns := map[string]interface{}{
 		"NodeName":    req.NodeName,
@@ -264,7 +266,7 @@ func batchDeleteNode(input interface{}) common.RespMsg {
 	}
 	if err := req.Check(); err != nil {
 		hwlog.RunLog.Errorf("failed to delete node, error: %v", err)
-		return common.RespMsg{Msg: err.Error()}
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
 	}
 	var deleteCount int64
 	for _, nodeID := range req {
@@ -329,16 +331,11 @@ func batchDeleteNodeRelation(input interface{}) common.RespMsg {
 	}
 	if err := req.Check(); err != nil {
 		hwlog.RunLog.Errorf("failed to delete node relation, error: %v", err)
-		return common.RespMsg{Msg: err.Error()}
-	}
-	nodeGroup, err := NodeServiceInstance().GetNodeGroupByID(req.GroupID)
-	if err != nil {
-		hwlog.RunLog.Error("failed to delete node relation, error: db query failed")
-		return common.RespMsg{Msg: "db query failed"}
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
 	}
 	var deleteCount int64
-	for _, nodeID := range req.NodeIDs {
-		if err = deleteSingleNodeRelation(nodeGroup, nodeID); err != nil {
+	for _, relation := range req {
+		if err := deleteSingleNodeRelation(relation.GroupID, relation.NodeID); err != nil {
 			hwlog.RunLog.Warnf("failed to delete node relation, error: err=%v", err)
 			continue
 		}
@@ -348,19 +345,19 @@ func batchDeleteNodeRelation(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Data: deleteCount}
 }
 
-func deleteSingleNodeRelation(nodeGroup *NodeGroup, nodeID int64) error {
+func deleteSingleNodeRelation(groupID, nodeID int64) error {
 	nodeInfo, err := NodeServiceInstance().GetNodeByID(nodeID)
 	if err != nil {
 		return errors.New("db query failed")
 	}
-	rowsAffected, err := NodeServiceInstance().deleteRelation(&NodeRelation{NodeID: nodeID, GroupID: nodeGroup.ID})
+	rowsAffected, err := NodeServiceInstance().deleteRelation(&NodeRelation{NodeID: nodeID, GroupID: groupID})
 	if err != nil {
 		return errors.New("db delete failed")
 	}
 	if rowsAffected < 1 {
 		return errors.New("no such relation")
 	}
-	nodeLabel := fmt.Sprintf("%s%d", common.NodeGroupLabelPrefix, nodeGroup.ID)
+	nodeLabel := fmt.Sprintf("%s%d", common.NodeGroupLabelPrefix, groupID)
 	_, err = kubeclient.GetKubeClient().DeleteNodeLabels(nodeInfo.UniqueName, []string{nodeLabel})
 	if err != nil && isNodeNotFound(err) {
 		hwlog.RunLog.Warnf("k8s delete label failed, err=%v", err)
@@ -469,6 +466,10 @@ func addUnManagedNode(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("add unmanaged node convert request error")
 		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
 	}
+	if err := req.Check(); err != nil {
+		hwlog.RunLog.Error("add unmanaged node validate parameters error")
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
+	}
 	// todo nodePerGroup and groupPerNode  limit count
 	updatedColumns := map[string]interface{}{
 		"NodeName":    req.NodeName,
@@ -513,7 +514,7 @@ func batchDeleteNodeGroup(input interface{}) common.RespMsg {
 		}
 		var operationSuccessTimes int64
 		for _, relation := range *relations {
-			if err := deleteSingleNodeRelation(nodeGroup, relation.NodeID); err != nil {
+			if err := deleteSingleNodeRelation(nodeGroup.ID, relation.NodeID); err != nil {
 				hwlog.RunLog.Errorf("patch node state failed:%v", err)
 				continue
 			}
