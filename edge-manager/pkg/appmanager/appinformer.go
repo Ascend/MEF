@@ -106,7 +106,7 @@ func parsePod(obj interface{}) (*AppInstance, error) {
 	podLabels := eventPod.Labels
 	nodeSelector := eventPod.Spec.NodeSelector
 	appName := podLabels[AppName]
-	value, ok := podLabels[AppID]
+	value, ok := podLabels[AppId]
 	if !ok {
 		hwlog.RunLog.Error("assert pod label error")
 		return nil, errors.New("app id do not exist")

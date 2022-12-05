@@ -15,7 +15,6 @@ import (
 	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/database"
-	"edge-manager/pkg/nodemanager"
 )
 
 var (
@@ -42,7 +41,7 @@ type AppRepository interface {
 	deployApp(*AppInstance) error
 	deleteAppById(uint64) error
 	deleteAppInstanceByIdAndGroup(uint64, string) error
-	queryNodeGroup(uint64) ([]util.NodeGroupInfo, error)
+	queryNodeGroup(uint64) ([]NodeGroupInfo, error)
 	listAppInstances(appId uint64) ([]AppInstance, error)
 }
 
@@ -91,15 +90,15 @@ func (a *AppRepositoryImpl) queryApp(appId uint64) (AppInfo, error) {
 	return *appInfo, nil
 }
 
-func (a *AppRepositoryImpl) queryNodeGroup(appId uint64) ([]util.NodeGroupInfo, error) {
+func (a *AppRepositoryImpl) queryNodeGroup(appId uint64) ([]NodeGroupInfo, error) {
 	var appInstances []AppInstance
 	if err := a.db.Model(AppInstance{}).Where("app_id = ?", appId).Find(&appInstances).Error; err != nil {
 		hwlog.RunLog.Error("get appInstance db failed when query")
 		return nil, err
 	}
-	var nodeGroups []util.NodeGroupInfo
+	var nodeGroups []NodeGroupInfo
 	for _, appInstance := range appInstances {
-		nodeGroups = append(nodeGroups, util.NodeGroupInfo{
+		nodeGroups = append(nodeGroups, NodeGroupInfo{
 			NodeGroupID:   appInstance.NodeGroupID,
 			NodeGroupName: appInstance.NodeGroupName,
 		})

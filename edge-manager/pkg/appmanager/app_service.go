@@ -19,6 +19,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"edge-manager/pkg/kubeclient"
+	"edge-manager/pkg/nodemanager"
 	"edge-manager/pkg/util"
 )
 
@@ -166,7 +167,7 @@ func DeployApp(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
-func updateNodeGroupDaemonSet(appInfo *AppInfo, nodeGroups []util.NodeGroupInfo) error {
+func updateNodeGroupDaemonSet(appInfo *AppInfo, nodeGroups []NodeGroupInfo) error {
 	for _, nodeGroup := range nodeGroups {
 		daemonSet, err := InitDaemonSet(appInfo, nodeGroup)
 		if err != nil {
@@ -253,12 +254,15 @@ func ListAppInstances(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("list app instances db failed")
 		return common.RespMsg{Status: "", Msg: "list app instances db failed", Data: nil}
 	}
+	nodeStatusService := nodemanager.NodeStatusServiceInstance()
 	for _, instance := range deployedApps {
+		nodeName := instance.NodeName
+		nodeStatus := nodeStatusService.GetNodeStatus(nodeName)
 		resp := AppInstanceResp{
 			AppName:       instance.AppName,
 			NodeGroupName: instance.NodeGroupName,
-			NodeName:      instance.NodeName,
-			NodeStatus:    "",
+			NodeName:      nodeName,
+			NodeStatus:    nodeStatus,
 			AppStatus:     instance.Status,
 		}
 		appInstanceResp = append(appInstanceResp, resp)
@@ -267,7 +271,7 @@ func ListAppInstances(input interface{}) common.RespMsg {
 }
 
 // InitDaemonSet init daemonSet
-func InitDaemonSet(appInfo *AppInfo, nodeInfo util.NodeGroupInfo) (*appv1.DaemonSet, error) {
+func InitDaemonSet(appInfo *AppInfo, nodeInfo NodeGroupInfo) (*appv1.DaemonSet, error) {
 	containers, err := getContainers(appInfo)
 	if err != nil {
 		hwlog.RunLog.Error("app daemonSet get containers failed")
