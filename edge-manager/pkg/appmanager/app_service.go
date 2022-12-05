@@ -258,12 +258,19 @@ func ListAppInstances(input interface{}) common.RespMsg {
 	for _, instance := range deployedApps {
 		nodeName := instance.NodeName
 		nodeStatus := nodeStatusService.GetNodeStatus(nodeName)
+		podStatus := appStatusService.getPodStatusFromCache(instance.PodName)
+		containerInfos, err := appStatusService.getContainerInfos(instance)
+		if err != nil {
+			hwlog.RunLog.Error("get container infos failed")
+			return common.RespMsg{Status: "", Msg: "get container infos failed", Data: nil}
+		}
 		resp := AppInstanceResp{
 			AppName:       instance.AppName,
 			NodeGroupName: instance.NodeGroupName,
 			NodeName:      nodeName,
 			NodeStatus:    nodeStatus,
-			AppStatus:     instance.Status,
+			AppStatus:     podStatus,
+			ContainerInfo: containerInfos,
 		}
 		appInstanceResp = append(appInstanceResp, resp)
 	}

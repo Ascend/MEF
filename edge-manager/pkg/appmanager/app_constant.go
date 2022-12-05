@@ -20,4 +20,10 @@ const (
 	DeviceType = "huawei.com/davinci-mini"
 
 	informerSyncInterval = time.Duration(30) * time.Second
+
+	podStatusUnknown         = "unknown"
+	containerStateUnknown    = "unknown"
+	containerStateWaiting    = "waiting"
+	containerStateRunning    = "running"
+	containerStateTerminated = "terminated"
 )

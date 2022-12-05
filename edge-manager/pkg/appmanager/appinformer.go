@@ -4,9 +4,11 @@
 package appmanager
 
 import (
+	"encoding/json"
 	"errors"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	v1 "k8s.io/api/core/v1"
@@ -19,103 +21,245 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
+
+	"edge-manager/pkg/kubeclient"
 )
 
-// Informer is used to sync pod info
-type Informer struct {
-	PodInformer cache.SharedIndexInformer
+type appStatusServiceImpl struct {
+	podInformer          cache.SharedIndexInformer
+	podStatusCache       map[string]string
+	containerStatusCache map[string]string
+	appStatusCacheLock   sync.RWMutex
 }
 
-var appInformer Informer
+var appStatusService appStatusServiceImpl
 
-// InitInformer init informer of certain k8s
-func (ai *Informer) InitInformer(client *kubernetes.Clientset, stopCh <-chan struct{}) error {
-	hwlog.RunLog.Info("start to init informer for app manager")
-	ai.initPodInformer(client, stopCh)
-	if err := ai.run(stopCh); err != nil {
-		hwlog.RunLog.Error("sync informer cache failed")
+func (a *appStatusServiceImpl) initAppStatusService() error {
+	hwlog.RunLog.Info("start to init app status service for app manager")
+	stopCh := make(chan struct{})
+	clientSet := kubeclient.GetKubeClient().GetClientSet()
+	if clientSet == nil {
+		hwlog.RunLog.Error("init app status service failed, get k8s client failed")
+		return errors.New("get k8s client set failed")
+	}
+	a.initPodInformer(clientSet, stopCh)
+	if err := a.run(stopCh); err != nil {
+		hwlog.RunLog.Error("sync app status service cache failed")
 		return err
 	}
 	return nil
 }
 
-func (ai *Informer) initPodInformer(client *kubernetes.Clientset, stopCh <-chan struct{}) {
+func (a *appStatusServiceImpl) initPodInformer(client *kubernetes.Clientset, stopCh <-chan struct{}) {
+	a.podStatusCache = make(map[string]string)
+	a.containerStatusCache = make(map[string]string)
 	podLabelSelector := labels.Set(map[string]string{common.AppManagerName: AppLabel}).
 		AsSelector().String()
 	podInformerFactory := informers.NewSharedInformerFactoryWithOptions(client, informerSyncInterval,
 		informers.WithTweakListOptions(func(options *metav1.ListOptions) {
 			options.LabelSelector = podLabelSelector
 		}))
-	appInformer.PodInformer = podInformerFactory.Core().V1().Pods().Informer()
-	ai.PodInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc:    addPod,
-		UpdateFunc: updatePod,
-		DeleteFunc: deletePod,
+	appStatusService.podInformer = podInformerFactory.Core().V1().Pods().Informer()
+	a.podInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    a.addPod,
+		UpdateFunc: a.updatePod,
+		DeleteFunc: a.deletePod,
 	})
 	podInformerFactory.Start(stopCh)
 }
 
-func (ai *Informer) run(stopCh <-chan struct{}) error {
+func (a *appStatusServiceImpl) run(stopCh <-chan struct{}) error {
 	defer runtime.HandleCrash()
-	hwlog.RunLog.Info("Waiting for informer caches to sync")
-	if ok := cache.WaitForCacheSync(stopCh, ai.PodInformer.HasSynced); !ok {
+	hwlog.RunLog.Info("Waiting for app status service caches to sync")
+	if ok := cache.WaitForCacheSync(stopCh, a.podInformer.HasSynced); !ok {
 		hwlog.RunLog.Error("failed to wait for caches to sync ")
-		return errors.New("sync informer caches error")
+		return errors.New("sync app status service caches error")
 	}
 	return nil
 }
 
-func addPod(obj interface{}) {
-	appInstance, err := parsePod(obj)
+func (a *appStatusServiceImpl) updateStatusCache(pod *v1.Pod) {
+	a.appStatusCacheLock.Lock()
+	defer a.appStatusCacheLock.Unlock()
+	a.podStatusCache[pod.Name] = strings.ToLower(string(pod.Status.Phase))
+	for _, containerStatus := range pod.Status.ContainerStatuses {
+		containerStatusKey := pod.Name + "-" + containerStatus.Name
+		status := getContainerStatus(containerStatus)
+		a.containerStatusCache[containerStatusKey] = status
+	}
+}
+
+func (a *appStatusServiceImpl) deleteStatusCache(pod *v1.Pod) {
+	a.appStatusCacheLock.Lock()
+	defer a.appStatusCacheLock.Unlock()
+	delete(a.podStatusCache, pod.Name)
+	for _, containerStatus := range pod.Status.ContainerStatuses {
+		containerStatusKey := pod.Name + "-" + containerStatus.Name
+		delete(a.containerStatusCache, containerStatusKey)
+	}
+}
+
+func (a *appStatusServiceImpl) addPod(obj interface{}) {
+	pod, err := parsePod(obj)
 	if err != nil {
 		hwlog.RunLog.Errorf("recovered add object, parse pod error: %v", err)
 		return
 	}
-	if err = kubeServiceInstance().addPod(appInstance); err != nil {
-		hwlog.RunLog.Errorf("recovered add object, add instance to db error: %v", err)
+	appStatusService.updateStatusCache(pod)
+	appInstance, err := parsePodToInstance(pod)
+	if err != nil {
+		hwlog.RunLog.Errorf("recovered add pod, parse pod to app instance error: %v", err)
+		return
 	}
-	return
+	appInstance.ChangedAt = time.Now().Format(common.TimeFormat)
+	appInstance.CreatedAt = time.Now().Format(common.TimeFormat)
+	if err = AppRepositoryInstance().addPod(appInstance); err != nil {
+		hwlog.RunLog.Errorf("recovered add object, add instance to db error: %v", err)
+		return
+	}
 }
 
-// updatePod do nothing to the app instance
-func updatePod(_, _ interface{}) {
-	return
+func (a *appStatusServiceImpl) updatePod(oldObj, newObj interface{}) {
+	oldPod, err := parsePod(oldObj)
+	if err != nil {
+		hwlog.RunLog.Errorf("recovered update object, parse old pod error: %v", err)
+		return
+	}
+	appStatusService.deleteStatusCache(oldPod)
+
+	newPod, err := parsePod(newObj)
+	if err != nil {
+		hwlog.RunLog.Errorf("recovered update object, parse new pod error: %v", err)
+		return
+	}
+	appStatusService.updateStatusCache(newPod)
+	appInstance, err := parsePodToInstance(newPod)
+	if err != nil {
+		hwlog.RunLog.Errorf("recovered update object, parse pod to app instance error: %v", err)
+		return
+	}
+	if err = AppRepositoryInstance().updatePod(appInstance); err != nil {
+		hwlog.RunLog.Errorf("recovered update object, update instance to db error: %v", err)
+		return
+	}
 }
 
-func deletePod(obj interface{}) {
-	appInstance, err := parsePod(obj)
+func (a *appStatusServiceImpl) deletePod(obj interface{}) {
+	pod, err := parsePod(obj)
 	if err != nil {
 		hwlog.RunLog.Errorf("recovered delete object, parse pod error: %v", err)
 		return
 	}
-	if err = kubeServiceInstance().deletePod(&AppInstance{PodName: appInstance.PodName}); err != nil {
-		hwlog.RunLog.Errorf("recovered delete object, delete instance from db error: %v", err)
+	appStatusService.deleteStatusCache(pod)
+	appInstance, err := parsePodToInstance(pod)
+	if err != nil {
+		hwlog.RunLog.Errorf("recovered delete object, parse pod to app instance error: %v", err)
+		return
 	}
-	return
+	if err = AppRepositoryInstance().deletePod(&AppInstance{PodName: appInstance.PodName}); err != nil {
+		hwlog.RunLog.Errorf("recovered delete object, delete instance from db error: %v", err)
+		return
+	}
 }
 
-func parsePod(obj interface{}) (*AppInstance, error) {
+func (a *appStatusServiceImpl) getContainerInfos(instance AppInstance) ([]ContainerInfo, error) {
+	var containerInfos []ContainerInfo
+	if err := json.Unmarshal([]byte(instance.ContainerInfo), &containerInfos); err != nil {
+		hwlog.RunLog.Error("unmarshal app container info failed")
+		return nil, errors.New("unmarshal failed")
+	}
+	a.appStatusCacheLock.Lock()
+	defer a.appStatusCacheLock.Unlock()
+	for i := range containerInfos {
+		containerStatusKey := instance.PodName + "-" + containerInfos[i].Name
+		var ok bool
+		containerInfos[i].Status, ok = appStatusService.containerStatusCache[containerStatusKey]
+		if !ok {
+			containerInfos[i].Status = containerStateUnknown
+		}
+	}
+	return containerInfos, nil
+}
+
+func (a *appStatusServiceImpl) getPodStatusFromCache(appName string) string {
+	a.appStatusCacheLock.Lock()
+	defer a.appStatusCacheLock.Unlock()
+	podStatus, ok := appStatusService.podStatusCache[appName]
+	if !ok {
+		podStatus = podStatusUnknown
+	}
+	return podStatus
+}
+
+func parsePod(obj interface{}) (*v1.Pod, error) {
 	eventPod, ok := obj.(*v1.Pod)
 	if !ok {
-		hwlog.RunLog.Error("recovered add object, but can't convert to pod")
-		return nil, errors.New("convert to pod error")
+		return nil, errors.New("convert object to pod error")
+	}
+	return eventPod, nil
+}
+
+func parsePodToInstance(eventPod *v1.Pod) (*AppInstance, error) {
+	appName, appId, err := getAppNameAndId(eventPod)
+	if err != nil {
+		hwlog.RunLog.Error("get app name or id error")
+		return nil, err
+	}
+	nodeGroupName, nodeGroupId, err := getNodeGroupNameAndId(eventPod)
+	if err != nil {
+		hwlog.RunLog.Error("get group name or id error")
+		return nil, err
+	}
+	containerInfos, err := getContainerInfoString(eventPod)
+	if err != nil {
+		hwlog.RunLog.Error("get container info error")
+		return nil, err
 	}
 
-	var nodeGroupName string
-	var nodeGroupId int
+	newAppInstance := AppInstance{
+		PodName:       eventPod.Name,
+		NodeName:      eventPod.Spec.NodeName,
+		NodeGroupName: nodeGroupName,
+		NodeGroupID:   nodeGroupId,
+		AppName:       appName,
+		AppID:         appId,
+		ContainerInfo: containerInfos,
+	}
+	return &newAppInstance, nil
+}
+
+func getAppNameAndId(eventPod *v1.Pod) (string, int64, error) {
 	podLabels := eventPod.Labels
-	nodeSelector := eventPod.Spec.NodeSelector
-	appName := podLabels[AppName]
+	if podLabels == nil {
+		hwlog.RunLog.Error("event pod's label  do not exist")
+		return "", 0, errors.New("node selector is nil")
+	}
+	appName, ok := podLabels[AppName]
+	if !ok {
+		hwlog.RunLog.Error("get pod label error")
+		return "", 0, errors.New("app name label do not exist")
+	}
 	value, ok := podLabels[AppId]
 	if !ok {
-		hwlog.RunLog.Error("assert pod label error")
-		return nil, errors.New("app id do not exist")
+		hwlog.RunLog.Error("get pod label error")
+		return "", 0, errors.New("app id label do not exist")
 	}
 	appId, err := strconv.Atoi(value)
 	if err != nil {
 		hwlog.RunLog.Error("assert pod app id label error")
-		return nil, err
+		return "", 0, err
+	}
+	return appName, int64(appId), nil
+}
 
+func getNodeGroupNameAndId(eventPod *v1.Pod) (string, int64, error) {
+	var nodeGroupName string
+	var nodeGroupId int
+	var err error
+	nodeSelector := eventPod.Spec.NodeSelector
+	if nodeSelector == nil {
+		hwlog.RunLog.Error("event pod node selector do not exist")
+		return "", 0, errors.New("node selector is nil")
 	}
 	for labelKey, value := range nodeSelector {
 		if !strings.HasPrefix(labelKey, common.NodeGroupLabelPrefix) {
@@ -125,20 +269,40 @@ func parsePod(obj interface{}) (*AppInstance, error) {
 		nodeGroupId, err = strconv.Atoi(strings.TrimPrefix(labelKey, common.NodeGroupLabelPrefix))
 		if err != nil {
 			hwlog.RunLog.Error("assert pod node group id label error")
-			return nil, err
+			return "", 0, err
 		}
 	}
+	return nodeGroupName, int64(nodeGroupId), nil
+}
 
-	newAppInstance := AppInstance{
-		PodName:       eventPod.Name,
-		NodeName:      eventPod.Spec.NodeName,
-		NodeGroupName: nodeGroupName,
-		NodeGroupID:   int64(nodeGroupId),
-		Status:        string(eventPod.Status.Phase),
-		AppName:       appName,
-		AppID:         int64(appId),
-		CreatedAt:     time.Now().Format(common.TimeFormat),
-		ChangedAt:     time.Now().Format(common.TimeFormat),
+func getContainerInfoString(eventPod *v1.Pod) (string, error) {
+	var containerInfos []ContainerInfo
+	for _, containerStatus := range eventPod.Status.ContainerStatuses {
+		containerInfo := ContainerInfo{
+			Name:   containerStatus.Name,
+			Image:  containerStatus.Image,
+			Status: "",
+		}
+		containerInfos = append(containerInfos, containerInfo)
 	}
-	return &newAppInstance, nil
+	containerInfosDate, err := json.Marshal(containerInfos)
+	if err != nil {
+		hwlog.RunLog.Error("marshal container info error")
+		return "", err
+	}
+	return string(containerInfosDate), nil
+}
+
+func getContainerStatus(containerStatus v1.ContainerStatus) string {
+	status := containerStateUnknown
+	if containerStatus.State.Waiting != nil {
+		status = containerStateWaiting
+	}
+	if containerStatus.State.Running != nil {
+		status = containerStateRunning
+	}
+	if containerStatus.State.Terminated != nil {
+		status = containerStateTerminated
+	}
+	return status
 }
