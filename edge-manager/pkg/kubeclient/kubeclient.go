@@ -54,6 +54,11 @@ func GetKubeClient() *Client {
 	return k8sClient
 }
 
+// GetClientSet get k8s client set
+func (ki *Client) GetClientSet() *kubernetes.Clientset {
+	return ki.kubeClient
+}
+
 // GetNode get node
 func (ki *Client) GetNode(nodeName string) (*v1.Node, error) {
 	return ki.kubeClient.CoreV1().Nodes().Get(context.Background(), nodeName, metav1.GetOptions{})
