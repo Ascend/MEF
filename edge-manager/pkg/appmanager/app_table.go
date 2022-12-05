@@ -15,14 +15,14 @@ type AppInfo struct {
 
 // AppInstance is application instance
 type AppInstance struct {
-	ID            uint64 `gorm:"type:Integer;primaryKey;autoIncrement:true"`
+	ID            int64  `gorm:"type:Integer;primaryKey;autoIncrement:true"`
 	PodName       string `gorm:"type:char(42);unique;not null"`
 	NodeName      string `gorm:"type:char(64);not null"`
 	NodeGroupName string `gorm:"type:char(64);not null"`
 	NodeGroupID   int64  `gorm:"type:Integer;not null"`
 	Status        string `gorm:"type:char(50);not null"`
-	AppID         uint64 `gorm:"not null"`
-	AppName       string `gorm:"not null"`
+	AppID         int64  `gorm:"type:Integer;not null"`
+	AppName       string `gorm:"type:char(128);not null"`
 	CreatedAt     string `gorm:"type:time;not null"`
 	ChangedAt     string `gorm:"type:time;not null"`
 }

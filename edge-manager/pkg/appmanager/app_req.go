@@ -1,7 +1,9 @@
 // Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
 
-// Package util to init util service
-package util
+// Package appmanager to init util service
+package appmanager
+
+import "edge-manager/pkg/nodemanager"
 
 // CreateAppReq Create application
 type CreateAppReq struct {
@@ -76,4 +78,46 @@ type NodeGroupInfo struct {
 // GetAppByAppIdReq get app by application id
 type GetAppByAppIdReq struct {
 	AppId uint64 `json:"appId"`
+}
+
+// AppInstanceResp encapsulate app instance information for return
+type AppInstanceResp struct {
+	AppName       string `json:"appName"`
+	NodeGroupName string `json:"nodeGroupName"`
+	NodeName      string `json:"nodeName"`
+	NodeStatus    string `json:"nodeStatus"`
+	AppStatus     string `json:"appStatus"`
+}
+
+// AppInstanceInfo encapsulate app instance information
+type AppInstanceInfo struct {
+	// AppInfo is app information
+	AppInfo AppInfo `json:"appInfo"`
+	// NodeGroup is node group information of app
+	NodeGroup nodemanager.NodeGroup `json:"nodeGroup"`
+}
+
+// CreateReturnInfo for create app
+type CreateReturnInfo struct {
+	AppId uint64 `json:"appId"`
+}
+
+// ListReturnInfo encapsulate app list
+type ListReturnInfo struct {
+	// AppInfo is app information
+	AppInfo []AppReturnInfo `json:"appInfo"`
+	// Total is num of appInfos
+	Total int64 `json:"total"`
+}
+
+// AppReturnInfo encapsulate app information for return
+type AppReturnInfo struct {
+	AppId         uint64      `json:"appId"`
+	AppName       string      `json:"appName"`
+	Description   string      `json:"description"`
+	CreatedAt     string      `json:"createdAt"`
+	ModifiedAt    string      `json:"modifiedAt"`
+	NodeGroupName string      `json:"nodeGroupName"`
+	NodeGroupId   []int64     `json:"nodeGroupId"`
+	Containers    []Container `json:"containers"`
 }

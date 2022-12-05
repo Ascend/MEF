@@ -8,6 +8,11 @@ import (
 	"flag"
 	"fmt"
 
+	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/checker"
+	"huawei.com/mindxedge/base/modulemanager"
+
 	"edge-manager/pkg/appmanager"
 	"edge-manager/pkg/apptemplatemanager"
 	"edge-manager/pkg/certmanager"
@@ -17,11 +22,6 @@ import (
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/nodemanager"
 	"edge-manager/pkg/restfulservice"
-
-	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/checker"
-	"huawei.com/mindxedge/base/modulemanager"
 )
 
 const (

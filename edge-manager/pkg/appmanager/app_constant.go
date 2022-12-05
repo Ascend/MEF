@@ -3,6 +3,8 @@
 // Package appmanager to init node manager const
 package appmanager
 
+import "time"
+
 const (
 	// MaxApp MaxApp num 1000
 	MaxApp = 1000
@@ -16,6 +18,8 @@ const (
 	AppId = "appid"
 	// DeviceType for Ascend device
 	DeviceType = "huawei.com/davinci-mini"
+
+	informerSyncInterval = time.Duration(30) * time.Second
 
 	portMapMaxCount  = 16
 	envMaxCount      = 256

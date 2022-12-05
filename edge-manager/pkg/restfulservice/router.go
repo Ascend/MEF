@@ -53,6 +53,7 @@ func appRouter(engine *gin.Engine) {
 		app.GET("/list", listAppsInfo)
 		app.POST("/deploy", deployApp)
 		app.DELETE("/", deleteApp)
+		app.GET("/deploy/list", listAppInstance)
 	}
 }
 
