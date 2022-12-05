@@ -92,6 +92,23 @@ func deployApp(c *gin.Context) {
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }
 
+func listAppInstance(c *gin.Context) {
+	appId, err := getReqAppId(c)
+	if err != nil {
+		hwlog.OpLog.Error("list deployed app: get input parameter failed")
+		common.ConstructResp(c, common.ErrorParseBody, "", nil)
+		return
+	}
+	router := common.Router{
+		Source:      common.RestfulServiceName,
+		Destination: common.AppManagerName,
+		Option:      common.List,
+		Resource:    common.AppInstance,
+	}
+	resp := common.SendSyncMessageByRestful(appId, &router)
+	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+}
+
 func deleteApp(c *gin.Context) {
 	res, err := c.GetRawData()
 	if err != nil {

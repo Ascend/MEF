@@ -13,6 +13,7 @@ import (
 	"huawei.com/mindxedge/base/modulemanager/model"
 
 	"edge-manager/pkg/database"
+	"edge-manager/pkg/kubeclient"
 )
 
 type handlerFunc func(req interface{}) common.RespMsg
@@ -39,6 +40,12 @@ func (app *appManager) Enable() bool {
 	if app.enable {
 		if err := initAppTable(); err != nil {
 			hwlog.RunLog.Errorf("module (%s) init database table failed, cannot enable", common.AppManagerName)
+			return !app.enable
+		}
+		stopCh := make(chan struct{})
+		clientSet := kubeclient.GetKubeClient().GetClientSet()
+		if err := appInformer.InitInformer(clientSet, stopCh); err != nil {
+			hwlog.RunLog.Error("init app informer failed")
 			return !app.enable
 		}
 	}
@@ -95,18 +102,22 @@ func initAppTable() error {
 		hwlog.RunLog.Error("create app information database table failed")
 		return err
 	}
-
+	if err := database.CreateTableIfNotExists(AppInstance{}); err != nil {
+		hwlog.RunLog.Error("create app instance database table failed")
+		return err
+	}
 	return nil
 }
 
 func appMethodList() map[string]handlerFunc {
 	return map[string]handlerFunc{
-		combine(common.Create, common.App): CreateApp,
-		combine(common.Query, common.App):  QueryApp,
-		combine(common.Update, common.App): UpdateApp,
-		combine(common.List, common.App):   ListAppInfo,
-		combine(common.Deploy, common.App): DeployApp,
-		combine(common.Delete, common.App): DeleteApp,
+		combine(common.Create, common.App):       CreateApp,
+		combine(common.Query, common.App):        QueryApp,
+		combine(common.Update, common.App):       UpdateApp,
+		combine(common.List, common.App):         ListAppInfo,
+		combine(common.Deploy, common.App):       DeployApp,
+		combine(common.Delete, common.App):       DeleteApp,
+		combine(common.List, common.AppInstance): ListAppInstances,
 	}
 }
 

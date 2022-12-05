@@ -54,6 +54,8 @@ const (
 	NodeUnManaged = "nodeUnManaged"
 	// App resource app
 	App = "app"
+	// AppInstance resource app instance
+	AppInstance = "appInstance"
 	// NodeGroup resource nodeGroup
 	NodeGroup = "nodeGroup"
 	// NodeStatistics node statistics
