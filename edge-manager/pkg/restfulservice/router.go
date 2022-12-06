@@ -54,6 +54,7 @@ func appRouter(engine *gin.Engine) {
 		app.POST("/deploy", deployApp)
 		app.DELETE("/", deleteApp)
 		app.GET("/deploy/list", listAppInstance)
+		app.GET("/deploy/list/node", listAppInstanceByNode)
 	}
 }
 
@@ -94,6 +95,15 @@ func pageUtil(c *gin.Context) (util.ListReq, error) {
 
 func getReqAppId(c *gin.Context) (uint64, error) {
 	value, err := strconv.ParseUint(c.Query("appId"), common.BaseHex, common.BitSize64)
+	if err != nil {
+		return 0, fmt.Errorf("app id is invalid")
+	}
+
+	return value, nil
+}
+
+func getReqNodeId(c *gin.Context) (int64, error) {
+	value, err := strconv.ParseInt(c.Query("nodeId"), common.BaseHex, common.BitSize64)
 	if err != nil {
 		return 0, fmt.Errorf("app id is invalid")
 	}

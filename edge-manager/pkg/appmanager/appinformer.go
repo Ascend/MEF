@@ -23,6 +23,7 @@ import (
 	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/kubeclient"
+	"edge-manager/pkg/nodemanager"
 )
 
 type appStatusServiceImpl struct {
@@ -261,26 +262,32 @@ func getNodeGroupNameAndId(eventPod *v1.Pod) (string, int64, error) {
 		hwlog.RunLog.Error("event pod node selector do not exist")
 		return "", 0, errors.New("node selector is nil")
 	}
-	for labelKey, value := range nodeSelector {
+	for labelKey := range nodeSelector {
 		if !strings.HasPrefix(labelKey, common.NodeGroupLabelPrefix) {
 			continue
 		}
-		nodeGroupName = value
 		nodeGroupId, err = strconv.Atoi(strings.TrimPrefix(labelKey, common.NodeGroupLabelPrefix))
 		if err != nil {
 			hwlog.RunLog.Error("assert pod node group id label error")
 			return "", 0, err
 		}
 	}
+	nodeService := nodemanager.NodeServiceInstance()
+	nodeGroup, err := nodeService.GetNodeGroupByID(int64(nodeGroupId))
+	if err != nil {
+		hwlog.RunLog.Error("get node group name db error")
+		return "", 0, err
+	}
+	nodeGroupName = nodeGroup.GroupName
 	return nodeGroupName, int64(nodeGroupId), nil
 }
 
 func getContainerInfoString(eventPod *v1.Pod) (string, error) {
 	var containerInfos []ContainerInfo
-	for _, containerStatus := range eventPod.Status.ContainerStatuses {
+	for _, container := range eventPod.Spec.Containers {
 		containerInfo := ContainerInfo{
-			Name:   containerStatus.Name,
-			Image:  containerStatus.Image,
+			Name:   container.Name,
+			Image:  container.Image,
 			Status: "",
 		}
 		containerInfos = append(containerInfos, containerInfo)
