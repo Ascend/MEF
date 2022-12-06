@@ -13,7 +13,6 @@ import (
 	"huawei.com/mindxedge/base/modulemanager/model"
 
 	"edge-manager/pkg/database"
-	"edge-manager/pkg/kubeclient"
 )
 
 type handlerFunc func(req interface{}) common.RespMsg
@@ -42,10 +41,8 @@ func (app *appManager) Enable() bool {
 			hwlog.RunLog.Errorf("module (%s) init database table failed, cannot enable", common.AppManagerName)
 			return !app.enable
 		}
-		stopCh := make(chan struct{})
-		clientSet := kubeclient.GetKubeClient().GetClientSet()
-		if err := appInformer.InitInformer(clientSet, stopCh); err != nil {
-			hwlog.RunLog.Error("init app informer failed")
+		if err := appStatusService.initAppStatusService(); err != nil {
+			hwlog.RunLog.Errorf("module (%s) init app service failed, cannot enable", common.AppManagerName)
 			return !app.enable
 		}
 	}

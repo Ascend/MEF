@@ -20,9 +20,9 @@ type AppInstance struct {
 	NodeName      string `gorm:"type:char(64);not null"`
 	NodeGroupName string `gorm:"type:char(64);not null"`
 	NodeGroupID   int64  `gorm:"type:Integer;not null"`
-	Status        string `gorm:"type:char(50);not null"`
 	AppID         int64  `gorm:"type:Integer;not null"`
 	AppName       string `gorm:"type:char(128);not null"`
 	CreatedAt     string `gorm:"type:time;not null"`
 	ChangedAt     string `gorm:"type:time;not null"`
+	ContainerInfo string `gorm:"type:text;" json:"containers"`
 }

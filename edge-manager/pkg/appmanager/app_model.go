@@ -43,6 +43,9 @@ type AppRepository interface {
 	deleteAppInstanceByIdAndGroup(uint64, string) error
 	queryNodeGroup(uint64) ([]NodeGroupInfo, error)
 	listAppInstances(appId uint64) ([]AppInstance, error)
+	addPod(*AppInstance) error
+	updatePod(*AppInstance) error
+	deletePod(*AppInstance) error
 }
 
 // GetTableCount get table count
@@ -178,15 +181,6 @@ func (a *AppRepositoryImpl) deleteAppById(appId uint64) error {
 	return a.db.Model(AppInfo{}).Delete(appInfo).Error
 }
 
-func (a *AppRepositoryImpl) listAppInstances(appId uint64) ([]AppInstance, error) {
-	var deployedApps []AppInstance
-	if err := a.db.Model(AppInstance{}).Where("app_id = ?", appId).Find(&deployedApps).Error; err != nil {
-		hwlog.RunLog.Error("list app instances db failed")
-		return nil, err
-	}
-	return deployedApps, nil
-}
-
 func (a *AppRepositoryImpl) getAppInfoById(appId uint64) (*AppInfo, error) {
 	var appInfo *AppInfo
 	if err := a.db.Model(AppInfo{}).Where("id = ?", appId).First(&appInfo).Error; err != nil {
@@ -250,4 +244,25 @@ func (a *AppRepositoryImpl) deleteAppInstanceByIdAndGroup(appId uint64, nodeGrou
 		return err
 	}
 	return nil
+}
+
+func (a *AppRepositoryImpl) listAppInstances(appId uint64) ([]AppInstance, error) {
+	var deployedApps []AppInstance
+	if err := a.db.Model(AppInstance{}).Where("app_id = ?", appId).Find(&deployedApps).Error; err != nil {
+		hwlog.RunLog.Error("list app instances db failed")
+		return nil, err
+	}
+	return deployedApps, nil
+}
+
+func (a *AppRepositoryImpl) addPod(appInstance *AppInstance) error {
+	return a.db.Model(AppInstance{}).Create(appInstance).Error
+}
+
+func (a *AppRepositoryImpl) updatePod(appInstance *AppInstance) error {
+	return a.db.Model(AppInstance{}).Where("pod_name = ?", appInstance.PodName).Updates(appInstance).Error
+}
+
+func (a *AppRepositoryImpl) deletePod(appInstance *AppInstance) error {
+	return a.db.Model(AppInstance{}).Where("pod_name = ?", appInstance.PodName).Delete(appInstance).Error
 }

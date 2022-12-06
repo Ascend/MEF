@@ -33,4 +33,10 @@ const (
 	maxGroupId       = 65535
 	commandMaxCount  = 16
 	argsMaxCount     = 16
+
+	podStatusUnknown         = "unknown"
+	containerStateUnknown    = "unknown"
+	containerStateWaiting    = "waiting"
+	containerStateRunning    = "running"
+	containerStateTerminated = "terminated"
 )

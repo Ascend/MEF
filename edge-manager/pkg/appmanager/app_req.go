@@ -82,11 +82,19 @@ type GetAppByAppIdReq struct {
 
 // AppInstanceResp encapsulate app instance information for return
 type AppInstanceResp struct {
-	AppName       string `json:"appName"`
-	NodeGroupName string `json:"nodeGroupName"`
-	NodeName      string `json:"nodeName"`
-	NodeStatus    string `json:"nodeStatus"`
-	AppStatus     string `json:"appStatus"`
+	AppName       string          `json:"appName"`
+	NodeGroupName string          `json:"nodeGroupName"`
+	NodeName      string          `json:"nodeName"`
+	NodeStatus    string          `json:"nodeStatus"`
+	AppStatus     string          `json:"appStatus"`
+	ContainerInfo []ContainerInfo `json:"containerInfo"`
+}
+
+// ContainerInfo encapsulate container details of an app instance
+type ContainerInfo struct {
+	Name   string `json:"name"`
+	Image  string `json:"image"`
+	Status string `json:"status"`
 }
 
 // AppInstanceInfo encapsulate app instance information
