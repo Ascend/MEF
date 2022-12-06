@@ -31,6 +31,12 @@ func CreateApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
+	checker := appCreatParaChecker{req: &req}
+	if err := checker.Check(); err != nil {
+		hwlog.RunLog.Errorf("app create para check failed: %s", err.Error())
+		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	}
+
 	total, err := GetTableCount(AppInfo{})
 	if err != nil {
 		hwlog.RunLog.Error("get app table num failed")
@@ -144,6 +150,12 @@ func DeployApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
+	checker := appDeployParaChecker{req: &req}
+	if err := checker.Check(); err != nil {
+		hwlog.RunLog.Errorf("app deploy para check failed: %s", err.Error())
+		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	}
+
 	appInfo, err := AppRepositoryInstance().getAppInfoById(req.AppId)
 	if err != nil {
 		hwlog.RunLog.Error("get app information failed")
@@ -191,6 +203,12 @@ func UpdateApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
+	checker := appCreatParaChecker{req: &req}
+	if err := checker.Check(); err != nil {
+		hwlog.RunLog.Errorf("app update para check failed: %s", err.Error())
+		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	}
+
 	appInfo, err := getAppInfo(req)
 	if err != nil {
 		hwlog.RunLog.Error("get app info failed ")
@@ -228,6 +246,7 @@ func DeleteApp(input interface{}) common.RespMsg {
 	if err := common.ParamConvert(input, &req); err != nil {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
+
 	for _, appId := range req.AppIdList {
 		if err := AppRepositoryInstance().deleteAppById(appId); err != nil {
 			hwlog.RunLog.Error("app db delete failed")
