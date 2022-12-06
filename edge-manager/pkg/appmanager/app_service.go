@@ -260,14 +260,14 @@ func DeleteApp(input interface{}) common.RespMsg {
 
 // ListAppInstances get deployed apps' list
 func ListAppInstances(input interface{}) common.RespMsg {
-	hwlog.RunLog.Info("start list app instances")
-	var appInstanceResp []AppInstanceResp
+	hwlog.RunLog.Info("start list app instances by id")
 	var appId uint64
 	appId, ok := input.(uint64)
 	if !ok {
 		hwlog.RunLog.Error("list app instances failed, param type is not integer")
 		return common.RespMsg{Status: "", Msg: "param type is not integer", Data: nil}
 	}
+	var appInstanceResp []AppInstanceResp
 	deployedApps, err := AppRepositoryInstance().listAppInstances(appId)
 	if err != nil {
 		hwlog.RunLog.Error("list app instances db failed")
@@ -296,6 +296,49 @@ func ListAppInstances(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: appInstanceResp}
 }
 
+// ListAppInstancesByNode get deployed apps' list of a certain node
+func ListAppInstancesByNode(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start list app instances by node id")
+	var nodeId int64
+	nodeId, ok := input.(int64)
+	if !ok {
+		hwlog.RunLog.Error("list app instances by node id failed, param type is not integer")
+		return common.RespMsg{Status: "", Msg: "param type is not integer", Data: nil}
+	}
+
+	var appList []AppInstanceOfNodeResp
+	nodeService := nodemanager.NodeServiceInstance()
+	nodeInfo, err := nodeService.GetNodeByID(nodeId)
+	if err != nil {
+		hwlog.RunLog.Error("list app instances by node failed, get node name failed")
+		return common.RespMsg{Status: "", Msg: "list app instances by node db failed", Data: nil}
+	}
+	deployedApps, err := AppRepositoryInstance().listAppInstancesByNode(nodeInfo.UniqueName)
+	if err != nil {
+		hwlog.RunLog.Error("list app instances by node failed, db failed")
+		return common.RespMsg{Status: "", Msg: "list app instances by node db failed", Data: nil}
+	}
+	for _, instance := range deployedApps {
+		appInfo, err := AppRepositoryInstance().getAppInfoByName(instance.AppName)
+		if err != nil {
+			hwlog.RunLog.Error("list app instances by node failed, db failed")
+			return common.RespMsg{Status: "", Msg: "list app instances by node db failed", Data: nil}
+		}
+		status := appStatusService.getPodStatusFromCache(instance.PodName)
+		instanceResp := AppInstanceOfNodeResp{
+			AppName:       instance.AppName,
+			AppStatus:     status,
+			Description:   appInfo.Description,
+			CreateAt:      instance.CreatedAt,
+			ChangedAt:     instance.ChangedAt,
+			NodeGroupName: instance.NodeGroupName,
+			NodeGroupID:   instance.NodeGroupID,
+		}
+		appList = append(appList, instanceResp)
+	}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: appList}
+}
+
 // InitDaemonSet init daemonSet
 func InitDaemonSet(appInfo *AppInfo, nodeInfo NodeGroupInfo) (*appv1.DaemonSet, error) {
 	containers, err := getContainers(appInfo)
@@ -306,7 +349,7 @@ func InitDaemonSet(appInfo *AppInfo, nodeInfo NodeGroupInfo) (*appv1.DaemonSet, 
 	tmpSpec := v1.PodSpec{}
 	tmpSpec.Containers = containers
 	tmpSpec.NodeSelector = map[string]string{
-		common.NodeGroupLabelPrefix + strconv.FormatInt(nodeInfo.NodeGroupID, DecimalScale): nodeInfo.NodeGroupName,
+		common.NodeGroupLabelPrefix + strconv.FormatInt(nodeInfo.NodeGroupID, DecimalScale): "",
 	}
 	template := v1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{

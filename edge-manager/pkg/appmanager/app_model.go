@@ -42,7 +42,8 @@ type AppRepository interface {
 	deleteAppById(uint64) error
 	deleteAppInstanceByIdAndGroup(uint64, string) error
 	queryNodeGroup(uint64) ([]NodeGroupInfo, error)
-	listAppInstances(appId uint64) ([]AppInstance, error)
+	listAppInstances(uint64) ([]AppInstance, error)
+	listAppInstancesByNode(string) ([]AppInstance, error)
 	addPod(*AppInstance) error
 	updatePod(*AppInstance) error
 	deletePod(*AppInstance) error
@@ -250,6 +251,15 @@ func (a *AppRepositoryImpl) listAppInstances(appId uint64) ([]AppInstance, error
 	var deployedApps []AppInstance
 	if err := a.db.Model(AppInstance{}).Where("app_id = ?", appId).Find(&deployedApps).Error; err != nil {
 		hwlog.RunLog.Error("list app instances db failed")
+		return nil, err
+	}
+	return deployedApps, nil
+}
+
+func (a *AppRepositoryImpl) listAppInstancesByNode(nodeName string) ([]AppInstance, error) {
+	var deployedApps []AppInstance
+	if err := a.db.Model(AppInstance{}).Where("node_name = ?", nodeName).Find(&deployedApps).Error; err != nil {
+		hwlog.RunLog.Error("list app instances by node db failed")
 		return nil, err
 	}
 	return deployedApps, nil

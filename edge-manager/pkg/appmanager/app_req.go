@@ -129,3 +129,14 @@ type AppReturnInfo struct {
 	NodeGroupId   []int64     `json:"nodeGroupId"`
 	Containers    []Container `json:"containers"`
 }
+
+// AppInstanceOfNodeResp encapsulate app instance information of a certain node
+type AppInstanceOfNodeResp struct {
+	AppName       string `json:"appName"`
+	AppStatus     string `json:"appStatus"`
+	Description   string `json:"description"`
+	CreateAt      string `json:"createAt"`
+	ChangedAt     string `json:"changedAt"`
+	NodeGroupName string `json:"nodeGroupName"`
+	NodeGroupID   int64  `json:"nodeGroupID"`
+}

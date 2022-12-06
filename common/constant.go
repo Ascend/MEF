@@ -56,6 +56,8 @@ const (
 	App = "app"
 	// AppInstance resource app instance
 	AppInstance = "appInstance"
+	// AppInstanceByNode resource app instance by node
+	AppInstanceByNode = "appInstanceByNode"
 	// NodeGroup resource nodeGroup
 	NodeGroup = "nodeGroup"
 	// NodeStatistics node statistics
