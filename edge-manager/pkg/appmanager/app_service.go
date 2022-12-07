@@ -304,9 +304,10 @@ func InitDaemonSet(appInfo *AppInfo, nodeInfo NodeGroupInfo) (*appv1.DaemonSet, 
 		return nil, err
 	}
 	tmpSpec := v1.PodSpec{}
+	tmpSpec.Volumes = getVolumes()
 	tmpSpec.Containers = containers
 	tmpSpec.NodeSelector = map[string]string{
-		common.NodeGroupLabelPrefix + strconv.FormatInt(nodeInfo.NodeGroupID, DecimalScale): nodeInfo.NodeGroupName,
+		common.NodeGroupLabelPrefix + strconv.FormatInt(nodeInfo.NodeGroupID, DecimalScale): "",
 	}
 	template := v1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
@@ -335,6 +336,44 @@ func InitDaemonSet(appInfo *AppInfo, nodeInfo NodeGroupInfo) (*appv1.DaemonSet, 
 	}, nil
 }
 
+func getVolumes() []v1.Volume {
+	var volumes []v1.Volume
+	volumeDriver := v1.Volume{
+		Name: AscendDriver,
+		VolumeSource: v1.VolumeSource{
+			HostPath: &v1.HostPathVolumeSource{
+				Path: AscendDriverPath,
+			},
+		},
+	}
+	volumes = append(volumes, volumeDriver)
+	volumeAddons := v1.Volume{
+		Name: AscendAddOns,
+		VolumeSource: v1.VolumeSource{
+			HostPath: &v1.HostPathVolumeSource{
+				Path: AscendAddOnsPath,
+			},
+		},
+	}
+	volumes = append(volumes, volumeAddons)
+	return volumes
+}
+
+func getVolumeMount() []v1.VolumeMount {
+	var volumeMounts []v1.VolumeMount
+	volumeMountDriver := v1.VolumeMount{
+		Name:      AscendDriver,
+		MountPath: AscendDriverPath,
+	}
+	volumeMounts = append(volumeMounts, volumeMountDriver)
+	volumeMountAddOns := v1.VolumeMount{
+		Name:      AscendAddOns,
+		MountPath: AscendAddOnsPath,
+	}
+	volumeMounts = append(volumeMounts, volumeMountAddOns)
+	return volumeMounts
+}
+
 func getContainers(appContainer *AppInfo) ([]v1.Container, error) {
 	var containerInfos []Container
 	if err := json.Unmarshal([]byte(appContainer.Containers), &containerInfos); err != nil {
@@ -358,6 +397,7 @@ func getContainers(appContainer *AppInfo) ([]v1.Container, error) {
 			Env:             getEnv(containerInfo.Env),
 			Ports:           getPorts(containerInfo.Ports),
 			Resources:       resources,
+			VolumeMounts:    getVolumeMount(),
 		})
 	}
 	return containers, nil
