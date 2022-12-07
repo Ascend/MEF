@@ -87,6 +87,9 @@ func (rcm *RootCertMgr) NewRootCa() (*CaPairInfo, error) {
 	}
 	rootCsr := rcm.getRootCaCsr()
 	rootCaBytes, err := x509.CreateCertificate(rand.Reader, rootCsr, rootCsr, &caPriKey.PublicKey, caPriKey)
+	if err != nil {
+		return nil, errors.New("CreateCertificate root ca failed: " + err.Error())
+	}
 	rootCaCert, err := x509.ParseCertificate(rootCaBytes)
 	if err != nil {
 		return nil, errors.New("ParseCertificate root ca failed: " + err.Error())
