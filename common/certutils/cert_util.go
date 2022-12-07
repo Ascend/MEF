@@ -7,6 +7,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+
 	hwCertMgr "huawei.com/mindx/common/x509"
 	"huawei.com/mindxedge/base/common"
 )
@@ -17,20 +18,6 @@ func PemWrapCert(der []byte) []byte {
 		Type:  pubCertType,
 		Bytes: der,
 	})
-}
-
-// PemUnwrapCert decode pem to der type
-func PemUnwrapCert(p []byte) ([]byte, []byte) {
-	pm, r := pem.Decode(p)
-	if pm == nil {
-		return nil, r
-	}
-
-	if pm.Type != pubCertType {
-		return nil, r
-	}
-
-	return pm.Bytes, r
 }
 
 // PemWrapPrivKey code der private key to pem type

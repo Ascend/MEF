@@ -4,8 +4,9 @@
 package common
 
 import (
-	"huawei.com/mindx/common/utils"
 	"os"
+
+	"huawei.com/mindx/common/utils"
 )
 
 const fileMode = 0600

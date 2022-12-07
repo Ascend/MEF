@@ -8,12 +8,13 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"errors"
+	"math/big"
+	"time"
+
 	"huawei.com/mindx/common/rand"
 	"huawei.com/mindx/common/utils"
 	hwCertMgr "huawei.com/mindx/common/x509"
 	"huawei.com/mindxedge/base/common"
-	"math/big"
-	"time"
 )
 
 const (
