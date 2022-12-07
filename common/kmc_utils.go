@@ -1,4 +1,4 @@
-// Copyright (c) 2021. Huawei Technologies Co., Ltd. All rights reserved.
+// Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
 // Package common kmc utils
 package common
