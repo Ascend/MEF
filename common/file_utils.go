@@ -12,13 +12,6 @@ const fileMode = 0600
 
 // WriteData write data with path check
 func WriteData(filePath string, fileData []byte) error {
-	var writer *os.File = nil
-	defer func() {
-		err := writer.Close()
-		if err != nil {
-			return
-		}
-	}()
 	filePath, err := utils.CheckPath(filePath)
 	if err != nil {
 		return err
@@ -29,11 +22,16 @@ func WriteData(filePath string, fileData []byte) error {
 		return err
 	}
 
-	writer, err = os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE, fileMode)
+	writer, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE, fileMode)
 	if err != nil {
 		return err
 	}
-
+	defer func() {
+		err := writer.Close()
+		if err != nil {
+			return
+		}
+	}()
 	_, err = writer.Write(fileData)
 	if err != nil {
 		return err

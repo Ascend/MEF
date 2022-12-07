@@ -16,6 +16,35 @@ import (
 	"time"
 )
 
+const (
+	// priKeyLength private key length
+	priKeyLength = 4096
+	// validationYearCA root ca validate year
+	validationYearCA = 10
+	// validationYearCert service Cert validate year
+	validationYearCert = 10
+	// validationMonth Cert validate month
+	validationMonth = 0
+	// validationDay Cert validate day
+	validationDay = 0
+	// bigIntSize server_number
+	bigIntSize = 2022
+	// caCountry issue country
+	caCountry = "CN"
+	// caOrganization issue organization
+	caOrganization = "Huawei"
+	// caOrganizationalUnit issue unit
+	caOrganizationalUnit = "Ascend"
+	// caCommonName issue name
+	caCommonName = "MEF"
+	// pubCertType Cert type
+	pubCertType = "CERTIFICATE"
+	// privKeyType Cert key type
+	privKeyType = "RSA PRIVATE KEY"
+	// fileMode Cert file mode
+	fileMode = 0600
+)
+
 // RootCertMgr define root cert manager struct
 type RootCertMgr struct {
 	rootCaPath  string
@@ -81,7 +110,7 @@ func (rcm *RootCertMgr) GetRootCaPair() (*CaPairInfo, error) {
 
 // NewRootCa new root ca
 func (rcm *RootCertMgr) NewRootCa() (*CaPairInfo, error) {
-	caPriKey, err := rsa.GenerateKey(rand.Reader, PriKeyLength)
+	caPriKey, err := rsa.GenerateKey(rand.Reader, priKeyLength)
 	if err != nil {
 		return nil, errors.New("generate key failed: " + err.Error())
 	}
@@ -134,10 +163,10 @@ func (rcm *RootCertMgr) IssueServiceCert(csr []byte) ([]byte, error) {
 func (rcm *RootCertMgr) makeServiceCertificate(subject pkix.Name) *x509.Certificate {
 	now := time.Now()
 	return &x509.Certificate{
-		SerialNumber: big.NewInt(BigIntSize),
+		SerialNumber: big.NewInt(bigIntSize),
 		Subject:      subject,
 		NotBefore:    now,
-		NotAfter:     now.AddDate(ValidationYearCert, ValidationMonth, ValidationDay),
+		NotAfter:     now.AddDate(validationYearCert, validationMonth, validationDay),
 		KeyUsage:     x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		DNSNames:     []string{subject.CommonName},
@@ -147,15 +176,15 @@ func (rcm *RootCertMgr) makeServiceCertificate(subject pkix.Name) *x509.Certific
 func (rcm *RootCertMgr) getRootCaCsr() *x509.Certificate {
 	now := time.Now()
 	csr := &x509.Certificate{
-		SerialNumber: big.NewInt(BigIntSize),
+		SerialNumber: big.NewInt(bigIntSize),
 		Subject: pkix.Name{
-			Country:            []string{CaCountry},
-			Organization:       []string{CaOrganization},
-			OrganizationalUnit: []string{CaOrganizationalUnit},
-			CommonName:         CaCommonName + rcm.commonName,
+			Country:            []string{caCountry},
+			Organization:       []string{caOrganization},
+			OrganizationalUnit: []string{caOrganizationalUnit},
+			CommonName:         caCommonName + rcm.commonName,
 		},
 		NotBefore:             now,
-		NotAfter:              now.AddDate(ValidationYearCA, ValidationMonth, ValidationDay),
+		NotAfter:              now.AddDate(validationYearCA, validationMonth, validationDay),
 		IsCA:                  true,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
@@ -179,7 +208,7 @@ func (sc *SelfSignCert) CreateSignCert() error {
 			return errors.New("new root ca pair failed: " + err.Error())
 		}
 	}
-	priv, err := rsa.GenerateKey(rand.Reader, PriKeyLength)
+	priv, err := rsa.GenerateKey(rand.Reader, priKeyLength)
 	if err != nil {
 		return errors.New("generate new key for self signed certificate failed: " + err.Error())
 	}

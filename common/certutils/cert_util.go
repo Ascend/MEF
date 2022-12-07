@@ -11,39 +11,10 @@ import (
 	"huawei.com/mindxedge/base/common"
 )
 
-const (
-	// PriKeyLength private key length
-	PriKeyLength = 4096
-	// ValidationYearCA root ca validate year
-	ValidationYearCA = 10
-	// ValidationYearCert service Cert validate year
-	ValidationYearCert = 10
-	// ValidationMonth Cert validate month
-	ValidationMonth = 0
-	// ValidationDay Cert validate day
-	ValidationDay = 0
-	// BigIntSize server_number
-	BigIntSize = 2022
-	// CaCountry issue country
-	CaCountry = "CN"
-	// CaOrganization issue organization
-	CaOrganization = "Huawei"
-	// CaOrganizationalUnit issue unit
-	CaOrganizationalUnit = "Ascend"
-	// CaCommonName issue name
-	CaCommonName = "MEF"
-	// PubCertType Cert type
-	PubCertType = "CERTIFICATE"
-	// PrivKeyType Cert key type
-	PrivKeyType = "RSA PRIVATE KEY"
-	// FileMode Cert file mode
-	FileMode = 0600
-)
-
 // PemWrapCert code der to pem type
 func PemWrapCert(der []byte) []byte {
 	return pem.EncodeToMemory(&pem.Block{
-		Type:  PubCertType,
+		Type:  pubCertType,
 		Bytes: der,
 	})
 }
@@ -55,7 +26,7 @@ func PemUnwrapCert(p []byte) ([]byte, []byte) {
 		return nil, r
 	}
 
-	if pm.Type != PubCertType {
+	if pm.Type != pubCertType {
 		return nil, r
 	}
 
@@ -65,7 +36,7 @@ func PemUnwrapCert(p []byte) ([]byte, []byte) {
 // PemWrapPrivKey code der private key to pem type
 func PemWrapPrivKey(priv *rsa.PrivateKey) []byte {
 	return pem.EncodeToMemory(&pem.Block{
-		Type:  PrivKeyType,
+		Type:  privKeyType,
 		Bytes: x509.MarshalPKCS1PrivateKey(priv),
 	})
 }
@@ -77,7 +48,7 @@ func PemUnwrapPrivKey(p []byte) *rsa.PrivateKey {
 		return nil
 	}
 
-	if pm.Type != PrivKeyType {
+	if pm.Type != privKeyType {
 		return nil
 	}
 
@@ -105,7 +76,7 @@ func saveKeyWithPem(keyPath string, keyDerBytes *rsa.PrivateKey, kmcCfg *common.
 	if err != nil {
 		return err
 	}
-	err = hwCertMgr.OverridePassWdFile(keyPath, encryptKeyPem, FileMode)
+	err = hwCertMgr.OverridePassWdFile(keyPath, encryptKeyPem, fileMode)
 	if err != nil {
 		return err
 	}
