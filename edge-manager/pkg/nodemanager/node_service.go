@@ -13,6 +13,7 @@ import (
 
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
+	"k8s.io/api/core/v1"
 
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/util"
@@ -91,6 +92,7 @@ func getNodeDetail(input interface{}) common.RespMsg {
 		Id:          nodeInfo.ID,
 		NodeName:    nodeInfo.NodeName,
 		UniqueName:  nodeInfo.UniqueName,
+		IP:          nodeInfo.IP,
 		Description: nodeInfo.Description,
 		Status:      status,
 		CreatedAt:   nodeInfo.CreatedAt,
@@ -251,6 +253,7 @@ func autoAddUnmanagedNode() error {
 			UniqueName: node.Name,
 			Status:     statusOffline,
 			IsManaged:  false,
+			IP:         getNodeIpAddress(&node),
 			CreatedAt:  time.Now().Format(TimeFormat),
 			UpdateAt:   time.Now().Format(TimeFormat),
 		}
@@ -542,4 +545,15 @@ func batchDeleteNodeGroup(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.Success, Msg: "batch delete node group success", Data: delSuccessGroupID}
 	}
 	return common.RespMsg{Status: "", Msg: "batch delete node group failed", Data: nil}
+}
+
+func getNodeIpAddress(node *v1.Node) string {
+	var ipAddresses []string
+	for _, addr := range node.Status.Addresses {
+		if addr.Type != v1.NodeExternalIP && addr.Type != v1.NodeInternalIP {
+			continue
+		}
+		ipAddresses = append(ipAddresses, addr.Address)
+	}
+	return strings.Join(ipAddresses, ",")
 }
