@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cert-manager
+  namespace: mindx-edge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cert-manager
+  template:
+    metadata:
+      labels:
+        app: cert-manager
+    spec:
+      nodeSelector:
+        masterselector: dls-master-node
+      containers:
+        - name: cert-manager
+          image: ascend-cert-manager:v1
+          imagePullPolicy: IfNotPresent
+          command: [ "/bin/bash", "-c", "--"]
+          args: ["./cert-manager -ip=127.0.0.1 -port=8103"]
+          volumeMounts:
+            - name: cert-manager-config
+              mountPath: /home/data/
+            - name: cert-manager-log
+              mountPath: /var/log/mindx-edge/cert-manager
+            - name: localtime
+              mountPath: /etc/localtime
+      volumes:
+        - name: cert-manager-config
+          hostPath:
+            path: /home/data/
+            type: Directory
+        - name: cert-manager-log
+          hostPath:
+            path: /var/log/mindx-edge/cert-manager
+            type: Directory
+        - name: localtime
+          hostPath:
+            path: /etc/localtime
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ascend-cert-manager
+  namespace: mindx-edge
+  labels:
+    app: ascend-cert-manager
+spec:
+  ports:
+    - name: cert-manager
+      port: 8103
+      targetPort: 8103
+      protocol: TCP
+      nodePort: 30040
+  selector:
+    app: cert-manager
+  type: NodePort
