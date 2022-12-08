@@ -7,6 +7,7 @@ systemEnv:
 TOP_DIR: "{{systemEnv.workspace}}/{{component}}"
 EDGE_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/edge-manager"
 SOFTWARE_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/software-manager"
+CERT_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/cert-manager"
 compile:
   input:
     dependency:
@@ -18,6 +19,10 @@ compile:
         version: "1.0"
         type: opensource
         buildFile: "{{SOFTWARE_MANAGER_DIR}}/build/conf"
+      - name: cert-manager
+        version: "1.0"
+        type: opensource
+        buildFile: "{{CERT_MANAGER_DIR}}/build/conf"
     files:
       exclude:
         - remove: ["{{TOP_DIR}}/output/"]
@@ -37,6 +42,10 @@ compile:
         - copy:
             src:
               - '{{SOFTWARE_MANAGER_DIR}}/output/*.zip'
+            des: "{{TOP_DIR}}/output/"
+        - copy:
+            src:
+              - '{{CERT_MANAGER_DIR}}/output/*.zip'
             des: "{{TOP_DIR}}/output/"
         - mode:
             src:
