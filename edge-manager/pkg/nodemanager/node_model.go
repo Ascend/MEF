@@ -28,14 +28,14 @@ type NodeService interface {
 	listNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
 	listUnManagedNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
 	getNodeByUniqueName(string) (*NodeInfo, error)
-	getNodeByID(int64) (*NodeInfo, error)
+	GetNodeByID(int64) (*NodeInfo, error)
 	getManagedNodeByID(int64) (*NodeInfo, error)
 	countGroupsByNode(int64) (int64, error)
 
 	createNodeGroup(*NodeGroup) error
 	getNodeGroupsByName(uint64, uint64, string) (*[]NodeGroup, error)
 	countNodeGroupsByName(string) (int64, error)
-	getNodeGroupByID(int64) (*NodeGroup, error)
+	GetNodeGroupByID(int64) (*NodeGroup, error)
 
 	deleteNodeToGroup(*NodeRelation) error
 	countNodeByGroup(groupID int64) (int64, error)
@@ -137,12 +137,14 @@ func (n *NodeServiceImpl) countNodeByGroup(groupID int64) (int64, error) {
 	return num, n.db.Model(NodeRelation{}).Where("group_id = ?", groupID).Count(&num).Error
 }
 
-func (n *NodeServiceImpl) getNodeGroupByID(groupID int64) (*NodeGroup, error) {
+// GetNodeGroupByID get node group info by group id
+func (n *NodeServiceImpl) GetNodeGroupByID(groupID int64) (*NodeGroup, error) {
 	var nodeGroup NodeGroup
 	return &nodeGroup, n.db.Model(NodeGroup{}).Where("id = ?", groupID).First(&nodeGroup).Error
 }
 
-func (n *NodeServiceImpl) getNodeByID(nodeID int64) (*NodeInfo, error) {
+// GetNodeByID return node info by group id
+func (n *NodeServiceImpl) GetNodeByID(nodeID int64) (*NodeInfo, error) {
 	var node NodeInfo
 	return &node, n.db.Model(NodeInfo{}).Where("id = ?", nodeID).First(&node).Error
 }

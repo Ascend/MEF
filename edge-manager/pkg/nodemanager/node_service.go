@@ -72,7 +72,7 @@ func getNodeDetail(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("modify node check parameters failed")
 		return common.RespMsg{Status: "", Msg: "check parameters failed", Data: nil}
 	}
-	nodeInfo, err := NodeServiceInstance().getNodeByID(req.Id)
+	nodeInfo, err := NodeServiceInstance().GetNodeByID(req.Id)
 	if err != nil {
 		hwlog.RunLog.Error("get node detail db query error")
 		return common.RespMsg{Status: "", Msg: "db query error", Data: nil}
@@ -279,7 +279,7 @@ func batchDeleteNode(input interface{}) common.RespMsg {
 }
 
 func deleteSingleNode(nodeID int64) error {
-	nodeInfo, err := NodeServiceInstance().getNodeByID(nodeID)
+	nodeInfo, err := NodeServiceInstance().GetNodeByID(nodeID)
 	if err != nil {
 		return errors.New("db query failed")
 	}
@@ -331,7 +331,7 @@ func batchDeleteNodeRelation(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("failed to delete node relation, error: %v", err)
 		return common.RespMsg{Msg: err.Error()}
 	}
-	nodeGroup, err := NodeServiceInstance().getNodeGroupByID(req.GroupID)
+	nodeGroup, err := NodeServiceInstance().GetNodeGroupByID(req.GroupID)
 	if err != nil {
 		hwlog.RunLog.Error("failed to delete node relation, error: db query failed")
 		return common.RespMsg{Msg: "db query failed"}
@@ -349,7 +349,7 @@ func batchDeleteNodeRelation(input interface{}) common.RespMsg {
 }
 
 func deleteSingleNodeRelation(nodeGroup *NodeGroup, nodeID int64) error {
-	nodeInfo, err := NodeServiceInstance().getNodeByID(nodeID)
+	nodeInfo, err := NodeServiceInstance().GetNodeByID(nodeID)
 	if err != nil {
 		return errors.New("db query failed")
 	}
@@ -384,7 +384,7 @@ func joinNodeGroups(nodeID int64) (string, error) {
 	if len(*relations) > 0 {
 		var buffer bytes.Buffer
 		for index, relation := range *relations {
-			nodeGroup, err := NodeServiceInstance().getNodeGroupByID(relation.GroupID)
+			nodeGroup, err := NodeServiceInstance().GetNodeGroupByID(relation.GroupID)
 			if err != nil {
 				hwlog.RunLog.Error("get node detail db query error")
 				return "", errors.New("db query error")
@@ -426,7 +426,7 @@ func addNodeRelation(input interface{}) common.RespMsg {
 
 func addNode(req AddNodeToGroupReq) error {
 	var errorNode string
-	nodeGroup, err := NodeServiceInstance().getNodeGroupByID(req.GroupID)
+	nodeGroup, err := NodeServiceInstance().GetNodeGroupByID(req.GroupID)
 	if err != nil {
 		return errors.New("dont have this node group")
 	}
@@ -501,7 +501,7 @@ func batchDeleteNodeGroup(input interface{}) common.RespMsg {
 	}
 	var delSuccessGroupID []int64
 	for _, groupID := range req.GroupID {
-		nodeGroup, err := NodeServiceInstance().getNodeGroupByID(groupID)
+		nodeGroup, err := NodeServiceInstance().GetNodeGroupByID(groupID)
 		if err != nil {
 			hwlog.RunLog.Errorf("get node group by group id %d failed", groupID)
 			continue
