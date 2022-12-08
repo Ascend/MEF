@@ -24,6 +24,8 @@ const (
 	SoftwareRepositoryName = "software repository"
 	// TemplateManagerName TemplateManager module name
 	TemplateManagerName = "TemplateManager"
+	// CertManagerService CertManager module name
+	CertManagerService = "CertManagerService"
 
 	// Create option create
 	Create = "create"
