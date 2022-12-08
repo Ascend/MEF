@@ -70,7 +70,7 @@ func templateRouter(engine *gin.Engine) {
 	{
 		v1.POST("/", createTemplate)
 		v1.POST("/delete", deleteTemplate)
-		v1.PUT("/", modifyTemplate)
+		v1.PUT("/", updateTemplate)
 		v1.GET("/", getTemplateDetail)
 		v1.GET("/list", getTemplates)
 	}

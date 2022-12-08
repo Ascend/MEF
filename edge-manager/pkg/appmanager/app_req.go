@@ -4,46 +4,11 @@
 package appmanager
 
 import "edge-manager/pkg/nodemanager"
+import "edge-manager/pkg/types"
 
 // CreateAppReq Create application
 type CreateAppReq struct {
-	AppId       uint64      `json:"appId"`
-	AppName     string      `json:"appName"`
-	Description string      `json:"description"`
-	Containers  []Container `json:"containers"`
-}
-
-// Container encapsulate container request
-type Container struct {
-	Name         string          `json:"name"`
-	Image        string          `json:"image"`
-	ImageVersion string          `json:"imageVersion"`
-	CpuRequest   string          `json:"cpuRequest"`
-	CpuLimit     string          `json:"cpuLimit"`
-	MemRequest   string          `json:"memRequest"`
-	MemLimit     string          `json:"memLimit"`
-	Npu          string          `json:"npu"`
-	Command      []string        `json:"command"`
-	Args         []string        `json:"args"`
-	Env          []EnvVar        `json:"env"`
-	Ports        []ContainerPort `json:"containerPort"`
-	UserId       int             `json:"userId"`
-	GroupId      int             `json:"groupId"`
-}
-
-// EnvVar encapsulate env request
-type EnvVar struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
-// ContainerPort provide ports mapping
-type ContainerPort struct {
-	Name          string `json:"name"`
-	Proto         string `json:"proto"`
-	ContainerPort int32  `json:"containerPort"`
-	HostIp        string `json:"hostIp"`
-	HostPort      int32  `json:"hostPort"`
+	types.AppParam
 }
 
 // DeleteAppReq Delete application
@@ -123,14 +88,14 @@ type ListReturnInfo struct {
 
 // AppReturnInfo encapsulate app information for return
 type AppReturnInfo struct {
-	AppId         uint64      `json:"appId"`
-	AppName       string      `json:"appName"`
-	Description   string      `json:"description"`
-	CreatedAt     string      `json:"createdAt"`
-	ModifiedAt    string      `json:"modifiedAt"`
-	NodeGroupName string      `json:"nodeGroupName"`
-	NodeGroupId   []int64     `json:"nodeGroupId"`
-	Containers    []Container `json:"containers"`
+	AppId         uint64            `json:"appId"`
+	AppName       string            `json:"appName"`
+	Description   string            `json:"description"`
+	CreatedAt     string            `json:"createdAt"`
+	ModifiedAt    string            `json:"modifiedAt"`
+	NodeGroupName string            `json:"nodeGroupName"`
+	NodeGroupId   []int64           `json:"nodeGroupId"`
+	Containers    []types.Container `json:"containers"`
 }
 
 // AppInstanceOfNodeResp encapsulate app instance information of a certain node

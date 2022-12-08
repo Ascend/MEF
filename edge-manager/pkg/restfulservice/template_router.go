@@ -25,7 +25,7 @@ func createTemplate(c *gin.Context) {
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }
 
-func modifyTemplate(c *gin.Context) {
+func updateTemplate(c *gin.Context) {
 	res, err := c.GetRawData()
 	if err != nil {
 		hwlog.OpLog.Error("modify template: get input parameter failed")

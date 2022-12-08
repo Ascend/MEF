@@ -90,11 +90,8 @@ func (manager *ModuleAppTemplateManager) Start() {
 }
 
 func initTable() error {
-	if err := database.CreateTableIfNotExists(AppTemplateDb{}); err != nil {
+	if err := database.CreateTableIfNotExists(AppTemplate{}); err != nil {
 		return errors.New("create app template group database table failed")
-	}
-	if err := database.CreateTableIfNotExists(TemplateContainerDb{}); err != nil {
-		return errors.New("create app template container database table failed")
 	}
 	return nil
 }
@@ -110,7 +107,7 @@ func (manager *ModuleAppTemplateManager) handle(resource, option string, req int
 
 func (manager *ModuleAppTemplateManager) registerRoutes() {
 	manager.setRoute(common.AppTemplate, common.Create, CreateTemplate)
-	manager.setRoute(common.AppTemplate, common.Update, ModifyTemplate)
+	manager.setRoute(common.AppTemplate, common.Update, UpdateTemplate)
 	manager.setRoute(common.AppTemplate, common.Delete, DeleteTemplate)
 	manager.setRoute(common.AppTemplate, common.List, GetTemplates)
 	manager.setRoute(common.AppTemplate, common.Get, GetTemplateDetail)

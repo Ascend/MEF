@@ -4,6 +4,7 @@
 package appmanager
 
 import (
+	"edge-manager/pkg/types"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -118,7 +119,7 @@ func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) (*L
 	}
 	var appReturnInfos []AppReturnInfo
 	for _, app := range appsInfo {
-		var containers []Container
+		var containers []types.Container
 		if err := json.Unmarshal([]byte(app.Containers), &containers); err != nil {
 			hwlog.RunLog.Error("containers unmarshal failed")
 			return nil, err

@@ -4,6 +4,7 @@
 package appmanager
 
 import (
+	"edge-manager/pkg/types"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -31,8 +32,7 @@ func CreateApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	checker := appCreatParaChecker{req: &req}
-	if err := checker.Check(); err != nil {
+	if err := req.Check(); err != nil {
 		hwlog.RunLog.Errorf("app create para check failed: %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
@@ -150,8 +150,7 @@ func DeployApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	checker := appDeployParaChecker{req: &req}
-	if err := checker.Check(); err != nil {
+	if err := req.Check(); err != nil {
 		hwlog.RunLog.Errorf("app deploy para check failed: %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
@@ -203,8 +202,7 @@ func UpdateApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	checker := appCreatParaChecker{req: &req}
-	if err := checker.Check(); err != nil {
+	if err := req.Check(); err != nil {
 		hwlog.RunLog.Errorf("app update para check failed: %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
@@ -420,7 +418,7 @@ func InitDaemonSet(appInfo *AppInfo, nodeInfo NodeGroupInfo) (*appv1.DaemonSet, 
 }
 
 func getContainers(appContainer *AppInfo) ([]v1.Container, error) {
-	var containerInfos []Container
+	var containerInfos []types.Container
 	if err := json.Unmarshal([]byte(appContainer.Containers), &containerInfos); err != nil {
 		hwlog.RunLog.Error("app containers unmarshal failed")
 		return nil, err
@@ -447,7 +445,7 @@ func getContainers(appContainer *AppInfo) ([]v1.Container, error) {
 	return containers, nil
 }
 
-func getPorts(containerPorts []ContainerPort) []v1.ContainerPort {
+func getPorts(containerPorts []types.ContainerPort) []v1.ContainerPort {
 	var ports []v1.ContainerPort
 	for _, port := range containerPorts {
 		ports = append(ports, v1.ContainerPort{
@@ -461,7 +459,7 @@ func getPorts(containerPorts []ContainerPort) []v1.ContainerPort {
 	return ports
 }
 
-func getEnv(envInfo []EnvVar) []v1.EnvVar {
+func getEnv(envInfo []types.EnvVar) []v1.EnvVar {
 	var envs []v1.EnvVar
 	for _, env := range envInfo {
 		envs = append(envs, v1.EnvVar{
@@ -472,7 +470,7 @@ func getEnv(envInfo []EnvVar) []v1.EnvVar {
 	return envs
 }
 
-func getResources(appContainer Container) (v1.ResourceRequirements, error) {
+func getResources(appContainer types.Container) (v1.ResourceRequirements, error) {
 	var Requests map[v1.ResourceName]resource.Quantity
 	var limits map[v1.ResourceName]resource.Quantity
 	var device v1.ResourceName

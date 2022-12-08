@@ -4,6 +4,7 @@
 package apptemplatemanager
 
 import (
+	"edge-manager/pkg/types"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
 )
@@ -20,7 +21,7 @@ func CreateTemplate(param interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("create app template,failed,error:%v", err)
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
 	}
-	var template AppTemplateDb
+	var template AppTemplate
 	if err := req.ToDb(&template); err != nil {
 		hwlog.RunLog.Errorf("create app template,failed,error:%v", err)
 		return common.RespMsg{Status: common.ErrorCreateAppTemplate}
@@ -49,8 +50,8 @@ func DeleteTemplate(param interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success}
 }
 
-// ModifyTemplate modify app template
-func ModifyTemplate(param interface{}) common.RespMsg {
+// UpdateTemplate modify app template
+func UpdateTemplate(param interface{}) common.RespMsg {
 	hwlog.RunLog.Info("modify app template,start")
 	var req AppTemplateDto
 	if err := common.ParamConvert(param, &req); err != nil {
@@ -61,12 +62,12 @@ func ModifyTemplate(param interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("modify app template,failed,error:%v", err)
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
 	}
-	var template AppTemplateDb
+	var template AppTemplate
 	if err := req.ToDb(&template); err != nil {
 		hwlog.RunLog.Errorf("create app template,failed,error:%v", err)
 		return common.RespMsg{Status: common.ErrorModifyAppTemplate}
 	}
-	if err := RepositoryInstance().ModifyTemplate(&template); err != nil {
+	if err := RepositoryInstance().UpdateTemplate(&template); err != nil {
 		hwlog.RunLog.Errorf("modify app template,failed,error:%v", err)
 		return common.RespMsg{Status: common.ErrorModifyAppTemplate, Msg: err.Error()}
 	}
@@ -74,9 +75,21 @@ func ModifyTemplate(param interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success}
 }
 
+// AppReturnInfo encapsulate app information for return
+type AppReturnInfo struct {
+	AppId         uint64            `json:"appId"`
+	AppName       string            `json:"appName"`
+	Description   string            `json:"description"`
+	CreatedAt     string            `json:"createdAt"`
+	ModifiedAt    string            `json:"modifiedAt"`
+	NodeGroupName string            `json:"nodeGroupName"`
+	NodeGroupId   []int64           `json:"nodeGroupId"`
+	Containers    []types.Container `json:"containers"`
+}
+
 // GetTemplates get app templates
 func GetTemplates(param interface{}) common.RespMsg {
-	hwlog.RunLog.Info("get app templates,start")
+	hwlog.RunLog.Info("get app templates, start")
 	req := ReqGetTemplates{}
 	if err := common.ParamConvert(param, &req); err != nil {
 		hwlog.RunLog.Error("get app templates,failed,error:request parameter convert failed")
@@ -87,10 +100,15 @@ func GetTemplates(param interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("get app templates,failed,error:%v", err)
 		return common.RespMsg{Status: common.ErrorGetAppTemplates, Msg: err.Error()}
 	}
-	result := make([]TemplateSummaryDto, len(templates))
+
+	result := make([]AppTemplateDto, len(templates))
 	for i, item := range templates {
-		(&result[i]).FromDb(&item)
+		if err := (&result[i]).FromDb(&item); err != nil {
+			hwlog.RunLog.Errorf("get app templates,failed,error:%v", err)
+			return common.RespMsg{Status: common.ErrorGetAppTemplates, Msg: err.Error()}
+		}
 	}
+
 	hwlog.RunLog.Info("get app templates,success")
 	return common.RespMsg{Status: common.Success, Data: result}
 }
