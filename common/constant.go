@@ -103,6 +103,8 @@ const (
 	ErrDbUniqueFailed = "UNIQUE constraint failed"
 	// TimeFormat time format
 	TimeFormat = "2006-01-02 15:04:05"
+	// TimeFormatDb is a time format which get from db
+	TimeFormatDb = "2006-01-02T15:04:05Z"
 	// NodeGroupLabelPrefix k8s label prefix for node group
 	NodeGroupLabelPrefix = "MEF-Node"
 )

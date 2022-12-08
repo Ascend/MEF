@@ -18,11 +18,11 @@ func createGroup(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start create node group")
 	var req CreateNodeGroupReq
 	if err := common.ParamConvert(input, &req); err != nil {
-		hwlog.RunLog.Error("create node group conver request error")
+		hwlog.RunLog.Errorf("create node group convert request error, %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 	if err := req.Check(); err != nil {
-		hwlog.RunLog.Error("create node group validate parameters error")
+		hwlog.RunLog.Errorf("create node group validate parameters error, %s", err.Error())
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
 	}
 	total, err := GetTableCount(NodeGroup{})
@@ -93,7 +93,7 @@ func getEdgeNodeGroupDetail(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start get node group detail")
 	var req GetNodeGroupDetailReq
 	if err := common.ParamConvert(input, &req); err != nil {
-		hwlog.RunLog.Error("get node group detail convert request error")
+		hwlog.RunLog.Errorf("get node group detail convert request error, %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 	var resp GetNodeGroupDetailResp

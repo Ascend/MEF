@@ -26,9 +26,11 @@ func createNode(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start create node")
 	var req CreateEdgeNodeReq
 	if err := common.ParamConvert(input, &req); err != nil {
+		hwlog.RunLog.Errorf("create node convert request error, %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 	if err := req.Check(); err != nil {
+		hwlog.RunLog.Errorf("create node validate parameters error: %s", err.Error())
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
 	}
 
@@ -67,11 +69,11 @@ func getNodeDetail(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start get node detail")
 	var req GetNodeDetailReq
 	if err := common.ParamConvert(input, &req); err != nil {
-		hwlog.RunLog.Error("get node detail convert request error")
+		hwlog.RunLog.Errorf("get node detail convert request error, %s", err.Error())
 		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
 	}
 	if err := req.Check(); err != nil {
-		hwlog.RunLog.Error("get node detail check parameters failed")
+		hwlog.RunLog.Errorf("get node detail check parameters failed, %s", err.Error())
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
 	}
 	nodeInfo, err := NodeServiceInstance().GetNodeByID(req.Id)
@@ -81,6 +83,7 @@ func getNodeDetail(input interface{}) common.RespMsg {
 	}
 	nodeGroupName, err := joinNodeGroups(req.Id)
 	if err != nil {
+		hwlog.RunLog.Errorf("get node detail db query error, %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 	status := NodeStatusServiceInstance().GetNodeStatus(nodeInfo.UniqueName)
@@ -106,11 +109,11 @@ func modifyNode(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start modify node")
 	var req ModifyNodeReq
 	if err := common.ParamConvert(input, &req); err != nil {
-		hwlog.RunLog.Error("modify node convert request error")
+		hwlog.RunLog.Errorf("modify node convert request error, %s", err.Error())
 		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
 	}
 	if err := req.Check(); err != nil {
-		hwlog.RunLog.Error("modify node check parameters failed")
+		hwlog.RunLog.Errorf("modify node check parameters failed, %s", err.Error())
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
 	}
 	updatedColumns := map[string]interface{}{
@@ -164,6 +167,7 @@ func listNode(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start list node managed")
 	req, ok := input.(util.ListReq)
 	if !ok {
+		hwlog.RunLog.Info("list node convert request error")
 		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
 	}
 	nodes, err := NodeServiceInstance().listNodesByName(req.PageNum, req.PageSize, req.Name)
@@ -196,6 +200,7 @@ func listNodeUnManaged(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start list node unmanaged")
 	req, ok := input.(util.ListReq)
 	if !ok {
+		hwlog.RunLog.Info("list node convert request error")
 		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
 	}
 
@@ -234,7 +239,7 @@ func autoAddUnmanagedNode() error {
 		return nil
 	}
 	for _, node := range realNodes.Items {
-		_, err := NodeServiceInstance().getNodeByUniqueName(node.Name)
+		_, err := NodeServiceInstance().GetNodeByUniqueName(node.Name)
 		if err == nil {
 			continue
 		}
@@ -400,7 +405,7 @@ func addNodeRelation(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start add node to group")
 	var req AddNodeToGroupReq
 	if err := common.ParamConvert(input, &req); err != nil {
-		hwlog.RunLog.Error("add node to group convert request error")
+		hwlog.RunLog.Errorf("add node to group convert request error, %s", err.Error())
 		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
 	}
 	total, err := NodeServiceInstance().countNodeByGroup(req.GroupID)
@@ -463,11 +468,11 @@ func addUnManagedNode(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start add unmanaged node")
 	var req AddUnManagedNodeReq
 	if err := common.ParamConvert(input, &req); err != nil {
-		hwlog.RunLog.Error("add unmanaged node convert request error")
+		hwlog.RunLog.Errorf("add unmanaged node convert request error, %s", err)
 		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
 	}
 	if err := req.Check(); err != nil {
-		hwlog.RunLog.Error("add unmanaged node validate parameters error")
+		hwlog.RunLog.Errorf("add unmanaged node validate parameters error, %s", err.Error())
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
 	}
 	// todo nodePerGroup and groupPerNode  limit count
@@ -498,6 +503,7 @@ func batchDeleteNodeGroup(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start batch delete node group")
 	var req BatchDeleteNodeGroupReq
 	if err := common.ParamConvert(input, &req); err != nil {
+		hwlog.RunLog.Errorf("batch delete node group convert request error, %s", err)
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 	var delSuccessGroupID []int64

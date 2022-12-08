@@ -167,7 +167,7 @@ func (a *appStatusServiceImpl) getContainerInfos(instance AppInstance) ([]Contai
 	var containerInfos []ContainerInfo
 	if err := json.Unmarshal([]byte(instance.ContainerInfo), &containerInfos); err != nil {
 		hwlog.RunLog.Error("unmarshal app container info failed")
-		return nil, errors.New("unmarshal failed")
+		return nil, err
 	}
 	a.appStatusCacheLock.Lock()
 	defer a.appStatusCacheLock.Unlock()

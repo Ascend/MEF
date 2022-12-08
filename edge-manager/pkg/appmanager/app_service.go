@@ -267,33 +267,56 @@ func ListAppInstances(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("list app instances failed, param type is not integer")
 		return common.RespMsg{Status: "", Msg: "param type is not integer", Data: nil}
 	}
-	var appInstanceResp []AppInstanceResp
-	deployedApps, err := AppRepositoryInstance().listAppInstances(appId)
+	appInstances, err := AppRepositoryInstance().listAppInstances(appId)
 	if err != nil {
 		hwlog.RunLog.Error("list app instances db failed")
 		return common.RespMsg{Status: "", Msg: "list app instances db failed", Data: nil}
 	}
+	appInstanceResp, err := getAppInstanceRespFromAppInstances(appInstances)
+	if err != nil {
+		hwlog.RunLog.Error("get app instance response from app instances failed")
+		return common.RespMsg{Status: "", Msg: "get app instance response from app instances failed", Data: nil}
+	}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: appInstanceResp}
+}
+
+func getAppInstanceRespFromAppInstances(appInstances []AppInstance) ([]AppInstanceResp, error) {
+	var appInstanceResp []AppInstanceResp
 	nodeStatusService := nodemanager.NodeStatusServiceInstance()
-	for _, instance := range deployedApps {
+	nodeService := nodemanager.NodeServiceInstance()
+	for _, instance := range appInstances {
 		nodeName := instance.NodeName
 		nodeStatus := nodeStatusService.GetNodeStatus(nodeName)
+		nodeInfo, err := nodeService.GetNodeByUniqueName(nodeName)
+		if err != nil {
+			hwlog.RunLog.Error("get node by unique name failed")
+			return nil, err
+		}
 		podStatus := appStatusService.getPodStatusFromCache(instance.PodName)
 		containerInfos, err := appStatusService.getContainerInfos(instance)
 		if err != nil {
 			hwlog.RunLog.Error("get container infos failed")
-			return common.RespMsg{Status: "", Msg: "get container infos failed", Data: nil}
+			return nil, err
+		}
+		createdAt, err := parseDbTimeToStandardFormat(instance.CreatedAt)
+		if err != nil {
+			hwlog.RunLog.Error("parse db time to standard format failed")
+			return nil, err
 		}
 		resp := AppInstanceResp{
 			AppName:       instance.AppName,
+			NodeGroupId:   instance.NodeGroupID,
 			NodeGroupName: instance.NodeGroupName,
+			NodeId:        nodeInfo.ID,
 			NodeName:      nodeName,
 			NodeStatus:    nodeStatus,
 			AppStatus:     podStatus,
+			CreatedAt:     createdAt,
 			ContainerInfo: containerInfos,
 		}
 		appInstanceResp = append(appInstanceResp, resp)
 	}
-	return common.RespMsg{Status: common.Success, Msg: "", Data: appInstanceResp}
+	return appInstanceResp, nil
 }
 
 // ListAppInstancesByNode get deployed apps' list of a certain node
@@ -305,38 +328,56 @@ func ListAppInstancesByNode(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("list app instances by node id failed, param type is not integer")
 		return common.RespMsg{Status: "", Msg: "param type is not integer", Data: nil}
 	}
-
-	var appList []AppInstanceOfNodeResp
 	nodeService := nodemanager.NodeServiceInstance()
 	nodeInfo, err := nodeService.GetNodeByID(nodeId)
 	if err != nil {
 		hwlog.RunLog.Error("list app instances by node failed, get node name failed")
 		return common.RespMsg{Status: "", Msg: "list app instances by node db failed", Data: nil}
 	}
-	deployedApps, err := AppRepositoryInstance().listAppInstancesByNode(nodeInfo.UniqueName)
+	appInstances, err := AppRepositoryInstance().listAppInstancesByNode(nodeInfo.UniqueName)
 	if err != nil {
 		hwlog.RunLog.Error("list app instances by node failed, db failed")
 		return common.RespMsg{Status: "", Msg: "list app instances by node db failed", Data: nil}
 	}
-	for _, instance := range deployedApps {
+	appList, err := getAppInstanceOfNodeRespFromAppInstances(appInstances)
+	if err != nil {
+		hwlog.RunLog.Error("get app instance of node response from app instances failed")
+		return common.RespMsg{Status: "", Msg: "get app instance of node response from app instances failed", Data: nil}
+	}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: appList}
+}
+
+func getAppInstanceOfNodeRespFromAppInstances(appInstances []AppInstance) ([]AppInstanceOfNodeResp, error) {
+	var appList []AppInstanceOfNodeResp
+	for _, instance := range appInstances {
 		appInfo, err := AppRepositoryInstance().getAppInfoByName(instance.AppName)
 		if err != nil {
-			hwlog.RunLog.Error("list app instances by node failed, db failed")
-			return common.RespMsg{Status: "", Msg: "list app instances by node db failed", Data: nil}
+			hwlog.RunLog.Error("get app info by name db failed")
+			return nil, err
 		}
 		status := appStatusService.getPodStatusFromCache(instance.PodName)
+		createdAt, err := parseDbTimeToStandardFormat(instance.CreatedAt)
+		if err != nil {
+			hwlog.RunLog.Error("parse db time to standard format failed")
+			return nil, err
+		}
+		changedAt, err := parseDbTimeToStandardFormat(instance.ChangedAt)
+		if err != nil {
+			hwlog.RunLog.Error("parse db time to standard format failed")
+			return nil, err
+		}
 		instanceResp := AppInstanceOfNodeResp{
 			AppName:       instance.AppName,
 			AppStatus:     status,
 			Description:   appInfo.Description,
-			CreateAt:      instance.CreatedAt,
-			ChangedAt:     instance.ChangedAt,
+			CreatedAt:     createdAt,
+			ChangedAt:     changedAt,
 			NodeGroupName: instance.NodeGroupName,
 			NodeGroupID:   instance.NodeGroupID,
 		}
 		appList = append(appList, instanceResp)
 	}
-	return common.RespMsg{Status: common.Success, Msg: "", Data: appList}
+	return appList, nil
 }
 
 // InitDaemonSet init daemonSet
@@ -494,4 +535,13 @@ func getLimits(cpuLimit string, memLimit string, limitMap map[v1.ResourceName]re
 		limitMap[v1.ResourceMemory] = res
 	}
 	return limitMap, nil
+}
+
+func parseDbTimeToStandardFormat(dbStringTime string) (string, error) {
+	dbTime, err := time.Parse(common.TimeFormatDb, dbStringTime)
+	if err != nil {
+		return "", err
+	}
+	formatTime := dbTime.Format(common.TimeFormat)
+	return formatTime, nil
 }
