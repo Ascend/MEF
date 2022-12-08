@@ -5,19 +5,18 @@ package nodemanager
 
 import (
 	"bytes"
-	"edge-manager/pkg/util"
 	"errors"
 	"fmt"
 	"regexp"
 	"strings"
 	"time"
 
-	"huawei.com/mindxedge/base/common"
-
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/kubeclient"
+	"edge-manager/pkg/util"
 )
 
 var nodeNotFoundPattern = regexp.MustCompile(`nodes "([^"]+)" not found`)
@@ -232,7 +231,7 @@ func autoAddUnmanagedNode() error {
 		return nil
 	}
 	for _, node := range realNodes.Items {
-		_, err := NodeServiceInstance().getNodeByUniqueName(node.Name)
+		_, err := NodeServiceInstance().GetNodeByUniqueName(node.Name)
 		if err == nil {
 			continue
 		}

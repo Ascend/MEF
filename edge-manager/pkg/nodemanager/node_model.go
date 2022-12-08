@@ -4,11 +4,12 @@
 package nodemanager
 
 import (
-	"edge-manager/pkg/database"
 	"sync"
 
 	"gorm.io/gorm"
 	"huawei.com/mindxedge/base/common"
+
+	"edge-manager/pkg/database"
 )
 
 var (
@@ -27,7 +28,7 @@ type NodeService interface {
 	deleteNodeByName(*NodeInfo) error
 	listNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
 	listUnManagedNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
-	getNodeByUniqueName(string) (*NodeInfo, error)
+	GetNodeByUniqueName(string) (*NodeInfo, error)
 	GetNodeByID(int64) (*NodeInfo, error)
 	getManagedNodeByID(int64) (*NodeInfo, error)
 	countGroupsByNode(int64) (int64, error)
@@ -127,7 +128,8 @@ func (n *NodeServiceImpl) deleteNodeToGroup(relation *NodeRelation) error {
 		relation.GroupID, relation.NodeID).Delete(relation).Error
 }
 
-func (n *NodeServiceImpl) getNodeByUniqueName(name string) (*NodeInfo, error) {
+// GetNodeByUniqueName get node info by unique name in k8s
+func (n *NodeServiceImpl) GetNodeByUniqueName(name string) (*NodeInfo, error) {
 	var node NodeInfo
 	return &node, n.db.Model(NodeInfo{}).Where("unique_name=?", name).First(&node).Error
 }
