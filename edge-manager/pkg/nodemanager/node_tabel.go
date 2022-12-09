@@ -10,6 +10,7 @@ type NodeInfo struct {
 	NodeType    string `gorm:"size:128"                       json:"nodeType"`
 	NodeName    string `gorm:"size:255;unique;not null"       json:"nodeName"`
 	UniqueName  string `gorm:"size:255;unique;not null"       json:"uniqueName"`
+	IP          string `gorm:"size:256"                       json:"ip"`
 	CPUCore     int64  `gorm:"size:32"                        json:"cpuCore"`
 	Memory      int64  `gorm:"size:32"                        json:"memory"`
 	NPUType     string `gorm:"size:256"                       json:"npuType"`

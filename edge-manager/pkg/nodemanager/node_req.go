@@ -113,6 +113,7 @@ type GetNodeDetailResp struct {
 	Id          int64  `json:"id"`
 	NodeName    string `json:"nodeName"`
 	UniqueName  string `json:"uniqueName"`
+	IP          string `json:"ip"`
 	Description string `json:"description"`
 	Status      string `json:"status"`
 	CreatedAt   string `json:"createdAt"`
@@ -166,6 +167,7 @@ type GetNodeGroupDetailResp struct {
 type GetNodeGroupDetailRespItem struct {
 	NodeID      int64  `json:"nodeId"`
 	NodeName    string `json:"nodeName"`
+	IP          string `json:"ip"`
 	Description string `json:"description"`
 	Status      string `json:"status"`
 	CreateAt    string `json:"createAt"`

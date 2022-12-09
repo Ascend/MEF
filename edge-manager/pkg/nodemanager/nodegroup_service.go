@@ -112,6 +112,7 @@ func getEdgeNodeGroupDetail(input interface{}) common.RespMsg {
 		nodeResp := GetNodeGroupDetailRespItem{
 			NodeID:      node.ID,
 			NodeName:    node.NodeName,
+			IP:          node.IP,
 			Description: node.Description,
 			Status:      status,
 			CreateAt:    node.CreatedAt,
