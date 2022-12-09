@@ -22,12 +22,23 @@ const (
 // related table conn_infos
 const (
 	TimeFormat    = "2006-01-02 15:04:05"
-	MinPort       = 0
-	MaxPort       = 65535
 	MinNameLength = 6
 	MaxNameLength = 32
 	MinPwdLength  = 6
 	MaxPwdLength  = 32
-	ZeroAddr      = "0.0.0.0"
-	BroadCastAddr = "255.255.255.255"
+)
+
+// Online indicates edge-installer is online, Offline indicates edge-installer is offline
+const (
+	Online  = true
+	Offline = false
+)
+
+// software manager info
+const (
+	LocationMethod = 0
+	LocationUrl    = 1
+	LocationIP     = 0
+	LocationPort   = 1
+	LocationIpPort = 2
 )

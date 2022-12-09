@@ -8,6 +8,10 @@ import "time"
 const (
 	// MEF software name
 	MEF = "MEF"
+	// EdgeCore software edgecore name
+	EdgeCore = "edgecore"
+	// EdgeInstaller software edge-installer name
+	EdgeInstaller = "edge-installer"
 	// RestfulServiceName RestfulService
 	RestfulServiceName = "RestfulService"
 	// NodeManagerName NodeManager
@@ -20,8 +24,8 @@ const (
 	EdgeInstallerName = "edge-installer"
 	// CertManagerName CertManager
 	CertManagerName = "CertManager"
-	// SoftwareRepositoryName software repository
-	SoftwareRepositoryName = "software repository"
+	// SoftwareManagerName software manager
+	SoftwareManagerName = "software manager"
 	// TemplateManagerName TemplateManager module name
 	TemplateManagerName = "TemplateManager"
 	// CertManagerService CertManager module name
@@ -35,6 +39,8 @@ const (
 	Update = "update"
 	// Upgrade option upgrade
 	Upgrade = "upgrade"
+	// Download option download
+	Download = "download"
 	// Query option query
 	Query = "query"
 	// Issue option issue
@@ -77,10 +83,18 @@ const (
 
 	// Software resource software
 	Software = "software"
+	// SoftwareResp resource software response
+	SoftwareResp = "software/response"
 	// Repository resource
 	Repository = "repository"
 	// URL link
 	URL = "url"
+)
+
+// result from edge-installer when downloading and upgrading software
+const (
+	SuccessResult = "success"
+	FailResult    = "fail"
 )
 
 const (
@@ -191,4 +205,10 @@ const (
 	NodeUniqueNameMin = 1
 	// NodeUniqueNameMax node unique name max
 	NodeUniqueNameMax = 64
+)
+
+// used to check ip
+const (
+	ZeroAddr      = "0.0.0.0"
+	BroadCastAddr = "255.255.255.255"
 )

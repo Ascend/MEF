@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"edge-manager/pkg/util"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -17,7 +18,7 @@ func setRouter(engine *gin.Engine) {
 	engine.Use(gin.Recovery())
 	nodeRouter(engine)
 	appRouter(engine)
-	wsRouter(engine)
+	sfwRouter(engine)
 	templateRouter(engine)
 }
 
@@ -59,10 +60,10 @@ func appRouter(engine *gin.Engine) {
 	}
 }
 
-func wsRouter(engine *gin.Engine) {
-	v1 := engine.Group("/edgemanager/v1/ws")
+func sfwRouter(engine *gin.Engine) {
+	v1 := engine.Group("/edgemanager/v1/software")
 	{
-		v1.POST("/", upgradeSfw)
+		v1.POST("/upgrade", upgradeSfw)
 	}
 }
 
