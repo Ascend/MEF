@@ -1,9 +1,17 @@
-package types
+package appmanager
 
 // AppParam app param
 type AppParam struct {
 	AppId       uint64      `json:"appId"`
 	AppName     string      `json:"appName"`
+	Description string      `json:"description"`
+	Containers  []Container `json:"containers"`
+}
+
+// TemplateParam app param
+type TemplateParam struct {
+	Id          uint64      `json:"id"`
+	Name        string      `json:"name"`
 	Description string      `json:"description"`
 	Containers  []Container `json:"containers"`
 }

@@ -1,7 +1,7 @@
 // Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
 
 // Package apptemplatemanager to  provide containerized application template management.
-package apptemplatemanager
+package appmanager
 
 import (
 	"edge-manager/pkg/database"
@@ -78,31 +78,12 @@ func (rep *repositoryImpl) DeleteTemplates(ids []uint64) error {
 
 // UpdateTemplate modify app template
 func (rep *repositoryImpl) UpdateTemplate(template *AppTemplate) error {
-	if err := rep.db.Model(AppTemplate{}).Where("id = ?", template.ID).Update("containers", template.Containers).Error; err != nil {
+	if err := rep.db.Model(AppTemplate{}).Where("id = ?", template.ID).Updates(template).Error; err != nil {
 		hwlog.RunLog.Errorf("update template failed: %s", err.Error())
 		return err
 	}
 	return nil
 
-}
-
-func paginate(page, pageSize uint64) func(db *gorm.DB) *gorm.DB {
-	return func(db *gorm.DB) *gorm.DB {
-		if page == 0 {
-			page = common.DefaultPage
-		}
-		if pageSize > common.DefaultMaxPageSize {
-			pageSize = common.DefaultMaxPageSize
-		}
-		offset := (page - 1) * pageSize
-		return db.Offset(int(offset)).Limit(int(pageSize))
-	}
-}
-
-func getAppInfoByLikeName(page, pageSize uint64, appName string) func(db *gorm.DB) *gorm.DB {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Scopes(paginate(page, pageSize)).Where("app_name like ?", "%"+appName+"%")
-	}
 }
 
 // GetTemplates get app template versions

@@ -18,7 +18,7 @@ func createTemplate(c *gin.Context) {
 	}
 	resp := common.SendSyncMessageByRestful(string(res), &common.Router{
 		Source:      common.RestfulServiceName,
-		Destination: common.TemplateManagerName,
+		Destination: common.AppManagerName,
 		Option:      common.Create,
 		Resource:    common.AppTemplate,
 	})
@@ -33,7 +33,7 @@ func updateTemplate(c *gin.Context) {
 	}
 	resp := common.SendSyncMessageByRestful(string(res), &common.Router{
 		Source:      common.RestfulServiceName,
-		Destination: common.TemplateManagerName,
+		Destination: common.AppManagerName,
 		Option:      common.Update,
 		Resource:    common.AppTemplate,
 	})
@@ -48,7 +48,7 @@ func deleteTemplate(c *gin.Context) {
 	}
 	resp := common.SendSyncMessageByRestful(string(res), &common.Router{
 		Source:      common.RestfulServiceName,
-		Destination: common.TemplateManagerName,
+		Destination: common.AppManagerName,
 		Option:      common.Delete,
 		Resource:    common.AppTemplate,
 	})
@@ -65,7 +65,7 @@ func getTemplates(c *gin.Context) {
 
 	resp := common.SendSyncMessageByRestful(input, &common.Router{
 		Source:      common.RestfulServiceName,
-		Destination: common.TemplateManagerName,
+		Destination: common.AppManagerName,
 		Option:      common.List,
 		Resource:    common.AppTemplate,
 	})
@@ -81,7 +81,7 @@ func getTemplateDetail(c *gin.Context) {
 
 	resp := common.SendSyncMessageByRestful(appId, &common.Router{
 		Source:      common.RestfulServiceName,
-		Destination: common.TemplateManagerName,
+		Destination: common.AppManagerName,
 		Option:      common.Get,
 		Resource:    common.AppTemplate,
 	})

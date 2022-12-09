@@ -1,10 +1,9 @@
 // Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
 
-// Package apptemplatemanager to define dto struct
-package apptemplatemanager
+// Package appmanager to define dto struct
+package appmanager
 
 import (
-	"edge-manager/pkg/types"
 	"encoding/json"
 	"errors"
 	"huawei.com/mindx/common/hwlog"
@@ -14,7 +13,7 @@ import (
 
 // AppTemplateDto app template dto
 type AppTemplateDto struct {
-	types.AppParam
+	AppParam
 }
 
 // ReqDeleteTemplate request body to delete app template

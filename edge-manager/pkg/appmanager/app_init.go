@@ -38,9 +38,10 @@ func (app *appManager) Name() string {
 func (app *appManager) Enable() bool {
 	if app.enable {
 		if err := initAppTable(); err != nil {
-			hwlog.RunLog.Errorf("module (%s) init database table failed, cannot enable", common.AppManagerName)
+			hwlog.RunLog.Errorf("module (%s) init app table failed, cannot enable", common.AppManagerName)
 			return !app.enable
 		}
+
 		if err := appStatusService.initAppStatusService(); err != nil {
 			hwlog.RunLog.Errorf("module (%s) init app service failed, cannot enable", common.AppManagerName)
 			return !app.enable
@@ -99,10 +100,17 @@ func initAppTable() error {
 		hwlog.RunLog.Error("create app information database table failed")
 		return err
 	}
+
 	if err := database.CreateTableIfNotExists(AppInstance{}); err != nil {
 		hwlog.RunLog.Error("create app instance database table failed")
 		return err
 	}
+
+	if err := database.CreateTableIfNotExists(AppTemplate{}); err != nil {
+		hwlog.RunLog.Errorf("create app template instance database table failed")
+		return err
+	}
+
 	return nil
 }
 
@@ -116,6 +124,12 @@ func appMethodList() map[string]handlerFunc {
 		combine(common.Delete, common.App):             DeleteApp,
 		combine(common.List, common.AppInstance):       ListAppInstances,
 		combine(common.List, common.AppInstanceByNode): ListAppInstancesByNode,
+
+		combine(common.Create, common.AppTemplate): CreateTemplate,
+		combine(common.Update, common.AppTemplate): UpdateTemplate,
+		combine(common.Delete, common.AppTemplate): DeleteTemplate,
+		combine(common.List, common.AppTemplate):   GetTemplates,
+		combine(common.Get, common.AppTemplate):    GetTemplateDetail,
 	}
 }
 

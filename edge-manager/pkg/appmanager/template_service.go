@@ -1,10 +1,9 @@
 // Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
 
-// Package apptemplatemanager to  provide containerized application template management.
-package apptemplatemanager
+// Package appmanager to  provide containerized application template management.
+package appmanager
 
 import (
-	"edge-manager/pkg/types"
 	"edge-manager/pkg/util"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
@@ -74,18 +73,6 @@ func UpdateTemplate(param interface{}) common.RespMsg {
 	}
 	hwlog.RunLog.Info("modify app template,success")
 	return common.RespMsg{Status: common.Success}
-}
-
-// AppReturnInfo encapsulate app information for return
-type AppReturnInfo struct {
-	AppId         uint64            `json:"appId"`
-	AppName       string            `json:"appName"`
-	Description   string            `json:"description"`
-	CreatedAt     string            `json:"createdAt"`
-	ModifiedAt    string            `json:"modifiedAt"`
-	NodeGroupName string            `json:"nodeGroupName"`
-	NodeGroupId   []int64           `json:"nodeGroupId"`
-	Containers    []types.Container `json:"containers"`
 }
 
 // GetTemplates get app templates
