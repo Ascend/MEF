@@ -5,16 +5,19 @@ package edgeconnector
 
 import (
 	"context"
-
-	"huawei.com/mindxedge/base/modulemanager"
-	"huawei.com/mindxedge/base/modulemanager/model"
+	"encoding/json"
+	"errors"
+	"fmt"
 
 	"edge-manager/pkg/database"
 	"edge-manager/pkg/util"
 
+	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/modulemanager"
+	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 // Socket wraps the struct WebSocketServer
@@ -22,6 +25,7 @@ type Socket struct {
 	server *WebSocketServer
 	ctx    context.Context
 	enable bool
+	engine *gin.Engine
 }
 
 // Name returns the name of websocket connection module
@@ -31,17 +35,26 @@ func (s *Socket) Name() string {
 
 // Start initializes the websocket server
 func (s *Socket) Start() {
-	if err := database.CreateTableIfNotExists(ConnInfo{}); err != nil {
-		hwlog.RunLog.Error("table conn_infos create failed")
-		return
-	}
-	s.server = newWebsocketServer()
+	InitConfigure()
+	for {
+		select {
+		case _, ok := <-s.ctx.Done():
+			if !ok {
+				hwlog.RunLog.Info("catch stop signal channel is closed")
+			}
+			hwlog.RunLog.Info("has listened stop signal")
+			return
+		default:
+		}
 
-	s.start()
+		s.server = newWebsocketServer(s.engine)
+		s.start()
+	}
 }
 
 func (s *Socket) start() {
 	go s.server.startWebsocketServer()
+
 	go s.receiveAndSendInnerMsg()
 	go s.receiveAndSendExternalMsg()
 }
@@ -68,9 +81,9 @@ func (s *Socket) receiveAndSendInnerMsg() {
 			hwlog.RunLog.Error("message receive from module is invalid")
 			continue
 		}
-		if message.GetDestination() != common.EdgeConnectorName {
+		if message.GetDestination() != s.Name() {
 			hwlog.RunLog.Errorf("message is not sent to edge-connector, destination is: %s", message.GetDestination())
-			return
+			continue
 		}
 
 		switch message.GetOption() {
@@ -78,20 +91,16 @@ func (s *Socket) receiveAndSendInnerMsg() {
 			s.sendInnerIssue(message)
 		case common.Upgrade:
 			s.sendInnerUpgrade(message)
+		case common.Download:
+			s.sendInnerDownload(message)
 		case common.Update:
 			s.sendInnerUpdate(message)
 		default:
-			hwlog.RunLog.Error("invalid option")
-			return
+			hwlog.RunLog.Error("invalid operation")
+			continue
 		}
-		return
-	}
-}
 
-// IssueInfo struct for issuing service cert
-type IssueInfo struct {
-	NodeId      string
-	ServiceCert []byte
+	}
 }
 
 func (s *Socket) sendInnerIssue(message *model.Message) {
@@ -101,50 +110,51 @@ func (s *Socket) sendInnerIssue(message *model.Message) {
 		return
 	}
 
-	if !s.server.IsClientConnected(issueInfo.NodeId) {
-		hwlog.RunLog.Errorf("edge-installer %s is disconnected", issueInfo.NodeId)
+	if err := s.sendToInstaller(issueInfo.NodeId, message); err != nil {
+		hwlog.RunLog.Errorf("construct content or send to edge-installer failed, error: %v", err)
 		return
 	}
-	s.sendToInstaller(issueInfo.NodeId, message)
 
 	return
 }
 
-// UpgradeInfo struct for upgrading software
-type UpgradeInfo struct {
-	NodeId          []string
-	SoftwareName    string
-	SoftwareVersion string
-	baseInfo
-}
-
 func (s *Socket) sendInnerUpgrade(message *model.Message) {
-	upgradeInfo, ok := message.GetContent().(UpgradeInfo)
+	upgradeInfo, ok := message.GetContent().(util.DealSfwContent)
 	if !ok {
 		hwlog.RunLog.Error("convert to upgradeInfo failed")
 		return
 	}
 
-	if err := upgradeInfo.checkBaseInfo(); err != nil {
+	if err := checkUpgradeInfo(upgradeInfo); err != nil {
+		hwlog.RunLog.Errorf("check software manager info failed, error: %v", err)
 		return
 	}
 
-	for _, nodeId := range upgradeInfo.NodeId {
-		if !s.server.IsClientConnected(nodeId) {
-			hwlog.RunLog.Errorf("edge-installer %s is disconnected", nodeId)
-			return
-		}
-		s.sendToInstaller(nodeId, message)
+	if err := s.sendToInstaller(upgradeInfo.NodeId, message); err != nil {
+		hwlog.RunLog.Errorf("construct content or send to edge-installer failed, error: %v", err)
+		return
 	}
 
 	return
 }
 
-// UpdateInfo struct for updating username and password
-type UpdateInfo struct {
-	NodeId   []string
-	Username string
-	Password []byte
+func (s *Socket) sendInnerDownload(message *model.Message) {
+	hwlog.RunLog.Info("edge-connector receive message from edge-installer success")
+	downloadSfw, ok := message.GetContent().(util.DealSfwContent)
+	defer common.ClearStringMemory(downloadSfw.Password)
+	if !ok {
+		hwlog.RunLog.Error("convert to downloadSfw failed")
+		return
+	}
+
+	if err := s.sendToInstaller(downloadSfw.NodeId, message); err != nil {
+		hwlog.RunLog.Errorf("construct content or send to edge-installer failed, error: %v", err)
+		return
+	}
+
+	hwlog.RunLog.Info("edge-connector send message to edge-installer success")
+	hwlog.RunLog.Info(" ----------deal download request from edge-installer end-------")
+	return
 }
 
 func (s *Socket) sendInnerUpdate(message *model.Message) {
@@ -156,35 +166,47 @@ func (s *Socket) sendInnerUpdate(message *model.Message) {
 	}
 
 	for _, nodeId := range updateInfo.NodeId {
-		if !s.server.IsClientConnected(nodeId) {
-			hwlog.RunLog.Errorf("edge-installer %s is disconnected", nodeId)
+		if err := s.sendToInstaller(nodeId, message); err != nil {
+			hwlog.RunLog.Errorf("construct content or send to edge-installer failed, error: %v", err)
 			return
 		}
-		s.sendToInstaller(nodeId, message)
 	}
 
 	return
 }
 
-func (s *Socket) sendToInstaller(nodeId string, message *model.Message) {
+func (s *Socket) sendToInstaller(nodeId string, message *model.Message) error {
+	if !s.server.IsClientConnected(nodeId) {
+		hwlog.RunLog.Errorf("edge-installer %s is disconnected", nodeId)
+		return fmt.Errorf("edge-installer %s is disconnected", nodeId)
+	}
+
+	data, err := json.Marshal(message.GetContent())
+	if err != nil {
+		hwlog.RunLog.Errorf("marshal content failed, error: %v", err)
+		return err
+	}
+
 	sendMsg, err := model.NewMessage()
 	if err != nil {
 		hwlog.RunLog.Errorf("new message failed, error: %v", err)
-		return
+		return err
 	}
 	sendMsg.SetRouter(common.EdgeConnectorName, common.EdgeInstallerName, message.GetOption(), message.GetResource())
-	sendMsg.FillContent(message.GetContent())
+	sendMsg.FillContent(string(data))
 	sendMsg.SetIsSync(false)
 	if err = s.server.Send(sendMsg, nodeId); err != nil {
 		s.server.CloseConnection(nodeId)
-		return
+		hwlog.RunLog.Errorf("send message to edge-installer failed, error: %v", err)
+		return err
 	}
 
-	return
+	return nil
 }
 
 func (s *Socket) receiveAndSendExternalMsg() {
 	hwlog.RunLog.Info("start receive and send external message")
+
 	for {
 		select {
 		case _, ok := <-s.ctx.Done():
@@ -196,8 +218,13 @@ func (s *Socket) receiveAndSendExternalMsg() {
 		default:
 		}
 
-		for _, conn := range s.server.allClients {
-			go s.dealConnMap(conn)
+		for nodeId, conn := range s.server.allClients {
+			if !s.server.isConnMap[nodeId] {
+				continue
+			} else {
+				hwlog.RunLog.Infof("edge-connector receive message from edge-installer [%s]", nodeId)
+				s.dealConnMap(conn)
+			}
 		}
 	}
 }
@@ -215,13 +242,11 @@ func (s *Socket) dealConnMap(conn *websocket.Conn) {
 		return
 	}
 
+	hwlog.RunLog.Infof("edge-connector receive message from edge-installer, Source: [%+v]; Destination: [%+v]",
+		message.GetSource(), message.GetDestination())
+
 	if !util.CheckInnerMsg(message) {
 		hwlog.RunLog.Error("message receive from edge-installer is invalid")
-		return
-	}
-
-	if message.GetDestination() != common.EdgeConnectorName {
-		hwlog.RunLog.Errorf("message is not sent to edge-connector, destination is: %s", message.GetDestination())
 		return
 	}
 
@@ -230,6 +255,8 @@ func (s *Socket) dealConnMap(conn *websocket.Conn) {
 		s.dealExternalIssue(message)
 	case common.Upgrade:
 		s.dealExternalUpgrade(message)
+	case common.Download:
+		s.dealExternalDownload(message)
 	default:
 		hwlog.RunLog.Error("invalid option")
 		return
@@ -237,17 +264,16 @@ func (s *Socket) dealConnMap(conn *websocket.Conn) {
 	return
 }
 
-// IssueResp deals issue service cert response
-type IssueResp struct {
-	NodeId []string
-	Result string
-	Reason string
-}
-
 func (s *Socket) dealExternalIssue(message *model.Message) {
-	issueResp, ok := message.GetContent().(IssueResp)
+	content, ok := message.GetContent().(string)
 	if !ok {
-		hwlog.RunLog.Error("convert to updateResp failed")
+		hwlog.RunLog.Error("convert to content error")
+		return
+	}
+
+	var issueResp IssueResp
+	if err := json.Unmarshal([]byte(content), &issueResp); err != nil {
+		hwlog.RunLog.Error("parse to data failed")
 		return
 	}
 
@@ -255,26 +281,57 @@ func (s *Socket) dealExternalIssue(message *model.Message) {
 	return
 }
 
-// UpgradeResp deals upgrade software response
-type UpgradeResp struct {
-	NodeId []string
-	Result string
-	Reason string
+func (s *Socket) dealExternalDownload(message *model.Message) {
+	content, ok := message.GetContent().(string)
+	if !ok {
+		hwlog.RunLog.Error("convert to content failed")
+		return
+	}
+
+	var data interface{}
+	switch message.GetResource() {
+	case common.Software:
+		hwlog.RunLog.Info("----------deal download request from edge-installer begin-------")
+		parseContent := isDownloadReq(content)
+		if parseContent == nil {
+			return
+		}
+		data = *parseContent
+	case common.SoftwareResp:
+		hwlog.RunLog.Info("----------deal download response from edge-installer begin-------")
+		parseContent := isDownloadResp(content)
+		if parseContent == nil {
+			return
+		}
+		data = *parseContent
+	default:
+		hwlog.RunLog.Error("invalid resource")
+	}
+
+	s.sendToModule(data, message)
+	return
 }
 
-func (s *Socket) dealExternalUpgrade(message *model.Message) { // 后续需传回restful
-	updateResp, ok := message.GetContent().(UpgradeResp)
+func (s *Socket) dealExternalUpgrade(message *model.Message) { // todo 后续需传回restful
+	content, ok := message.GetContent().(string)
 	if !ok {
-		hwlog.RunLog.Error("convert to updateResp failed")
+		hwlog.RunLog.Error("convert to content error")
 		return
 	}
 
-	if updateResp.Result == "fail" {
-		hwlog.RunLog.Errorf("edge-installer %s upgrade software failed, reason: %s",
-			updateResp.NodeId, updateResp.Reason)
+	var respFromInstaller RespFromInstaller
+	if err := json.Unmarshal([]byte(content), &respFromInstaller); err != nil {
+		hwlog.RunLog.Error("parse to data failed")
 		return
 	}
-	hwlog.RunLog.Infof("edge-installer %s upgrade software success", updateResp.NodeId)
+
+	if respFromInstaller.Result == common.FailResult {
+		hwlog.RunLog.Errorf("edge-installer %s upgrade software failed, reason: %s",
+			respFromInstaller.NodeId, respFromInstaller.Reason)
+		return
+	}
+
+	hwlog.RunLog.Infof("--------edge-installer %s upgrade software success--------", respFromInstaller.NodeId)
 	return
 }
 
@@ -286,33 +343,27 @@ func (s *Socket) sendToModule(input interface{}, message *model.Message) {
 		hwlog.RunLog.Errorf("new message failed, error: %v", err)
 		return
 	}
-	sendMsg.SetRouter(common.EdgeConnectorName, destination, message.GetOption(), message.GetResource())
+	sendMsg.SetRouter(s.Name(), destination, message.GetOption(), message.GetResource())
 	sendMsg.FillContent(input)
 	sendMsg.SetIsSync(false)
 	if err = modulemanager.SendMessage(sendMsg); err != nil {
-		hwlog.RunLog.Errorf("send message to module failed, error: %v", err)
+		hwlog.RunLog.Errorf("send message to module [%s] failed, error: %v", destination, err)
 		return
 	}
 
+	hwlog.RunLog.Infof("send [%s] message to module [%s] success", message.GetOption(), destination)
 	return
-}
-
-func getDestination(message *model.Message) string {
-	var destination = ""
-	switch message.GetOption() {
-	case common.Issue:
-		destination = common.CertManagerName
-	case common.Upgrade:
-		destination = common.RestfulServiceName
-	default:
-		hwlog.RunLog.Error("invalid option")
-		return ""
-	}
-	return destination
 }
 
 // Enable indicates whether this module is enabled
 func (s *Socket) Enable() bool {
+	if s.enable {
+		if err := initConnInfoTable(); err != nil {
+			hwlog.RunLog.Errorf("module (%s) init database table failed, cannot enable", common.EdgeConnectorName)
+			return !s.enable
+		}
+	}
+
 	return s.enable
 }
 
@@ -333,6 +384,14 @@ func NewSocket(enable bool) *Socket {
 	socket := &Socket{
 		enable: enable,
 		ctx:    context.Background(),
+		engine: initGin(),
 	}
 	return socket
+}
+
+func initConnInfoTable() error {
+	if err := database.CreateTableIfNotExists(ConnInfo{}); err != nil {
+		return errors.New("create database table conn_infos failed")
+	}
+	return nil
 }

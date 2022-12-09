@@ -1,6 +1,6 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package common base checker used
+// Package util base checker used
 package util
 
 import (
@@ -28,6 +28,11 @@ func CheckInnerMsg(msg *model.Message) bool {
 		return false
 	}
 	return true
+}
+
+// IsSyncResponse checks whether is the sync message response
+func IsSyncResponse(message *model.Message) bool {
+	return message.GetParentId() != ""
 }
 
 // CheckInt checks whether the value is within the range

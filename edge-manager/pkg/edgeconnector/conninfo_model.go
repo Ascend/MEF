@@ -4,8 +4,9 @@
 package edgeconnector
 
 import (
-	"edge-manager/pkg/database"
 	"time"
+
+	"edge-manager/pkg/database"
 
 	"huawei.com/mindxedge/base/common"
 )
@@ -25,13 +26,6 @@ func updateInConnInfo(node *ConnInfo) error {
 	}).Error; err != nil {
 		return err
 	}
-	return nil
-}
 
-func getItemCount(table interface{}) (int, error) {
-	var total int64
-	if err := database.GetDb().Model(table).Count(&total).Error; err != nil {
-		return 0, err
-	}
-	return int(total), nil
+	return nil
 }

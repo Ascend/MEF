@@ -5,9 +5,10 @@ package edgeinstaller
 
 import (
 	"context"
-	"edge-manager/pkg/util"
 	"encoding/json"
 	"time"
+
+	"edge-manager/pkg/util"
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
@@ -76,7 +77,7 @@ func (i *Installer) sendSyncToModule(msg *model.Message) *model.Message {
 	destination := ""
 	switch msg.GetOption() {
 	case common.Upgrade:
-		destination = common.SoftwareRepositoryName
+		destination = common.SoftwareManagerName
 	default:
 		hwlog.RunLog.Error("message destination invalid")
 		return nil

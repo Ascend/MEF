@@ -4,8 +4,6 @@
 package nodemanager
 
 import (
-	"edge-manager/pkg/database"
-	"edge-manager/pkg/util"
 	"encoding/json"
 	"os"
 	"strconv"
@@ -17,6 +15,9 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
+
+	"edge-manager/pkg/database"
+	"edge-manager/pkg/util"
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -103,7 +104,7 @@ func testCreateNode() {
 		Description: "my-desc",
 		NodeName:    "node-name",
 		UniqueName:  "unique-name",
-		NodeGroup:   "node-group",
+		NodeGroup:   "node_group",
 	}
 	reqBytes, err := json.Marshal(req)
 	convey.So(err, convey.ShouldBeNil)
@@ -114,7 +115,7 @@ func testCreateNode() {
 func testCreateNodeGroup() {
 	req := CreateNodeGroupReq{
 		Description:   "my-desc",
-		NodeGroupName: "node-group-name",
+		NodeGroupName: "node_group_name",
 	}
 	reqBytes, err := json.Marshal(req)
 	convey.So(err, convey.ShouldBeNil)
@@ -123,7 +124,7 @@ func testCreateNodeGroup() {
 }
 
 func testGetNodeDetail() {
-	testGetNodeDetailInternal("my-desc", "node-name", "unique-name", "my-group", 1)
+	testGetNodeDetailInternal("my-desc", "node-name", "unique-name", "my_group", 1)
 }
 
 func testGetNodeDetailInternal(description, nodeName, uniqueName, nodeGroup string, nodeId int64) {
@@ -141,7 +142,7 @@ func testGetNodeDetailInternal(description, nodeName, uniqueName, nodeGroup stri
 }
 
 func testModifyNode() {
-	req := ModifyNodeGroupReq{
+	req := ModifyNodeReq{
 		NodeId:      1,
 		Description: "my-desc-new",
 		NodeName:    "node-name-new",
@@ -150,7 +151,7 @@ func testModifyNode() {
 	convey.So(err, convey.ShouldBeNil)
 	resp := modifyNode(string(reqBytes))
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
-	testGetNodeDetailInternal("my-desc-new", "node-name-new", "unique-name", "my-group", 1)
+	testGetNodeDetailInternal("my-desc-new", "node-name-new", "unique-name", "my_group", 1)
 }
 
 func testGetNodeStatistics() {
@@ -206,7 +207,7 @@ func createGroupAndRelation(nodeId int64) {
 	}
 	nodeGroup := NodeGroup{
 		Description: "my-description",
-		GroupName:   "my-group",
+		GroupName:   "my_group",
 		CreatedAt:   time.Now().Format(TimeFormat),
 		UpdateAt:    time.Now().Format(TimeFormat),
 	}

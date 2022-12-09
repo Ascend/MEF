@@ -8,6 +8,10 @@ import "time"
 const (
 	// MEF software name
 	MEF = "MEF"
+	// EdgeCore software edgecore name
+	EdgeCore = "edgecore"
+	// EdgeInstaller software edge-installer name
+	EdgeInstaller = "edge-installer"
 	// RestfulServiceName RestfulService
 	RestfulServiceName = "RestfulService"
 	// NodeManagerName NodeManager
@@ -20,8 +24,10 @@ const (
 	EdgeInstallerName = "edge-installer"
 	// CertManagerName CertManager
 	CertManagerName = "CertManager"
-	// SoftwareRepositoryName software repository
-	SoftwareRepositoryName = "software repository"
+	// SoftwareManagerName software manager
+	SoftwareManagerName = "software manager"
+	// TemplateManagerName TemplateManager module name
+	TemplateManagerName = "TemplateManager"
 	// CertManagerService CertManager module name
 	CertManagerService = "CertManagerService"
 
@@ -33,6 +39,8 @@ const (
 	Update = "update"
 	// Upgrade option upgrade
 	Upgrade = "upgrade"
+	// Download option download
+	Download = "download"
 	// Query option query
 	Query = "query"
 	// Issue option issue
@@ -75,10 +83,18 @@ const (
 
 	// Software resource software
 	Software = "software"
+	// SoftwareResp resource software response
+	SoftwareResp = "software/response"
 	// Repository resource
 	Repository = "repository"
 	// URL link
 	URL = "url"
+)
+
+// result from edge-installer when downloading and upgrading software
+const (
+	SuccessResult = "success"
+	FailResult    = "fail"
 )
 
 const (
@@ -104,7 +120,7 @@ const (
 	// TimeFormatDb is a time format which get from db
 	TimeFormatDb = "2006-01-02T15:04:05Z"
 	// NodeGroupLabelPrefix k8s label prefix for node group
-	NodeGroupLabelPrefix = "huawei.com/MEF-Node"
+	NodeGroupLabelPrefix = "MEF-Node"
 )
 
 // regex patterns
@@ -119,6 +135,10 @@ const (
 	RegImageVersion = `^[a-zA-Z]([-_a-zA-Z0-9]{0,14}[a-zA-Z0-9])?$`
 	// RegEnvKey regex pattern of environment variable key
 	RegEnvKey = `^[a-zA-Z]([_a-zA-Z0-9]{0,2046}[a-zA-Z0-9])?$`
+	// RegNodeName regex pattern of node name
+	RegNodeName = `^[a-zA-Z][-_a-zA-Z0-9]{0,62}[a-zA-Z0-9]$`
+	// RegDomainLabel regex pattern of domain label
+	RegDomainLabel = `^[a-zA-Z0-9]([-a-zA-Z0-9]{0,61}[a-zA-Z0-9])?$`
 )
 
 // protocol
@@ -177,4 +197,18 @@ const (
 	TemplateEnvValueMin = 1
 	// TemplateEnvValueMax environment variable value max length
 	TemplateEnvValueMax = 2048
+	// NodeGroupDescMin node group description min
+	NodeGroupDescMin = 0
+	// NodeGroupDescMax node group description max
+	NodeGroupDescMax = 1024
+	// NodeUniqueNameMin node unique name min
+	NodeUniqueNameMin = 1
+	// NodeUniqueNameMax node unique name max
+	NodeUniqueNameMax = 64
+)
+
+// used to check ip
+const (
+	ZeroAddr      = "0.0.0.0"
+	BroadCastAddr = "255.255.255.255"
 )
