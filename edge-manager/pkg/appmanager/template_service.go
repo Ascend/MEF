@@ -17,10 +17,7 @@ func CreateTemplate(param interface{}) common.RespMsg {
 		hwlog.RunLog.Error("create app template,failed,error:request parameter convert failed")
 		return common.RespMsg{Status: common.ErrorParamInvalid}
 	}
-	if err := req.Check(); err != nil {
-		hwlog.RunLog.Errorf("create app template,failed,error:%v", err)
-		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
-	}
+
 	var template AppTemplate
 	if err := req.ToDb(&template); err != nil {
 		hwlog.RunLog.Errorf("create app template,failed,error:%v", err)
@@ -58,10 +55,7 @@ func UpdateTemplate(param interface{}) common.RespMsg {
 		hwlog.RunLog.Error("modify app template,failed,error:request parameter convert failed")
 		return common.RespMsg{Status: common.ErrorParamInvalid}
 	}
-	if err := req.Check(); err != nil {
-		hwlog.RunLog.Errorf("modify app template,failed,error:%v", err)
-		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
-	}
+
 	var template AppTemplate
 	if err := req.ToDb(&template); err != nil {
 		hwlog.RunLog.Errorf("create app template,failed,error:%v", err)

@@ -31,7 +31,8 @@ func CreateApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	if err := req.Check(); err != nil {
+	checker := appCreatParaChecker{req: &req}
+	if err := checker.Check(); err != nil {
 		hwlog.RunLog.Errorf("app create para check failed: %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
@@ -150,7 +151,8 @@ func DeployApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	if err := req.Check(); err != nil {
+	checker := appDeployParaChecker{req: &req}
+	if err := checker.Check(); err != nil {
 		hwlog.RunLog.Errorf("app deploy para check failed: %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
@@ -202,7 +204,8 @@ func UpdateApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	if err := req.Check(); err != nil {
+	checker := appCreatParaChecker{req: &req}
+	if err := checker.Check(); err != nil {
 		hwlog.RunLog.Errorf("app update para check failed: %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
