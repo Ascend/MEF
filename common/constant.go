@@ -106,7 +106,7 @@ const (
 	// TimeFormatDb is a time format which get from db
 	TimeFormatDb = "2006-01-02T15:04:05Z"
 	// NodeGroupLabelPrefix k8s label prefix for node group
-	NodeGroupLabelPrefix = "huawei.com/MEF-Node"
+	NodeGroupLabelPrefix = "MEF-Node"
 )
 
 // regex patterns
@@ -121,6 +121,10 @@ const (
 	RegImageVersion = `^[a-zA-Z]([-_a-zA-Z0-9]{0,14}[a-zA-Z0-9])?$`
 	// RegEnvKey regex pattern of environment variable key
 	RegEnvKey = `^[a-zA-Z]([_a-zA-Z0-9]{0,2046}[a-zA-Z0-9])?$`
+	// RegNodeName regex pattern of node name
+	RegNodeName = `^[a-zA-Z][-_a-zA-Z0-9]{0,62}[a-zA-Z0-9]$`
+	// RegDomainLabel regex pattern of domain label
+	RegDomainLabel = `^[a-zA-Z0-9]([-a-zA-Z0-9]{0,61}[a-zA-Z0-9])?$`
 )
 
 // protocol
@@ -179,4 +183,12 @@ const (
 	TemplateEnvValueMin = 1
 	// TemplateEnvValueMax environment variable value max length
 	TemplateEnvValueMax = 2048
+	// NodeGroupDescMin node group description min
+	NodeGroupDescMin = 0
+	// NodeGroupDescMax node group description max
+	NodeGroupDescMax = 1024
+	// NodeUniqueNameMin node unique name min
+	NodeUniqueNameMin = 1
+	// NodeUniqueNameMax node unique name max
+	NodeUniqueNameMax = 64
 )

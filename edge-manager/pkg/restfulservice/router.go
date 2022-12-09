@@ -8,9 +8,9 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/util"
+	"huawei.com/mindxedge/base/common"
 )
 
 func setRouter(engine *gin.Engine) {
@@ -40,6 +40,7 @@ func nodeRouter(engine *gin.Engine) {
 		nodeGroup.GET("/:id", getEdgeNodeGroupDetail)
 		nodeGroup.POST("/add", addNodeToGroup)
 		nodeGroup.POST("/delete", deleteNodeFromGroup)
+		nodeGroup.POST("/deleterelation", batchDeleteNodeRelation)
 		nodeGroup.POST("/batchdelete", batchDeleteNodeGroup)
 	}
 }
