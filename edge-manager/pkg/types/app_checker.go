@@ -15,6 +15,8 @@ type AppParaPattern struct {
 }
 
 var appPattern = AppParaPattern{patterns: map[string]string{
+	"appName":           "^[a-z]([a-z0-9-]{0,30}[a-z0-9]){0,1}$",
+	"appDescription":    `^[\S ]{0,512}$`,
 	"containerName":     "^[a-z0-9]([a-z0-9-]{0,30}[a-z0-9]){0,1}$",
 	"containerImage":    "^[a-z0-9]([a-z0-9_./-]{0,30}[a-z0-9]){0,1}$",
 	"imageVersion":      "^[a-zA-Z0-9_.-]{1,32}$",
@@ -35,7 +37,7 @@ func (a *AppParaPattern) getPattern(key string) (string, bool) {
 func (a *AppParam) checkAppNameValid() error {
 	pattern, ok := appPattern.getPattern("appName")
 	if !ok {
-		return fmt.Errorf("containerCommand regex pattern not exist")
+		return fmt.Errorf("appName regex pattern not exist")
 	}
 
 	if !util.RegexStringChecker(a.AppName, pattern) {
@@ -47,7 +49,7 @@ func (a *AppParam) checkAppNameValid() error {
 func (a *AppParam) checkAppDescriptionValid() error {
 	pattern, ok := appPattern.getPattern("appDescription")
 	if !ok {
-		return fmt.Errorf("containerCommand regex pattern not exist")
+		return fmt.Errorf("appDescription regex pattern not exist")
 	}
 
 	if !util.RegexStringChecker(a.Description, pattern) {
@@ -139,7 +141,7 @@ func (c *Container) checkContainerArgsValid() error {
 
 	pattern, ok := appPattern.getPattern("containerArgs")
 	if !ok {
-		return fmt.Errorf("containerCommand regex pattern not exist")
+		return fmt.Errorf("containerArgs regex pattern not exist")
 	}
 
 	for _, arg := range c.Args {
@@ -158,12 +160,12 @@ func (c *Container) checkContainerEnvValid() error {
 
 	namePattern, ok := appPattern.getPattern("containerEnvName")
 	if !ok {
-		return fmt.Errorf("containerCommand regex pattern not exist")
+		return fmt.Errorf("containerEnvName regex pattern not exist")
 	}
 
 	valuePattern, ok := appPattern.getPattern("containerEnvValue")
 	if !ok {
-		return fmt.Errorf("containerCommand regex pattern not exist")
+		return fmt.Errorf("containerEnvValue regex pattern not exist")
 	}
 
 	var envNames = map[string]struct{}{}
@@ -188,7 +190,7 @@ func (c *Container) checkContainerEnvValid() error {
 func (p *ContainerPort) checkPortName() error {
 	pattern, ok := appPattern.getPattern("containerPortName")
 	if !ok {
-		return fmt.Errorf("containerCommand regex pattern not exist")
+		return fmt.Errorf("containerPortName regex pattern not exist")
 	}
 
 	if !util.RegexStringChecker(p.Name, pattern) {

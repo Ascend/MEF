@@ -56,21 +56,36 @@ func deleteTemplate(c *gin.Context) {
 }
 
 func getTemplates(c *gin.Context) {
-	handleUrlRequest(c, &common.Router{
+	input, err := pageUtil(c)
+	if err != nil {
+		hwlog.OpLog.Error("list deployed apps: get input parameter failed")
+		common.ConstructResp(c, common.ErrorParseBody, "", nil)
+		return
+	}
+
+	resp := common.SendSyncMessageByRestful(input, &common.Router{
 		Source:      common.RestfulServiceName,
 		Destination: common.TemplateManagerName,
 		Option:      common.List,
 		Resource:    common.AppTemplate,
 	})
+	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }
 
 func getTemplateDetail(c *gin.Context) {
-	handleUrlRequest(c, &common.Router{
+	appId, err := getReqAppId(c)
+	if err != nil {
+		hwlog.RunLog.Errorf("get app id failed: %s", err.Error())
+		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
+	}
+
+	resp := common.SendSyncMessageByRestful(appId, &common.Router{
 		Source:      common.RestfulServiceName,
 		Destination: common.TemplateManagerName,
 		Option:      common.Get,
 		Resource:    common.AppTemplate,
 	})
+	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }
 
 func handleUrlRequest(c *gin.Context, route *common.Router) {

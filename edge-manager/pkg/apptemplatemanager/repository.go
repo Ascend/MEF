@@ -28,7 +28,7 @@ type Repository interface {
 	// UpdateTemplate modify app template
 	UpdateTemplate(template *AppTemplate) error
 	// GetTemplates get app template
-	GetTemplates(name string, pageNum, pageSize int) ([]AppTemplate, error)
+	GetTemplates(name string, pageNum, pageSize uint64) ([]AppTemplate, error)
 	// GetTemplate get app template
 	GetTemplate(id uint64) (*AppTemplate, error)
 }
@@ -86,19 +86,34 @@ func (rep *repositoryImpl) UpdateTemplate(template *AppTemplate) error {
 
 }
 
+func paginate(page, pageSize uint64) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		if page == 0 {
+			page = common.DefaultPage
+		}
+		if pageSize > common.DefaultMaxPageSize {
+			pageSize = common.DefaultMaxPageSize
+		}
+		offset := (page - 1) * pageSize
+		return db.Offset(int(offset)).Limit(int(pageSize))
+	}
+}
+
+func getAppInfoByLikeName(page, pageSize uint64, appName string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Scopes(paginate(page, pageSize)).Where("app_name like ?", "%"+appName+"%")
+	}
+}
+
 // GetTemplates get app template versions
-func (rep *repositoryImpl) GetTemplates(name string, pageNum, pageSize int) ([]AppTemplate, error) {
+func (rep *repositoryImpl) GetTemplates(name string, pageNum, pageSize uint64) ([]AppTemplate, error) {
 	var templates []AppTemplate
-	if pageNum <= 0 {
-		pageNum = common.DefaultPage
+
+	if err := rep.db.Model(AppTemplate{}).Scopes(getAppInfoByLikeName(pageNum, pageSize, name)).Find(&templates).Error; err != nil {
+		hwlog.RunLog.Error("list appInfo db failed")
+		return nil, err
 	}
-	if pageSize <= 0 {
-		pageSize = common.DefaultMaxPageSize
-	}
-	if err := rep.db.Model(AppTemplate{}).Where("Name like ?", "%"+name+"%").
-		Offset((pageNum - 1) * pageSize).Limit(pageSize).Find(&templates).Error; err != nil {
-		return nil, errors.New("get templates failed")
-	}
+
 	return templates, nil
 }
 

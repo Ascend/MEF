@@ -22,32 +22,6 @@ type ReqDeleteTemplate struct {
 	Ids []uint64 `json:"ids"`
 }
 
-// ReqGetTemplates request body to get app template versions
-type ReqGetTemplates struct {
-	Name     string `json:"name"`
-	PageNum  int    `json:"pageNum"`
-	PageSize int    `json:"pageSize"`
-}
-
-// ReqGetTemplateDetail request body to get app template detail
-type ReqGetTemplateDetail struct {
-	Id uint64 `json:"id"`
-}
-
-// Dic key-value dictionary
-type Dic struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-}
-
-// PortMap container port mapping config
-type PortMap struct {
-	Protocol      string `json:"protocol"`
-	ContainerPort string `json:"containerPort"`
-	HostIp        string `json:"hostIp"`
-	HostPort      string `json:"hostPort"`
-}
-
 // ToDb convert app template dto to db model
 func (dto *AppTemplateDto) ToDb(template *AppTemplate) error {
 	if template == nil {
@@ -55,6 +29,7 @@ func (dto *AppTemplateDto) ToDb(template *AppTemplate) error {
 	}
 	now := time.Now().Format(common.TimeFormat)
 	*template = AppTemplate{
+		ID:          dto.AppId,
 		AppName:     dto.AppName,
 		Description: dto.Description,
 		CreatedAt:   now,
@@ -85,37 +60,5 @@ func (dto *AppTemplateDto) FromDb(template *AppTemplate) error {
 		return err
 	}
 
-	return nil
-}
-
-// UnmarshalJSON custom JSON unmarshal
-func (req *ReqGetTemplates) UnmarshalJSON(input []byte) error {
-	objMap := make(map[string][]string)
-	if err := json.Unmarshal(input, &objMap); err != nil {
-		return err
-	}
-	if names, ok := objMap["name"]; ok && len(names) > 0 {
-		req.Name = names[0]
-	} else {
-		hwlog.RunLog.Warn("get param name failed")
-	}
-	if err := common.GetIntParam(objMap, "pageNum", &(req.PageNum)); err != nil {
-		hwlog.RunLog.Warn("get param pageNum failed")
-	}
-	if err := common.GetIntParam(objMap, "pageSize", &(req.PageSize)); err != nil {
-		hwlog.RunLog.Warn("get param pageSize failed")
-	}
-	return nil
-}
-
-// UnmarshalJSON custom JSON unmarshal
-func (req *ReqGetTemplateDetail) UnmarshalJSON(input []byte) error {
-	objMap := make(map[string][]string)
-	if err := json.Unmarshal(input, &objMap); err != nil {
-		return err
-	}
-	if err := common.GetUintParam(objMap, "id", &(req.Id)); err != nil {
-		return errors.New("get param id failed")
-	}
 	return nil
 }

@@ -5,6 +5,7 @@ package apptemplatemanager
 
 import (
 	"edge-manager/pkg/types"
+	"edge-manager/pkg/util"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
 )
@@ -90,11 +91,12 @@ type AppReturnInfo struct {
 // GetTemplates get app templates
 func GetTemplates(param interface{}) common.RespMsg {
 	hwlog.RunLog.Info("get app templates, start")
-	req := ReqGetTemplates{}
-	if err := common.ParamConvert(param, &req); err != nil {
-		hwlog.RunLog.Error("get app templates,failed,error:request parameter convert failed")
-		return common.RespMsg{Status: common.ErrorParamInvalid}
+	req, ok := param.(util.ListReq)
+	if !ok {
+		hwlog.RunLog.Error("get app templates,failed: para type is invalid")
+		return common.RespMsg{Status: "", Msg: "list app info error", Data: nil}
 	}
+
 	templates, err := RepositoryInstance().GetTemplates(req.Name, req.PageNum, req.PageSize)
 	if err != nil {
 		hwlog.RunLog.Errorf("get app templates,failed,error:%v", err)
@@ -114,14 +116,14 @@ func GetTemplates(param interface{}) common.RespMsg {
 }
 
 // GetTemplateDetail get app template detail
-func GetTemplateDetail(param interface{}) common.RespMsg {
+func GetTemplateDetail(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("get app template detail,start")
-	req := ReqGetTemplateDetail{}
-	if err := common.ParamConvert(param, &req); err != nil {
-		hwlog.RunLog.Error("get app template detail,failed,error:request parameter convert failed")
-		return common.RespMsg{Status: common.ErrorParamInvalid}
+	appId, ok := input.(uint64)
+	if !ok {
+		hwlog.RunLog.Error("get app template failed")
+		return common.RespMsg{Status: "", Msg: "get app template failed", Data: nil}
 	}
-	template, err := RepositoryInstance().GetTemplate(req.Id)
+	template, err := RepositoryInstance().GetTemplate(appId)
 	var dto AppTemplateDto
 	if err = (&dto).FromDb(template); err != nil {
 		hwlog.RunLog.Errorf("get app template detail,failed,error:%v", err)

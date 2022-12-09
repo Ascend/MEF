@@ -39,7 +39,7 @@ func (c *CreateAppReq) Check() error {
 func (c *DeployAppReq) checkNodeGroupNameValid() error {
 	pattern, ok := appPattern.getPattern("nodeGroupName")
 	if !ok {
-		return fmt.Errorf("containerCommand regex pattern not exist")
+		return fmt.Errorf("nodeGroupName regex pattern not exist")
 	}
 
 	for _, nodeGroupInfo := range c.NodeGroupInfo {
