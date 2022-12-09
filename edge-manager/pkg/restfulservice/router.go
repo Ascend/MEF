@@ -19,7 +19,7 @@ func setRouter(engine *gin.Engine) {
 	nodeRouter(engine)
 	appRouter(engine)
 	sfwRouter(engine)
-	appTemplateRouter(engine)
+	templateRouter(engine)
 }
 
 func nodeRouter(engine *gin.Engine) {
@@ -67,7 +67,7 @@ func sfwRouter(engine *gin.Engine) {
 	}
 }
 
-func appTemplateRouter(engine *gin.Engine) {
+func templateRouter(engine *gin.Engine) {
 	v1 := engine.Group("/edgemanager/v1/apptemplate")
 	{
 		v1.POST("/", createTemplate)

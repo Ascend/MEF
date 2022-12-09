@@ -5,6 +5,7 @@ package appmanager
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
@@ -41,7 +42,6 @@ func (app *appManager) Enable() bool {
 			hwlog.RunLog.Errorf("module (%s) init app table failed, cannot enable", common.AppManagerName)
 			return !app.enable
 		}
-
 		if err := appStatusService.initAppStatusService(); err != nil {
 			hwlog.RunLog.Errorf("module (%s) init app service failed, cannot enable", common.AppManagerName)
 			return !app.enable
@@ -67,6 +67,9 @@ func (app *appManager) Start() {
 			hwlog.RunLog.Errorf("%s receive request from restful service failed", common.AppManagerName)
 			continue
 		}
+
+		content, err := json.Marshal(req)
+		hwlog.RunLog.Errorf("     %s    ", string(content))
 		msg := methodSelect(req)
 		if msg == nil {
 			hwlog.RunLog.Errorf("%s get method by option and resource failed", common.AppManagerName)
@@ -100,7 +103,6 @@ func initAppTable() error {
 		hwlog.RunLog.Error("create app information database table failed")
 		return err
 	}
-
 	if err := database.CreateTableIfNotExists(AppInstance{}); err != nil {
 		hwlog.RunLog.Error("create app instance database table failed")
 		return err

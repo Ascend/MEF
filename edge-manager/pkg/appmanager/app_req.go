@@ -7,7 +7,10 @@ import "edge-manager/pkg/nodemanager"
 
 // CreateAppReq Create application
 type CreateAppReq struct {
-	AppParam
+	AppId       uint64      `json:"appId"`
+	AppName     string      `json:"appName"`
+	Description string      `json:"description"`
+	Containers  []Container `json:"containers"`
 }
 
 // DeleteAppReq Delete application

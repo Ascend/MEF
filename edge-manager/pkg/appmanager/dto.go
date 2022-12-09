@@ -13,7 +13,7 @@ import (
 
 // AppTemplateDto app template dto
 type AppTemplateDto struct {
-	AppParam
+	TemplateParam
 }
 
 // ReqDeleteTemplate request body to delete app template
@@ -28,8 +28,8 @@ func (dto *AppTemplateDto) ToDb(template *AppTemplate) error {
 	}
 	now := time.Now().Format(common.TimeFormat)
 	*template = AppTemplate{
-		ID:          dto.AppId,
-		AppName:     dto.AppName,
+		ID:          dto.Id,
+		AppName:     dto.Name,
 		Description: dto.Description,
 		CreatedAt:   now,
 		ModifiedAt:  now,
@@ -51,8 +51,8 @@ func (dto *AppTemplateDto) FromDb(template *AppTemplate) error {
 	if template == nil {
 		return errors.New("param is nil")
 	}
-	dto.AppId = template.ID
-	dto.AppName = template.AppName
+	dto.Id = template.ID
+	dto.Name = template.AppName
 	dto.Description = template.Description
 
 	if err := json.Unmarshal([]byte(template.Containers), &dto.Containers); err != nil {

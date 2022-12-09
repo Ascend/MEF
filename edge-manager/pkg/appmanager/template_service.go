@@ -97,14 +97,14 @@ func GetTemplates(param interface{}) common.RespMsg {
 }
 
 // GetTemplateDetail get app template detail
-func GetTemplateDetail(input interface{}) common.RespMsg {
+func GetTemplateDetail(param interface{}) common.RespMsg {
 	hwlog.RunLog.Info("get app template detail,start")
-	appId, ok := input.(uint64)
+	id, ok := param.(uint64)
 	if !ok {
 		hwlog.RunLog.Error("get app template failed")
 		return common.RespMsg{Status: "", Msg: "get app template failed", Data: nil}
 	}
-	template, err := RepositoryInstance().GetTemplate(appId)
+	template, err := RepositoryInstance().GetTemplate(id)
 	var dto AppTemplateDto
 	if err = (&dto).FromDb(template); err != nil {
 		hwlog.RunLog.Errorf("get app template detail,failed,error:%v", err)
