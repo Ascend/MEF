@@ -12,8 +12,8 @@ import (
 
 type header struct {
 	Id        string `json:"id"`
-	ParentId  string `json:"parent_id"`
-	IsSync    bool   `json:"is_sync"`
+	ParentId  string `json:"parentId"`
+	IsSync    bool   `json:"isSync"`
 	Timestamp int64  `json:"timestamp"`
 	Version   string `json:"version"`
 }
@@ -183,7 +183,7 @@ func (msg *Message) FillContent(content interface{}) {
 	msg.Content = content
 }
 
-// NewResponse create new inner respone
+// NewResponse create new inner response
 func (msg *Message) NewResponse() (*Message, error) {
 	var respMsg *Message
 	var err error

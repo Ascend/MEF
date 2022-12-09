@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gin-gonic/gin"
+
 	"huawei.com/mindxedge/base/modulemanager/model"
 
 	"github.com/gorilla/websocket"
@@ -19,24 +21,16 @@ import (
 
 // WebSocketServer defines the websocket server config
 type WebSocketServer struct {
-	server        *http.Server
+	server        *gin.Engine
 	WriteDeadline time.Duration
 	ReadDeadline  time.Duration
 	allClients    map[string]*websocket.Conn
 	isConnMap     map[string]bool
 }
 
-// Online indicates edge-installer is online, Offline indicates edge-installer is offline
-const (
-	Online  = true
-	Offline = false
-)
-
-func newWebsocketServer() *WebSocketServer {
+func newWebsocketServer(c *gin.Engine) *WebSocketServer {
 	return &WebSocketServer{
-		server: &http.Server{
-			Addr: fmt.Sprintf("%s:%s", Config.ServerAddress, Config.Port),
-		},
+		server:        c,
 		WriteDeadline: WriteDeadline,
 		ReadDeadline:  ReadDeadline,
 		allClients:    make(map[string]*websocket.Conn),
@@ -45,15 +39,18 @@ func newWebsocketServer() *WebSocketServer {
 }
 
 func (w *WebSocketServer) startWebsocketServer() {
-	http.HandleFunc("/", w.ServeHTTP)
+	w.server.GET("/", w.ServeHTTP)
 	hwlog.RunLog.Info("websocket server is listening...")
-	if err := w.server.ListenAndServe(); err != nil {
+
+	if err := w.server.Run(fmt.Sprintf(":%s", Config.Port)); err != nil {
 		hwlog.RunLog.Errorf("error during websocket server listening: %v", err)
 		return
 	}
+
+	return
 }
 
-func (w *WebSocketServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+func (w *WebSocketServer) ServeHTTP(c *gin.Context) {
 	var upgrader = websocket.Upgrader{
 		ReadBufferSize:  ReadBufferSize,
 		WriteBufferSize: WriteBufferSize,
@@ -61,14 +58,14 @@ func (w *WebSocketServer) ServeHTTP(resp http.ResponseWriter, req *http.Request)
 			return true
 		},
 	}
-	conn, err := upgrader.Upgrade(resp, req, nil)
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		hwlog.RunLog.Errorf("error during connection upgrade: %v", err)
 		return
 	}
 
-	hwlog.RunLog.Info("websocket connection is ok")
-	nodeID := req.Header.Get("SerialNumber")
+	nodeID := c.Request.Header.Get("SerialNumber")
+	hwlog.RunLog.Infof("websocket connection with [%s] is ok", nodeID)
 	w.allClients[nodeID] = conn
 	w.notifyTasks(nodeID)
 }
@@ -76,6 +73,9 @@ func (w *WebSocketServer) ServeHTTP(resp http.ResponseWriter, req *http.Request)
 // Send sends message to edge-installer
 func (w *WebSocketServer) Send(message *model.Message, nodeId string) error {
 	conn := w.allClients[nodeId]
+	if conn == nil {
+		return errors.New("conn is nil")
+	}
 
 	if err := conn.SetWriteDeadline(time.Now().Add(WriteCenterDeadline)); err != nil {
 		hwlog.RunLog.Error("write message time out")
@@ -95,13 +95,23 @@ func (w *WebSocketServer) Send(message *model.Message, nodeId string) error {
 
 // Receive receives message from edge-installer
 func (w *WebSocketServer) Receive(conn *websocket.Conn) (*model.Message, error) {
-	var message *model.Message
+	if conn == nil {
+		return nil, errors.New("conn is nil")
+	}
+
+	message, err := model.NewMessage()
+	if err != nil {
+		hwlog.RunLog.Error("new message failed")
+		return message, err
+	}
+
 	_, r, err := conn.NextReader()
 	if err != nil {
 		hwlog.RunLog.Errorf("read error is %v", err)
 		return message, err
 	}
-	err = json.NewDecoder(r).Decode(&message)
+
+	err = json.NewDecoder(r).Decode(message)
 	if err == io.EOF {
 		err = io.ErrUnexpectedEOF
 	}
@@ -109,27 +119,28 @@ func (w *WebSocketServer) Receive(conn *websocket.Conn) (*model.Message, error) 
 		hwlog.RunLog.Errorf("read json failed, error: %v", err)
 		return message, err
 	}
+
 	return message, nil
 }
 
-func (w *WebSocketServer) notifyTasks(nodeID string) {
-	w.SetClientStatus(nodeID, Online)
+func (w *WebSocketServer) notifyTasks(nodeId string) {
+	w.SetClientStatus(nodeId, Online)
 }
 
 // IsClientConnected indicates whether the edge-installer is connected
-func (w *WebSocketServer) IsClientConnected(nodeID string) bool {
-	return w.isConnMap[nodeID]
+func (w *WebSocketServer) IsClientConnected(nodeId string) bool {
+	return w.isConnMap[nodeId]
 }
 
 // CloseConnection closes the websocket connection
-func (w *WebSocketServer) CloseConnection(nodeID string) {
-	w.SetClientStatus(nodeID, Offline)
-	if err := w.server.Close(); err != nil {
+func (w *WebSocketServer) CloseConnection(nodeId string) {
+	w.SetClientStatus(nodeId, Offline)
+	if err := w.server.DELETE(fmt.Sprintf("%s:%s", Config.ServerAddress, Config.Port)); err != nil {
 		hwlog.RunLog.Errorf("close websocket connection error: %v", err)
 	}
 }
 
 // SetClientStatus sets the edge-installer status
-func (w *WebSocketServer) SetClientStatus(nodeID string, connectStatus bool) {
-	w.isConnMap[nodeID] = connectStatus
+func (w *WebSocketServer) SetClientStatus(nodeId string, connectStatus bool) {
+	w.isConnMap[nodeId] = connectStatus
 }
