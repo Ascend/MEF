@@ -13,7 +13,10 @@ import (
 
 // AppTemplateDto app template dto
 type AppTemplateDto struct {
-	TemplateParam
+	Id          uint64      `json:"id"`
+	Name        string      `json:"name"`
+	Description string      `json:"description"`
+	Containers  []Container `json:"containers"`
 }
 
 // ReqDeleteTemplate request body to delete app template
@@ -28,11 +31,11 @@ func (dto *AppTemplateDto) ToDb(template *AppTemplate) error {
 	}
 	now := time.Now().Format(common.TimeFormat)
 	*template = AppTemplate{
-		ID:          dto.Id,
-		AppName:     dto.Name,
-		Description: dto.Description,
-		CreatedAt:   now,
-		ModifiedAt:  now,
+		ID:           dto.Id,
+		TemplateName: dto.Name,
+		Description:  dto.Description,
+		CreatedAt:    now,
+		ModifiedAt:   now,
 	}
 
 	containers, err := json.Marshal(dto.Containers)
@@ -52,7 +55,7 @@ func (dto *AppTemplateDto) FromDb(template *AppTemplate) error {
 		return errors.New("param is nil")
 	}
 	dto.Id = template.ID
-	dto.Name = template.AppName
+	dto.Name = template.TemplateName
 	dto.Description = template.Description
 
 	if err := json.Unmarshal([]byte(template.Containers), &dto.Containers); err != nil {

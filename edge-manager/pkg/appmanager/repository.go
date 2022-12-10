@@ -90,7 +90,8 @@ func (rep *repositoryImpl) UpdateTemplate(template *AppTemplate) error {
 func (rep *repositoryImpl) GetTemplates(name string, pageNum, pageSize uint64) ([]AppTemplate, error) {
 	var templates []AppTemplate
 
-	if err := rep.db.Model(AppTemplate{}).Scopes(getAppInfoByLikeName(pageNum, pageSize, name)).Find(&templates).Error; err != nil {
+	if err := rep.db.Model(AppTemplate{}).Scopes(getAppInfoByLikeName(pageNum,
+		pageSize, name)).Find(&templates).Error; err != nil {
 		hwlog.RunLog.Error("list appInfo db failed")
 		return nil, err
 	}

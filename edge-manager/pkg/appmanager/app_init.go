@@ -5,7 +5,6 @@ package appmanager
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
@@ -39,7 +38,7 @@ func (app *appManager) Name() string {
 func (app *appManager) Enable() bool {
 	if app.enable {
 		if err := initAppTable(); err != nil {
-			hwlog.RunLog.Errorf("module (%s) init app table failed, cannot enable", common.AppManagerName)
+			hwlog.RunLog.Errorf("module (%s) init database table failed, cannot enable", common.AppManagerName)
 			return !app.enable
 		}
 		if err := appStatusService.initAppStatusService(); err != nil {
@@ -68,8 +67,6 @@ func (app *appManager) Start() {
 			continue
 		}
 
-		content, err := json.Marshal(req)
-		hwlog.RunLog.Errorf("     %s    ", string(content))
 		msg := methodSelect(req)
 		if msg == nil {
 			hwlog.RunLog.Errorf("%s get method by option and resource failed", common.AppManagerName)
@@ -109,7 +106,7 @@ func initAppTable() error {
 	}
 
 	if err := database.CreateTableIfNotExists(AppTemplate{}); err != nil {
-		hwlog.RunLog.Errorf("create app template instance database table failed")
+		hwlog.RunLog.Error("create app template instance database table failed")
 		return err
 	}
 

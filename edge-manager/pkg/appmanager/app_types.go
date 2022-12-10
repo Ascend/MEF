@@ -1,12 +1,7 @@
-package appmanager
+// Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
 
-// TemplateParam app param
-type TemplateParam struct {
-	Id          uint64      `json:"id"`
-	Name        string      `json:"name"`
-	Description string      `json:"description"`
-	Containers  []Container `json:"containers"`
-}
+// Package appmanager to init app manager database table
+package appmanager
 
 // Container encapsulate container request
 type Container struct {
