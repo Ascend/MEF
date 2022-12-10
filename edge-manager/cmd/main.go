@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"edge-manager/pkg/edgeconnector"
 	"flag"
 	"fmt"
 
@@ -17,6 +16,7 @@ import (
 	"edge-manager/pkg/appmanager"
 	"edge-manager/pkg/certmanager"
 	"edge-manager/pkg/database"
+	"edge-manager/pkg/edgeconnector"
 	"edge-manager/pkg/edgeinstaller"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/nodemanager"

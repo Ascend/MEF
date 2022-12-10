@@ -20,6 +20,7 @@ func (req *CreateAppReq) toDb() (*AppInfo, error) {
 	}
 
 	return &AppInfo{
+		ID:          req.AppId,
 		AppName:     req.AppName,
 		Description: req.Description,
 		Containers:  string(containers),
@@ -27,26 +28,10 @@ func (req *CreateAppReq) toDb() (*AppInfo, error) {
 		ModifiedAt:  time.Now().Format(common.TimeFormat),
 	}, nil
 
-}
-
-func (req *CreateAppReq) fromDb() (*AppInfo, error) {
-	containers, err := json.Marshal(req.Containers)
-	if err != nil {
-		hwlog.RunLog.Error("marshal containers failed")
-		return nil, err
-	}
-
-	return &AppInfo{
-		AppName:     req.AppName,
-		Description: req.Description,
-		Containers:  string(containers),
-		CreatedAt:   time.Now().Format(common.TimeFormat),
-		ModifiedAt:  time.Now().Format(common.TimeFormat),
-	}, nil
 }
 
 // ToDb convert app template dto to db model
-func (dto *AppTemplateReq) ToDb(template *AppTemplateDb) error {
+func (dto *AppTemplate) ToDb(template *AppTemplateDb) error {
 	if template == nil {
 		return errors.New("param is nil")
 	}
@@ -71,7 +56,7 @@ func (dto *AppTemplateReq) ToDb(template *AppTemplateDb) error {
 }
 
 // FromDb convert db model to app template dto
-func (dto *AppTemplateReq) FromDb(template *AppTemplateDb) error {
+func (dto *AppTemplate) FromDb(template *AppTemplateDb) error {
 	if template == nil {
 		return errors.New("param is nil")
 	}

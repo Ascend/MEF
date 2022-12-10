@@ -95,19 +95,10 @@ func pageUtil(c *gin.Context) (util.ListReq, error) {
 	return input, nil
 }
 
-func getReqAppId(c *gin.Context) (uint64, error) {
-	value, err := strconv.ParseUint(c.Query("appId"), common.BaseHex, common.BitSize64)
+func getReqId(c *gin.Context, idName string) (uint64, error) {
+	value, err := strconv.ParseUint(c.Query(idName), common.BaseHex, common.BitSize64)
 	if err != nil {
-		return 0, fmt.Errorf("app id is invalid")
-	}
-
-	return value, nil
-}
-
-func getReTemplateId(c *gin.Context) (uint64, error) {
-	value, err := strconv.ParseUint(c.Query("id"), common.BaseHex, common.BitSize64)
-	if err != nil {
-		return 0, fmt.Errorf("app template id is invalid")
+		return 0, fmt.Errorf("id is invalid")
 	}
 
 	return value, nil
