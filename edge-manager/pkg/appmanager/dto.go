@@ -7,13 +7,24 @@ import (
 	"encoding/json"
 	"errors"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
-	"time"
 )
 
 // AppTemplateDto app template dto
 type AppTemplateDto struct {
-	TemplateParam
+	Id          uint64      `json:"id"`
+	Name        string      `json:"name"`
+	CreatedAt   string      `json:"createdAt"`
+	ModifiedAt  string      `json:"modifiedAt"`
+	Description string      `json:"description"`
+	Containers  []Container `json:"containers"`
+}
+
+// ListAppTemplateInfo encapsulate app list
+type ListAppTemplateInfo struct {
+	// AppTemplates app template info
+	AppTemplates []AppTemplateDto `json:"appTemplates"`
+	// Total is num of appInfos
+	Total int64 `json:"total"`
 }
 
 // ReqDeleteTemplate request body to delete app template
@@ -22,17 +33,14 @@ type ReqDeleteTemplate struct {
 }
 
 // ToDb convert app template dto to db model
-func (dto *AppTemplateDto) ToDb(template *AppTemplate) error {
+func (dto *AppTemplateDto) ToDb(template *AppTemplateDb) error {
 	if template == nil {
 		return errors.New("param is nil")
 	}
-	now := time.Now().Format(common.TimeFormat)
-	*template = AppTemplate{
+	*template = AppTemplateDb{
 		ID:          dto.Id,
 		AppName:     dto.Name,
 		Description: dto.Description,
-		CreatedAt:   now,
-		ModifiedAt:  now,
 	}
 
 	containers, err := json.Marshal(dto.Containers)
@@ -47,13 +55,15 @@ func (dto *AppTemplateDto) ToDb(template *AppTemplate) error {
 }
 
 // FromDb convert db model to app template dto
-func (dto *AppTemplateDto) FromDb(template *AppTemplate) error {
+func (dto *AppTemplateDto) FromDb(template *AppTemplateDb) error {
 	if template == nil {
 		return errors.New("param is nil")
 	}
 	dto.Id = template.ID
 	dto.Name = template.AppName
 	dto.Description = template.Description
+	dto.CreatedAt = template.CreatedAt
+	dto.ModifiedAt = template.ModifiedAt
 
 	if err := json.Unmarshal([]byte(template.Containers), &dto.Containers); err != nil {
 		return err
