@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	"edge-manager/pkg/edgeconnector"
 	"flag"
 	"fmt"
 
@@ -126,9 +127,9 @@ func register() error {
 	if err := modulemanager.Registry(appmanager.NewAppManager(true)); err != nil {
 		return err
 	}
-	//if err := modulemanager.Registry(edgeconnector.NewSocket(true)); err != nil {
-	//	return err
-	//}
+	if err := modulemanager.Registry(edgeconnector.NewSocket(true)); err != nil {
+		return err
+	}
 	if err := modulemanager.Registry(certmanager.NewCertManager(true)); err != nil {
 		return err
 	}

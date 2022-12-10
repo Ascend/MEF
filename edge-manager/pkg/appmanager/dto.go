@@ -11,8 +11,8 @@ import (
 	"time"
 )
 
-// AppTemplateDto app template dto
-type AppTemplateDto struct {
+// AppTemplate app template dto
+type AppTemplate struct {
 	Id          uint64      `json:"id"`
 	Name        string      `json:"name"`
 	Description string      `json:"description"`
@@ -24,7 +24,7 @@ type AppTemplateDto struct {
 // ListAppTemplateInfo encapsulate app list
 type ListAppTemplateInfo struct {
 	// AppTemplates app template info
-	AppTemplates []AppTemplateDto `json:"appTemplates"`
+	AppTemplates []AppTemplate `json:"appTemplates"`
 	// Total is num of appInfos
 	Total int64 `json:"total"`
 }
@@ -35,7 +35,7 @@ type ReqDeleteTemplate struct {
 }
 
 // ToDb convert app template dto to db model
-func (dto *AppTemplateDto) ToDb(template *AppTemplateDb) error {
+func (dto *AppTemplate) ToDb(template *AppTemplateDb) error {
 	if template == nil {
 		return errors.New("param is nil")
 	}
@@ -60,7 +60,7 @@ func (dto *AppTemplateDto) ToDb(template *AppTemplateDb) error {
 }
 
 // FromDb convert db model to app template dto
-func (dto *AppTemplateDto) FromDb(template *AppTemplateDb) error {
+func (dto *AppTemplate) FromDb(template *AppTemplateDb) error {
 	if template == nil {
 		return errors.New("param is nil")
 	}

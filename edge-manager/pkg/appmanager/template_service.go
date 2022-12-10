@@ -13,7 +13,7 @@ import (
 // CreateTemplate create app template
 func CreateTemplate(param interface{}) common.RespMsg {
 	hwlog.RunLog.Info("create app template,start")
-	var req AppTemplateDto
+	var req AppTemplate
 	if err := common.ParamConvert(param, &req); err != nil {
 		hwlog.RunLog.Error("create app template,failed,error:request parameter convert failed")
 		return common.RespMsg{Status: common.ErrorParamInvalid}
@@ -55,7 +55,7 @@ func DeleteTemplate(param interface{}) common.RespMsg {
 // UpdateTemplate modify app template
 func UpdateTemplate(param interface{}) common.RespMsg {
 	hwlog.RunLog.Info("modify app template,start")
-	var req AppTemplateDto
+	var req AppTemplate
 	if err := common.ParamConvert(param, &req); err != nil {
 		hwlog.RunLog.Error("modify app template,failed,error:request parameter convert failed")
 		return common.RespMsg{Status: common.ErrorParamInvalid}
@@ -92,7 +92,7 @@ func GetTemplates(param interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorGetAppTemplates, Msg: err.Error()}
 	}
 
-	appTemplates := make([]AppTemplateDto, len(templates))
+	appTemplates := make([]AppTemplate, len(templates))
 	for i, item := range templates {
 		if err := (&appTemplates[i]).FromDb(&item); err != nil {
 			hwlog.RunLog.Errorf("get app templates,failed,error:%v", err)
@@ -122,7 +122,7 @@ func GetTemplateDetail(param interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "get app template failed", Data: nil}
 	}
 	template, err := RepositoryInstance().getTemplate(id)
-	var dto AppTemplateDto
+	var dto AppTemplate
 	if err = (&dto).FromDb(template); err != nil {
 		hwlog.RunLog.Errorf("get app template detail,failed,error:%v", err)
 		return common.RespMsg{Status: common.ErrorGetAppTemplateDetail}
