@@ -73,7 +73,7 @@ func getTemplates(c *gin.Context) {
 }
 
 func getTemplateDetail(c *gin.Context) {
-	appId, err := getReqAppId(c)
+	appId, err := getReTemplateId(c)
 	if err != nil {
 		hwlog.RunLog.Errorf("get app id failed: %s", err.Error())
 		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)

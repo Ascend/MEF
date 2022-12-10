@@ -104,6 +104,15 @@ func getReqAppId(c *gin.Context) (uint64, error) {
 	return value, nil
 }
 
+func getReTemplateId(c *gin.Context) (uint64, error) {
+	value, err := strconv.ParseUint(c.Query("id"), common.BaseHex, common.BitSize64)
+	if err != nil {
+		return 0, fmt.Errorf("app template id is invalid")
+	}
+
+	return value, nil
+}
+
 func getReqNodeId(c *gin.Context) (int64, error) {
 	value, err := strconv.ParseInt(c.Query("nodeId"), common.BaseHex, common.BitSize64)
 	if err != nil {
