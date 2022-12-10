@@ -48,7 +48,7 @@ func RepositoryInstance() Repository {
 	return repository
 }
 
-// CreateTemplate create app template
+// createTemplate create app template
 func (req *repositoryImpl) createTemplate(template *AppTemplateDb) error {
 	if err := req.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(&template).Error; err != nil {
@@ -79,7 +79,7 @@ func (req *repositoryImpl) deleteTemplates(ids []uint64) error {
 	return nil
 }
 
-// UpdateTemplate modify app template
+// updateTemplate modify app template
 func (req *repositoryImpl) updateTemplate(template *AppTemplateDb) error {
 	if err := req.db.Model(AppTemplateDb{}).Where("id = ?", template.ID).Updates(template).Error; err != nil {
 		hwlog.RunLog.Errorf("update template failed: %s", err.Error())
@@ -89,7 +89,7 @@ func (req *repositoryImpl) updateTemplate(template *AppTemplateDb) error {
 
 }
 
-// GetTemplates get app template versions
+// getTemplates get app template versions
 func (req *repositoryImpl) getTemplates(name string, pageNum, pageSize uint64) ([]AppTemplateDb, error) {
 	var templates []AppTemplateDb
 
@@ -114,7 +114,7 @@ func (req *repositoryImpl) getTemplate(id uint64) (*AppTemplateDb, error) {
 
 func (req *repositoryImpl) getTemplateCount(name string) (int64, error) {
 	var totalTemplateCount int64
-	if err := req.db.Model(AppTemplateDb{}).Where("app_name like ?",
+	if err := req.db.Model(AppTemplateDb{}).Where("template_name like ?",
 		"%"+name+"%").Count(&totalTemplateCount).Error; err != nil {
 		hwlog.RunLog.Error("count list appInfo db failed")
 		return 0, err

@@ -6,36 +6,47 @@ package appmanager
 import (
 	"encoding/json"
 	"errors"
+	"time"
+
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
-	"time"
 )
 
-// AppTemplate app template dto
-type AppTemplate struct {
-	Id          uint64      `json:"id"`
-	Name        string      `json:"name"`
-	Description string      `json:"description"`
-	CreatedAt   string      `json:"createdAt"`
-	ModifiedAt  string      `json:"modifiedAt"`
-	Containers  []Container `json:"containers"`
+func (req *CreateAppReq) toDb() (*AppInfo, error) {
+	containers, err := json.Marshal(req.Containers)
+	if err != nil {
+		hwlog.RunLog.Error("marshal containers failed")
+		return nil, err
+	}
+
+	return &AppInfo{
+		AppName:     req.AppName,
+		Description: req.Description,
+		Containers:  string(containers),
+		CreatedAt:   time.Now().Format(common.TimeFormat),
+		ModifiedAt:  time.Now().Format(common.TimeFormat),
+	}, nil
+
 }
 
-// ListAppTemplateInfo encapsulate app list
-type ListAppTemplateInfo struct {
-	// AppTemplates app template info
-	AppTemplates []AppTemplate `json:"appTemplates"`
-	// Total is num of appInfos
-	Total int64 `json:"total"`
-}
+func (req *CreateAppReq) fromDb() (*AppInfo, error) {
+	containers, err := json.Marshal(req.Containers)
+	if err != nil {
+		hwlog.RunLog.Error("marshal containers failed")
+		return nil, err
+	}
 
-// ReqDeleteTemplate request body to delete app template
-type ReqDeleteTemplate struct {
-	Ids []uint64 `json:"ids"`
+	return &AppInfo{
+		AppName:     req.AppName,
+		Description: req.Description,
+		Containers:  string(containers),
+		CreatedAt:   time.Now().Format(common.TimeFormat),
+		ModifiedAt:  time.Now().Format(common.TimeFormat),
+	}, nil
 }
 
 // ToDb convert app template dto to db model
-func (dto *AppTemplate) ToDb(template *AppTemplateDb) error {
+func (dto *AppTemplateReq) ToDb(template *AppTemplateDb) error {
 	if template == nil {
 		return errors.New("param is nil")
 	}
@@ -60,7 +71,7 @@ func (dto *AppTemplate) ToDb(template *AppTemplateDb) error {
 }
 
 // FromDb convert db model to app template dto
-func (dto *AppTemplate) FromDb(template *AppTemplateDb) error {
+func (dto *AppTemplateReq) FromDb(template *AppTemplateDb) error {
 	if template == nil {
 		return errors.New("param is nil")
 	}

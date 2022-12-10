@@ -23,8 +23,8 @@ import (
 	"edge-manager/pkg/util"
 )
 
-// CreateApp Create application
-func CreateApp(input interface{}) common.RespMsg {
+// createApp Create application
+func createApp(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start create app")
 	var req CreateAppReq
 	if err := common.ParamConvert(input, &req); err != nil {
@@ -46,7 +46,7 @@ func CreateApp(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("app number is enough, can not create")
 		return common.RespMsg{Status: "", Msg: "app number is enough, can not create", Data: nil}
 	}
-	app, err := getAppInfo(req)
+	app, err := req.toDb()
 	if err != nil {
 		hwlog.RunLog.Error("get appInfo failed ")
 		return common.RespMsg{Status: "", Msg: "get appInfo failed", Data: nil}
@@ -71,8 +71,8 @@ func CreateApp(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: createReturnInfo}
 }
 
-// QueryApp app info
-func QueryApp(input interface{}) common.RespMsg {
+// queryApp app info
+func queryApp(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start query app info")
 	appId, ok := input.(uint64)
 	if !ok {
@@ -99,23 +99,8 @@ func QueryApp(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
-func getAppInfo(req CreateAppReq) (*AppInfo, error) {
-	containers, err := json.Marshal(req.Containers)
-	if err != nil {
-		hwlog.RunLog.Error("marshal containers failed")
-		return nil, err
-	}
-	return &AppInfo{
-		AppName:     req.AppName,
-		Description: req.Description,
-		Containers:  string(containers),
-		CreatedAt:   time.Now().Format(common.TimeFormat),
-		ModifiedAt:  time.Now().Format(common.TimeFormat),
-	}, nil
-}
-
-// ListAppInfo get appInfo list
-func ListAppInfo(input interface{}) common.RespMsg {
+// listAppInfo get appInfo list
+func listAppInfo(input interface{}) common.RespMsg {
 	hwlog.RunLog.Infof("start list app infos")
 	req, ok := input.(util.ListReq)
 	if !ok {
@@ -143,8 +128,8 @@ func ListAppInfo(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "list apps Infos success", Data: apps}
 }
 
-// DeployApp deploy application on node group
-func DeployApp(input interface{}) common.RespMsg {
+// deployApp deploy application on node group
+func deployApp(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start deploy app")
 	var req DeployAppReq
 	if err := common.ParamConvert(input, &req); err != nil {
@@ -163,7 +148,7 @@ func DeployApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 	for _, nodeGroup := range req.NodeGroupInfo {
-		daemonSet, err := InitDaemonSet(appInfo, nodeGroup)
+		daemonSet, err := initDaemonSet(appInfo, nodeGroup)
 		if err != nil {
 			hwlog.RunLog.Errorf("app daemonSet init failed: %s", err.Error())
 			return common.RespMsg{Status: "", Msg: "app daemonSet init failed", Data: nil}
@@ -182,7 +167,7 @@ func DeployApp(input interface{}) common.RespMsg {
 
 func updateNodeGroupDaemonSet(appInfo *AppInfo, nodeGroups []NodeGroupInfo) error {
 	for _, nodeGroup := range nodeGroups {
-		daemonSet, err := InitDaemonSet(appInfo, nodeGroup)
+		daemonSet, err := initDaemonSet(appInfo, nodeGroup)
 		if err != nil {
 			return fmt.Errorf("init daemon set failded: %s", err.Error())
 		}
@@ -195,8 +180,8 @@ func updateNodeGroupDaemonSet(appInfo *AppInfo, nodeGroups []NodeGroupInfo) erro
 	return nil
 }
 
-// UpdateApp update application
-func UpdateApp(input interface{}) common.RespMsg {
+// updateApp update application
+func updateApp(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start update app")
 	var req CreateAppReq
 	var err error
@@ -210,7 +195,7 @@ func UpdateApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	appInfo, err := getAppInfo(req)
+	appInfo, err := req.toDb()
 	if err != nil {
 		hwlog.RunLog.Error("get app info failed ")
 		return common.RespMsg{Status: "", Msg: "get app info failed", Data: nil}
@@ -240,8 +225,8 @@ func UpdateApp(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
-// DeleteApp delete application by appName
-func DeleteApp(input interface{}) common.RespMsg {
+// deleteApp delete application by appName
+func deleteApp(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start delete app")
 	var req DeleteAppReq
 	if err := common.ParamConvert(input, &req); err != nil {
@@ -259,8 +244,8 @@ func DeleteApp(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
-// ListAppInstances get deployed apps' list
-func ListAppInstances(input interface{}) common.RespMsg {
+// listAppInstances get deployed apps' list
+func listAppInstances(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start list app instances by id")
 	var appId uint64
 	appId, ok := input.(uint64)
@@ -320,8 +305,8 @@ func getAppInstanceRespFromAppInstances(appInstances []AppInstance) ([]AppInstan
 	return appInstanceResp, nil
 }
 
-// ListAppInstancesByNode get deployed apps' list of a certain node
-func ListAppInstancesByNode(input interface{}) common.RespMsg {
+// listAppInstancesByNode get deployed apps' list of a certain node
+func listAppInstancesByNode(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start list app instances by node id")
 	var nodeId int64
 	nodeId, ok := input.(int64)
@@ -381,8 +366,8 @@ func getAppInstanceOfNodeRespFromAppInstances(appInstances []AppInstance) ([]App
 	return appList, nil
 }
 
-// InitDaemonSet init daemonSet
-func InitDaemonSet(appInfo *AppInfo, nodeInfo NodeGroupInfo) (*appv1.DaemonSet, error) {
+// initDaemonSet init daemonSet
+func initDaemonSet(appInfo *AppInfo, nodeInfo NodeGroupInfo) (*appv1.DaemonSet, error) {
 	containers, err := getContainers(appInfo)
 	if err != nil {
 		hwlog.RunLog.Error("app daemonSet get containers failed")
