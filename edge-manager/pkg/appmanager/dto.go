@@ -6,9 +6,10 @@ package appmanager
 import (
 	"encoding/json"
 	"errors"
+	"time"
+
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
-	"time"
 )
 
 // AppTemplateDto app template dto
