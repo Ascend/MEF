@@ -26,8 +26,6 @@ const (
 	CertManagerName = "CertManager"
 	// SoftwareManagerName software manager
 	SoftwareManagerName = "software manager"
-	// TemplateManagerName TemplateManager module name
-	TemplateManagerName = "TemplateManager"
 	// CertManagerService CertManager module name
 	CertManagerService = "CertManagerService"
 
@@ -173,8 +171,7 @@ const (
 	NpuMax = 32
 	// NpuDecimalsNum NPU number of decimal places
 	NpuDecimalsNum = 2
-	// EnvCountMax environment variables max count
-	EnvCountMax = 256
+
 	// ContainerUserIdMin container min user id
 	ContainerUserIdMin = 1
 	// ContainerUserIdMax container max user id
@@ -191,8 +188,6 @@ const (
 	HostPortMin = 1
 	// HostPortMax host port max value
 	HostPortMax = 65535
-	// PortMapsMax port maps max count
-	PortMapsMax = 16
 	// TemplateEnvValueMin environment variable value min length
 	TemplateEnvValueMin = 1
 	// TemplateEnvValueMax environment variable value max length

@@ -119,6 +119,7 @@ func ListAppInfo(input interface{}) common.RespMsg {
 	hwlog.RunLog.Infof("start list app infos")
 	req, ok := input.(util.ListReq)
 	if !ok {
+		hwlog.RunLog.Error("get apps Infos list failed: para type is invalid")
 		return common.RespMsg{Status: "", Msg: "list app info error", Data: nil}
 	}
 

@@ -66,6 +66,7 @@ func (app *appManager) Start() {
 			hwlog.RunLog.Errorf("%s receive request from restful service failed", common.AppManagerName)
 			continue
 		}
+
 		msg := methodSelect(req)
 		if msg == nil {
 			hwlog.RunLog.Errorf("%s get method by option and resource failed", common.AppManagerName)
@@ -103,6 +104,12 @@ func initAppTable() error {
 		hwlog.RunLog.Error("create app instance database table failed")
 		return err
 	}
+
+	if err := database.CreateTableIfNotExists(AppTemplate{}); err != nil {
+		hwlog.RunLog.Error("create app template instance database table failed")
+		return err
+	}
+
 	return nil
 }
 
@@ -116,6 +123,12 @@ func appMethodList() map[string]handlerFunc {
 		combine(common.Delete, common.App):             DeleteApp,
 		combine(common.List, common.AppInstance):       ListAppInstances,
 		combine(common.List, common.AppInstanceByNode): ListAppInstancesByNode,
+
+		combine(common.Create, common.AppTemplate): CreateTemplate,
+		combine(common.Update, common.AppTemplate): UpdateTemplate,
+		combine(common.Delete, common.AppTemplate): DeleteTemplate,
+		combine(common.List, common.AppTemplate):   GetTemplates,
+		combine(common.Get, common.AppTemplate):    GetTemplateDetail,
 	}
 }
 
