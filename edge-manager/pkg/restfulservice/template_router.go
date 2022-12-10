@@ -4,7 +4,6 @@
 package restfulservice
 
 import (
-	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
@@ -85,15 +84,5 @@ func getTemplateDetail(c *gin.Context) {
 		Option:      common.Get,
 		Resource:    common.AppTemplate,
 	})
-	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
-}
-
-func handleUrlRequest(c *gin.Context, route *common.Router) {
-	param, err := json.Marshal(c.Request.URL.Query())
-	if err != nil {
-		common.ConstructResp(c, common.ErrorParseBody, "", nil)
-		return
-	}
-	resp := common.SendSyncMessageByRestful(string(param), route)
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }

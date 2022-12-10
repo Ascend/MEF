@@ -7,15 +7,17 @@ import (
 	"encoding/json"
 	"errors"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
+	"time"
 )
 
 // AppTemplateDto app template dto
 type AppTemplateDto struct {
 	Id          uint64      `json:"id"`
 	Name        string      `json:"name"`
+	Description string      `json:"description"`
 	CreatedAt   string      `json:"createdAt"`
 	ModifiedAt  string      `json:"modifiedAt"`
-	Description string      `json:"description"`
 	Containers  []Container `json:"containers"`
 }
 
@@ -37,10 +39,13 @@ func (dto *AppTemplateDto) ToDb(template *AppTemplateDb) error {
 	if template == nil {
 		return errors.New("param is nil")
 	}
+	now := time.Now().Format(common.TimeFormat)
 	*template = AppTemplateDb{
-		ID:          dto.Id,
-		AppName:     dto.Name,
-		Description: dto.Description,
+		ID:           dto.Id,
+		TemplateName: dto.Name,
+		Description:  dto.Description,
+		CreatedAt:    now,
+		ModifiedAt:   now,
 	}
 
 	containers, err := json.Marshal(dto.Containers)
@@ -60,7 +65,7 @@ func (dto *AppTemplateDto) FromDb(template *AppTemplateDb) error {
 		return errors.New("param is nil")
 	}
 	dto.Id = template.ID
-	dto.Name = template.AppName
+	dto.Name = template.TemplateName
 	dto.Description = template.Description
 	dto.CreatedAt = template.CreatedAt
 	dto.ModifiedAt = template.ModifiedAt
