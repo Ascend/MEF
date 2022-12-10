@@ -9,7 +9,7 @@ import (
 	"huawei.com/mindxedge/base/common"
 )
 
-func upgradeSfw(c *gin.Context) {
+func upgradeSoftware(c *gin.Context) {
 	res, err := c.GetRawData()
 	if err != nil {
 		hwlog.OpLog.Error("upgrade software: get input parameter failed")

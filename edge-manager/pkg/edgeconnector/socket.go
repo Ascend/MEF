@@ -36,23 +36,7 @@ func (s *Socket) Name() string {
 // Start initializes the websocket server
 func (s *Socket) Start() {
 	InitConfigure()
-	for {
-		select {
-		case _, ok := <-s.ctx.Done():
-			if !ok {
-				hwlog.RunLog.Info("catch stop signal channel is closed")
-			}
-			hwlog.RunLog.Info("has listened stop signal")
-			return
-		default:
-		}
-
-		s.server = newWebsocketServer(s.engine)
-		s.start()
-	}
-}
-
-func (s *Socket) start() {
+	s.server = newWebsocketServer(s.engine)
 	go s.server.startWebsocketServer()
 
 	go s.receiveAndSendInnerMsg()
