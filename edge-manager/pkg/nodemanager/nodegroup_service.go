@@ -4,11 +4,12 @@
 package nodemanager
 
 import (
-	"edge-manager/pkg/util"
 	"strings"
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
+
+	"edge-manager/pkg/util"
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -17,8 +18,12 @@ func createGroup(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start create node group")
 	var req CreateNodeGroupReq
 	if err := common.ParamConvert(input, &req); err != nil {
-		hwlog.RunLog.Error("create node group conver request error")
+		hwlog.RunLog.Errorf("create node group convert request error, %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	}
+	if err := req.Check(); err != nil {
+		hwlog.RunLog.Errorf("create node group validate parameters error, %s", err.Error())
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
 	}
 	total, err := GetTableCount(NodeGroup{})
 	if err != nil {
@@ -53,12 +58,18 @@ func listEdgeNodeGroup(input interface{}) common.RespMsg {
 	if !ok {
 		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
 	}
-	nodeGroups, err := NodeServiceInstance().listNodeGroup(req.PageNum, req.PageSize, req.Name)
+	var resp ListNodeGroupResp
+	count, err := NodeServiceInstance().countNodeGroupsByName(req.Name)
 	if err != nil {
 		hwlog.RunLog.Error("node group db query failed")
 		return common.RespMsg{Status: "", Msg: "db group query failed", Data: nil}
 	}
-	var resp ListNodeGroupResp
+	resp.Total = count
+	nodeGroups, err := NodeServiceInstance().getNodeGroupsByName(req.PageNum, req.PageSize, req.Name)
+	if err != nil {
+		hwlog.RunLog.Error("node group db query failed")
+		return common.RespMsg{Status: "", Msg: "db group query failed", Data: nil}
+	}
 	for _, group := range *nodeGroups {
 		relations, err := NodeServiceInstance().listNodeRelationsByGroupId(group.ID)
 		if err != nil {
@@ -74,7 +85,6 @@ func listEdgeNodeGroup(input interface{}) common.RespMsg {
 		}
 		resp.Groups = append(resp.Groups, respItem)
 	}
-	resp.Total = uint64(len(resp.Groups))
 	hwlog.RunLog.Info("node group db query success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
@@ -83,36 +93,28 @@ func getEdgeNodeGroupDetail(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start get node group detail")
 	var req GetNodeGroupDetailReq
 	if err := common.ParamConvert(input, &req); err != nil {
-		hwlog.RunLog.Error("get node group detail convert request error")
+		hwlog.RunLog.Errorf("get node group detail convert request error, %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
-	group, err := NodeServiceInstance().getNodeGroupByID(req.Id)
-	if err != nil {
-		hwlog.RunLog.Error("node group db query failed")
-		return common.RespMsg{Status: "", Msg: "db query failed", Data: nil}
-	}
-	resp := GetNodeGroupDetailResp{
-		ID:          group.ID,
-		GroupName:   group.GroupName,
-		Description: group.Description,
-		CreateAt:    group.CreatedAt,
-	}
+	var resp GetNodeGroupDetailResp
 	relations, err := NodeServiceInstance().listNodeRelationsByGroupId(req.Id)
 	if err != nil {
 		hwlog.RunLog.Error("node group db query failed")
 		return common.RespMsg{Status: "", Msg: "db query failed", Data: nil}
 	}
 	for _, relation := range *relations {
-		node, err := NodeServiceInstance().getNodeByID(relation.NodeID)
+		node, err := NodeServiceInstance().GetNodeByID(relation.NodeID)
 		if err != nil {
 			hwlog.RunLog.Error("node group db query failed")
 			return common.RespMsg{Status: "", Msg: "db query failed", Data: nil}
 		}
+		status := NodeStatusServiceInstance().GetNodeStatus(node.UniqueName)
 		nodeResp := GetNodeGroupDetailRespItem{
 			NodeID:      node.ID,
 			NodeName:    node.NodeName,
+			IP:          node.IP,
 			Description: node.Description,
-			Status:      node.Status,
+			Status:      status,
 			CreateAt:    node.CreatedAt,
 			UpdateAt:    node.UpdateAt,
 		}

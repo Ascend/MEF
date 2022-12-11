@@ -30,7 +30,7 @@ func registryDisabledModule(m model.Module) {
 	disabledModule.Store(m.Name(), m)
 }
 
-func isModuleExised(m model.Module) bool {
+func isModuleExisted(m model.Module) bool {
 	if _, existed := enabledModule.Load(m.Name()); existed {
 		return true
 	}
@@ -42,13 +42,13 @@ func isModuleExised(m model.Module) bool {
 	return false
 }
 
-// Registry registry new module
+// Registry new module
 func Registry(m model.Module) error {
 	if m == nil {
 		return fmt.Errorf("input is invalid when registry module")
 	}
 
-	if isModuleExised(m) {
+	if isModuleExisted(m) {
 		return fmt.Errorf("module existed")
 	}
 
@@ -69,7 +69,7 @@ func Unregistry(m model.Module) {
 	}
 }
 
-// Start start the module manager
+// Start the module manager
 func Start() {
 	enabledModule.Range(func(key, value interface{}) bool {
 		module, ok := value.(model.Module)

@@ -8,12 +8,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	appv1 "k8s.io/api/apps/v1"
 	"strings"
+
+	appv1 "k8s.io/api/apps/v1"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/k8stool"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
@@ -27,6 +28,10 @@ const (
 	opRemove            = "remove"
 	opAdd               = "add"
 	labelResourcePrefix = "/metadata/labels/"
+
+	systemNamespace = "kubeedge"
+	tokenSecretName = "tokensecret"
+	tokenDataName   = "tokendata"
 )
 
 var k8sClient *Client
@@ -52,6 +57,11 @@ func NewClientK8s() (*Client, error) {
 // GetKubeClient get k8s client
 func GetKubeClient() *Client {
 	return k8sClient
+}
+
+// GetClientSet get k8s client set
+func (ki *Client) GetClientSet() *kubernetes.Clientset {
+	return ki.kubeClient
 }
 
 // GetNode get node
@@ -140,4 +150,14 @@ func (ki *Client) CreateDaemonSet(dm *appv1.DaemonSet) (*appv1.DaemonSet, error)
 // UpdateDaemonSet Update daemonset
 func (ki *Client) UpdateDaemonSet(dm *appv1.DaemonSet) (*appv1.DaemonSet, error) {
 	return ki.kubeClient.AppsV1().DaemonSets("default").Update(context.Background(), dm, metav1.UpdateOptions{})
+}
+
+// GetToken get token
+func (ki *Client) GetToken() ([]byte, error) {
+	secret, err := ki.kubeClient.CoreV1().Secrets(systemNamespace).
+		Get(context.Background(), tokenSecretName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return secret.Data[tokenDataName], nil
 }

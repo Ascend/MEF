@@ -4,25 +4,21 @@
 package restfulservice
 
 import (
-	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/util"
-)
 
-const (
-	idNumbBase    = 10
-	idNumbBitSize = 64
+	"huawei.com/mindxedge/base/common"
 )
 
 func setRouter(engine *gin.Engine) {
 	engine.Use(gin.Recovery())
 	nodeRouter(engine)
 	appRouter(engine)
-	wsRouter(engine)
+	softwareRouter(engine)
 	templateRouter(engine)
 }
 
@@ -45,6 +41,7 @@ func nodeRouter(engine *gin.Engine) {
 		nodeGroup.GET("/:id", getEdgeNodeGroupDetail)
 		nodeGroup.POST("/add", addNodeToGroup)
 		nodeGroup.POST("/delete", deleteNodeFromGroup)
+		nodeGroup.POST("/deleterelation", batchDeleteNodeRelation)
 		nodeGroup.POST("/batchdelete", batchDeleteNodeGroup)
 	}
 }
@@ -53,18 +50,20 @@ func appRouter(engine *gin.Engine) {
 	app := engine.Group("/edgemanager/v1/app")
 	{
 		app.POST("/", createApp)
-		app.GET("/:id", queryApp)
+		app.GET("/", queryApp)
 		app.PATCH("/", updateApp)
 		app.GET("/list", listAppsInfo)
 		app.POST("/deploy", deployApp)
 		app.DELETE("/", deleteApp)
+		app.GET("/deploy/list", listAppInstance)
+		app.GET("/deploy/list/node", listAppInstanceByNode)
 	}
 }
 
-func wsRouter(engine *gin.Engine) {
-	v1 := engine.Group("/edgemanager/v1/ws")
+func softwareRouter(engine *gin.Engine) {
+	v1 := engine.Group("/edgemanager/v1/software")
 	{
-		v1.POST("/", upgradeSfw)
+		v1.POST("/upgrade", upgradeSoftware)
 	}
 }
 
@@ -73,7 +72,7 @@ func templateRouter(engine *gin.Engine) {
 	{
 		v1.POST("/", createTemplate)
 		v1.POST("/delete", deleteTemplate)
-		v1.PUT("/", modifyTemplate)
+		v1.PATCH("/", updateTemplate)
 		v1.GET("/", getTemplateDetail)
 		v1.GET("/list", getTemplates)
 	}
@@ -97,14 +96,18 @@ func pageUtil(c *gin.Context) (util.ListReq, error) {
 }
 
 func getReqAppId(c *gin.Context) (uint64, error) {
-	appId := c.Param("id")
-	if appId == "" {
-		return 0, errors.New("app id is null")
+	value, err := strconv.ParseUint(c.Query("appId"), common.BaseHex, common.BitSize64)
+	if err != nil {
+		return 0, fmt.Errorf("app id is invalid")
 	}
 
-	value, err := strconv.ParseUint(appId, idNumbBase, idNumbBitSize)
+	return value, nil
+}
+
+func getReqNodeId(c *gin.Context) (int64, error) {
+	value, err := strconv.ParseInt(c.Query("nodeId"), common.BaseHex, common.BitSize64)
 	if err != nil {
-		return 0, errors.New("app id is invalid")
+		return 0, fmt.Errorf("app id is invalid")
 	}
 
 	return value, nil

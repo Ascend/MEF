@@ -41,6 +41,10 @@ func (node *nodeManager) Enable() bool {
 			hwlog.RunLog.Errorf("module (%s) init database table failed, cannot enable", common.NodeManagerName)
 			return !node.enable
 		}
+		if err := initNodeStatusService(); err != nil {
+			hwlog.RunLog.Errorf("module (%s) init node status service failed, cannot enable", common.NodeManagerName)
+			return !node.enable
+		}
 	}
 	return node.enable
 }

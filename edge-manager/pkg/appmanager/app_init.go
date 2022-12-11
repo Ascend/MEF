@@ -41,6 +41,10 @@ func (app *appManager) Enable() bool {
 			hwlog.RunLog.Errorf("module (%s) init database table failed, cannot enable", common.AppManagerName)
 			return !app.enable
 		}
+		if err := appStatusService.initAppStatusService(); err != nil {
+			hwlog.RunLog.Errorf("module (%s) init app service failed, cannot enable", common.AppManagerName)
+			return !app.enable
+		}
 	}
 	return app.enable
 }
@@ -62,6 +66,7 @@ func (app *appManager) Start() {
 			hwlog.RunLog.Errorf("%s receive request from restful service failed", common.AppManagerName)
 			continue
 		}
+
 		msg := methodSelect(req)
 		if msg == nil {
 			hwlog.RunLog.Errorf("%s get method by option and resource failed", common.AppManagerName)
@@ -95,18 +100,35 @@ func initAppTable() error {
 		hwlog.RunLog.Error("create app information database table failed")
 		return err
 	}
+	if err := database.CreateTableIfNotExists(AppInstance{}); err != nil {
+		hwlog.RunLog.Error("create app instance database table failed")
+		return err
+	}
+
+	if err := database.CreateTableIfNotExists(AppTemplate{}); err != nil {
+		hwlog.RunLog.Error("create app template instance database table failed")
+		return err
+	}
 
 	return nil
 }
 
 func appMethodList() map[string]handlerFunc {
 	return map[string]handlerFunc{
-		combine(common.Create, common.App): CreateApp,
-		combine(common.Query, common.App):  QueryApp,
-		combine(common.Update, common.App): UpdateApp,
-		combine(common.List, common.App):   ListAppInfo,
-		combine(common.Deploy, common.App): DeployApp,
-		combine(common.Delete, common.App): DeleteApp,
+		combine(common.Create, common.App):             CreateApp,
+		combine(common.Query, common.App):              QueryApp,
+		combine(common.Update, common.App):             UpdateApp,
+		combine(common.List, common.App):               ListAppInfo,
+		combine(common.Deploy, common.App):             DeployApp,
+		combine(common.Delete, common.App):             DeleteApp,
+		combine(common.List, common.AppInstance):       ListAppInstances,
+		combine(common.List, common.AppInstanceByNode): ListAppInstancesByNode,
+
+		combine(common.Create, common.AppTemplate): CreateTemplate,
+		combine(common.Update, common.AppTemplate): UpdateTemplate,
+		combine(common.Delete, common.AppTemplate): DeleteTemplate,
+		combine(common.List, common.AppTemplate):   GetTemplates,
+		combine(common.Get, common.AppTemplate):    GetTemplateDetail,
 	}
 }
 

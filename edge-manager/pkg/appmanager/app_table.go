@@ -7,7 +7,6 @@ package appmanager
 type AppInfo struct {
 	ID          uint64 `gorm:"type:integer;primaryKey;autoIncrement:true"`
 	AppName     string `gorm:"type:char(128);unique;not null"`
-	Version     string `gorm:"type:char(128);not null"`
 	Description string `gorm:"type:char(255);" json:"description"`
 	CreatedAt   string `gorm:"type:char(19);not null"`
 	ModifiedAt  string `gorm:"type:char(19);not null"`
@@ -21,8 +20,19 @@ type AppInstance struct {
 	NodeName      string `gorm:"type:char(64);not null"`
 	NodeGroupName string `gorm:"type:char(64);not null"`
 	NodeGroupID   int64  `gorm:"type:Integer;not null"`
-	Status        string `gorm:"type:char(50);not null"`
-	AppID         string `gorm:"not null"`
+	AppID         int64  `gorm:"type:Integer;not null"`
+	AppName       string `gorm:"type:char(128);not null"`
 	CreatedAt     string `gorm:"type:time;not null"`
 	ChangedAt     string `gorm:"type:time;not null"`
+	ContainerInfo string `gorm:"type:text;" json:"containers"`
+}
+
+// AppTemplate db table for application template group
+type AppTemplate struct {
+	ID           uint64 `gorm:"type:integer;primaryKey;autoIncrement:true"`
+	TemplateName string `gorm:"type:char(128);unique;not null"`
+	Description  string `gorm:"type:char(255);" json:"description"`
+	CreatedAt    string `gorm:"type:char(19);not null"`
+	ModifiedAt   string `gorm:"type:char(19);not null"`
+	Containers   string `gorm:"type:text;not null" json:"containers"`
 }

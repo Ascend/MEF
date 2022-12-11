@@ -24,6 +24,7 @@ const (
 	regexExp      = "^[\\w]+"
 	stringLength  = 2
 	maxByteLength = 100
+	hexTag        = 0xFF
 )
 
 const (
@@ -39,7 +40,7 @@ type softwareRecord struct {
 	ID          uint    `gorm:"primaryKey" json:"id"`
 	CreatedAt   string  `gorm:"not null"json:"createdAt"`
 	ContentType string  `gorm:"type:varchar(64);not null" json:"contentType"`
-	Version     string  `gorm:"unique;type:varchar(64);not null" json:"version"`
+	Version     string  `gorm:"type:varchar(64);not null" json:"version"`
 	FileSize    float64 `gorm:"type:float(64);not null" json:"fileSize"`
 	Description string  `gorm:"type:varchar(64);not null"json:"description"`
 }
@@ -58,8 +59,7 @@ type batchDeleteResult struct {
 	NotDeleteID []int `json:"deleteFail"`
 }
 
-// SoftwareDbctl is the interface of database operation
-
+// SoftwareDbCtl is the interface of database operation
 type SoftwareDbCtl interface {
 	addSoftware(info *restfulservice.SoftwareInfo) error
 	listSoftware(info *restfulservice.SoftwareInfo) (*[]softwareRecord, int64, error)
@@ -69,11 +69,11 @@ type SoftwareDbCtl interface {
 	querySoftwareByID(ID int) (*softwareRecord, error)
 }
 
-type SoftwareDbCtlImpl struct {
+type softwareDbCtlImpl struct {
 	db *gorm.DB
 }
 
-func (dbCtl *SoftwareDbCtlImpl) addSoftware(info *restfulservice.SoftwareInfo) error {
+func (dbCtl *softwareDbCtlImpl) addSoftware(info *restfulservice.SoftwareInfo) error {
 	fileSize, err := strconv.ParseFloat(fmt.Sprintf("%.2f", float64(info.File.Size)/kbToMB), floatByteSize)
 	if err != nil {
 		hwlog.RunLog.Error("float truncate error in adAdd func")
@@ -92,7 +92,7 @@ func (dbCtl *SoftwareDbCtlImpl) addSoftware(info *restfulservice.SoftwareInfo) e
 	return nil
 }
 
-func (dbCtl *SoftwareDbCtlImpl) listSoftware(info *restfulservice.SoftwareInfo) (*[]softwareRecord, int64, error) {
+func (dbCtl *softwareDbCtlImpl) listSoftware(info *restfulservice.SoftwareInfo) (*[]softwareRecord, int64, error) {
 	var total int64
 	var softwareRecords []softwareRecord
 	if info.Page == 0 {
@@ -112,7 +112,7 @@ func (dbCtl *SoftwareDbCtlImpl) listSoftware(info *restfulservice.SoftwareInfo) 
 	return &softwareRecords, total, nil
 }
 
-func (dbCtl *SoftwareDbCtlImpl) deleteSoftware(id int, notDeleteId *[]int) error {
+func (dbCtl *softwareDbCtlImpl) deleteSoftware(id int, notDeleteId *[]int) error {
 	db := dbCtl.db.Where("id=?", id).Unscoped().Delete(&softwareRecord{})
 	if db.Error != nil {
 		*notDeleteId = append(*notDeleteId, id)
@@ -121,19 +121,22 @@ func (dbCtl *SoftwareDbCtlImpl) deleteSoftware(id int, notDeleteId *[]int) error
 	return nil
 }
 
-func (dbCtl *SoftwareDbCtlImpl) querySoftware(contentType string, version string) (*softwareRecord, error) {
+func (dbCtl *softwareDbCtlImpl) querySoftware(contentType string, version string) (*softwareRecord, error) {
 	var records []softwareRecord
 	db := dbCtl.db.Where("content_type=? and version=?", contentType, version).Find(&records)
 	if db.Error != nil {
 		return nil, errors.New("query database error in querySoftware func")
 	}
-	if len(records) != 1 {
+	if len(records) == 0 {
 		return nil, nil
+	}
+	if len(records) > 1 {
+		return nil, fmt.Errorf("%s%s has %d records", contentType, version, len(records))
 	}
 	return &records[0], nil
 }
 
-func (dbCtl *SoftwareDbCtlImpl) queryLaSoftware(contentType string) (*softwareRecord, error) {
+func (dbCtl *softwareDbCtlImpl) queryLaSoftware(contentType string) (*softwareRecord, error) {
 	var records []softwareRecord
 	db := dbCtl.db.Where("content_type=?", contentType).Order("id desc").Limit(1).Find(&records)
 	if db.Error != nil {
@@ -145,13 +148,13 @@ func (dbCtl *SoftwareDbCtlImpl) queryLaSoftware(contentType string) (*softwareRe
 	return &records[0], nil
 }
 
-func (dbCtl *SoftwareDbCtlImpl) querySoftwareByID(id int) (*softwareRecord, error) {
+func (dbCtl *softwareDbCtlImpl) querySoftwareByID(id int) (*softwareRecord, error) {
 	var records []softwareRecord
 	db := dbCtl.db.Where("id=?", id).Find(&records)
 	if db.Error != nil {
 		return nil, errors.New("query database error in returnLatestVer func")
 	}
-	if len(records) != 1 {
+	if len(records) == 0 {
 		return nil, nil
 	}
 	return &records[0], nil

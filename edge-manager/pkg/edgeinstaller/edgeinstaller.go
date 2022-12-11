@@ -5,9 +5,10 @@ package edgeinstaller
 
 import (
 	"context"
+	"errors"
+
+	"edge-manager/pkg/database"
 	"edge-manager/pkg/util"
-	"encoding/json"
-	"time"
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
@@ -15,9 +16,6 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 )
-
-// WaitSfwSyncTime waiting for a response from the software repository
-const WaitSfwSyncTime = 10 * time.Second
 
 // Installer edge-installer struct
 type Installer struct {
@@ -32,6 +30,13 @@ func (i *Installer) Name() string {
 
 // Enable indicates whether this module is enabled
 func (i *Installer) Enable() bool {
+	if i.enable {
+		if err := initSoftwareMgrInfoTable(); err != nil {
+			hwlog.RunLog.Errorf("module (%s) init database table failed, cannot enable", common.EdgeInstaller)
+			return !i.enable
+		}
+	}
+
 	return i.enable
 }
 
@@ -47,98 +52,137 @@ func (i *Installer) Start() {
 			return
 		default:
 		}
-		msg, err := modulemanager.ReceiveMessage(i.Name())
+
+		message, err := modulemanager.ReceiveMessage(i.Name())
 		if err != nil {
-			return
+			hwlog.RunLog.Errorf("receive message from channel failed, error: %v", err)
+			continue
 		}
-		if !util.CheckInnerMsg(msg) {
+
+		if !util.CheckInnerMsg(message) {
 			hwlog.RunLog.Error("message receive from module is invalid")
 			continue
 		}
 
-		respRestful, err := msg.NewResponse()
-		if err != nil {
-			hwlog.RunLog.Errorf("%s new response failed", common.EdgeInstallerName)
-			continue
-		}
-		respRestful.FillContent(common.RespMsg{Status: common.Success, Msg: "", Data: nil})
-		if err = modulemanager.SendMessage(respRestful); err != nil {
-			hwlog.RunLog.Errorf("%s send response failed", common.EdgeInstallerName)
+		if message.GetDestination() != i.Name() {
+			hwlog.RunLog.Errorf("message is not sent to edge-connector, destination is [%s]", message.GetDestination())
 			continue
 		}
 
-		resp := i.sendSyncToModule(msg)
-		mergeContentAndSend(msg, resp)
+		switch message.GetOption() {
+		case common.Upgrade:
+			go i.dealUpgrade(message)
+		case common.Download:
+			go i.dealDownload(message)
+		default:
+			hwlog.RunLog.Error("invalid operation")
+			continue
+		}
 	}
 }
 
-func (i *Installer) sendSyncToModule(msg *model.Message) *model.Message {
-	destination := ""
-	switch msg.GetOption() {
-	case common.Upgrade:
-		destination = common.SoftwareRepositoryName
-	default:
-		hwlog.RunLog.Error("message destination invalid")
-		return nil
+func (i *Installer) dealUpgrade(message *model.Message) {
+	if !(message.GetSource() == common.RestfulServiceName) || !(message.GetResource() == common.Software) {
+		hwlog.RunLog.Error("invalid source or resource")
+		return
 	}
+
+	if err := i.respRestful(message); err != nil {
+		hwlog.RunLog.Error("send response to restful module failed")
+		return
+	}
+
+	var dealSfwReq util.UpgradeSfwReq
+	if err := common.ParamConvert(message.GetContent(), &dealSfwReq); err != nil {
+		hwlog.RunLog.Error("convert to dealSfwReq failed")
+		return
+	}
+
+	dealSfwContent, err := upgradeWithSfwManager(dealSfwReq)
+	if err != nil {
+		hwlog.RunLog.Error("deal with software manager failed")
+		return
+	}
+
+	if err = i.sendToEdgeConnector(dealSfwContent, message.GetOption()); err != nil {
+		hwlog.RunLog.Errorf("send to edge-connector failed, error: %v", err)
+		return
+	}
+
+	return
+}
+
+func (i *Installer) respRestful(message *model.Message) error {
+	respToRestful, respContent := i.constructContent(message)
+	respToRestful.FillContent(respContent)
+	if err := modulemanager.SendMessage(respToRestful); err != nil {
+		hwlog.RunLog.Errorf("%s send response to restful failed", common.EdgeInstallerName)
+		return err
+	}
+
+	return nil
+}
+
+func (i *Installer) constructContent(message *model.Message) (*model.Message, common.RespMsg) {
+	var req util.UpgradeSfwReq
+	if err := common.ParamConvert(message.GetContent(), &req); err != nil {
+		return nil, common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	}
+
+	respToRestful, err := message.NewResponse()
+	if err != nil {
+		hwlog.RunLog.Errorf("%s new response failed", i.Name())
+		return nil, common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	}
+
+	return respToRestful, common.RespMsg{Status: common.Success, Msg: "", Data: nil}
+}
+
+func (i *Installer) dealDownload(message *model.Message) {
+	hwlog.RunLog.Info("edge-installer received message from edge-connector success")
+	if !(message.GetSource() == common.EdgeConnectorName) || !(message.GetResource() == common.Software) {
+		hwlog.RunLog.Error("invalid source or resource")
+		return
+	}
+
+	downloadSfwReq, ok := message.GetContent().(util.DownloadSfwReq)
+	if !ok {
+		hwlog.RunLog.Error("convert to dealSfwReq failed")
+		return
+	}
+
+	dealSfwContent, err := downloadWithSfwMgr(downloadSfwReq)
+	if err != nil {
+		hwlog.RunLog.Error("deal with software manager failed")
+		return
+	}
+
+	if err = i.sendToEdgeConnector(dealSfwContent, message.GetOption()); err != nil {
+		hwlog.RunLog.Errorf("send to edge-connector failed, error: %v", err)
+		return
+	}
+
+	hwlog.RunLog.Info("edge-installer send to edge-connector success with download url")
+	return
+}
+
+func (i *Installer) sendToEdgeConnector(dealSfwContent *util.DealSfwContent, option string) error {
+	content := *dealSfwContent
 
 	sendMsg, err := model.NewMessage()
 	if err != nil {
 		hwlog.RunLog.Errorf("new message failed, error: %v", err)
-		return nil
+		return err
 	}
-	sendMsg.SetRouter(common.EdgeInstallerName, destination, common.Query, common.Software)
-	sendMsg.SetIsSync(true)
-	resp, err := modulemanager.SendSyncMessage(sendMsg, WaitSfwSyncTime)
-	if err != nil {
-		hwlog.RunLog.Errorf("wait sync message failed, error: %v", err)
-		return nil
-	}
-	isResponse := i.isSyncResponse(resp.GetParentId())
-	if !isResponse {
-		hwlog.RunLog.Error("error sync response")
-		return nil
-	}
-	return resp
-}
-
-func mergeContentAndSend(msg, resp *model.Message) {
-	data, err := json.Marshal(msg.GetContent())
-	if err != nil {
-		hwlog.RunLog.Errorf("marshal message content failed, error: %v", err)
-		return
-	}
-	respData, err := json.Marshal(resp.GetContent())
-	if err != nil {
-		hwlog.RunLog.Errorf("marshal resp message content failed, error: %v", err)
-		return
-	}
-	content := make(map[string]interface{})
-	if err = json.Unmarshal(data, &content); err != nil {
-		hwlog.RunLog.Errorf("parse data failed, error: %v", err)
-		return
-	}
-	if err = json.Unmarshal(respData, &content); err != nil {
-		hwlog.RunLog.Errorf("parse resp data failed, error: %v", err)
-		return
-	}
-
-	respMsg, err := model.NewMessage()
-	if err != nil {
-		hwlog.RunLog.Errorf("new message failed, error: %v", err)
-		return
-	}
-	respMsg.SetRouter(common.EdgeInstallerName, common.EdgeConnectorName, common.Upgrade, common.Software)
-	respMsg.FillContent(content)
-	respMsg.SetIsSync(false)
-	if err = modulemanager.SendMessage(respMsg); err != nil {
+	sendMsg.SetRouter(i.Name(), common.EdgeConnectorName, option, common.Software)
+	sendMsg.FillContent(content)
+	sendMsg.SetIsSync(false)
+	if err = modulemanager.SendMessage(sendMsg); err != nil {
 		hwlog.RunLog.Errorf("send message failed, error: %v", err)
-		return
+		return err
 	}
-}
 
-func (i *Installer) isSyncResponse(msgID string) bool {
-	return msgID != ""
+	return nil
 }
 
 // NewInstaller new Installer
@@ -148,4 +192,17 @@ func NewInstaller(enable bool) *Installer {
 		enable: enable,
 	}
 	return socket
+}
+
+func initSoftwareMgrInfoTable() error {
+	if err := database.CreateTableIfNotExists(SoftwareMgrInfo{}); err != nil {
+		return errors.New("table software manager info create failed")
+	}
+
+	if err := CreateTableSfwInfo(); err != nil {
+		hwlog.RunLog.Error("create item in table software manager info failed")
+		return errors.New("create item in table software manager info failed")
+	}
+
+	return nil
 }

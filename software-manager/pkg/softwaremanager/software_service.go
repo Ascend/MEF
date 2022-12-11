@@ -5,6 +5,7 @@ package softwaremanager
 
 import (
 	"flag"
+	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
@@ -61,21 +62,18 @@ func downloadSoftware(input interface{}) common.RespMsg {
 	if !result {
 		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "wrong user, password or nodeId"}
 	}
-	result, err := checkFields(info.ContentType, info.Version)
+	err := checkFields(info.ContentType, info.Version)
 	if err != nil {
-		hwlog.RunLog.Error("check download fields error")
+		hwlog.RunLog.Error(fmt.Sprintf("%s%s", err.Error(), "in downloadSoftware func"))
 		return common.RespMsg{Status: common.ErrorGetResponse, Msg: err.Error()}
-	}
-	if !result {
-		hwlog.RunLog.Info("download fields incorrect")
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "incorrect fields"}
 	}
 	exist, err := checkSoftwareExist(info.ContentType, info.Version)
 	if err != nil {
-		hwlog.RunLog.Info("check software exist error in downloadSoftware func")
+		hwlog.RunLog.Error(err.Error())
 		return common.RespMsg{Status: common.ErrorGetResponse, Msg: err.Error()}
 	}
 	if !exist {
+		hwlog.RunLog.Errorf("%s%s dose not exist", info.ContentType, info.Version)
 		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "software dose not exist"}
 	}
 	path := softwarePathJoin(info.ContentType, info.Version)
@@ -88,14 +86,10 @@ func uploadSoftware(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("class convert error")
 		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "class convert error"}
 	}
-	result, err := checkFields(info.ContentType, info.Version)
+	err := checkFields(info.ContentType, info.Version)
 	if err != nil {
-		hwlog.RunLog.Error("check upload fields error")
+		hwlog.RunLog.Error(fmt.Sprintf("%s%s", err.Error(), "in uploadSoftware func"))
 		return common.RespMsg{Status: common.ErrorGetResponse, Msg: err.Error()}
-	}
-	if !result {
-		hwlog.RunLog.Info("upload fields incorrect")
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "incorrect fields"}
 	}
 	exist, err := checkSoftwareExist(info.ContentType, info.Version)
 	if err != nil {
@@ -103,6 +97,7 @@ func uploadSoftware(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "check software exist error"}
 	}
 	if exist {
+		hwlog.RunLog.Errorf("%s%s dose not exist", info.ContentType, info.Version)
 		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "software already exists"}
 	}
 	file := info.File
@@ -147,14 +142,15 @@ func getURL(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("class convert error")
 		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "class convert error"}
 	}
-	result, err := checkFields(info.ContentType, info.Version)
-	if err != nil {
-		hwlog.RunLog.Error("check getURL fields incorrect")
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: err.Error()}
+	var err error
+	if info.Version == "" {
+		err = checkContentType(info.ContentType)
+	} else {
+		err = checkFields(info.ContentType, info.Version)
 	}
-	if !result {
-		hwlog.RunLog.Info(" getURL fields incorrect")
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "incorrect fields"}
+	if err != nil {
+		hwlog.RunLog.Error(fmt.Sprintf("%s%s", err.Error(), "in getURL func"))
+		return common.RespMsg{Status: common.ErrorGetResponse, Msg: err.Error()}
 	}
 	if !checkNodeID(info.NodeID) {
 		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "incorrect node_id"}
@@ -172,6 +168,7 @@ func getURL(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorGetResponse, Msg: err.Error()}
 	}
 	if !exist {
+		hwlog.RunLog.Errorf("%s%s dose not exist", info.ContentType, info.Version)
 		return common.RespMsg{Status: common.ErrorGetResponse,
 			Msg: "software dose not exist. Need to import software first"}
 	}

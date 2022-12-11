@@ -32,10 +32,6 @@ const (
 	ContentType = "contentType"
 	// Version is the version of software in SoftwareInfo struct
 	Version = "version"
-	// UserName is used to check the right of downloading in SoftwareInfo struct
-	UserName = "user_name"
-	// Password is used to check the right of downloading in SoftwareInfo struct
-	Password = "password"
 	// Page is the parameter of paging query in SoftwareInfo struct
 	Page = "page"
 	// PageSize is the parameter of paging query in SoftwareInfo struct
@@ -53,16 +49,11 @@ const (
 	serveType   = "content-Description"
 )
 
-type downloadInfo struct {
-	UserName string `json:"userName"`
-	Password string `json:"password"`
-	NodeID   string `json:"nodeId"`
-}
-
 type getURLInfo struct {
 	NodeId string `json:"nodeId"`
 }
 
+// UserPriInfo is the abbreviation of user private infomation
 type UserPriInfo struct {
 	Password []byte
 	UserName string

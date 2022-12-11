@@ -4,10 +4,10 @@
 package appmanager
 
 import (
-	"edge-manager/pkg/util"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 
 	"gorm.io/gorm"
@@ -15,36 +15,7 @@ import (
 	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/database"
-	"edge-manager/pkg/nodemanager"
 )
-
-// AppInstanceInfo encapsulate app instance information
-type AppInstanceInfo struct {
-	// AppInfo is app information
-	AppInfo AppInfo
-	// NodeGroup is node group information of app
-	NodeGroup nodemanager.NodeGroup
-}
-
-// ListReturnInfo encapsulate app list
-type ListReturnInfo struct {
-	// AppInfo is app information
-	AppInfo []AppReturnInfo
-	// Total is num of appInfos
-	Total int
-}
-
-// AppReturnInfo encapsulate app information for return
-type AppReturnInfo struct {
-	AppId         uint64              `json:"appId"`
-	AppName       string              `json:"appName"`
-	Version       string              `json:"version"`
-	Description   string              `json:"description"`
-	CreatedAt     string              `json:"createdAt"`
-	ModifiedAt    string              `json:"modifiedAt"`
-	NodeGroupName string              `json:"nodeGroupName"`
-	Containers    []util.ContainerReq `json:"containers"`
-}
 
 var (
 	repositoryInitOnce sync.Once
@@ -61,12 +32,21 @@ type AppRepository interface {
 	createApp(*AppInfo) error
 	updateApp(appId uint64, column string, value interface{}) error
 	queryApp(appId uint64) (AppInfo, error)
-	queryNodeGroup(appId uint64) ([]nodemanager.NodeGroup, error)
 	listAppsInfo(uint64, uint64, string) (*ListReturnInfo, error)
-	getAppInfo(appId uint64) (AppInfo, error)
-	getNodeGroupInfo(nodeGroupName string) (*nodemanager.NodeGroup, error)
+	countListAppsInfo(string) (int64, error)
+	getGroupNameByAppName(string) (string, error)
+	getAppInfoById(appId uint64) (*AppInfo, error)
+	getAppInstanceByIdAndGroup(uint64, string) (*AppInstance, error)
+	getAppInfoByName(string) (*AppInfo, error)
 	deployApp(*AppInstance) error
-	deleteApp(appId uint64) error
+	deleteAppById(uint64) error
+	deleteAppInstanceByIdAndGroup(uint64, string) error
+	queryNodeGroup(uint64) ([]NodeGroupInfo, error)
+	listAppInstances(uint64) ([]AppInstance, error)
+	listAppInstancesByNode(string) ([]AppInstance, error)
+	addPod(*AppInstance) error
+	updatePod(*AppInstance) error
+	deletePod(*AppInstance) error
 }
 
 // GetTableCount get table count
@@ -104,31 +84,29 @@ func (a *AppRepositoryImpl) updateApp(appId uint64, column string, value interfa
 }
 
 func (a *AppRepositoryImpl) queryApp(appId uint64) (AppInfo, error) {
-	var appInfo AppInfo
+	var appInfo *AppInfo
 	var err error
-	if appInfo, err = a.getAppInfo(appId); err != nil {
-		return appInfo, fmt.Errorf("query app id [%d] info from db failed", appId)
+	if appInfo, err = a.getAppInfoById(appId); err != nil {
+		hwlog.RunLog.Errorf("query app id [%d] info from db failed", appId)
+		return *appInfo, fmt.Errorf("query app id [%d] info from db failed", appId)
 	}
 
-	return appInfo, nil
+	return *appInfo, nil
 }
 
-func (a *AppRepositoryImpl) queryNodeGroup(appId uint64) ([]nodemanager.NodeGroup, error) {
-	var nodeGroups []nodemanager.NodeGroup
+func (a *AppRepositoryImpl) queryNodeGroup(appId uint64) ([]NodeGroupInfo, error) {
 	var appInstances []AppInstance
-	if err := database.GetDb().Model(AppInstance{}).Where("id = ?", appId).Find(&appInstances).Error; err != nil {
-		return nil, fmt.Errorf("get app instance failed")
+	if err := a.db.Model(AppInstance{}).Where("app_id = ?", appId).Find(&appInstances).Error; err != nil {
+		hwlog.RunLog.Error("get appInstance db failed when query")
+		return nil, err
 	}
-
+	var nodeGroups []NodeGroupInfo
 	for _, appInstance := range appInstances {
-		var nodeGroup *nodemanager.NodeGroup
-		var err error
-		if nodeGroup, err = a.getNodeGroupInfo(appInstance.NodeGroupName); err != nil {
-			return nil, fmt.Errorf("get node group info failed")
-		}
-		nodeGroups = append(nodeGroups, *nodeGroup)
+		nodeGroups = append(nodeGroups, NodeGroupInfo{
+			NodeGroupID:   appInstance.NodeGroupID,
+			NodeGroupName: appInstance.NodeGroupName,
+		})
 	}
-
 	return nodeGroups, nil
 }
 
@@ -140,65 +118,95 @@ func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) (*L
 	}
 	var appReturnInfos []AppReturnInfo
 	for _, app := range appsInfo {
-		var containers []util.ContainerReq
+		var containers []Container
 		if err := json.Unmarshal([]byte(app.Containers), &containers); err != nil {
 			hwlog.RunLog.Error("containers unmarshal failed")
 			return nil, err
 		}
+		NodeGroupInfos, err := a.queryNodeGroup(app.ID)
+		if err != nil {
+			hwlog.RunLog.Error("get node group name failed when list")
+			return nil, err
+		}
+		nodeGroupName := ""
+		var nodeGroupIDs []int64
+		for _, nodeGroupInfo := range NodeGroupInfos {
+			nodeGroupName += nodeGroupInfo.NodeGroupName + ";"
+			nodeGroupIDs = append(nodeGroupIDs, nodeGroupInfo.NodeGroupID)
+		}
 		appReturnInfos = append(appReturnInfos, AppReturnInfo{
-			AppId:       app.ID,
-			AppName:     app.AppName,
-			Version:     app.Version,
-			Description: app.Description,
-			CreatedAt:   app.CreatedAt,
-			ModifiedAt:  app.ModifiedAt,
-			Containers:  containers,
+			AppId:         app.ID,
+			AppName:       app.AppName,
+			Description:   app.Description,
+			NodeGroupName: strings.TrimRight(nodeGroupName, ";"),
+			NodeGroupId:   nodeGroupIDs,
+			CreatedAt:     app.CreatedAt,
+			ModifiedAt:    app.ModifiedAt,
+			Containers:    containers,
 		})
 	}
 	return &ListReturnInfo{
 		AppInfo: appReturnInfos,
-		Total:   len(appsInfo),
 	}, nil
 }
 
-func (a *AppRepositoryImpl) getAppInfo(appId uint64) (AppInfo, error) {
-	var appInfo AppInfo
-	if err := a.db.Model(AppInfo{}).Where("id = ?", appId).First(&appInfo).Error; err != nil {
-		hwlog.RunLog.Error("find app db failed")
-		return appInfo, err
+func (a *AppRepositoryImpl) countListAppsInfo(name string) (int64, error) {
+	var totalAppInfo int64
+	if err := a.db.Model(AppInfo{}).Where("app_name like ?", "%"+name+"%").Count(&totalAppInfo).Error; err != nil {
+		hwlog.RunLog.Error("count list appInfo db failed")
+		return 0, err
 	}
-	return appInfo, nil
-}
-
-func (a *AppRepositoryImpl) getNodeGroupInfo(nodeGroupName string) (*nodemanager.NodeGroup, error) {
-	var nodeGroup nodemanager.NodeGroup
-	if err := a.db.Model(nodemanager.NodeGroup{}).
-		Where("group_name = ?", nodeGroupName).First(&nodeGroup).Error; err != nil {
-		hwlog.RunLog.Error("find nodeGroup failed")
-		return nil, err
-	}
-	return &nodeGroup, nil
+	return totalAppInfo, nil
 }
 
 func (a *AppRepositoryImpl) deployApp(appInstance *AppInstance) error {
 	return a.db.Model(AppInstance{}).Create(appInstance).Error
 }
 
-func (a *AppRepositoryImpl) deleteApp(appId uint64) error {
-	appInfo, err := a.getAppInfo(appId)
+func (a *AppRepositoryImpl) deleteAppById(appId uint64) error {
+	appInfo, err := a.getAppInfoById(appId)
 	if err != nil {
 		hwlog.RunLog.Error("get appInfo failed when delete")
 		return err
 	}
-	nodeGroups, err := a.queryNodeGroup(appId)
-	if err != nil {
-		return err
-	}
-	if len(nodeGroups) != 0 {
+	err = a.db.Where("app_name = ?", appInfo.AppName).First(&AppInstance{}).Error
+	if err == nil {
 		hwlog.RunLog.Error("app is referenced, can not delete")
 		return errors.New("app is referenced, can not delete ")
 	}
+	if err != gorm.ErrRecordNotFound {
+		hwlog.RunLog.Error("find app instance failed when delete app")
+		return errors.New("find app instance failed when delete app")
+	}
+
 	return a.db.Model(AppInfo{}).Delete(appInfo).Error
+}
+
+func (a *AppRepositoryImpl) getAppInfoById(appId uint64) (*AppInfo, error) {
+	var appInfo *AppInfo
+	if err := a.db.Model(AppInfo{}).Where("id = ?", appId).First(&appInfo).Error; err != nil {
+		hwlog.RunLog.Error("find app from db by id failed")
+		return nil, err
+	}
+	return appInfo, nil
+}
+
+func (a *AppRepositoryImpl) getGroupNameByAppName(appName string) (string, error) {
+	var appInstance AppInstance
+	if err := a.db.Model(AppInfo{}).Where("app_name = ?", appName).First(&appInstance).Error; err != nil {
+		hwlog.RunLog.Error("find app instance from db when delete app")
+		return "", err
+	}
+	return appInstance.NodeGroupName, nil
+}
+
+func (a *AppRepositoryImpl) getAppInfoByName(appName string) (*AppInfo, error) {
+	var appInfo *AppInfo
+	if err := a.db.Model(AppInfo{}).Where("app_name = ?", appName).First(&appInfo).Error; err != nil {
+		hwlog.RunLog.Error("find app db by name failed")
+		return nil, err
+	}
+	return appInfo, nil
 }
 
 func paginate(page, pageSize uint64) func(db *gorm.DB) *gorm.DB {
@@ -218,4 +226,53 @@ func getAppInfoByLikeName(page, pageSize uint64, appName string) func(db *gorm.D
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Scopes(paginate(page, pageSize)).Where("app_name like ?", "%"+appName+"%")
 	}
+}
+
+func (a *AppRepositoryImpl) getAppInstanceByIdAndGroup(appId uint64, nodeGroupName string) (*AppInstance, error) {
+	var appInstance *AppInstance
+	if err := a.db.Model(AppInstance{}).Where("app_id = ? and node_group_name = ?", appId, nodeGroupName).
+		First(&appInstance).Error; err != nil {
+		hwlog.RunLog.Error("find app instance from db by id failed")
+		return nil, err
+	}
+	return appInstance, nil
+}
+
+func (a *AppRepositoryImpl) deleteAppInstanceByIdAndGroup(appId uint64, nodeGroupName string) error {
+	if err := a.db.Model(AppInstance{}).Where("app_id = ? and node_group_name = ?", appId, nodeGroupName).
+		Delete(AppInstance{}).Error; err != nil {
+		hwlog.RunLog.Error("delete app instance from db by id failed")
+		return err
+	}
+	return nil
+}
+
+func (a *AppRepositoryImpl) listAppInstances(appId uint64) ([]AppInstance, error) {
+	var deployedApps []AppInstance
+	if err := a.db.Model(AppInstance{}).Where("app_id = ?", appId).Find(&deployedApps).Error; err != nil {
+		hwlog.RunLog.Error("list app instances db failed")
+		return nil, err
+	}
+	return deployedApps, nil
+}
+
+func (a *AppRepositoryImpl) listAppInstancesByNode(nodeName string) ([]AppInstance, error) {
+	var deployedApps []AppInstance
+	if err := a.db.Model(AppInstance{}).Where("node_name = ?", nodeName).Find(&deployedApps).Error; err != nil {
+		hwlog.RunLog.Error("list app instances by node db failed")
+		return nil, err
+	}
+	return deployedApps, nil
+}
+
+func (a *AppRepositoryImpl) addPod(appInstance *AppInstance) error {
+	return a.db.Model(AppInstance{}).Create(appInstance).Error
+}
+
+func (a *AppRepositoryImpl) updatePod(appInstance *AppInstance) error {
+	return a.db.Model(AppInstance{}).Where("pod_name = ?", appInstance.PodName).Updates(appInstance).Error
+}
+
+func (a *AppRepositoryImpl) deletePod(appInstance *AppInstance) error {
+	return a.db.Model(AppInstance{}).Where("pod_name = ?", appInstance.PodName).Delete(appInstance).Error
 }

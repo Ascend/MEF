@@ -21,7 +21,7 @@ type softwareManager struct {
 
 // Name module name
 func (sr *softwareManager) Name() string {
-	return common.SoftwareRepositoryName
+	return common.SoftwareManagerName
 }
 
 // Enable module enable
@@ -37,25 +37,25 @@ func (sr *softwareManager) Start() {
 			return
 		default:
 		}
-		req, err := modulemanager.ReceiveMessage(common.SoftwareRepositoryName)
-		hwlog.RunLog.Debugf("%s receive request from software manager", common.SoftwareRepositoryName)
+		req, err := modulemanager.ReceiveMessage(common.SoftwareManagerName)
+		hwlog.RunLog.Debugf("%s receive request from software manager", common.SoftwareManagerName)
 		if err != nil {
-			hwlog.RunLog.Errorf("%s receive request from software manager failed", common.SoftwareRepositoryName)
+			hwlog.RunLog.Errorf("%s receive request from software manager failed", common.SoftwareManagerName)
 			continue
 		}
 		msg := methodSelect(req)
 		if msg == nil {
-			hwlog.RunLog.Errorf("%s get method by option and resource failed", common.SoftwareRepositoryName)
+			hwlog.RunLog.Errorf("%s get method by option and resource failed", common.SoftwareManagerName)
 			continue
 		}
 		resp, err := req.NewResponse()
 		if err != nil {
-			hwlog.RunLog.Errorf("%s new response failed", common.SoftwareRepositoryName)
+			hwlog.RunLog.Errorf("%s new response failed", common.SoftwareManagerName)
 			continue
 		}
 		resp.FillContent(msg)
 		if err = modulemanager.SendMessage(resp); err != nil {
-			hwlog.RunLog.Errorf("%s send response failed", common.SoftwareRepositoryName)
+			hwlog.RunLog.Errorf("%s send response failed", common.SoftwareManagerName)
 			continue
 		}
 	}

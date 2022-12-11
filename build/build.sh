@@ -10,11 +10,13 @@ ATLAS_EDGE_BASE_DIR=${TOP_DIR}
 # project directory name
 EDGE_MANAGER_DIR_NAME="edge-manager"
 SOFTWARE_MANAGER_DIR_NAME="software-manager"
+CERT_MANAGER_DIR_NAME="cert-manager"
 
 VER_FILE="${TOP_DIR}"/service_config.ini
 if [ -f "$VER_FILE" ]; then
   cp "${VER_FILE}" "${TOP_DIR}/${EDGE_MANAGER_DIR_NAME}/"
   cp "${VER_FILE}" "${TOP_DIR}/${SOFTWARE_MANAGER_DIR_NAME}/"
+  cp "${VER_FILE}" "${TOP_DIR}/${CERT_MANAGER_DIR_NAME}/"
 fi
 
 build_version="v2.0.4"
@@ -63,6 +65,7 @@ function main() {
   clean
   build_and_zip_component ${EDGE_MANAGER_DIR_NAME}
   build_and_zip_component ${SOFTWARE_MANAGER_DIR_NAME}
+  build_and_zip_component ${CERT_MANAGER_DIR_NAME}
 }
 
 main

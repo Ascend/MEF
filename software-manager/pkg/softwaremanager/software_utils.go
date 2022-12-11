@@ -32,20 +32,38 @@ var softwareDbServiceSingleton sync.Once
 // SoftwareDbCtlInstance returns the singleton instance of software database control
 func SoftwareDbCtlInstance() SoftwareDbCtl {
 	softwareDbServiceSingleton.Do(func() {
-		dbCtlInstance = &SoftwareDbCtlImpl{getDb()}
+		dbCtlInstance = &softwareDbCtlImpl{
+			db: getDb()}
 	})
 	return dbCtlInstance
 }
 
-func checkFields(contentType string, version string) (bool, error) {
-	if contentType != edgeCore && contentType != edgeInstaller {
-		return false, nil
+func checkFields(contentType string, version string) error {
+	if err := checkContentType(contentType); err != nil {
+		return err
 	}
+	if err := checkVersion(version); err != nil {
+		return err
+	}
+	return nil
+}
+
+func checkContentType(contentType string) error {
+	if contentType != edgeCore && contentType != edgeInstaller {
+		return fmt.Errorf("%s is a incorrect field", contentType)
+	}
+	return nil
+}
+
+func checkVersion(version string) error {
 	match, err := regexp.MatchString(regexExp, version)
 	if err != nil {
-		return false, errors.New("regexp match error")
+		return errors.New("regexp match error")
 	}
-	return match || version == "", nil
+	if !match {
+		return fmt.Errorf("%s is a incorrect field", version)
+	}
+	return nil
 }
 
 func checkFile(file *multipart.FileHeader) (bool, error) {
@@ -72,11 +90,9 @@ func checkFile(file *multipart.FileHeader) (bool, error) {
 func checkSoftwareExist(contentType string, version string) (bool, error) {
 	record, err := SoftwareDbCtlInstance().querySoftware(contentType, version)
 	if err != nil {
-		hwlog.RunLog.Error(err.Error())
 		return false, err
 	}
 	if record == nil {
-		hwlog.RunLog.Info(fmt.Sprintf("%s%s does not exist", contentType, version))
 		return false, nil
 	}
 	return true, nil
@@ -162,6 +178,7 @@ func geneRandStr(source string, length int) (string, error) {
 	}
 	return string(randomByteArr), nil
 }
+
 func geneUsrPsw(nodeID string) (string, *[]byte, error) {
 	userName, err := geneRandStr(randomSet, userLength)
 	if err != nil {
@@ -182,6 +199,7 @@ func geneUsrPsw(nodeID string) (string, *[]byte, error) {
 	}
 	return userName, &password, nil
 }
+
 func checkNodeID(nodeID string) bool {
 	if nodeID == "" {
 		hwlog.RunLog.Info("incorrect node_id")
@@ -226,19 +244,21 @@ func fillDownloadData(downloadInfo *downloadData, info *restfulservice.SoftwareI
 }
 
 func deleteSoftware(id int, notDeleteID *[]int) error {
-	hwlog.RunLog.Info("start delete software")
 	result, err := SoftwareDbCtlInstance().querySoftwareByID(id)
 	if err != nil {
+		*notDeleteID = append(*notDeleteID, id)
 		hwlog.RunLog.Error(err.Error())
 		return err
 	}
 	if result == nil {
+		*notDeleteID = append(*notDeleteID, id)
 		hwlog.RunLog.Errorf("software(ID=%d) dose not exist", id)
 		return fmt.Errorf("software(ID=%d) dose not exist", id)
 	}
-	path := softwarePathJoin(result.ContentType, result.Version)
-	if err := os.Remove(path); err != nil {
-		hwlog.RunLog.Errorf("delete software(ID=%d) error", id)
+	dst := filepath.Join(RepositoryFilesPath, result.ContentType,
+		fmt.Sprintf("%s%s%s", result.ContentType, "_", result.Version))
+	if err := os.RemoveAll(dst); err != nil {
+		hwlog.RunLog.Errorf("delete software(ID=%d) error：%s", id, err.Error())
 		*notDeleteID = append(*notDeleteID, id)
 		return err
 	}
@@ -270,7 +290,7 @@ func bytesToHexString(src []byte) string {
 		i = length
 	}
 	for j := 0; j < i; j++ {
-		sub := src[j] & 0xFF
+		sub := src[j] & hexTag
 		hv := hex.EncodeToString(append(temp, sub))
 		if len(hv) < stringLength {
 			res.WriteString(strconv.FormatInt(int64(0), common.BaseHex))

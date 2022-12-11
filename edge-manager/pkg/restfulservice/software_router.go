@@ -4,18 +4,16 @@
 package restfulservice
 
 import (
-	"edge-manager/pkg/util"
-
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
 )
 
-func upgradeSfw(c *gin.Context) {
-	var upgradeSfwReq util.UpgradeSfwReq
-	if err := c.ShouldBindJSON(&upgradeSfwReq); err != nil {
-		hwlog.OpLog.Error("update software: convert request body failed")
-		common.ConstructResp(c, common.ErrorParseBody, "", nil)
+func upgradeSoftware(c *gin.Context) {
+	res, err := c.GetRawData()
+	if err != nil {
+		hwlog.OpLog.Error("upgrade software: get input parameter failed")
+		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
 		return
 	}
 	router := common.Router{
@@ -24,6 +22,6 @@ func upgradeSfw(c *gin.Context) {
 		Option:      common.Upgrade,
 		Resource:    common.Software,
 	}
-	resp := common.SendSyncMessageByRestful(upgradeSfwReq, &router)
+	resp := common.SendSyncMessageByRestful(string(res), &router)
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }

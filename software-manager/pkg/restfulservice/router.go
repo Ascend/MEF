@@ -34,7 +34,7 @@ func deleteSoftware(c *gin.Context) {
 	}
 	router := common.Router{
 		Source:      common.RestfulServiceName,
-		Destination: common.SoftwareRepositoryName,
+		Destination: common.SoftwareManagerName,
 		Option:      common.Delete,
 		Resource:    common.Software,
 	}
@@ -51,7 +51,7 @@ func downloadSoftware(c *gin.Context) {
 	}
 	router := common.Router{
 		Source:      common.RestfulServiceName,
-		Destination: common.SoftwareRepositoryName,
+		Destination: common.SoftwareManagerName,
 		Option:      common.Get,
 		Resource:    common.Software,
 	}
@@ -77,7 +77,7 @@ func uploadSoftware(c *gin.Context) {
 	}
 	router := common.Router{
 		Source:      common.RestfulServiceName,
-		Destination: common.SoftwareRepositoryName,
+		Destination: common.SoftwareManagerName,
 		Option:      common.Update,
 		Resource:    common.Software,
 	}
@@ -94,7 +94,7 @@ func listRepository(c *gin.Context) {
 	}
 	router := common.Router{
 		Source:      common.RestfulServiceName,
-		Destination: common.SoftwareRepositoryName,
+		Destination: common.SoftwareManagerName,
 		Option:      common.Get,
 		Resource:    common.Repository,
 	}
@@ -111,7 +111,7 @@ func getURL(c *gin.Context) {
 	}
 	router := common.Router{
 		Source:      common.RestfulServiceName,
-		Destination: common.SoftwareRepositoryName,
+		Destination: common.SoftwareManagerName,
 		Option:      common.Get,
 		Resource:    common.URL,
 	}

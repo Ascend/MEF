@@ -6,6 +6,8 @@ package common
 import (
 	"encoding/json"
 	"errors"
+	"unsafe"
+
 	"os"
 	"path/filepath"
 	"strconv"
@@ -29,6 +31,14 @@ type Router struct {
 func ClearSliceByteMemory(sliceByte []byte) {
 	for i := 0; i < len(sliceByte); i++ {
 		sliceByte[i] = 0
+	}
+}
+
+// ClearStringMemory clears string in memory
+func ClearStringMemory(s string) {
+	bs := *(*[]byte)(unsafe.Pointer(&s))
+	for i := 0; i < len(bs); i++ {
+		bs[i] = 0
 	}
 }
 
@@ -66,13 +76,13 @@ func marshalResponse(respMsg *model.Message) RespMsg {
 func ParamConvert(input interface{}, reqType interface{}) error {
 	inputStr, ok := input.(string)
 	if !ok {
-		hwlog.RunLog.Error("create node convert request error1")
-		return errors.New("convert request error")
+		hwlog.RunLog.Error("param type is not string")
+		return errors.New("param type error")
 	}
 	dec := json.NewDecoder(strings.NewReader(inputStr))
 	if err := dec.Decode(reqType); err != nil {
-		hwlog.RunLog.Error("create node conver request error3")
-		return errors.New("decode requst error")
+		hwlog.RunLog.Errorf("param decode failed: %s", err.Error())
+		return errors.New("param decode error")
 	}
 	return nil
 }
