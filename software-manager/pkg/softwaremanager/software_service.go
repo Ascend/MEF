@@ -5,13 +5,7 @@ package softwaremanager
 
 import (
 	"flag"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
-	"os"
-	"path/filepath"
-	"strconv"
-	"time"
+	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
@@ -23,27 +17,11 @@ var (
 	maximumSize float64
 	// RepositoryFilesPath is to define the root path of imported software
 	RepositoryFilesPath string
-	gormDB              *gorm.DB
 	// IP is the address of service
 	IP string
 	// Port is to define the service entrance
 	Port int
 )
-
-const (
-	kbToMB           float64 = 1048576
-	defaultFilesPath         = "/etc/mindx-edge/software-manager/software-manager.db"
-	dBFileMode               = 0640
-)
-
-// SoftwareRecord is to define the struct of software record table
-type softwareRecord struct {
-	ID          uint `gorm:"primarykey"`
-	CreatedAt   time.Time
-	ContentType string  `gorm:"type:varchar(64);not null"`
-	Version     string  `gorm:"unique;type:varchar(64);not null"`
-	FileSize    float64 `gorm:"type:float(64);not null"`
-}
 
 func init() {
 	flag.StringVar(&RepositoryFilesPath, "repositoryFilesPath", defaultFilesPath,
@@ -55,140 +33,148 @@ func init() {
 	flag.IntVar(&Port, "port", 0, "The server port of the http service,range[1025-40000]")
 }
 
-// InitDatabase is to init the database table for repository
-func InitDatabase(repositoryFilesPath string) error {
-	relPath, err := filepath.Abs(filepath.Join(repositoryFilesPath, "/repository.db"))
-	if err != nil {
-		hwlog.RunLog.Error("File path standardization fail")
-		return err
+func batchDeleteSoftware(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start batch delete software")
+	var req []int
+	if err := common.ParamConvert(input, &req); err != nil {
+		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
-	db, err := gorm.Open(sqlite.Open(relPath), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Silent)})
-	if err != nil {
-		hwlog.RunLog.Error("Init database connection failed")
-		return err
+	var notDeleteID []int
+	for i := 0; i < len(req); i++ {
+		deleteSoftware(req[i], &notDeleteID)
 	}
-	if err = os.Chmod(relPath, dBFileMode); err != nil {
-		hwlog.RunLog.Error("Chmod for database file error")
-		return err
+	result := batchDeleteResult{
+		NotDeleteID: notDeleteID,
 	}
-	err = db.AutoMigrate(&softwareRecord{})
-	if err != nil {
-		hwlog.RunLog.Error("Migrate database error")
-		return err
-	}
-	gormDB = db
-	return nil
-}
-func deleteSoftware(input interface{}) common.RespMsg {
-	info, ok := input.(restfulservice.SoftwareInfo)
-	if !ok {
-		hwlog.RunLog.Error("Class convert error")
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "Class convert error"}
-	}
-	hwlog.RunLog.Info("Start delete software")
-	path := checkSoftwareExist(info.ContentType, info.Version)
-	if path == "" {
-		hwlog.RunLog.Error("Software dose not exist")
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "Software dose not exist"}
-	}
-	err := os.Remove(path)
-	if err != nil {
-		hwlog.RunLog.Error("Delete file error")
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "Delete file error"}
-	} else {
-		if gormDB == nil {
-			hwlog.RunLog.Error("gormDB is nil")
-			return common.RespMsg{Status: common.ErrorGetResponse, Msg: "gormDB is nil"}
-		}
-		gormDB.Where("content_type=? and version=?", info.ContentType, info.Version).
-			Unscoped().Delete(&softwareRecord{})
+	if len(notDeleteID) == 0 {
 		return common.RespMsg{Status: common.Success}
-
 	}
+	return common.RespMsg{Status: common.ErrorGetResponse, Msg: "delete error", Data: result}
 }
 
 func downloadSoftware(input interface{}) common.RespMsg {
 	info, ok := input.(restfulservice.SoftwareInfo)
 	if !ok {
-		hwlog.RunLog.Error("Class convert error")
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "Class convert error"}
+		hwlog.RunLog.Error("class convert error")
+		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "class convert error"}
 	}
-	if !checkFields(info.ContentType, info.Version) {
-		hwlog.RunLog.Error("Incorrect fields")
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "Incorrect fields"}
+	result := checkDownloadRight(info.UserName, info.Password, info.NodeID)
+	if !result {
+		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "wrong user, password or nodeId"}
 	}
-	if path := checkSoftwareExist(info.ContentType, info.Version); path != "" {
-		return common.RespMsg{Status: common.Success, Data: path}
-	} else {
-		hwlog.RunLog.Error("Software dose not exist")
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "Software dose not exist"}
+	err := checkFields(info.ContentType, info.Version)
+	if err != nil {
+		hwlog.RunLog.Error(fmt.Sprintf("%s%s", err.Error(), "in downloadSoftware func"))
+		return common.RespMsg{Status: common.ErrorGetResponse, Msg: err.Error()}
 	}
+	exist, err := checkSoftwareExist(info.ContentType, info.Version)
+	if err != nil {
+		hwlog.RunLog.Error(err.Error())
+		return common.RespMsg{Status: common.ErrorGetResponse, Msg: err.Error()}
+	}
+	if !exist {
+		hwlog.RunLog.Errorf("%s%s dose not exist", info.ContentType, info.Version)
+		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "software dose not exist"}
+	}
+	path := softwarePathJoin(info.ContentType, info.Version)
+	return common.RespMsg{Status: common.Success, Data: path}
 }
 
 func uploadSoftware(input interface{}) common.RespMsg {
 	info, ok := input.(restfulservice.SoftwareInfo)
 	if !ok {
-		hwlog.RunLog.Error("Class convert error")
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "Class convert error"}
+		hwlog.RunLog.Error("class convert error")
+		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "class convert error"}
 	}
-	if !checkFields(info.ContentType, info.Version) {
-		hwlog.RunLog.Error("Incorrect fields")
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "Incorrect fields"}
+	err := checkFields(info.ContentType, info.Version)
+	if err != nil {
+		hwlog.RunLog.Error(fmt.Sprintf("%s%s", err.Error(), "in uploadSoftware func"))
+		return common.RespMsg{Status: common.ErrorGetResponse, Msg: err.Error()}
 	}
-	if path := checkSoftwareExist(info.ContentType, info.Version); path != "" {
-		hwlog.RunLog.Error("Software already exists")
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "Software already exists"}
+	exist, err := checkSoftwareExist(info.ContentType, info.Version)
+	if err != nil {
+		hwlog.RunLog.Error("check software exist error in uploadSoftware func")
+		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "check software exist error"}
+	}
+	if exist {
+		hwlog.RunLog.Errorf("%s%s dose not exist", info.ContentType, info.Version)
+		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "software already exists"}
 	}
 	file := info.File
-	if !checkFile(file) {
-		hwlog.RunLog.Error("Wrong file format")
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "Wrong file format"}
-	}
-	dst := creatDir(info.ContentType, info.Version)
-	err := saveUploadedFile(file, dst+"/"+info.ContentType+".zip")
+	ok, err = checkFile(file)
 	if err != nil {
-		hwlog.RunLog.Error("Save file error")
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "Save file error"}
-	} else {
-		if gormDB == nil {
-			hwlog.RunLog.Error("gormDB is nil")
-			return common.RespMsg{Status: common.ErrorGetResponse, Msg: "gormDB is nil"}
-		}
-		gormDB.Create(&softwareRecord{
-			ContentType: info.ContentType,
-			Version:     info.Version,
-			FileSize:    float64(file.Size) / kbToMB,
-		})
-		return common.RespMsg{Status: common.Success}
+		hwlog.RunLog.Error(err.Error())
+		return common.RespMsg{Status: common.ErrorGetResponse, Msg: err.Error()}
 	}
+	if !ok {
+		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "wrong file format"}
+	}
+	dst, err := creatDir(info.ContentType, info.Version)
+	if err != nil {
+		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "create directory error"}
+	}
+	if err = saveUploadedFile(file, dst+"/"+info.ContentType+".zip"); err != nil {
+		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "save file error"}
+	}
+	err = SoftwareDbCtlInstance().addSoftware(&info)
+	if err != nil {
+		return common.RespMsg{Status: common.ErrorGetResponse, Msg: err.Error()}
+	}
+	return common.RespMsg{Status: common.Success}
 }
 
-func getRepository(input interface{}) common.RespMsg {
-	var softwareRecords []softwareRecord
-	if gormDB == nil {
-		hwlog.RunLog.Error("gormDB is nil")
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "gormDB is nil"}
+func listRepository(input interface{}) common.RespMsg {
+	info, ok := input.(restfulservice.SoftwareInfo)
+	if !ok {
+		hwlog.RunLog.Error("class convert error")
+		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "class convert error"}
 	}
-	db := gormDB.Find(&softwareRecords)
-	if db.Error != nil {
-		hwlog.RunLog.Error("Database error")
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "Database error"}
+	softwareRecords, total, err := SoftwareDbCtlInstance().listSoftware(&info)
+	if err != nil {
+		return common.RespMsg{Status: common.ErrorGetResponse, Msg: err.Error()}
 	}
-	return common.RespMsg{Status: common.Success, Data: softwareRecords}
+	return common.RespMsg{Status: common.Success, Data: queryResult{*softwareRecords, total}}
 }
 
 func getURL(input interface{}) common.RespMsg {
 	info, ok := input.(restfulservice.SoftwareInfo)
 	if !ok {
-		hwlog.RunLog.Error("Class convert error")
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "Class convert error"}
+		hwlog.RunLog.Error("class convert error")
+		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "class convert error"}
 	}
-	if !checkFields(info.ContentType, info.Version) {
-		hwlog.RunLog.Error("Incorrect fields")
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "Incorrect fields"}
+	var err error
+	if info.Version == "" {
+		err = checkContentType(info.ContentType)
+	} else {
+		err = checkFields(info.ContentType, info.Version)
 	}
-	url := IP + ":" + strconv.Itoa(Port) + "/software-manager/v1/softwaremanager/?" +
-		"contentType=" + info.ContentType + "&version=" + info.Version
-	return common.RespMsg{Status: common.Success, Data: url}
+	if err != nil {
+		hwlog.RunLog.Error(fmt.Sprintf("%s%s", err.Error(), "in getURL func"))
+		return common.RespMsg{Status: common.ErrorGetResponse, Msg: err.Error()}
+	}
+	if !checkNodeID(info.NodeID) {
+		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "incorrect node_id"}
+	}
+	if info.Version == "" {
+		info.Version, err = returnLatestVer(info.ContentType)
+		if err != nil {
+			hwlog.RunLog.Error(err.Error())
+			return common.RespMsg{Status: common.ErrorGetResponse, Msg: err.Error()}
+		}
+	}
+	exist, err := checkSoftwareExist(info.ContentType, info.Version)
+	if err != nil {
+		hwlog.RunLog.Error("check software exist error in getURL func")
+		return common.RespMsg{Status: common.ErrorGetResponse, Msg: err.Error()}
+	}
+	if !exist {
+		hwlog.RunLog.Errorf("%s%s dose not exist", info.ContentType, info.Version)
+		return common.RespMsg{Status: common.ErrorGetResponse,
+			Msg: "software dose not exist. Need to import software first"}
+	}
+	downloadInfo := downloadData{}
+	if err = fillDownloadData(&downloadInfo, &info); err != nil {
+		return common.RespMsg{Status: common.ErrorGetResponse, Msg: err.Error()}
+	}
+	return common.RespMsg{Status: common.Success, Data: downloadInfo}
 }

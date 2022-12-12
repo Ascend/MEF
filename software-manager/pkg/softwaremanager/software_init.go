@@ -81,10 +81,10 @@ func methodSelect(req *model.Message) *common.RespMsg {
 
 func nodeMethodList() map[string]handlerFunc {
 	return map[string]handlerFunc{
-		combine(common.Delete, common.Software): deleteSoftware,
+		combine(common.Delete, common.Software): batchDeleteSoftware,
 		combine(common.Get, common.Software):    downloadSoftware,
 		combine(common.Update, common.Software): uploadSoftware,
-		combine(common.Get, common.Repository):  getRepository,
+		combine(common.Get, common.Repository):  listRepository,
 		combine(common.Get, common.URL):         getURL,
 	}
 }
