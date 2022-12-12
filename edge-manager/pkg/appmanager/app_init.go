@@ -105,7 +105,7 @@ func initAppTable() error {
 		return err
 	}
 
-	if err := database.CreateTableIfNotExists(AppTemplate{}); err != nil {
+	if err := database.CreateTableIfNotExists(AppTemplateDb{}); err != nil {
 		hwlog.RunLog.Error("create app template instance database table failed")
 		return err
 	}
@@ -115,20 +115,20 @@ func initAppTable() error {
 
 func appMethodList() map[string]handlerFunc {
 	return map[string]handlerFunc{
-		combine(common.Create, common.App):             CreateApp,
-		combine(common.Query, common.App):              QueryApp,
-		combine(common.Update, common.App):             UpdateApp,
-		combine(common.List, common.App):               ListAppInfo,
-		combine(common.Deploy, common.App):             DeployApp,
-		combine(common.Delete, common.App):             DeleteApp,
-		combine(common.List, common.AppInstance):       ListAppInstances,
-		combine(common.List, common.AppInstanceByNode): ListAppInstancesByNode,
+		combine(common.Create, common.App):             createApp,
+		combine(common.Query, common.App):              queryApp,
+		combine(common.Update, common.App):             updateApp,
+		combine(common.List, common.App):               listAppInfo,
+		combine(common.Deploy, common.App):             deployApp,
+		combine(common.Delete, common.App):             deleteApp,
+		combine(common.List, common.AppInstance):       listAppInstances,
+		combine(common.List, common.AppInstanceByNode): listAppInstancesByNode,
 
-		combine(common.Create, common.AppTemplate): CreateTemplate,
-		combine(common.Update, common.AppTemplate): UpdateTemplate,
-		combine(common.Delete, common.AppTemplate): DeleteTemplate,
-		combine(common.List, common.AppTemplate):   GetTemplates,
-		combine(common.Get, common.AppTemplate):    GetTemplateDetail,
+		combine(common.Create, common.AppTemplate): createTemplate,
+		combine(common.Update, common.AppTemplate): updateTemplate,
+		combine(common.Delete, common.AppTemplate): deleteTemplate,
+		combine(common.List, common.AppTemplate):   getTemplates,
+		combine(common.Get, common.AppTemplate):    getTemplate,
 	}
 }
 

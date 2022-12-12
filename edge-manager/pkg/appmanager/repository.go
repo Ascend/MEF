@@ -4,10 +4,11 @@
 package appmanager
 
 import (
-	"edge-manager/pkg/database"
 	"errors"
 	"strings"
 	"sync"
+
+	"edge-manager/pkg/database"
 
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
@@ -21,16 +22,19 @@ var (
 
 // Repository app template db repository interface
 type Repository interface {
-	// CreateTemplate create app template
-	CreateTemplate(template *AppTemplate) error
-	// DeleteTemplates batch delete app template
-	DeleteTemplates(ids []uint64) error
-	// UpdateTemplate modify app template
-	UpdateTemplate(template *AppTemplate) error
-	// GetTemplates get app template
-	GetTemplates(name string, pageNum, pageSize uint64) ([]AppTemplate, error)
-	// GetTemplate get app template
-	GetTemplate(id uint64) (*AppTemplate, error)
+	// createTemplate create app template
+	createTemplate(template *AppTemplateDb) error
+	// deleteTemplates batch delete app template
+	deleteTemplates(ids []uint64) error
+	// updateTemplate modify app template
+	updateTemplate(template *AppTemplateDb) error
+	// getTemplates get app template
+	getTemplates(name string, pageNum, pageSize uint64) ([]AppTemplateDb, error)
+	// getTemplate get app template
+	getTemplate(id uint64) (*AppTemplateDb, error)
+
+	// countListAppsInfo get app template
+	getTemplateCount(name string) (int64, error)
 }
 
 type repositoryImpl struct {
@@ -45,9 +49,9 @@ func RepositoryInstance() Repository {
 	return repository
 }
 
-// CreateTemplate create app template
-func (rep *repositoryImpl) CreateTemplate(template *AppTemplate) error {
-	if err := rep.db.Transaction(func(tx *gorm.DB) error {
+// createTemplate create app template
+func (r *repositoryImpl) createTemplate(template *AppTemplateDb) error {
+	if err := r.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(&template).Error; err != nil {
 			hwlog.RunLog.Error("create db template failed")
 			return err
@@ -63,9 +67,9 @@ func (rep *repositoryImpl) CreateTemplate(template *AppTemplate) error {
 }
 
 // DeleteTemplates batch delete app template
-func (rep *repositoryImpl) DeleteTemplates(ids []uint64) error {
-	if err := rep.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("Id in (?)", ids).Delete(AppTemplate{}).Error; err != nil {
+func (r *repositoryImpl) deleteTemplates(ids []uint64) error {
+	if err := r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("Id in (?)", ids).Delete(AppTemplateDb{}).Error; err != nil {
 			hwlog.RunLog.Error("delete db templates failed")
 			return err
 		}
@@ -76,9 +80,9 @@ func (rep *repositoryImpl) DeleteTemplates(ids []uint64) error {
 	return nil
 }
 
-// UpdateTemplate modify app template
-func (rep *repositoryImpl) UpdateTemplate(template *AppTemplate) error {
-	if err := rep.db.Model(AppTemplate{}).Where("id = ?", template.ID).Updates(template).Error; err != nil {
+// updateTemplate modify app template
+func (r *repositoryImpl) updateTemplate(template *AppTemplateDb) error {
+	if err := r.db.Model(AppTemplateDb{}).Where("id = ?", template.ID).Updates(template).Error; err != nil {
 		hwlog.RunLog.Errorf("update template failed: %s", err.Error())
 		return err
 	}
@@ -86,11 +90,17 @@ func (rep *repositoryImpl) UpdateTemplate(template *AppTemplate) error {
 
 }
 
-// GetTemplates get app template versions
-func (rep *repositoryImpl) GetTemplates(name string, pageNum, pageSize uint64) ([]AppTemplate, error) {
-	var templates []AppTemplate
+func getTemplateByLikeName(page, pageSize uint64, appName string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Scopes(paginate(page, pageSize)).Where("template_name like ?", "%"+appName+"%")
+	}
+}
 
-	if err := rep.db.Model(AppTemplate{}).Scopes(getAppInfoByLikeName(pageNum,
+// getTemplates get app template versions
+func (r *repositoryImpl) getTemplates(name string, pageNum, pageSize uint64) ([]AppTemplateDb, error) {
+	var templates []AppTemplateDb
+
+	if err := r.db.Model(AppTemplateDb{}).Scopes(getTemplateByLikeName(pageNum,
 		pageSize, name)).Find(&templates).Error; err != nil {
 		hwlog.RunLog.Error("list appInfo db failed")
 		return nil, err
@@ -100,11 +110,21 @@ func (rep *repositoryImpl) GetTemplates(name string, pageNum, pageSize uint64) (
 }
 
 // GetTemplate get app template
-func (rep *repositoryImpl) GetTemplate(id uint64) (*AppTemplate, error) {
-	var template AppTemplate
-	if err := rep.db.Where(&AppTemplate{ID: id}).First(&template).Error; err != nil {
+func (r *repositoryImpl) getTemplate(id uint64) (*AppTemplateDb, error) {
+	var template AppTemplateDb
+	if err := r.db.Where(&AppTemplateDb{ID: id}).First(&template).Error; err != nil {
 		hwlog.RunLog.Error("get db template failed")
 		return nil, errors.New("get template failed")
 	}
 	return &template, nil
+}
+
+func (r *repositoryImpl) getTemplateCount(name string) (int64, error) {
+	var totalTemplateCount int64
+	if err := r.db.Model(AppTemplateDb{}).Where("template_name like ?",
+		"%"+name+"%").Count(&totalTemplateCount).Error; err != nil {
+		hwlog.RunLog.Error("count list appInfo db failed")
+		return 0, err
+	}
+	return totalTemplateCount, nil
 }

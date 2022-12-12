@@ -27,8 +27,8 @@ type AppInstance struct {
 	ContainerInfo string `gorm:"type:text;" json:"containers"`
 }
 
-// AppTemplate db table for application template group
-type AppTemplate struct {
+// AppTemplateDb db table for application template group
+type AppTemplateDb struct {
 	ID           uint64 `gorm:"type:integer;primaryKey;autoIncrement:true"`
 	TemplateName string `gorm:"type:char(128);unique;not null"`
 	Description  string `gorm:"type:char(255);" json:"description"`

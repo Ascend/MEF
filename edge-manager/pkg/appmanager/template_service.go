@@ -4,27 +4,33 @@
 package appmanager
 
 import (
+	"time"
+
 	"edge-manager/pkg/util"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
 )
 
-// CreateTemplate create app template
-func CreateTemplate(param interface{}) common.RespMsg {
+// createTemplate create app template
+func createTemplate(param interface{}) common.RespMsg {
 	hwlog.RunLog.Info("create app template,start")
-	var req AppTemplateDto
+	var req CreateTemplateReq
 	if err := common.ParamConvert(param, &req); err != nil {
 		hwlog.RunLog.Error("create app template,failed,error:request parameter convert failed")
 		return common.RespMsg{Status: common.ErrorParamInvalid}
 	}
 
-	var template AppTemplate
+	var template AppTemplateDb
 	if err := req.ToDb(&template); err != nil {
 		hwlog.RunLog.Errorf("create app template,failed,error:%v", err)
 		return common.RespMsg{Status: common.ErrorCreateAppTemplate}
 	}
-	if err := RepositoryInstance().CreateTemplate(&template); err != nil {
+
+	template.CreatedAt = time.Now().Format(common.TimeFormat)
+	template.ModifiedAt = time.Now().Format(common.TimeFormat)
+
+	if err := RepositoryInstance().createTemplate(&template); err != nil {
 		hwlog.RunLog.Errorf("create app template,failed,error:%v", err)
 		return common.RespMsg{Status: common.ErrorCreateAppTemplate, Msg: err.Error()}
 	}
@@ -32,15 +38,15 @@ func CreateTemplate(param interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success}
 }
 
-// DeleteTemplate delete app template
-func DeleteTemplate(param interface{}) common.RespMsg {
+// deleteTemplate delete app template
+func deleteTemplate(param interface{}) common.RespMsg {
 	hwlog.RunLog.Info("delete app template,start")
-	req := ReqDeleteTemplate{}
+	req := DeleteTemplateReq{}
 	if err := common.ParamConvert(param, &req); err != nil {
 		hwlog.RunLog.Error("delete app template,failed,error:request parameter convert failed")
 		return common.RespMsg{Status: common.ErrorParamInvalid}
 	}
-	if err := RepositoryInstance().DeleteTemplates(req.Ids); err != nil {
+	if err := RepositoryInstance().deleteTemplates(req.Ids); err != nil {
 		hwlog.RunLog.Errorf("delete app template,failed,error:%v", err)
 		return common.RespMsg{Status: common.ErrorDeleteAppTemplate, Msg: err.Error()}
 	}
@@ -48,21 +54,24 @@ func DeleteTemplate(param interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success}
 }
 
-// UpdateTemplate modify app template
-func UpdateTemplate(param interface{}) common.RespMsg {
+// updateTemplate modify app template
+func updateTemplate(param interface{}) common.RespMsg {
 	hwlog.RunLog.Info("modify app template,start")
-	var req AppTemplateDto
+	var req UpdateTemplateReq
 	if err := common.ParamConvert(param, &req); err != nil {
 		hwlog.RunLog.Error("modify app template,failed,error:request parameter convert failed")
 		return common.RespMsg{Status: common.ErrorParamInvalid}
 	}
 
-	var template AppTemplate
+	var template AppTemplateDb
 	if err := req.ToDb(&template); err != nil {
 		hwlog.RunLog.Errorf("create app template,failed,error:%v", err)
 		return common.RespMsg{Status: common.ErrorModifyAppTemplate}
 	}
-	if err := RepositoryInstance().UpdateTemplate(&template); err != nil {
+
+	template.ModifiedAt = time.Now().Format(common.TimeFormat)
+
+	if err := RepositoryInstance().updateTemplate(&template); err != nil {
 		hwlog.RunLog.Errorf("modify app template,failed,error:%v", err)
 		return common.RespMsg{Status: common.ErrorModifyAppTemplate, Msg: err.Error()}
 	}
@@ -70,8 +79,8 @@ func UpdateTemplate(param interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success}
 }
 
-// GetTemplates get app templates
-func GetTemplates(param interface{}) common.RespMsg {
+// getTemplates get app templates
+func getTemplates(param interface{}) common.RespMsg {
 	hwlog.RunLog.Info("get app templates, start")
 	req, ok := param.(util.ListReq)
 	if !ok {
@@ -79,34 +88,43 @@ func GetTemplates(param interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "list app info error", Data: nil}
 	}
 
-	templates, err := RepositoryInstance().GetTemplates(req.Name, req.PageNum, req.PageSize)
+	templates, err := RepositoryInstance().getTemplates(req.Name, req.PageNum, req.PageSize)
 	if err != nil {
 		hwlog.RunLog.Errorf("get app templates,failed,error:%v", err)
 		return common.RespMsg{Status: common.ErrorGetAppTemplates, Msg: err.Error()}
 	}
 
-	result := make([]AppTemplateDto, len(templates))
+	appTemplates := make([]AppTemplate, len(templates))
 	for i, item := range templates {
-		if err := (&result[i]).FromDb(&item); err != nil {
+		if err := (&appTemplates[i]).FromDb(&item); err != nil {
 			hwlog.RunLog.Errorf("get app templates,failed,error:%v", err)
 			return common.RespMsg{Status: common.ErrorGetAppTemplates, Msg: err.Error()}
 		}
 	}
 
+	totalCount, err := RepositoryInstance().getTemplateCount(req.Name)
+	if err != nil {
+		hwlog.RunLog.Errorf("get app templates,failed,error:%v", err)
+		return common.RespMsg{Status: common.ErrorGetAppTemplates, Msg: err.Error()}
+	}
+
+	var result ListTemplatesReq
+	result.AppTemplates = appTemplates
+	result.Total = totalCount
 	hwlog.RunLog.Info("get app templates,success")
 	return common.RespMsg{Status: common.Success, Data: result}
 }
 
-// GetTemplateDetail get app template detail
-func GetTemplateDetail(param interface{}) common.RespMsg {
+// getTemplate get app template detail
+func getTemplate(param interface{}) common.RespMsg {
 	hwlog.RunLog.Info("get app template detail,start")
 	id, ok := param.(uint64)
 	if !ok {
 		hwlog.RunLog.Error("get app template failed")
 		return common.RespMsg{Status: "", Msg: "get app template failed", Data: nil}
 	}
-	template, err := RepositoryInstance().GetTemplate(id)
-	var dto AppTemplateDto
+	template, err := RepositoryInstance().getTemplate(id)
+	var dto AppTemplate
 	if err = (&dto).FromDb(template); err != nil {
 		hwlog.RunLog.Errorf("get app template detail,failed,error:%v", err)
 		return common.RespMsg{Status: common.ErrorGetAppTemplateDetail}

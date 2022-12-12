@@ -26,7 +26,7 @@ func createApp(c *gin.Context) {
 }
 
 func queryApp(c *gin.Context) {
-	appId, err := getReqAppId(c)
+	appId, err := getReqId(c, "appId")
 	if err != nil {
 		hwlog.RunLog.Errorf("get app id failed: %s", err.Error())
 		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
@@ -110,7 +110,7 @@ func deleteApp(c *gin.Context) {
 }
 
 func listAppInstance(c *gin.Context) {
-	appId, err := getReqAppId(c)
+	appId, err := getReqId(c, "appId")
 	if err != nil {
 		hwlog.OpLog.Error("list deployed app: get input parameter failed")
 		common.ConstructResp(c, common.ErrorParseBody, "", nil)

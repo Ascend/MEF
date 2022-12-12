@@ -110,3 +110,36 @@ type AppInstanceOfNodeResp struct {
 	NodeGroupName string `json:"nodeGroupName"`
 	NodeGroupID   int64  `json:"nodeGroupID"`
 }
+
+// AppTemplate app template dto
+type AppTemplate struct {
+	Id          uint64      `json:"id"`
+	Name        string      `json:"name"`
+	Description string      `json:"description"`
+	CreatedAt   string      `json:"createdAt"`
+	ModifiedAt  string      `json:"modifiedAt"`
+	Containers  []Container `json:"containers"`
+}
+
+// CreateTemplateReq create app template
+type CreateTemplateReq struct {
+	AppTemplate
+}
+
+// UpdateTemplateReq update app template
+type UpdateTemplateReq struct {
+	AppTemplate
+}
+
+// ListTemplatesReq encapsulate app list
+type ListTemplatesReq struct {
+	// AppTemplates app template info
+	AppTemplates []AppTemplate `json:"appTemplates"`
+	// Total is num of appInfos
+	Total int64 `json:"total"`
+}
+
+// DeleteTemplateReq request body to delete app template
+type DeleteTemplateReq struct {
+	Ids []uint64 `json:"ids"`
+}
