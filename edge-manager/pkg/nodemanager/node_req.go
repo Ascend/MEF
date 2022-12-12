@@ -5,7 +5,19 @@ package nodemanager
 
 import (
 	"encoding/json"
+
 	"github.com/gin-gonic/gin/binding"
+
+	"huawei.com/mindxedge/base/common"
+)
+
+const (
+	paramNodeName          = "nodeName"
+	paramNodeNameShort     = "name"
+	paramUniqueName        = "uniqueName"
+	paramNodeGroupName     = "nodeGroup"
+	paramNodeGroupNameLong = "nodeGroupName"
+	paramDescription       = "description"
 )
 
 // CreateEdgeNodeReq Create edge node
@@ -16,10 +28,27 @@ type CreateEdgeNodeReq struct {
 	NodeGroup   string `json:"nodeGroup,omitempty"`
 }
 
+// Check request validator
+func (req CreateEdgeNodeReq) Check() error {
+	return common.NewValidator().
+		ValidateNodeName(paramNodeName, req.NodeName).
+		ValidateNodeUniqueName(paramUniqueName, req.UniqueName).
+		ValidateNodeGroupName(paramNodeGroupName, req.NodeGroup).
+		Error()
+}
+
 // CreateNodeGroupReq Create edge node group
 type CreateNodeGroupReq struct {
 	Description   string `json:"description,omitempty"`
 	NodeGroupName string `json:"nodeGroupName"`
+}
+
+// Check request validator
+func (req CreateNodeGroupReq) Check() error {
+	return common.NewValidator().
+		ValidateNodeGroupName(paramNodeGroupNameLong, req.NodeGroupName).
+		ValidateNodeGroupDesc(paramDescription, req.Description).
+		Error()
 }
 
 // GetNodeDetailReq request object
@@ -59,10 +88,19 @@ func (req BatchDeleteNodeReq) Check() error {
 	return nil
 }
 
-// BatchDeleteNodeRelationReq delete node relation
-type BatchDeleteNodeRelationReq struct {
+// DeleteNodeToGroupReq delete nodes to group
+type DeleteNodeToGroupReq struct {
 	GroupID int64   `json:"groupId"`
 	NodeIDs []int64 `json:"nodeId"`
+}
+
+// BatchDeleteNodeRelationReq delete multiple node-group relation
+type BatchDeleteNodeRelationReq []DeleteNodeRelationReq
+
+// DeleteNodeRelationReq delete single node-group relation
+type DeleteNodeRelationReq struct {
+	GroupID int64 `json:"groupId"`
+	NodeID  int64 `json:"nodeId"`
 }
 
 // Check request validator
@@ -75,6 +113,7 @@ type GetNodeDetailResp struct {
 	Id          int64  `json:"id"`
 	NodeName    string `json:"nodeName"`
 	UniqueName  string `json:"uniqueName"`
+	IP          string `json:"ip"`
 	Description string `json:"description"`
 	Status      string `json:"status"`
 	CreatedAt   string `json:"createdAt"`
@@ -86,16 +125,19 @@ type GetNodeDetailResp struct {
 	NodeGroup   string `json:"nodeGroup"`
 }
 
-// ModifyNodeGroupReq request object
-type ModifyNodeGroupReq struct {
+// ModifyNodeReq request object
+type ModifyNodeReq struct {
 	NodeId      int64  `json:"nodeId"`
 	NodeName    string `json:"nodeName"`
 	Description string `json:"description"`
 }
 
 // Check request validator
-func (req ModifyNodeGroupReq) Check() error {
-	return nil
+func (req ModifyNodeReq) Check() error {
+	return common.NewValidator().
+		ValidateNodeName(paramNodeName, req.NodeName).
+		ValidateNodeDesc(paramDescription, req.Description).
+		Error()
 }
 
 // GetNodeStatisticsResp node statistics data
@@ -125,6 +167,7 @@ type GetNodeGroupDetailResp struct {
 type GetNodeGroupDetailRespItem struct {
 	NodeID      int64  `json:"nodeId"`
 	NodeName    string `json:"nodeName"`
+	IP          string `json:"ip"`
 	Description string `json:"description"`
 	Status      string `json:"status"`
 	CreateAt    string `json:"createAt"`
@@ -143,6 +186,14 @@ type AddUnManagedNodeReq struct {
 	NodeName    string  `json:"name"`
 	GroupID     []int64 `json:"groupId,omitempty"`
 	Description string  `json:"description,omitempty"`
+}
+
+// Check request validator
+func (req AddUnManagedNodeReq) Check() error {
+	return common.NewValidator().
+		ValidateNodeName(paramNodeNameShort, req.NodeName).
+		ValidateNodeDesc(paramDescription, req.Description).
+		Error()
 }
 
 // ListNodesResp list nodes response

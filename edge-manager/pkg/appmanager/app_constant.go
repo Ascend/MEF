@@ -18,14 +18,6 @@ const (
 	AppId = "appid"
 	// DeviceType for Ascend device
 	DeviceType = "huawei.com/davinci-mini"
-	// AscendDriver name
-	AscendDriver = "ascend-driver"
-	// AscendDriverPath path
-	AscendDriverPath = "/usr/local/Ascend/driver"
-	// AscendAddOns name
-	AscendAddOns = "ascend-add-ons"
-	// AscendAddOnsPath path
-	AscendAddOnsPath = "/usr/local/Ascend/add-ons"
 
 	informerSyncInterval = time.Duration(30) * time.Second
 

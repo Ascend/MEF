@@ -4,13 +4,15 @@
 package edgeconnector
 
 import (
-	"edge-manager/pkg/util"
 	"errors"
 	"net"
 	"strconv"
 
+	"edge-manager/pkg/util"
+
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
+	"huawei.com/mindxedge/base/common"
 )
 
 func (base *baseInfo) checkBaseInfo() error {
@@ -30,7 +32,7 @@ func (base *baseInfo) checkBaseInfo() error {
 }
 
 func (base *baseInfo) checkAddr() error {
-	if base.Address == "" || base.Address == ZeroAddr || base.Address == BroadCastAddr {
+	if base.Address == "" || base.Address == common.ZeroAddr || base.Address == common.BroadCastAddr {
 		hwlog.RunLog.Error("check address failed, address is not allowed")
 		return errors.New("check address failed")
 	}
@@ -48,9 +50,9 @@ func (base *baseInfo) checkPort() error {
 	if err != nil {
 		return errors.New("convert port to int failed")
 	}
-	if !util.CheckInt(portInt, MinPort, MaxPort) {
+	if !util.CheckInt(portInt, common.MinPort, common.MaxPort) {
 		hwlog.RunLog.Errorf("check port failed, port is out of range [%d,%d]",
-			MinPort, MaxPort)
+			common.MinPort, common.MaxPort)
 		return errors.New("check port failed")
 	}
 	hwlog.RunLog.Info("check port success")

@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 	"sync"
 
 	"gorm.io/gorm"
@@ -42,7 +41,8 @@ type AppRepository interface {
 	deleteAppById(uint64) error
 	deleteAppInstanceByIdAndGroup(uint64, string) error
 	queryNodeGroup(uint64) ([]NodeGroupInfo, error)
-	listAppInstances(appId uint64) ([]AppInstance, error)
+	listAppInstances(uint64) ([]AppInstance, error)
+	listAppInstancesByNode(string) ([]AppInstance, error)
 	addPod(*AppInstance) error
 	updatePod(*AppInstance) error
 	deletePod(*AppInstance) error
@@ -127,26 +127,37 @@ func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) (*L
 			hwlog.RunLog.Error("get node group name failed when list")
 			return nil, err
 		}
-		nodeGroupName := ""
-		var nodeGroupIDs []int64
-		for _, nodeGroupInfo := range NodeGroupInfos {
-			nodeGroupName += nodeGroupInfo.NodeGroupName + ";"
-			nodeGroupIDs = append(nodeGroupIDs, nodeGroupInfo.NodeGroupID)
-		}
+		nodeGroupNames, nodeGroupIDs := removeDuplicates(NodeGroupInfos)
+
 		appReturnInfos = append(appReturnInfos, AppReturnInfo{
 			AppId:         app.ID,
 			AppName:       app.AppName,
 			Description:   app.Description,
-			NodeGroupName: strings.TrimRight(nodeGroupName, ";"),
+			NodeGroupName: nodeGroupNames,
 			NodeGroupId:   nodeGroupIDs,
 			CreatedAt:     app.CreatedAt,
 			ModifiedAt:    app.ModifiedAt,
 			Containers:    containers,
 		})
 	}
+
 	return &ListReturnInfo{
 		AppInfo: appReturnInfos,
 	}, nil
+}
+
+func removeDuplicates(nodeGroupInfos []NodeGroupInfo) (string, []int64) {
+	nodeGroupNames := ""
+	var nodeGroupIDs []int64
+	tmpMap := make(map[string]interface{})
+	for _, nodeGroupInfo := range nodeGroupInfos {
+		if _, ok := tmpMap[nodeGroupInfo.NodeGroupName]; !ok {
+			nodeGroupNames += nodeGroupInfo.NodeGroupName + ";"
+			nodeGroupIDs = append(nodeGroupIDs, nodeGroupInfo.NodeGroupID)
+			tmpMap[nodeGroupInfo.NodeGroupName] = nil
+		}
+	}
+	return nodeGroupNames[:len(nodeGroupNames)-1], nodeGroupIDs
 }
 
 func (a *AppRepositoryImpl) countListAppsInfo(name string) (int64, error) {
@@ -250,6 +261,15 @@ func (a *AppRepositoryImpl) listAppInstances(appId uint64) ([]AppInstance, error
 	var deployedApps []AppInstance
 	if err := a.db.Model(AppInstance{}).Where("app_id = ?", appId).Find(&deployedApps).Error; err != nil {
 		hwlog.RunLog.Error("list app instances db failed")
+		return nil, err
+	}
+	return deployedApps, nil
+}
+
+func (a *AppRepositoryImpl) listAppInstancesByNode(nodeName string) ([]AppInstance, error) {
+	var deployedApps []AppInstance
+	if err := a.db.Model(AppInstance{}).Where("node_name = ?", nodeName).Find(&deployedApps).Error; err != nil {
+		hwlog.RunLog.Error("list app instances by node db failed")
 		return nil, err
 	}
 	return deployedApps, nil

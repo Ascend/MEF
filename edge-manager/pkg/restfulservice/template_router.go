@@ -4,7 +4,6 @@
 package restfulservice
 
 import (
-	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
@@ -18,14 +17,14 @@ func createTemplate(c *gin.Context) {
 	}
 	resp := common.SendSyncMessageByRestful(string(res), &common.Router{
 		Source:      common.RestfulServiceName,
-		Destination: common.TemplateManagerName,
+		Destination: common.AppManagerName,
 		Option:      common.Create,
 		Resource:    common.AppTemplate,
 	})
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }
 
-func modifyTemplate(c *gin.Context) {
+func updateTemplate(c *gin.Context) {
 	res, err := c.GetRawData()
 	if err != nil {
 		hwlog.OpLog.Error("modify template: get input parameter failed")
@@ -33,7 +32,7 @@ func modifyTemplate(c *gin.Context) {
 	}
 	resp := common.SendSyncMessageByRestful(string(res), &common.Router{
 		Source:      common.RestfulServiceName,
-		Destination: common.TemplateManagerName,
+		Destination: common.AppManagerName,
 		Option:      common.Update,
 		Resource:    common.AppTemplate,
 	})
@@ -48,7 +47,7 @@ func deleteTemplate(c *gin.Context) {
 	}
 	resp := common.SendSyncMessageByRestful(string(res), &common.Router{
 		Source:      common.RestfulServiceName,
-		Destination: common.TemplateManagerName,
+		Destination: common.AppManagerName,
 		Option:      common.Delete,
 		Resource:    common.AppTemplate,
 	})
@@ -56,29 +55,34 @@ func deleteTemplate(c *gin.Context) {
 }
 
 func getTemplates(c *gin.Context) {
-	handleUrlRequest(c, &common.Router{
-		Source:      common.RestfulServiceName,
-		Destination: common.TemplateManagerName,
-		Option:      common.List,
-		Resource:    common.AppTemplate,
-	})
-}
-
-func getTemplateDetail(c *gin.Context) {
-	handleUrlRequest(c, &common.Router{
-		Source:      common.RestfulServiceName,
-		Destination: common.TemplateManagerName,
-		Option:      common.Get,
-		Resource:    common.AppTemplate,
-	})
-}
-
-func handleUrlRequest(c *gin.Context, route *common.Router) {
-	param, err := json.Marshal(c.Request.URL.Query())
+	input, err := pageUtil(c)
 	if err != nil {
+		hwlog.OpLog.Error("list deployed apps: get input parameter failed")
 		common.ConstructResp(c, common.ErrorParseBody, "", nil)
 		return
 	}
-	resp := common.SendSyncMessageByRestful(string(param), route)
+
+	resp := common.SendSyncMessageByRestful(input, &common.Router{
+		Source:      common.RestfulServiceName,
+		Destination: common.AppManagerName,
+		Option:      common.List,
+		Resource:    common.AppTemplate,
+	})
+	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+}
+
+func getTemplateDetail(c *gin.Context) {
+	appId, err := getReqAppId(c)
+	if err != nil {
+		hwlog.RunLog.Errorf("get app id failed: %s", err.Error())
+		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
+	}
+
+	resp := common.SendSyncMessageByRestful(appId, &common.Router{
+		Source:      common.RestfulServiceName,
+		Destination: common.AppManagerName,
+		Option:      common.Get,
+		Resource:    common.AppTemplate,
+	})
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }

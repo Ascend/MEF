@@ -3,7 +3,11 @@
 // Package common for parameter validate
 package common
 
-import "huawei.com/mindxedge/base/common/checker"
+import (
+	"strings"
+
+	"huawei.com/mindxedge/base/common/checker"
+)
 
 // ValidateAppName validate app name
 func (v *Validator) ValidateAppName(paramName, templateName string) *Validator {
@@ -86,4 +90,33 @@ func (v *Validator) ValidateHostIp(paramName, ip string) *Validator {
 // ValidatePortProtocol validate port mapping protocol
 func (v *Validator) ValidatePortProtocol(paramName, protocol string) *Validator {
 	return v.ValidateIn(paramName, protocol, []string{Tcp, Udp})
+}
+
+// ValidateNodeGroupName validate node group name
+func (v *Validator) ValidateNodeGroupName(paramName, groupName string) *Validator {
+	return v.ValidateStringRegex(paramName, groupName, RegContainerName)
+}
+
+// ValidateNodeGroupDesc validate node group description
+func (v *Validator) ValidateNodeGroupDesc(paramName, desc string) *Validator {
+	return v.ValidateStringLength(paramName, desc, NodeGroupDescMin, NodeGroupDescMax)
+}
+
+// ValidateNodeDesc validate node description
+func (v *Validator) ValidateNodeDesc(paramName, desc string) *Validator {
+	return v.ValidateNodeGroupDesc(paramName, desc)
+}
+
+// ValidateNodeName validate node name
+func (v *Validator) ValidateNodeName(paramName, nodeName string) *Validator {
+	return v.ValidateStringRegex(paramName, nodeName, RegNodeName)
+}
+
+// ValidateNodeUniqueName validate node uniqueName
+func (v *Validator) ValidateNodeUniqueName(paramName, uniqueName string) *Validator {
+	v.ValidateStringLength(paramName, uniqueName, NodeUniqueNameMin, NodeUniqueNameMax)
+	for _, label := range strings.Split(uniqueName, ".") {
+		v.ValidateStringRegex(paramName, label, RegDomainLabel)
+	}
+	return v
 }

@@ -4,11 +4,12 @@
 package nodemanager
 
 import (
-	"edge-manager/pkg/util"
 	"strings"
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
+
+	"edge-manager/pkg/util"
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -17,8 +18,12 @@ func createGroup(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start create node group")
 	var req CreateNodeGroupReq
 	if err := common.ParamConvert(input, &req); err != nil {
-		hwlog.RunLog.Error("create node group conver request error")
+		hwlog.RunLog.Errorf("create node group convert request error, %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	}
+	if err := req.Check(); err != nil {
+		hwlog.RunLog.Errorf("create node group validate parameters error, %s", err.Error())
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
 	}
 	total, err := GetTableCount(NodeGroup{})
 	if err != nil {
@@ -88,7 +93,7 @@ func getEdgeNodeGroupDetail(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start get node group detail")
 	var req GetNodeGroupDetailReq
 	if err := common.ParamConvert(input, &req); err != nil {
-		hwlog.RunLog.Error("get node group detail convert request error")
+		hwlog.RunLog.Errorf("get node group detail convert request error, %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 	var resp GetNodeGroupDetailResp
@@ -98,7 +103,7 @@ func getEdgeNodeGroupDetail(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "db query failed", Data: nil}
 	}
 	for _, relation := range *relations {
-		node, err := NodeServiceInstance().getNodeByID(relation.NodeID)
+		node, err := NodeServiceInstance().GetNodeByID(relation.NodeID)
 		if err != nil {
 			hwlog.RunLog.Error("node group db query failed")
 			return common.RespMsg{Status: "", Msg: "db query failed", Data: nil}
@@ -107,6 +112,7 @@ func getEdgeNodeGroupDetail(input interface{}) common.RespMsg {
 		nodeResp := GetNodeGroupDetailRespItem{
 			NodeID:      node.ID,
 			NodeName:    node.NodeName,
+			IP:          node.IP,
 			Description: node.Description,
 			Status:      status,
 			CreateAt:    node.CreatedAt,

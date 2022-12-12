@@ -14,7 +14,6 @@ import (
 	"huawei.com/mindxedge/base/modulemanager"
 
 	"edge-manager/pkg/appmanager"
-	"edge-manager/pkg/apptemplatemanager"
 	"edge-manager/pkg/certmanager"
 	"edge-manager/pkg/database"
 	"edge-manager/pkg/edgeconnector"
@@ -137,9 +136,7 @@ func register() error {
 	if err := modulemanager.Registry(edgeinstaller.NewInstaller(true)); err != nil {
 		return err
 	}
-	if err := modulemanager.Registry(apptemplatemanager.NewTemplateManager(true)); err != nil {
-		return err
-	}
+
 	modulemanager.Start()
 	return nil
 }

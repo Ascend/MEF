@@ -13,39 +13,6 @@ type CreateAppReq struct {
 	Containers  []Container `json:"containers"`
 }
 
-// Container encapsulate container request
-type Container struct {
-	Name         string          `json:"name"`
-	Image        string          `json:"image"`
-	ImageVersion string          `json:"imageVersion"`
-	CpuRequest   string          `json:"cpuRequest"`
-	CpuLimit     string          `json:"cpuLimit"`
-	MemRequest   string          `json:"memRequest"`
-	MemLimit     string          `json:"memLimit"`
-	Npu          string          `json:"npu"`
-	Command      []string        `json:"command"`
-	Args         []string        `json:"args"`
-	Env          []EnvVar        `json:"env"`
-	Ports        []ContainerPort `json:"containerPort"`
-	UserId       int             `json:"userId"`
-	GroupId      int             `json:"groupId"`
-}
-
-// EnvVar encapsulate env request
-type EnvVar struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
-// ContainerPort provide ports mapping
-type ContainerPort struct {
-	Name          string `json:"name"`
-	Proto         string `json:"proto"`
-	ContainerPort int32  `json:"containerPort"`
-	HostIp        string `json:"hostIp"`
-	HostPort      int32  `json:"hostPort"`
-}
-
 // DeleteAppReq Delete application
 type DeleteAppReq struct {
 	AppIdList []uint64 `json:"appId"`
@@ -83,10 +50,13 @@ type GetAppByAppIdReq struct {
 // AppInstanceResp encapsulate app instance information for return
 type AppInstanceResp struct {
 	AppName       string          `json:"appName"`
+	NodeGroupId   int64           `json:"nodeGroupId"`
 	NodeGroupName string          `json:"nodeGroupName"`
+	NodeId        int64           `json:"nodeId"`
 	NodeName      string          `json:"nodeName"`
 	NodeStatus    string          `json:"nodeStatus"`
 	AppStatus     string          `json:"appStatus"`
+	CreatedAt     string          `json:"createdAt"`
 	ContainerInfo []ContainerInfo `json:"containerInfo"`
 }
 
@@ -128,4 +98,15 @@ type AppReturnInfo struct {
 	NodeGroupName string      `json:"nodeGroupName"`
 	NodeGroupId   []int64     `json:"nodeGroupId"`
 	Containers    []Container `json:"containers"`
+}
+
+// AppInstanceOfNodeResp encapsulate app instance information of a certain node
+type AppInstanceOfNodeResp struct {
+	AppName       string `json:"appName"`
+	AppStatus     string `json:"appStatus"`
+	Description   string `json:"description"`
+	CreatedAt     string `json:"createdAt"`
+	ChangedAt     string `json:"changedAt"`
+	NodeGroupName string `json:"nodeGroupName"`
+	NodeGroupID   int64  `json:"nodeGroupID"`
 }

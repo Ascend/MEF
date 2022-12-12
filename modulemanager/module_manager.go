@@ -42,7 +42,7 @@ func isModuleExisted(m model.Module) bool {
 	return false
 }
 
-// Registry registry new module
+// Registry new module
 func Registry(m model.Module) error {
 	if m == nil {
 		return fmt.Errorf("input is invalid when registry module")
@@ -69,7 +69,7 @@ func Unregistry(m model.Module) {
 	}
 }
 
-// Start start the module manager
+// Start the module manager
 func Start() {
 	enabledModule.Range(func(key, value interface{}) bool {
 		module, ok := value.(model.Module)

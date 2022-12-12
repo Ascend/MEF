@@ -48,3 +48,12 @@ func CreateTableIfNotExists(modelType interface{}) error {
 	}
 	return gormDB.AutoMigrate(modelType)
 }
+
+// GetItemCount get item count in table
+func GetItemCount(table interface{}) (int, error) {
+	var total int64
+	if err := GetDb().Model(table).Count(&total).Error; err != nil {
+		return 0, err
+	}
+	return int(total), nil
+}

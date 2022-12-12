@@ -119,6 +119,7 @@ func ListAppInfo(input interface{}) common.RespMsg {
 	hwlog.RunLog.Infof("start list app infos")
 	req, ok := input.(util.ListReq)
 	if !ok {
+		hwlog.RunLog.Error("get apps Infos list failed: para type is invalid")
 		return common.RespMsg{Status: "", Msg: "list app info error", Data: nil}
 	}
 
@@ -260,40 +261,124 @@ func DeleteApp(input interface{}) common.RespMsg {
 
 // ListAppInstances get deployed apps' list
 func ListAppInstances(input interface{}) common.RespMsg {
-	hwlog.RunLog.Info("start list app instances")
-	var appInstanceResp []AppInstanceResp
+	hwlog.RunLog.Info("start list app instances by id")
 	var appId uint64
 	appId, ok := input.(uint64)
 	if !ok {
 		hwlog.RunLog.Error("list app instances failed, param type is not integer")
 		return common.RespMsg{Status: "", Msg: "param type is not integer", Data: nil}
 	}
-	deployedApps, err := AppRepositoryInstance().listAppInstances(appId)
+	appInstances, err := AppRepositoryInstance().listAppInstances(appId)
 	if err != nil {
 		hwlog.RunLog.Error("list app instances db failed")
 		return common.RespMsg{Status: "", Msg: "list app instances db failed", Data: nil}
 	}
+	appInstanceResp, err := getAppInstanceRespFromAppInstances(appInstances)
+	if err != nil {
+		hwlog.RunLog.Error("get app instance response from app instances failed")
+		return common.RespMsg{Status: "", Msg: "get app instance response from app instances failed", Data: nil}
+	}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: appInstanceResp}
+}
+
+func getAppInstanceRespFromAppInstances(appInstances []AppInstance) ([]AppInstanceResp, error) {
+	var appInstanceResp []AppInstanceResp
 	nodeStatusService := nodemanager.NodeStatusServiceInstance()
-	for _, instance := range deployedApps {
+	nodeService := nodemanager.NodeServiceInstance()
+	for _, instance := range appInstances {
 		nodeName := instance.NodeName
 		nodeStatus := nodeStatusService.GetNodeStatus(nodeName)
+		nodeInfo, err := nodeService.GetNodeByUniqueName(nodeName)
+		if err != nil {
+			hwlog.RunLog.Error("get node by unique name failed")
+			return nil, err
+		}
 		podStatus := appStatusService.getPodStatusFromCache(instance.PodName)
 		containerInfos, err := appStatusService.getContainerInfos(instance)
 		if err != nil {
 			hwlog.RunLog.Error("get container infos failed")
-			return common.RespMsg{Status: "", Msg: "get container infos failed", Data: nil}
+			return nil, err
+		}
+		createdAt, err := parseDbTimeToStandardFormat(instance.CreatedAt)
+		if err != nil {
+			hwlog.RunLog.Error("parse db time to standard format failed")
+			return nil, err
 		}
 		resp := AppInstanceResp{
 			AppName:       instance.AppName,
+			NodeGroupId:   instance.NodeGroupID,
 			NodeGroupName: instance.NodeGroupName,
+			NodeId:        nodeInfo.ID,
 			NodeName:      nodeName,
 			NodeStatus:    nodeStatus,
 			AppStatus:     podStatus,
+			CreatedAt:     createdAt,
 			ContainerInfo: containerInfos,
 		}
 		appInstanceResp = append(appInstanceResp, resp)
 	}
-	return common.RespMsg{Status: common.Success, Msg: "", Data: appInstanceResp}
+	return appInstanceResp, nil
+}
+
+// ListAppInstancesByNode get deployed apps' list of a certain node
+func ListAppInstancesByNode(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start list app instances by node id")
+	var nodeId int64
+	nodeId, ok := input.(int64)
+	if !ok {
+		hwlog.RunLog.Error("list app instances by node id failed, param type is not integer")
+		return common.RespMsg{Status: "", Msg: "param type is not integer", Data: nil}
+	}
+	nodeService := nodemanager.NodeServiceInstance()
+	nodeInfo, err := nodeService.GetNodeByID(nodeId)
+	if err != nil {
+		hwlog.RunLog.Error("list app instances by node failed, get node name failed")
+		return common.RespMsg{Status: "", Msg: "list app instances by node db failed", Data: nil}
+	}
+	appInstances, err := AppRepositoryInstance().listAppInstancesByNode(nodeInfo.UniqueName)
+	if err != nil {
+		hwlog.RunLog.Error("list app instances by node failed, db failed")
+		return common.RespMsg{Status: "", Msg: "list app instances by node db failed", Data: nil}
+	}
+	appList, err := getAppInstanceOfNodeRespFromAppInstances(appInstances)
+	if err != nil {
+		hwlog.RunLog.Error("get app instance of node response from app instances failed")
+		return common.RespMsg{Status: "", Msg: "get app instance of node response from app instances failed", Data: nil}
+	}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: appList}
+}
+
+func getAppInstanceOfNodeRespFromAppInstances(appInstances []AppInstance) ([]AppInstanceOfNodeResp, error) {
+	var appList []AppInstanceOfNodeResp
+	for _, instance := range appInstances {
+		appInfo, err := AppRepositoryInstance().getAppInfoByName(instance.AppName)
+		if err != nil {
+			hwlog.RunLog.Error("get app info by name db failed")
+			return nil, err
+		}
+		status := appStatusService.getPodStatusFromCache(instance.PodName)
+		createdAt, err := parseDbTimeToStandardFormat(instance.CreatedAt)
+		if err != nil {
+			hwlog.RunLog.Error("parse db time to standard format failed")
+			return nil, err
+		}
+		changedAt, err := parseDbTimeToStandardFormat(instance.ChangedAt)
+		if err != nil {
+			hwlog.RunLog.Error("parse db time to standard format failed")
+			return nil, err
+		}
+		instanceResp := AppInstanceOfNodeResp{
+			AppName:       instance.AppName,
+			AppStatus:     status,
+			Description:   appInfo.Description,
+			CreatedAt:     createdAt,
+			ChangedAt:     changedAt,
+			NodeGroupName: instance.NodeGroupName,
+			NodeGroupID:   instance.NodeGroupID,
+		}
+		appList = append(appList, instanceResp)
+	}
+	return appList, nil
 }
 
 // InitDaemonSet init daemonSet
@@ -304,7 +389,6 @@ func InitDaemonSet(appInfo *AppInfo, nodeInfo NodeGroupInfo) (*appv1.DaemonSet, 
 		return nil, err
 	}
 	tmpSpec := v1.PodSpec{}
-	tmpSpec.Volumes = getVolumes()
 	tmpSpec.Containers = containers
 	tmpSpec.NodeSelector = map[string]string{
 		common.NodeGroupLabelPrefix + strconv.FormatInt(nodeInfo.NodeGroupID, DecimalScale): "",
@@ -336,44 +420,6 @@ func InitDaemonSet(appInfo *AppInfo, nodeInfo NodeGroupInfo) (*appv1.DaemonSet, 
 	}, nil
 }
 
-func getVolumes() []v1.Volume {
-	var volumes []v1.Volume
-	volumeDriver := v1.Volume{
-		Name: AscendDriver,
-		VolumeSource: v1.VolumeSource{
-			HostPath: &v1.HostPathVolumeSource{
-				Path: AscendDriverPath,
-			},
-		},
-	}
-	volumes = append(volumes, volumeDriver)
-	volumeAddons := v1.Volume{
-		Name: AscendAddOns,
-		VolumeSource: v1.VolumeSource{
-			HostPath: &v1.HostPathVolumeSource{
-				Path: AscendAddOnsPath,
-			},
-		},
-	}
-	volumes = append(volumes, volumeAddons)
-	return volumes
-}
-
-func getVolumeMount() []v1.VolumeMount {
-	var volumeMounts []v1.VolumeMount
-	volumeMountDriver := v1.VolumeMount{
-		Name:      AscendDriver,
-		MountPath: AscendDriverPath,
-	}
-	volumeMounts = append(volumeMounts, volumeMountDriver)
-	volumeMountAddOns := v1.VolumeMount{
-		Name:      AscendAddOns,
-		MountPath: AscendAddOnsPath,
-	}
-	volumeMounts = append(volumeMounts, volumeMountAddOns)
-	return volumeMounts
-}
-
 func getContainers(appContainer *AppInfo) ([]v1.Container, error) {
 	var containerInfos []Container
 	if err := json.Unmarshal([]byte(appContainer.Containers), &containerInfos); err != nil {
@@ -397,7 +443,6 @@ func getContainers(appContainer *AppInfo) ([]v1.Container, error) {
 			Env:             getEnv(containerInfo.Env),
 			Ports:           getPorts(containerInfo.Ports),
 			Resources:       resources,
-			VolumeMounts:    getVolumeMount(),
 		})
 	}
 	return containers, nil
@@ -491,4 +536,13 @@ func getLimits(cpuLimit string, memLimit string, limitMap map[v1.ResourceName]re
 		limitMap[v1.ResourceMemory] = res
 	}
 	return limitMap, nil
+}
+
+func parseDbTimeToStandardFormat(dbStringTime string) (string, error) {
+	dbTime, err := time.Parse(common.TimeFormatDb, dbStringTime)
+	if err != nil {
+		return "", err
+	}
+	formatTime := dbTime.Format(common.TimeFormat)
+	return formatTime, nil
 }
