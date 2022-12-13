@@ -5,12 +5,13 @@ package appmanager
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"edge-manager/pkg/kubeclient"
-	"edge-manager/pkg/nodemanager"
+	"edge-manager/pkg/types"
 	"edge-manager/pkg/util"
 
 	"gorm.io/gorm"
@@ -263,32 +264,29 @@ func listAppInstances(input interface{}) common.RespMsg {
 
 func getAppInstanceRespFromAppInstances(appInstances []AppInstance) ([]AppInstanceResp, error) {
 	var appInstanceResp []AppInstanceResp
-	nodeStatusService := nodemanager.NodeStatusServiceInstance()
-	nodeService := nodemanager.NodeServiceInstance()
 	for _, instance := range appInstances {
 		nodeName := instance.NodeName
-		nodeStatus := nodeStatusService.GetNodeStatus(nodeName)
-		nodeInfo, err := nodeService.GetNodeByUniqueName(nodeName)
+		nodeStatus, err := getNodeStatus(nodeName)
 		if err != nil {
-			hwlog.RunLog.Error("get node by unique name failed")
+			hwlog.RunLog.Errorf("get node status error: %v", err)
 			return nil, err
 		}
 		podStatus := appStatusService.getPodStatusFromCache(instance.PodName)
 		containerInfos, err := appStatusService.getContainerInfos(instance)
 		if err != nil {
-			hwlog.RunLog.Error("get container infos failed")
+			hwlog.RunLog.Errorf("get container infos error: %v", err)
 			return nil, err
 		}
 		createdAt, err := parseDbTimeToStandardFormat(instance.CreatedAt)
 		if err != nil {
-			hwlog.RunLog.Error("parse db time to standard format failed")
+			hwlog.RunLog.Errorf("parse db time to standard format error: %v", err)
 			return nil, err
 		}
 		resp := AppInstanceResp{
 			AppName:       instance.AppName,
 			NodeGroupId:   instance.NodeGroupID,
 			NodeGroupName: instance.NodeGroupName,
-			NodeId:        nodeInfo.ID,
+			NodeId:        instance.NodeID,
 			NodeName:      nodeName,
 			NodeStatus:    nodeStatus,
 			AppStatus:     podStatus,
@@ -300,6 +298,35 @@ func getAppInstanceRespFromAppInstances(appInstances []AppInstance) ([]AppInstan
 	return appInstanceResp, nil
 }
 
+func getNodeStatus(nodeName string) (string, error) {
+	if nodeName == "" {
+		hwlog.RunLog.Warn("app instance node name is empty, pod is in pending phase")
+		return "", nil
+	}
+	router := common.Router{
+		Source:      common.AppManagerName,
+		Destination: common.NodeManagerName,
+		Option:      common.Inner,
+		Resource:    common.NodeStatus,
+	}
+	req := types.InnerGetNodeStatusReq{
+		UniqueName: nodeName,
+	}
+	resp := common.SendSyncMessageByRestful(req, &router)
+	if resp.Status == "" {
+		return "", fmt.Errorf("get info from other module error, %v", resp.Msg)
+	}
+	data, err := json.Marshal(resp.Data)
+	if err != nil {
+		return "", errors.New("marshal internal response error")
+	}
+	var node types.InnerGetNodeStatusResp
+	if err = json.Unmarshal(data, &node); err != nil {
+		return "", errors.New("unmarshal internal response error")
+	}
+	return node.NodeStatus, nil
+}
+
 // listAppInstancesByNode get deployed apps' list of a certain node
 func listAppInstancesByNode(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start list app instances by node id")
@@ -309,13 +336,7 @@ func listAppInstancesByNode(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("list app instances by node id failed, param type is not integer")
 		return common.RespMsg{Status: "", Msg: "param type is not integer", Data: nil}
 	}
-	nodeService := nodemanager.NodeServiceInstance()
-	nodeInfo, err := nodeService.GetNodeByID(nodeId)
-	if err != nil {
-		hwlog.RunLog.Error("list app instances by node failed, get node name failed")
-		return common.RespMsg{Status: "", Msg: "list app instances by node db failed", Data: nil}
-	}
-	appInstances, err := AppRepositoryInstance().listAppInstancesByNode(nodeInfo.UniqueName)
+	appInstances, err := AppRepositoryInstance().listAppInstancesByNode(nodeId)
 	if err != nil {
 		hwlog.RunLog.Error("list app instances by node failed, db failed")
 		return common.RespMsg{Status: "", Msg: "list app instances by node db failed", Data: nil}
@@ -333,18 +354,18 @@ func getAppInstanceOfNodeRespFromAppInstances(appInstances []AppInstance) ([]App
 	for _, instance := range appInstances {
 		appInfo, err := AppRepositoryInstance().getAppInfoByName(instance.AppName)
 		if err != nil {
-			hwlog.RunLog.Error("get app info by name db failed")
+			hwlog.RunLog.Errorf("get app info by name db error: %v", err)
 			return nil, err
 		}
 		status := appStatusService.getPodStatusFromCache(instance.PodName)
 		createdAt, err := parseDbTimeToStandardFormat(instance.CreatedAt)
 		if err != nil {
-			hwlog.RunLog.Error("parse db time to standard format failed")
+			hwlog.RunLog.Errorf("parse db time to standard format error: %v", err)
 			return nil, err
 		}
 		changedAt, err := parseDbTimeToStandardFormat(instance.ChangedAt)
 		if err != nil {
-			hwlog.RunLog.Error("parse db time to standard format failed")
+			hwlog.RunLog.Errorf("parse db time to standard format error: %v", err)
 			return nil, err
 		}
 		instanceResp := AppInstanceOfNodeResp{

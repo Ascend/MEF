@@ -5,14 +5,14 @@ package nodemanager
 
 import (
 	"context"
+	"fmt"
+
+	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
 
 	"edge-manager/pkg/database"
-	"fmt"
-
-	"huawei.com/mindx/common/hwlog"
 )
 
 type handlerFunc func(req interface{}) common.RespMsg
@@ -126,6 +126,10 @@ func nodeMethodList() map[string]handlerFunc {
 		combine(common.List, common.NodeGroup):      listEdgeNodeGroup,
 		combine(common.Get, common.NodeGroup):       getEdgeNodeGroupDetail,
 		combine(common.Delete, common.NodeGroup):    batchDeleteNodeGroup,
+
+		combine(common.Inner, common.Node):       innerGetNodeInfoByName,
+		combine(common.Inner, common.NodeGroup):  innerGetNodeGroupInfoById,
+		combine(common.Inner, common.NodeStatus): innerGetNodeStatus,
 	}
 }
 

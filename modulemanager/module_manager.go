@@ -98,6 +98,6 @@ func SendMessage(m *model.Message) error {
 }
 
 // SendSyncMessage send sync message
-func SendSyncMessage(m *model.Message, dutation time.Duration) (*model.Message, error) {
-	return moduleContext.SendSync(m, dutation)
+func SendSyncMessage(m *model.Message, duration time.Duration) (*model.Message, error) {
+	return moduleContext.SendSync(m, duration)
 }

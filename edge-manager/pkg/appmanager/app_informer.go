@@ -6,6 +6,7 @@ package appmanager
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"sync"
@@ -23,7 +24,7 @@ import (
 	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/kubeclient"
-	"edge-manager/pkg/nodemanager"
+	"edge-manager/pkg/types"
 )
 
 type appStatusServiceImpl struct {
@@ -71,6 +72,10 @@ func (a *appStatusServiceImpl) initPodInformer(client *kubernetes.Clientset, sto
 
 func (a *appStatusServiceImpl) run(stopCh <-chan struct{}) error {
 	defer runtime.HandleCrash()
+	if err := AppRepositoryInstance().deleteAllRemainingInstance(); err != nil {
+		hwlog.RunLog.Error("failed to delete remaining app instance before sync caches")
+		return err
+	}
 	hwlog.RunLog.Info("Waiting for app status service caches to sync")
 	if ok := cache.WaitForCacheSync(stopCh, a.podInformer.HasSynced); !ok {
 		hwlog.RunLog.Error("failed to wait for caches to sync ")
@@ -166,8 +171,7 @@ func (a *appStatusServiceImpl) deletePod(obj interface{}) {
 func (a *appStatusServiceImpl) getContainerInfos(instance AppInstance) ([]ContainerInfo, error) {
 	var containerInfos []ContainerInfo
 	if err := json.Unmarshal([]byte(instance.ContainerInfo), &containerInfos); err != nil {
-		hwlog.RunLog.Error("unmarshal app container info failed")
-		return nil, err
+		return nil, errors.New("unmarshal app container info failed")
 	}
 	a.appStatusCacheLock.Lock()
 	defer a.appStatusCacheLock.Unlock()
@@ -203,23 +207,25 @@ func parsePod(obj interface{}) (*v1.Pod, error) {
 func parsePodToInstance(eventPod *v1.Pod) (*AppInstance, error) {
 	appName, appId, err := getAppNameAndId(eventPod)
 	if err != nil {
-		hwlog.RunLog.Error("get app name or id error")
-		return nil, err
+		return nil, fmt.Errorf("get app name or id error, %v", err)
+	}
+	nodeId, err := getNodeIdByName(eventPod)
+	if err != nil {
+		return nil, fmt.Errorf("get node name or id error, %v", err)
 	}
 	nodeGroupName, nodeGroupId, err := getNodeGroupNameAndId(eventPod)
 	if err != nil {
-		hwlog.RunLog.Error("get group name or id error")
-		return nil, err
+		return nil, fmt.Errorf("get group name or id error, %v", err)
 	}
 	containerInfos, err := getContainerInfoString(eventPod)
 	if err != nil {
-		hwlog.RunLog.Error("get container info error")
-		return nil, err
+		return nil, fmt.Errorf("get container info error, %v", err)
 	}
 
 	newAppInstance := AppInstance{
 		PodName:       eventPod.Name,
 		NodeName:      eventPod.Spec.NodeName,
+		NodeID:        nodeId,
 		NodeGroupName: nodeGroupName,
 		NodeGroupID:   nodeGroupId,
 		AppName:       appName,
@@ -232,34 +238,57 @@ func parsePodToInstance(eventPod *v1.Pod) (*AppInstance, error) {
 func getAppNameAndId(eventPod *v1.Pod) (string, int64, error) {
 	podLabels := eventPod.Labels
 	if podLabels == nil {
-		hwlog.RunLog.Error("event pod's label  do not exist")
 		return "", 0, errors.New("node selector is nil")
 	}
 	appName, ok := podLabels[AppName]
 	if !ok {
-		hwlog.RunLog.Error("get pod label error")
 		return "", 0, errors.New("app name label do not exist")
 	}
 	value, ok := podLabels[AppId]
 	if !ok {
-		hwlog.RunLog.Error("get pod label error")
 		return "", 0, errors.New("app id label do not exist")
 	}
 	appId, err := strconv.Atoi(value)
 	if err != nil {
-		hwlog.RunLog.Error("assert pod app id label error")
 		return "", 0, err
 	}
 	return appName, int64(appId), nil
 }
 
+func getNodeIdByName(eventPod *v1.Pod) (int64, error) {
+	if eventPod.Spec.NodeName == "" {
+		hwlog.RunLog.Warn("app instance node name is empty, pod is in pending phase")
+		return 0, nil
+	}
+	router := common.Router{
+		Source:      common.AppManagerName,
+		Destination: common.NodeManagerName,
+		Option:      common.Inner,
+		Resource:    common.Node,
+	}
+	req := types.InnerGetNodeInfoByNameReq{
+		UniqueName: eventPod.Spec.NodeName,
+	}
+	resp := common.SendSyncMessageByRestful(req, &router)
+	if resp.Status == "" {
+		return 0, errors.New(resp.Msg)
+	}
+	data, err := json.Marshal(resp.Data)
+	if err != nil {
+		return 0, errors.New("marshal internal response error")
+	}
+	var nodeInfo types.InnerGetNodeInfoByNameResp
+	if err = json.Unmarshal(data, &nodeInfo); err != nil {
+		return 0, errors.New("unmarshal internal response error")
+	}
+	return nodeInfo.NodeID, nil
+}
+
 func getNodeGroupNameAndId(eventPod *v1.Pod) (string, int64, error) {
-	var nodeGroupName string
 	var nodeGroupId int
 	var err error
 	nodeSelector := eventPod.Spec.NodeSelector
 	if nodeSelector == nil {
-		hwlog.RunLog.Error("event pod node selector do not exist")
 		return "", 0, errors.New("node selector is nil")
 	}
 	for labelKey := range nodeSelector {
@@ -268,18 +297,31 @@ func getNodeGroupNameAndId(eventPod *v1.Pod) (string, int64, error) {
 		}
 		nodeGroupId, err = strconv.Atoi(strings.TrimPrefix(labelKey, common.NodeGroupLabelPrefix))
 		if err != nil {
-			hwlog.RunLog.Error("assert pod node group id label error")
 			return "", 0, err
 		}
 	}
-	nodeService := nodemanager.NodeServiceInstance()
-	nodeGroup, err := nodeService.GetNodeGroupByID(int64(nodeGroupId))
-	if err != nil {
-		hwlog.RunLog.Error("get node group name db error")
-		return "", 0, err
+	router := common.Router{
+		Source:      common.AppManagerName,
+		Destination: common.NodeManagerName,
+		Option:      common.Inner,
+		Resource:    common.NodeGroup,
 	}
-	nodeGroupName = nodeGroup.GroupName
-	return nodeGroupName, int64(nodeGroupId), nil
+	req := types.InnerGetNodeGroupInfoByIdReq{
+		GroupID: int64(nodeGroupId),
+	}
+	resp := common.SendSyncMessageByRestful(req, &router)
+	if resp.Status == "" {
+		return "", 0, errors.New(resp.Msg)
+	}
+	data, err := json.Marshal(resp.Data)
+	if err != nil {
+		return "", 0, errors.New("marshal internal response error")
+	}
+	var nodeGroupInfo types.InnerGetNodeGroupInfoByIdResp
+	if err := json.Unmarshal(data, &nodeGroupInfo); err != nil {
+		return "", 0, errors.New("unmarshal internal response error")
+	}
+	return nodeGroupInfo.GroupName, int64(nodeGroupId), nil
 }
 
 func getContainerInfoString(eventPod *v1.Pod) (string, error) {

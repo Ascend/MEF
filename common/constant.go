@@ -53,6 +53,8 @@ const (
 	Undeploy = "undeploy"
 	// Add option add
 	Add = "add"
+	// Inner option for inner message
+	Inner = "inner"
 
 	// Node resource node
 	Node = "node"
@@ -66,6 +68,8 @@ const (
 	AppInstanceByNode = "appInstanceByNode"
 	// NodeGroup resource nodeGroup
 	NodeGroup = "nodeGroup"
+	// NodeStatus resource node status
+	NodeStatus = "nodeStatus"
 	// NodeStatistics node statistics
 	NodeStatistics = "nodeStatistics"
 	// NodeRelation node relation

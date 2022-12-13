@@ -43,7 +43,8 @@ type AppRepository interface {
 	deleteAppInstanceByIdAndGroup(uint64, string) error
 	queryNodeGroup(uint64) ([]NodeGroupInfo, error)
 	listAppInstances(uint64) ([]AppInstance, error)
-	listAppInstancesByNode(string) ([]AppInstance, error)
+	listAppInstancesByNode(int64) ([]AppInstance, error)
+	deleteAllRemainingInstance() error
 	addPod(*AppInstance) error
 	updatePod(*AppInstance) error
 	deletePod(*AppInstance) error
@@ -256,13 +257,17 @@ func (a *AppRepositoryImpl) listAppInstances(appId uint64) ([]AppInstance, error
 	return deployedApps, nil
 }
 
-func (a *AppRepositoryImpl) listAppInstancesByNode(nodeName string) ([]AppInstance, error) {
+func (a *AppRepositoryImpl) listAppInstancesByNode(nodeId int64) ([]AppInstance, error) {
 	var deployedApps []AppInstance
-	if err := a.db.Model(AppInstance{}).Where("node_name = ?", nodeName).Find(&deployedApps).Error; err != nil {
+	if err := a.db.Model(AppInstance{}).Where("node_id = ?", nodeId).Find(&deployedApps).Error; err != nil {
 		hwlog.RunLog.Error("list app instances by node db failed")
 		return nil, err
 	}
 	return deployedApps, nil
+}
+
+func (a *AppRepositoryImpl) deleteAllRemainingInstance() error {
+	return a.db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&AppInstance{}).Error
 }
 
 func (a *AppRepositoryImpl) addPod(appInstance *AppInstance) error {

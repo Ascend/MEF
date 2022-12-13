@@ -17,6 +17,7 @@ type AppInfo struct {
 type AppInstance struct {
 	ID            int64  `gorm:"type:Integer;primaryKey;autoIncrement:true"`
 	PodName       string `gorm:"type:char(42);unique;not null"`
+	NodeID        int64  `gorm:"type:Integer;not null"`
 	NodeName      string `gorm:"type:char(64);not null"`
 	NodeGroupName string `gorm:"type:char(64);not null"`
 	NodeGroupID   int64  `gorm:"type:Integer;not null"`
