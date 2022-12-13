@@ -61,12 +61,16 @@ func mockGetDb() *gorm.DB {
 type fakeNodeStatusService struct {
 }
 
-func (s *fakeNodeStatusService) ListNodeStatus() map[string]string {
-	return map[string]string{}
+func (s *fakeNodeStatusService) List() *[]NodeInfoDynamic {
+	var slice []NodeInfoDynamic
+	return &slice
 }
 
-func (s *fakeNodeStatusService) GetNodeStatus(string) string {
-	return statusOffline
+func (s *fakeNodeStatusService) Get(name string) (*NodeInfoDynamic, bool) {
+	return &NodeInfoDynamic{
+		Hostname: name,
+		Status:   statusOffline,
+	}, true
 }
 
 func mockNodeStatusServiceInstance() NodeStatusService {
@@ -91,7 +95,6 @@ func TestAll(t *testing.T) {
 		convey.Convey("create node should success", testCreateNode)
 		convey.Convey("get node detail should success", testGetNodeDetail)
 		convey.Convey("modify node should success", testModifyNode)
-		convey.Convey("get nod statistics should success", testGetNodeStatistics)
 		convey.Convey("list node group should success", testListNodeGroup)
 		convey.Convey("get node group detail should success", testGetNodeGroupDetail)
 		convey.Convey("create node group should success", testCreateNodeGroup)
@@ -133,8 +136,8 @@ func testGetNodeDetailInternal(description, nodeName, uniqueName, nodeGroup stri
 	convey.So(err, convey.ShouldBeNil)
 	resp := getNodeDetail(string(reqBytes))
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
-	convey.So(resp.Data, convey.ShouldHaveSameTypeAs, GetNodeDetailResp{})
-	node, _ := resp.Data.(GetNodeDetailResp)
+	convey.So(resp.Data, convey.ShouldHaveSameTypeAs, NodeInfoDetail{})
+	node, _ := resp.Data.(NodeInfoDetail)
 	convey.So(node.Description, convey.ShouldEqual, description)
 	convey.So(node.NodeName, convey.ShouldEqual, nodeName)
 	convey.So(node.UniqueName, convey.ShouldEqual, uniqueName)
@@ -152,21 +155,6 @@ func testModifyNode() {
 	resp := modifyNode(string(reqBytes))
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 	testGetNodeDetailInternal("my-desc-new", "node-name-new", "unique-name", "my_group", 1)
-}
-
-func testGetNodeStatistics() {
-	resp := getNodeStatistics("")
-	convey.So(resp.Status, convey.ShouldEqual, common.Success)
-	convey.So(resp.Data, convey.ShouldHaveSameTypeAs, GetNodeStatisticsResp{})
-	counts, _ := resp.Data.(GetNodeStatisticsResp)
-	convey.So(counts, convey.ShouldContainKey, statusReady)
-	convey.So(counts[statusReady], convey.ShouldEqual, 0)
-	convey.So(counts, convey.ShouldContainKey, statusNotReady)
-	convey.So(counts[statusNotReady], convey.ShouldEqual, 0)
-	convey.So(counts, convey.ShouldContainKey, statusOffline)
-	convey.So(counts[statusOffline], convey.ShouldEqual, 1)
-	convey.So(counts, convey.ShouldContainKey, statusUnknown)
-	convey.So(counts[statusUnknown], convey.ShouldEqual, 0)
 }
 
 func testListNodeGroup() {
@@ -195,8 +183,8 @@ func testGetNodeGroupDetail() {
 	convey.So(err, convey.ShouldBeNil)
 	resp := getEdgeNodeGroupDetail(string(reqBytes))
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
-	convey.So(resp.Data, convey.ShouldHaveSameTypeAs, GetNodeGroupDetailResp{})
-	respData, _ := resp.Data.(GetNodeGroupDetailResp)
+	convey.So(resp.Data, convey.ShouldHaveSameTypeAs, NodeGroupDetail{})
+	respData, _ := resp.Data.(NodeGroupDetail)
 	convey.So(len(respData.Nodes), convey.ShouldEqual, 1)
 }
 
@@ -209,7 +197,7 @@ func createGroupAndRelation(nodeId int64) {
 		Description: "my-description",
 		GroupName:   "my_group",
 		CreatedAt:   time.Now().Format(TimeFormat),
-		UpdateAt:    time.Now().Format(TimeFormat),
+		UpdatedAt:   time.Now().Format(TimeFormat),
 	}
 	if err := gormInstance.Create(&nodeGroup).Error; err != nil {
 		hwlog.RunLog.Errorf("create group failed, %v\n", err)

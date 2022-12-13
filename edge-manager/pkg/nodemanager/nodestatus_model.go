@@ -4,9 +4,7 @@
 package nodemanager
 
 import (
-	"edge-manager/pkg/kubeclient"
 	"errors"
-	"sync"
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
@@ -16,6 +14,9 @@ import (
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
+
+	"edge-manager/pkg/kubeclient"
+	"huawei.com/mindxedge/base/common"
 )
 
 const (
@@ -28,17 +29,23 @@ var (
 
 // NodeStatusService provide node status from k8s
 type NodeStatusService interface {
-	// ListNodeStatus list node status by nodeName-nodeStatus map
-	ListNodeStatus() map[string]string
-	// GetNodeStatus get specific node status by hostname
-	GetNodeStatus(uniqueName string) string
+	// List lists all k8s node status
+	List() *[]NodeInfoDynamic
+	// Get gets specific node status by hostname
+	Get(hostname string) (*NodeInfoDynamic, bool)
+}
+
+// NodeInfoDynamic dynamic node information from k8s
+type NodeInfoDynamic struct {
+	Hostname string `json:"-"`
+	Status   string `json:"status"`
+	Cpu      int64  `json:"cpu"`
+	Npu      int64  `json:"npu"`
+	Memory   int64  `json:"memory"`
 }
 
 type nodeStatusServiceImpl struct {
-	informer        cache.SharedIndexInformer
-	clientSet       *kubernetes.Clientset
-	nodeStatusCache map[string]string
-	cacheLock       sync.RWMutex
+	informer cache.SharedIndexInformer
 }
 
 // NodeStatusServiceInstance get NodeStatusService singleton
@@ -48,13 +55,10 @@ func NodeStatusServiceInstance() NodeStatusService {
 
 // initNodeStatusService init k8s informer
 func initNodeStatusService() error {
+	nodeStatusService = nodeStatusServiceImpl{}
 	client := kubeclient.GetKubeClient().GetClientSet()
-	nodeStatusService = nodeStatusServiceImpl{
-		clientSet:       client,
-		nodeStatusCache: make(map[string]string),
-	}
 	stopCh := make(chan struct{})
-	nodeStatusService.initNodeInformer(stopCh)
+	nodeStatusService.initNodeInformer(stopCh, client)
 	if err := nodeStatusService.run(stopCh); err != nil {
 		return err
 	}
@@ -71,106 +75,74 @@ func (s *nodeStatusServiceImpl) run(stopCh <-chan struct{}) error {
 	return nil
 }
 
-func (s *nodeStatusServiceImpl) initNodeInformer(stopCh <-chan struct{}) {
+func (s *nodeStatusServiceImpl) initNodeInformer(stopCh <-chan struct{}, clientSet *kubernetes.Clientset) {
 	nodeInformerFactory := informers.NewSharedInformerFactoryWithOptions(
-		s.clientSet,
+		clientSet,
 		halfMin,
 		informers.WithTweakListOptions(func(options *metav1.ListOptions) {}),
 	)
 	s.informer = nodeInformerFactory.Core().V1().Nodes().Informer()
-	s.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc:    s.addNode,
-		UpdateFunc: s.updateNode,
-		DeleteFunc: s.deleteNode,
-	})
 	nodeInformerFactory.Start(stopCh)
 }
 
-func (s *nodeStatusServiceImpl) addNode(obj interface{}) {
+func (s *nodeStatusServiceImpl) Get(nodeName string) (*NodeInfoDynamic, bool) {
+	obj, ok, err := s.informer.GetStore().GetByKey(nodeName)
+	if err != nil {
+		hwlog.RunLog.Warnf("get node status failed: %s", err.Error())
+		return nil, false
+	}
+	if !ok {
+		hwlog.RunLog.Warnf("get node status failed: no such node %s", nodeName)
+		return nil, false
+	}
 	node, ok := obj.(*v1.Node)
 	if !ok {
-		hwlog.RunLog.Warn("Recovered add object,But can't convert to node")
-		return
+		hwlog.RunLog.Warnf("get node status failed: type convert error %T", obj)
+		return nil, false
 	}
-	s.cacheLock.Lock()
-	defer s.cacheLock.Unlock()
-	s.nodeStatusCache[node.Name] = nodeStatus(node)
+	return newDynamicInfo(node), true
 }
 
-func (s *nodeStatusServiceImpl) updateNode(oldObj, newObj interface{}) {
-	oldNode, ok := oldObj.(*v1.Node)
-	if !ok {
-		hwlog.RunLog.Warn("Recovered update object,But can't convert to node")
-		return
+func (s *nodeStatusServiceImpl) List() *[]NodeInfoDynamic {
+	objects := s.informer.GetStore().List()
+	var allNodes []NodeInfoDynamic
+	for _, obj := range objects {
+		node, ok := obj.(*v1.Node)
+		if !ok {
+			hwlog.RunLog.Warnf("list node status failed: failed to convert type %T", obj)
+			continue
+		}
+		allNodes = append(allNodes, *newDynamicInfo(node))
 	}
-	newNode, ok := newObj.(*v1.Node)
-	if !ok {
-		hwlog.RunLog.Warn("Recovered update object,But can't convert to node")
-		return
-	}
-	s.cacheLock.Lock()
-	defer s.cacheLock.Unlock()
-	delete(s.nodeStatusCache, oldNode.Name)
-	s.nodeStatusCache[newNode.Name] = nodeStatus(newNode)
+	return &allNodes
 }
 
-func (s *nodeStatusServiceImpl) deleteNode(obj interface{}) {
-	node, ok := obj.(*v1.Node)
-	if !ok {
-		hwlog.RunLog.Warn("Recovered delete object,But can't convert to node")
-		return
+func newDynamicInfo(node *v1.Node) *NodeInfoDynamic {
+	npuCapacity, ok := node.Status.Capacity[common.DeviceType]
+	var npu int64
+	if ok {
+		npu = npuCapacity.Value()
 	}
-	s.cacheLock.Lock()
-	defer s.cacheLock.Unlock()
-	delete(s.nodeStatusCache, node.Name)
+	return &NodeInfoDynamic{
+		Hostname: node.Name,
+		Status:   evalNodeStatus(node),
+		Cpu:      node.Status.Capacity.Cpu().Value(),
+		Memory:   node.Status.Capacity.Memory().Value(),
+		Npu:      npu,
+	}
 }
 
-func (s *nodeStatusServiceImpl) GetNodeStatus(nodeName string) string {
-	s.cacheLock.RLock()
-	defer s.cacheLock.RUnlock()
-
-	if s.nodeStatusCache == nil {
-		hwlog.RunLog.Warn("Get node status failed, service has not initialized yet")
-		return statusOffline
-	}
-	status, ok := s.nodeStatusCache[nodeName]
-	if !ok {
-		return statusOffline
-	}
-	return status
-}
-
-func (s *nodeStatusServiceImpl) ListNodeStatus() map[string]string {
-	s.cacheLock.RLock()
-	defer s.cacheLock.RUnlock()
-
-	if s.nodeStatusCache == nil {
-		hwlog.RunLog.Warn("List node status failed, service has not initialized yet")
-		return map[string]string{}
-	}
-	return deepCopy(s.nodeStatusCache)
-}
-
-func nodeStatus(node *v1.Node) string {
-	curNodeStatus := statusOffline
+func evalNodeStatus(node *v1.Node) string {
 	for _, cond := range node.Status.Conditions {
 		if cond.Type == v1.NodeReady {
 			if cond.Status == v1.ConditionTrue {
-				curNodeStatus = statusReady
+				return statusReady
 			} else if cond.Status == v1.ConditionFalse {
-				curNodeStatus = statusNotReady
+				return statusNotReady
 			} else if cond.Status == v1.ConditionUnknown {
-				curNodeStatus = statusUnknown
+				return statusUnknown
 			}
 		}
 	}
-	return curNodeStatus
-}
-
-func deepCopy(input map[string]string) map[string]string {
-	output := make(map[string]string, len(input))
-	for key, value := range input {
-		output[key] = value
-	}
-	return output
+	return statusOffline
 }

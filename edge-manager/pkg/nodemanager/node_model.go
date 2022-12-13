@@ -43,6 +43,7 @@ type NodeService interface {
 
 	getRelationsByNodeID(int64) (*[]NodeRelation, error)
 	updateNode(int64, map[string]interface{}) error
+	updateGroup(int64, map[string]interface{}) error
 	deleteRelationsToNode(int64) error
 	deleteRelation(*NodeRelation) (int64, error)
 	listNodeRelationsByGroupId(int64) (*[]NodeRelation, error)
@@ -167,6 +168,11 @@ func (n *NodeServiceImpl) getRelationsByNodeID(id int64) (*[]NodeRelation, error
 // UpdateNode update node
 func (n *NodeServiceImpl) updateNode(id int64, columns map[string]interface{}) error {
 	return n.db.Model(&NodeInfo{}).Where("`id` = ?", id).UpdateColumns(columns).Error
+}
+
+// UpdateGroup update group
+func (n *NodeServiceImpl) updateGroup(id int64, columns map[string]interface{}) error {
+	return n.db.Model(&NodeGroup{}).Where("`id` = ?", id).UpdateColumns(columns).Error
 }
 
 func (n *NodeServiceImpl) deleteRelationsToNode(id int64) error {

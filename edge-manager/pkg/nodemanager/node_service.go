@@ -21,7 +21,9 @@ import (
 	"edge-manager/pkg/util"
 )
 
-var nodeNotFoundPattern = regexp.MustCompile(`nodes "([^"]+)" not found`)
+var (
+	nodeNotFoundPattern = regexp.MustCompile(`nodes "([^"]+)" not found`)
+)
 
 // CreateNode Create Node
 func createNode(input interface{}) common.RespMsg {
@@ -49,10 +51,9 @@ func createNode(input interface{}) common.RespMsg {
 		Description: req.Description,
 		UniqueName:  req.UniqueName,
 		NodeName:    req.NodeName,
-		Status:      statusOffline,
 		IsManaged:   true,
 		CreatedAt:   time.Now().Format(TimeFormat),
-		UpdateAt:    time.Now().Format(TimeFormat),
+		UpdatedAt:   time.Now().Format(TimeFormat),
 	}
 	if err = NodeServiceInstance().createNode(node); err != nil {
 		if strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
@@ -83,27 +84,14 @@ func getNodeDetail(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("get node detail db query error")
 		return common.RespMsg{Status: "", Msg: "db query error", Data: nil}
 	}
-	nodeGroupName, err := joinNodeGroups(req.Id)
+	nodeGroupName, err := evalNodeGroup(req.Id)
 	if err != nil {
 		hwlog.RunLog.Errorf("get node detail db query error, %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
-	status := NodeStatusServiceInstance().GetNodeStatus(nodeInfo.UniqueName)
-	resp := GetNodeDetailResp{
-		Id:          nodeInfo.ID,
-		NodeName:    nodeInfo.NodeName,
-		UniqueName:  nodeInfo.UniqueName,
-		IP:          nodeInfo.IP,
-		Description: nodeInfo.Description,
-		Status:      status,
-		CreatedAt:   nodeInfo.CreatedAt,
-		UpdatedAt:   nodeInfo.UpdateAt,
-		Cpu:         nodeInfo.CPUCore,
-		Memory:      nodeInfo.Memory,
-		Npu:         nodeInfo.NPUType,
-		NodeType:    nodeInfo.NodeType,
-		NodeGroup:   nodeGroupName,
-	}
+	nodeInfoDynamic, _ := NodeStatusServiceInstance().Get(nodeInfo.UniqueName)
+	var resp NodeInfoDetail
+	resp.Extend(nodeInfo, nodeInfoDynamic, nodeGroupName)
 	hwlog.RunLog.Info("node detail db query success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
@@ -122,7 +110,7 @@ func modifyNode(input interface{}) common.RespMsg {
 	updatedColumns := map[string]interface{}{
 		"NodeName":    req.NodeName,
 		"Description": req.Description,
-		"UpdateAt":    time.Now().Format(TimeFormat),
+		"UpdatedAt":   time.Now().Format(TimeFormat),
 	}
 	err := NodeServiceInstance().updateNode(req.NodeId, updatedColumns)
 	if err != nil {
@@ -139,29 +127,42 @@ func modifyNode(input interface{}) common.RespMsg {
 
 func getNodeStatistics(interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start get node statistics")
-	resp := map[string]int64{
-		statusReady:    0,
-		statusNotReady: 0,
-		statusUnknown:  0,
-		statusOffline:  0,
-	}
 	nodes, err := NodeServiceInstance().listNodes()
 	if err != nil {
 		hwlog.RunLog.Error("failed to get node statistics, db query failed")
 		return common.RespMsg{Msg: "db query failed"}
 	}
-	statusMap := NodeStatusServiceInstance().ListNodeStatus()
+	nodeInfoDynamics := NodeStatusServiceInstance().List()
+	statusMap := make(map[string]string)
+	for _, dynamic := range *nodeInfoDynamics {
+		statusMap[dynamic.Hostname] = dynamic.Status
+	}
+	resp := make(map[string]int64)
 	for _, node := range *nodes {
 		status := statusOffline
 		if nodeStatus, ok := statusMap[node.UniqueName]; ok {
 			status = nodeStatus
 		}
 		if _, ok := resp[status]; !ok {
-			continue
+			resp[status] = 0
 		}
 		resp[status] += 1
 	}
 	hwlog.RunLog.Info("get node statistics success")
+	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
+}
+
+func getGroupNodeStatistics(interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start get node group statistics")
+	total, err := GetTableCount(NodeGroup{})
+	if err != nil {
+		hwlog.RunLog.Error("failed to get node group statistics, db query failed")
+		return common.RespMsg{Msg: "db query failed"}
+	}
+	resp := map[string]interface{}{
+		"total": total,
+	}
+	hwlog.RunLog.Info("get node group statistics success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
@@ -175,12 +176,20 @@ func listNode(input interface{}) common.RespMsg {
 	}
 	nodes, err := NodeServiceInstance().listNodesByName(req.PageNum, req.PageSize, req.Name)
 	if err == nil {
-		for i := range *nodes {
-			nodePtr := &(*nodes)[i]
-			nodePtr.Status = NodeStatusServiceInstance().GetNodeStatus(nodePtr.UniqueName)
+		var nodeInfoDetails []NodeInfoDetail
+		for _, nodeInfo := range *nodes {
+			nodeGroup, err := evalNodeGroup(nodeInfo.ID)
+			if err != nil {
+				hwlog.RunLog.Infof("list node db error: %s", err.Error())
+				return common.RespMsg{Msg: err.Error()}
+			}
+			nodeInfoDynamic, _ := NodeStatusServiceInstance().Get(nodeInfo.UniqueName)
+			var nodeInfoDetail NodeInfoDetail
+			nodeInfoDetail.Extend(&nodeInfo, nodeInfoDynamic, nodeGroup)
+			nodeInfoDetails = append(nodeInfoDetails, nodeInfoDetail)
 		}
 		resp := ListNodesResp{
-			Nodes: nodes,
+			Nodes: &nodeInfoDetails,
 			Total: len(*nodes),
 		}
 		hwlog.RunLog.Info("list node success")
@@ -209,12 +218,15 @@ func listNodeUnManaged(input interface{}) common.RespMsg {
 
 	nodes, err := NodeServiceInstance().listUnManagedNodesByName(req.PageNum, req.PageSize, req.Name)
 	if err == nil {
-		for i := range *nodes {
-			nodePtr := &(*nodes)[i]
-			nodePtr.Status = NodeStatusServiceInstance().GetNodeStatus(nodePtr.UniqueName)
+		var nodeInfoExs []NodeInfoEx
+		for _, node := range *nodes {
+			nodeInfoDynamic, _ := NodeStatusServiceInstance().Get(node.UniqueName)
+			var nodeInfoEx NodeInfoEx
+			nodeInfoEx.Extend(&node, nodeInfoDynamic)
+			nodeInfoExs = append(nodeInfoExs, nodeInfoEx)
 		}
-		resp := ListNodesResp{
-			Nodes: nodes,
+		resp := ListNodesUnmanagedResp{
+			Nodes: &nodeInfoExs,
 			Total: len(*nodes),
 		}
 		hwlog.RunLog.Info("list node unmanaged success")
@@ -238,10 +250,14 @@ func autoAddUnmanagedNode() error {
 		hwlog.RunLog.Error("get node table num failed")
 		return err
 	}
-	if len(realNodes.Items) == nodeDb {
+	// assume has one master node
+	if len(realNodes.Items)-1 == nodeDb {
 		return nil
 	}
 	for _, node := range realNodes.Items {
+		if _, ok := node.Labels[masterNodeLabelKey]; ok {
+			continue
+		}
 		_, err := NodeServiceInstance().getNodeByUniqueName(node.Name)
 		if err == nil {
 			continue
@@ -252,11 +268,10 @@ func autoAddUnmanagedNode() error {
 		nodeInfo := &NodeInfo{
 			NodeName:   node.Name,
 			UniqueName: node.Name,
-			Status:     statusOffline,
 			IsManaged:  false,
-			IP:         getNodeIpAddress(&node),
+			IP:         evalIpAddress(&node),
 			CreatedAt:  time.Now().Format(TimeFormat),
-			UpdateAt:   time.Now().Format(TimeFormat),
+			UpdatedAt:  time.Now().Format(TimeFormat),
 		}
 		if err := NodeServiceInstance().createNode(nodeInfo); err != nil {
 			return err
@@ -380,7 +395,7 @@ func isNodeNotFound(err error) bool {
 	return nodeNotFoundPattern.MatchString(err.Error())
 }
 
-func joinNodeGroups(nodeID int64) (string, error) {
+func evalNodeGroup(nodeID int64) (string, error) {
 	relations, err := NodeServiceInstance().getRelationsByNodeID(nodeID)
 	if err != nil {
 		hwlog.RunLog.Error("get node detail db query error")
@@ -484,7 +499,7 @@ func addUnManagedNode(input interface{}) common.RespMsg {
 		"NodeName":    req.NodeName,
 		"Description": req.Description,
 		"IsManaged":   managed,
-		"UpdateAt":    time.Now().Format(TimeFormat),
+		"UpdatedAt":   time.Now().Format(TimeFormat),
 	}
 	if err := NodeServiceInstance().updateNode(req.NodeID, updatedColumns); err != nil {
 		hwlog.RunLog.Error("add unmanaged node error")
@@ -548,7 +563,7 @@ func batchDeleteNodeGroup(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: "", Msg: "batch delete node group failed", Data: nil}
 }
 
-func getNodeIpAddress(node *v1.Node) string {
+func evalIpAddress(node *v1.Node) string {
 	var ipAddresses []string
 	for _, addr := range node.Status.Addresses {
 		if addr.Type != v1.NodeExternalIP && addr.Type != v1.NodeInternalIP {
@@ -599,9 +614,9 @@ func innerGetNodeStatus(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("parse inner message content failed")
 		return common.RespMsg{Status: "", Msg: "parse inner message content failed", Data: nil}
 	}
-	status := NodeStatusServiceInstance().GetNodeStatus(req.UniqueName)
+	nodeInfoDynamic, _ := NodeStatusServiceInstance().Get(req.UniqueName)
 	resp := types.InnerGetNodeStatusResp{
-		NodeStatus: status,
+		NodeStatus: nodeInfoDynamic.Status,
 	}
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }

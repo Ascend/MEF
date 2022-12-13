@@ -16,8 +16,6 @@ const (
 	AppName = "appname"
 	// AppId for label app pod
 	AppId = "appid"
-	// DeviceType for Ascend device
-	DeviceType = "huawei.com/davinci-mini"
 
 	informerSyncInterval = time.Duration(30) * time.Second
 

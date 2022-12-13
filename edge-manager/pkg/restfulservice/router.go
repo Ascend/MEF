@@ -26,9 +26,9 @@ func nodeRouter(engine *gin.Engine) {
 	node := engine.Group("/edgemanager/v1/node")
 	{
 		node.POST("/", createEdgeNode)
+		node.GET("/num", getNodeStatistics)
 		node.GET("/:id", getNodeDetail)
 		node.PATCH("/", modifyNode)
-		node.GET("/num", getNodeStatistics)
 		node.POST("/batchdelete", deleteNode)
 		node.GET("/list/managed", listNodeManaged)
 		node.GET("/list/unmanaged", listNodeUnManaged)
@@ -38,6 +38,8 @@ func nodeRouter(engine *gin.Engine) {
 	{
 		nodeGroup.POST("/", createEdgeNodeGroup)
 		nodeGroup.GET("/", listEdgeNodeGroup)
+		nodeGroup.PATCH("/", modifyNodeGroup)
+		nodeGroup.GET("/num", getNodeGroupStatistics)
 		nodeGroup.GET("/:id", getEdgeNodeGroupDetail)
 		nodeGroup.POST("/add", addNodeToGroup)
 		nodeGroup.POST("/delete", deleteNodeFromGroup)

@@ -11,14 +11,9 @@ type NodeInfo struct {
 	NodeName    string `gorm:"size:255;unique;not null"       json:"nodeName"`
 	UniqueName  string `gorm:"size:255;unique;not null"       json:"uniqueName"`
 	IP          string `gorm:"size:256"                       json:"ip"`
-	CPUCore     int64  `gorm:"size:32"                        json:"cpuCore"`
-	Memory      int64  `gorm:"size:32"                        json:"memory"`
-	NPUType     string `gorm:"size:256"                       json:"npuType"`
-	NPUNum      int64  `gorm:"size:32"                        json:"npuNum"`
-	Status      string `gorm:"size:255;not null"              json:"status"`
 	IsManaged   bool   `gorm:"size:4;not null"                json:"isManaged"`
 	CreatedAt   string `gorm:"not null"                       json:"createdAt"`
-	UpdateAt    string `gorm:"not null"                       json:"updateAt"`
+	UpdatedAt   string `gorm:"not null"                       json:"updatedAt"`
 }
 
 // NodeGroup is node group db table
@@ -27,7 +22,7 @@ type NodeGroup struct {
 	Description string `gorm:"size:256"                       json:"description"`
 	GroupName   string `gorm:"size:255;unique;not null"       json:"groupName"`
 	CreatedAt   string `gorm:"not null"                       json:"createdAt"`
-	UpdateAt    string `gorm:"not null"                       json:"updateAt"`
+	UpdatedAt   string `gorm:"not null"                       json:"updatedAt"`
 }
 
 // NodeRelation is node relation table

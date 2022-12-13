@@ -38,7 +38,7 @@ func createGroup(input interface{}) common.RespMsg {
 		Description: req.Description,
 		GroupName:   req.NodeGroupName,
 		CreatedAt:   time.Now().Format(TimeFormat),
-		UpdateAt:    time.Now().Format(TimeFormat),
+		UpdatedAt:   time.Now().Format(TimeFormat),
 	}
 	if err = NodeServiceInstance().createNodeGroup(group); err != nil {
 		if strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
@@ -76,12 +76,9 @@ func listEdgeNodeGroup(input interface{}) common.RespMsg {
 			hwlog.RunLog.Error("node group db query failed")
 			return common.RespMsg{Status: "", Msg: "db group query failed", Data: nil}
 		}
-		respItem := ListNodeGroupRespItem{
-			GroupID:       group.ID,
-			NodeGroupName: group.GroupName,
-			Description:   group.Description,
-			CreateAt:      group.CreatedAt,
-			NodeCount:     int64(len(*relations)),
+		respItem := NodeGroupEx{
+			NodeGroup: group,
+			NodeCount: int64(len(*relations)),
 		}
 		resp.Groups = append(resp.Groups, respItem)
 	}
@@ -96,7 +93,13 @@ func getEdgeNodeGroupDetail(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("get node group detail convert request error, %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
-	var resp GetNodeGroupDetailResp
+	var resp NodeGroupDetail
+	nodeGroup, err := NodeServiceInstance().getNodeGroupByID(req.Id)
+	if err != nil {
+		hwlog.RunLog.Error("node group db query failed")
+		return common.RespMsg{Status: "", Msg: "db query failed", Data: nil}
+	}
+	resp.NodeGroup = *nodeGroup
 	relations, err := NodeServiceInstance().listNodeRelationsByGroupId(req.Id)
 	if err != nil {
 		hwlog.RunLog.Error("node group db query failed")
@@ -108,18 +111,40 @@ func getEdgeNodeGroupDetail(input interface{}) common.RespMsg {
 			hwlog.RunLog.Error("node group db query failed")
 			return common.RespMsg{Status: "", Msg: "db query failed", Data: nil}
 		}
-		status := NodeStatusServiceInstance().GetNodeStatus(node.UniqueName)
-		nodeResp := GetNodeGroupDetailRespItem{
-			NodeID:      node.ID,
-			NodeName:    node.NodeName,
-			IP:          node.IP,
-			Description: node.Description,
-			Status:      status,
-			CreateAt:    node.CreatedAt,
-			UpdateAt:    node.UpdateAt,
-		}
-		resp.Nodes = append(resp.Nodes, nodeResp)
+		nodeInfoDynamic, _ := NodeStatusServiceInstance().Get(node.UniqueName)
+		var nodeInfoEx NodeInfoEx
+		nodeInfoEx.Extend(node, nodeInfoDynamic)
+		resp.Nodes = append(resp.Nodes, nodeInfoEx)
 	}
 	hwlog.RunLog.Info("node group db query success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
+}
+
+func modifyNodeGroup(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start modify node group")
+	var req ModifyNodeGroupReq
+	if err := common.ParamConvert(input, &req); err != nil {
+		hwlog.RunLog.Errorf("modify node group convert request error, %s", err.Error())
+		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
+	}
+	if err := req.Check(); err != nil {
+		hwlog.RunLog.Errorf("modify node group check parameters failed, %s", err.Error())
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
+	}
+	updatedColumns := map[string]interface{}{
+		"GroupName":   req.GroupName,
+		"Description": req.Description,
+		"UpdatedAt":   time.Now().Format(TimeFormat),
+	}
+	err := NodeServiceInstance().updateGroup(req.GroupId, updatedColumns)
+	if err != nil {
+		if strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
+			hwlog.RunLog.Error("node group name is duplicate")
+			return common.RespMsg{Status: "", Msg: "node group name is duplicate", Data: nil}
+		}
+		hwlog.RunLog.Error("modify node group db update error")
+		return common.RespMsg{Status: "", Msg: "db update error", Data: nil}
+	}
+	hwlog.RunLog.Info("modify node group db update success")
+	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
