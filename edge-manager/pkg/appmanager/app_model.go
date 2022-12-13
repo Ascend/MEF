@@ -150,6 +150,9 @@ func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) (*L
 func removeDuplicates(nodeGroupInfos []NodeGroupInfo) (string, []int64) {
 	nodeGroupNames := ""
 	var nodeGroupIDs []int64
+	if len(nodeGroupInfos) == 0 {
+		return nodeGroupNames, nodeGroupIDs
+	}
 	tmpMap := make(map[string]interface{})
 	for _, nodeGroupInfo := range nodeGroupInfos {
 		if _, ok := tmpMap[nodeGroupInfo.NodeGroupName]; !ok {
