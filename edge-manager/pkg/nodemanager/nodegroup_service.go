@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/util"
-	"huawei.com/mindxedge/base/common"
 )
 
 // CreateGroup Create Node Group
@@ -103,7 +103,7 @@ func getEdgeNodeGroupDetail(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "db query failed", Data: nil}
 	}
 	for _, relation := range *relations {
-		node, err := NodeServiceInstance().GetNodeByID(relation.NodeID)
+		node, err := NodeServiceInstance().getNodeByID(relation.NodeID)
 		if err != nil {
 			hwlog.RunLog.Error("node group db query failed")
 			return common.RespMsg{Status: "", Msg: "db query failed", Data: nil}

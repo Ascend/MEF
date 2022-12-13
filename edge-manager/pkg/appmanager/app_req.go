@@ -3,8 +3,6 @@
 // Package appmanager to init util service
 package appmanager
 
-import "edge-manager/pkg/nodemanager"
-
 // CreateAppReq Create application
 type CreateAppReq struct {
 	AppId       uint64      `json:"appId"`
@@ -65,14 +63,6 @@ type ContainerInfo struct {
 	Name   string `json:"name"`
 	Image  string `json:"image"`
 	Status string `json:"status"`
-}
-
-// AppInstanceInfo encapsulate app instance information
-type AppInstanceInfo struct {
-	// AppInfo is app information
-	AppInfo AppInfo `json:"appInfo"`
-	// NodeGroup is node group information of app
-	NodeGroup nodemanager.NodeGroup `json:"nodeGroup"`
 }
 
 // CreateReturnInfo for create app
