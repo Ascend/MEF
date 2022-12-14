@@ -5,13 +5,14 @@ package nodemanager
 
 const (
 	// TimeFormat used for friendly display
-	TimeFormat      = "2006-01-02 15:04:05"
-	maxNode         = 1024
-	maxNodeGroup    = 1024
-	maxNodePerGroup = 1024
-	maxGroupPerNode = 10
-	managed         = 1
-	unmanaged       = 0
+	TimeFormat         = "2006-01-02 15:04:05"
+	masterNodeLabelKey = "node-role.kubernetes.io/master"
+	maxNode            = 1024
+	maxNodeGroup       = 1024
+	maxNodePerGroup    = 1024
+	maxGroupPerNode    = 10
+	managed            = 1
+	unmanaged          = 0
 )
 
 // node status

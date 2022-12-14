@@ -108,23 +108,6 @@ func (req BatchDeleteNodeRelationReq) Check() error {
 	return nil
 }
 
-// GetNodeDetailResp nodeDetail
-type GetNodeDetailResp struct {
-	Id          int64  `json:"id"`
-	NodeName    string `json:"nodeName"`
-	UniqueName  string `json:"uniqueName"`
-	IP          string `json:"ip"`
-	Description string `json:"description"`
-	Status      string `json:"status"`
-	CreatedAt   string `json:"createdAt"`
-	UpdatedAt   string `json:"updatedAt"`
-	Cpu         int64  `json:"cpu"`
-	Memory      int64  `json:"memory"`
-	Npu         string `json:"npu"`
-	NodeType    string `json:"nodeType"`
-	NodeGroup   string `json:"nodeGroup"`
-}
-
 // ModifyNodeReq request object
 type ModifyNodeReq struct {
 	NodeId      int64  `json:"nodeId"`
@@ -140,38 +123,19 @@ func (req ModifyNodeReq) Check() error {
 		Error()
 }
 
-// GetNodeStatisticsResp node statistics data
-type GetNodeStatisticsResp = map[string]int64
-
-// ListNodeGroupResp response object for listNodeGroup
-type ListNodeGroupResp struct {
-	Total  int64                   `json:"total"`
-	Groups []ListNodeGroupRespItem `json:"groups"`
-}
-
-// ListNodeGroupRespItem group data
-type ListNodeGroupRespItem struct {
-	GroupID       int64  `json:"groupId"`
-	NodeGroupName string `json:"nodeGroupName"`
-	Description   string `json:"description"`
-	CreateAt      string `json:"createAt"`
-	NodeCount     int64  `json:"nodeCount"`
-}
-
-// GetNodeGroupDetailResp response object for nodeGroupDetail
-type GetNodeGroupDetailResp struct {
-	Nodes []GetNodeGroupDetailRespItem `json:"nodes"`
-}
-
-// GetNodeGroupDetailRespItem Node data
-type GetNodeGroupDetailRespItem struct {
-	NodeID      int64  `json:"nodeId"`
-	NodeName    string `json:"nodeName"`
-	IP          string `json:"ip"`
+// ModifyNodeGroupReq request object
+type ModifyNodeGroupReq struct {
+	GroupId     int64  `json:"groupId"`
+	GroupName   string `json:"nodeGroupName"`
 	Description string `json:"description"`
-	Status      string `json:"status"`
-	CreateAt    string `json:"createAt"`
-	UpdateAt    string `json:"updateAt"`
+}
+
+// Check request validator
+func (req ModifyNodeGroupReq) Check() error {
+	return common.NewValidator().
+		ValidateNodeGroupName(paramNodeGroupNameLong, req.GroupName).
+		ValidateNodeGroupDesc(paramDescription, req.Description).
+		Error()
 }
 
 // AddNodeToGroupReq Create edge node group
@@ -196,13 +160,78 @@ func (req AddUnManagedNodeReq) Check() error {
 		Error()
 }
 
-// ListNodesResp list nodes response
-type ListNodesResp struct {
-	Nodes *[]NodeInfo `json:"nodes"`
-	Total int         `json:"total"`
-}
-
 // BatchDeleteNodeGroupReq batch delete node group
 type BatchDeleteNodeGroupReq struct {
 	GroupID []int64 `json:"groupID"`
+}
+
+// ListNodeGroupResp response object for listNodeGroup
+type ListNodeGroupResp struct {
+	Total  int64         `json:"total"`
+	Groups []NodeGroupEx `json:"groups"`
+}
+
+// ListNodesResp list managed nodes response
+type ListNodesResp struct {
+	Nodes *[]NodeInfoDetail `json:"nodes"`
+	Total int               `json:"total"`
+}
+
+// ListNodesUnmanagedResp list unmanaged nodes response
+type ListNodesUnmanagedResp struct {
+	Nodes *[]NodeInfoEx `json:"nodes"`
+	Total int           `json:"total"`
+}
+
+// NodeGroupDetail get node group detail response
+type NodeGroupDetail struct {
+	NodeGroup
+	Nodes []NodeInfoEx `json:"nodes"`
+}
+
+// NodeGroupEx contains node group and nodes count
+type NodeGroupEx struct {
+	NodeGroup
+	NodeCount int64 `json:"nodeCount"`
+}
+
+// Extend construct NodeGroupEx
+func (n *NodeGroupEx) Extend(nodeGroup *NodeGroup, nodeCount int64) {
+	*n = NodeGroupEx{
+		NodeGroup: *nodeGroup,
+		NodeCount: nodeCount,
+	}
+}
+
+// NodeInfoEx contains static info and dynamic info
+type NodeInfoEx struct {
+	NodeInfo
+	NodeInfoDynamic
+}
+
+// Extend construct NodeInfoEx
+func (n *NodeInfoEx) Extend(info *NodeInfo, dynamicInfo *NodeInfoDynamic) {
+	if dynamicInfo == nil {
+		dynamicInfo = &NodeInfoDynamic{Status: statusOffline}
+	}
+	*n = NodeInfoEx{
+		NodeInfo:        *info,
+		NodeInfoDynamic: *dynamicInfo,
+	}
+}
+
+// NodeInfoDetail contains static info, dynamic info and group names
+type NodeInfoDetail struct {
+	NodeInfoEx
+	NodeGroup string `json:"nodeGroup"`
+}
+
+// Extend construct NodeInfoDetail
+func (n *NodeInfoDetail) Extend(info *NodeInfo, dynamicInfo *NodeInfoDynamic, nodeGroup string) {
+	var nodeInfoEx NodeInfoEx
+	nodeInfoEx.Extend(info, dynamicInfo)
+	*n = NodeInfoDetail{
+		NodeInfoEx: nodeInfoEx,
+		NodeGroup:  nodeGroup,
+	}
 }

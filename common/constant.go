@@ -72,6 +72,8 @@ const (
 	NodeStatus = "nodeStatus"
 	// NodeStatistics node statistics
 	NodeStatistics = "nodeStatistics"
+	// NodeGroupStatistics node group statistics
+	NodeGroupStatistics = "nodeGroupStatistics"
 	// NodeRelation node relation
 	NodeRelation = "nodeRelation"
 	// ServiceCert resource service cert
@@ -123,6 +125,8 @@ const (
 	TimeFormatDb = "2006-01-02T15:04:05Z"
 	// NodeGroupLabelPrefix k8s label prefix for node group
 	NodeGroupLabelPrefix = "MEF-Node"
+	// DeviceType for Ascend device
+	DeviceType = "huawei.com/davinci-mini"
 )
 
 // regex patterns

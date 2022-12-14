@@ -118,7 +118,7 @@ func getNodeDetail(c *gin.Context) {
 func modifyNode(c *gin.Context) {
 	res, err := c.GetRawData()
 	if err != nil {
-		hwlog.OpLog.Error("create node: get input parameter failed")
+		hwlog.OpLog.Error("modify node: get input parameter failed")
 		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
 		return
 	}
@@ -127,6 +127,23 @@ func modifyNode(c *gin.Context) {
 		Destination: common.NodeManagerName,
 		Option:      common.Update,
 		Resource:    common.Node,
+	}
+	resp := common.SendSyncMessageByRestful(string(res), &router)
+	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+}
+
+func modifyNodeGroup(c *gin.Context) {
+	res, err := c.GetRawData()
+	if err != nil {
+		hwlog.OpLog.Error("modify node group: get input parameter failed")
+		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
+		return
+	}
+	router := common.Router{
+		Source:      common.RestfulServiceName,
+		Destination: common.NodeManagerName,
+		Option:      common.Update,
+		Resource:    common.NodeGroup,
 	}
 	resp := common.SendSyncMessageByRestful(string(res), &router)
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
@@ -220,6 +237,17 @@ func getNodeStatistics(c *gin.Context) {
 		Destination: common.NodeManagerName,
 		Option:      common.Get,
 		Resource:    common.NodeStatistics,
+	}
+	resp := common.SendSyncMessageByRestful("", &router)
+	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+}
+
+func getNodeGroupStatistics(c *gin.Context) {
+	router := common.Router{
+		Source:      common.RestfulServiceName,
+		Destination: common.NodeManagerName,
+		Option:      common.Get,
+		Resource:    common.NodeGroupStatistics,
 	}
 	resp := common.SendSyncMessageByRestful("", &router)
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)

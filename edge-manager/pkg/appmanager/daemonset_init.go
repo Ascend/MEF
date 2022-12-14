@@ -124,7 +124,7 @@ func getResources(appContainer Container) (v1.ResourceRequirements, error) {
 		return v1.ResourceRequirements{}, err
 	}
 	if appContainer.Npu != "" {
-		device = DeviceType
+		device = common.DeviceType
 		deviceValue, err := resource.ParseQuantity(appContainer.Npu)
 		if err != nil {
 			hwlog.RunLog.Error("parse npu resource failed")
