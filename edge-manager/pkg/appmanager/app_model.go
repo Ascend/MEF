@@ -33,6 +33,7 @@ type AppRepository interface {
 	queryApp(appId uint64) (AppInfo, error)
 	listAppsInfo(uint64, uint64, string) (*ListReturnInfo, error)
 	countListAppsInfo(string) (int64, error)
+	countDeployedApp() (int64, error)
 	getGroupNameByAppName(string) (string, error)
 	getAppInfoById(appId uint64) (*AppInfo, error)
 	getAppInstanceByIdAndGroup(uint64, string) (*AppInstance, error)
@@ -136,8 +137,8 @@ func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) (*L
 			Description:   app.Description,
 			NodeGroupName: nodeGroupNames,
 			NodeGroupId:   nodeGroupIDs,
-			CreatedAt:     app.CreatedAt,
-			ModifiedAt:    app.ModifiedAt,
+			CreatedAt:     app.CreatedAt.Format(common.TimeFormat),
+			ModifiedAt:    app.UpdatedAt.Format(common.TimeFormat),
 			Containers:    containers,
 		})
 	}
@@ -171,6 +172,15 @@ func (a *AppRepositoryImpl) countListAppsInfo(name string) (int64, error) {
 		return 0, err
 	}
 	return totalAppInfo, nil
+}
+
+func (a *AppRepositoryImpl) countDeployedApp() (int64, error) {
+	var deployedAppNums int64
+	if err := a.db.Model(AppInstance{}).Distinct("app_id").Count(&deployedAppNums).Error; err != nil {
+		hwlog.RunLog.Error("count deployed app db failed")
+		return 0, err
+	}
+	return deployedAppNums, nil
 }
 
 func (a *AppRepositoryImpl) deployApp(appInstance *AppInstance) error {
@@ -288,6 +298,11 @@ func (a *AppRepositoryImpl) addPod(appInstance *AppInstance) error {
 }
 
 func (a *AppRepositoryImpl) updatePod(appInstance *AppInstance) error {
+	var eventInstance AppInstance
+	a.db.Model(AppInstance{}).Where("pod_name = ?", appInstance.PodName).First(&eventInstance)
+	if eventInstance.ContainerInfo == appInstance.ContainerInfo && eventInstance.NodeName != "" {
+		return nil
+	}
 	return a.db.Model(AppInstance{}).Where("pod_name = ?", appInstance.PodName).Updates(appInstance).Error
 }
 

@@ -599,8 +599,8 @@ func innerGetNodeGroupInfoById(input interface{}) common.RespMsg {
 	}
 	nodeGroupInfo, err := NodeServiceInstance().getNodeGroupByID(req.GroupID)
 	if err != nil {
-		hwlog.RunLog.Error("get node info by unique name failed")
-		return common.RespMsg{Status: "", Msg: "get node info by unique name failed", Data: nil}
+		hwlog.RunLog.Error("get node group info by id failed")
+		return common.RespMsg{Status: "", Msg: "get node group info by id failed", Data: nil}
 	}
 	resp := types.InnerGetNodeGroupInfoByIdResp{
 		GroupName: nodeGroupInfo.GroupName,

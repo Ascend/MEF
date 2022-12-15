@@ -76,6 +76,8 @@ type ListReturnInfo struct {
 	AppInfo []AppReturnInfo `json:"appInfo"`
 	// Total is num of appInfos
 	Total int64 `json:"total"`
+	// Deployed is num of deployed apps
+	Deployed int64 `json:"deployed"`
 }
 
 // AppReturnInfo encapsulate app information for return

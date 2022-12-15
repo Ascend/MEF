@@ -4,8 +4,6 @@
 package appmanager
 
 import (
-	"time"
-
 	"edge-manager/pkg/util"
 
 	"huawei.com/mindx/common/hwlog"
@@ -26,9 +24,6 @@ func createTemplate(param interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("create app template,failed,error:%v", err)
 		return common.RespMsg{Status: common.ErrorCreateAppTemplate}
 	}
-
-	template.CreatedAt = time.Now().Format(common.TimeFormat)
-	template.ModifiedAt = time.Now().Format(common.TimeFormat)
 
 	if err := RepositoryInstance().createTemplate(&template); err != nil {
 		hwlog.RunLog.Errorf("create app template,failed,error:%v", err)
@@ -68,8 +63,6 @@ func updateTemplate(param interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("create app template,failed,error:%v", err)
 		return common.RespMsg{Status: common.ErrorModifyAppTemplate}
 	}
-
-	template.ModifiedAt = time.Now().Format(common.TimeFormat)
 
 	if err := RepositoryInstance().updateTemplate(&template); err != nil {
 		hwlog.RunLog.Errorf("modify app template,failed,error:%v", err)

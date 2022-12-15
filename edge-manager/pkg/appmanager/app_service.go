@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
@@ -114,12 +113,16 @@ func listAppInfo(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "get apps Infos list failed", Data: nil}
 	}
 
-	total, err := AppRepositoryInstance().countListAppsInfo(req.Name)
+	apps.Total, err = AppRepositoryInstance().countListAppsInfo(req.Name)
 	if err != nil {
 		hwlog.RunLog.Error("count apps Infos list failed")
 		return common.RespMsg{Status: "", Msg: "count apps Infos list failed", Data: nil}
 	}
-	apps.Total = total
+	apps.Deployed, err = AppRepositoryInstance().countDeployedApp()
+	if err != nil {
+		hwlog.RunLog.Error("count deployed app failed")
+		return common.RespMsg{Status: "", Msg: "count apps Infos list failed", Data: nil}
+	}
 	hwlog.RunLog.Info("list apps Infos success")
 	return common.RespMsg{Status: common.Success, Msg: "list apps Infos success", Data: apps}
 }
@@ -277,7 +280,7 @@ func getAppInstanceRespFromAppInstances(appInstances []AppInstance) ([]AppInstan
 			hwlog.RunLog.Errorf("get container infos error: %v", err)
 			return nil, err
 		}
-		createdAt, err := parseDbTimeToStandardFormat(instance.CreatedAt)
+		createdAt := instance.CreatedAt
 		if err != nil {
 			hwlog.RunLog.Errorf("parse db time to standard format error: %v", err)
 			return nil, err
@@ -290,7 +293,7 @@ func getAppInstanceRespFromAppInstances(appInstances []AppInstance) ([]AppInstan
 			NodeName:      nodeName,
 			NodeStatus:    nodeStatus,
 			AppStatus:     podStatus,
-			CreatedAt:     createdAt,
+			CreatedAt:     createdAt.Format(common.TimeFormat),
 			ContainerInfo: containerInfos,
 		}
 		appInstanceResp = append(appInstanceResp, resp)
@@ -358,12 +361,12 @@ func getAppInstanceOfNodeRespFromAppInstances(appInstances []AppInstance) ([]App
 			return nil, err
 		}
 		status := appStatusService.getPodStatusFromCache(instance.PodName)
-		createdAt, err := parseDbTimeToStandardFormat(instance.CreatedAt)
+		createdAt := instance.CreatedAt
 		if err != nil {
 			hwlog.RunLog.Errorf("parse db time to standard format error: %v", err)
 			return nil, err
 		}
-		changedAt, err := parseDbTimeToStandardFormat(instance.ChangedAt)
+		changedAt := instance.UpdatedAt
 		if err != nil {
 			hwlog.RunLog.Errorf("parse db time to standard format error: %v", err)
 			return nil, err
@@ -372,21 +375,12 @@ func getAppInstanceOfNodeRespFromAppInstances(appInstances []AppInstance) ([]App
 			AppName:       instance.AppName,
 			AppStatus:     status,
 			Description:   appInfo.Description,
-			CreatedAt:     createdAt,
-			ChangedAt:     changedAt,
+			CreatedAt:     createdAt.Format(common.TimeFormat),
+			ChangedAt:     changedAt.Format(common.TimeFormat),
 			NodeGroupName: instance.NodeGroupName,
 			NodeGroupID:   instance.NodeGroupID,
 		}
 		appList = append(appList, instanceResp)
 	}
 	return appList, nil
-}
-
-func parseDbTimeToStandardFormat(dbStringTime string) (string, error) {
-	dbTime, err := time.Parse(common.TimeFormatDb, dbStringTime)
-	if err != nil {
-		return "", err
-	}
-	formatTime := dbTime.Format(common.TimeFormat)
-	return formatTime, nil
 }
