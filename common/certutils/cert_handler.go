@@ -196,16 +196,16 @@ func (rcm *RootCertMgr) getRootCaCsr() *x509.Certificate {
 
 // SelfSignCert self singed cert struct
 type SelfSignCert struct {
-	rootCertMgr *RootCertMgr
-	svcCertPath string
-	svcKeyPath  string
-	commonName  string
+	RootCertMgr *RootCertMgr
+	SvcCertPath string
+	SvcKeyPath  string
+	CommonName  string
 }
 
 // CreateSignCert create a new singed cert for root ca and service cert
 func (sc *SelfSignCert) CreateSignCert() error {
-	if _, err := sc.rootCertMgr.GetRootCaPair(); err != nil {
-		if _, err := sc.rootCertMgr.NewRootCa(); err != nil {
+	if _, err := sc.RootCertMgr.GetRootCaPair(); err != nil {
+		if _, err := sc.RootCertMgr.NewRootCa(); err != nil {
 			return errors.New("new root ca pair failed: " + err.Error())
 		}
 	}
@@ -219,17 +219,17 @@ func (sc *SelfSignCert) CreateSignCert() error {
 		return err
 	}
 
-	certBytes, err := sc.rootCertMgr.IssueServiceCert(csr)
+	certBytes, err := sc.RootCertMgr.IssueServiceCert(csr)
 	if err != nil {
 		return err
 	}
 
-	err = saveCertWithPem(sc.svcCertPath, certBytes)
+	err = saveCertWithPem(sc.SvcCertPath, certBytes)
 	if err != nil {
 		return errors.New("save self singed cert with pem failed: " + err.Error())
 	}
 
-	err = saveKeyWithPem(sc.svcKeyPath, priv, sc.rootCertMgr.kmcCfg)
+	err = saveKeyWithPem(sc.SvcKeyPath, priv, sc.RootCertMgr.kmcCfg)
 	if err != nil {
 		return errors.New("save self singed key with pem failed: " + err.Error())
 	}
@@ -237,7 +237,7 @@ func (sc *SelfSignCert) CreateSignCert() error {
 }
 
 func (sc *SelfSignCert) getCsr(priv *rsa.PrivateKey) ([]byte, error) {
-	template := x509.CertificateRequest{Subject: pkix.Name{CommonName: sc.commonName}}
+	template := x509.CertificateRequest{Subject: pkix.Name{CommonName: sc.CommonName}}
 	csrDer, err := x509.CreateCertificateRequest(rand.Reader, &template, priv)
 	if err != nil {
 		return nil, errors.New("generate csr for self signed certificate failed: " + err.Error())

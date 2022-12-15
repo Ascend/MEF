@@ -8,6 +8,8 @@ TOP_DIR: "{{systemEnv.workspace}}/{{component}}"
 EDGE_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/edge-manager"
 SOFTWARE_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/software-manager"
 CERT_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/cert-manager"
+MEF_CENTER_INSTALL_DIR: "{{systemEnv.workspace}}/{{component}}/mef-center-install"
+
 compile:
   input:
     dependency:
@@ -23,6 +25,12 @@ compile:
         version: "1.0"
         type: opensource
         buildFile: "{{CERT_MANAGER_DIR}}/build/conf"
+      - name: mef-center-install
+        version: "1.0"
+        type: opensource
+        buildFile: "{{MEF_CENTER_INSTALL_DIR}}/build/conf"
+
+
     files:
       exclude:
         - remove: ["{{TOP_DIR}}/output/"]
@@ -46,6 +54,10 @@ compile:
         - copy:
             src:
               - '{{CERT_MANAGER_DIR}}/output/*.zip'
+            des: "{{TOP_DIR}}/output/"
+        - copy:
+            src:
+              - '{{MEF_CENTER_INSTALL_DIR}}/output/*.zip'
             des: "{{TOP_DIR}}/output/"
         - mode:
             src:
