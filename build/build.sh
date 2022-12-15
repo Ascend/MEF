@@ -6,6 +6,7 @@ set -e
 CUR_DIR=$(dirname "$(readlink -f "$0")")
 TOP_DIR=$(realpath "${CUR_DIR}"/..)
 ATLAS_EDGE_BASE_DIR=${TOP_DIR}
+INSTALL_BUILD_SCRIPT=$(realpath "${ATLAS_EDGE_BASE_DIR}/mef-center-install/build/build.sh")
 
 # project directory name
 EDGE_MANAGER_DIR_NAME="edge-manager"
@@ -38,6 +39,7 @@ function clean() {
 function build_and_zip_component() {
   component_name=$1
   cd "${ATLAS_EDGE_BASE_DIR}/${component_name}/build/"
+  dos2unix build.sh
   chmod u+x ./build.sh
   # execute build script
   ./build.sh
@@ -61,11 +63,18 @@ function build_and_zip_component() {
   mv "${folder}" "${ATLAS_EDGE_BASE_DIR}/output/"
 }
 
+function build_install_bin() {
+    dos2unix ${INSTALL_BUILD_SCRIPT}
+    bash ${INSTALL_BUILD_SCRIPT}
+    cp -r ${ATLAS_EDGE_BASE_DIR}/mef-center-install/output/* ${ATLAS_EDGE_BASE_DIR}/output/
+}
+
 function main() {
   clean
   build_and_zip_component ${EDGE_MANAGER_DIR_NAME}
   build_and_zip_component ${SOFTWARE_MANAGER_DIR_NAME}
   build_and_zip_component ${CERT_MANAGER_DIR_NAME}
+  build_install_bin
 }
 
 main
