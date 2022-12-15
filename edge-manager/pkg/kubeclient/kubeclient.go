@@ -142,14 +142,19 @@ func (ki *Client) makeLabelPath(name string) string {
 	return labelResourcePrefix + name
 }
 
-// CreateDaemonSet create daemonset
+// CreateDaemonSet create daemonSet
 func (ki *Client) CreateDaemonSet(dm *appv1.DaemonSet) (*appv1.DaemonSet, error) {
 	return ki.kubeClient.AppsV1().DaemonSets("default").Create(context.Background(), dm, metav1.CreateOptions{})
 }
 
-// UpdateDaemonSet Update daemonset
+// UpdateDaemonSet Update daemonSet
 func (ki *Client) UpdateDaemonSet(dm *appv1.DaemonSet) (*appv1.DaemonSet, error) {
 	return ki.kubeClient.AppsV1().DaemonSets("default").Update(context.Background(), dm, metav1.UpdateOptions{})
+}
+
+// DeleteDaemonSet Delete daemonSet
+func (ki *Client) DeleteDaemonSet(name string) error {
+	return ki.kubeClient.AppsV1().DaemonSets("default").Delete(context.Background(), name, metav1.DeleteOptions{})
 }
 
 // GetToken get token

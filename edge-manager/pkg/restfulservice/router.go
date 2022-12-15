@@ -56,6 +56,7 @@ func appRouter(engine *gin.Engine) {
 		app.PATCH("/", updateApp)
 		app.GET("/list", listAppsInfo)
 		app.POST("/deploy", deployApp)
+		app.POST("/undeploy", unDeployApp)
 		app.DELETE("/", deleteApp)
 		app.GET("/deploy/list", listAppInstance)
 		app.GET("/deploy/list/node", listAppInstanceByNode)

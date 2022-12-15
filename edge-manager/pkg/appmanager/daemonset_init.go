@@ -40,7 +40,7 @@ func initDaemonSet(appInfo *AppInfo, nodeInfo NodeGroupInfo) (*appv1.DaemonSet, 
 	}
 	return &appv1.DaemonSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: appInfo.AppName,
+			Name: appInfo.AppName + strconv.FormatInt(nodeInfo.NodeGroupID, DecimalScale),
 		},
 		Spec: appv1.DaemonSetSpec{
 			Selector: &metav1.LabelSelector{

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -161,6 +162,35 @@ func deployApp(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
+// unDeployApp deploy application on node group
+func unDeployApp(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start unDeploy app")
+	var req UndeployAppReq
+	if err := common.ParamConvert(input, &req); err != nil {
+		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	}
+
+	appInfo, err := AppRepositoryInstance().getAppInfoById(req.AppId)
+	if err != nil {
+		hwlog.RunLog.Error("get app information failed")
+		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	}
+
+	for _, nodeGroup := range req.NodeGroupInfo {
+		daemonSetName := appInfo.AppName + strconv.FormatInt(nodeGroup.NodeGroupID, DecimalScale)
+		if err = kubeclient.GetKubeClient().DeleteDaemonSet(daemonSetName); err != nil {
+			hwlog.RunLog.Errorf("undeploy app [%s] on node group [%s] failed: %s",
+				appInfo.AppName, nodeGroup.NodeGroupName, err.Error())
+			return common.RespMsg{Status: "", Msg: "undeploy app failed", Data: nil}
+		}
+		hwlog.RunLog.Infof("undeploy app [%s] on node group [%s] success",
+			appInfo.AppName, nodeGroup.NodeGroupName)
+	}
+
+	hwlog.RunLog.Info("undeploy app on node group success")
+	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
+}
+
 func updateNodeGroupDaemonSet(appInfo *AppInfo, nodeGroups []NodeGroupInfo) error {
 	for _, nodeGroup := range nodeGroups {
 		daemonSet, err := initDaemonSet(appInfo, nodeGroup)
@@ -283,9 +313,9 @@ func getAppInstanceRespFromAppInstances(appInstances []AppInstance) ([]AppInstan
 			return nil, err
 		}
 		resp := AppInstanceResp{
-			AppName:       instance.AppName,
-			NodeGroupId:   instance.NodeGroupID,
-			NodeGroupName: instance.NodeGroupName,
+			AppName: instance.AppName,
+			NodeGroupInfo: NodeGroupInfo{NodeGroupID: instance.NodeGroupID,
+				NodeGroupName: instance.NodeGroupName},
 			NodeId:        instance.NodeID,
 			NodeName:      nodeName,
 			NodeStatus:    nodeStatus,

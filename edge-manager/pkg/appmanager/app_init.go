@@ -115,11 +115,13 @@ func initAppTable() error {
 
 func appMethodList() map[string]handlerFunc {
 	return map[string]handlerFunc{
-		combine(common.Create, common.App):             createApp,
-		combine(common.Query, common.App):              queryApp,
-		combine(common.Update, common.App):             updateApp,
-		combine(common.List, common.App):               listAppInfo,
-		combine(common.Deploy, common.App):             deployApp,
+		combine(common.Create, common.App):   createApp,
+		combine(common.Query, common.App):    queryApp,
+		combine(common.Update, common.App):   updateApp,
+		combine(common.List, common.App):     listAppInfo,
+		combine(common.Deploy, common.App):   deployApp,
+		combine(common.Undeploy, common.App): unDeployApp,
+
 		combine(common.Delete, common.App):             deleteApp,
 		combine(common.List, common.AppInstance):       listAppInstances,
 		combine(common.List, common.AppInstanceByNode): listAppInstancesByNode,
