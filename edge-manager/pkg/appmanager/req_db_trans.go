@@ -6,7 +6,6 @@ package appmanager
 import (
 	"encoding/json"
 	"errors"
-	"time"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
@@ -24,8 +23,6 @@ func (req *CreateAppReq) toDb() (*AppInfo, error) {
 		AppName:     req.AppName,
 		Description: req.Description,
 		Containers:  string(containers),
-		CreatedAt:   time.Now().Format(common.TimeFormat),
-		ModifiedAt:  time.Now().Format(common.TimeFormat),
 	}, nil
 
 }
@@ -35,13 +32,10 @@ func (dto *AppTemplate) ToDb(template *AppTemplateDb) error {
 	if template == nil {
 		return errors.New("param is nil")
 	}
-	now := time.Now().Format(common.TimeFormat)
 	*template = AppTemplateDb{
 		ID:           dto.Id,
 		TemplateName: dto.Name,
 		Description:  dto.Description,
-		CreatedAt:    now,
-		ModifiedAt:   now,
 	}
 
 	containers, err := json.Marshal(dto.Containers)
@@ -63,8 +57,8 @@ func (dto *AppTemplate) FromDb(template *AppTemplateDb) error {
 	dto.Id = template.ID
 	dto.Name = template.TemplateName
 	dto.Description = template.Description
-	dto.CreatedAt = template.CreatedAt
-	dto.ModifiedAt = template.ModifiedAt
+	dto.CreatedAt = template.CreatedAt.Format(common.TimeFormat)
+	dto.ModifiedAt = template.UpdatedAt.Format(common.TimeFormat)
 
 	if err := json.Unmarshal([]byte(template.Containers), &dto.Containers); err != nil {
 		return err

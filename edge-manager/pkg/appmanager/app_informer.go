@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -117,8 +116,6 @@ func (a *appStatusServiceImpl) addPod(obj interface{}) {
 		hwlog.RunLog.Errorf("recovered add pod, parse pod to app instance error: %v", err)
 		return
 	}
-	appInstance.ChangedAt = time.Now().Format(common.TimeFormat)
-	appInstance.CreatedAt = time.Now().Format(common.TimeFormat)
 	if err = AppRepositoryInstance().addPod(appInstance); err != nil {
 		hwlog.RunLog.Errorf("recovered add object, add instance to db error: %v", err)
 		return
