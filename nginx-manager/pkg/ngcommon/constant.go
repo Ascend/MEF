@@ -30,5 +30,6 @@ const (
 	PipePath = "/home/hwMindX/conf/keyPipe"
 	// FifoPermission 证书私钥管道权限
 	FifoPermission = 0600
+	// NginxManagerName nginx manager模块对应收发消息的key
 	NginxManagerName = "NginxManager"
 )
