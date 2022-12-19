@@ -213,3 +213,8 @@ const (
 	ZeroAddr      = "0.0.0.0"
 	BroadCastAddr = "255.255.255.255"
 )
+
+const (
+	// IllegalChars the illegal chars for command
+	IllegalChars = "\n!\\; &$<>`"
+)
