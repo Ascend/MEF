@@ -111,6 +111,18 @@ func (a *AppRepositoryImpl) queryNodeGroup(appId uint64) ([]NodeGroupInfo, error
 	return nodeGroups, nil
 }
 
+func removeDuplicates(nodeGroupInfos []NodeGroupInfo) []NodeGroupInfo {
+	result := make([]NodeGroupInfo, 0, len(nodeGroupInfos))
+	temp := map[NodeGroupInfo]struct{}{}
+	for _, item := range nodeGroupInfos {
+		if _, ok := temp[item]; !ok {
+			temp[item] = struct{}{}
+			result = append(result, item)
+		}
+	}
+	return result
+}
+
 func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) (*ListReturnInfo, error) {
 	var appsInfo []AppInfo
 	if err := a.db.Model(AppInfo{}).Scopes(getAppInfoByLikeName(page, pageSize, name)).Find(&appsInfo).Error; err != nil {
@@ -129,40 +141,21 @@ func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) (*L
 			hwlog.RunLog.Error("get node group name failed when list")
 			return nil, err
 		}
-		nodeGroupNames, nodeGroupIDs := removeDuplicates(NodeGroupInfos)
 
 		appReturnInfos = append(appReturnInfos, AppReturnInfo{
-			AppId:         app.ID,
-			AppName:       app.AppName,
-			Description:   app.Description,
-			NodeGroupName: nodeGroupNames,
-			NodeGroupId:   nodeGroupIDs,
-			CreatedAt:     app.CreatedAt.Format(common.TimeFormat),
-			ModifiedAt:    app.UpdatedAt.Format(common.TimeFormat),
-			Containers:    containers,
+			AppId:          app.ID,
+			AppName:        app.AppName,
+			Description:    app.Description,
+			NodeGroupInfos: removeDuplicates(NodeGroupInfos),
+			CreatedAt:      app.CreatedAt.Format(common.TimeFormat),
+			ModifiedAt:     app.UpdatedAt.Format(common.TimeFormat),
+			Containers:     containers,
 		})
 	}
 
 	return &ListReturnInfo{
 		AppInfo: appReturnInfos,
 	}, nil
-}
-
-func removeDuplicates(nodeGroupInfos []NodeGroupInfo) (string, []int64) {
-	nodeGroupNames := ""
-	var nodeGroupIDs []int64
-	if len(nodeGroupInfos) == 0 {
-		return nodeGroupNames, nodeGroupIDs
-	}
-	tmpMap := make(map[string]interface{})
-	for _, nodeGroupInfo := range nodeGroupInfos {
-		if _, ok := tmpMap[nodeGroupInfo.NodeGroupName]; !ok {
-			nodeGroupNames += nodeGroupInfo.NodeGroupName + ";"
-			nodeGroupIDs = append(nodeGroupIDs, nodeGroupInfo.NodeGroupID)
-			tmpMap[nodeGroupInfo.NodeGroupName] = nil
-		}
-	}
-	return nodeGroupNames[:len(nodeGroupNames)-1], nodeGroupIDs
 }
 
 func (a *AppRepositoryImpl) countListAppsInfo(name string) (int64, error) {
