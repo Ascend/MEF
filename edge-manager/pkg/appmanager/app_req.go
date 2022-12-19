@@ -24,8 +24,8 @@ type DeployAppReq struct {
 
 // UndeployAppReq Undeploy application
 type UndeployAppReq struct {
-	AppId    uint64     `json:"appId"`
-	NodeInfo []NodeInfo `json:"nodeInfo"`
+	AppId         uint64          `json:"appId"`
+	NodeGroupInfo []NodeGroupInfo `json:"nodeGroupInfo"`
 }
 
 // NodeInfo get node info
@@ -48,8 +48,7 @@ type GetAppByAppIdReq struct {
 // AppInstanceResp encapsulate app instance information for return
 type AppInstanceResp struct {
 	AppName       string          `json:"appName"`
-	NodeGroupId   int64           `json:"nodeGroupId"`
-	NodeGroupName string          `json:"nodeGroupName"`
+	NodeGroupInfo NodeGroupInfo   `json:"nodeGroupInfo"`
 	NodeId        int64           `json:"nodeId"`
 	NodeName      string          `json:"nodeName"`
 	NodeStatus    string          `json:"nodeStatus"`
