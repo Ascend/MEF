@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ascend-nginx-manager
+  namespace: mindx-edge
+spec:
+  selector:
+    matchLabels:
+      app: ascend-nginx-manager
+  template:
+    metadata:
+      labels:
+        app: ascend-nginx-manager
+    spec:
+      nodeSelector:
+        masterselector: dls-master-node
+      imagePullSecrets:
+        - name: image-pull-secret
+      serviceAccountName: ascend-edge-manager
+      containers:
+        - name: ascend-nginx-manager
+          image: ascend-nginx-manager:v1.0
+          env:
+            - name: EdgeMgrSvcDomain
+              value: "ascend-edge-manager.mindx-edge.svc.cluster.local"
+            - name: EdgeMgrSvcPort
+              value: "8109"
+            - name: SoftwareMgrSvcDomain
+              value: "software-manager-service.mindx-edge.svc.cluster.local"
+            - name: SoftwareMgrSvcPort
+              value: "30086"
+          command: [ "/bin/bash", "-c", "--"]
+          args: ["./nginx-manager"]
+          volumeMounts:
+            - mountPath: "/home/hwMindX/log/"
+              name: log-vol
+            - mountPath: "/home/hwMindX/certs/"
+              name: certs-vol
+            - mountPath: "/home/data/"
+              name: cert-manager-config
+      volumes:
+        - name: cert-manager-config
+          hostPath:
+            path: /home/data/
+        - name: log-vol
+          hostPath:
+            path: /var/log/mindx-edge/nginx-manager/
+        - name: certs-vol
+          hostPath:
+            path: /etc/MEF_certs/nginx-manager/
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ascend-nginx-manager
+  namespace: mindx-edge
+  labels:
+    app: ascend-nginx-manager
+spec:
+  ports:
+    - name: port80
+      port: 80
+      targetPort: 80
+      protocol: TCP
+      nodePort: 30034
+    - name: port443
+      port: 443
+      targetPort: 443
+      protocol: TCP
+      nodePort: 30035
+  selector:
+    app: ascend-nginx-manager
+  type: NodePort
