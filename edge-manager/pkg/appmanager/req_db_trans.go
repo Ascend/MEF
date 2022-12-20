@@ -19,16 +19,35 @@ func (req *CreateAppReq) toDb() (*AppInfo, error) {
 	}
 
 	return &AppInfo{
-		ID:          req.AppId,
 		AppName:     req.AppName,
 		Description: req.Description,
 		Containers:  string(containers),
 	}, nil
-
 }
 
 // ToDb convert app template dto to db model
-func (dto *AppTemplate) ToDb(template *AppTemplateDb) error {
+func (dto *CreateTemplateReq) ToDb(template *AppTemplateDb) error {
+	if template == nil {
+		return errors.New("param is nil")
+	}
+	*template = AppTemplateDb{
+		TemplateName: dto.Name,
+		Description:  dto.Description,
+	}
+
+	containers, err := json.Marshal(dto.Containers)
+	if err != nil {
+		hwlog.RunLog.Error("marshal containers failed")
+		return err
+	}
+
+	template.Containers = string(containers)
+
+	return nil
+}
+
+// ToDb convert app template dto to db model
+func (dto *UpdateTemplateReq) ToDb(template *AppTemplateDb) error {
 	if template == nil {
 		return errors.New("param is nil")
 	}

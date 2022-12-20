@@ -101,7 +101,7 @@ func getTemplates(param interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorGetAppTemplates, Msg: err.Error()}
 	}
 
-	var result ListTemplatesReq
+	var result ListTemplatesRep
 	result.AppTemplates = appTemplates
 	result.Total = totalCount
 	hwlog.RunLog.Info("get app templates,success")

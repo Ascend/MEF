@@ -5,10 +5,15 @@ package appmanager
 
 // CreateAppReq Create application
 type CreateAppReq struct {
-	AppId       uint64      `json:"appId"`
 	AppName     string      `json:"appName"`
 	Description string      `json:"description"`
 	Containers  []Container `json:"containers"`
+}
+
+// UpdateAppReq update application
+type UpdateAppReq struct {
+	AppId uint64 `json:"appId"`
+	CreateAppReq
 }
 
 // DeleteAppReq Delete application
@@ -101,7 +106,7 @@ type AppInstanceOfNodeResp struct {
 	NodeGroupID   int64  `json:"nodeGroupID"`
 }
 
-// AppTemplate app template dto
+// AppTemplate app template detail
 type AppTemplate struct {
 	Id          uint64      `json:"id"`
 	Name        string      `json:"name"`
@@ -113,16 +118,19 @@ type AppTemplate struct {
 
 // CreateTemplateReq create app template
 type CreateTemplateReq struct {
-	AppTemplate
+	Name        string      `json:"name"`
+	Description string      `json:"description"`
+	Containers  []Container `json:"containers"`
 }
 
 // UpdateTemplateReq update app template
 type UpdateTemplateReq struct {
-	AppTemplate
+	Id uint64 `json:"id"`
+	CreateTemplateReq
 }
 
-// ListTemplatesReq encapsulate app list
-type ListTemplatesReq struct {
+// ListTemplatesRep encapsulate app list
+type ListTemplatesRep struct {
 	// AppTemplates app template info
 	AppTemplates []AppTemplate `json:"appTemplates"`
 	// Total is num of appInfos

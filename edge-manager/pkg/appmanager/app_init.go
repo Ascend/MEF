@@ -87,8 +87,10 @@ func (app *appManager) Start() {
 
 func methodSelect(req *model.Message) *common.RespMsg {
 	var res common.RespMsg
-	method, exit := appMethodList()[combine(req.GetOption(), req.GetResource())]
+	method, exit := handlerFuncMap[combine(req.GetOption(), req.GetResource())]
 	if !exit {
+		hwlog.RunLog.Errorf("handler func is not exist, option: %s, resource: %s", req.GetOption(),
+			req.GetResource())
 		return nil
 	}
 	res = method(req.GetContent())
@@ -113,25 +115,23 @@ func initAppTable() error {
 	return nil
 }
 
-func appMethodList() map[string]handlerFunc {
-	return map[string]handlerFunc{
-		combine(common.Create, common.App):   createApp,
-		combine(common.Query, common.App):    queryApp,
-		combine(common.Update, common.App):   updateApp,
-		combine(common.List, common.App):     listAppInfo,
-		combine(common.Deploy, common.App):   deployApp,
-		combine(common.Undeploy, common.App): unDeployApp,
+var handlerFuncMap = map[string]handlerFunc{
+	combine(common.Create, common.App):   createApp,
+	combine(common.Query, common.App):    queryApp,
+	combine(common.Update, common.App):   updateApp,
+	combine(common.List, common.App):     listAppInfo,
+	combine(common.Deploy, common.App):   deployApp,
+	combine(common.Undeploy, common.App): unDeployApp,
 
-		combine(common.Delete, common.App):             deleteApp,
-		combine(common.List, common.AppInstance):       listAppInstances,
-		combine(common.List, common.AppInstanceByNode): listAppInstancesByNode,
+	combine(common.Delete, common.App):             deleteApp,
+	combine(common.List, common.AppInstance):       listAppInstances,
+	combine(common.List, common.AppInstanceByNode): listAppInstancesByNode,
 
-		combine(common.Create, common.AppTemplate): createTemplate,
-		combine(common.Update, common.AppTemplate): updateTemplate,
-		combine(common.Delete, common.AppTemplate): deleteTemplate,
-		combine(common.List, common.AppTemplate):   getTemplates,
-		combine(common.Get, common.AppTemplate):    getTemplate,
-	}
+	combine(common.Create, common.AppTemplate): createTemplate,
+	combine(common.Update, common.AppTemplate): updateTemplate,
+	combine(common.Delete, common.AppTemplate): deleteTemplate,
+	combine(common.List, common.AppTemplate):   getTemplates,
+	combine(common.Get, common.AppTemplate):    getTemplate,
 }
 
 func combine(option, resource string) string {

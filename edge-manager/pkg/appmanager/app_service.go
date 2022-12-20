@@ -212,14 +212,14 @@ func updateNodeGroupDaemonSet(appInfo *AppInfo, nodeGroups []NodeGroupInfo) erro
 // updateApp update application
 func updateApp(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start update app")
-	var req CreateAppReq
+	var req UpdateAppReq
 	var err error
 	if err = common.ParamConvert(input, &req); err != nil {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	checker := appCreatParaChecker{req: &req}
-	if err := checker.Check(); err != nil {
+	checker := appCreatParaChecker{req: &req.CreateAppReq}
+	if err = checker.Check(); err != nil {
 		hwlog.RunLog.Errorf("app update para check failed: %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
