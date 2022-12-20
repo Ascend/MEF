@@ -81,14 +81,13 @@ type ListReturnInfo struct {
 
 // AppReturnInfo encapsulate app information for return
 type AppReturnInfo struct {
-	AppId         uint64      `json:"appId"`
-	AppName       string      `json:"appName"`
-	Description   string      `json:"description"`
-	CreatedAt     string      `json:"createdAt"`
-	ModifiedAt    string      `json:"modifiedAt"`
-	NodeGroupName string      `json:"nodeGroupName"`
-	NodeGroupId   []int64     `json:"nodeGroupId"`
-	Containers    []Container `json:"containers"`
+	AppId          uint64          `json:"appId"`
+	AppName        string          `json:"appName"`
+	Description    string          `json:"description"`
+	CreatedAt      string          `json:"createdAt"`
+	ModifiedAt     string          `json:"modifiedAt"`
+	NodeGroupInfos []NodeGroupInfo `json:"nodeGroupInfos"`
+	Containers     []Container     `json:"containers"`
 }
 
 // AppInstanceOfNodeResp encapsulate app instance information of a certain node
