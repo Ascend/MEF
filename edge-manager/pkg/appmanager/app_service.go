@@ -180,7 +180,7 @@ func unDeployApp(input interface{}) common.RespMsg {
 	}
 
 	for _, nodeGroup := range req.NodeGroupInfo {
-		daemonSetName := appInfo.AppName + strconv.FormatInt(nodeGroup.NodeGroupID, DecimalScale)
+		daemonSetName := appInfo.AppName + "-" + strconv.FormatInt(nodeGroup.NodeGroupID, DecimalScale)
 		if err = kubeclient.GetKubeClient().DeleteDaemonSet(daemonSetName); err != nil {
 			hwlog.RunLog.Errorf("undeploy app [%s] on node group [%s] failed: %s",
 				appInfo.AppName, nodeGroup.NodeGroupName, err.Error())
