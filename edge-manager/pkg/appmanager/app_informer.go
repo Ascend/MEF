@@ -165,6 +165,25 @@ func (a *appStatusServiceImpl) deletePod(obj interface{}) {
 	}
 }
 
+func (a *appStatusServiceImpl) deleteTerminatingPod() {
+	list := a.podInformer.GetStore().List()
+	for _, podContent := range list {
+		pod, ok := podContent.(*v1.Pod)
+		if !ok {
+			hwlog.RunLog.Error("convert pod error")
+			continue
+		}
+		if pod.ObjectMeta.DeletionTimestamp == nil {
+			continue
+		}
+		hwlog.RunLog.Infof("find timeout terminating pod, start to delete pod: %v", pod.Name)
+		if err := kubeclient.GetKubeClient().DeletePodByForce(pod); err != nil {
+			hwlog.RunLog.Errorf("remove timeout terminating pod error: %v", err)
+			continue
+		}
+	}
+}
+
 func (a *appStatusServiceImpl) getContainerInfos(instance AppInstance) ([]ContainerInfo, error) {
 	var containerInfos []ContainerInfo
 	if err := json.Unmarshal([]byte(instance.ContainerInfo), &containerInfos); err != nil {
