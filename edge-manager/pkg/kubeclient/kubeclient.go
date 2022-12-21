@@ -79,6 +79,14 @@ func (ki *Client) GetPod(pod *v1.Pod) (*v1.Pod, error) {
 	return ki.kubeClient.CoreV1().Pods(pod.Namespace).Get(context.Background(), pod.Name, metav1.GetOptions{})
 }
 
+// DeletePodByForce compulsorily delete pod by namespace and name
+func (ki *Client) DeletePodByForce(pod *v1.Pod) error {
+	gracePeriodSeconds := int64(0)
+	return ki.kubeClient.CoreV1().Pods(pod.Namespace).Delete(context.Background(), pod.Name, metav1.DeleteOptions{
+		GracePeriodSeconds: &gracePeriodSeconds,
+	})
+}
+
 // GetPodList is to get pod list
 func (ki *Client) GetPodList() (*v1.PodList, error) {
 	selector := fields.SelectorFromSet(fields.Set{"spec.nodeName": ""})

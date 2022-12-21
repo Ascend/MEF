@@ -119,7 +119,7 @@ func listAppInfo(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("count apps Infos list failed")
 		return common.RespMsg{Status: "", Msg: "count apps Infos list failed", Data: nil}
 	}
-	apps.Deployed, err = AppRepositoryInstance().countDeployedApp()
+	apps.Deployed, apps.UnDeployed, err = AppRepositoryInstance().countDeployedApp()
 	if err != nil {
 		hwlog.RunLog.Error("count deployed app failed")
 		return common.RespMsg{Status: "", Msg: "count apps Infos list failed", Data: nil}

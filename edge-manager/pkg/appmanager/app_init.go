@@ -6,6 +6,7 @@ package appmanager
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
@@ -60,6 +61,8 @@ func (app *appManager) Start() {
 			return
 		default:
 		}
+		go app.housekeeper()
+
 		req, err := modulemanager.ReceiveMessage(common.AppManagerName)
 		hwlog.RunLog.Infof("%s receive request from restful service", common.AppManagerName)
 		if err != nil {
@@ -81,6 +84,25 @@ func (app *appManager) Start() {
 		if err = modulemanager.SendMessage(resp); err != nil {
 			hwlog.RunLog.Errorf("%s send response failed", common.AppManagerName)
 			continue
+		}
+	}
+}
+
+func (app appManager) housekeeper() {
+	for {
+		delay := time.NewTimer(houseKeepingInterval)
+		select {
+		case _, ok := <-app.ctx.Done():
+			if !ok {
+				hwlog.RunLog.Info("catch stop signal channel is closed")
+			}
+			hwlog.RunLog.Info("has listened stop signal")
+			if !delay.Stop() {
+				<-delay.C
+			}
+			return
+		case <-delay.C:
+			appStatusService.deleteTerminatingPod()
 		}
 	}
 }

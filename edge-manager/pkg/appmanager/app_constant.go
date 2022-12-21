@@ -18,6 +18,7 @@ const (
 	AppId = "appid"
 
 	informerSyncInterval = time.Duration(30) * time.Second
+	houseKeepingInterval = time.Duration(60) * time.Second
 
 	portMapMaxCount  = 16
 	envMaxCount      = 256

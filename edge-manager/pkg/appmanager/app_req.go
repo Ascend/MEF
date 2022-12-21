@@ -78,10 +78,12 @@ type CreateReturnInfo struct {
 type ListReturnInfo struct {
 	// AppInfo is app information
 	AppInfo []AppReturnInfo `json:"appInfo"`
-	// Total is num of appInfos
+	// Total is num of appInfos counted by search
 	Total int64 `json:"total"`
-	// Deployed is num of deployed apps
+	// Deployed is num of deployed apps of all
 	Deployed int64 `json:"deployed"`
+	// UnDeployed is num of deployed apps of all
+	UnDeployed int64 `json:"unDeployed"`
 }
 
 // AppReturnInfo encapsulate app information for return
@@ -129,8 +131,8 @@ type UpdateTemplateReq struct {
 	CreateTemplateReq
 }
 
-// ListTemplatesRep encapsulate app list
-type ListTemplatesRep struct {
+// ListTemplatesResp encapsulate app list
+type ListTemplatesResp struct {
 	// AppTemplates app template info
 	AppTemplates []AppTemplate `json:"appTemplates"`
 	// Total is num of appInfos
