@@ -4,6 +4,7 @@ package websocketmgr
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/gorilla/websocket"
 	"huawei.com/mindxedge/base/modulemanager/model"
@@ -22,6 +23,9 @@ func (wss *WsSvrSender) SetProxy(proxy NetProxyIntf) {
 // Send sends message
 func (wss *WsSvrSender) Send(clientId string, msg *model.Message) error {
 	data, err := json.Marshal(msg)
+	if err != nil {
+		return fmt.Errorf("wesocket server send failed, json marshal message error: %v", err)
+	}
 	cltMsg := wsSvrMessage{
 		Msg: &wsMessage{
 			MsgType: websocket.TextMessage,
