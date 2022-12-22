@@ -97,6 +97,14 @@ func SendMessage(m *model.Message) error {
 	return moduleContext.SendResp(m)
 }
 
+// SendAsyncMessage send async message
+func SendAsyncMessage(m *model.Message) error {
+	if m == nil {
+		return fmt.Errorf("input is invalid weh send msg")
+	}
+	return moduleContext.Send(m)
+}
+
 // SendSyncMessage send sync message
 func SendSyncMessage(m *model.Message, duration time.Duration) (*model.Message, error) {
 	return moduleContext.SendSync(m, duration)
