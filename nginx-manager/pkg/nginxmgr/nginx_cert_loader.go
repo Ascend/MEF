@@ -8,10 +8,11 @@ import (
 	"os"
 	"syscall"
 
+	"nginx-manager/pkg/nginxcom"
+
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindxedge/base/common"
-	"nginx-manager/pkg/nginxcom"
 )
 
 type nginxCertLoader struct {
@@ -32,6 +33,9 @@ func NewNginxCertLoader(keyPath, pipePath string) *nginxCertLoader {
 func (n *nginxCertLoader) Load() error {
 	if err := n.loadKey(n.keyPath); err != nil {
 		return err
+	}
+	if utils.IsExist(n.pipePath) {
+		return nil
 	}
 	err := n.createPipe(n.pipePath)
 	if err != nil {
@@ -64,6 +68,10 @@ func (n *nginxCertLoader) writeKeyToPipe(pipeFile string, content []byte) {
 		err := pipe.Close()
 		if err != nil {
 			hwlog.RunLog.Error("pipe close error")
+		}
+		err = os.Remove(pipeFile)
+		if err != nil {
+			hwlog.RunLog.Error("pipe remove error")
 		}
 	}()
 	_, err = pipe.Write(content)

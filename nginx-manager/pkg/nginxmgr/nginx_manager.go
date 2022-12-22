@@ -4,19 +4,20 @@
 package nginxmgr
 
 import (
-	"fmt"
 	"os"
 	"time"
+
+	"nginx-manager/pkg/checker"
+	"nginx-manager/pkg/msgutil"
+	"nginx-manager/pkg/nginxcom"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
-	"nginx-manager/pkg/checker"
-	"nginx-manager/pkg/nginxcom"
 )
 
 const (
-	maxRetryTime  = 10
+	maxRetryTime  = 50
 	retryInterval = 10 * time.Second
 )
 
@@ -81,8 +82,6 @@ func CreateConfItems(envs map[string]string) []nginxcom.NginxConfItem {
 	return ret
 }
 
-type handlerFunc func(req *model.Message)
-
 // NewNginxManager create NewNginxManager module
 func NewNginxManager(enable bool) model.Module {
 	return &nginxManager{
@@ -98,7 +97,7 @@ type nginxManager struct {
 
 // Name module name
 func (n *nginxManager) Name() string {
-	return "NginxManager"
+	return nginxcom.NginxManagerName
 }
 
 // Enable module enable
@@ -142,6 +141,9 @@ func (n *nginxManager) Start() {
 	if !startNginx() {
 		return
 	}
+	registerHandlers()
+	msgutil.SendVoidMsg(nginxcom.NginxManagerName, nginxcom.NginxMonitorName,
+		nginxcom.ReqActiveMonitor, nginxcom.Monitor)
 	for {
 		select {
 		case <-n.ctx:
@@ -154,22 +156,17 @@ func (n *nginxManager) Start() {
 			hwlog.RunLog.Errorf("%s receive request from software manager failed", nginxcom.NginxManagerName)
 			continue
 		}
-		dispatch(req)
+		msgutil.Handle(req)
 	}
 }
 
-func dispatch(req *model.Message) {
-	method, exit := nodeMethodList()[combine(req.GetOption(), req.GetResource())]
-	if !exit {
+func registerHandlers() {
+	msgutil.RegisterHandlers(msgutil.Combine(nginxcom.ReqRestartNginx, nginxcom.Nginx), reqRestartNginx)
+}
+
+func reqRestartNginx(req *model.Message) {
+	if !startNginx() {
 		return
 	}
-	method(req)
-}
-
-func nodeMethodList() map[string]handlerFunc {
-	return map[string]handlerFunc{}
-}
-
-func combine(option, resource string) string {
-	return fmt.Sprintf("%s%s", option, resource)
+	msgutil.SendVoidMsg(nginxcom.NginxManagerName, nginxcom.NginxMonitorName, nginxcom.RespRestartNginx, nginxcom.Nginx)
 }

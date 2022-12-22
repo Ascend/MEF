@@ -7,10 +7,13 @@ import (
 	"context"
 	"flag"
 	"fmt"
+
+	"nginx-manager/pkg/nginxmgr"
+	"nginx-manager/pkg/nginxmonitor"
+
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
-	"nginx-manager/pkg/nginxmgr"
 )
 
 const (
@@ -64,6 +67,9 @@ func init() {
 func register() error {
 	modulemanager.ModuleInit()
 	if err := modulemanager.Registry(nginxmgr.NewNginxManager(true)); err != nil {
+		return err
+	}
+	if err := modulemanager.Registry(nginxmonitor.NewNginxMonitor(true)); err != nil {
 		return err
 	}
 	modulemanager.Start()
