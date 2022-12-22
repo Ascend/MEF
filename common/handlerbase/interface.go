@@ -1,4 +1,4 @@
-package handler_base
+package handlerbase
 
 import (
 	"huawei.com/mindxedge/base/modulemanager/model"

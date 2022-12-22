@@ -1,4 +1,4 @@
-package handler_base
+package handlerbase
 
 type RegisterInfo struct {
 	MsgOpt  string
