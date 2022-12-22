@@ -1,3 +1,5 @@
+// Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
+
 package handlerbase
 
 import (
@@ -7,11 +9,13 @@ import (
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
+// HandlerMgr handler manager
 type HandlerMgr struct {
 	handLock    sync.Mutex
 	handlersMap map[string]HandleBase
 }
 
+// Register registered handler info
 func (hm *HandlerMgr) Register(regHandler RegisterInfo) {
 	hm.handLock.Lock()
 	defer hm.handLock.Unlock()
@@ -21,6 +25,7 @@ func (hm *HandlerMgr) Register(regHandler RegisterInfo) {
 	hm.handlersMap[regHandler.MsgOpt+":"+regHandler.MsgRes] = regHandler.Handler
 }
 
+// Unregister unregistered handler info
 func (hm *HandlerMgr) Unregister(msgType string) {
 	hm.handLock.Lock()
 	defer hm.handLock.Unlock()
@@ -30,6 +35,7 @@ func (hm *HandlerMgr) Unregister(msgType string) {
 	delete(hm.handlersMap, msgType)
 }
 
+// Process execute handle process
 func (hm *HandlerMgr) Process(msg *model.Message) error {
 	hm.handLock.Lock()
 	defer hm.handLock.Unlock()
