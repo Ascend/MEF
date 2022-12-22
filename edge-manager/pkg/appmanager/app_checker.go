@@ -16,16 +16,17 @@ type appParaPattern struct {
 
 var appPattern = appParaPattern{patterns: map[string]string{
 	"appName":           "^[a-z]([a-z0-9-]{0,30}[a-z0-9]){0,1}$",
-	"appDescription":    `^[\S ]{0,512}$`,
+	"description":       `^[\S ]{0,512}$`,
 	"containerName":     "^[a-z0-9]([a-z0-9-]{0,30}[a-z0-9]){0,1}$",
 	"containerImage":    "^[a-z0-9]([a-z0-9_./-]{0,30}[a-z0-9]){0,1}$",
 	"imageVersion":      "^[a-zA-Z0-9_.-]{1,32}$",
-	"containerCommand":  "^[a-zA-Z0-9 _./-]{0,256}[a-zA-Z0-9]$",
-	"containerArgs":     "^[a-zA-Z0-9 _./-]{0,256}[a-zA-Z0-9]$",
+	"containerCommand":  "^[a-zA-Z0-9 _./-]{0,255}[a-zA-Z0-9]$",
+	"containerArgs":     "^[a-zA-Z0-9 _./-]{0,255}[a-zA-Z0-9]$",
 	"containerEnvName":  "^[a-zA-Z][a-zA-z0-9._-]{0,30}[a-zA-Z0-9]$",
-	"containerEnvValue": "^[a-zA-Z0-9 _./-]{0,512}$",
+	"containerEnvValue": "^[a-zA-Z0-9 _./-]{1,512}$",
 	"containerPortName": "^[a-z0-9]([a-z0-9-]{0,30}[a-z0-9]){0,1}$",
 	"nodeGroupName":     "^[a-z]([a-z0-9-]{0,30}[a-z0-9]){0,1}$",
+	"templateName":      "^[a-z]([a-z0-9-]{0,30}[a-z0-9]){0,1}$",
 },
 }
 
@@ -99,7 +100,7 @@ func (c *containerParaChecker) checkContainerArgsValid() error {
 
 	pattern, ok := appPattern.getPattern("containerArgs")
 	if !ok {
-		return fmt.Errorf("containerCommand regex pattern not exist")
+		return fmt.Errorf("containerArgs regex pattern not exist")
 	}
 
 	for _, arg := range c.container.Args {
@@ -118,12 +119,12 @@ func (c *containerParaChecker) checkContainerEnvValid() error {
 
 	namePattern, ok := appPattern.getPattern("containerEnvName")
 	if !ok {
-		return fmt.Errorf("containerCommand regex pattern not exist")
+		return fmt.Errorf("containerEnvName regex pattern not exist")
 	}
 
 	valuePattern, ok := appPattern.getPattern("containerEnvValue")
 	if !ok {
-		return fmt.Errorf("containerCommand regex pattern not exist")
+		return fmt.Errorf("containerEnvValue regex pattern not exist")
 	}
 
 	var envNames = map[string]struct{}{}
@@ -145,6 +146,26 @@ func (c *containerParaChecker) checkContainerEnvValid() error {
 	return nil
 }
 
+func (c *containerParaChecker) check() error {
+	var checkItems = []func() error{
+		c.checkContainerNameValid,
+		c.checkContainerImageValid,
+		c.checkContainerImageVersionValid,
+		c.checkContainerCommandValid,
+		c.checkContainerArgsValid,
+		c.checkContainerEnvValid,
+		c.checkContainerPortsValid,
+		c.checkUserIdValid,
+		c.checkGroupIdValid,
+	}
+	for _, checkItem := range checkItems {
+		if err := checkItem(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 type portParaChecker struct {
 	port *ContainerPort
 }
@@ -152,7 +173,7 @@ type portParaChecker struct {
 func (c *portParaChecker) checkPortName() error {
 	pattern, ok := appPattern.getPattern("containerPortName")
 	if !ok {
-		return fmt.Errorf("containerCommand regex pattern not exist")
+		return fmt.Errorf("containerPortName regex pattern not exist")
 	}
 
 	if !util.RegexStringChecker(c.port.Name, pattern) {
@@ -162,7 +183,7 @@ func (c *portParaChecker) checkPortName() error {
 }
 
 func (c *portParaChecker) checkPortProtocol() error {
-	if c.port.Proto != "TCP" && c.port.Proto != "UDP" {
+	if c.port.Proto != "TCP" && c.port.Proto != "UDP" && c.port.Proto != "SCTP" {
 		return fmt.Errorf("container port protocol invalid")
 	}
 
@@ -237,14 +258,14 @@ func (c *containerParaChecker) checkGroupIdValid() error {
 	return nil
 }
 
-type appCreatParaChecker struct {
+type appParaChecker struct {
 	req *CreateAppReq
 }
 
-func (c *appCreatParaChecker) checkAppNameValid() error {
+func (c *appParaChecker) checkAppNameValid() error {
 	pattern, ok := appPattern.getPattern("appName")
 	if !ok {
-		return fmt.Errorf("containerCommand regex pattern not exist")
+		return fmt.Errorf("appName regex pattern not exist")
 	}
 
 	if !util.RegexStringChecker(c.req.AppName, pattern) {
@@ -253,10 +274,10 @@ func (c *appCreatParaChecker) checkAppNameValid() error {
 	return nil
 }
 
-func (c *appCreatParaChecker) checkAppDescriptionValid() error {
-	pattern, ok := appPattern.getPattern("appDescription")
+func (c *appParaChecker) checkAppDescriptionValid() error {
+	pattern, ok := appPattern.getPattern("description")
 	if !ok {
-		return fmt.Errorf("containerCommand regex pattern not exist")
+		return fmt.Errorf("description regex pattern not exist")
 	}
 
 	if !util.RegexStringChecker(c.req.Description, pattern) {
@@ -265,31 +286,18 @@ func (c *appCreatParaChecker) checkAppDescriptionValid() error {
 	return nil
 }
 
-func (c *appCreatParaChecker) checkAppContainersValid() error {
+func (c *appParaChecker) checkAppContainersValid() error {
 	for idx := range c.req.Containers {
 		var checker = containerParaChecker{container: &c.req.Containers[idx]}
-		var checkItems = []func() error{
-			checker.checkContainerNameValid,
-			checker.checkContainerImageValid,
-			checker.checkContainerImageVersionValid,
-			checker.checkContainerCommandValid,
-			checker.checkContainerArgsValid,
-			checker.checkContainerEnvValid,
-			checker.checkContainerPortsValid,
-			checker.checkUserIdValid,
-			checker.checkGroupIdValid,
-		}
-		for _, checkItem := range checkItems {
-			if err := checkItem(); err != nil {
-				return err
-			}
+		if err := checker.check(); err != nil {
+			return err
 		}
 	}
 
 	return nil
 }
 
-func (c *appCreatParaChecker) Check() error {
+func (c *appParaChecker) Check() error {
 	var checkItems = []func() error{
 		c.checkAppNameValid,
 		c.checkAppDescriptionValid,
@@ -303,28 +311,50 @@ func (c *appCreatParaChecker) Check() error {
 	return nil
 }
 
-type appDeployParaChecker struct {
-	req *DeployAppReq
+type templateParaChecker struct {
+	req *CreateTemplateReq
 }
 
-func (c *appDeployParaChecker) checkNodeGroupNameValid() error {
-	pattern, ok := appPattern.getPattern("nodeGroupName")
+func (c *templateParaChecker) checkTemplateNameValid() error {
+	pattern, ok := appPattern.getPattern("templateName")
 	if !ok {
-		return fmt.Errorf("containerCommand regex pattern not exist")
+		return fmt.Errorf("templateName regex pattern not exist")
 	}
 
-	for _, nodeGroupInfo := range c.req.NodeGroupInfo {
-		if !util.RegexStringChecker(nodeGroupInfo.NodeGroupName, pattern) {
-			return fmt.Errorf("container name invalid")
+	if !util.RegexStringChecker(c.req.Name, pattern) {
+		return fmt.Errorf("app name invalid")
+	}
+	return nil
+}
+
+func (c *templateParaChecker) checkTemplateDescriptionValid() error {
+	pattern, ok := appPattern.getPattern("description")
+	if !ok {
+		return fmt.Errorf("description regex pattern not exist")
+	}
+
+	if !util.RegexStringChecker(c.req.Description, pattern) {
+		return fmt.Errorf("template description invalid")
+	}
+	return nil
+}
+
+func (c *templateParaChecker) checkTemplateContainersValid() error {
+	for idx := range c.req.Containers {
+		var checker = containerParaChecker{container: &c.req.Containers[idx]}
+		if err := checker.check(); err != nil {
+			return err
 		}
 	}
 
 	return nil
 }
 
-func (c *appDeployParaChecker) Check() error {
+func (c *templateParaChecker) Check() error {
 	var checkItems = []func() error{
-		c.checkNodeGroupNameValid,
+		c.checkTemplateNameValid,
+		c.checkTemplateDescriptionValid,
+		c.checkTemplateContainersValid,
 	}
 	for _, checkItem := range checkItems {
 		if err := checkItem(); err != nil {

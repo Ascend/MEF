@@ -19,6 +19,12 @@ func createTemplate(param interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamInvalid}
 	}
 
+	checker := templateParaChecker{req: &req}
+	if err := checker.Check(); err != nil {
+		hwlog.RunLog.Errorf("template create para check failed: %s", err.Error())
+		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	}
+
 	var template AppTemplateDb
 	if err := req.ToDb(&template); err != nil {
 		hwlog.RunLog.Errorf("create app template,failed,error:%v", err)
@@ -56,6 +62,12 @@ func updateTemplate(param interface{}) common.RespMsg {
 	if err := common.ParamConvert(param, &req); err != nil {
 		hwlog.RunLog.Error("modify app template,failed,error:request parameter convert failed")
 		return common.RespMsg{Status: common.ErrorParamInvalid}
+	}
+
+	checker := templateParaChecker{req: &req.CreateTemplateReq}
+	if err := checker.Check(); err != nil {
+		hwlog.RunLog.Errorf("template update para check failed: %s", err.Error())
+		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
 	var template AppTemplateDb
@@ -101,7 +113,7 @@ func getTemplates(param interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorGetAppTemplates, Msg: err.Error()}
 	}
 
-	var result ListTemplatesReq
+	var result ListTemplatesResp
 	result.AppTemplates = appTemplates
 	result.Total = totalCount
 	hwlog.RunLog.Info("get app templates,success")
