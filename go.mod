@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/gin-gonic/gin v1.8.1
+	github.com/gorilla/websocket v1.4.2
 	github.com/stretchr/testify v1.7.1
 	gorm.io/driver/sqlite v1.4.3
 	gorm.io/gorm v1.24.0
@@ -12,7 +13,6 @@ require (
 	huawei.com/mindx/common/rand v0.0.1
 	huawei.com/mindx/common/utils v0.1.5
 	huawei.com/mindx/common/x509 v0.0.8
-	k8s.io/klog/v2 v2.80.1 // indirect
 )
 
 replace (
