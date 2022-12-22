@@ -16,6 +16,7 @@ type header struct {
 	IsSync    bool   `json:"isSync"`
 	Timestamp int64  `json:"timestamp"`
 	Version   string `json:"version"`
+	NodeId    string `json:"nodeId"`
 }
 
 type router struct {
@@ -25,7 +26,7 @@ type router struct {
 	Resource    string `json:"resource"`
 }
 
-// Message message struct
+// Message struct
 type Message struct {
 	Header  header      `json:"header"`
 	Router  router      `json:"router"`
@@ -120,6 +121,16 @@ func (msg *Message) GetId() string {
 	return msg.Header.Id
 }
 
+// GetNodeId get message node id
+func (msg *Message) GetNodeId() string {
+	return msg.Header.NodeId
+}
+
+// SetNodeId set message node id
+func (msg *Message) SetNodeId(nodeId string) {
+	msg.Header.NodeId = nodeId
+}
+
 // GetParentId get message parent id
 func (msg *Message) GetParentId() string {
 	return msg.Header.ParentId
@@ -196,6 +207,7 @@ func (msg *Message) NewResponse() (*Message, error) {
 
 	respMsg.Router.Source = msg.Router.Destination
 	respMsg.Router.Destination = msg.Router.Source
+	respMsg.Router.Option = msg.Router.Option
 	respMsg.Router.Resource = msg.Router.Resource
 
 	return respMsg, nil
