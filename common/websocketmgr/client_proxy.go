@@ -1,5 +1,6 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
+// Package websocketmgr for websocket manager
 package websocketmgr
 
 import (

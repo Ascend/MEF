@@ -30,7 +30,7 @@ func (wh *WsMsgHandler) handleMsg(msgBytes []byte) {
 	wh.handLock.Lock()
 	defer wh.handLock.Unlock()
 
-	var msg *model.Message
+	var msg model.Message
 	err := json.Unmarshal(msgBytes, &msg)
 	if err != nil {
 		hwlog.RunLog.Errorf("Unmarshal message failed: %v\n", err)
@@ -45,7 +45,7 @@ func (wh *WsMsgHandler) handleMsg(msgBytes []byte) {
 		return
 	}
 	msg.SetRouter("websocket", moduleName, msgOpt, msgRes)
-	err = modulemanager.SendMessage(msg)
+	err = modulemanager.SendMessage(&msg)
 	if err != nil {
 		hwlog.RunLog.Errorf("send module message failed: %v\n", err)
 		return

@@ -1,5 +1,6 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
+// Package handlerbase for handler
 package handlerbase
 
 import (

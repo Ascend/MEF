@@ -2,6 +2,7 @@
 
 package websocketmgr
 
+// NetProxyIntf proxy interface
 type NetProxyIntf interface {
 	Start() error
 	Send(msg interface{}) error
@@ -9,6 +10,7 @@ type NetProxyIntf interface {
 	GetName() string
 }
 
+// HandleMsgIntf  handler message interface
 type HandleMsgIntf interface {
 	handleMsg(msg []byte)
 }
