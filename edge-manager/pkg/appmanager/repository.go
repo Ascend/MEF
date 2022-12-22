@@ -5,14 +5,12 @@ package appmanager
 
 import (
 	"errors"
-	"strings"
 	"sync"
 
 	"edge-manager/pkg/database"
 
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
 )
 
 var (
@@ -51,32 +49,20 @@ func RepositoryInstance() Repository {
 
 // createTemplate create app template
 func (r *repositoryImpl) createTemplate(template *AppTemplateDb) error {
-	if err := r.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(&template).Error; err != nil {
-			hwlog.RunLog.Error("create db template failed")
-			return err
-		}
-		return nil
-	}); err != nil {
-		if strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
-			return errors.New("the template name and container name must be unique")
-		}
-		return errors.New("create app template failed")
+	if err := r.db.Model(AppTemplateDb{}).Create(template).Error; err != nil {
+		hwlog.RunLog.Errorf("create app template failed")
+		return err
 	}
 	return nil
 }
 
 // DeleteTemplates batch delete app template
 func (r *repositoryImpl) deleteTemplates(ids []uint64) error {
-	if err := r.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("Id in (?)", ids).Delete(AppTemplateDb{}).Error; err != nil {
-			hwlog.RunLog.Error("delete db templates failed")
-			return err
-		}
-		return nil
-	}); err != nil {
-		return errors.New("delete templates failed")
+	if err := r.db.Where("Id in (?)", ids).Delete(AppTemplateDb{}).Error; err != nil {
+		hwlog.RunLog.Error("delete app templates failed")
+		return err
 	}
+
 	return nil
 }
 

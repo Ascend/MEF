@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"edge-manager/pkg/kubeclient"
@@ -27,7 +26,7 @@ func createApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	checker := appCreatParaChecker{req: &req}
+	checker := appParaChecker{req: &req}
 	if err := checker.Check(); err != nil {
 		hwlog.RunLog.Errorf("app create para check failed: %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
@@ -136,21 +135,16 @@ func deployApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	checker := appDeployParaChecker{req: &req}
-	if err := checker.Check(); err != nil {
-		hwlog.RunLog.Errorf("app deploy para check failed: %s", err.Error())
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
-	}
-
 	appInfo, err := AppRepositoryInstance().getAppInfoById(req.AppId)
 	if err != nil {
 		hwlog.RunLog.Error("get app information failed")
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
-	for _, nodeGroup := range req.NodeGroupInfo {
-		daemonSet, err := initDaemonSet(appInfo, nodeGroup)
+	for _, nodeGroupId := range req.NodeGroupIds {
+		daemonSet, err := initDaemonSet(appInfo, nodeGroupId)
 		if err != nil {
-			hwlog.RunLog.Errorf("app daemonSet init failed: %s", err.Error())
+			hwlog.RunLog.Errorf("deploy app [%s] on node group id [%d] failed: %s",
+				appInfo.AppName, nodeGroupId, err.Error())
 			return common.RespMsg{Status: "", Msg: "app daemonSet init failed", Data: nil}
 		}
 		daemonSet, err = kubeclient.GetKubeClient().CreateDaemonSet(daemonSet)
@@ -158,7 +152,8 @@ func deployApp(input interface{}) common.RespMsg {
 			hwlog.RunLog.Errorf("app daemonSet create failed: %s", err.Error())
 			return common.RespMsg{Status: "", Msg: "app daemonSet create failed", Data: nil}
 		}
-		hwlog.RunLog.Infof("%s daemonSet create on node group %s", appInfo.AppName, nodeGroup.NodeGroupName)
+		hwlog.RunLog.Infof("deploy app [%s] on node group id [%d] success",
+			appInfo.AppName, nodeGroupId)
 	}
 
 	hwlog.RunLog.Info("all app daemonSets create success")
@@ -179,15 +174,15 @@ func unDeployApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	for _, nodeGroup := range req.NodeGroupInfo {
-		daemonSetName := appInfo.AppName + strconv.FormatInt(nodeGroup.NodeGroupID, DecimalScale)
+	for _, nodeGroupId := range req.NodeGroupIds {
+		daemonSetName := formatDaemonSetName(appInfo.AppName, nodeGroupId)
 		if err = kubeclient.GetKubeClient().DeleteDaemonSet(daemonSetName); err != nil {
-			hwlog.RunLog.Errorf("undeploy app [%s] on node group [%s] failed: %s",
-				appInfo.AppName, nodeGroup.NodeGroupName, err.Error())
+			hwlog.RunLog.Errorf("undeploy app [%s] on node group id [%d] failed: %s",
+				appInfo.AppName, nodeGroupId, err.Error())
 			return common.RespMsg{Status: "", Msg: "undeploy app failed", Data: nil}
 		}
-		hwlog.RunLog.Infof("undeploy app [%s] on node group [%s] success",
-			appInfo.AppName, nodeGroup.NodeGroupName)
+		hwlog.RunLog.Infof("undeploy app [%s] on node group id [%d] success",
+			appInfo.AppName, nodeGroupId)
 	}
 
 	hwlog.RunLog.Info("undeploy app on node group success")
@@ -196,7 +191,7 @@ func unDeployApp(input interface{}) common.RespMsg {
 
 func updateNodeGroupDaemonSet(appInfo *AppInfo, nodeGroups []NodeGroupInfo) error {
 	for _, nodeGroup := range nodeGroups {
-		daemonSet, err := initDaemonSet(appInfo, nodeGroup)
+		daemonSet, err := initDaemonSet(appInfo, nodeGroup.NodeGroupID)
 		if err != nil {
 			return fmt.Errorf("init daemon set failded: %s", err.Error())
 		}
@@ -212,14 +207,14 @@ func updateNodeGroupDaemonSet(appInfo *AppInfo, nodeGroups []NodeGroupInfo) erro
 // updateApp update application
 func updateApp(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start update app")
-	var req CreateAppReq
+	var req UpdateAppReq
 	var err error
 	if err = common.ParamConvert(input, &req); err != nil {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	checker := appCreatParaChecker{req: &req}
-	if err := checker.Check(); err != nil {
+	checker := appParaChecker{req: &req.CreateAppReq}
+	if err = checker.Check(); err != nil {
 		hwlog.RunLog.Errorf("app update para check failed: %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
@@ -262,7 +257,7 @@ func deleteApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	for _, appId := range req.AppIdList {
+	for _, appId := range req.AppIds {
 		if err := AppRepositoryInstance().deleteAppById(appId); err != nil {
 			hwlog.RunLog.Error("app db delete failed")
 			return common.RespMsg{Status: "", Msg: "app db delete failed", Data: nil}
