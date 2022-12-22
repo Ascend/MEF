@@ -32,4 +32,16 @@ const (
 	FifoPermission = 0600
 	// NginxManagerName nginx manager模块对应收发消息的key
 	NginxManagerName = "NginxManager"
+	// NginxMonitorName nginx monitor模块对应收发消息的key
+	NginxMonitorName = "NginxMonitor"
+	// Nginx 资源名
+	Nginx = "nginx"
+	// Monitor 资源名
+	Monitor = "monitor"
+	// ReqActiveMonitor 启动监控操作
+	ReqActiveMonitor = "ReqActiveMonitor"
+	// ReqRestartNginx 重启Nginx操作
+	ReqRestartNginx = "ReqRestartNginx"
+	// RespRestartNginx 回复重启Nginx操作
+	RespRestartNginx = "RespRestartNginx"
 )
