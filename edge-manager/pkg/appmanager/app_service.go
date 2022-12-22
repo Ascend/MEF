@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"edge-manager/pkg/kubeclient"
@@ -27,7 +26,7 @@ func createApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	checker := appCreatParaChecker{req: &req}
+	checker := appParaChecker{req: &req}
 	if err := checker.Check(); err != nil {
 		hwlog.RunLog.Errorf("app create para check failed: %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
@@ -176,7 +175,7 @@ func unDeployApp(input interface{}) common.RespMsg {
 	}
 
 	for _, nodeGroupId := range req.NodeGroupIds {
-		daemonSetName := appInfo.AppName + "-" + strconv.FormatInt(nodeGroupId, DecimalScale)
+		daemonSetName := formatDaemonSetName(appInfo.AppName, nodeGroupId)
 		if err = kubeclient.GetKubeClient().DeleteDaemonSet(daemonSetName); err != nil {
 			hwlog.RunLog.Errorf("undeploy app [%s] on node group id [%d] failed: %s",
 				appInfo.AppName, nodeGroupId, err.Error())
@@ -214,7 +213,7 @@ func updateApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	checker := appCreatParaChecker{req: &req.CreateAppReq}
+	checker := appParaChecker{req: &req.CreateAppReq}
 	if err = checker.Check(); err != nil {
 		hwlog.RunLog.Errorf("app update para check failed: %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}

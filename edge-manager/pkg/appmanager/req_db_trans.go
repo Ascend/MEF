@@ -25,6 +25,21 @@ func (req *CreateAppReq) toDb() (*AppInfo, error) {
 	}, nil
 }
 
+func (req *UpdateAppReq) toDb() (*AppInfo, error) {
+	containers, err := json.Marshal(req.Containers)
+	if err != nil {
+		hwlog.RunLog.Error("marshal containers failed")
+		return nil, err
+	}
+
+	return &AppInfo{
+		ID:          req.AppId,
+		AppName:     req.AppName,
+		Description: req.Description,
+		Containers:  string(containers),
+	}, nil
+}
+
 // ToDb convert app template dto to db model
 func (dto *CreateTemplateReq) ToDb(template *AppTemplateDb) error {
 	if template == nil {

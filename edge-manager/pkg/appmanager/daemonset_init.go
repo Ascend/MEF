@@ -16,6 +16,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+func formatDaemonSetName(appName string, nodeGroupId int64) string {
+	return fmt.Sprintf("%s-%s", appName, strconv.FormatInt(nodeGroupId, DecimalScale))
+}
+
 // initDaemonSet init daemonSet
 func initDaemonSet(appInfo *AppInfo, nodeGroupId int64) (*appv1.DaemonSet, error) {
 	containers, err := getContainers(appInfo)
@@ -40,7 +44,7 @@ func initDaemonSet(appInfo *AppInfo, nodeGroupId int64) (*appv1.DaemonSet, error
 	}
 	return &appv1.DaemonSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: appInfo.AppName + "-" + strconv.FormatInt(nodeGroupId, DecimalScale),
+			Name: formatDaemonSetName(appInfo.AppName, nodeGroupId),
 		},
 		Spec: appv1.DaemonSetSpec{
 			Selector: &metav1.LabelSelector{
