@@ -14,7 +14,8 @@ const (
 	defaultHeartbeatDuration = 5 * time.Second
 	defaultHeartbeatTimeout  = 60 * time.Second
 
-	wsProtocol        = "wss://"
+	// todo 待tls 公共能力实现，需要变成wss
+	wsProtocol        = "ws://"
 	serverPattern     = "/"
 	defaultRetryCount = 5
 	clientNameKey     = "clientName"
