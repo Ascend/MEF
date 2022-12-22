@@ -80,7 +80,7 @@ func (cm *wsConnectMgr) receive() {
 			hwlog.RunLog.Errorf("[%s]received not support message type: %v\n", cm.name, messageType)
 			continue
 		}
-		msg, err := io.ReadAll(reader)
+		msg, err := io.ReadAll(io.LimitReader(reader, defaultReadLimit))
 		if err != nil {
 			hwlog.RunLog.Errorf("[%s]read msg from reader error: %v\n", cm.name, err)
 			continue
