@@ -100,19 +100,19 @@ func (wsp *WsServerProxy) closeOneClient(name, conn interface{}) bool {
 
 func (wsp *WsServerProxy) serveHTTP(w http.ResponseWriter, r *http.Request) {
 	if !websocket.IsWebSocketUpgrade(r) {
-		hwlog.RunLog.Errorf("it is not a websocket request: %v\n", r.RemoteAddr)
+		hwlog.RunLog.Errorf("it is not a websocket request: %v", r.RemoteAddr)
 		return
 	}
 	clientName := r.Header.Get(clientNameKey)
 	conn, err := wsp.upgrade.Upgrade(w, r, nil)
 	if err != nil {
-		hwlog.RunLog.Errorf("websocket error:", err)
+		hwlog.RunLog.Errorf("websocket start server http failed: %v", err)
 		return
 	}
 	connMgr := &wsConnectMgr{}
 	connMgr.start(conn, clientName, &wsp.ProxyCfg.handlerMgr)
 	wsp.clientMap.Store(clientName, connMgr)
-	hwlog.RunLog.Errorf("client[name=%v, addr=%v] connect\n", clientName, r.RemoteAddr)
+	hwlog.RunLog.Errorf("client[name=%v, addr=%v] connect", clientName, r.RemoteAddr)
 }
 
 func (wsp *WsServerProxy) listen() error {
@@ -128,7 +128,7 @@ func (wsp *WsServerProxy) listen() error {
 		// 阻塞
 		err := wsp.httpServer.ListenAndServeTLS("", "")
 		if err != nil {
-			hwlog.RunLog.Errorf("websocket listen and serve with tls failed: %v\n", err)
+			hwlog.RunLog.Errorf("websocket listen and serve with tls failed: %v", err)
 		}
 		time.Sleep(retryTime)
 	}
