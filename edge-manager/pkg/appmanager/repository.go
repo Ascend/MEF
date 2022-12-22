@@ -69,7 +69,7 @@ func (r *repositoryImpl) deleteTemplates(ids []uint64) error {
 // updateTemplate modify app template
 func (r *repositoryImpl) updateTemplate(template *AppTemplateDb) error {
 	if err := r.db.Model(AppTemplateDb{}).Where("id = ?", template.ID).Updates(template).Error; err != nil {
-		hwlog.RunLog.Errorf("update template failed")
+		hwlog.RunLog.Errorf("update template failed: %s", err.Error())
 		return err
 	}
 	return nil

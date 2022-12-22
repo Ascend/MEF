@@ -17,7 +17,7 @@ import (
 )
 
 // initDaemonSet init daemonSet
-func initDaemonSet(appInfo *AppInfo, nodeInfo NodeGroupInfo) (*appv1.DaemonSet, error) {
+func initDaemonSet(appInfo *AppInfo, nodeGroupId int64) (*appv1.DaemonSet, error) {
 	containers, err := getContainers(appInfo)
 	if err != nil {
 		hwlog.RunLog.Error("app daemonSet get containers failed")
@@ -26,7 +26,7 @@ func initDaemonSet(appInfo *AppInfo, nodeInfo NodeGroupInfo) (*appv1.DaemonSet, 
 	tmpSpec := v1.PodSpec{}
 	tmpSpec.Containers = containers
 	tmpSpec.NodeSelector = map[string]string{
-		common.NodeGroupLabelPrefix + strconv.FormatInt(nodeInfo.NodeGroupID, DecimalScale): "",
+		common.NodeGroupLabelPrefix + strconv.FormatInt(nodeGroupId, DecimalScale): "",
 	}
 	template := v1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
@@ -40,7 +40,7 @@ func initDaemonSet(appInfo *AppInfo, nodeInfo NodeGroupInfo) (*appv1.DaemonSet, 
 	}
 	return &appv1.DaemonSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: appInfo.AppName + "-" + strconv.FormatInt(nodeInfo.NodeGroupID, DecimalScale),
+			Name: appInfo.AppName + "-" + strconv.FormatInt(nodeGroupId, DecimalScale),
 		},
 		Spec: appv1.DaemonSetSpec{
 			Selector: &metav1.LabelSelector{

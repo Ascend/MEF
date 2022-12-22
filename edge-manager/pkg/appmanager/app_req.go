@@ -18,19 +18,19 @@ type UpdateAppReq struct {
 
 // DeleteAppReq Delete application
 type DeleteAppReq struct {
-	AppIdList []uint64 `json:"appId"`
+	AppIds []uint64 `json:"appIds"`
 }
 
 // DeployAppReq Deploy application
 type DeployAppReq struct {
-	AppId         uint64          `json:"appId"`
-	NodeGroupInfo []NodeGroupInfo `json:"nodeGroupInfo"`
+	AppId        uint64  `json:"appId"`
+	NodeGroupIds []int64 `json:"nodeGroupIds"`
 }
 
 // UndeployAppReq Undeploy application
 type UndeployAppReq struct {
-	AppId         uint64          `json:"appId"`
-	NodeGroupInfo []NodeGroupInfo `json:"nodeGroupInfo"`
+	AppId        uint64  `json:"appId"`
+	NodeGroupIds []int64 `json:"nodeGroupIds"`
 }
 
 // NodeInfo get node info

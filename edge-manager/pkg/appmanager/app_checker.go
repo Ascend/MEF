@@ -162,7 +162,7 @@ func (c *portParaChecker) checkPortName() error {
 }
 
 func (c *portParaChecker) checkPortProtocol() error {
-	if c.port.Proto != "TCP" && c.port.Proto != "UDP" {
+	if c.port.Proto != "TCP" && c.port.Proto != "UDP" && c.port.Proto != "SCTP" {
 		return fmt.Errorf("container port protocol invalid")
 	}
 
@@ -294,37 +294,6 @@ func (c *appCreatParaChecker) Check() error {
 		c.checkAppNameValid,
 		c.checkAppDescriptionValid,
 		c.checkAppContainersValid,
-	}
-	for _, checkItem := range checkItems {
-		if err := checkItem(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-type appDeployParaChecker struct {
-	req *DeployAppReq
-}
-
-func (c *appDeployParaChecker) checkNodeGroupNameValid() error {
-	pattern, ok := appPattern.getPattern("nodeGroupName")
-	if !ok {
-		return fmt.Errorf("containerCommand regex pattern not exist")
-	}
-
-	for _, nodeGroupInfo := range c.req.NodeGroupInfo {
-		if !util.RegexStringChecker(nodeGroupInfo.NodeGroupName, pattern) {
-			return fmt.Errorf("container name invalid")
-		}
-	}
-
-	return nil
-}
-
-func (c *appDeployParaChecker) Check() error {
-	var checkItems = []func() error{
-		c.checkNodeGroupNameValid,
 	}
 	for _, checkItem := range checkItems {
 		if err := checkItem(); err != nil {
