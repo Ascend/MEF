@@ -1,4 +1,4 @@
-package websocket
+package websocketmgr
 
 type CertPathInfo struct {
 	RootCaPath  string

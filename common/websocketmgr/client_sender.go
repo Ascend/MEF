@@ -1,4 +1,4 @@
-package websocket
+package websocketmgr
 
 import (
 	"encoding/json"
@@ -18,7 +18,7 @@ func (wcs *WsCltSender) SetProxy(proxy NetProxyIntf) {
 
 func (wcs *WsCltSender) Send(msg *model.Message) error {
 	data, err := json.Marshal(msg)
-	sendMsg := WsMessage{
+	sendMsg := wsMessage{
 		MsgType: websocket.TextMessage,
 		Value:   data,
 	}

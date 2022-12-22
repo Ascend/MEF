@@ -1,4 +1,4 @@
-package websocket
+package websocketmgr
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 )
 
 type WsSvrMessage struct {
-	Msg        *WsMessage
+	Msg        *wsMessage
 	ClientName string
 }
 

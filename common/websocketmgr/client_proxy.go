@@ -1,4 +1,4 @@
-package websocket
+package websocketmgr
 
 import (
 	"fmt"
@@ -7,20 +7,23 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type WsMessage struct {
+type wsMessage struct {
 	MsgType int
 	Value   []byte
 }
 
+// WsClientProxy websocket client proxy
 type WsClientProxy struct {
 	ProxyCfg *ProxyConfig
 	connMgr  *wsConnectMgr
 }
 
+// GetName get websocket client name
 func (wcp *WsClientProxy) GetName() string {
 	return wcp.ProxyCfg.name
 }
 
+// Start websocket client start
 func (wcp *WsClientProxy) Start() error {
 	dialer := &websocket.Dialer{
 		TLSClientConfig:  wcp.ProxyCfg.tlsConfig,
@@ -37,6 +40,7 @@ func (wcp *WsClientProxy) Start() error {
 	return nil
 }
 
+// Stop websocket client stop
 func (wcp *WsClientProxy) Stop() error {
 	wcp.ProxyCfg.cancel()
 	err := wcp.connMgr.stop()
@@ -51,7 +55,7 @@ func (wcp *WsClientProxy) Send(msg interface{}) error {
 		return fmt.Errorf("websocket not connect, please connect first")
 	}
 
-	wsMsg, ok := msg.(WsMessage)
+	wsMsg, ok := msg.(wsMessage)
 	if !ok {
 		return fmt.Errorf("websocket client send message failed, the message type unsupported")
 	}

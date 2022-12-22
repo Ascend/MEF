@@ -1,4 +1,4 @@
-package websocket
+package websocketmgr
 
 type NetProxyIntf interface {
 	Start() error

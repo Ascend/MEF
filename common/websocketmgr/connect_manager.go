@@ -1,4 +1,4 @@
-package websocket
+package websocketmgr
 
 import (
 	"context"
@@ -113,13 +113,13 @@ func (cm *wsConnectMgr) pingHandle(appData string) error {
 }
 
 func (cm *wsConnectMgr) sendPingMsg() {
-	err := cm.send(WsMessage{MsgType: websocket.PongMessage, Value: []byte(cm.name + ":send ping to pong")})
+	err := cm.send(wsMessage{MsgType: websocket.PongMessage, Value: []byte(cm.name + ":send ping to pong")})
 	if err != nil {
 		return
 	}
 }
 
-func (cm *wsConnectMgr) send(msg WsMessage) error {
+func (cm *wsConnectMgr) send(msg wsMessage) error {
 	cm.sendLock.Lock()
 	defer cm.sendLock.Unlock()
 	if !cm.isConnected() {
