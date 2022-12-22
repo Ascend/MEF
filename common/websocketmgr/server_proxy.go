@@ -12,11 +12,12 @@ import (
 	"huawei.com/mindx/common/hwlog"
 )
 
-type WsSvrMessage struct {
+type wsSvrMessage struct {
 	Msg        *wsMessage
 	ClientName string
 }
 
+// WsServerProxy websocket server proxy
 type WsServerProxy struct {
 	ProxyCfg   *ProxyConfig
 	httpServer *http.Server
@@ -25,10 +26,12 @@ type WsServerProxy struct {
 	connMgr    *wsConnectMgr
 }
 
+// GetName get websocket server name
 func (wsp *WsServerProxy) GetName() string {
 	return wsp.ProxyCfg.name
 }
 
+// Start websocket server start
 func (wsp *WsServerProxy) Start() error {
 	httpServer := &http.Server{
 		Addr:      wsp.ProxyCfg.hosts,
@@ -52,6 +55,7 @@ func (wsp *WsServerProxy) Start() error {
 	return nil
 }
 
+// Stop websocket server stop
 func (wsp *WsServerProxy) Stop() error {
 	wsp.ProxyCfg.cancel()
 	wsp.clientMap.Range(wsp.closeOneClient)
@@ -62,8 +66,9 @@ func (wsp *WsServerProxy) Stop() error {
 	return nil
 }
 
+// Send websocket server send message
 func (wsp *WsServerProxy) Send(msg interface{}) error {
-	wsMsg, ok := msg.(WsSvrMessage)
+	wsMsg, ok := msg.(wsSvrMessage)
 	if !ok {
 		return fmt.Errorf("websocket sever send failed: the message type [%T] unsupported", msg)
 	}

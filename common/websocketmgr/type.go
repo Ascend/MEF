@@ -2,6 +2,7 @@
 
 package websocketmgr
 
+// CertPathInfo cert path info
 type CertPathInfo struct {
 	RootCaPath  string
 	SvrCertPath string
@@ -9,6 +10,7 @@ type CertPathInfo struct {
 	ServerFlag  bool
 }
 
+// RegisterModuleInfo register module info
 type RegisterModuleInfo struct {
 	MsgOpt     string
 	MsgRes     string

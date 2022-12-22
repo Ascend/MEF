@@ -11,12 +11,13 @@ import (
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
+// WsMsgHandler msg handler
 type WsMsgHandler struct {
 	handLock    sync.Mutex
 	handlersMap map[string]string
 }
 
-func (wh *WsMsgHandler) Register(regHandler RegisterModuleInfo) {
+func (wh *WsMsgHandler) register(regHandler RegisterModuleInfo) {
 	wh.handLock.Lock()
 	defer wh.handLock.Unlock()
 	if wh.handlersMap == nil {

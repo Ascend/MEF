@@ -9,17 +9,20 @@ import (
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
+// WsSvrSender websocket server sender
 type WsSvrSender struct {
 	proxy NetProxyIntf
 }
 
+// SetProxy set sender proxy
 func (wss *WsSvrSender) SetProxy(proxy NetProxyIntf) {
 	wss.proxy = proxy
 }
 
+// Send sends message
 func (wss *WsSvrSender) Send(clientId string, msg *model.Message) error {
 	data, err := json.Marshal(msg)
-	cltMsg := WsSvrMessage{
+	cltMsg := wsSvrMessage{
 		Msg: &wsMessage{
 			MsgType: websocket.TextMessage,
 			Value:   data,

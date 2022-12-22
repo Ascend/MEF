@@ -9,6 +9,7 @@ import (
 	"net/http"
 )
 
+// ProxyConfig Websocket proxy config
 type ProxyConfig struct {
 	name       string
 	tlsConfig  *tls.Config
@@ -19,12 +20,14 @@ type ProxyConfig struct {
 	cancel     context.CancelFunc
 }
 
+// RegModInfos registers module info
 func (pc *ProxyConfig) RegModInfos(regHandlers []RegisterModuleInfo) {
 	for _, reg := range regHandlers {
-		pc.handlerMgr.Register(reg)
+		pc.handlerMgr.register(reg)
 	}
 }
 
+// InitProxyConfig init proxy config
 func InitProxyConfig(name string, ip string, port int, certInfo CertPathInfo) (*ProxyConfig, error) {
 	netConfig := &ProxyConfig{}
 	netConfig.name = name
