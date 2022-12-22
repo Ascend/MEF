@@ -1,6 +1,6 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package websocket this file for constants
+// Package websocketmgr Package websocket this file for constants
 package websocketmgr
 
 import "time"

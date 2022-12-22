@@ -1,3 +1,5 @@
+// Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
+
 package websocketmgr
 
 import (
@@ -8,14 +10,17 @@ import (
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
+// WsCltSender websocket client sender
 type WsCltSender struct {
 	proxy NetProxyIntf
 }
 
+// SetProxy websocket client sender set proxy
 func (wcs *WsCltSender) SetProxy(proxy NetProxyIntf) {
 	wcs.proxy = proxy
 }
 
+// Send websocket sender send message
 func (wcs *WsCltSender) Send(msg *model.Message) error {
 	data, err := json.Marshal(msg)
 	sendMsg := wsMessage{

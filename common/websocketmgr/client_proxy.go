@@ -1,3 +1,5 @@
+// Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
+
 package websocketmgr
 
 import (
@@ -50,6 +52,7 @@ func (wcp *WsClientProxy) Stop() error {
 	return nil
 }
 
+// Send websocket client send message
 func (wcp *WsClientProxy) Send(msg interface{}) error {
 	if !wcp.connMgr.isConnected() {
 		return fmt.Errorf("websocket not connect, please connect first")
@@ -67,6 +70,7 @@ func (wcp *WsClientProxy) Send(msg interface{}) error {
 	return nil
 }
 
+// IsConnected judge the client is connected
 func (wcp *WsClientProxy) IsConnected() bool {
 	return wcp.connMgr.isConnected()
 }
