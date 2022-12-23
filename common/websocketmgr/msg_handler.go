@@ -27,9 +27,6 @@ func (wh *WsMsgHandler) register(regHandler RegisterModuleInfo) {
 }
 
 func (wh *WsMsgHandler) handleMsg(msgBytes []byte) {
-	wh.handLock.Lock()
-	defer wh.handLock.Unlock()
-
 	var msg model.Message
 	err := json.Unmarshal(msgBytes, &msg)
 	if err != nil {
