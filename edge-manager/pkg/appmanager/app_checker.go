@@ -4,10 +4,13 @@
 package appmanager
 
 import (
+	"errors"
 	"fmt"
 	"net"
 
 	"edge-manager/pkg/util"
+
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 type appParaPattern struct {
@@ -69,6 +72,80 @@ func (c *containerParaChecker) checkContainerImageVersionValid() error {
 	}
 	if !util.RegexStringChecker(c.container.ImageVersion, pattern) {
 		return fmt.Errorf("container image version invalid")
+	}
+
+	return nil
+}
+
+func (c *containerParaChecker) checkContainerCpuQuantityValid() error {
+	cpuRequest, err := resource.ParseQuantity(c.container.CpuRequest)
+	if err != nil {
+		return errors.New("parse cpu request failed")
+	}
+
+	minMem := resource.NewMilliQuantity(minCpuQuantity*milliQuantityUnit, resource.DecimalSI)
+	maxMem := resource.NewMilliQuantity(maxCpuQuantity*milliQuantityUnit, resource.DecimalSI)
+
+	if cpuRequest.Cmp(*minMem) < 0 || cpuRequest.Cmp(*maxMem) > 0 {
+		return errors.New("cpu request quantity not in valid value")
+	}
+
+	if len(c.container.CpuLimit) == 0 {
+		return nil
+	}
+	cpuLimit, err := resource.ParseQuantity(c.container.CpuLimit)
+	if err != nil {
+		return errors.New("parse cpu limit failed")
+	}
+
+	if cpuLimit.Cmp(*minMem) < 0 || cpuLimit.Cmp(*maxMem) > 0 {
+		return errors.New("cpu request quantity not in valid value")
+	}
+	return nil
+}
+
+func (c *containerParaChecker) checkContainerMemoryQuantityValid() error {
+	memRequest, err := resource.ParseQuantity(c.container.MemRequest)
+	if err != nil {
+		return errors.New("parse mem request failed")
+	}
+
+	minMem := resource.NewQuantity(minMemoryQuantity, resource.BinarySI)
+	maxMem := resource.NewQuantity(maxMemoryQuantity, resource.BinarySI)
+
+	if memRequest.Cmp(*minMem) < 0 || memRequest.Cmp(*maxMem) > 0 {
+		return errors.New("mem request quantity not in valid value")
+	}
+
+	if len(c.container.MemLimit) == 0 {
+		return nil
+	}
+	memLimit, err := resource.ParseQuantity(c.container.MemLimit)
+	if err != nil {
+		return errors.New("parse mem limit failed")
+	}
+
+	if memLimit.Cmp(*minMem) < 0 || memLimit.Cmp(*maxMem) > 0 {
+		return errors.New("mem request quantity not in valid value")
+	}
+	return nil
+}
+
+func (c *containerParaChecker) checkContainerNpuQuantityValid() error {
+	if len(c.container.Npu) == 0 {
+		return nil
+	}
+
+	npuRequest, err := resource.ParseQuantity(c.container.Npu)
+	if err != nil {
+		return errors.New("parse npu request failed")
+	}
+
+	minMem := resource.NewMilliQuantity(minNpuQuantity*milliQuantityUnit, resource.DecimalSI)
+	maxMem := resource.NewMilliQuantity(maxNpuQuantity*milliQuantityUnit, resource.DecimalSI)
+
+	if npuRequest.Cmp(*minMem) < 0 || npuRequest.Cmp(*maxMem) > 0 {
+		return errors.New("npu request quantity not in valid value")
 	}
 
 	return nil
@@ -151,6 +228,9 @@ func (c *containerParaChecker) check() error {
 		c.checkContainerNameValid,
 		c.checkContainerImageValid,
 		c.checkContainerImageVersionValid,
+		c.checkContainerCpuQuantityValid,
+		c.checkContainerMemoryQuantityValid,
+		c.checkContainerNpuQuantityValid,
 		c.checkContainerCommandValid,
 		c.checkContainerArgsValid,
 		c.checkContainerEnvValid,

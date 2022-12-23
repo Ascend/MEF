@@ -204,6 +204,31 @@ func updateNodeGroupDaemonSet(appInfo *AppInfo, nodeGroups []NodeGroupInfo) erro
 	return nil
 }
 
+func modifyContainerPara(req *UpdateAppReq, appInfo *AppInfo) error {
+	var containers []Container
+	if err := json.Unmarshal([]byte(appInfo.Containers), &containers); err != nil {
+		return errors.New("unmarshal containers info failed")
+	}
+
+	if len(req.Containers) != len(containers) {
+		return errors.New("container count is not equal")
+	}
+
+	for i := range req.Containers {
+		containers[i].Image = req.Containers[i].Image
+		containers[i].ImageVersion = req.Containers[i].ImageVersion
+	}
+
+	content, err := json.Marshal(containers)
+	if err != nil {
+		return errors.New("marshal containers info failed")
+	}
+
+	appInfo.Containers = string(content)
+
+	return nil
+}
+
 // updateApp update application
 func updateApp(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start update app")
@@ -219,10 +244,15 @@ func updateApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	appInfo, err := req.toDb()
+	appInfo, err := AppRepositoryInstance().queryApp(req.AppId)
 	if err != nil {
-		hwlog.RunLog.Error("get app info failed ")
-		return common.RespMsg{Status: "", Msg: "get app info failed", Data: nil}
+		hwlog.RunLog.Error("app info not exist, update failed")
+		return common.RespMsg{Status: "", Msg: "app info not exist, update failed", Data: nil}
+	}
+
+	if err = modifyContainerPara(&req, &appInfo); err != nil {
+		hwlog.RunLog.Errorf("modify app info failed: %s", err.Error())
+		return common.RespMsg{Status: "", Msg: "update app info failed", Data: nil}
 	}
 
 	if err = AppRepositoryInstance().updateApp(appInfo.ID, "containers", appInfo.Containers); err != nil {
@@ -240,7 +270,7 @@ func updateApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "get node group failed", Data: nil}
 	}
 
-	if err = updateNodeGroupDaemonSet(appInfo, nodeGroups); err != nil {
+	if err = updateNodeGroupDaemonSet(&appInfo, nodeGroups); err != nil {
 		hwlog.RunLog.Errorf("update node group daemon set failed: %s", err.Error())
 		return common.RespMsg{Status: "", Msg: "update node group daemon set failed", Data: nil}
 	}

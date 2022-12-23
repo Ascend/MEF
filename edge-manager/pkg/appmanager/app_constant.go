@@ -20,18 +20,32 @@ const (
 	informerSyncInterval = time.Duration(30) * time.Second
 	houseKeepingInterval = time.Duration(60) * time.Second
 
-	portMapMaxCount  = 16
-	envMaxCount      = 256
-	minContainerPort = 1
-	maxContainerPort = 65535
-	minHostPort      = 1024
-	maxHostPort      = 65535
-	minUserId        = 1
-	maxUserId        = 65535
-	minGroupId       = 1
-	maxGroupId       = 65535
-	commandMaxCount  = 16
-	argsMaxCount     = 16
+	// KB 1K byte
+	KB = 1024
+	// MB 1M byte
+	MB = 1024 * KB
+	// GB 1G byte
+	GB = 1024 * MB
+
+	portMapMaxCount   = 16
+	envMaxCount       = 256
+	minContainerPort  = 1
+	maxContainerPort  = 65535
+	minHostPort       = 1024
+	maxHostPort       = 65535
+	minUserId         = 1
+	maxUserId         = 65535
+	minGroupId        = 1
+	maxGroupId        = 65535
+	commandMaxCount   = 16
+	argsMaxCount      = 16
+	milliQuantityUnit = 1000
+	minCpuQuantity    = 0.01
+	maxCpuQuantity    = 1000
+	minMemoryQuantity = 4 * MB
+	maxMemoryQuantity = 1000 * GB
+	minNpuQuantity    = 0.01
+	maxNpuQuantity    = 32
 
 	podStatusUnknown         = "unknown"
 	containerStateUnknown    = "unknown"
