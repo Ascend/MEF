@@ -125,8 +125,8 @@ func (wsp *WsServerProxy) listen() error {
 			return nil
 		default:
 		}
-		// 阻塞
-		err := wsp.httpServer.ListenAndServeTLS("", "")
+		// todo 这里需要修改为tls的接口 ListenAndServeTLS
+		err := wsp.httpServer.ListenAndServe()
 		if err != nil {
 			hwlog.RunLog.Errorf("websocket listen and serve with tls failed: %v", err)
 		}
