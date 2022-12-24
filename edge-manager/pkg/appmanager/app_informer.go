@@ -154,12 +154,7 @@ func (a *appStatusServiceImpl) deletePod(obj interface{}) {
 		return
 	}
 	appStatusService.deleteStatusCache(pod)
-	appInstance, err := parsePodToInstance(pod)
-	if err != nil {
-		hwlog.RunLog.Errorf("recovered delete object, parse pod to app instance error: %v", err)
-		return
-	}
-	if err = AppRepositoryInstance().deletePod(&AppInstance{PodName: appInstance.PodName}); err != nil {
+	if err = AppRepositoryInstance().deletePod(&AppInstance{PodName: pod.Name}); err != nil {
 		hwlog.RunLog.Errorf("recovered delete object, delete instance from db error: %v", err)
 		return
 	}
@@ -286,7 +281,7 @@ func getNodeIdByName(eventPod *v1.Pod) (int64, error) {
 		UniqueName: eventPod.Spec.NodeName,
 	}
 	resp := common.SendSyncMessageByRestful(req, &router)
-	if resp.Status == "" {
+	if resp.Status != common.Success {
 		return 0, errors.New(resp.Msg)
 	}
 	data, err := json.Marshal(resp.Data)
@@ -359,15 +354,14 @@ func getContainerInfoString(eventPod *v1.Pod) (string, error) {
 }
 
 func getContainerStatus(containerStatus v1.ContainerStatus) string {
-	status := containerStateUnknown
 	if containerStatus.State.Waiting != nil {
-		status = containerStateWaiting
+		return containerStateWaiting
 	}
 	if containerStatus.State.Running != nil {
-		status = containerStateRunning
+		return containerStateRunning
 	}
 	if containerStatus.State.Terminated != nil {
-		status = containerStateTerminated
+		return containerStateTerminated
 	}
-	return status
+	return containerStateUnknown
 }
