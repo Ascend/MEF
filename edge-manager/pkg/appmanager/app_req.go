@@ -99,13 +99,12 @@ type AppReturnInfo struct {
 
 // AppInstanceOfNodeResp encapsulate app instance information of a certain node
 type AppInstanceOfNodeResp struct {
-	AppName       string `json:"appName"`
-	AppStatus     string `json:"appStatus"`
-	Description   string `json:"description"`
-	CreatedAt     string `json:"createdAt"`
-	ChangedAt     string `json:"changedAt"`
-	NodeGroupName string `json:"nodeGroupName"`
-	NodeGroupID   int64  `json:"nodeGroupID"`
+	AppName       string        `json:"appName"`
+	AppStatus     string        `json:"appStatus"`
+	Description   string        `json:"description"`
+	CreatedAt     string        `json:"createdAt"`
+	ChangedAt     string        `json:"changedAt"`
+	NodeGroupInfo NodeGroupInfo `json:"nodeGroupInfo"`
 }
 
 // AppTemplate app template detail

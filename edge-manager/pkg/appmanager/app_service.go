@@ -305,20 +305,18 @@ func getAppInstanceRespFromAppInstances(appInstances []AppInstance) ([]AppInstan
 			hwlog.RunLog.Errorf("get container infos error: %v", err)
 			return nil, err
 		}
-		createdAt := instance.CreatedAt
-		if err != nil {
-			hwlog.RunLog.Errorf("parse db time to standard format error: %v", err)
-			return nil, err
-		}
+		createdAt := instance.CreatedAt.Format(common.TimeFormat)
 		resp := AppInstanceResp{
 			AppName: instance.AppName,
-			NodeGroupInfo: NodeGroupInfo{NodeGroupID: instance.NodeGroupID,
-				NodeGroupName: instance.NodeGroupName},
+			NodeGroupInfo: NodeGroupInfo{
+				NodeGroupID:   instance.NodeGroupID,
+				NodeGroupName: instance.NodeGroupName,
+			},
 			NodeId:        instance.NodeID,
 			NodeName:      nodeName,
 			NodeStatus:    nodeStatus,
 			AppStatus:     podStatus,
-			CreatedAt:     createdAt.Format(common.TimeFormat),
+			CreatedAt:     createdAt,
 			ContainerInfo: containerInfos,
 		}
 		appInstanceResp = append(appInstanceResp, resp)
@@ -386,24 +384,18 @@ func getAppInstanceOfNodeRespFromAppInstances(appInstances []AppInstance) ([]App
 			return nil, err
 		}
 		status := appStatusService.getPodStatusFromCache(instance.PodName)
-		createdAt := instance.CreatedAt
-		if err != nil {
-			hwlog.RunLog.Errorf("parse db time to standard format error: %v", err)
-			return nil, err
-		}
-		changedAt := instance.UpdatedAt
-		if err != nil {
-			hwlog.RunLog.Errorf("parse db time to standard format error: %v", err)
-			return nil, err
-		}
+		createdAt := instance.CreatedAt.Format(common.TimeFormat)
+		changedAt := instance.UpdatedAt.Format(common.TimeFormat)
 		instanceResp := AppInstanceOfNodeResp{
-			AppName:       instance.AppName,
-			AppStatus:     status,
-			Description:   appInfo.Description,
-			CreatedAt:     createdAt.Format(common.TimeFormat),
-			ChangedAt:     changedAt.Format(common.TimeFormat),
-			NodeGroupName: instance.NodeGroupName,
-			NodeGroupID:   instance.NodeGroupID,
+			AppName:     instance.AppName,
+			AppStatus:   status,
+			Description: appInfo.Description,
+			CreatedAt:   createdAt,
+			ChangedAt:   changedAt,
+			NodeGroupInfo: NodeGroupInfo{
+				NodeGroupID:   instance.NodeGroupID,
+				NodeGroupName: instance.NodeGroupName,
+			},
 		}
 		appList = append(appList, instanceResp)
 	}
