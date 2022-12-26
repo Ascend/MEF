@@ -66,6 +66,8 @@ const (
 	AppInstance = "appInstance"
 	// AppInstanceByNode resource app instance by node
 	AppInstanceByNode = "appInstanceByNode"
+	// AppInstanceByNodeGroup resource app instance by node group
+	AppInstanceByNodeGroup = "appInstanceByNodeGroup"
 	// NodeGroup resource nodeGroup
 	NodeGroup = "nodeGroup"
 	// NodeStatus resource node status
@@ -143,6 +145,8 @@ const (
 	RegNodeName = `^[a-zA-Z][-_a-zA-Z0-9]{0,62}[a-zA-Z0-9]$`
 	// RegDomainLabel regex pattern of domain label
 	RegDomainLabel = `^[a-zA-Z0-9]([-a-zA-Z0-9]{0,61}[a-zA-Z0-9])?$`
+	// RegNodeGroupDescription regex pattern of node group description
+	RegNodeGroupDescription = `^[\S ]{0,512}$`
 )
 
 // protocol
@@ -198,10 +202,6 @@ const (
 	TemplateEnvValueMin = 1
 	// TemplateEnvValueMax environment variable value max length
 	TemplateEnvValueMax = 2048
-	// NodeGroupDescMin node group description min
-	NodeGroupDescMin = 0
-	// NodeGroupDescMax node group description max
-	NodeGroupDescMax = 1024
 	// NodeUniqueNameMin node unique name min
 	NodeUniqueNameMin = 1
 	// NodeUniqueNameMax node unique name max

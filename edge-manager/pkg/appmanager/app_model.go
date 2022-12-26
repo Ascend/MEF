@@ -48,6 +48,7 @@ type AppRepository interface {
 	addPod(*AppInstance) error
 	updatePod(*AppInstance) error
 	deletePod(*AppInstance) error
+	countAppInstanceByNodeGroup(int64) (int64, error)
 }
 
 // GetTableCount get table count
@@ -307,4 +308,10 @@ func (a *AppRepositoryImpl) updatePod(appInstance *AppInstance) error {
 
 func (a *AppRepositoryImpl) deletePod(appInstance *AppInstance) error {
 	return a.db.Model(AppInstance{}).Where("pod_name = ?", appInstance.PodName).Delete(appInstance).Error
+}
+
+func (a *AppRepositoryImpl) countAppInstanceByNodeGroup(groupId int64) (int64, error) {
+	var appInstanceCount int64
+	return appInstanceCount,
+		a.db.Model(AppInstance{}).Where("node_group_id = ?", groupId).Count(&appInstanceCount).Error
 }

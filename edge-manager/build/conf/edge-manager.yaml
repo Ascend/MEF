@@ -30,7 +30,7 @@ compile:
     compilePath: "{{TOP_DIR}}/cmd"
     parameters: [['buildmode', "pie"],
                  ["mod", "mod"],
-                 ['ldflags', '-X "main.BuildName={{component}}" -X "main.BuildVersion={{version}}_linux-{{systemEnv.processor}}" -s -linkmode=external -extldflags=-Wl,-z,now'],
+                 ['ldflags', '-X "edge-manager/pkg/config.BuildName={{component}}" -X "edge-manager/pkg/config.BuildVersion={{version}}_linux-{{systemEnv.processor}}" -s -linkmode=external -extldflags=-Wl,-z,now'],
                  ["o", "{{component}}"],
                  ['trimpath',""],]
   output:

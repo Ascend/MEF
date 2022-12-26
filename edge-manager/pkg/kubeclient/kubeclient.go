@@ -42,8 +42,8 @@ type Client struct {
 }
 
 // NewClientK8s create ClientK8s
-func NewClientK8s() (*Client, error) {
-	client, err := k8stool.K8sClientFor("", "")
+func NewClientK8s(kubeConfig string) (*Client, error) {
+	client, err := k8stool.K8sClientFor(kubeConfig, "")
 	if err != nil || client == nil {
 		return nil, fmt.Errorf("failed to create kube client: %v", err)
 	}

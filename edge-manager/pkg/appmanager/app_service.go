@@ -401,3 +401,23 @@ func getAppInstanceOfNodeRespFromAppInstances(appInstances []AppInstance) ([]App
 	}
 	return appList, nil
 }
+
+func getAppInstanceCountByNodeGroup(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start to get appInstance count")
+	req, ok := input.([]int64)
+	if !ok {
+		hwlog.RunLog.Error("failed to convert param")
+		return common.RespMsg{Msg: "failed to convert param"}
+	}
+	appInstanceCount := make(map[int64]int64)
+	for _, groupId := range req {
+		count, err := AppRepositoryInstance().countAppInstanceByNodeGroup(groupId)
+		if err != nil {
+			hwlog.RunLog.Error("failed to count appInstance by node group")
+			return common.RespMsg{Msg: "failed to count appInstance by node group"}
+		}
+		appInstanceCount[groupId] = count
+	}
+	hwlog.RunLog.Info("get appInstance count success")
+	return common.RespMsg{Status: common.Success, Data: appInstanceCount}
+}

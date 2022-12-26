@@ -9,13 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
-)
 
-var (
-	// BuildNameStr the program name
-	BuildNameStr string
-	// BuildVersionStr the program version
-	BuildVersionStr string
+	"edge-manager/pkg/config"
 )
 
 type restfulService struct {
@@ -31,11 +26,10 @@ func initGin() *gin.Engine {
 }
 
 // NewRestfulService new restful service
-func NewRestfulService(enable bool, ip string, port int) *restfulService {
+func NewRestfulService(enable bool, port int) *restfulService {
 	nm := &restfulService{
 		enable: enable,
 		port:   port,
-		ip:     ip,
 		engine: initGin(),
 	}
 	return nm
@@ -65,7 +59,7 @@ func (r *restfulService) Enable() bool {
 }
 
 func versionQuery(c *gin.Context) {
-	msg := fmt.Sprintf("%s version: %s", BuildNameStr, BuildVersionStr)
+	msg := fmt.Sprintf("%s version: %s", config.BuildName, config.BuildVersion)
 	hwlog.OpLog.Infof("query edge manager version: %s successfully", msg)
 	common.ConstructResp(c, common.Success, "", msg)
 }

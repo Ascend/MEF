@@ -99,7 +99,7 @@ func (v *Validator) ValidateNodeGroupName(paramName, groupName string) *Validato
 
 // ValidateNodeGroupDesc validate node group description
 func (v *Validator) ValidateNodeGroupDesc(paramName, desc string) *Validator {
-	return v.ValidateStringLength(paramName, desc, NodeGroupDescMin, NodeGroupDescMax)
+	return v.ValidateStringRegex(paramName, desc, RegNodeGroupDescription)
 }
 
 // ValidateNodeDesc validate node description

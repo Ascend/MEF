@@ -5,30 +5,18 @@ package database
 
 import (
 	"errors"
-	"flag"
 	"fmt"
 
 	"gorm.io/gorm"
 	"huawei.com/mindxedge/base/common"
 )
 
-const (
-	// DBPATH sqlite database path
-	DBPATH = "/etc/mindx-edge/edge-manager/edge-manager.db"
-)
-
 var (
-	dbPath string
 	gormDB *gorm.DB
 )
 
-func init() {
-	// database path configuration
-	flag.StringVar(&dbPath, "dbPath", DBPATH, "sqlite database path")
-}
-
 // InitDB init database client
-func InitDB() error {
+func InitDB(dbPath string) error {
 	gormDB = common.InitDbConnection(dbPath)
 	if gormDB == nil {
 		return fmt.Errorf("initialise database failed")

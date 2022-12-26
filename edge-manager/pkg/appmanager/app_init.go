@@ -149,11 +149,12 @@ var handlerFuncMap = map[string]handlerFunc{
 	combine(common.List, common.AppInstance):       listAppInstances,
 	combine(common.List, common.AppInstanceByNode): listAppInstancesByNode,
 
-	combine(common.Create, common.AppTemplate): createTemplate,
-	combine(common.Update, common.AppTemplate): updateTemplate,
-	combine(common.Delete, common.AppTemplate): deleteTemplate,
-	combine(common.List, common.AppTemplate):   getTemplates,
-	combine(common.Get, common.AppTemplate):    getTemplate,
+	combine(common.Create, common.AppTemplate):         createTemplate,
+	combine(common.Update, common.AppTemplate):         updateTemplate,
+	combine(common.Delete, common.AppTemplate):         deleteTemplate,
+	combine(common.List, common.AppTemplate):           getTemplates,
+	combine(common.Get, common.AppTemplate):            getTemplate,
+	combine(common.Get, common.AppInstanceByNodeGroup): getAppInstanceCountByNodeGroup,
 }
 
 func combine(option, resource string) string {
