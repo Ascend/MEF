@@ -165,6 +165,11 @@ type BatchDeleteNodeGroupReq struct {
 	GroupID []int64 `json:"groupID"`
 }
 
+// Check request validator
+func (req BatchDeleteNodeGroupReq) Check() error {
+	return nil
+}
+
 // ListNodeGroupResp response object for listNodeGroup
 type ListNodeGroupResp struct {
 	Total  int64         `json:"total"`

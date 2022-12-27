@@ -134,14 +134,18 @@ func newDynamicInfo(node *v1.Node) *NodeInfoDynamic {
 
 func evalNodeStatus(node *v1.Node) string {
 	for _, cond := range node.Status.Conditions {
-		if cond.Type == v1.NodeReady {
-			if cond.Status == v1.ConditionTrue {
-				return statusReady
-			} else if cond.Status == v1.ConditionFalse {
-				return statusNotReady
-			} else if cond.Status == v1.ConditionUnknown {
-				return statusUnknown
-			}
+		if cond.Type != v1.NodeReady {
+			continue
+		}
+		switch cond.Status {
+		case v1.ConditionTrue:
+			return statusReady
+		case v1.ConditionFalse:
+			return statusNotReady
+		case v1.ConditionUnknown:
+			return statusUnknown
+		default:
+			return statusOffline
 		}
 	}
 	return statusOffline

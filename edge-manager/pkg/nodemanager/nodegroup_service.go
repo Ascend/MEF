@@ -4,6 +4,9 @@
 package nodemanager
 
 import (
+	"encoding/json"
+	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -25,14 +28,11 @@ func createGroup(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("create node group validate parameters error, %s", err.Error())
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
 	}
-	total, err := GetTableCount(NodeGroup{})
-	if err != nil {
-		hwlog.RunLog.Error("get node group table num failed")
-		return common.RespMsg{Status: "", Msg: "get node group table num failed", Data: nil}
-	}
-	if total >= maxNodeGroup {
-		hwlog.RunLog.Error("node group number is enough, connot create")
-		return common.RespMsg{Status: "", Msg: "node group number is enough, connot create", Data: nil}
+
+	checker := specificationChecker{nodeService: NodeServiceInstance()}
+	if err := checker.checkAddGroups(1); err != nil {
+		hwlog.RunLog.Errorf("create node group check spec error: %s", err.Error())
+		return common.RespMsg{Msg: err.Error()}
 	}
 	group := &NodeGroup{
 		Description: req.Description,
@@ -40,7 +40,7 @@ func createGroup(input interface{}) common.RespMsg {
 		CreatedAt:   time.Now().Format(TimeFormat),
 		UpdatedAt:   time.Now().Format(TimeFormat),
 	}
-	if err = NodeServiceInstance().createNodeGroup(group); err != nil {
+	if err := NodeServiceInstance().createNodeGroup(group); err != nil {
 		if strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
 			hwlog.RunLog.Error("node group is duplicate")
 			return common.RespMsg{Status: "", Msg: "node group is duplicate", Data: nil}
@@ -147,4 +147,84 @@ func modifyNodeGroup(input interface{}) common.RespMsg {
 	}
 	hwlog.RunLog.Info("modify node group db update success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
+}
+
+func batchDeleteNodeGroup(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start batch delete node group")
+	var req BatchDeleteNodeGroupReq
+	if err := common.ParamConvert(input, &req); err != nil {
+		hwlog.RunLog.Errorf("batch delete node group convert request error, %s", err)
+		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	}
+	if err := req.Check(); err != nil {
+		hwlog.RunLog.Errorf("batch delete node group check parameters failed, %s", err.Error())
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
+	}
+	var delSuccessGroupID []int64
+	for _, groupID := range req.GroupID {
+		if err := deleteSingleGroup(groupID); err != nil {
+			hwlog.RunLog.Errorf("delete node group %d failed, %s", groupID, err.Error())
+			continue
+		}
+		delSuccessGroupID = append(delSuccessGroupID, groupID)
+	}
+	if len(req.GroupID) > len(delSuccessGroupID) {
+		hwlog.RunLog.Error("batch delete node group failed")
+		return common.RespMsg{Status: "", Msg: "batch delete node group failed", Data: delSuccessGroupID}
+	}
+	hwlog.RunLog.Info("batch delete node group success")
+	return common.RespMsg{Status: common.Success, Msg: "batch delete node group success", Data: delSuccessGroupID}
+}
+
+func deleteSingleGroup(groupID int64) error {
+	nodeGroup, err := NodeServiceInstance().getNodeGroupByID(groupID)
+	if err != nil {
+		return fmt.Errorf("get node group by group id %d failed", groupID)
+	}
+	count, err := getAppInstanceCountByGroupId(groupID)
+	if err != nil {
+		return err
+	}
+	if count != 0 {
+		return fmt.Errorf("group %d has deployed app, can't remove", groupID)
+	}
+	relations, err := NodeServiceInstance().listNodeRelationsByGroupId(groupID)
+	if err != nil {
+		return fmt.Errorf("get relations between node and node group by group id %d failed", groupID)
+	}
+	for _, relation := range *relations {
+		if err := deleteSingleNodeRelation(nodeGroup.ID, relation.NodeID); err != nil {
+			return fmt.Errorf("patch node state failed:%s", err.Error())
+		}
+	}
+	if err = NodeServiceInstance().deleteNodeGroup(groupID); err != nil {
+		return fmt.Errorf("delete node group by group id %d failed", groupID)
+	}
+	return nil
+}
+
+func getAppInstanceCountByGroupId(groupId int64) (int64, error) {
+	router := common.Router{
+		Source:      common.NodeManagerName,
+		Destination: common.AppManagerName,
+		Option:      common.Get,
+		Resource:    common.AppInstanceByNodeGroup,
+	}
+	resp := common.SendSyncMessageByRestful([]int64{groupId}, &router)
+	if resp.Status != common.Success {
+		return 0, errors.New(resp.Msg)
+	}
+	data, err := json.Marshal(resp.Data)
+	if err != nil {
+		return 0, errors.New("convert result failed")
+	}
+	counts := make(map[int64]int64)
+	if err = json.Unmarshal(data, &counts); err != nil {
+		return 0, errors.New("convert result failed")
+	}
+	count, ok := counts[groupId]
+	if !ok {
+		return 0, errors.New("can't find corresponding groupId")
+	}
+	return count, nil
 }

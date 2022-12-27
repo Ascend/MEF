@@ -173,7 +173,7 @@ func testListNode() {
 		PageSize: 1,
 		PageNum:  1,
 	}
-	resp := listNode(req)
+	resp := listManagedNode(req)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 

@@ -23,10 +23,10 @@ type nodeManager struct {
 }
 
 // NewNodeManager new node manager
-func NewNodeManager(enable bool) *nodeManager {
+func NewNodeManager(enable bool, ctx context.Context) *nodeManager {
 	nm := &nodeManager{
 		enable: enable,
-		ctx:    context.Background(),
+		ctx:    ctx,
 	}
 	return nm
 }
@@ -66,8 +66,8 @@ func (node *nodeManager) Start() {
 			hwlog.RunLog.Errorf("%s revice requst from restful service failed", common.NodeManagerName)
 			continue
 		}
-		msg := methodSelect(req)
-		if msg == nil {
+		msg, err := dispatchMsg(req)
+		if err != nil {
 			hwlog.RunLog.Errorf("%s get method by option and resource failed", common.NodeManagerName)
 			continue
 		}
@@ -100,39 +100,37 @@ func initNodeTable() error {
 	return nil
 }
 
-func methodSelect(req *model.Message) *common.RespMsg {
+func dispatchMsg(req *model.Message) (*common.RespMsg, error) {
 	var res common.RespMsg
-	method, exit := nodeMethodList()[combine(req.GetOption(), req.GetResource())]
+	method, exit := handlerFuncMap[combine(req.GetOption(), req.GetResource())]
 	if !exit {
-		return nil
+		return nil, fmt.Errorf("method not found for router: option=%s, resource=%s", req.GetOption(), req.GetResource())
 	}
 	res = method(req.GetContent())
-	return &res
+	return &res, nil
 }
 
-func nodeMethodList() map[string]handlerFunc {
-	return map[string]handlerFunc{
-		combine(common.Create, common.Node):             createNode,
-		combine(common.Create, common.NodeGroup):        createGroup,
-		combine(common.List, common.Node):               listNode,
-		combine(common.List, common.NodeUnManaged):      listNodeUnManaged,
-		combine(common.Get, common.Node):                getNodeDetail,
-		combine(common.Update, common.Node):             modifyNode,
-		combine(common.Update, common.NodeGroup):        modifyNodeGroup,
-		combine(common.Delete, common.Node):             batchDeleteNode,
-		combine(common.Add, common.Node):                addUnManagedNode,
-		combine(common.Add, common.NodeRelation):        addNodeRelation,
-		combine(common.Delete, common.NodeRelation):     batchDeleteNodeRelation,
-		combine(common.Get, common.NodeStatistics):      getNodeStatistics,
-		combine(common.Get, common.NodeGroupStatistics): getGroupNodeStatistics,
-		combine(common.List, common.NodeGroup):          listEdgeNodeGroup,
-		combine(common.Get, common.NodeGroup):           getEdgeNodeGroupDetail,
-		combine(common.Delete, common.NodeGroup):        batchDeleteNodeGroup,
+var handlerFuncMap = map[string]handlerFunc{
+	combine(common.Create, common.Node):             createNode,
+	combine(common.Create, common.NodeGroup):        createGroup,
+	combine(common.List, common.Node):               listManagedNode,
+	combine(common.List, common.NodeUnManaged):      listUnmanagedNode,
+	combine(common.Get, common.Node):                getNodeDetail,
+	combine(common.Update, common.Node):             modifyNode,
+	combine(common.Update, common.NodeGroup):        modifyNodeGroup,
+	combine(common.Delete, common.Node):             batchDeleteNode,
+	combine(common.Add, common.Node):                addUnManagedNode,
+	combine(common.Add, common.NodeRelation):        addNodeRelation,
+	combine(common.Delete, common.NodeRelation):     batchDeleteNodeRelation,
+	combine(common.Get, common.NodeStatistics):      getNodeStatistics,
+	combine(common.Get, common.NodeGroupStatistics): getGroupNodeStatistics,
+	combine(common.List, common.NodeGroup):          listEdgeNodeGroup,
+	combine(common.Get, common.NodeGroup):           getEdgeNodeGroupDetail,
+	combine(common.Delete, common.NodeGroup):        batchDeleteNodeGroup,
 
-		combine(common.Inner, common.Node):       innerGetNodeInfoByName,
-		combine(common.Inner, common.NodeGroup):  innerGetNodeGroupInfoById,
-		combine(common.Inner, common.NodeStatus): innerGetNodeStatus,
-	}
+	combine(common.Inner, common.Node):       innerGetNodeInfoByName,
+	combine(common.Inner, common.NodeGroup):  innerGetNodeGroupInfoById,
+	combine(common.Inner, common.NodeStatus): innerGetNodeStatus,
 }
 
 func combine(option, resource string) string {
