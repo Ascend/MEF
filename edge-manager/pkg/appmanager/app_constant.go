@@ -8,6 +8,8 @@ import "time"
 const (
 	// MaxApp MaxApp num 1000
 	MaxApp = 1000
+	// MaxAppTemplate  Max App Template 1000
+	MaxAppTemplate = 1000
 	// DecimalScale for int to string
 	DecimalScale = 10
 	// AppLabel for label pod

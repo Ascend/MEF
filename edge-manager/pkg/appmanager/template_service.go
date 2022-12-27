@@ -25,6 +25,17 @@ func createTemplate(param interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
+	total, err := GetTableCount(AppTemplateDb{})
+	if err != nil {
+		hwlog.RunLog.Error("get app template num failed")
+		return common.RespMsg{Status: "", Msg: "get app template num failed", Data: nil}
+	}
+
+	if total >= MaxAppTemplate {
+		hwlog.RunLog.Error("app template number is enough, can not create")
+		return common.RespMsg{Status: "", Msg: "app template number is enough, can not create", Data: nil}
+	}
+
 	var template AppTemplateDb
 	if err := req.ToDb(&template); err != nil {
 		hwlog.RunLog.Errorf("create app template,failed,error:%v", err)
