@@ -99,6 +99,9 @@ func (c *containerParaChecker) checkContainerMemoryQuantityValid() error {
 		return errors.New("cpu request quantity not in valid value")
 	}
 
+	if c.container.MemLimit == 0 {
+		return nil
+	}
 	if c.container.MemLimit < minMemoryQuantity || c.container.MemLimit > maxMemoryQuantity {
 		return errors.New("cpu limit quantity not in valid value")
 	}
