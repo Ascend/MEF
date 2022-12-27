@@ -175,7 +175,7 @@ func getLimits(cpuLimit float64, memLimit int64, limitMap map[v1.ResourceName]re
 		limitMap[v1.ResourceCPU] = res
 	}
 	if memLimit != 0 {
-		res, err := resource.ParseQuantity(fmt.Sprintf("%v", memLimit))
+		res, err := resource.ParseQuantity(fmt.Sprintf("%vM", memLimit))
 		if err != nil {
 			hwlog.RunLog.Error("parse memory limits failed")
 			return limitMap, err

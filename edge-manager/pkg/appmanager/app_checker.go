@@ -6,7 +6,6 @@ package appmanager
 import (
 	"errors"
 	"fmt"
-	"math/big"
 	"net"
 
 	"edge-manager/pkg/util"
@@ -77,17 +76,15 @@ func (c *containerParaChecker) checkContainerImageVersionValid() error {
 }
 
 func (c *containerParaChecker) checkContainerCpuQuantityValid() error {
-	if big.NewFloat(c.container.CpuRequest).Cmp(big.NewFloat(minCpuQuantity)) < 0 ||
-		big.NewFloat(c.container.CpuRequest).Cmp(big.NewFloat(maxCpuQuantity)) > 0 {
+	if c.container.CpuRequest < minCpuQuantity || c.container.CpuRequest > maxCpuQuantity {
 		return errors.New("cpu request quantity not in valid value")
 	}
 
-	if big.NewFloat(c.container.CpuLimit).Cmp(big.NewFloat(0)) == 0 {
+	if c.container.CpuLimit == 0 {
 		return nil
 	}
 
-	if big.NewFloat(c.container.CpuLimit).Cmp(big.NewFloat(minCpuQuantity)) < 0 ||
-		big.NewFloat(c.container.CpuLimit).Cmp(big.NewFloat(maxCpuQuantity)) > 0 {
+	if c.container.CpuLimit < minCpuQuantity || c.container.CpuLimit > maxCpuQuantity {
 		return errors.New("cpu limit quantity not in valid value")
 	}
 
@@ -110,12 +107,11 @@ func (c *containerParaChecker) checkContainerMemoryQuantityValid() error {
 }
 
 func (c *containerParaChecker) checkContainerNpuQuantityValid() error {
-	if big.NewFloat(c.container.CpuLimit).Cmp(big.NewFloat(0)) == 0 {
+	if c.container.Npu == 0 {
 		return nil
 	}
 
-	if big.NewFloat(c.container.CpuRequest).Cmp(big.NewFloat(minNpuQuantity)) < 0 ||
-		big.NewFloat(c.container.CpuRequest).Cmp(big.NewFloat(maxNpuQuantity)) > 0 {
+	if c.container.Npu < minNpuQuantity || c.container.Npu > maxNpuQuantity {
 		return errors.New("npu request quantity not in valid value")
 	}
 
