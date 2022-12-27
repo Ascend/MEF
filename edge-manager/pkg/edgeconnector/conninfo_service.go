@@ -26,7 +26,7 @@ func UpdateTableConnInfo(message *model.Message) common.RespMsg {
 	node := &ConnInfo{
 		Address:   updateConnInfo.Address,
 		Port:      updateConnInfo.Port,
-		Username:  updateConnInfo.UserName,
+		Username:  updateConnInfo.Username,
 		Password:  updateConnInfo.Password,
 		CreatedAt: time.Now().Format(TimeFormat),
 		UpdatedAt: time.Now().Format(TimeFormat),
@@ -35,14 +35,14 @@ func UpdateTableConnInfo(message *model.Message) common.RespMsg {
 	count, err := database.GetItemCount(ConnInfo{})
 	if err != nil {
 		hwlog.RunLog.Errorf("get item count in table conn_infos error: %v", err)
-		return common.RespMsg{Status: common.Success, Msg: "get item count in table conn_infos error", Data: nil}
+		return common.RespMsg{Status: "", Msg: "get item count in table conn_infos error", Data: nil}
 	}
 
 	if count == 0 {
 		err = createConnInfoDb(node)
 		if err != nil {
 			hwlog.RunLog.Errorf("create an item in table conn_infos error: %v", err)
-			return common.RespMsg{Status: common.Success, Msg: "create an item in table conn_infos error", Data: nil}
+			return common.RespMsg{Status: "", Msg: "create an item in table conn_infos error", Data: nil}
 		}
 		return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 	}
@@ -75,4 +75,36 @@ func checkUpdateConnInfoMsg(message *model.Message) (*UpdateConnInfo, common.Res
 	}
 
 	return &updateConnInfo, common.RespMsg{Status: common.Success, Msg: "", Data: nil}
+}
+
+// UpdateUserConnInfo updates item in table conn_infos
+func UpdateUserConnInfo(updateInfo UpdateInfo) common.RespMsg {
+	// todo password encryption
+	node := &ConnInfo{
+		Username:  updateInfo.Username,
+		Password:  []byte(updateInfo.Password),
+		UpdatedAt: time.Now().Format(TimeFormat),
+	}
+	defer common.ClearSliceByteMemory(node.Password)
+	count, err := database.GetItemCount(ConnInfo{})
+	if err != nil {
+		hwlog.RunLog.Errorf("get item count in table conn_infos error: %v", err)
+		return common.RespMsg{Status: "", Msg: "get item count in table conn_infos error", Data: nil}
+	}
+
+	if count == 0 {
+		if err = createConnInfoDb(node); err != nil {
+			hwlog.RunLog.Errorf("create an item in table conn_infos error: %v", err)
+			return common.RespMsg{Status: "", Msg: "create an item in table conn_infos error", Data: nil}
+		}
+		return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
+	}
+
+	if err = updateUserInfoInConnInfo(node); err != nil {
+		hwlog.RunLog.Errorf("update user info in table conn_infos failed, error: %v", err)
+		return common.RespMsg{Status: "", Msg: "db update error", Data: nil}
+	}
+
+	hwlog.RunLog.Info("update user info in table conn_infos success")
+	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }

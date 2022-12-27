@@ -8,6 +8,8 @@ import (
 	"errors"
 	"strings"
 
+	"edge-manager/pkg/database"
+	"edge-manager/pkg/nodemanager"
 	"edge-manager/pkg/util"
 
 	"github.com/gin-gonic/gin"
@@ -32,9 +34,14 @@ type UpgradeInfo struct {
 
 // UpdateInfo struct for updating username and password
 type UpdateInfo struct {
-	NodeId   []string
-	Username string
-	Password []byte
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+// UpdateInfoToInstaller struct for updating username and password to installer
+type UpdateInfoToInstaller struct {
+	Username string `json:"username"`
+	Password []byte `json:"password"`
 }
 
 // IssueResp deals issue service cert response
@@ -59,6 +66,8 @@ func getDestination(message *model.Message) string {
 	case common.Upgrade:
 		destination = common.RestfulServiceName
 	case common.Download:
+		destination = common.EdgeInstallerName
+	case common.Get:
 		destination = common.EdgeInstallerName
 	default:
 		hwlog.RunLog.Error("invalid option")
@@ -119,11 +128,20 @@ func getSfwMgrInfo(upgradeInfo util.DealSfwContent) *baseInfo {
 	sfwMgrBaseInfo := &baseInfo{
 		Address:  sfwMgrIP,
 		Port:     sfwMgrPort,
-		UserName: upgradeInfo.Username,
+		Username: upgradeInfo.Username,
 		Password: password,
 	}
-	defer common.ClearStringMemory(upgradeInfo.Password)
 	return sfwMgrBaseInfo
+}
+
+func getUniqueNums() ([]string, error) {
+	var uniqueNums []string
+	if err := database.GetDb().Model(nodemanager.NodeInfo{}).Select("unique_name").Find(&uniqueNums).Error; err != nil {
+		hwlog.RunLog.Errorf("get unique nums failed, error: %v", err)
+		return []string{}, err
+	}
+
+	return uniqueNums, nil
 }
 
 func initGin() *gin.Engine {

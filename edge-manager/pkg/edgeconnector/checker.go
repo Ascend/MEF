@@ -60,12 +60,12 @@ func (base *baseInfo) checkPort() error {
 }
 
 func (base *baseInfo) checkName() error {
-	if !util.CheckInt(len(base.UserName), MinNameLength, MaxNameLength) {
+	if !util.CheckInt(len(base.Username), MinNameLength, MaxNameLength) {
 		hwlog.RunLog.Errorf("check username length failed, username length is out of range [%d,%d]",
 			MinNameLength, MaxNameLength)
 		return errors.New("check username length failed")
 	}
-	if !util.CheckNameFormat(base.UserName) {
+	if !util.CheckNameFormat(base.Username) {
 		hwlog.RunLog.Error("check username format failed, it contains invalid characters")
 		return errors.New("check username format failed")
 	}

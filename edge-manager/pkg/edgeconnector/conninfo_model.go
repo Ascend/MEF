@@ -29,3 +29,16 @@ func updateInConnInfo(node *ConnInfo) error {
 
 	return nil
 }
+
+func updateUserInfoInConnInfo(node *ConnInfo) error {
+	defer common.ClearSliceByteMemory(node.Password)
+	if err := database.GetDb().Model(ConnInfo{}).Where("id = 1").Updates(&ConnInfo{
+		Username:  node.Username,
+		Password:  node.Password,
+		UpdatedAt: time.Now().Format(TimeFormat),
+	}).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
