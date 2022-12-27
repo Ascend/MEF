@@ -35,6 +35,14 @@ func loadConf(path string) ([]byte, error) {
 	return b, nil
 }
 
+func (n *nginxConfUpdater) calculatePipeCount() (int, error) {
+	content, err := loadConf(n.confPath)
+	if err != nil {
+		return 0, err
+	}
+	return bytes.Count(content, []byte(nginxcom.ClientPipePrefix)), nil
+}
+
 // Update 修改配置文件
 func (n *nginxConfUpdater) Update() error {
 	content, err := loadConf(n.confPath)

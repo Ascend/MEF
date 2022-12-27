@@ -6,6 +6,8 @@ package nginxcom
 const (
 	// KeyPrefix 前缀
 	KeyPrefix = "set $"
+	// ClientPipePrefix 内部https转发使用的pipe前缀
+	ClientPipePrefix = "client_pipe"
 	// EdgeUrlKey url对应在配置文件的key
 	EdgeUrlKey = "EdgeMgrSvcDomain"
 	// EdgePortKey port对应在配置文件的key
@@ -26,8 +28,12 @@ const (
 	NginxConfigPath = "/home/hwMindX/conf/nginx.conf"
 	// CertKeyFile 证书私钥文件
 	CertKeyFile = "/home/hwMindX/certs/nginx-manager.key"
+	// ClientCertKeyFile 内部转发消息的证书私钥文件
+	ClientCertKeyFile = "/home/hwMindX/certs/client.key"
 	// PipePath 证书私钥管道
 	PipePath = "/home/hwMindX/conf/keyPipe"
+	// ClientPipeDir 内部转发消息的证书私钥管道
+	ClientPipeDir = "/home/hwMindX/conf/"
 	// FifoPermission 证书私钥管道权限
 	FifoPermission = 0600
 	// NginxManagerName nginx manager模块对应收发消息的key

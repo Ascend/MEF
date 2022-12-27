@@ -15,50 +15,65 @@ import (
 	"huawei.com/mindxedge/base/common"
 )
 
-type nginxCertLoader struct {
-	keyPath    string
-	pipePath   string
-	keyContent []byte
-}
-
-// NewNginxCertLoader 创建一个nginx证书加载器
-func NewNginxCertLoader(keyPath, pipePath string) *nginxCertLoader {
-	loader := &nginxCertLoader{
-		keyPath:  keyPath,
-		pipePath: pipePath,
-	}
-	return loader
-}
-
-func (n *nginxCertLoader) Load() error {
-	if err := n.loadKey(n.keyPath); err != nil {
+// Load 加载北向密钥文件并写入pipe
+func Load(keyPath, pipePath string) error {
+	var keyContent []byte
+	var err error
+	if keyContent, err = loadKey(keyPath); err != nil {
 		return err
 	}
-	if utils.IsExist(n.pipePath) {
+	if utils.IsExist(pipePath) {
 		return nil
 	}
-	err := n.createPipe(n.pipePath)
+	err = createPipe(pipePath)
 	if err != nil {
 		return err
 	}
-	go n.writeKeyToPipe(n.pipePath, n.keyContent)
+	go writeKeyToPipe(pipePath, keyContent)
 	return nil
 }
 
-func (n *nginxCertLoader) loadKey(path string) error {
+// LoadForClient 加载用于内部转发的密钥文件并写入pipe
+func LoadForClient(keyPath, pipeDir string, pipeCount int) error {
+	var keyContent []byte
+	var err error
+	if keyContent, err = loadKey(keyPath); err != nil {
+		return err
+	}
+	var pipePaths []string
+	for i := 0; i < pipeCount; i++ {
+		pipePath := fmt.Sprintf("%s%s_%d", pipeDir, nginxcom.ClientPipePrefix, i)
+		pipePaths = append(pipePaths, pipePath)
+	}
+
+	for _, pipePath := range pipePaths {
+		if utils.IsExist(pipePath) {
+			return nil
+		}
+		err = createPipe(pipePath)
+		if err != nil {
+			return err
+		}
+	}
+	for _, pipePath := range pipePaths {
+		go writeKeyToPipe(pipePath, keyContent)
+	}
+	return nil
+}
+
+func loadKey(path string) ([]byte, error) {
 	encryptKeyContent, err := utils.LoadFile(path)
 	if err != nil {
-		return fmt.Errorf("load key file failed: %s" + err.Error())
+		return nil, fmt.Errorf("load key file failed: %s" + err.Error())
 	}
 	decryptKeyByte, err := common.DecryptContent(encryptKeyContent, common.GetDefKmcCfg())
 	if err != nil {
-		return fmt.Errorf("decrypt key content failed: %s" + err.Error())
+		return nil, fmt.Errorf("decrypt key content failed: %s" + err.Error())
 	}
-	n.keyContent = decryptKeyByte
-	return nil
+	return decryptKeyByte, nil
 }
 
-func (n *nginxCertLoader) writeKeyToPipe(pipeFile string, content []byte) {
+func writeKeyToPipe(pipeFile string, content []byte) {
 	pipe, err := os.OpenFile(pipeFile, os.O_WRONLY|os.O_SYNC, os.ModeNamedPipe)
 	if err != nil {
 		hwlog.RunLog.Error("open pipe failed")
@@ -87,7 +102,7 @@ func (n *nginxCertLoader) writeKeyToPipe(pipeFile string, content []byte) {
 	hwlog.RunLog.Infof("write pipe %s success", pipeFile)
 }
 
-func (n *nginxCertLoader) createPipe(pipeFile string) error {
+func createPipe(pipeFile string) error {
 	_, err := os.Stat(pipeFile)
 	if os.IsExist(err) {
 		hwlog.RunLog.Infof("pipe %v exists", pipeFile)
