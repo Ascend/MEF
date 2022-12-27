@@ -12,6 +12,8 @@ const (
 	EdgeCore = "edgecore"
 	// EdgeInstaller software edge-installer name
 	EdgeInstaller = "edge-installer"
+	// DevicePlugin software device-plugin name
+	DevicePlugin = "device-plugin"
 	// RestfulServiceName RestfulService
 	RestfulServiceName = "RestfulService"
 	// NodeManagerName NodeManager
@@ -93,6 +95,8 @@ const (
 	SoftwareResp = "software/response"
 	// Repository resource
 	Repository = "repository"
+	// Token resource
+	Token = "token"
 	// URL link
 	URL = "url"
 )

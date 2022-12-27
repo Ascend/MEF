@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -24,8 +25,9 @@ type WebSocketServer struct {
 	server        *gin.Engine
 	WriteDeadline time.Duration
 	ReadDeadline  time.Duration
-	allClients    map[string]*websocket.Conn
-	isConnMap     map[string]bool
+	allClients    sync.Map
+	isConnMap     sync.Map
+	loopChan      chan struct{}
 }
 
 func newWebsocketServer(c *gin.Engine) *WebSocketServer {
@@ -33,8 +35,7 @@ func newWebsocketServer(c *gin.Engine) *WebSocketServer {
 		server:        c,
 		WriteDeadline: WriteDeadline,
 		ReadDeadline:  ReadDeadline,
-		allClients:    make(map[string]*websocket.Conn),
-		isConnMap:     make(map[string]bool),
+		loopChan:      make(chan struct{}),
 	}
 }
 
@@ -63,29 +64,37 @@ func (w *WebSocketServer) ServeHTTP(c *gin.Context) {
 		hwlog.RunLog.Errorf("error during connection upgrade: %v", err)
 		return
 	}
-
 	nodeID := c.Request.Header.Get("SerialNumber")
 	hwlog.RunLog.Infof("websocket connection with [%s] is ok", nodeID)
-	w.allClients[nodeID] = conn
+
+	w.allClients.Store(nodeID, conn)
+	w.loopChan <- struct{}{}
 	w.notifyTasks(nodeID)
 }
 
 // Send sends message to edge-installer
 func (w *WebSocketServer) Send(message *model.Message, nodeId string) error {
-	conn := w.allClients[nodeId]
+	conn, ok := w.allClients.Load(nodeId)
+	if !ok {
+		return errors.New("load conn from map failed")
+	}
 	if conn == nil {
 		return errors.New("conn is nil")
 	}
 
-	if err := conn.SetWriteDeadline(time.Now().Add(WriteCenterDeadline)); err != nil {
+	realConn, ok := conn.(*websocket.Conn)
+	if !ok {
+		return errors.New("convert to websocket conn failed")
+	}
+
+	if err := realConn.SetWriteDeadline(time.Now().Add(WriteCenterDeadline)); err != nil {
 		hwlog.RunLog.Error("write message time out")
 		return err
 	}
 
 	var err error
 	for i := 0; i < WriteRetryCount; i++ {
-		err = conn.WriteJSON(message)
-		if err == nil {
+		if err = realConn.WriteJSON(message); err == nil {
 			return nil
 		}
 	}
@@ -129,7 +138,8 @@ func (w *WebSocketServer) notifyTasks(nodeId string) {
 
 // IsClientConnected indicates whether the edge-installer is connected
 func (w *WebSocketServer) IsClientConnected(nodeId string) bool {
-	return w.isConnMap[nodeId]
+	_, ok := w.isConnMap.Load(nodeId)
+	return ok
 }
 
 // CloseConnection closes the websocket connection
@@ -142,5 +152,5 @@ func (w *WebSocketServer) CloseConnection(nodeId string) {
 
 // SetClientStatus sets the edge-installer status
 func (w *WebSocketServer) SetClientStatus(nodeId string, connectStatus bool) {
-	w.isConnMap[nodeId] = connectStatus
+	w.isConnMap.Store(nodeId, connectStatus)
 }

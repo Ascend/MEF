@@ -29,7 +29,7 @@ func InitConfigure() {
 			KeyFile:       "config/certs/manager.key",
 			PasswdFile:    "config/certs/manager.pwd",
 			ServerAddress: "127.0.0.1",
-			Port:          "10000",
+			Port:          "10001",
 		}
 	})
 }

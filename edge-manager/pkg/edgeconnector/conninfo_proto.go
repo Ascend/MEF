@@ -4,10 +4,10 @@
 package edgeconnector
 
 type baseInfo struct {
-	Address  string
-	Port     string
-	UserName string
-	Password []byte
+	Address  string `json:"address,omitempty"`
+	Port     string `json:"port,omitempty"`
+	Username string `json:"username"`
+	Password []byte `json:"password"`
 }
 
 // UpdateConnInfo struct for updating an item in table conn_infos

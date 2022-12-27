@@ -5,9 +5,11 @@ package edgeinstaller
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 
 	"edge-manager/pkg/database"
+	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/util"
 
 	"huawei.com/mindxedge/base/common"
@@ -74,6 +76,8 @@ func (i *Installer) Start() {
 			go i.dealUpgrade(message)
 		case common.Download:
 			go i.dealDownload(message)
+		case common.Get:
+			go i.dealGetToken(message)
 		default:
 			hwlog.RunLog.Error("invalid operation")
 			continue
@@ -81,16 +85,78 @@ func (i *Installer) Start() {
 	}
 }
 
+// TokenReq token request from edge-installer
+type TokenReq struct {
+	NodeId string `json:"nodeId"`
+	Token  []byte `json:"token,omitempty"`
+}
+
+func (i *Installer) dealGetToken(message *model.Message) {
+	hwlog.RunLog.Info("edge-installer received message from edge-connector success to get token")
+	if !(message.GetSource() == common.EdgeConnectorName) || !(message.GetResource() == common.Token) {
+		hwlog.RunLog.Error("invalid source or resource")
+		return
+	}
+
+	data, ok := message.GetContent().(string)
+	if !ok {
+		hwlog.RunLog.Error("convert to tokenReq failed")
+		return
+	}
+
+	token, err := kubeclient.GetKubeClient().GetToken()
+	if err != nil {
+		hwlog.RunLog.Error("get token from k8s failed")
+		return
+	}
+
+	tokenReq := TokenReq{}
+	if err = json.Unmarshal([]byte(data), &tokenReq); err != nil {
+		hwlog.RunLog.Errorf("parse data getting token failed, error: %v", err)
+		return
+	}
+
+	tokenReq.Token = token
+	if err = i.sendTokenToEdgeConnector(&tokenReq, message.GetOption()); err != nil {
+		hwlog.RunLog.Errorf("send token to edge connector failed, error: %v", err)
+		return
+	}
+
+	hwlog.RunLog.Info("edge-installer send to edge-connector success with token")
+	return
+}
+
+func (i *Installer) sendTokenToEdgeConnector(tokenReq *TokenReq, option string) error {
+	content := *tokenReq
+
+	sendMsg, err := model.NewMessage()
+	if err != nil {
+		hwlog.RunLog.Errorf("new message failed, error: %v", err)
+		return err
+	}
+	sendMsg.SetRouter(i.Name(), common.EdgeConnectorName, option, common.Token)
+	sendMsg.FillContent(content)
+	sendMsg.SetIsSync(false)
+	if err = modulemanager.SendMessage(sendMsg); err != nil {
+		hwlog.RunLog.Errorf("send message failed, error: %v", err)
+		return err
+	}
+
+	return nil
+}
+
 func (i *Installer) dealUpgrade(message *model.Message) {
+	hwlog.RunLog.Info(" ----------deal upgrade request from edge-installer begin-------")
 	if !(message.GetSource() == common.RestfulServiceName) || !(message.GetResource() == common.Software) {
 		hwlog.RunLog.Error("invalid source or resource")
 		return
 	}
 
 	if err := i.respRestful(message); err != nil {
-		hwlog.RunLog.Error("send response to restful module failed")
+		hwlog.RunLog.Error("send response for upgrading to restful module failed")
 		return
 	}
+	hwlog.RunLog.Info("edge-installer send SUCCESS to restful for upgrading success")
 
 	var dealSfwReq util.UpgradeSfwReq
 	if err := common.ParamConvert(message.GetContent(), &dealSfwReq); err != nil {
@@ -109,6 +175,7 @@ func (i *Installer) dealUpgrade(message *model.Message) {
 		return
 	}
 
+	hwlog.RunLog.Info("edge-installer send to edge-connector success with download url for upgrading")
 	return
 }
 
@@ -162,7 +229,8 @@ func (i *Installer) dealDownload(message *model.Message) {
 		return
 	}
 
-	hwlog.RunLog.Info("edge-installer send to edge-connector success with download url")
+	hwlog.RunLog.Infof("edge-installer send to edge-connector success with download url for downloading [%s]",
+		dealSfwContent.SoftwareName)
 	return
 }
 

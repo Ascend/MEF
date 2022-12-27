@@ -17,6 +17,10 @@ import (
 
 // CheckDataFromSfwMgr checks data from software manager
 func CheckDataFromSfwMgr(downloadSfwContent *util.DealSfwContent, nodeId string) error {
+	if downloadSfwContent == nil {
+		hwlog.RunLog.Error("download software content is nil")
+		return errors.New("download software content is nil")
+	}
 	dataBytes := strings.Split(downloadSfwContent.Url, "=")
 	if len(dataBytes) == 0 {
 		return errors.New("invalid download software content")
@@ -36,7 +40,7 @@ func CheckDataFromSfwMgr(downloadSfwContent *util.DealSfwContent, nodeId string)
 
 // CheckSfwInfo checks whether software info from software manager is correct
 func CheckSfwInfo(softwareName string) bool {
-	if softwareName != common.EdgeCore && softwareName != common.EdgeInstaller {
+	if softwareName != common.EdgeCore && softwareName != common.EdgeInstaller && softwareName != common.DevicePlugin {
 		hwlog.RunLog.Error("check software name failed")
 		return false
 	}

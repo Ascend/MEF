@@ -19,6 +19,7 @@ func setRouter(engine *gin.Engine) {
 	nodeRouter(engine)
 	appRouter(engine)
 	softwareRouter(engine)
+	connInfoRouter(engine)
 	templateRouter(engine)
 }
 
@@ -67,6 +68,13 @@ func softwareRouter(engine *gin.Engine) {
 	v1 := engine.Group("/edgemanager/v1/software")
 	{
 		v1.POST("/upgrade", upgradeSoftware)
+	}
+}
+
+func connInfoRouter(engine *gin.Engine) {
+	v1 := engine.Group("/edgemanager/v1/conninfo")
+	{
+		v1.POST("/update", updateConnInfo)
 	}
 }
 
