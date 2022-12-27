@@ -96,14 +96,14 @@ func (c *containerParaChecker) checkContainerCpuQuantityValid() error {
 
 func (c *containerParaChecker) checkContainerMemoryQuantityValid() error {
 	if c.container.MemRequest < minMemoryQuantity || c.container.MemRequest > maxMemoryQuantity {
-		return errors.New("cpu request quantity not in valid value")
+		return errors.New("memory request quantity not in valid value")
 	}
 
 	if c.container.MemLimit == 0 {
 		return nil
 	}
 	if c.container.MemLimit < minMemoryQuantity || c.container.MemLimit > maxMemoryQuantity {
-		return errors.New("cpu limit quantity not in valid value")
+		return errors.New("memory limit quantity not in valid value")
 	}
 
 	return nil
@@ -116,7 +116,7 @@ func (c *containerParaChecker) checkContainerNpuQuantityValid() error {
 
 	if big.NewFloat(c.container.CpuRequest).Cmp(big.NewFloat(minNpuQuantity)) < 0 ||
 		big.NewFloat(c.container.CpuRequest).Cmp(big.NewFloat(maxNpuQuantity)) > 0 {
-		return errors.New("cpu limit quantity not in valid value")
+		return errors.New("npu request quantity not in valid value")
 	}
 
 	return nil
