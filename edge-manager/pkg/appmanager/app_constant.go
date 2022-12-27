@@ -39,11 +39,10 @@ const (
 	maxGroupId        = 65535
 	commandMaxCount   = 16
 	argsMaxCount      = 16
-	milliQuantityUnit = 1000
 	minCpuQuantity    = 0.01
 	maxCpuQuantity    = 1000
-	minMemoryQuantity = 4 * MB
-	maxMemoryQuantity = 1000 * GB
+	minMemoryQuantity = 4           // 4 MB
+	maxMemoryQuantity = 1000 * 1024 // 1000GB
 	minNpuQuantity    = 0.01
 	maxNpuQuantity    = 32
 
