@@ -8,17 +8,17 @@ type Container struct {
 	Name         string          `json:"name"`
 	Image        string          `json:"image"`
 	ImageVersion string          `json:"imageVersion"`
-	CpuRequest   string          `json:"cpuRequest"`
-	CpuLimit     string          `json:"cpuLimit"`
-	MemRequest   string          `json:"memRequest"`
-	MemLimit     string          `json:"memLimit"`
-	Npu          string          `json:"npu"`
+	CpuRequest   float64         `json:"cpuRequest"`
+	CpuLimit     float64         `json:"cpuLimit"`
+	MemRequest   int64           `json:"memRequest"`
+	MemLimit     int64           `json:"memLimit"`
+	Npu          float64         `json:"npu"`
 	Command      []string        `json:"command"`
 	Args         []string        `json:"args"`
 	Env          []EnvVar        `json:"env"`
 	Ports        []ContainerPort `json:"containerPort"`
-	UserId       int             `json:"userId"`
-	GroupId      int             `json:"groupId"`
+	UserID       int64           `json:"userID"`
+	GroupID      int64           `json:"groupID"`
 }
 
 // EnvVar encapsulate env request
@@ -32,6 +32,6 @@ type ContainerPort struct {
 	Name          string `json:"name"`
 	Proto         string `json:"proto"`
 	ContainerPort int32  `json:"containerPort"`
-	HostIp        string `json:"hostIp"`
+	HostIP        string `json:"hostIP"`
 	HostPort      int32  `json:"hostPort"`
 }

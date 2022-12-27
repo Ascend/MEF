@@ -6,11 +6,10 @@ package appmanager
 import (
 	"errors"
 	"fmt"
+	"math/big"
 	"net"
 
 	"edge-manager/pkg/util"
-
-	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 type appParaPattern struct {
@@ -78,74 +77,43 @@ func (c *containerParaChecker) checkContainerImageVersionValid() error {
 }
 
 func (c *containerParaChecker) checkContainerCpuQuantityValid() error {
-	cpuRequest, err := resource.ParseQuantity(c.container.CpuRequest)
-	if err != nil {
-		return errors.New("parse cpu request failed")
-	}
-
-	minMem := resource.NewMilliQuantity(minCpuQuantity*milliQuantityUnit, resource.DecimalSI)
-	maxMem := resource.NewMilliQuantity(maxCpuQuantity*milliQuantityUnit, resource.DecimalSI)
-
-	if cpuRequest.Cmp(*minMem) < 0 || cpuRequest.Cmp(*maxMem) > 0 {
+	if big.NewFloat(c.container.CpuRequest).Cmp(big.NewFloat(minCpuQuantity)) < 0 ||
+		big.NewFloat(c.container.CpuRequest).Cmp(big.NewFloat(maxCpuQuantity)) > 0 {
 		return errors.New("cpu request quantity not in valid value")
 	}
 
-	if len(c.container.CpuLimit) == 0 {
+	if big.NewFloat(c.container.CpuLimit).Cmp(big.NewFloat(0)) == 0 {
 		return nil
 	}
-	cpuLimit, err := resource.ParseQuantity(c.container.CpuLimit)
-	if err != nil {
-		return errors.New("parse cpu limit failed")
+
+	if big.NewFloat(c.container.CpuLimit).Cmp(big.NewFloat(minCpuQuantity)) < 0 ||
+		big.NewFloat(c.container.CpuLimit).Cmp(big.NewFloat(maxCpuQuantity)) > 0 {
+		return errors.New("cpu limit quantity not in valid value")
 	}
 
-	if cpuLimit.Cmp(*minMem) < 0 || cpuLimit.Cmp(*maxMem) > 0 {
-		return errors.New("cpu request quantity not in valid value")
-	}
 	return nil
 }
 
 func (c *containerParaChecker) checkContainerMemoryQuantityValid() error {
-	memRequest, err := resource.ParseQuantity(c.container.MemRequest)
-	if err != nil {
-		return errors.New("parse mem request failed")
+	if c.container.MemRequest < minMemoryQuantity || c.container.MemRequest > maxMemoryQuantity {
+		return errors.New("cpu request quantity not in valid value")
 	}
 
-	minMem := resource.NewQuantity(minMemoryQuantity, resource.BinarySI)
-	maxMem := resource.NewQuantity(maxMemoryQuantity, resource.BinarySI)
-
-	if memRequest.Cmp(*minMem) < 0 || memRequest.Cmp(*maxMem) > 0 {
-		return errors.New("mem request quantity not in valid value")
+	if c.container.MemLimit < minMemoryQuantity || c.container.MemLimit > maxMemoryQuantity {
+		return errors.New("cpu limit quantity not in valid value")
 	}
 
-	if len(c.container.MemLimit) == 0 {
-		return nil
-	}
-	memLimit, err := resource.ParseQuantity(c.container.MemLimit)
-	if err != nil {
-		return errors.New("parse mem limit failed")
-	}
-
-	if memLimit.Cmp(*minMem) < 0 || memLimit.Cmp(*maxMem) > 0 {
-		return errors.New("mem request quantity not in valid value")
-	}
 	return nil
 }
 
 func (c *containerParaChecker) checkContainerNpuQuantityValid() error {
-	if len(c.container.Npu) == 0 {
+	if big.NewFloat(c.container.CpuLimit).Cmp(big.NewFloat(0)) == 0 {
 		return nil
 	}
-
-	npuRequest, err := resource.ParseQuantity(c.container.Npu)
-	if err != nil {
-		return errors.New("parse npu request failed")
-	}
-
-	minMem := resource.NewMilliQuantity(minNpuQuantity*milliQuantityUnit, resource.DecimalSI)
-	maxMem := resource.NewMilliQuantity(maxNpuQuantity*milliQuantityUnit, resource.DecimalSI)
-
-	if npuRequest.Cmp(*minMem) < 0 || npuRequest.Cmp(*maxMem) > 0 {
-		return errors.New("npu request quantity not in valid value")
+	
+	if big.NewFloat(c.container.CpuRequest).Cmp(big.NewFloat(minNpuQuantity)) < 0 ||
+		big.NewFloat(c.container.CpuRequest).Cmp(big.NewFloat(maxNpuQuantity)) > 0 {
+		return errors.New("cpu limit quantity not in valid value")
 	}
 
 	return nil
@@ -286,11 +254,11 @@ func (c *portParaChecker) checkPortHostPort() error {
 }
 
 func (c *portParaChecker) checkPortHostIP() error {
-	if c.port.HostIp == "" || c.port.HostIp == "0.0.0.0" || c.port.HostIp == "255.255.255.255" {
+	if c.port.HostIP == "" || c.port.HostIP == "0.0.0.0" || c.port.HostIP == "255.255.255.255" {
 		return fmt.Errorf("container port host ip invalid")
 	}
 
-	ip := net.ParseIP(c.port.HostIp)
+	ip := net.ParseIP(c.port.HostIP)
 	if ip == nil || ip.To4() == nil {
 		return fmt.Errorf("container port host ip is not ipv4")
 	}
@@ -323,7 +291,7 @@ func (c *containerParaChecker) checkContainerPortsValid() error {
 }
 
 func (c *containerParaChecker) checkUserIdValid() error {
-	if c.container.UserId < minUserId || c.container.UserId > maxUserId {
+	if c.container.UserID < minUserId || c.container.UserID > maxUserId {
 		return fmt.Errorf("container user id valid")
 	}
 
@@ -331,7 +299,7 @@ func (c *containerParaChecker) checkUserIdValid() error {
 }
 
 func (c *containerParaChecker) checkGroupIdValid() error {
-	if c.container.UserId < minGroupId || c.container.UserId > maxGroupId {
+	if c.container.UserID < minGroupId || c.container.UserID > maxGroupId {
 		return fmt.Errorf("container group id valid")
 	}
 
