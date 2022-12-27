@@ -387,6 +387,10 @@ func (c *templateParaChecker) checkTemplateDescriptionValid() error {
 }
 
 func (c *templateParaChecker) checkTemplateContainersValid() error {
+	if len(c.req.Containers) > maxContainerCountInPod {
+		return fmt.Errorf("container count in pod up to limit")
+	}
+
 	for idx := range c.req.Containers {
 		var checker = containerParaChecker{container: &c.req.Containers[idx]}
 		if err := checker.check(); err != nil {
