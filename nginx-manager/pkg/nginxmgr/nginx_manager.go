@@ -63,8 +63,17 @@ func updateConf() error {
 }
 
 func loadCerts() error {
-	loader := NewNginxCertLoader(nginxcom.CertKeyFile, nginxcom.PipePath)
-	return loader.Load()
+	err := Load(nginxcom.CertKeyFile, nginxcom.PipePath)
+	if err != nil {
+		return err
+	}
+	updater, err := NewNginxConfUpdater(nil, nginxcom.NginxDefaultConfigPath)
+	pipeCount, err := updater.calculatePipeCount()
+	if err != nil {
+		return err
+	}
+	err = LoadForClient(nginxcom.ClientCertKeyFile, nginxcom.ClientPipeDir, pipeCount)
+	return err
 }
 
 // CreateConfItems 创建nginx.conf配置文件的替换项
@@ -151,7 +160,7 @@ func (n *nginxManager) Start() {
 		default:
 		}
 		req, err := modulemanager.ReceiveMessage(nginxcom.NginxManagerName)
-		hwlog.RunLog.Debugf("%s receive request from software manager", nginxcom.NginxManagerName)
+		hwlog.RunLog.Infof("%s receive request from software manager", nginxcom.NginxManagerName)
 		if err != nil {
 			hwlog.RunLog.Errorf("%s receive request from software manager failed", nginxcom.NginxManagerName)
 			continue

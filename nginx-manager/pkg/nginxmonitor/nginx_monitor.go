@@ -74,7 +74,7 @@ func (n *nginxMonitor) Start() {
 		default:
 		}
 		req, err := modulemanager.ReceiveMessage(nginxcom.NginxMonitorName)
-		hwlog.RunLog.Debugf("%s receive request from software manager", nginxcom.NginxMonitorName)
+		hwlog.RunLog.Infof("%s receive request from software manager", nginxcom.NginxMonitorName)
 		if err != nil {
 			hwlog.RunLog.Errorf("%s receive request from software manager failed", nginxcom.NginxMonitorName)
 			continue
