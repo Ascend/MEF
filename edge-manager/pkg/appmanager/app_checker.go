@@ -110,7 +110,7 @@ func (c *containerParaChecker) checkContainerNpuQuantityValid() error {
 	if big.NewFloat(c.container.CpuLimit).Cmp(big.NewFloat(0)) == 0 {
 		return nil
 	}
-	
+
 	if big.NewFloat(c.container.CpuRequest).Cmp(big.NewFloat(minNpuQuantity)) < 0 ||
 		big.NewFloat(c.container.CpuRequest).Cmp(big.NewFloat(maxNpuQuantity)) > 0 {
 		return errors.New("cpu limit quantity not in valid value")
