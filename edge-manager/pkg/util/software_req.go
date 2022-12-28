@@ -12,7 +12,7 @@ type UpgradeSfwReq struct {
 
 // DownloadSfwReq request of downloading software
 type DownloadSfwReq struct {
-	NodeId          string `json:"nodeId"`
+	NodeID          string `json:"nodeID"`
 	SoftwareName    string `json:"softwareName"`
 	SoftwareVersion string `json:"softwareVersion,omitempty"`
 }

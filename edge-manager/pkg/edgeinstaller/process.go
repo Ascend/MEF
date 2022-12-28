@@ -43,7 +43,7 @@ type RespMsg struct {
 }
 
 func sendToSoftwareManager(dealSfwReq *util.DownloadSfwReq) (*http.Response, error) {
-	nodeInfo, err := constructHttpBody(dealSfwReq.NodeId)
+	nodeInfo, err := constructHttpBody(dealSfwReq.NodeID)
 	if err != nil {
 		hwlog.RunLog.Errorf("construct http body failed, error: %v", err)
 		return nil, err
@@ -193,7 +193,7 @@ func downloadWithSfwMgr(dealSfwReq util.DownloadSfwReq) (*util.DealSfwContent, e
 		return nil, err
 	}
 
-	if dealSfwContent, err = dealRespFromSfwManager(resp, dealSfwReq.NodeId); err != nil {
+	if dealSfwContent, err = dealRespFromSfwManager(resp, dealSfwReq.NodeID); err != nil {
 		hwlog.RunLog.Errorf("deal resp from software manager failed, error: %v", err)
 		return nil, err
 	}
@@ -213,7 +213,7 @@ func upgradeWithSfwManager(upgradeSfwReq util.UpgradeSfwReq) (*util.DealSfwConte
 		hwlog.RunLog.Infof("--------edge-installer %s upgrade software begin--------", nodeId)
 
 		downloadSfwReq := util.DownloadSfwReq{
-			NodeId:          nodeId,
+			NodeID:          nodeId,
 			SoftwareName:    upgradeSfwReq.SoftwareName,
 			SoftwareVersion: upgradeSfwReq.SoftwareVersion,
 		}
