@@ -13,8 +13,11 @@ const HttpTimeout = 60 * time.Second
 
 // location of software name and version in url
 const (
-	LocationSfwVersion = 2
-	LocationSfwName    = 0
+	LocationSfwVersion     = 2
+	LocationSfwName        = 0
+	LocationSfw            = 0
+	LocationRespSfwName    = 1
+	LocationRespSfwVersion = 2
 )
 
 // software manager info
@@ -22,5 +25,5 @@ const (
 	SoftwareIP   = "software-manager-service-mindx-edge.svc.cluster.local"
 	SoftwarePort = "8102"
 	SoftRoute    = "softwaremanager/v1"
-	HttpMethod   = "GET"
+	HttpsMethod  = "GET"
 )

@@ -11,9 +11,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"edge-manager/pkg/database"
-	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/nodemanager"
 	"edge-manager/pkg/util"
 
@@ -109,11 +109,10 @@ func constructHttpReq(dealSfwReq *util.DownloadSfwReq, nodeInfo []byte) (*http.R
 	}
 
 	softwareName := dealSfwReq.SoftwareName
-	softwareVersion := dealSfwReq.SoftwareVersion
-	sfwUrl := fmt.Sprintf("http://%s:%s/%s/url?contentType=%s&version=%s",
-		sfwMgrInfo.SoftwareIP, sfwMgrInfo.SoftwarePort, sfwMgrInfo.SoftRoute, softwareName, softwareVersion)
-
-	req, err := http.NewRequest(HttpMethod, sfwUrl, bytes.NewReader(nodeInfo))
+	// todo 核对新的url格式
+	sfwUrl := fmt.Sprintf("http://%s:%s/%s/url?contentType=%s",
+		sfwMgrInfo.SoftwareIP, sfwMgrInfo.SoftwarePort, sfwMgrInfo.SoftRoute, softwareName)
+	req, err := http.NewRequest(HttpsMethod, sfwUrl, bytes.NewReader(nodeInfo))
 	if err != nil {
 		hwlog.RunLog.Errorf("new request for http failed, error: %v", err)
 		return nil, err
@@ -151,29 +150,36 @@ func dealRespFromSfwManager(resp *http.Response, nodeId string) (*util.DealSfwCo
 		return nil, err
 	}
 
-	dealSfwContentFromSfwMgr := respMsg.Data
-	dealSfwContent, err := mergeToken(&dealSfwContentFromSfwMgr)
-	if err != nil {
-		hwlog.RunLog.Errorf("merge token to edge-installer failed, error: %v", err)
-		return nil, err
+	if respMsg.Status != common.Success {
+		hwlog.RunLog.Error("get response from software manager failed")
+		return nil, errors.New("get response from software manager failed")
 	}
 
-	if err = CheckDataFromSfwMgr(dealSfwContent, nodeId); err != nil {
+	dealSfwContent := respMsg.Data
+	if err = CheckDataFromSfwMgr(&dealSfwContent, nodeId); err != nil {
 		hwlog.RunLog.Errorf("check data from software manager failed, error: %v", err)
 		return nil, err
 	}
-	return dealSfwContent, nil
+
+	dealSfwContent = mergeSfwInfo(dealSfwContent)
+	if &dealSfwContent == nil {
+		hwlog.RunLog.Error("merge software info failed")
+		return nil, errors.New("merge software info failed")
+	}
+	return &dealSfwContent, nil
 }
 
-func mergeToken(dealSfwContent *util.DealSfwContent) (*util.DealSfwContent, error) {
-	token, err := kubeclient.GetKubeClient().GetToken()
-	if err != nil {
-		hwlog.RunLog.Error("get token from k8s failed")
-		return nil, errors.New("get token from k8s failed")
+func mergeSfwInfo(dealSfwContent util.DealSfwContent) util.DealSfwContent {
+	downloadUrl := dealSfwContent.Url
+	dataBytes := strings.Split(downloadUrl, "=")
+	if len(dataBytes) < LocationRespSfwName || len(dataBytes) < LocationRespSfwVersion {
+		return util.DealSfwContent{}
 	}
-
-	dealSfwContent.Token = token
-	return dealSfwContent, nil
+	softwareName := strings.Split(dataBytes[LocationRespSfwName], "&")[LocationSfw]
+	softwareVersion := strings.Split(dataBytes[LocationRespSfwVersion], "&")[LocationSfw]
+	dealSfwContent.SoftwareName = softwareName
+	dealSfwContent.SoftwareVersion = softwareVersion
+	return dealSfwContent
 }
 
 func downloadWithSfwMgr(dealSfwReq util.DownloadSfwReq) (*util.DealSfwContent, error) {
@@ -203,7 +209,7 @@ func upgradeWithSfwManager(upgradeSfwReq util.UpgradeSfwReq) (*util.DealSfwConte
 	}
 
 	var dealSfwContent *util.DealSfwContent
-	for _, nodeId := range nodeIds {
+	for _, nodeId := range nodeIds { // todo 只针对单个节点
 		hwlog.RunLog.Infof("--------edge-installer %s upgrade software begin--------", nodeId)
 
 		downloadSfwReq := util.DownloadSfwReq{

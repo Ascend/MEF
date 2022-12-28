@@ -5,9 +5,10 @@ package util
 
 // DealSfwContent deal software content
 type DealSfwContent struct {
-	NodeId   string `json:"nodeId"`
-	Url      string `json:"url"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Token    []byte `json:"token,omitempty"`
+	NodeId          string `json:"nodeId"`
+	Url             string `json:"url"`
+	SoftwareName    string `json:"softwareName,omitempty"`
+	SoftwareVersion string `json:"softwareVersion,omitempty"`
+	Username        string `json:"username"`
+	Password        string `json:"password"`
 }

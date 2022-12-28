@@ -25,7 +25,7 @@ const (
 	MinNameLength = 6
 	MaxNameLength = 32
 	MinPwdLength  = 6
-	MaxPwdLength  = 32
+	MaxPwdLength  = 45
 )
 
 // Online indicates edge-installer is online, Offline indicates edge-installer is offline

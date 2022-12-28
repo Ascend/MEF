@@ -19,6 +19,7 @@ func setRouter(engine *gin.Engine) {
 	nodeRouter(engine)
 	appRouter(engine)
 	softwareRouter(engine)
+	connInfoRouter(engine)
 	templateRouter(engine)
 }
 
@@ -26,10 +27,10 @@ func nodeRouter(engine *gin.Engine) {
 	node := engine.Group("/edgemanager/v1/node")
 	{
 		node.POST("/", createEdgeNode)
-		node.GET("/num", getNodeStatistics)
+		node.GET("/stats", getNodeStatistics)
 		node.GET("/:id", getNodeDetail)
 		node.PATCH("/", modifyNode)
-		node.POST("/batchdelete", deleteNode)
+		node.DELETE("/", deleteNode)
 		node.GET("/list/managed", listNodeManaged)
 		node.GET("/list/unmanaged", listNodeUnManaged)
 		node.POST("/add", addUnManagedNode)
@@ -39,12 +40,12 @@ func nodeRouter(engine *gin.Engine) {
 		nodeGroup.POST("/", createEdgeNodeGroup)
 		nodeGroup.GET("/", listEdgeNodeGroup)
 		nodeGroup.PATCH("/", modifyNodeGroup)
-		nodeGroup.GET("/num", getNodeGroupStatistics)
+		nodeGroup.GET("/stats", getNodeGroupStatistics)
 		nodeGroup.GET("/:id", getEdgeNodeGroupDetail)
-		nodeGroup.POST("/add", addNodeToGroup)
-		nodeGroup.POST("/delete", deleteNodeFromGroup)
-		nodeGroup.POST("/deleterelation", batchDeleteNodeRelation)
-		nodeGroup.POST("/batchdelete", batchDeleteNodeGroup)
+		nodeGroup.POST("/node", addNodeToGroup)
+		nodeGroup.DELETE("/node", deleteNodeFromGroup)
+		nodeGroup.DELETE("/pod", batchDeleteNodeRelation)
+		nodeGroup.DELETE("/", batchDeleteNodeGroup)
 	}
 }
 
@@ -55,11 +56,11 @@ func appRouter(engine *gin.Engine) {
 		app.GET("/", queryApp)
 		app.PATCH("/", updateApp)
 		app.GET("/list", listAppsInfo)
-		app.POST("/deploy", deployApp)
-		app.POST("/undeploy", unDeployApp)
+		app.POST("/deployment", deployApp)
+		app.DELETE("/deployment", unDeployApp)
 		app.DELETE("/", deleteApp)
-		app.GET("/deploy/list", listAppInstance)
-		app.GET("/deploy/list/node", listAppInstanceByNode)
+		app.GET("/deployment", listAppInstance)
+		app.GET("/node", listAppInstanceByNode)
 	}
 }
 
@@ -70,11 +71,18 @@ func softwareRouter(engine *gin.Engine) {
 	}
 }
 
+func connInfoRouter(engine *gin.Engine) {
+	v1 := engine.Group("/edgemanager/v1/conninfo")
+	{
+		v1.POST("/update", updateConnInfo)
+	}
+}
+
 func templateRouter(engine *gin.Engine) {
 	v1 := engine.Group("/edgemanager/v1/apptemplate")
 	{
 		v1.POST("/", createTemplate)
-		v1.POST("/delete", deleteTemplate)
+		v1.DELETE("/", deleteTemplate)
 		v1.PATCH("/", updateTemplate)
 		v1.GET("/", getTemplateDetail)
 		v1.GET("/list", getTemplates)
