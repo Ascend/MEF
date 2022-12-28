@@ -90,8 +90,8 @@ func (req BatchDeleteNodeReq) Check() error {
 
 // DeleteNodeToGroupReq delete nodes to group
 type DeleteNodeToGroupReq struct {
-	GroupID int64   `json:"groupId"`
-	NodeIDs []int64 `json:"nodeId"`
+	GroupID int64   `json:"groupID"`
+	NodeIDs []int64 `json:"nodeIDs"`
 }
 
 // BatchDeleteNodeRelationReq delete multiple node-group relation
@@ -99,8 +99,8 @@ type BatchDeleteNodeRelationReq []DeleteNodeRelationReq
 
 // DeleteNodeRelationReq delete single node-group relation
 type DeleteNodeRelationReq struct {
-	GroupID int64 `json:"groupId"`
-	NodeID  int64 `json:"nodeId"`
+	GroupID int64 `json:"groupID"`
+	NodeID  int64 `json:"nodeID"`
 }
 
 // Check request validator
@@ -110,7 +110,7 @@ func (req BatchDeleteNodeRelationReq) Check() error {
 
 // ModifyNodeReq request object
 type ModifyNodeReq struct {
-	NodeId      int64  `json:"nodeId"`
+	NodeID      int64  `json:"nodeID"`
 	NodeName    string `json:"nodeName"`
 	Description string `json:"description"`
 }
@@ -125,7 +125,7 @@ func (req ModifyNodeReq) Check() error {
 
 // ModifyNodeGroupReq request object
 type ModifyNodeGroupReq struct {
-	GroupId     int64  `json:"groupId"`
+	GroupID     int64  `json:"groupID"`
 	GroupName   string `json:"nodeGroupName"`
 	Description string `json:"description"`
 }
@@ -140,15 +140,15 @@ func (req ModifyNodeGroupReq) Check() error {
 
 // AddNodeToGroupReq Create edge node group
 type AddNodeToGroupReq struct {
-	NodeID  []int64 `json:"nodeId"`
-	GroupID int64   `json:"groupId"`
+	NodeIDs []int64 `json:"nodeIDs"`
+	GroupID int64   `json:"groupID"`
 }
 
 // AddUnManagedNodeReq add unmanaged node
 type AddUnManagedNodeReq struct {
-	NodeID      int64   `json:"nodeId"`
+	NodeID      int64   `json:"nodeID"`
 	NodeName    string  `json:"name"`
-	GroupID     []int64 `json:"groupId,omitempty"`
+	GroupIDs    []int64 `json:"groupIDs,omitempty"`
 	Description string  `json:"description,omitempty"`
 }
 
@@ -162,7 +162,7 @@ func (req AddUnManagedNodeReq) Check() error {
 
 // BatchDeleteNodeGroupReq batch delete node group
 type BatchDeleteNodeGroupReq struct {
-	GroupID []int64 `json:"groupID"`
+	GroupIDs []int64 `json:"groupIDs"`
 }
 
 // Check request validator

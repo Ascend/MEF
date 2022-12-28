@@ -18,6 +18,7 @@ import (
 
 	"edge-manager/pkg/database"
 	"edge-manager/pkg/util"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -146,7 +147,7 @@ func testGetNodeDetailInternal(description, nodeName, uniqueName, nodeGroup stri
 
 func testModifyNode() {
 	req := ModifyNodeReq{
-		NodeId:      1,
+		NodeID:      1,
 		Description: "my-desc-new",
 		NodeName:    "node-name-new",
 	}

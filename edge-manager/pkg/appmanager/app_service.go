@@ -60,7 +60,7 @@ func createApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "get app id failed when create", Data: nil}
 	}
 	createReturnInfo := CreateReturnInfo{
-		AppId: appInfo.ID,
+		AppID: appInfo.ID,
 	}
 	hwlog.RunLog.Info("app db create success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: createReturnInfo}
@@ -81,7 +81,7 @@ func queryApp(input interface{}) common.RespMsg {
 	}
 
 	var resp AppReturnInfo
-	resp.AppId = appInfo.ID
+	resp.AppID = appInfo.ID
 	resp.AppName = appInfo.AppName
 	resp.Description = appInfo.Description
 
@@ -135,7 +135,7 @@ func deployApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	appInfo, err := AppRepositoryInstance().getAppInfoById(req.AppId)
+	appInfo, err := AppRepositoryInstance().getAppInfoById(req.AppID)
 	if err != nil {
 		hwlog.RunLog.Error("get app information failed")
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
@@ -168,7 +168,7 @@ func unDeployApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	appInfo, err := AppRepositoryInstance().getAppInfoById(req.AppId)
+	appInfo, err := AppRepositoryInstance().getAppInfoById(req.AppID)
 	if err != nil {
 		hwlog.RunLog.Error("get app information failed")
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
@@ -244,7 +244,7 @@ func updateApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	appInfo, err := AppRepositoryInstance().queryApp(req.AppId)
+	appInfo, err := AppRepositoryInstance().queryApp(req.AppID)
 	if err != nil {
 		hwlog.RunLog.Error("app info not exist, update failed")
 		return common.RespMsg{Status: "", Msg: "app info not exist, update failed", Data: nil}
@@ -264,7 +264,7 @@ func updateApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "update app to db failed", Data: nil}
 	}
 
-	nodeGroups, err := AppRepositoryInstance().queryNodeGroup(req.AppId)
+	nodeGroups, err := AppRepositoryInstance().queryNodeGroup(req.AppID)
 	if err != nil {
 		hwlog.RunLog.Error("get node group failed ")
 		return common.RespMsg{Status: "", Msg: "get node group failed", Data: nil}
@@ -287,7 +287,7 @@ func deleteApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	for _, appId := range req.AppIds {
+	for _, appId := range req.AppIDs {
 		if err := AppRepositoryInstance().deleteAppById(appId); err != nil {
 			hwlog.RunLog.Error("app db delete failed")
 			return common.RespMsg{Status: "", Msg: "app db delete failed", Data: nil}
@@ -342,7 +342,7 @@ func getAppInstanceRespFromAppInstances(appInstances []AppInstance) ([]AppInstan
 				NodeGroupID:   instance.NodeGroupID,
 				NodeGroupName: instance.NodeGroupName,
 			},
-			NodeId:        instance.NodeID,
+			NodeID:        instance.NodeID,
 			NodeName:      nodeName,
 			NodeStatus:    nodeStatus,
 			AppStatus:     podStatus,
