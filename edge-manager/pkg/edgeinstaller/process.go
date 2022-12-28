@@ -32,7 +32,7 @@ type SoftwareManagerInfo struct {
 
 // HttpBody used to construct http body to software manager
 type HttpBody struct {
-	NodeId string `json:"nodeId"`
+	NodeID string `json:"nodeID"`
 }
 
 // RespMsg response message from software manager
@@ -123,7 +123,7 @@ func constructHttpReq(dealSfwReq *util.DownloadSfwReq, nodeInfo []byte) (*http.R
 
 func constructHttpBody(nodeId string) ([]byte, error) {
 	httpBody := HttpBody{
-		NodeId: nodeId,
+		NodeID: nodeId,
 	}
 
 	var nodeInfo []byte
