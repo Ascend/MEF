@@ -9,10 +9,10 @@ type Container struct {
 	Image        string          `json:"image"`
 	ImageVersion string          `json:"imageVersion"`
 	CpuRequest   float64         `json:"cpuRequest"`
-	CpuLimit     float64         `json:"cpuLimit"`
+	CpuLimit     float64         `json:"cpuLimit,omitempty"`
 	MemRequest   int64           `json:"memRequest"`
-	MemLimit     int64           `json:"memLimit"`
-	Npu          float64         `json:"npu"`
+	MemLimit     int64           `json:"memLimit,omitempty"`
+	Npu          float64         `json:"npu,omitempty"`
 	Command      []string        `json:"command"`
 	Args         []string        `json:"args"`
 	Env          []EnvVar        `json:"env"`
