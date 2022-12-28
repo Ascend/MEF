@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	runLogFile     = "/home/hwMindX/log/run.log"
-	operateLogFile = "/home/hwMindX/log/operate.log"
+	runLogFile     = "/home/MEFCenter/log/run.log"
+	operateLogFile = "/home/MEFCenter/log/operate.log"
 )
 
 var (

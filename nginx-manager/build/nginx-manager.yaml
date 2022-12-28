@@ -32,9 +32,9 @@ spec:
           command: [ "/bin/bash", "-c", "--"]
           args: ["./nginx-manager"]
           volumeMounts:
-            - mountPath: "/home/hwMindX/log/"
+            - mountPath: "/home/MEFCenter/log/"
               name: log-vol
-            - mountPath: "/home/hwMindX/certs/"
+            - mountPath: "/home/MEFCenter/certs/"
               name: certs-vol
             - mountPath: "/home/data/"
               name: cert-manager-config

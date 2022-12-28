@@ -23,17 +23,17 @@ const (
 	// PortMax 端口最大值
 	PortMax = 65535
 	// NginxDefaultConfigPath nginx配置文件模板
-	NginxDefaultConfigPath = "/home/hwMindX/conf/nginx_default.conf"
+	NginxDefaultConfigPath = "/home/MEFCenter/conf/nginx_default.conf"
 	// NginxConfigPath nginx配置文件
-	NginxConfigPath = "/home/hwMindX/conf/nginx.conf"
+	NginxConfigPath = "/home/MEFCenter/conf/nginx.conf"
 	// CertKeyFile 证书私钥文件
-	CertKeyFile = "/home/hwMindX/certs/nginx-manager.key"
+	CertKeyFile = "/home/MEFCenter/certs/nginx-manager.key"
 	// ClientCertKeyFile 内部转发消息的证书私钥文件
-	ClientCertKeyFile = "/home/hwMindX/certs/client.key"
+	ClientCertKeyFile = "/home/MEFCenter/certs/client.key"
 	// PipePath 证书私钥管道
-	PipePath = "/home/hwMindX/conf/keyPipe"
+	PipePath = "/home/MEFCenter/conf/keyPipe"
 	// ClientPipeDir 内部转发消息的证书私钥管道
-	ClientPipeDir = "/home/hwMindX/conf/"
+	ClientPipeDir = "/home/MEFCenter/conf/"
 	// FifoPermission 证书私钥管道权限
 	FifoPermission = 0600
 	// NginxManagerName nginx manager模块对应收发消息的key
