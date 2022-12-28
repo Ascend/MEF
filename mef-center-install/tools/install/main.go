@@ -363,8 +363,8 @@ func prepareCerts() error {
 			return err
 		}
 	}
-	if err := util.SetPathOwnerGroup(path.Join(certRootPath, install.CertsDir), install.HwMindXUserUid,
-		install.HwMindXUserGid, true, false); err != nil {
+	if err := util.SetPathOwnerGroup(path.Join(certRootPath, install.CertsDir), install.MEFCenterUserUid,
+		install.MEFCenterUserGid, true, false); err != nil {
 		return err
 	}
 

@@ -21,8 +21,8 @@ const (
 	RootCaDir            = "rootCA"
 	RootCaFile           = "RootCA.crt"
 	RootKeyFile          = "RootCA.key"
-	HwMindXUserUid       = 9000
-	HwMindXUserGid       = 9000
+	MEFCenterUserUid     = 8000
+	MEFCenterUserGid     = 8000
 	AllInstallFlag       = "install_all"
 	ImageManagerFlag     = "image_manager"
 	ResourceManagerFlag  = "resource_manager"

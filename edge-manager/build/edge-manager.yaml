@@ -59,7 +59,7 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
-          image: ascend-edge-manager:v2.0.4
+          image: ascend-edge-manager:v3.0.t
           resources:
             requests:
               memory: 500Mi
