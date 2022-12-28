@@ -33,7 +33,7 @@ func (req *UpdateAppReq) toDb() (*AppInfo, error) {
 	}
 
 	return &AppInfo{
-		ID:          req.AppId,
+		ID:          req.AppID,
 		AppName:     req.AppName,
 		Description: req.Description,
 		Containers:  string(containers),

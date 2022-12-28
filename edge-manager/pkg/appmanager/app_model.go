@@ -144,7 +144,7 @@ func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) (*L
 		}
 
 		appReturnInfos = append(appReturnInfos, AppReturnInfo{
-			AppId:          app.ID,
+			AppID:          app.ID,
 			AppName:        app.AppName,
 			Description:    app.Description,
 			NodeGroupInfos: removeDuplicates(NodeGroupInfos),

@@ -12,24 +12,24 @@ type CreateAppReq struct {
 
 // UpdateAppReq update application
 type UpdateAppReq struct {
-	AppId uint64 `json:"appId"`
+	AppID uint64 `json:"appID"`
 	CreateAppReq
 }
 
 // DeleteAppReq Delete application
 type DeleteAppReq struct {
-	AppIds []uint64 `json:"appIds"`
+	AppIDs []uint64 `json:"appIDs"`
 }
 
 // DeployAppReq Deploy application
 type DeployAppReq struct {
-	AppId        uint64  `json:"appId"`
+	AppID        uint64  `json:"appID"`
 	NodeGroupIds []int64 `json:"nodeGroupIds"`
 }
 
 // UndeployAppReq Undeploy application
 type UndeployAppReq struct {
-	AppId        uint64  `json:"appId"`
+	AppID        uint64  `json:"appID"`
 	NodeGroupIds []int64 `json:"nodeGroupIds"`
 }
 
@@ -47,14 +47,14 @@ type NodeGroupInfo struct {
 
 // GetAppByAppIdReq get app by application id
 type GetAppByAppIdReq struct {
-	AppId uint64 `json:"appId"`
+	AppID uint64 `json:"appID"`
 }
 
 // AppInstanceResp encapsulate app instance information for return
 type AppInstanceResp struct {
 	AppName       string          `json:"appName"`
 	NodeGroupInfo NodeGroupInfo   `json:"nodeGroupInfo"`
-	NodeId        int64           `json:"nodeId"`
+	NodeID        int64           `json:"nodeID"`
 	NodeName      string          `json:"nodeName"`
 	NodeStatus    string          `json:"nodeStatus"`
 	AppStatus     string          `json:"appStatus"`
@@ -71,7 +71,7 @@ type ContainerInfo struct {
 
 // CreateReturnInfo for create app
 type CreateReturnInfo struct {
-	AppId uint64 `json:"appId"`
+	AppID uint64 `json:"appID"`
 }
 
 // ListReturnInfo encapsulate app list
@@ -88,7 +88,7 @@ type ListReturnInfo struct {
 
 // AppReturnInfo encapsulate app information for return
 type AppReturnInfo struct {
-	AppId          uint64          `json:"appId"`
+	AppID          uint64          `json:"appID"`
 	AppName        string          `json:"appName"`
 	Description    string          `json:"description"`
 	CreatedAt      string          `json:"createdAt"`

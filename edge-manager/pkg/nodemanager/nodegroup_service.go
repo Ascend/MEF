@@ -136,7 +136,7 @@ func modifyNodeGroup(input interface{}) common.RespMsg {
 		"Description": req.Description,
 		"UpdatedAt":   time.Now().Format(TimeFormat),
 	}
-	err := NodeServiceInstance().updateGroup(req.GroupId, updatedColumns)
+	err := NodeServiceInstance().updateGroup(req.GroupID, updatedColumns)
 	if err != nil {
 		if strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
 			hwlog.RunLog.Error("node group name is duplicate")
@@ -161,14 +161,14 @@ func batchDeleteNodeGroup(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
 	}
 	var delSuccessGroupID []int64
-	for _, groupID := range req.GroupID {
+	for _, groupID := range req.GroupIDs {
 		if err := deleteSingleGroup(groupID); err != nil {
 			hwlog.RunLog.Errorf("delete node group %d failed, %s", groupID, err.Error())
 			continue
 		}
 		delSuccessGroupID = append(delSuccessGroupID, groupID)
 	}
-	if len(req.GroupID) > len(delSuccessGroupID) {
+	if len(req.GroupIDs) > len(delSuccessGroupID) {
 		hwlog.RunLog.Error("batch delete node group failed")
 		return common.RespMsg{Status: "", Msg: "batch delete node group failed", Data: delSuccessGroupID}
 	}

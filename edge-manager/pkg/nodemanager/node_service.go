@@ -108,7 +108,7 @@ func modifyNode(input interface{}) common.RespMsg {
 		"Description": req.Description,
 		"UpdatedAt":   time.Now().Format(TimeFormat),
 	}
-	err := NodeServiceInstance().updateNode(req.NodeId, updatedColumns)
+	err := NodeServiceInstance().updateNode(req.NodeID, updatedColumns)
 	if err != nil {
 		if strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
 			hwlog.RunLog.Error("node name is duplicate")
@@ -425,7 +425,7 @@ func addNodeRelation(input interface{}) common.RespMsg {
 	}
 
 	checker := specificationChecker{nodeService: NodeServiceInstance()}
-	if err := checker.checkAddNodeToGroup(req.NodeID, []int64{req.GroupID}); err != nil {
+	if err := checker.checkAddNodeToGroup(req.NodeIDs, []int64{req.GroupID}); err != nil {
 		hwlog.RunLog.Errorf("add node to group check spec error: %s", err.Error())
 		return common.RespMsg{Msg: err.Error()}
 	}
@@ -443,7 +443,7 @@ func addNode(req AddNodeToGroupReq) error {
 		return errors.New("dont have this node group")
 	}
 	var nodeRelation []NodeRelation
-	for i, id := range req.NodeID {
+	for i, id := range req.NodeIDs {
 		nodeDb, err := NodeServiceInstance().getManagedNodeByID(id)
 		if err != nil {
 			errorNode = fmt.Sprintf("%d,%s", id, errorNode)
@@ -457,7 +457,7 @@ func addNode(req AddNodeToGroupReq) error {
 			continue
 		}
 		relation := NodeRelation{
-			NodeID:    req.NodeID[i],
+			NodeID:    req.NodeIDs[i],
 			GroupID:   req.GroupID,
 			CreatedAt: time.Now().Format(TimeFormat)}
 		nodeRelation = append(nodeRelation, relation)
@@ -487,7 +487,7 @@ func addUnManagedNode(input interface{}) common.RespMsg {
 	}
 
 	checker := specificationChecker{nodeService: NodeServiceInstance()}
-	if err := checker.checkAddNodeToGroup([]int64{req.NodeID}, req.GroupID); err != nil {
+	if err := checker.checkAddNodeToGroup([]int64{req.NodeID}, req.GroupIDs); err != nil {
 		hwlog.RunLog.Errorf("add unmanaged node to group check spec error: %s", err.Error())
 		return common.RespMsg{Msg: err.Error()}
 	}
@@ -502,8 +502,8 @@ func addUnManagedNode(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "add unmanaged node error", Data: nil}
 	}
 	var addNodeError string
-	for _, id := range req.GroupID {
-		addReq := AddNodeToGroupReq{NodeID: []int64{req.NodeID}, GroupID: id}
+	for _, id := range req.GroupIDs {
+		addReq := AddNodeToGroupReq{NodeIDs: []int64{req.NodeID}, GroupID: id}
 		if err := addNode(addReq); err != nil {
 			errorMessage := fmt.Sprintf("cannot join group:group=%d, node=%d", id, req.NodeID)
 			addNodeError = errorMessage
