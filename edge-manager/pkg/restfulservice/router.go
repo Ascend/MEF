@@ -116,7 +116,7 @@ func getReqId(c *gin.Context, idName string) (uint64, error) {
 }
 
 func getReqNodeId(c *gin.Context) (int64, error) {
-	value, err := strconv.ParseInt(c.Query("nodeId"), common.BaseHex, common.BitSize64)
+	value, err := strconv.ParseInt(c.Query("nodeID"), common.BaseHex, common.BitSize64)
 	if err != nil {
 		return 0, fmt.Errorf("app id is invalid")
 	}
