@@ -202,7 +202,7 @@ func downloadWithSfwMgr(dealSfwReq util.DownloadSfwReq) (*util.DealSfwContent, e
 }
 
 func upgradeWithSfwManager(upgradeSfwReq util.UpgradeSfwReq) (*util.DealSfwContent, error) {
-	nodeIds, err := getNodeNum(upgradeSfwReq.NodeNums)
+	nodeIds, err := getNodeNum(upgradeSfwReq.NodeIDs)
 	if err != nil {
 		hwlog.RunLog.Errorf("get node unique name failed, error: %v", err)
 		return nil, err

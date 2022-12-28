@@ -5,7 +5,7 @@ package util
 
 // UpgradeSfwReq request of upgrading software
 type UpgradeSfwReq struct {
-	NodeNums        []int64 `json:"nodeNum"`
+	NodeIDs         []int64 `json:"nodeIDs"`
 	SoftwareName    string  `json:"softwareName"`
 	SoftwareVersion string  `json:"softwareVersion"`
 }
