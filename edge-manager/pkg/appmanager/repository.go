@@ -1,6 +1,6 @@
 // Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
 
-// Package apptemplatemanager to  provide containerized application template management.
+// Package appmanager to  provide containerized application template management.
 package appmanager
 
 import (

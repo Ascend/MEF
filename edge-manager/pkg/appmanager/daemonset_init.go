@@ -45,6 +45,9 @@ func initDaemonSet(appInfo *AppInfo, nodeGroupId int64) (*appv1.DaemonSet, error
 	return &appv1.DaemonSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: formatDaemonSetName(appInfo.AppName, nodeGroupId),
+			Labels: map[string]string{
+				common.AppManagerName: AppLabel,
+			},
 		},
 		Spec: appv1.DaemonSetSpec{
 			Selector: &metav1.LabelSelector{

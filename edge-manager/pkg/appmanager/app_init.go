@@ -128,7 +128,10 @@ func initAppTable() error {
 		hwlog.RunLog.Error("create app instance database table failed")
 		return err
 	}
-
+	if err := database.CreateTableIfNotExists(AppDaemonSet{}); err != nil {
+		hwlog.RunLog.Error("create app daemon set database table failed")
+		return err
+	}
 	if err := database.CreateTableIfNotExists(AppTemplateDb{}); err != nil {
 		hwlog.RunLog.Error("create app template instance database table failed")
 		return err
