@@ -6,55 +6,45 @@ set -e
 CUR_DIR=$(dirname "$(readlink -f "$0")")
 TOP_DIR=$(realpath "${CUR_DIR}"/..)
 
-export GO111MODULE="on"
+OUTPUT_NAME="nginx-manager"
+DOCKER_FILE_NAME="Dockerfile"
 VER_FILE="${TOP_DIR}"/service_config.ini
-build_version="v3.0.RC3"
+build_version="3.0.0"
 if [ -f "$VER_FILE" ]; then
   line=$(sed -n '6p' "$VER_FILE" 2>&1)
   #cut the chars after ':'
   build_version=${line#*:}
 fi
 
-OUTPUT_NAME="nginx-manager"
-DOCKER_FILE_NAME="Dockerfile"
 arch=$(arch 2>&1)
-echo "Build Architecture is" "${arch}"
-sed -i "s/nginx-manager:.*/nginx-manager:${build_version}/" "${TOP_DIR}/build/${OUTPUT_NAME}.yaml"
 
-function clean() {
-  rm -rf "${TOP_DIR}/output"
-  mkdir -p "${TOP_DIR}/output"
-}
-
-function build() {
-  cd "${TOP_DIR}/cmd"
-  export CGO_ENABLED=1
-  export CGO_CFLAGS="-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
-  export CGO_CPPFLAGS="-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
-  go build -mod=mod -buildmode=pie -ldflags "-s -linkmode=external -extldflags=-Wl,-z,now \
-          -X main.BuildName=${OUTPUT_NAME} \
-          -X main.BuildVersion=${build_version}_linux-${arch}" \
-          -o ${OUTPUT_NAME} \
-          -trimpath
-  ls ${OUTPUT_NAME}
-  if [ $? -ne 0 ]; then
-    echo "fail to find ${OUTPUT_NAME}"
-    exit 1
-  fi
+function buildNginx() {
+    cd "${TOP_DIR}/../opensource/nginx/"
+    chmod 750 auto/configure
+    ./auto/configure --prefix=/home/MEFCenter --conf-path=/home/MEFCenter/conf/nginx.conf --error-log-path=/home/MEFCenter/log/error.log --http-log-path=/home/MEFCenter/log/access.log --pid-path=/home/MEFCenter/log/nginx.pid --lock-path=/home/MEFCenter/log/nginx.lock --with-http_ssl_module --http-client-body-temp-path=/tmp/client_body_temp  --http-proxy-temp-path=/tmp/proxy_temp --http-fastcgi-temp-path=/tmp/fastcgi_temp --http-uwsgi-temp-path=/tmp/uwsgi_temp --http-scgi-temp-path=/tmp/scgi_temp
+    make
+    cp "${TOP_DIR}/../opensource/nginx/objs/nginx" "${TOP_DIR}/output/nginx_bin"
 }
 
 function mv_file() {
-  mv "${TOP_DIR}/cmd/${OUTPUT_NAME}" "${TOP_DIR}/output"
-  cp "${TOP_DIR}/build/${OUTPUT_NAME}".yaml "${TOP_DIR}/output/${OUTPUT_NAME}-${build_version}".yaml
-  cp "${TOP_DIR}/build/${DOCKER_FILE_NAME}" "${TOP_DIR}/output"
-  chmod 400 "${TOP_DIR}/output/"*
-  chmod 500 "${TOP_DIR}/output/${OUTPUT_NAME}"
+  mkdir -p "${TOP_DIR}/output/nginx/dist"
+  mkdir -p "${TOP_DIR}/output/nginx/conf"
+  cp -R "${TOP_DIR}/../opensource/nginx/conf/mime.types" "${TOP_DIR}/output/nginx/conf/"
+  cp "${TOP_DIR}/build/nginx_default.conf" "${TOP_DIR}/output/nginx/conf/"
+
+  mv "${TOP_DIR}/output/nginx_bin" "${TOP_DIR}/output/nginx/nginx"
+  cp "${TOP_DIR}/cmd/${OUTPUT_NAME}" "${TOP_DIR}/output/nginx/"
+  cp -R "${TOP_DIR}/../../lib" "${TOP_DIR}/output/nginx/lib"
+  cp "/lib/${arch}-linux-gnu/libssl.so.1.1" "${TOP_DIR}/output/nginx/lib/"
+  cp "${TOP_DIR}/build/${OUTPUT_NAME}.yaml" "${TOP_DIR}/output/${OUTPUT_NAME}-${build_version}.yaml"
+  cp "${TOP_DIR}/build/${DOCKER_FILE_NAME}" "${TOP_DIR}/output/${DOCKER_FILE_NAME}"
+
+  cd "${TOP_DIR}/output/"
+  zip -ry Ascend-mindx_edge-${OUTPUT_NAME}-${build_version}_linux-${arch}.zip ./*
 }
 
 function main() {
-  clean
-  build
+  buildNginx
   mv_file
 }
-
 main
