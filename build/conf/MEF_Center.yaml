@@ -9,6 +9,7 @@ EDGE_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/edge-manager"
 SOFTWARE_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/software-manager"
 CERT_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/cert-manager"
 MEF_CENTER_INSTALL_DIR: "{{systemEnv.workspace}}/{{component}}/mef-center-install"
+NGINX_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/nginx-manager"
 
 compile:
   input:
@@ -29,6 +30,10 @@ compile:
         version: "1.0"
         type: opensource
         buildFile: "{{MEF_CENTER_INSTALL_DIR}}/build/conf"
+      - name: nginx-manager
+        version: "1.0"
+        type: opensource
+        buildFile: "{{NGINX_MANAGER_DIR}}/build/conf"
 
 
     files:
@@ -63,3 +68,7 @@ compile:
             src:
               - "{{TOP_DIR}}/output/*"
             mode: "400"
+        - copy:
+            src:
+              - '{{NGINX_MANAGER_DIR}}/output/*.zip'
+            des: "{{TOP_DIR}}/output/"
