@@ -13,7 +13,7 @@ rules:
     resources: ["secrets","nodes","pods","pods/log","namespaces"]
     verbs: ["*"]
   - apiGroups: ["apps"]
-    resources: ["deployments"]
+    resources: ["daemonsets"]
     verbs: ["*"]
   - apiGroups: ["node.k8s.io"]
     resources: ["runtimeclasses"]
