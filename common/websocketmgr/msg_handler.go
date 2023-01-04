@@ -33,15 +33,17 @@ func (wh *WsMsgHandler) handleMsg(msgBytes []byte) {
 		hwlog.RunLog.Errorf("Unmarshal message failed: %v\n", err)
 		return
 	}
-	msgOpt := msg.GetOption()
-	msgRes := msg.GetResource()
-	key := msgOpt + ":" + msgRes
-	moduleName := wh.handlersMap[key]
-	if moduleName == "" {
-		hwlog.RunLog.Errorf("no register msg Handler[MsgOpt=%v, MsgRes=%v]", msgOpt, msgRes)
-		return
+	if msg.GetParentId() == "" {
+		msgOpt := msg.GetOption()
+		msgRes := msg.GetResource()
+		key := msgOpt + ":" + msgRes
+		moduleName := wh.handlersMap[key]
+		if moduleName == "" {
+			hwlog.RunLog.Errorf("no register msg Handler[MsgOpt=%v, MsgRes=%v]", msgOpt, msgRes)
+			return
+		}
+		msg.SetRouter("websocket", moduleName, msgOpt, msgRes)
 	}
-	msg.SetRouter("websocket", moduleName, msgOpt, msgRes)
 	err = modulemanager.SendMessage(&msg)
 	if err != nil {
 		hwlog.RunLog.Errorf("send module message failed: %v\n", err)
