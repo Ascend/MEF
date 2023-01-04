@@ -80,11 +80,11 @@ func (c *containerParaChecker) checkContainerCpuQuantityValid() error {
 		return errors.New("cpu request quantity not valid")
 	}
 
-	if c.container.CpuLimit == 0 {
+	if c.container.CpuLimit == nil {
 		return nil
 	}
 
-	if c.container.CpuLimit < minCpuQuantity || c.container.CpuLimit > maxCpuQuantity {
+	if *c.container.CpuLimit < minCpuQuantity || *c.container.CpuLimit > maxCpuQuantity {
 		return errors.New("cpu limit quantity not valid")
 	}
 
@@ -96,10 +96,10 @@ func (c *containerParaChecker) checkContainerMemoryQuantityValid() error {
 		return errors.New("memory request quantity not valid")
 	}
 
-	if c.container.MemLimit == 0 {
+	if c.container.MemLimit == nil {
 		return nil
 	}
-	if c.container.MemLimit < minMemoryQuantity || c.container.MemLimit > maxMemoryQuantity {
+	if *c.container.MemLimit < minMemoryQuantity || *c.container.MemLimit > maxMemoryQuantity {
 		return errors.New("memory limit quantity not valid")
 	}
 
@@ -107,11 +107,11 @@ func (c *containerParaChecker) checkContainerMemoryQuantityValid() error {
 }
 
 func (c *containerParaChecker) checkContainerNpuQuantityValid() error {
-	if c.container.Npu == 0 {
+	if c.container.Npu == nil {
 		return nil
 	}
 
-	if c.container.Npu < minNpuQuantity || c.container.Npu > maxNpuQuantity {
+	if *c.container.Npu < minNpuQuantity || *c.container.Npu > maxNpuQuantity {
 		return errors.New("npu request quantity not valid")
 	}
 
