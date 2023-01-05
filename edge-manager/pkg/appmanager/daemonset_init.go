@@ -135,7 +135,7 @@ func getResources(appContainer Container) (v1.ResourceRequirements, error) {
 		hwlog.RunLog.Error("parse memory request failed")
 		return v1.ResourceRequirements{}, err
 	}
-	if appContainer.Npu != 0 {
+	if appContainer.Npu != nil {
 		device = common.DeviceType
 		deviceValue, err := resource.ParseQuantity(fmt.Sprintf("%v", appContainer.Npu))
 		if err != nil {
@@ -161,21 +161,21 @@ func getResources(appContainer Container) (v1.ResourceRequirements, error) {
 	}, nil
 }
 
-func getLimits(cpuLimit float64, memLimit int64, limitMap map[v1.ResourceName]resource.Quantity) (
+func getLimits(cpuLimit *float64, memLimit *int64, limitMap map[v1.ResourceName]resource.Quantity) (
 	map[v1.ResourceName]resource.Quantity, error) {
 	if limitMap == nil {
 		return nil, fmt.Errorf("limit map is nil")
 	}
-	if cpuLimit != 0 {
-		res, err := resource.ParseQuantity(fmt.Sprintf("%v", cpuLimit))
+	if cpuLimit != nil {
+		res, err := resource.ParseQuantity(fmt.Sprintf("%v", *cpuLimit))
 		if err != nil {
 			hwlog.RunLog.Error("parse cpu limits failed")
 			return limitMap, err
 		}
 		limitMap[v1.ResourceCPU] = res
 	}
-	if memLimit != 0 {
-		res, err := resource.ParseQuantity(fmt.Sprintf("%vM", memLimit))
+	if memLimit != nil {
+		res, err := resource.ParseQuantity(fmt.Sprintf("%vM", *memLimit))
 		if err != nil {
 			hwlog.RunLog.Error("parse memory limits failed")
 			return limitMap, err
