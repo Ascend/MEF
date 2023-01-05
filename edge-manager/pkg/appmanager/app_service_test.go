@@ -10,6 +10,7 @@ import (
 
 	"edge-manager/pkg/database"
 	"edge-manager/pkg/kubeclient"
+	"edge-manager/pkg/types"
 	"edge-manager/pkg/util"
 
 	"github.com/agiledragon/gomonkey/v2"
@@ -48,6 +49,10 @@ func setup() {
 	if err = gormInstance.AutoMigrate(&AppTemplateDb{}); err != nil {
 		hwlog.RunLog.Errorf("setup table error, %v\n", err)
 	}
+	if err = gormInstance.AutoMigrate(&AppDaemonSet{}); err != nil {
+		hwlog.RunLog.Errorf("setup table error, %v\n", err)
+	}
+
 	if _, err := kubeclient.NewClientK8s(""); err != nil {
 		hwlog.RunLog.Error("init k8s failed")
 	}
@@ -210,11 +215,11 @@ func testUpdateApp() {
     ]
 }`
 	var p1 = gomonkey.ApplyPrivateMethod(AppRepositoryInstance(), "queryNodeGroup",
-		func(uint64) ([]NodeGroupInfo, error) {
-			return []NodeGroupInfo{}, nil
+		func(uint64) ([]types.NodeGroupInfo, error) {
+			return []types.NodeGroupInfo{}, nil
 		})
 	defer p1.Reset()
-	var p2 = gomonkey.ApplyFunc(updateNodeGroupDaemonSet, func(appInfo *AppInfo, nodeGroups []NodeGroupInfo) error {
+	var p2 = gomonkey.ApplyFunc(updateNodeGroupDaemonSet, func(appInfo *AppInfo, nodeGroups []types.NodeGroupInfo) error {
 		return nil
 	})
 	defer p2.Reset()
@@ -255,7 +260,13 @@ func testDeployApInfo() {
 		func(*kubeclient.Client, *v1.DaemonSet) (*v1.DaemonSet, error) {
 			return &v1.DaemonSet{}, nil
 		})
+	var p2 = gomonkey.ApplyFunc(getNodeGroupInfos,
+		func(nodeGroupIds []int64) ([]types.NodeGroupInfo, error) {
+			return []types.NodeGroupInfo{{1, "group1"},
+				{2, "group2"}}, nil
+		})
 	defer p1.Reset()
+	defer p2.Reset()
 	resp := deployApp(reqData)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
