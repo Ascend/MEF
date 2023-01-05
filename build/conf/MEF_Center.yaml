@@ -48,27 +48,54 @@ compile:
   output:
     files:
       include:
+        - makedir:
+            path: "{{TOP_DIR}}/savedir"
         - copy:
             src:
               - '{{EDGE_MANAGER_DIR}}/output/*.zip'
-            des: "{{TOP_DIR}}/output/"
+            des: "{{TOP_DIR}}/savedir/"
         - copy:
             src:
               - '{{SOFTWARE_MANAGER_DIR}}/output/*.zip'
-            des: "{{TOP_DIR}}/output/"
+            des: "{{TOP_DIR}}/savedir/"
         - copy:
             src:
               - '{{CERT_MANAGER_DIR}}/output/*.zip'
-            des: "{{TOP_DIR}}/output/"
+            des: "{{TOP_DIR}}/savedir/"
         - copy:
             src:
               - '{{MEF_CENTER_INSTALL_DIR}}/output/*.zip'
+            des: "{{TOP_DIR}}/savedir/"
+        - copy:
+            src:
+              - '{{NGINX_MANAGER_DIR}}/output/*.zip'
+            des: "{{TOP_DIR}}/savedir/"
+        - mode:
+            src:
+              - "{{TOP_DIR}}/savedir/*"
+            mode: "400"
+        - makeArchive:
+            - src: "{{TOP_DIR}}/savedir/"
+              des: "{{TOP_DIR}}/savedir/Ascend-mindx_edge-mef_center_{{version}}_linux-{{systemEnv.processor}}"
+              prefix: gztar
+              arch: "{{systemEnv.processor}}"
+        - copy:
+            src:
+              - '{{TOP_DIR}}/savedir/Ascend-mindx_edge-mef_center_{{version}}_linux-{{systemEnv.processor}}.tar.gz'
             des: "{{TOP_DIR}}/output/"
+        - commands:
+            - command: "bash {{ systemEnv.workspace }}/../CI/CleanCode/script/signature.sh MEF_Center"
+        - move:
+            src: ["{{TOP_DIR}}/savedir/Ascend-mindx_edge-mef_center_{{version}}_linux-{{systemEnv.processor}}.tar.gz"]
+            des: "{{TOP_DIR}}/output"
         - mode:
             src:
               - "{{TOP_DIR}}/output/*"
             mode: "400"
-        - copy:
-            src:
-              - '{{NGINX_MANAGER_DIR}}/output/*.zip'
-            des: "{{TOP_DIR}}/output/"
+        - makeArchive:
+            - src: "{{TOP_DIR}}/output/"
+              des: "{{TOP_DIR}}/output/Ascend-mindx_edge-mef_center_{{version}}_linux-{{systemEnv.processor}}"
+              prefix: zip
+              arch: "{{systemEnv.processor}}"
+      exclude:
+        - remove: ["{{TOP_DIR}}/savedir"]
