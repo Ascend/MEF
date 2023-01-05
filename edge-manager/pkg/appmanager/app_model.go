@@ -4,7 +4,6 @@
 package appmanager
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"sync"
@@ -14,6 +13,7 @@ import (
 	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/database"
+	"edge-manager/pkg/types"
 )
 
 var (
@@ -31,24 +31,29 @@ type AppRepository interface {
 	createApp(*AppInfo) error
 	updateApp(appId uint64, column string, value interface{}) error
 	queryApp(appId uint64) (*AppInfo, error)
-	listAppsInfo(uint64, uint64, string) (*ListReturnInfo, error)
+	listAppsInfo(page, pageSize uint64, name string) ([]AppInfo, error)
 	countListAppsInfo(string) (int64, error)
 	countDeployedApp() (int64, int64, error)
-	getGroupNameByAppName(string) (string, error)
+	getNodeGroupInfosByAppID(uint64) ([]types.NodeGroupInfo, error)
 	getAppInfoById(appId uint64) (*AppInfo, error)
 	getAppInstanceByIdAndGroup(uint64, string) (*AppInstance, error)
 	getAppInfoByName(string) (*AppInfo, error)
 	deployApp(*AppInstance) error
 	deleteAppById(uint64) error
 	deleteAppInstanceByIdAndGroup(uint64, string) error
-	queryNodeGroup(uint64) ([]NodeGroupInfo, error)
+	queryNodeGroup(uint64) ([]types.NodeGroupInfo, error)
 	listAppInstances(uint64) ([]AppInstance, error)
 	listAppInstancesByNode(int64) ([]AppInstance, error)
 	deleteAllRemainingInstance() error
 	addPod(*AppInstance) error
 	updatePod(*AppInstance) error
 	deletePod(*AppInstance) error
-	countAppInstanceByNodeGroup(int64) (int64, error)
+	deleteAllRemainingDaemonSet() error
+	addDaemonSet(*AppDaemonSet) error
+	updateDaemonSet(*AppDaemonSet) error
+	deleteDaemonSet(string) error
+	getNodeGroupName(appID int64, nodeGroupID int64) (string, error)
+	countDeployedAppByGroupID(int64) (int64, error)
 }
 
 // GetTableCount get table count
@@ -99,67 +104,30 @@ func (a *AppRepositoryImpl) queryApp(appId uint64) (*AppInfo, error) {
 	return appInfo, nil
 }
 
-func (a *AppRepositoryImpl) queryNodeGroup(appId uint64) ([]NodeGroupInfo, error) {
-	var appInstances []AppInstance
-	if err := a.db.Model(AppInstance{}).Where("app_id = ?", appId).Find(&appInstances).Error; err != nil {
-		hwlog.RunLog.Error("get appInstance db failed when query")
+func (a *AppRepositoryImpl) queryNodeGroup(appId uint64) ([]types.NodeGroupInfo, error) {
+	var daemonSets []AppDaemonSet
+	if err := a.db.Model(AppDaemonSet{}).Where("app_id = ?", appId).Find(&daemonSets).Error; err != nil {
+		hwlog.RunLog.Error("get app daemon set db failed when query")
 		return nil, err
 	}
-	var nodeGroups []NodeGroupInfo
-	for _, appInstance := range appInstances {
-		nodeGroups = append(nodeGroups, NodeGroupInfo{
-			NodeGroupID:   appInstance.NodeGroupID,
-			NodeGroupName: appInstance.NodeGroupName,
+	var nodeGroups []types.NodeGroupInfo
+	for _, daemonSet := range daemonSets {
+		nodeGroups = append(nodeGroups, types.NodeGroupInfo{
+			NodeGroupID:   daemonSet.NodeGroupID,
+			NodeGroupName: daemonSet.NodeGroupName,
 		})
 	}
 	return nodeGroups, nil
 }
 
-func removeDuplicates(nodeGroupInfos []NodeGroupInfo) []NodeGroupInfo {
-	result := make([]NodeGroupInfo, 0, len(nodeGroupInfos))
-	temp := map[NodeGroupInfo]struct{}{}
-	for _, item := range nodeGroupInfos {
-		if _, ok := temp[item]; !ok {
-			temp[item] = struct{}{}
-			result = append(result, item)
-		}
-	}
-	return result
-}
-
-func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) (*ListReturnInfo, error) {
+func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) ([]AppInfo, error) {
 	var appsInfo []AppInfo
-	if err := a.db.Model(AppInfo{}).Scopes(getAppInfoByLikeName(page, pageSize, name)).Find(&appsInfo).Error; err != nil {
+	if err := a.db.Model(AppInfo{}).Scopes(getAppInfoByLikeName(page, pageSize, name)).
+		Find(&appsInfo).Error; err != nil {
 		hwlog.RunLog.Error("list appInfo db failed")
 		return nil, err
 	}
-	var appReturnInfos []AppReturnInfo
-	for _, app := range appsInfo {
-		var containers []Container
-		if err := json.Unmarshal([]byte(app.Containers), &containers); err != nil {
-			hwlog.RunLog.Error("containers unmarshal failed")
-			return nil, err
-		}
-		NodeGroupInfos, err := a.queryNodeGroup(app.ID)
-		if err != nil {
-			hwlog.RunLog.Error("get node group name failed when list")
-			return nil, err
-		}
-
-		appReturnInfos = append(appReturnInfos, AppReturnInfo{
-			AppID:          app.ID,
-			AppName:        app.AppName,
-			Description:    app.Description,
-			NodeGroupInfos: removeDuplicates(NodeGroupInfos),
-			CreatedAt:      app.CreatedAt.Format(common.TimeFormat),
-			ModifiedAt:     app.UpdatedAt.Format(common.TimeFormat),
-			Containers:     containers,
-		})
-	}
-
-	return &ListReturnInfo{
-		AppInfo: appReturnInfos,
-	}, nil
+	return appsInfo, nil
 }
 
 func (a *AppRepositoryImpl) countListAppsInfo(name string) (int64, error) {
@@ -173,11 +141,11 @@ func (a *AppRepositoryImpl) countListAppsInfo(name string) (int64, error) {
 
 func (a *AppRepositoryImpl) countDeployedApp() (int64, int64, error) {
 	var deployedAppNums, unDeployedAppNums, totalAppNums int64
-	if err := a.db.Model(AppInstance{}).Distinct("app_id").Count(&deployedAppNums).Error; err != nil {
+	if err := a.db.Model(AppDaemonSet{}).Distinct("app_id").Count(&deployedAppNums).Error; err != nil {
 		hwlog.RunLog.Error("count deployed app db failed")
 		return 0, 0, err
 	}
-	if err := a.db.Model(AppInfo{}).Count(&totalAppNums).Error; err != nil {
+	if err := a.db.Model(AppInfo{}).Distinct("id").Count(&totalAppNums).Error; err != nil {
 		hwlog.RunLog.Error("count all app nums db failed")
 		return 0, 0, err
 	}
@@ -217,13 +185,13 @@ func (a *AppRepositoryImpl) getAppInfoById(appId uint64) (*AppInfo, error) {
 	return appInfo, nil
 }
 
-func (a *AppRepositoryImpl) getGroupNameByAppName(appName string) (string, error) {
-	var appInstance AppInstance
-	if err := a.db.Model(AppInfo{}).Where("app_name = ?", appName).First(&appInstance).Error; err != nil {
-		hwlog.RunLog.Error("find app instance from db when delete app")
-		return "", err
+func (a *AppRepositoryImpl) getNodeGroupInfosByAppID(appId uint64) ([]types.NodeGroupInfo, error) {
+	var nodeGroupInfo []types.NodeGroupInfo
+	if err := a.db.Model(AppDaemonSet{}).Where("app_id = ?", appId).Find(&nodeGroupInfo).Error; err != nil {
+		hwlog.RunLog.Error("find app daemon set from db when delete app")
+		return nil, err
 	}
-	return appInstance.NodeGroupName, nil
+	return nodeGroupInfo, nil
 }
 
 func (a *AppRepositoryImpl) getAppInfoByName(appName string) (*AppInfo, error) {
@@ -313,8 +281,41 @@ func (a *AppRepositoryImpl) deletePod(appInstance *AppInstance) error {
 	return a.db.Model(AppInstance{}).Where("pod_name = ?", appInstance.PodName).Delete(appInstance).Error
 }
 
-func (a *AppRepositoryImpl) countAppInstanceByNodeGroup(groupId int64) (int64, error) {
-	var appInstanceCount int64
-	return appInstanceCount,
-		a.db.Model(AppInstance{}).Where("node_group_id = ?", groupId).Count(&appInstanceCount).Error
+func (a *AppRepositoryImpl) deleteAllRemainingDaemonSet() error {
+	return a.db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&AppDaemonSet{}).Error
+}
+
+func (a *AppRepositoryImpl) addDaemonSet(set *AppDaemonSet) error {
+	return a.db.Model(AppDaemonSet{}).Create(set).Error
+}
+
+func (a *AppRepositoryImpl) updateDaemonSet(set *AppDaemonSet) error {
+	var appDaemonSet AppDaemonSet
+	a.db.Model(AppDaemonSet{}).Where("daemon_set_name = ?", set.DaemonSetName).First(&appDaemonSet)
+	if appDaemonSet.NodeGroupName == set.NodeGroupName {
+		return nil
+	}
+	return a.db.Model(AppDaemonSet{}).Updates(set).Error
+}
+
+func (a *AppRepositoryImpl) deleteDaemonSet(name string) error {
+	return a.db.Model(AppDaemonSet{}).Where("daemon_set_name = ?", name).Delete(&AppDaemonSet{}).Error
+}
+
+func (a *AppRepositoryImpl) getNodeGroupName(appID int64, nodeGroupID int64) (string, error) {
+	var appDaemonSet AppDaemonSet
+	if err := a.db.Model(AppDaemonSet{}).Where("app_id = ? and node_group_id = ?", appID, nodeGroupID).
+		First(&appDaemonSet).Error; err != nil {
+		return "", err
+	}
+	return appDaemonSet.NodeGroupName, nil
+}
+
+func (a *AppRepositoryImpl) countDeployedAppByGroupID(nodeGroupID int64) (int64, error) {
+	var deployedAppCount int64
+	if err := a.db.Model(AppDaemonSet{}).Where("node_group_id = ?", nodeGroupID).
+		Count(&deployedAppCount).Error; err != nil {
+		return 0, err
+	}
+	return deployedAppCount, nil
 }

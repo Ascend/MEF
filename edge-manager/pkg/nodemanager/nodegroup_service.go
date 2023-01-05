@@ -10,9 +10,11 @@ import (
 	"strings"
 	"time"
 
+	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
 
+	"edge-manager/pkg/types"
 	"edge-manager/pkg/util"
 )
 
@@ -227,4 +229,34 @@ func getAppInstanceCountByGroupId(groupId int64) (int64, error) {
 		return 0, errors.New("can't find corresponding groupId")
 	}
 	return count, nil
+}
+
+func innerGetNodeGroupInfosByIds(input interface{}) common.RespMsg {
+	req, ok := input.(types.InnerGetNodeGroupInfosReq)
+	if !ok {
+		hwlog.RunLog.Error("parse inner message content failed")
+		return common.RespMsg{Status: "", Msg: "parse inner message content failed", Data: nil}
+	}
+	var nodeGroupInfos []types.NodeGroupInfo
+	for _, id := range req.NodeGroupIds {
+		nodeGroupInfo, err := NodeServiceInstance().getNodeGroupByID(id)
+		if err == gorm.ErrRecordNotFound {
+			hwlog.RunLog.Errorf("get node group info, id %v do no exist", id)
+			return common.RespMsg{Status: "",
+				Msg: fmt.Sprintf("get node group info, id %v do no exist", id), Data: nil}
+		}
+		if err != nil {
+			hwlog.RunLog.Errorf("get node group info id %v, db failed", id)
+			return common.RespMsg{Status: "",
+				Msg: fmt.Sprintf("get node group info id %v, db failed", id), Data: nil}
+		}
+		nodeGroupInfos = append(nodeGroupInfos, types.NodeGroupInfo{
+			NodeGroupID:   nodeGroupInfo.ID,
+			NodeGroupName: nodeGroupInfo.GroupName,
+		})
+	}
+	resp := types.InnerGetNodeGroupInfosResp{
+		NodeGroupInfos: nodeGroupInfos,
+	}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }

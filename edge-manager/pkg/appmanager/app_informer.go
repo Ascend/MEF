@@ -11,7 +11,8 @@ import (
 	"strings"
 	"sync"
 
-	v1 "k8s.io/api/core/v1"
+	appv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -28,6 +29,7 @@ import (
 
 type appStatusServiceImpl struct {
 	podInformer          cache.SharedIndexInformer
+	daemonSetInformer    cache.SharedIndexInformer
 	podStatusCache       map[string]string
 	containerStatusCache map[string]string
 	appStatusCacheLock   sync.RWMutex
@@ -43,7 +45,7 @@ func (a *appStatusServiceImpl) initAppStatusService() error {
 		hwlog.RunLog.Error("init app status service failed, get k8s client failed")
 		return errors.New("get k8s client set failed")
 	}
-	a.initPodInformer(clientSet, stopCh)
+	a.initInformer(clientSet, stopCh)
 	if err := a.run(stopCh); err != nil {
 		hwlog.RunLog.Error("sync app status service cache failed")
 		return err
@@ -51,22 +53,28 @@ func (a *appStatusServiceImpl) initAppStatusService() error {
 	return nil
 }
 
-func (a *appStatusServiceImpl) initPodInformer(client *kubernetes.Clientset, stopCh <-chan struct{}) {
+func (a *appStatusServiceImpl) initInformer(client *kubernetes.Clientset, stopCh <-chan struct{}) {
 	a.podStatusCache = make(map[string]string)
 	a.containerStatusCache = make(map[string]string)
-	podLabelSelector := labels.Set(map[string]string{common.AppManagerName: AppLabel}).
+	LabelSelector := labels.Set(map[string]string{common.AppManagerName: AppLabel}).
 		AsSelector().String()
-	podInformerFactory := informers.NewSharedInformerFactoryWithOptions(client, informerSyncInterval,
+	informerFactory := informers.NewSharedInformerFactoryWithOptions(client, informerSyncInterval,
 		informers.WithTweakListOptions(func(options *metav1.ListOptions) {
-			options.LabelSelector = podLabelSelector
+			options.LabelSelector = LabelSelector
 		}))
-	appStatusService.podInformer = podInformerFactory.Core().V1().Pods().Informer()
+	appStatusService.podInformer = informerFactory.Core().V1().Pods().Informer()
+	appStatusService.daemonSetInformer = informerFactory.Apps().V1().DaemonSets().Informer()
 	a.podInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    a.addPod,
 		UpdateFunc: a.updatePod,
 		DeleteFunc: a.deletePod,
 	})
-	podInformerFactory.Start(stopCh)
+	a.daemonSetInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    a.addDaemonSet,
+		UpdateFunc: a.updateDaemonSet,
+		DeleteFunc: a.deleteDaemonSet,
+	})
+	informerFactory.Start(stopCh)
 }
 
 func (a *appStatusServiceImpl) run(stopCh <-chan struct{}) error {
@@ -75,15 +83,23 @@ func (a *appStatusServiceImpl) run(stopCh <-chan struct{}) error {
 		hwlog.RunLog.Error("failed to delete remaining app instance before sync caches")
 		return err
 	}
+	if err := AppRepositoryInstance().deleteAllRemainingDaemonSet(); err != nil {
+		hwlog.RunLog.Error("failed to delete remaining daemon set instance before sync caches")
+		return err
+	}
 	hwlog.RunLog.Info("Waiting for app status service caches to sync")
 	if ok := cache.WaitForCacheSync(stopCh, a.podInformer.HasSynced); !ok {
 		hwlog.RunLog.Error("failed to wait for caches to sync ")
-		return errors.New("sync app status service caches error")
+		return errors.New("sync app status service pod caches error")
+	}
+	if ok := cache.WaitForCacheSync(stopCh, a.daemonSetInformer.HasSynced); !ok {
+		hwlog.RunLog.Error("failed to wait for caches to sync ")
+		return errors.New("sync app status service daemon set caches error")
 	}
 	return nil
 }
 
-func (a *appStatusServiceImpl) updateStatusCache(pod *v1.Pod) {
+func (a *appStatusServiceImpl) updateStatusCache(pod *corev1.Pod) {
 	a.appStatusCacheLock.Lock()
 	defer a.appStatusCacheLock.Unlock()
 	a.podStatusCache[pod.Name] = strings.ToLower(string(pod.Status.Phase))
@@ -94,7 +110,7 @@ func (a *appStatusServiceImpl) updateStatusCache(pod *v1.Pod) {
 	}
 }
 
-func (a *appStatusServiceImpl) deleteStatusCache(pod *v1.Pod) {
+func (a *appStatusServiceImpl) deleteStatusCache(pod *corev1.Pod) {
 	a.appStatusCacheLock.Lock()
 	defer a.appStatusCacheLock.Unlock()
 	delete(a.podStatusCache, pod.Name)
@@ -163,7 +179,7 @@ func (a *appStatusServiceImpl) deletePod(obj interface{}) {
 func (a *appStatusServiceImpl) deleteTerminatingPod() {
 	list := a.podInformer.GetStore().List()
 	for _, podContent := range list {
-		pod, ok := podContent.(*v1.Pod)
+		pod, ok := podContent.(*corev1.Pod)
 		if !ok {
 			hwlog.RunLog.Error("convert pod error")
 			continue
@@ -207,24 +223,24 @@ func (a *appStatusServiceImpl) getPodStatusFromCache(appName string) string {
 	return podStatus
 }
 
-func parsePod(obj interface{}) (*v1.Pod, error) {
-	eventPod, ok := obj.(*v1.Pod)
+func parsePod(obj interface{}) (*corev1.Pod, error) {
+	eventPod, ok := obj.(*corev1.Pod)
 	if !ok {
 		return nil, errors.New("convert object to pod error")
 	}
 	return eventPod, nil
 }
 
-func parsePodToInstance(eventPod *v1.Pod) (*AppInstance, error) {
+func parsePodToInstance(eventPod *corev1.Pod) (*AppInstance, error) {
 	appName, appId, err := getAppNameAndId(eventPod)
 	if err != nil {
 		return nil, fmt.Errorf("get app name or id error, %v", err)
 	}
-	nodeId, err := getNodeIdByName(eventPod)
+	nodeId, nodeName, err := getNodeInfoByUniqueName(eventPod)
 	if err != nil {
 		return nil, fmt.Errorf("get node name or id error, %v", err)
 	}
-	nodeGroupName, nodeGroupId, err := getNodeGroupNameAndId(eventPod)
+	nodeGroupId, err := getNodeGroupId(eventPod)
 	if err != nil {
 		return nil, fmt.Errorf("get group name or id error, %v", err)
 	}
@@ -234,19 +250,19 @@ func parsePodToInstance(eventPod *v1.Pod) (*AppInstance, error) {
 	}
 
 	newAppInstance := AppInstance{
-		PodName:       eventPod.Name,
-		NodeName:      eventPod.Spec.NodeName,
-		NodeID:        nodeId,
-		NodeGroupName: nodeGroupName,
-		NodeGroupID:   nodeGroupId,
-		AppName:       appName,
-		AppID:         appId,
-		ContainerInfo: containerInfos,
+		PodName:        eventPod.Name,
+		NodeName:       nodeName,
+		NodeUniqueName: eventPod.Spec.NodeName,
+		NodeID:         nodeId,
+		NodeGroupID:    nodeGroupId,
+		AppName:        appName,
+		AppID:          appId,
+		ContainerInfo:  containerInfos,
 	}
 	return &newAppInstance, nil
 }
 
-func getAppNameAndId(eventPod *v1.Pod) (string, int64, error) {
+func getAppNameAndId(eventPod *corev1.Pod) (string, int64, error) {
 	podLabels := eventPod.Labels
 	if podLabels == nil {
 		return "", 0, errors.New("node selector is nil")
@@ -266,10 +282,10 @@ func getAppNameAndId(eventPod *v1.Pod) (string, int64, error) {
 	return appName, int64(appId), nil
 }
 
-func getNodeIdByName(eventPod *v1.Pod) (int64, error) {
+func getNodeInfoByUniqueName(eventPod *corev1.Pod) (int64, string, error) {
 	if eventPod.Spec.NodeName == "" {
 		hwlog.RunLog.Warn("app instance node name is empty, pod is in pending phase")
-		return 0, nil
+		return 0, "", nil
 	}
 	router := common.Router{
 		Source:      common.AppManagerName,
@@ -282,25 +298,25 @@ func getNodeIdByName(eventPod *v1.Pod) (int64, error) {
 	}
 	resp := common.SendSyncMessageByRestful(req, &router)
 	if resp.Status != common.Success {
-		return 0, errors.New(resp.Msg)
+		return 0, "", errors.New(resp.Msg)
 	}
 	data, err := json.Marshal(resp.Data)
 	if err != nil {
-		return 0, errors.New("marshal internal response error")
+		return 0, "", errors.New("marshal internal response error")
 	}
 	var nodeInfo types.InnerGetNodeInfoByNameResp
 	if err = json.Unmarshal(data, &nodeInfo); err != nil {
-		return 0, errors.New("unmarshal internal response error")
+		return 0, "", errors.New("unmarshal internal response error")
 	}
-	return nodeInfo.NodeID, nil
+	return nodeInfo.NodeID, nodeInfo.NodeName, nil
 }
 
-func getNodeGroupNameAndId(eventPod *v1.Pod) (string, int64, error) {
+func getNodeGroupId(eventPod *corev1.Pod) (int64, error) {
 	var nodeGroupId int
 	var err error
 	nodeSelector := eventPod.Spec.NodeSelector
 	if nodeSelector == nil {
-		return "", 0, errors.New("node selector is nil")
+		return 0, errors.New("node selector is nil")
 	}
 	for labelKey := range nodeSelector {
 		if !strings.HasPrefix(labelKey, common.NodeGroupLabelPrefix) {
@@ -308,34 +324,13 @@ func getNodeGroupNameAndId(eventPod *v1.Pod) (string, int64, error) {
 		}
 		nodeGroupId, err = strconv.Atoi(strings.TrimPrefix(labelKey, common.NodeGroupLabelPrefix))
 		if err != nil {
-			return "", 0, err
+			return 0, err
 		}
 	}
-	router := common.Router{
-		Source:      common.AppManagerName,
-		Destination: common.NodeManagerName,
-		Option:      common.Inner,
-		Resource:    common.NodeGroup,
-	}
-	req := types.InnerGetNodeGroupInfoByIdReq{
-		GroupID: int64(nodeGroupId),
-	}
-	resp := common.SendSyncMessageByRestful(req, &router)
-	if resp.Status == "" {
-		return "", 0, errors.New(resp.Msg)
-	}
-	data, err := json.Marshal(resp.Data)
-	if err != nil {
-		return "", 0, errors.New("marshal internal response error")
-	}
-	var nodeGroupInfo types.InnerGetNodeGroupInfoByIdResp
-	if err := json.Unmarshal(data, &nodeGroupInfo); err != nil {
-		return "", 0, errors.New("unmarshal internal response error")
-	}
-	return nodeGroupInfo.GroupName, int64(nodeGroupId), nil
+	return int64(nodeGroupId), nil
 }
 
-func getContainerInfoString(eventPod *v1.Pod) (string, error) {
+func getContainerInfoString(eventPod *corev1.Pod) (string, error) {
 	var containerInfos []ContainerInfo
 	for _, container := range eventPod.Spec.Containers {
 		containerInfo := ContainerInfo{
@@ -353,7 +348,7 @@ func getContainerInfoString(eventPod *v1.Pod) (string, error) {
 	return string(containerInfosDate), nil
 }
 
-func getContainerStatus(containerStatus v1.ContainerStatus) string {
+func getContainerStatus(containerStatus corev1.ContainerStatus) string {
 	if containerStatus.State.Waiting != nil {
 		return containerStateWaiting
 	}
@@ -364,4 +359,124 @@ func getContainerStatus(containerStatus v1.ContainerStatus) string {
 		return containerStateTerminated
 	}
 	return containerStateUnknown
+}
+
+func (a *appStatusServiceImpl) addDaemonSet(obj interface{}) {
+	daemonSet, err := parseDaemonSet(obj)
+	if err != nil {
+		hwlog.RunLog.Errorf("recovered add object, parse daemon set error: %v", err)
+		return
+	}
+	appDaemonSet, err := parseDaemonSetToDB(daemonSet)
+	if err = AppRepositoryInstance().addDaemonSet(appDaemonSet); err != nil {
+		hwlog.RunLog.Error("recovered add object, add daemon set to db error")
+		return
+	}
+}
+
+func (a *appStatusServiceImpl) updateDaemonSet(_, newObj interface{}) {
+	daemonSet, err := parseDaemonSet(newObj)
+	if err != nil {
+		hwlog.RunLog.Errorf("recovered update object, parse daemon set error: %v", err)
+		return
+	}
+	appDaemonSet, err := parseDaemonSetToDB(daemonSet)
+	if err = AppRepositoryInstance().updateDaemonSet(appDaemonSet); err != nil {
+		hwlog.RunLog.Error("recovered update object, update daemon set to db error")
+		return
+	}
+}
+
+func (a *appStatusServiceImpl) deleteDaemonSet(obj interface{}) {
+	daemonSet, err := parseDaemonSet(obj)
+	if err != nil {
+		hwlog.RunLog.Errorf("recovered add object, parse daemon set error: %v", err)
+		return
+	}
+	if err = AppRepositoryInstance().deleteDaemonSet(daemonSet.Name); err != nil {
+		hwlog.RunLog.Error("recovered add object, add daemon set to db error")
+		return
+	}
+}
+
+func parseDaemonSet(obj interface{}) (*appv1.DaemonSet, error) {
+	set, ok := obj.(*appv1.DaemonSet)
+	if !ok {
+		return nil, errors.New("convert object to daemon set error")
+	}
+	return set, nil
+}
+
+func parseDaemonSetToDB(eventSet *appv1.DaemonSet) (*AppDaemonSet, error) {
+	appId, err := getAppId(eventSet)
+	if err != nil {
+		return nil, err
+	}
+	nodeSelector := eventSet.Spec.Template.Spec.NodeSelector
+	if nodeSelector == nil {
+		return nil, errors.New("node selector is nil")
+	}
+	var nodeGroupId int
+	for labelKey := range nodeSelector {
+		if !strings.HasPrefix(labelKey, common.NodeGroupLabelPrefix) {
+			continue
+		}
+		nodeGroupId, err = strconv.Atoi(strings.TrimPrefix(labelKey, common.NodeGroupLabelPrefix))
+		if err != nil {
+			return nil, err
+		}
+	}
+	nodeGroupInfos, err := getNodeGroupInfos([]int64{int64(nodeGroupId)})
+	if err != nil {
+		return nil, fmt.Errorf("get group name or id error, %v", err)
+	}
+	if len(nodeGroupInfos) != 1 {
+		return nil, errors.New("get group name or id nums error")
+	}
+	nodeGroupInfo := nodeGroupInfos[0]
+	set := AppDaemonSet{
+		DaemonSetName: eventSet.Name,
+		AppID:         appId,
+		NodeGroupID:   nodeGroupInfo.NodeGroupID,
+		NodeGroupName: nodeGroupInfo.NodeGroupName,
+	}
+	return &set, nil
+}
+
+func getAppId(eventSet *appv1.DaemonSet) (int64, error) {
+	podLabels := eventSet.Spec.Template.Labels
+	value, ok := podLabels[AppId]
+	if !ok {
+		return 0, errors.New("app id label do not exist")
+	}
+	appId, err := strconv.Atoi(value)
+	if err != nil {
+		return 0, err
+	}
+	return int64(appId), nil
+}
+
+func getNodeGroupInfos(nodeGroupIds []int64) ([]types.NodeGroupInfo, error) {
+	router := common.Router{
+		Source:      common.AppManagerName,
+		Destination: common.NodeManagerName,
+		Option:      common.Inner,
+		Resource:    common.NodeGroup,
+	}
+	req := types.InnerGetNodeGroupInfosReq{
+		NodeGroupIds: nodeGroupIds,
+	}
+	resp := common.SendSyncMessageByRestful(req, &router)
+	if resp.Status != common.Success {
+		return nil, errors.New(resp.Msg)
+	}
+	data, err := json.Marshal(resp.Data)
+	if err != nil {
+		return nil, errors.New("marshal internal response error")
+	}
+	var nodeGroupInfosResp types.InnerGetNodeGroupInfosResp
+	if err = json.Unmarshal(data, &nodeGroupInfosResp); err != nil {
+		return nil, errors.New("unmarshal internal response error")
+	}
+	return nodeGroupInfosResp.NodeGroupInfos, nil
 }

@@ -3,6 +3,8 @@
 // Package appmanager to init util service
 package appmanager
 
+import "edge-manager/pkg/types"
+
 // CreateAppReq Create application
 type CreateAppReq struct {
 	AppName     string      `json:"appName"`
@@ -33,18 +35,6 @@ type UndeployAppReq struct {
 	NodeGroupIds []int64 `json:"nodeGroupIds"`
 }
 
-// NodeInfo get node info
-type NodeInfo struct {
-	NodeID        int64  `json:"nodeID"`
-	NodeGroupName string `json:"nodeGroupName"`
-}
-
-// NodeGroupInfo get group info
-type NodeGroupInfo struct {
-	NodeGroupID   int64  `json:"nodeGroupID"`
-	NodeGroupName string `json:"nodeGroupName"`
-}
-
 // GetAppByAppIdReq get app by application id
 type GetAppByAppIdReq struct {
 	AppID uint64 `json:"appID"`
@@ -52,14 +42,14 @@ type GetAppByAppIdReq struct {
 
 // AppInstanceResp encapsulate app instance information for return
 type AppInstanceResp struct {
-	AppName       string          `json:"appName"`
-	NodeGroupInfo NodeGroupInfo   `json:"nodeGroupInfo"`
-	NodeID        int64           `json:"nodeID"`
-	NodeName      string          `json:"nodeName"`
-	NodeStatus    string          `json:"nodeStatus"`
-	AppStatus     string          `json:"appStatus"`
-	CreatedAt     string          `json:"createdAt"`
-	ContainerInfo []ContainerInfo `json:"containerInfo"`
+	AppName       string              `json:"appName"`
+	NodeGroupInfo types.NodeGroupInfo `json:"nodeGroupInfo"`
+	NodeID        int64               `json:"nodeID"`
+	NodeName      string              `json:"nodeName"`
+	NodeStatus    string              `json:"nodeStatus"`
+	AppStatus     string              `json:"appStatus"`
+	CreatedAt     string              `json:"createdAt"`
+	ContainerInfo []ContainerInfo     `json:"containerInfo"`
 }
 
 // ContainerInfo encapsulate container details of an app instance
@@ -88,23 +78,23 @@ type ListReturnInfo struct {
 
 // AppReturnInfo encapsulate app information for return
 type AppReturnInfo struct {
-	AppID          uint64          `json:"appID"`
-	AppName        string          `json:"appName"`
-	Description    string          `json:"description"`
-	CreatedAt      string          `json:"createdAt"`
-	ModifiedAt     string          `json:"modifiedAt"`
-	NodeGroupInfos []NodeGroupInfo `json:"nodeGroupInfos"`
-	Containers     []Container     `json:"containers"`
+	AppID          uint64                `json:"appID"`
+	AppName        string                `json:"appName"`
+	Description    string                `json:"description"`
+	CreatedAt      string                `json:"createdAt"`
+	ModifiedAt     string                `json:"modifiedAt"`
+	NodeGroupInfos []types.NodeGroupInfo `json:"nodeGroupInfos"`
+	Containers     []Container           `json:"containers"`
 }
 
 // AppInstanceOfNodeResp encapsulate app instance information of a certain node
 type AppInstanceOfNodeResp struct {
-	AppName       string        `json:"appName"`
-	AppStatus     string        `json:"appStatus"`
-	Description   string        `json:"description"`
-	CreatedAt     string        `json:"createdAt"`
-	ChangedAt     string        `json:"changedAt"`
-	NodeGroupInfo NodeGroupInfo `json:"nodeGroupInfo"`
+	AppName       string              `json:"appName"`
+	AppStatus     string              `json:"appStatus"`
+	Description   string              `json:"description"`
+	CreatedAt     string              `json:"createdAt"`
+	ChangedAt     string              `json:"changedAt"`
+	NodeGroupInfo types.NodeGroupInfo `json:"nodeGroupInfo"`
 }
 
 // AppTemplate app template detail

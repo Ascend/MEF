@@ -528,7 +528,7 @@ func evalIpAddress(node *v1.Node) string {
 	return strings.Join(ipAddresses, ",")
 }
 
-func innerGetNodeInfoByName(input interface{}) common.RespMsg {
+func innerGetNodeInfoByUniqueName(input interface{}) common.RespMsg {
 	req, ok := input.(types.InnerGetNodeInfoByNameReq)
 	if !ok {
 		hwlog.RunLog.Error("parse inner message content failed")
@@ -540,24 +540,8 @@ func innerGetNodeInfoByName(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "get node info by unique name failed", Data: nil}
 	}
 	resp := types.InnerGetNodeInfoByNameResp{
-		NodeID: nodeInfo.ID,
-	}
-	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
-}
-
-func innerGetNodeGroupInfoById(input interface{}) common.RespMsg {
-	req, ok := input.(types.InnerGetNodeGroupInfoByIdReq)
-	if !ok {
-		hwlog.RunLog.Error("parse inner message content failed")
-		return common.RespMsg{Status: "", Msg: "parse inner message content failed", Data: nil}
-	}
-	nodeGroupInfo, err := NodeServiceInstance().getNodeGroupByID(req.GroupID)
-	if err != nil {
-		hwlog.RunLog.Error("get node group info by id failed")
-		return common.RespMsg{Status: "", Msg: "get node group info by id failed", Data: nil}
-	}
-	resp := types.InnerGetNodeGroupInfoByIdResp{
-		GroupName: nodeGroupInfo.GroupName,
+		NodeID:   nodeInfo.ID,
+		NodeName: nodeInfo.NodeName,
 	}
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
@@ -568,7 +552,11 @@ func innerGetNodeStatus(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("parse inner message content failed")
 		return common.RespMsg{Status: "", Msg: "parse inner message content failed", Data: nil}
 	}
-	nodeInfoDynamic, _ := NodeStatusServiceInstance().Get(req.UniqueName)
+	nodeInfoDynamic, ok := NodeStatusServiceInstance().Get(req.UniqueName)
+	if !ok {
+		hwlog.RunLog.Error("inner message get node status failed")
+		return common.RespMsg{Status: "", Msg: "internal get node status failed", Data: nil}
+	}
 	resp := types.InnerGetNodeStatusResp{
 		NodeStatus: nodeInfoDynamic.Status,
 	}
