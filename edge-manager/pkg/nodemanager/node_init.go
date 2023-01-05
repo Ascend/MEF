@@ -128,8 +128,8 @@ var handlerFuncMap = map[string]handlerFunc{
 	combine(common.Get, common.NodeGroup):           getEdgeNodeGroupDetail,
 	combine(common.Delete, common.NodeGroup):        batchDeleteNodeGroup,
 
-	combine(common.Inner, common.Node):       innerGetNodeInfoByName,
-	combine(common.Inner, common.NodeGroup):  innerGetNodeGroupInfoById,
+	combine(common.Inner, common.Node):       innerGetNodeInfoByUniqueName,
+	combine(common.Inner, common.NodeGroup):  innerGetNodeGroupInfosByIds,
 	combine(common.Inner, common.NodeStatus): innerGetNodeStatus,
 }
 

@@ -15,19 +15,30 @@ type AppInfo struct {
 	Containers  string    `gorm:"type:text;not null" json:"containers"`
 }
 
-// AppInstance is application instance
-type AppInstance struct {
+// AppDaemonSet record created daemon set
+type AppDaemonSet struct {
 	ID            int64     `gorm:"type:Integer;primaryKey;autoIncrement:true"`
-	PodName       string    `gorm:"type:char(42);unique;not null"`
-	NodeID        int64     `gorm:"type:Integer;not null"`
-	NodeName      string    `gorm:"type:char(64);not null"`
-	NodeGroupName string    `gorm:"type:char(64);not null"`
-	NodeGroupID   int64     `gorm:"type:Integer;not null"`
+	DaemonSetName string    `gorm:"type:char(128);unique;not null"`
 	AppID         int64     `gorm:"type:Integer;not null"`
-	AppName       string    `gorm:"type:char(128);not null"`
+	NodeGroupID   int64     `gorm:"type:Integer;not null"`
+	NodeGroupName string    `gorm:"type:char(64);not null"`
 	CreatedAt     time.Time `gorm:"type:time"`
 	UpdatedAt     time.Time `gorm:"type:time"`
-	ContainerInfo string    `gorm:"type:text;" json:"containers"`
+}
+
+// AppInstance is application instance
+type AppInstance struct {
+	ID             int64     `gorm:"type:Integer;primaryKey;autoIncrement:true"`
+	PodName        string    `gorm:"type:char(128);unique;not null"`
+	NodeID         int64     `gorm:"type:Integer;not null"`
+	NodeName       string    `gorm:"type:char(64);not null"`
+	NodeUniqueName string    `gorm:"type:char(64);not null"`
+	NodeGroupID    int64     `gorm:"type:Integer;not null"`
+	AppID          int64     `gorm:"type:Integer;not null"`
+	AppName        string    `gorm:"type:char(128);not null"`
+	CreatedAt      time.Time `gorm:"type:time"`
+	UpdatedAt      time.Time `gorm:"type:time"`
+	ContainerInfo  string    `gorm:"type:text;" json:"containers"`
 }
 
 // AppTemplateDb db table for application template group
