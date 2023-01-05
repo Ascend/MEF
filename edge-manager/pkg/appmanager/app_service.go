@@ -76,7 +76,7 @@ func queryApp(input interface{}) common.RespMsg {
 	}
 	appInfo, err := AppRepositoryInstance().queryApp(appId)
 	if err != nil {
-		hwlog.RunLog.Error("query app info failed")
+		hwlog.RunLog.Errorf("query app info failed %s", err.Error())
 		return common.RespMsg{Status: "", Msg: "query app info failed", Data: nil}
 	}
 
@@ -292,7 +292,7 @@ func updateApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "app info not exist, update failed", Data: nil}
 	}
 
-	if err = modifyContainerPara(&req, &appInfo); err != nil {
+	if err = modifyContainerPara(&req, appInfo); err != nil {
 		hwlog.RunLog.Errorf("modify app info failed: %s", err.Error())
 		return common.RespMsg{Status: "", Msg: "update app info failed", Data: nil}
 	}
@@ -312,7 +312,7 @@ func updateApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "get node group failed", Data: nil}
 	}
 
-	if err = updateNodeGroupDaemonSet(&appInfo, nodeGroups); err != nil {
+	if err = updateNodeGroupDaemonSet(appInfo, nodeGroups); err != nil {
 		hwlog.RunLog.Errorf("update node group daemon set failed: %s", err.Error())
 		return common.RespMsg{Status: "", Msg: "update node group daemon set failed", Data: nil}
 	}

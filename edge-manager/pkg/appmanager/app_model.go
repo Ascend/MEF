@@ -30,7 +30,7 @@ type AppRepositoryImpl struct {
 type AppRepository interface {
 	createApp(*AppInfo) error
 	updateApp(appId uint64, column string, value interface{}) error
-	queryApp(appId uint64) (AppInfo, error)
+	queryApp(appId uint64) (*AppInfo, error)
 	listAppsInfo(page, pageSize uint64, name string) ([]AppInfo, error)
 	countListAppsInfo(string) (int64, error)
 	countDeployedApp() (int64, int64, error)
@@ -90,15 +90,18 @@ func (a *AppRepositoryImpl) updateApp(appId uint64, column string, value interfa
 	return nil
 }
 
-func (a *AppRepositoryImpl) queryApp(appId uint64) (AppInfo, error) {
+func (a *AppRepositoryImpl) queryApp(appId uint64) (*AppInfo, error) {
 	var appInfo *AppInfo
 	var err error
 	if appInfo, err = a.getAppInfoById(appId); err != nil {
 		hwlog.RunLog.Errorf("query app id [%d] info from db failed", appId)
-		return *appInfo, fmt.Errorf("query app id [%d] info from db failed", appId)
+		return appInfo, fmt.Errorf("query app id [%d] info from db failed", appId)
+	}
+	if appInfo == nil {
+		return appInfo, fmt.Errorf("query app id [%d] info failed, info is nil", appId)
 	}
 
-	return *appInfo, nil
+	return appInfo, nil
 }
 
 func (a *AppRepositoryImpl) queryNodeGroup(appId uint64) ([]types.NodeGroupInfo, error) {
