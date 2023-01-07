@@ -6,6 +6,7 @@ package common
 import (
 	"encoding/json"
 	"errors"
+	"path"
 	"unsafe"
 
 	"os"
@@ -118,6 +119,18 @@ func GetEdgeMgrWorkPath() (string, bool) {
 	}
 
 	return currentDir, true
+}
+
+// GetCertDir gets websocket server cert path
+func GetCertDir() (string, bool) {
+	currentPath, ok := GetEdgeMgrWorkPath()
+	if !ok {
+		hwlog.RunLog.Error("get edge-manager work path failed")
+		return "", false
+	}
+
+	certDir := path.Join(currentPath, ServerCertPathName)
+	return certDir, true
 }
 
 // GetIntParams get int params from param dictionary

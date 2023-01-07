@@ -96,7 +96,7 @@ const (
 	// Repository resource
 	Repository = "repository"
 	// Token resource
-	Token = "token"
+	Token = "/edgecore/token"
 	// URL link
 	URL = "url"
 )
@@ -221,4 +221,32 @@ const (
 const (
 	// IllegalChars the illegal chars for command
 	IllegalChars = "\n!\\; &$<>`"
+)
+
+const (
+	// OptGet option for get
+	OptGet = "get"
+	// OptPost option for post
+	OptPost = "post"
+	// OptReport option for report
+	OptReport = "report"
+	// ResProgressReport resource progress report
+	ResProgressReport = "/progress"
+	// ResDownLoadSoftware resource for downloading software
+	ResDownLoadSoftware = "/software/download_info"
+	// ResEdgeCoreConfig resource for querying edgecore config
+	ResEdgeCoreConfig = "/edgecore/config"
+)
+
+// ServerCertPathName websocket server cert path name
+const (
+	ServerCertPathName = "mef_certs"
+)
+
+// memory unit
+const (
+	B  = 1
+	KB = 1024 * B
+	MB = 1024 * KB
+	GB = 1024 * MB
 )
