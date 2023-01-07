@@ -11,24 +11,26 @@ import (
 	"os/signal"
 	"syscall"
 
+	"edge-manager/pkg/appmanager"
+	"edge-manager/pkg/nodemanager"
+	"edge-manager/pkg/restfulservice"
+
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
 	"huawei.com/mindxedge/base/modulemanager"
 
-	"edge-manager/pkg/appmanager"
 	"edge-manager/pkg/config"
 	"edge-manager/pkg/database"
 	"edge-manager/pkg/edgeconnector"
 	"edge-manager/pkg/edgeinstaller"
 	"edge-manager/pkg/kubeclient"
-	"edge-manager/pkg/nodemanager"
-	"edge-manager/pkg/restfulservice"
 )
 
 const (
 	defaultPort           = 8101
+	defaultWsPort         = 10000
 	defaultRunLogFile     = "/var/log/mindx-edge/edge-manager/run.log"
 	defaultOperateLogFile = "/var/log/mindx-edge/edge-manager/operate.log"
 	defaultDbPath         = "/etc/mindx-edge/edge-manager/edge-manager.db"
@@ -38,6 +40,7 @@ var (
 	serverRunConf = &hwlog.LogConfig{LogFileName: defaultRunLogFile}
 	serverOpConf  = &hwlog.LogConfig{LogFileName: defaultOperateLogFile}
 	port          int
+	wsPort        int
 	ip            string
 	version       bool
 	// kubeConfig Kube config path
@@ -79,7 +82,9 @@ func init() {
 	flag.StringVar(&ip, "ip", "",
 		"The listen ip of the service,0.0.0.0 is not recommended when install on Multi-NIC host")
 	flag.IntVar(&port, "port", defaultPort,
-		"The server port of the http service,range[1025-40000]")
+		"The server port of the http service,range[1025-65535]")
+	flag.IntVar(&wsPort, "wsPort", defaultWsPort,
+		"The server port of the websocket service,range[1025-65535]")
 
 	// hwOpLog configuration
 	flag.IntVar(&serverOpConf.LogLevel, "operateLogLevel", 0,
@@ -136,7 +141,7 @@ func register(ctx context.Context) error {
 	if err := modulemanager.Registry(appmanager.NewAppManager(true)); err != nil {
 		return err
 	}
-	if err := modulemanager.Registry(edgeconnector.NewSocket(true)); err != nil {
+	if err := modulemanager.Registry(edgeconnector.NewConnector(true, wsPort)); err != nil {
 		return err
 	}
 	if err := modulemanager.Registry(edgeinstaller.NewInstaller(true)); err != nil {

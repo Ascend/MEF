@@ -68,9 +68,9 @@ spec:
               memory: 500Mi
               cpu: 500m
           imagePullPolicy: IfNotPresent
-          command: [ "/bin/bash", "-c", "--"]
+          command: [ "/bin/bash", "-c", "--" ]
           # NOTE: HTTPS is enabled by default
-          args: ["./edge-manager -ip=0.0.0.0 -port=8101"]
+          args: [ "./edge-manager -ip=0.0.0.0 -port=8101 -wsPort=10000" ]
           volumeMounts:
             - name: edgemanager-log
               mountPath: /var/log/mindx-edge/edge-manager
@@ -78,6 +78,11 @@ spec:
               mountPath: /etc/localtime
             - name: kmc
               mountPath: /etc/mindx-edge
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
       volumes:
         - name: edgemanager-log
           hostPath:
