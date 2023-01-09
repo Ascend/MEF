@@ -4,211 +4,615 @@
 package nodemanager
 
 import (
-	"encoding/json"
-	"os"
-	"strconv"
+	"errors"
+	"fmt"
+	"math/rand"
+	"reflect"
+	"strings"
+	"sync"
 	"testing"
 	"time"
 
-	"github.com/agiledragon/gomonkey/v2"
-	"github.com/smartystreets/goconvey/convey"
+	. "github.com/agiledragon/gomonkey/v2"
+	. "github.com/smartystreets/goconvey/convey"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
+	"k8s.io/api/core/v1"
 
 	"edge-manager/pkg/database"
+	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/util"
-
 	"huawei.com/mindxedge/base/common"
 )
 
-var (
-	gormInstance *gorm.DB
-	dbPath       = "./test.db"
+const (
+	memoryDsn           = ":memory:?cache=shared"
+	defaultPageSize     = 20
+	shuffledNumberCount = 10000
 )
 
-func setup() {
-	var err error
+var (
+	env environment
+)
+
+type environment struct {
+	shuffledNumbers     []int
+	shuffledNumbersLock sync.Mutex
+	patches             *Patches
+}
+
+func (e *environment) setup() error {
 	logConfig := &hwlog.LogConfig{OnlyToStdout: true}
-	if err = common.InitHwlogger(logConfig, logConfig); err != nil {
-		hwlog.RunLog.Errorf("init hwlog failed, %v", err)
+	if err := common.InitHwlogger(logConfig, logConfig); err != nil {
+		return err
 	}
-	if err = os.Remove(dbPath); err != nil && !os.IsNotExist(err) {
-		hwlog.RunLog.Errorf("cleanup db failed, error: %v", err)
-	}
-	gormInstance, err = gorm.Open(sqlite.Open(dbPath))
+	db, err := gorm.Open(sqlite.Open(memoryDsn))
 	if err != nil {
-		hwlog.RunLog.Errorf("failed to init test db, %v\n", err)
+		return err
 	}
-	if err = gormInstance.AutoMigrate(&NodeInfo{}); err != nil {
-		hwlog.RunLog.Errorf("setup table error, %v\n", err)
+	if err := e.setupTables(db); err != nil {
+		return err
 	}
-	if err = gormInstance.AutoMigrate(&NodeRelation{}); err != nil {
-		hwlog.RunLog.Errorf("setup table error, %v\n", err)
+	e.patches = e.setupGoMonkeyPatches(db)
+	return nil
+}
+
+func (e *environment) teardown() {
+	e.patches.Reset()
+}
+
+func (e *environment) setupTables(db *gorm.DB) error {
+	if err := db.AutoMigrate(&NodeInfo{}); err != nil {
+		return err
 	}
-	if err = gormInstance.AutoMigrate(&NodeGroup{}); err != nil {
-		hwlog.RunLog.Errorf("setup table error, %v\n", err)
+	if err := db.AutoMigrate(&NodeRelation{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&NodeGroup{}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *environment) setupGoMonkeyPatches(db *gorm.DB) *Patches {
+	service := &nodeStatusServiceImpl{}
+	client := &kubeclient.Client{}
+	return ApplyFuncReturn(database.GetDb, db).
+		ApplyFuncReturn(NodeStatusServiceInstance, service).
+		ApplyMethodReturn(service, "List", &[]NodeInfoDynamic{}).
+		ApplyMethodReturn(service, "Get", nil, false).
+		ApplyFuncReturn(kubeclient.GetKubeClient, client).
+		ApplyPrivateMethod(client, "patchNode", e.mockPatchNode).
+		ApplyMethodReturn(client, "ListNode", &v1.NodeList{}, nil).
+		ApplyMethodReturn(client, "GetNode", &v1.Node{}, nil).
+		ApplyMethodReturn(client, "DeleteNode", nil).
+		ApplyFuncReturn(getAppInstanceCountByGroupId, int64(0), nil)
+}
+
+func (e *environment) mockPatchNode(string, []map[string]interface{}) (*v1.Node, error) {
+	return &v1.Node{}, nil
+}
+
+func (e *environment) createNode(node *NodeInfo) error {
+	return NodeServiceInstance().createNode(node)
+}
+
+func (e *environment) verifyDbNodeInfo(node *NodeInfo, ignoredFields ...string) error {
+	var (
+		dbNode *NodeInfo
+		err    error
+	)
+	if node.ID == 0 {
+		dbNode, err = NodeServiceInstance().getNodeByUniqueName(node.UniqueName)
+	} else {
+		dbNode, err = NodeServiceInstance().getNodeByID(node.ID)
+	}
+	if err != nil {
+		return err
+	}
+	if !env.compareStruct(*node, *dbNode, ignoredFields...) {
+		return errors.New("node not equal")
+	}
+	return nil
+}
+
+func (e *environment) createGroup(group *NodeGroup) error {
+	return NodeServiceInstance().createNodeGroup(group)
+}
+
+func (e *environment) verifyDbNodeGroup(group *NodeGroup, ignoredFields ...string) error {
+	var (
+		dbGroup  *NodeGroup
+		dbGroups *[]NodeGroup
+		err      error
+	)
+	if group.ID == 0 {
+		dbGroups, err = NodeServiceInstance().getNodeGroupsByName(1, defaultPageSize, group.GroupName)
+		for _, group := range *dbGroups {
+			if group.GroupName == group.GroupName {
+				dbGroup = &group
+				break
+			}
+		}
+	} else {
+		dbGroup, err = NodeServiceInstance().getNodeGroupByID(group.ID)
+	}
+	if dbGroup == nil {
+		return gorm.ErrRecordNotFound
+	}
+	if err != nil {
+		return err
+	}
+	if !env.compareStruct(*group, *dbGroup, ignoredFields...) {
+		return errors.New("group not equal")
+	}
+	return nil
+}
+
+func (e *environment) createRelation(relation *NodeRelation) error {
+	return NodeServiceInstance().addNodeToGroup(&[]NodeRelation{*relation})
+}
+
+func (e *environment) verifyDbNodeRelation(relation *NodeRelation, ignoredFields ...string) error {
+	dbRelations, err := NodeServiceInstance().getRelationsByNodeID(relation.NodeID)
+	var dbRelation *NodeRelation
+	for _, r := range *dbRelations {
+		if r.GroupID == relation.GroupID {
+			dbRelation = &r
+			break
+		}
+	}
+	if dbRelation == nil {
+		return gorm.ErrRecordNotFound
+	}
+	if err != nil {
+		return err
+	}
+	if !env.compareStruct(*relation, *dbRelation, ignoredFields...) {
+		return errors.New("node not equal")
+	}
+	return nil
+}
+
+func (e *environment) compareStruct(a, b interface{}, ignoredFields ...string) bool {
+	aType := reflect.TypeOf(a)
+	bType := reflect.TypeOf(b)
+	if aType != bType {
+		return false
+	}
+	aValue := reflect.ValueOf(a)
+	bValue := reflect.ValueOf(b)
+	for i := 0; i < aType.NumField(); i++ {
+		fieldName := aType.Field(i).Name
+		shouldIgnore := false
+		for _, ignoredFieldName := range ignoredFields {
+			if fieldName == ignoredFieldName {
+				shouldIgnore = true
+				break
+			}
+		}
+		if shouldIgnore {
+			continue
+		}
+		aFieldValue := aValue.Field(i).Interface()
+		bFieldValue := bValue.Field(i).Interface()
+		if aFieldValue != bFieldValue {
+			return false
+		}
+	}
+	return true
+}
+
+func (e *environment) randomize(pointers ...interface{}) {
+	replacements := map[string]string{
+		"#{random}": fmt.Sprintf("%04d", e.nextRandomInt()),
+	}
+	for _, pointer := range pointers {
+		e.randomizeInternal(pointer, replacements)
 	}
 }
 
-func teardown() {
-
+func (e *environment) nextRandomInt() int {
+	e.shuffledNumbersLock.Lock()
+	if len(e.shuffledNumbers) == 0 {
+		e.shuffledNumbers = make([]int, shuffledNumberCount)
+		for i := 0; i < shuffledNumberCount; i++ {
+			e.shuffledNumbers[i] = i
+		}
+		rand.Shuffle(shuffledNumberCount, func(i, j int) {
+			temp := e.shuffledNumbers[i]
+			e.shuffledNumbers[i] = e.shuffledNumbers[j]
+			e.shuffledNumbers[j] = temp
+		})
+	}
+	randInt := e.shuffledNumbers[len(e.shuffledNumbers)-1]
+	e.shuffledNumbers = e.shuffledNumbers[0 : len(e.shuffledNumbers)-1]
+	e.shuffledNumbersLock.Unlock()
+	return randInt
 }
 
-func mockGetDb() *gorm.DB {
-	return gormInstance
-}
-
-type fakeNodeStatusService struct {
-}
-
-func (s *fakeNodeStatusService) List() *[]NodeInfoDynamic {
-	var slice []NodeInfoDynamic
-	return &slice
-}
-
-func (s *fakeNodeStatusService) Get(name string) (*NodeInfoDynamic, bool) {
-	return &NodeInfoDynamic{
-		Hostname: name,
-		Status:   statusOffline,
-	}, true
-}
-
-func mockNodeStatusServiceInstance() NodeStatusService {
-	return &fakeNodeStatusService{}
+func (e *environment) randomizeInternal(pointer interface{}, replacements map[string]string) {
+	if replacements == nil {
+		return
+	}
+	ptrValue := reflect.ValueOf(pointer)
+	if ptrValue.Kind() != reflect.Ptr || ptrValue.IsNil() {
+		return
+	}
+	objValue := ptrValue.Elem()
+	switch objValue.Kind() {
+	case reflect.String:
+		replacedStr := objValue.String()
+		for oldStr, newStr := range replacements {
+			replacedStr = strings.ReplaceAll(replacedStr, oldStr, newStr)
+		}
+		objValue.Set(reflect.ValueOf(replacedStr))
+	case reflect.Struct:
+		for i := 0; i < objValue.NumField(); i++ {
+			e.randomizeInternal(objValue.Field(i).Addr().Interface(), replacements)
+		}
+	case reflect.Slice, reflect.Array:
+		for i := 0; i < objValue.Len(); i++ {
+			e.randomizeInternal(objValue.Index(i).Addr().Interface(), replacements)
+		}
+	default:
+	}
 }
 
 func TestMain(m *testing.M) {
-	patches := gomonkey.
-		ApplyFunc(database.GetDb, mockGetDb).
-		ApplyFunc(NodeStatusServiceInstance, mockNodeStatusServiceInstance)
-	defer patches.Reset()
-	setup()
+	env = environment{}
+	if err := env.setup(); err != nil {
+		fmt.Printf("failed to setup test environment, reason: %v", err)
+		return
+	}
+	defer env.teardown()
 	code := m.Run()
-	teardown()
-	hwlog.RunLog.Infof("exit_code=%d\n", code)
+	hwlog.RunLog.Infof("test complete, exitCode=%d", code)
 }
 
-func TestAll(t *testing.T) {
-	createGroupAndRelation(1)
-	convey.Convey("node manager function test", t, func() {
+func TestCreateNode(t *testing.T) {
+	Convey("createNode functional test", t, createNodeFunctionalTest)
+}
 
-		convey.Convey("create node should success", testCreateNode)
-		convey.Convey("get node detail should success", testGetNodeDetail)
-		convey.Convey("modify node should success", testModifyNode)
-		convey.Convey("list node group should success", testListNodeGroup)
-		convey.Convey("get node group detail should success", testGetNodeGroupDetail)
-		convey.Convey("create node group should success", testCreateNodeGroup)
-		convey.Convey("list node should success", testListNode)
+func createNodeFunctionalTest() {
+	node := &NodeInfo{
+		Description: "test-create-node-1-description",
+		NodeName:    "test-create-node-1-name",
+		UniqueName:  "test-create-node-1-unique-name",
+	}
+
+	Convey("normal input", func() {
+		args := fmt.Sprintf(`
+			{
+    			"nodeName": "%s",
+    			"uniqueName": "%s",
+    			"description": "%s"
+			}`, node.NodeName, node.UniqueName, node.Description)
+		resp := createNode(args)
+		So(resp.Status, ShouldEqual, common.Success)
+		So(env.verifyDbNodeInfo(node, "ID", "UpdatedAt", "CreatedAt", "IsManaged"), ShouldBeNil)
 	})
 }
 
-func testCreateNode() {
-	req := CreateEdgeNodeReq{
-		Description: "my-desc",
-		NodeName:    "node-name",
-		UniqueName:  "unique-name",
-		NodeGroup:   "node_group",
-	}
-	reqBytes, err := json.Marshal(req)
-	convey.So(err, convey.ShouldBeNil)
-	resp := createNode(string(reqBytes))
-	convey.So(resp.Status, convey.ShouldEqual, common.Success)
+func TestGetNodeDetail(t *testing.T) {
+	Convey("getNodeDetail functional test", t, getNodeDetailFunctionalTest)
 }
 
-func testCreateNodeGroup() {
-	req := CreateNodeGroupReq{
-		Description:   "my-desc",
-		NodeGroupName: "node_group_name",
-	}
-	reqBytes, err := json.Marshal(req)
-	convey.So(err, convey.ShouldBeNil)
-	resp := createGroup(string(reqBytes))
-	convey.So(resp.Status, convey.ShouldEqual, common.Success)
-}
-
-func testGetNodeDetail() {
-	testGetNodeDetailInternal("my-desc", "node-name", "unique-name", "my_group", 1)
-}
-
-func testGetNodeDetailInternal(description, nodeName, uniqueName, nodeGroup string, nodeId int64) {
-	req := map[string][]string{"id": {strconv.Itoa(int(nodeId))}}
-	reqBytes, err := json.Marshal(req)
-	convey.So(err, convey.ShouldBeNil)
-	resp := getNodeDetail(string(reqBytes))
-	convey.So(resp.Status, convey.ShouldEqual, common.Success)
-	convey.So(resp.Data, convey.ShouldHaveSameTypeAs, NodeInfoDetail{})
-	node, _ := resp.Data.(NodeInfoDetail)
-	convey.So(node.Description, convey.ShouldEqual, description)
-	convey.So(node.NodeName, convey.ShouldEqual, nodeName)
-	convey.So(node.UniqueName, convey.ShouldEqual, uniqueName)
-	convey.So(node.NodeGroup, convey.ShouldEqual, nodeGroup)
-}
-
-func testModifyNode() {
-	req := ModifyNodeReq{
-		NodeID:      1,
-		Description: "my-desc-new",
-		NodeName:    "node-name-new",
-	}
-	reqBytes, err := json.Marshal(req)
-	convey.So(err, convey.ShouldBeNil)
-	resp := modifyNode(string(reqBytes))
-	convey.So(resp.Status, convey.ShouldEqual, common.Success)
-	testGetNodeDetailInternal("my-desc-new", "node-name-new", "unique-name", "my_group", 1)
-}
-
-func testListNodeGroup() {
-	req := util.ListReq{PageSize: 5, PageNum: 1, Name: ""}
-	resp := listEdgeNodeGroup(req)
-	convey.So(resp.Status, convey.ShouldEqual, common.Success)
-	convey.So(resp.Data, convey.ShouldHaveSameTypeAs, ListNodeGroupResp{})
-	respData, _ := resp.Data.(ListNodeGroupResp)
-	convey.So(len(respData.Groups), convey.ShouldEqual, 1)
-	group := respData.Groups[0]
-	convey.So(group.NodeCount, convey.ShouldEqual, 1)
-}
-
-func testListNode() {
-	req := util.ListReq{
-		PageSize: 1,
-		PageNum:  1,
-	}
-	resp := listManagedNode(req)
-	convey.So(resp.Status, convey.ShouldEqual, common.Success)
-}
-
-func testGetNodeGroupDetail() {
-	req := map[string][]string{"id": {"1"}}
-	reqBytes, err := json.Marshal(req)
-	convey.So(err, convey.ShouldBeNil)
-	resp := getEdgeNodeGroupDetail(string(reqBytes))
-	convey.So(resp.Status, convey.ShouldEqual, common.Success)
-	convey.So(resp.Data, convey.ShouldHaveSameTypeAs, NodeGroupDetail{})
-	respData, _ := resp.Data.(NodeGroupDetail)
-	convey.So(len(respData.Nodes), convey.ShouldEqual, 1)
-}
-
-func createGroupAndRelation(nodeId int64) {
-	if gormInstance == nil {
-		hwlog.RunLog.Error("null pointer error")
-		return
-	}
-	nodeGroup := NodeGroup{
-		Description: "my-description",
-		GroupName:   "my_group",
+func getNodeDetailFunctionalTest() {
+	node := &NodeInfo{
+		Description: "test-get-node-detail-#{random}-description",
+		NodeName:    "test-get-node-detail-#{random}-name",
+		UniqueName:  "test-get-node-detail-#{random}-unique-name",
+		IP:          "0.0.0.0",
 		CreatedAt:   time.Now().Format(TimeFormat),
 		UpdatedAt:   time.Now().Format(TimeFormat),
 	}
-	if err := gormInstance.Create(&nodeGroup).Error; err != nil {
-		hwlog.RunLog.Errorf("create group failed, %v\n", err)
+	env.randomize(node)
+	So(env.createNode(node), ShouldBeNil)
+
+	Convey("normal input", func() {
+		args := fmt.Sprintf(`{"id": %d}`, node.ID)
+		resp := getNodeDetail(args)
+		So(resp.Status, ShouldEqual, common.Success)
+		nodeInfoDetail, ok := resp.Data.(NodeInfoDetail)
+		So(ok, ShouldBeTrue)
+		So(nodeInfoDetail.NodeInfoEx.NodeInfo, ShouldResemble, *node)
+	})
+
+	Convey("bad id type", func() {
+		args := `{"id": "1"}`
+		resp := getNodeDetail(args)
+		So(resp.Status, ShouldNotEqual, common.Success)
+	})
+}
+
+func TestModifyNode(t *testing.T) {
+	Convey("modifyNode functional test", t, modifyNodeFunctionalTest)
+}
+
+func modifyNodeFunctionalTest() {
+	node := &NodeInfo{
+		Description: "test-modify-node-1-description",
+		NodeName:    "test-modify-node-1-name",
+		UniqueName:  "test-modify-node-1-unique-name",
+		IP:          "0.0.0.0",
+		CreatedAt:   time.Now().Format(TimeFormat),
+		UpdatedAt:   time.Now().Format(TimeFormat),
 	}
-	nodeRelation := NodeRelation{
-		GroupID:   nodeGroup.ID,
-		NodeID:    nodeId,
+	So(env.createNode(node), ShouldBeNil)
+	node.Description = "test-modify-node-1-description-modified"
+	node.NodeName = "test-modify-node-1-name-modified"
+
+	Convey("normal input", func() {
+		args := fmt.Sprintf(`
+			{
+    			"description": "%s",
+    			"nodeName": "%s",
+    			"nodeID": %d
+			}`, node.Description, node.NodeName, node.ID)
+		resp := modifyNode(args)
+		So(resp.Status, ShouldEqual, common.Success)
+		So(env.verifyDbNodeInfo(node, "UpdatedAt"), ShouldBeNil)
+	})
+}
+
+func TestGetNodeStatistics(t *testing.T) {
+	Convey("getNodeStatistics functional test", t, getNodeStatisticsFunctionalTest)
+}
+
+func getNodeStatisticsFunctionalTest() {
+	Convey("normal input", func() {
+		resp := getNodeStatistics(``)
+		So(resp.Status, ShouldEqual, common.Success)
+	})
+}
+
+func TestGroupStatistics(t *testing.T) {
+	Convey("getGroupNodeStatistics functional test", t, groupStatisticsFunctionalTest)
+}
+
+func groupStatisticsFunctionalTest() {
+	Convey("normal input", func() {
+		resp := getGroupNodeStatistics(``)
+		So(resp.Status, ShouldEqual, common.Success)
+	})
+}
+
+func TestCreateGroup(t *testing.T) {
+	Convey("createGroup functional test", t, createGroupFunctionalTest)
+}
+
+func createGroupFunctionalTest() {
+	group := &NodeGroup{
+		Description: "test-create-group-1-description",
+		GroupName:   "test_create_group_1_name",
+	}
+
+	Convey("normal input", func() {
+		args := fmt.Sprintf(`
+			{
+    			"nodeGroupName": "%s",
+    			"description": "%s"
+			}`, group.GroupName, group.Description)
+		resp := createGroup(args)
+		So(resp.Status, ShouldEqual, common.Success)
+		So(env.verifyDbNodeGroup(group, "ID", "UpdatedAt", "CreatedAt"), ShouldBeNil)
+	})
+}
+
+func TestGetGroupDetail(t *testing.T) {
+	Convey("getEdgeNodeGroupDetail functional test", t, getGroupDetailFunctionalTest)
+}
+
+func getGroupDetailFunctionalTest() {
+	group := &NodeGroup{
+		Description: "test-get-group-detail-#{random}-description",
+		GroupName:   "test_get_group_detail_#{random}_name",
+		CreatedAt:   time.Now().Format(TimeFormat),
+		UpdatedAt:   time.Now().Format(TimeFormat),
+	}
+	env.randomize(group)
+	So(env.createGroup(group), ShouldBeNil)
+
+	Convey("normal input", func() {
+		args := fmt.Sprintf(`{"id": %d}`, group.ID)
+		resp := getEdgeNodeGroupDetail(args)
+		So(resp.Status, ShouldEqual, common.Success)
+		groupDetail, ok := resp.Data.(NodeGroupDetail)
+		So(ok, ShouldBeTrue)
+		So(groupDetail.NodeGroup, ShouldResemble, *group)
+	})
+
+	Convey("bad id type", func() {
+		args := `{"id": "1"}`
+		resp := getEdgeNodeGroupDetail(args)
+		So(resp.Status, ShouldNotEqual, common.Success)
+	})
+}
+
+func TestListManagedNode(t *testing.T) {
+	Convey("listManagedNode functional test", t, litManagedNodeFunctionalTest)
+}
+
+func litManagedNodeFunctionalTest() {
+	Convey("normal input", func() {
+		args := util.ListReq{PageNum: 1, PageSize: defaultPageSize}
+		resp := listUnmanagedNode(args)
+		So(resp.Status, ShouldEqual, common.Success)
+	})
+}
+
+func TestListUnManagedNode(t *testing.T) {
+	Convey("listUnmanagedNode functional test", t, listUnManagedNodeFunctionalTest)
+}
+
+func listUnManagedNodeFunctionalTest() {
+	Convey("normal input", func() {
+		args := util.ListReq{PageNum: 1, PageSize: defaultPageSize}
+		resp := listUnmanagedNode(args)
+		So(resp.Status, ShouldEqual, common.Success)
+	})
+}
+
+func TestBatchDeleteNode(t *testing.T) {
+	Convey("batchDeleteNode functional test", t, batchDeleteNodeFunctionalTest)
+}
+
+func batchDeleteNodeFunctionalTest() {
+	node := &NodeInfo{
+		Description: "test-batch-delete-node-1-description",
+		NodeName:    "test-batch-delete-node-1-name",
+		UniqueName:  "test-batch-delete-node-1-unique-name",
+		IP:          "0.0.0.0",
+		CreatedAt:   time.Now().Format(TimeFormat),
+		UpdatedAt:   time.Now().Format(TimeFormat),
+	}
+	So(env.createNode(node), ShouldBeNil)
+
+	Convey("normal input", func() {
+		args := fmt.Sprintf(`[%d]`, node.ID)
+		resp := batchDeleteNode(args)
+		So(resp.Status, ShouldEqual, common.Success)
+		deleteCount, ok := resp.Data.(int64)
+		So(ok, ShouldBeTrue)
+		So(deleteCount, ShouldEqual, int64(1))
+		So(env.verifyDbNodeInfo(node), ShouldEqual, gorm.ErrRecordNotFound)
+	})
+}
+
+func TestBatchDeleteNodeRelation(t *testing.T) {
+	Convey("batchDeleteNodeRelation functional test", t, batchDeleteNodeRelationFunctionalTest)
+}
+
+func batchDeleteNodeRelationFunctionalTest() {
+	node := &NodeInfo{
+		Description: "test-batch-delete-relation-1-description",
+		NodeName:    "test-batch-delete-relation-1-name",
+		UniqueName:  "test-batch-delete-relation-1-unique-name",
+		IP:          "0.0.0.0",
+		IsManaged:   true,
+		CreatedAt:   time.Now().Format(TimeFormat),
+		UpdatedAt:   time.Now().Format(TimeFormat),
+	}
+	group := &NodeGroup{
+		Description: "test-batch-delete-relation-1-description",
+		GroupName:   "test_batch_delete_relation_1_nme",
+		CreatedAt:   time.Now().Format(TimeFormat),
+		UpdatedAt:   time.Now().Format(TimeFormat),
+	}
+	So(env.createNode(node), ShouldBeNil)
+	So(env.createGroup(group), ShouldBeNil)
+	relation := &NodeRelation{
+		NodeID:    node.ID,
+		GroupID:   group.ID,
 		CreatedAt: time.Now().Format(TimeFormat),
 	}
-	if err := gormInstance.Create(&nodeRelation).Error; err != nil {
-		hwlog.RunLog.Errorf("create relation failed, %v\n", err)
+	So(env.createRelation(relation), ShouldBeNil)
+
+	Convey("normal input", func() {
+		args := fmt.Sprintf(`[
+            {
+                "nodeID": %d,
+                "groupID": %d
+            }]`, node.ID, group.ID)
+		resp := batchDeleteNodeRelation(args)
+		So(resp.Status, ShouldEqual, common.Success)
+		deleteCount, ok := resp.Data.(int64)
+		So(ok, ShouldBeTrue)
+		So(deleteCount, ShouldEqual, int64(1))
+		So(env.verifyDbNodeRelation(relation), ShouldEqual, gorm.ErrRecordNotFound)
+	})
+}
+
+func TestAddNodeRelation(t *testing.T) {
+	Convey("addNodeRelation functional test", t, addNodeRelationFunctionalTest)
+}
+
+func addNodeRelationFunctionalTest() {
+	node := &NodeInfo{
+		Description: "test-add-relation-1-description",
+		NodeName:    "test-add-relation-1-name",
+		UniqueName:  "test-add-relation-1-description-unique-name",
+		IP:          "0.0.0.0",
+		IsManaged:   true,
+		CreatedAt:   time.Now().Format(TimeFormat),
+		UpdatedAt:   time.Now().Format(TimeFormat),
 	}
+	group := &NodeGroup{
+		Description: "test-add-relation-1-description",
+		GroupName:   "test_add_relation_1_name",
+		CreatedAt:   time.Now().Format(TimeFormat),
+		UpdatedAt:   time.Now().Format(TimeFormat),
+	}
+	So(env.createNode(node), ShouldBeNil)
+	So(env.createGroup(group), ShouldBeNil)
+
+	Convey("normal input", func() {
+		args := fmt.Sprintf(`{"groupID": %d, "nodeIDs": [%d]}`, group.ID, node.ID)
+		resp := addNodeRelation(args)
+		So(resp.Status, ShouldEqual, common.Success)
+		relation := &NodeRelation{NodeID: node.ID, GroupID: group.ID}
+		So(env.verifyDbNodeRelation(relation, "CreatedAt"), ShouldBeNil)
+	})
+}
+
+func TestListEdgeNodeGroup(t *testing.T) {
+	Convey("listEdgeNodeGroup functional test", t, listEdgeNodeGroupFunctionalTest)
+}
+
+func listEdgeNodeGroupFunctionalTest() {
+	Convey("normal input", func() {
+		args := util.ListReq{PageNum: 1, PageSize: defaultPageSize}
+		resp := listEdgeNodeGroup(args)
+		So(resp.Status, ShouldEqual, common.Success)
+	})
+}
+
+func TestModifyGroup(t *testing.T) {
+	Convey("modifyGroup functional test", t, modifyGroupFunctionalTest)
+}
+
+func modifyGroupFunctionalTest() {
+	group := &NodeGroup{
+		Description: "test-modify-group-1-description",
+		GroupName:   "test_modify_group_1_n",
+	}
+	So(env.createGroup(group), ShouldBeNil)
+	group.Description += "-m"
+	group.GroupName += "_m"
+
+	Convey("normal input", func() {
+		args := fmt.Sprintf(`
+				{
+   					"groupID": %d,
+   					"nodeGroupName": "%s",
+   					"description": "%s"
+				}`, group.ID, group.GroupName, group.Description)
+		resp := modifyNodeGroup(args)
+		So(resp.Status, ShouldEqual, common.Success)
+		So(env.verifyDbNodeGroup(group, "UpdatedAt"), ShouldBeNil)
+	})
+}
+
+func TestBatchDeleteGroup(t *testing.T) {
+	Convey("batchDeleteNodeGroup functional test", t, batchDeleteGroupFunctionalTest)
+}
+
+func batchDeleteGroupFunctionalTest() {
+	group := &NodeGroup{
+		Description: "test-batch-delete-group-1-description",
+		GroupName:   "test_batch_delete_group_1_name",
+	}
+	So(env.createGroup(group), ShouldBeNil)
+
+	Convey("normal input", func() {
+		args := fmt.Sprintf(`{"groupIDs": [%d]}`, group.ID)
+		resp := batchDeleteNodeGroup(args)
+		So(resp.Status, ShouldEqual, common.Success)
+		deleteIDs, ok := resp.Data.([]int64)
+		So(ok, ShouldBeTrue)
+		So(deleteIDs, ShouldResemble, []int64{group.ID})
+		So(env.verifyDbNodeGroup(group), ShouldEqual, gorm.ErrRecordNotFound)
+	})
 }

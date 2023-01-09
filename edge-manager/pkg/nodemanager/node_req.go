@@ -4,10 +4,6 @@
 package nodemanager
 
 import (
-	"encoding/json"
-
-	"github.com/gin-gonic/gin/binding"
-
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -33,7 +29,6 @@ func (req CreateEdgeNodeReq) Check() error {
 	return common.NewValidator().
 		ValidateNodeName(paramNodeName, req.NodeName).
 		ValidateNodeUniqueName(paramUniqueName, req.UniqueName).
-		ValidateNodeGroupName(paramNodeGroupName, req.NodeGroup).
 		Error()
 }
 
@@ -58,22 +53,6 @@ type GetNodeDetailReq struct {
 
 // GetNodeGroupDetailReq request object
 type GetNodeGroupDetailReq = GetNodeDetailReq
-
-// UnmarshalJSON custom JSON unmarshal
-func (req *GetNodeDetailReq) UnmarshalJSON(input []byte) error {
-	return unmarshalUriParams(input, req)
-}
-
-func unmarshalUriParams(input []byte, obj interface{}) error {
-	objMap := make(map[string][]string)
-	if err := json.Unmarshal(input, &objMap); err != nil {
-		return err
-	}
-	if err := binding.Uri.BindUri(objMap, obj); err != nil {
-		return err
-	}
-	return nil
-}
 
 // Check request validator
 func (req GetNodeDetailReq) Check() error {

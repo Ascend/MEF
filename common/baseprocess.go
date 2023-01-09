@@ -14,7 +14,6 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
@@ -86,22 +85,6 @@ func ParamConvert(input interface{}, reqType interface{}) error {
 		return errors.New("param decode error")
 	}
 	return nil
-}
-
-// BindUriWithJSON convert uri to key-value string dict
-func BindUriWithJSON(c *gin.Context) ([]byte, error) {
-	if c == nil {
-		return nil, errors.New("gin Context can't be nil")
-	}
-	obj := make(map[string][]string, len(c.Params))
-	for _, v := range c.Params {
-		params, ok := obj[v.Key]
-		if !ok {
-			params = make([]string, 0, 1)
-		}
-		obj[v.Key] = append(params, v.Value)
-	}
-	return json.Marshal(obj)
 }
 
 // GetEdgeMgrWorkPath gets edge-manager work path

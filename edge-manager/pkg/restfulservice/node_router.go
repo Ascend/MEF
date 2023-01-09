@@ -99,10 +99,16 @@ func createEdgeNodeGroup(c *gin.Context) {
 }
 
 func getNodeDetail(c *gin.Context) {
-	res, err := common.BindUriWithJSON(c)
-	if err != nil {
+	var req nodemanager.GetNodeDetailReq
+	if err := c.BindUri(&req); err != nil {
 		hwlog.OpLog.Error("get node detail: get input parameter failed")
-		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
+		common.ConstructResp(c, common.ErrorParamInvalid, err.Error(), nil)
+		return
+	}
+	res, err := json.Marshal(req)
+	if err != nil {
+		hwlog.OpLog.Error("get node detail: marshal parameter failed")
+		common.ConstructResp(c, common.ErrorParamInvalid, err.Error(), nil)
 		return
 	}
 	router := common.Router{
@@ -271,10 +277,16 @@ func listEdgeNodeGroup(c *gin.Context) {
 }
 
 func getEdgeNodeGroupDetail(c *gin.Context) {
-	res, err := common.BindUriWithJSON(c)
-	if err != nil {
+	var req nodemanager.GetNodeGroupDetailReq
+	if err := c.BindUri(&req); err != nil {
 		hwlog.OpLog.Error("get node group detail: get input parameter failed")
-		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
+		common.ConstructResp(c, common.ErrorParamInvalid, err.Error(), nil)
+		return
+	}
+	res, err := json.Marshal(req)
+	if err != nil {
+		hwlog.OpLog.Error("get node group detail: marshal parameter failed")
+		common.ConstructResp(c, common.ErrorParamInvalid, err.Error(), nil)
 		return
 	}
 	router := common.Router{
