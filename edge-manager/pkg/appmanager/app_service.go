@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 
+	"edge-manager/pkg/appmanager/appchecker"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
 	"edge-manager/pkg/util"
@@ -26,10 +27,11 @@ func createApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	checker := appParaChecker{req: &req}
-	if err := checker.Check(); err != nil {
-		hwlog.RunLog.Errorf("app create para check failed: %s", err.Error())
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	checker := appchecker.CreateAppChecker{}
+	checkResult := checker.Check(req)
+	if !checkResult.Result {
+		hwlog.RunLog.Errorf("app create para check failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: "", Msg: "check create app input param failed", Data: nil}
 	}
 
 	total, err := GetTableCount(AppInfo{})

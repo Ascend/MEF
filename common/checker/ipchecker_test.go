@@ -5,8 +5,9 @@ package checker
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIsIpValid(t *testing.T) {

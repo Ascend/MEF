@@ -7,12 +7,12 @@ import (
 	"encoding/json"
 	"errors"
 	"path"
+	"strings"
 	"unsafe"
 
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
@@ -20,7 +20,7 @@ import (
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
-// Router router struct
+// Router struct
 type Router struct {
 	Source      string
 	Destination string
