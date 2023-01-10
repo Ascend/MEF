@@ -273,6 +273,7 @@ func TestMain(m *testing.M) {
 
 func TestCreateNode(t *testing.T) {
 	Convey("createNode functional test", t, createNodeFunctionalTest)
+	Convey("createNode validation test", t, createNodeValidationTest)
 }
 
 func createNodeFunctionalTest() {
@@ -295,15 +296,46 @@ func createNodeFunctionalTest() {
 	})
 }
 
+func createNodeValidationTest() {
+	node := &NodeInfo{
+		NodeName:    "test-create-node-2-name",
+		UniqueName:  "test-create-node-2-unique-name",
+		Description: "test-create-node-2-description",
+	}
+
+	Convey("empty description", func() {
+		node.Description = ""
+		args := fmt.Sprintf(`
+			{
+    			"nodeName": "%s",
+    			"uniqueName": "%s"
+			}`, node.NodeName, node.UniqueName)
+		resp := createNode(args)
+		So(resp.Status, ShouldEqual, common.Success)
+		So(env.verifyDbNodeInfo(node, "ID", "UpdatedAt", "CreatedAt", "IsManaged"), ShouldBeNil)
+	})
+
+	Convey("empty uniqueName", func() {
+		args := fmt.Sprintf(`
+			{
+    			"nodeName": "%s",
+    			"description": "%s"
+			}`, node.NodeName, node.Description)
+		resp := createNode(args)
+		So(resp.Status, ShouldNotEqual, common.Success)
+	})
+}
+
 func TestGetNodeDetail(t *testing.T) {
 	Convey("getNodeDetail functional test", t, getNodeDetailFunctionalTest)
+	Convey("getNodeDetail validation test", t, getNodeDetailValidationTest)
 }
 
 func getNodeDetailFunctionalTest() {
 	node := &NodeInfo{
-		Description: "test-get-node-detail-#{random}-description",
-		NodeName:    "test-get-node-detail-#{random}-name",
-		UniqueName:  "test-get-node-detail-#{random}-unique-name",
+		Description: "test-get-node-detail-1-description",
+		NodeName:    "test-get-node-detail-1-name",
+		UniqueName:  "test-get-node-detail-1-unique-name",
 		IP:          "0.0.0.0",
 		CreatedAt:   time.Now().Format(TimeFormat),
 		UpdatedAt:   time.Now().Format(TimeFormat),
@@ -319,7 +351,9 @@ func getNodeDetailFunctionalTest() {
 		So(ok, ShouldBeTrue)
 		So(nodeInfoDetail.NodeInfoEx.NodeInfo, ShouldResemble, *node)
 	})
+}
 
+func getNodeDetailValidationTest() {
 	Convey("bad id type", func() {
 		args := `{"id": "1"}`
 		resp := getNodeDetail(args)
@@ -329,6 +363,7 @@ func getNodeDetailFunctionalTest() {
 
 func TestModifyNode(t *testing.T) {
 	Convey("modifyNode functional test", t, modifyNodeFunctionalTest)
+	Convey("modifyNode validation test", t, modifyNodeValidationTest)
 }
 
 func modifyNodeFunctionalTest() {
@@ -336,6 +371,7 @@ func modifyNodeFunctionalTest() {
 		Description: "test-modify-node-1-description",
 		NodeName:    "test-modify-node-1-name",
 		UniqueName:  "test-modify-node-1-unique-name",
+		IsManaged:   true,
 		IP:          "0.0.0.0",
 		CreatedAt:   time.Now().Format(TimeFormat),
 		UpdatedAt:   time.Now().Format(TimeFormat),
@@ -354,6 +390,44 @@ func modifyNodeFunctionalTest() {
 		resp := modifyNode(args)
 		So(resp.Status, ShouldEqual, common.Success)
 		So(env.verifyDbNodeInfo(node, "UpdatedAt"), ShouldBeNil)
+	})
+}
+
+func modifyNodeValidationTest() {
+	node := &NodeInfo{
+		Description: "test-modify-node-2-#{random}-description",
+		NodeName:    "test-modify-node-2-#{random}-name",
+		UniqueName:  "test-modify-node-2-#{random}-unique-name",
+		IP:          "0.0.0.0",
+		IsManaged:   true,
+		CreatedAt:   time.Now().Format(TimeFormat),
+		UpdatedAt:   time.Now().Format(TimeFormat),
+	}
+	env.randomize(node)
+
+	Convey("empty description", func() {
+		So(env.createNode(node), ShouldBeNil)
+		node.Description = ""
+		args := fmt.Sprintf(`
+			{
+    			"nodeName": "%s",
+    			"nodeID": %d
+			}`, node.NodeName, node.ID)
+		resp := modifyNode(args)
+		So(resp.Status, ShouldEqual, common.Success)
+		So(env.verifyDbNodeInfo(node, "UpdatedAt"), ShouldBeNil)
+	})
+
+	Convey("modify unmanaged node", func() {
+		node.IsManaged = false
+		So(env.createNode(node), ShouldBeNil)
+		args := fmt.Sprintf(`
+			{
+    			"nodeName": "%s",
+    			"nodeID": %d
+			}`, node.NodeName, node.ID)
+		resp := modifyNode(args)
+		So(resp.Status, ShouldNotEqual, common.Success)
 	})
 }
 
@@ -381,6 +455,7 @@ func groupStatisticsFunctionalTest() {
 
 func TestCreateGroup(t *testing.T) {
 	Convey("createGroup functional test", t, createGroupFunctionalTest)
+	Convey("createGroup validation test", t, createGroupValidationTest)
 }
 
 func createGroupFunctionalTest() {
@@ -401,18 +476,37 @@ func createGroupFunctionalTest() {
 	})
 }
 
+func createGroupValidationTest() {
+	group := &NodeGroup{
+		Description: "test-create-group-2-description",
+		GroupName:   "test_create_group_2_name",
+	}
+
+	Convey("description not present", func() {
+		args := fmt.Sprintf(`{"nodeGroupName": "%s"}`, group.GroupName)
+		resp := createGroup(args)
+		So(resp.Status, ShouldEqual, common.Success)
+	})
+
+	Convey("groupName not present", func() {
+		args := fmt.Sprintf(`{"description": "%s"}`, group.Description)
+		resp := createGroup(args)
+		So(resp.Status, ShouldEqual, common.ErrorParamInvalid)
+	})
+}
+
 func TestGetGroupDetail(t *testing.T) {
 	Convey("getEdgeNodeGroupDetail functional test", t, getGroupDetailFunctionalTest)
+	Convey("getEdgeNodeGroupDetail validation test", t, getGroupDetailValidationTest)
 }
 
 func getGroupDetailFunctionalTest() {
 	group := &NodeGroup{
-		Description: "test-get-group-detail-#{random}-description",
-		GroupName:   "test_get_group_detail_#{random}_name",
+		Description: "test-get-group-detail-1-description",
+		GroupName:   "test_get_group_detail_1_name",
 		CreatedAt:   time.Now().Format(TimeFormat),
 		UpdatedAt:   time.Now().Format(TimeFormat),
 	}
-	env.randomize(group)
 	So(env.createGroup(group), ShouldBeNil)
 
 	Convey("normal input", func() {
@@ -423,7 +517,9 @@ func getGroupDetailFunctionalTest() {
 		So(ok, ShouldBeTrue)
 		So(groupDetail.NodeGroup, ShouldResemble, *group)
 	})
+}
 
+func getGroupDetailValidationTest() {
 	Convey("bad id type", func() {
 		args := `{"id": "1"}`
 		resp := getEdgeNodeGroupDetail(args)
@@ -438,7 +534,82 @@ func TestListManagedNode(t *testing.T) {
 func litManagedNodeFunctionalTest() {
 	Convey("normal input", func() {
 		args := util.ListReq{PageNum: 1, PageSize: defaultPageSize}
-		resp := listUnmanagedNode(args)
+		resp := listManagedNode(args)
+		So(resp.Status, ShouldEqual, common.Success)
+	})
+}
+
+func TestAddUnManagedNode(t *testing.T) {
+	Convey("addUnmanagedNode functional test", t, addUnManagedNodeFunctionalTest)
+	Convey("addUnmanagedNode validation test", t, addUnManagedNodeValidationTest)
+}
+
+func addUnManagedNodeFunctionalTest() {
+	node := &NodeInfo{
+		Description: "test-adn-1-description",
+		NodeName:    "test-adn-1-name",
+		UniqueName:  "test-adn-1-unique-name",
+		IP:          "0.0.0.0",
+		IsManaged:   false,
+		CreatedAt:   time.Now().Format(TimeFormat),
+		UpdatedAt:   time.Now().Format(TimeFormat),
+	}
+	group := &NodeGroup{
+		Description: "test-add-adn-1-description",
+		GroupName:   "test_add_adn_1_name",
+		CreatedAt:   time.Now().Format(TimeFormat),
+		UpdatedAt:   time.Now().Format(TimeFormat),
+	}
+	So(env.createNode(node), ShouldBeNil)
+	So(env.createGroup(group), ShouldBeNil)
+
+	Convey("normal input", func() {
+		args := fmt.Sprintf(`{
+			"name": "%s",
+            "description": "%s",
+            "groupIDs": [%d],
+            "nodeID": %d
+			}`, node.NodeName, node.Description, group.ID, node.ID)
+		resp := addUnManagedNode(args)
+		So(resp.Status, ShouldEqual, common.Success)
+		node.IsManaged = true
+		So(env.verifyDbNodeInfo(node, "CreatedAt", "UpdatedAt"), ShouldBeNil)
+		relation := &NodeRelation{NodeID: node.ID, GroupID: group.ID}
+		So(env.verifyDbNodeRelation(relation, "CreatedAt"), ShouldBeNil)
+	})
+}
+
+func addUnManagedNodeValidationTest() {
+	node := &NodeInfo{
+		Description: "test-adn-#{random}-description",
+		NodeName:    "test-adn-#{random}-name",
+		UniqueName:  "test-adn-#{random}-unique-name",
+		IP:          "0.0.0.0",
+		IsManaged:   false,
+		CreatedAt:   time.Now().Format(TimeFormat),
+		UpdatedAt:   time.Now().Format(TimeFormat),
+	}
+	env.randomize(node)
+	So(env.createNode(node), ShouldBeNil)
+
+	Convey("groupIDs not present", func() {
+		args := fmt.Sprintf(`{
+			"name": "%s",
+            "description": "%s",
+            "nodeID": %d
+			}`, node.NodeName, node.Description, node.ID)
+		resp := addUnManagedNode(args)
+		So(resp.Status, ShouldEqual, common.Success)
+	})
+
+	Convey("groupIDs is empty", func() {
+		args := fmt.Sprintf(`{
+			"name": "%s",
+            "description": "%s",
+			"groupIDs": [],
+            "nodeID": %d
+			}`, node.NodeName, node.Description, node.ID)
+		resp := addUnManagedNode(args)
 		So(resp.Status, ShouldEqual, common.Success)
 	})
 }
@@ -457,6 +628,7 @@ func listUnManagedNodeFunctionalTest() {
 
 func TestBatchDeleteNode(t *testing.T) {
 	Convey("batchDeleteNode functional test", t, batchDeleteNodeFunctionalTest)
+	Convey("batchDeleteNode validation test", t, batchDeleteNodeValidationTest)
 }
 
 func batchDeleteNodeFunctionalTest() {
@@ -481,8 +653,17 @@ func batchDeleteNodeFunctionalTest() {
 	})
 }
 
+func batchDeleteNodeValidationTest() {
+	Convey("empty request", func() {
+		args := ``
+		resp := batchDeleteNode(args)
+		So(resp.Status, ShouldNotEqual, common.Success)
+	})
+}
+
 func TestBatchDeleteNodeRelation(t *testing.T) {
 	Convey("batchDeleteNodeRelation functional test", t, batchDeleteNodeRelationFunctionalTest)
+	Convey("batchDeleteNodeRelation validation test", t, batchDeleteNodeRelationValidationTest)
 }
 
 func batchDeleteNodeRelationFunctionalTest() {
@@ -525,8 +706,22 @@ func batchDeleteNodeRelationFunctionalTest() {
 	})
 }
 
+func batchDeleteNodeRelationValidationTest() {
+	Convey("nodeID not present", func() {
+		args := `[{"groupID": 1}]`
+		resp := batchDeleteNodeRelation(args)
+		So(resp.Status, ShouldEqual, common.ErrorParamInvalid)
+	})
+	Convey("duplicate relations", func() {
+		args := `[{"groupID":1, "nodeID":2},{"nodeID":2,"groupID":1}]`
+		resp := batchDeleteNodeRelation(args)
+		So(resp.Status, ShouldEqual, common.ErrorParamInvalid)
+	})
+}
+
 func TestAddNodeRelation(t *testing.T) {
 	Convey("addNodeRelation functional test", t, addNodeRelationFunctionalTest)
+	Convey("addNodeRelation validation test", t, addNodeRelationValidationTest)
 }
 
 func addNodeRelationFunctionalTest() {
@@ -557,6 +752,14 @@ func addNodeRelationFunctionalTest() {
 	})
 }
 
+func addNodeRelationValidationTest() {
+	Convey("groupID not present", func() {
+		args := `{"nodeIDs": [1]}`
+		resp := addNodeRelation(args)
+		So(resp.Status, ShouldEqual, common.ErrorParamInvalid)
+	})
+}
+
 func TestListEdgeNodeGroup(t *testing.T) {
 	Convey("listEdgeNodeGroup functional test", t, listEdgeNodeGroupFunctionalTest)
 }
@@ -571,6 +774,7 @@ func listEdgeNodeGroupFunctionalTest() {
 
 func TestModifyGroup(t *testing.T) {
 	Convey("modifyGroup functional test", t, modifyGroupFunctionalTest)
+	Convey("modifyGroup validation test", t, modifyGroupValidationTest)
 }
 
 func modifyGroupFunctionalTest() {
@@ -595,8 +799,38 @@ func modifyGroupFunctionalTest() {
 	})
 }
 
+func modifyGroupValidationTest() {
+	group := &NodeGroup{
+		Description: "test-modify-group-2-#{random}-description",
+		GroupName:   "test_modify_group_2_#{random}_n",
+	}
+	env.randomize(group)
+	So(env.createGroup(group), ShouldBeNil)
+
+	Convey("empty description", func() {
+		args := fmt.Sprintf(`
+				{
+   					"groupID": %d,
+   					"nodeGroupName": "%s"
+				}`, group.ID, group.GroupName)
+		resp := modifyNodeGroup(args)
+		So(resp.Status, ShouldEqual, common.Success)
+	})
+
+	Convey("empty groupID", func() {
+		args := fmt.Sprintf(`
+				{
+   					"nodeGroupName": "%s",
+   					"description": "%s"
+				}`, group.GroupName, group.Description)
+		resp := modifyNodeGroup(args)
+		So(resp.Status, ShouldEqual, common.ErrorParamInvalid)
+	})
+}
+
 func TestBatchDeleteGroup(t *testing.T) {
 	Convey("batchDeleteNodeGroup functional test", t, batchDeleteGroupFunctionalTest)
+	Convey("batchDeleteNodeGroup validation test", t, batchDeleteGroupValidationTest)
 }
 
 func batchDeleteGroupFunctionalTest() {
@@ -614,5 +848,33 @@ func batchDeleteGroupFunctionalTest() {
 		So(ok, ShouldBeTrue)
 		So(deleteIDs, ShouldResemble, []int64{group.ID})
 		So(env.verifyDbNodeGroup(group), ShouldEqual, gorm.ErrRecordNotFound)
+	})
+}
+
+func batchDeleteGroupValidationTest() {
+	Convey("GroupIDs not present", func() {
+		args := ``
+		resp := batchDeleteNodeGroup(args)
+		So(resp.Status, ShouldNotEqual, common.Success)
+	})
+	Convey("bad group id", func() {
+		args := `{"groupIDs": [-1]}`
+		resp := batchDeleteNodeGroup(args)
+		So(resp.Status, ShouldEqual, common.ErrorParamInvalid)
+	})
+	Convey("bad id type", func() {
+		args := `{"groupIDs": ["1"]}`
+		resp := batchDeleteNodeGroup(args)
+		So(resp.Status, ShouldNotEqual, common.Success)
+	})
+	Convey("duplicate id", func() {
+		args := `{"groupIDs": [1, 1]}`
+		resp := batchDeleteNodeGroup(args)
+		So(resp.Status, ShouldEqual, common.ErrorParamInvalid)
+	})
+	Convey("empty list", func() {
+		args := `{"groupIDs": []}`
+		resp := batchDeleteNodeGroup(args)
+		So(resp.Status, ShouldEqual, common.ErrorParamInvalid)
 	})
 }

@@ -26,9 +26,9 @@ func createGroup(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("create node group convert request error, %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
-	if err := req.Check(); err != nil {
-		hwlog.RunLog.Errorf("create node group validate parameters error, %s", err.Error())
-		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
+	if checkResult := newCreateGroupChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("create node group validate parameters error, %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
 	}
 
 	checker := specificationChecker{nodeService: NodeServiceInstance()}
@@ -38,7 +38,7 @@ func createGroup(input interface{}) common.RespMsg {
 	}
 	group := &NodeGroup{
 		Description: req.Description,
-		GroupName:   req.NodeGroupName,
+		GroupName:   *req.NodeGroupName,
 		CreatedAt:   time.Now().Format(TimeFormat),
 		UpdatedAt:   time.Now().Format(TimeFormat),
 	}
@@ -95,14 +95,18 @@ func getEdgeNodeGroupDetail(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("get node group detail convert request error, %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
+	if checkResult := newGetGroupDetailChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("get node detail check parameters failed, %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
+	}
 	var resp NodeGroupDetail
-	nodeGroup, err := NodeServiceInstance().getNodeGroupByID(req.Id)
+	nodeGroup, err := NodeServiceInstance().getNodeGroupByID(req.ID)
 	if err != nil {
 		hwlog.RunLog.Error("node group db query failed")
 		return common.RespMsg{Status: "", Msg: "db query failed", Data: nil}
 	}
 	resp.NodeGroup = *nodeGroup
-	relations, err := NodeServiceInstance().listNodeRelationsByGroupId(req.Id)
+	relations, err := NodeServiceInstance().listNodeRelationsByGroupId(req.ID)
 	if err != nil {
 		hwlog.RunLog.Error("node group db query failed")
 		return common.RespMsg{Status: "", Msg: "db query failed", Data: nil}
@@ -129,18 +133,17 @@ func modifyNodeGroup(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("modify node group convert request error, %s", err.Error())
 		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
 	}
-	if err := req.Check(); err != nil {
-		hwlog.RunLog.Errorf("modify node group check parameters failed, %s", err.Error())
-		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
+	if checkResult := newModifyGroupChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("modify node group check parameters failed, %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
 	}
 	updatedColumns := map[string]interface{}{
 		"GroupName":   req.GroupName,
 		"Description": req.Description,
 		"UpdatedAt":   time.Now().Format(TimeFormat),
 	}
-	err := NodeServiceInstance().updateGroup(req.GroupID, updatedColumns)
-	if err != nil {
-		if strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
+	if count, err := NodeServiceInstance().updateGroup(*req.GroupID, updatedColumns); err != nil || count != 1 {
+		if err != nil && strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
 			hwlog.RunLog.Error("node group name is duplicate")
 			return common.RespMsg{Status: "", Msg: "node group name is duplicate", Data: nil}
 		}
@@ -158,19 +161,19 @@ func batchDeleteNodeGroup(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("batch delete node group convert request error, %s", err)
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
-	if err := req.Check(); err != nil {
-		hwlog.RunLog.Errorf("batch delete node group check parameters failed, %s", err.Error())
-		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
+	if checkResult := newBatchDeleteGroupChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("batch delete node group check parameters failed, %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
 	}
 	var delSuccessGroupID []int64
-	for _, groupID := range req.GroupIDs {
+	for _, groupID := range *req.GroupIDs {
 		if err := deleteSingleGroup(groupID); err != nil {
 			hwlog.RunLog.Errorf("delete node group %d failed, %s", groupID, err.Error())
 			continue
 		}
 		delSuccessGroupID = append(delSuccessGroupID, groupID)
 	}
-	if len(req.GroupIDs) > len(delSuccessGroupID) {
+	if len(*req.GroupIDs) > len(delSuccessGroupID) {
 		hwlog.RunLog.Error("batch delete node group failed")
 		return common.RespMsg{Status: "", Msg: "batch delete node group failed", Data: delSuccessGroupID}
 	}
@@ -199,7 +202,7 @@ func deleteSingleGroup(groupID int64) error {
 			return fmt.Errorf("patch node state failed:%s", err.Error())
 		}
 	}
-	if err = NodeServiceInstance().deleteNodeGroup(groupID); err != nil {
+	if rowsAffected, err := NodeServiceInstance().deleteNodeGroup(groupID); err != nil || rowsAffected != 1 {
 		return fmt.Errorf("delete node group by group id %d failed", groupID)
 	}
 	return nil
