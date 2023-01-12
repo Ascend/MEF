@@ -76,17 +76,17 @@ compile:
             mode: "400"
         - makeArchive:
             - src: "{{TOP_DIR}}/savedir/"
-              des: "{{TOP_DIR}}/savedir/Ascend-mindx_edge-mef_center_{{version}}_linux-{{systemEnv.processor}}"
+              des: "{{TOP_DIR}}/savedir/Ascend-mindxedge-mefcenter_{{version}}_linux-{{systemEnv.processor}}"
               prefix: gztar
               arch: "{{systemEnv.processor}}"
         - copy:
             src:
-              - '{{TOP_DIR}}/savedir/Ascend-mindx_edge-mef_center_{{version}}_linux-{{systemEnv.processor}}.tar.gz'
+              - '{{TOP_DIR}}/savedir/Ascend-mindxedge-mefcenter_{{version}}_linux-{{systemEnv.processor}}.tar.gz'
             des: "{{TOP_DIR}}/output/"
         - commands:
             - command: "bash {{ systemEnv.workspace }}/../CI/CleanCode/script/signature.sh MEF_Center"
         - move:
-            src: ["{{TOP_DIR}}/savedir/Ascend-mindx_edge-mef_center_{{version}}_linux-{{systemEnv.processor}}.tar.gz"]
+            src: ["{{TOP_DIR}}/savedir/Ascend-mindxedge-mefcenter_{{version}}_linux-{{systemEnv.processor}}.tar.gz"]
             des: "{{TOP_DIR}}/output"
         - mode:
             src:
@@ -94,7 +94,7 @@ compile:
             mode: "400"
         - makeArchive:
             - src: "{{TOP_DIR}}/output/"
-              des: "{{TOP_DIR}}/output/Ascend-mindx_edge-mef_center_{{version}}_linux-{{systemEnv.processor}}"
+              des: "{{TOP_DIR}}/output/Ascend-mindxedge-mefcenter_{{version}}_linux-{{systemEnv.processor}}"
               prefix: zip
               arch: "{{systemEnv.processor}}"
       exclude:
