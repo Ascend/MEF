@@ -72,28 +72,36 @@ spec:
           # NOTE: HTTPS is enabled by default
           args: [ "./edge-manager -ip=0.0.0.0 -port=8101 -wsPort=10000" ]
           volumeMounts:
-            - name: edgemanager-log
+            - name: edge-manager-log
               mountPath: /var/log/mindx-edge/edge-manager
             - name: localtime
               mountPath: /etc/localtime
-            - name: kmc
+            - name: edge-manager-config
               mountPath: /etc/mindx-edge
+            - name: RootCa
+              mountPath: /etc/RootCA
           env:
+            - name: installed-module
+              value:
             - name: POD_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
       volumes:
-        - name: edgemanager-log
+        - name: edge-manager-log
           hostPath:
-            path: /var/log/mindx-edge/edge-manager
+            path:
             type: Directory
         - name: localtime
           hostPath:
             path: /etc/localtime
-        - name: kmc
+        - name: edge-manager-config
           hostPath:
-            path: /etc/mindx-edge
+            path:
+        - name: RootCa
+          hostPath:
+            path:
+
 ---
 apiVersion: v1
 kind: Service

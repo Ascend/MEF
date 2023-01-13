@@ -26,6 +26,9 @@ spec:
             capabilities:
               drop: ["ALL"]
           image: ascend-software-manager:v2.0.4
+          env:
+            - name: installed-module
+              value:
           resources:
             requests:
               memory: 500Mi
@@ -38,18 +41,29 @@ spec:
           # NOTE: HTTPS is enabled by default
           args: ["./software-manager -ip=0.0.0.0 -port=8102"]
           volumeMounts:
-            - name: softwaremanager-log
+            - name: software-manager-log
               mountPath: /var/log/mindx-edge/software-manager
             - name: localtime
               mountPath: /etc/localtime
+            - name: software-manager-config
+              mountPath: /home/data
+            - name: RootCa
+              mountPath: /etc/RootCA
       volumes:
-        - name: softwaremanager-log
+        - name: software-manager-log
           hostPath:
-            path: /var/log/mindx-edge/software-manager
+            path:
             type: Directory
         - name: localtime
           hostPath:
             path: /etc/localtime
+        - name: software-manager-config
+          hostPath:
+            path:
+        - name: RootCa
+          hostPath:
+            path:
+
 ---
 apiVersion: v1
 kind: Service

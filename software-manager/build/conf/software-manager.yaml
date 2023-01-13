@@ -42,7 +42,7 @@ compile:
         - copy:
             src:
               - '{{TOP_DIR}}/build/{{component}}.yaml'
-            des: "{{TOP_DIR}}/output/{{component}}-{{version}}.yaml"
+            des: "{{TOP_DIR}}/output/{{component}}.yaml"
             rename: True
         - copy:
             src:
@@ -56,8 +56,3 @@ compile:
             src:
               - "{{TOP_DIR}}/output/{{component}}"
             mode: "500"
-        - makeArchive:
-            - src: "{{TOP_DIR}}/output/"
-              des: "{{TOP_DIR}}/output/Ascend-mindx_edge-{{component}}_{{version}}_linux-{{systemEnv.processor}}"
-              prefix: zip
-              arch: "{{systemEnv.processor}}"

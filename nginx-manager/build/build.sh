@@ -34,13 +34,10 @@ function mv_file() {
 
   mv "${TOP_DIR}/output/nginx_bin" "${TOP_DIR}/output/nginx/nginx"
   cp "${TOP_DIR}/cmd/${OUTPUT_NAME}" "${TOP_DIR}/output/nginx/"
-  cp -R "${TOP_DIR}/../../lib" "${TOP_DIR}/output/nginx/lib"
-  cp "/lib/${arch}-linux-gnu/libssl.so.1.1" "${TOP_DIR}/output/nginx/lib/"
-  cp "${TOP_DIR}/build/${OUTPUT_NAME}.yaml" "${TOP_DIR}/output/${OUTPUT_NAME}-${build_version}.yaml"
+  cp "${TOP_DIR}/build/${OUTPUT_NAME}.yaml" "${TOP_DIR}/output/${OUTPUT_NAME}.yaml"
   cp "${TOP_DIR}/build/${DOCKER_FILE_NAME}" "${TOP_DIR}/output/${DOCKER_FILE_NAME}"
 
   cd "${TOP_DIR}/output/"
-  zip -ry Ascend-mindx_edge-${OUTPUT_NAME}-${build_version}_linux-${arch}.zip ./*
 }
 
 function main() {

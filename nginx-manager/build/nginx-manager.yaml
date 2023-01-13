@@ -29,25 +29,28 @@ spec:
               value: "software-manager-service.mindx-edge.svc.cluster.local"
             - name: SoftwareMgrSvcPort
               value: "30086"
+            - name: installed-module
+              value:
           command: [ "/bin/bash", "-c", "--"]
           args: ["./nginx-manager"]
           volumeMounts:
             - mountPath: "/home/MEFCenter/log/"
-              name: log-vol
+              name: nginx-manager-log
             - mountPath: "/home/MEFCenter/certs/"
-              name: certs-vol
+              name: RootCa
             - mountPath: "/home/data/"
-              name: cert-manager-config
+              name: nginx-manager-config
       volumes:
-        - name: cert-manager-config
+        - name: nginx-manager-config
           hostPath:
-            path: /home/data/
-        - name: log-vol
+            path:
+        - name: RootCa
           hostPath:
-            path: /var/log/mindx-edge/nginx-manager/
-        - name: certs-vol
+            path:
+        - name: nginx-manager-log
           hostPath:
-            path: /etc/MEF_certs/nginx-manager/
+            path:
+
 ---
 apiVersion: v1
 kind: Service
