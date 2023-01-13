@@ -19,7 +19,7 @@ spec:
       serviceAccountName: ascend-edge-manager
       containers:
         - name: ascend-nginx-manager
-          image: ascend-nginx-manager:v1.0
+          image: ascend-nginx-manager:v1
           env:
             - name: EdgeMgrSvcDomain
               value: "ascend-edge-manager.mindx-edge.svc.cluster.local"
@@ -37,14 +37,14 @@ spec:
             - mountPath: "/home/MEFCenter/log/"
               name: nginx-manager-log
             - mountPath: "/home/MEFCenter/certs/"
-              name: RootCa
+              name: root-ca
             - mountPath: "/home/data/"
               name: nginx-manager-config
       volumes:
         - name: nginx-manager-config
           hostPath:
             path:
-        - name: RootCa
+        - name: root-ca
           hostPath:
             path:
         - name: nginx-manager-log

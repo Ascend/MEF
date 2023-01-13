@@ -3,7 +3,7 @@ RUN useradd -d /home/MEFCenter -u 8000 -m -s  /usr/sbin/nologin MEFCenter
 WORKDIR /home/MEFCenter
 
 COPY nginx .
-COPY ../../lib/kmc_lib/* ./lib/
+COPY --chown=MEFCenter:MEFCenter ./lib/* ./lib/
 
 RUN mkdir -p /home/MEFCenter/log &&\
     chmod 750 /home/MEFCenter &&\

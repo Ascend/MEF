@@ -59,7 +59,7 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
-          image: ascend-edge-manager:v3.0.t
+          image: ascend-edge-manager:v1
           resources:
             requests:
               memory: 500Mi
@@ -78,7 +78,7 @@ spec:
               mountPath: /etc/localtime
             - name: edge-manager-config
               mountPath: /etc/mindx-edge
-            - name: RootCa
+            - name: root-ca
               mountPath: /etc/RootCA
           env:
             - name: installed-module
@@ -98,7 +98,7 @@ spec:
         - name: edge-manager-config
           hostPath:
             path:
-        - name: RootCa
+        - name: root-ca
           hostPath:
             path:
 

@@ -25,7 +25,7 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
-          image: ascend-software-manager:v2.0.4
+          image: ascend-software-manager:v1
           env:
             - name: installed-module
               value:
@@ -47,7 +47,7 @@ spec:
               mountPath: /etc/localtime
             - name: software-manager-config
               mountPath: /home/data
-            - name: RootCa
+            - name: root-ca
               mountPath: /etc/RootCA
       volumes:
         - name: software-manager-log
@@ -60,7 +60,7 @@ spec:
         - name: software-manager-config
           hostPath:
             path:
-        - name: RootCa
+        - name: root-ca
           hostPath:
             path:
 
