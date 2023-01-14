@@ -15,7 +15,6 @@ import (
 
 	"edge-manager/pkg/database"
 	"edge-manager/pkg/nodemanager"
-	"edge-manager/pkg/util"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
@@ -23,27 +22,8 @@ import (
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
-// SoftwareManagerInfo info required for updating software
-type SoftwareManagerInfo struct {
-	SoftwareIP   string
-	SoftwarePort string
-	SoftRoute    string
-}
-
-// HttpBody used to construct http body to software manager
-type HttpBody struct {
-	NodeID string `json:"nodeID"`
-}
-
-// RespMsg response message from software manager
-type RespMsg struct {
-	Status string              `json:"status"`
-	Msg    string              `json:"msg"`
-	Data   util.DealSfwContent `json:"data,omitempty"`
-}
-
-func sendToSoftwareManager(dealSfwReq *util.DownloadSfwReq) (*http.Response, error) {
-	nodeInfo, err := constructHttpBody(dealSfwReq.NodeID)
+func sendToSoftwareManager(nodeID string, dealSfwReq *DownloadSfwReqToSfwMgr) (*http.Response, error) {
+	nodeInfo, err := constructHttpBody(nodeID)
 	if err != nil {
 		hwlog.RunLog.Errorf("construct http body failed, error: %v", err)
 		return nil, err
@@ -64,11 +44,60 @@ func sendToSoftwareManager(dealSfwReq *util.DownloadSfwReq) (*http.Response, err
 	return resp, nil
 }
 
+func constructHttpBody(nodeID string) ([]byte, error) {
+	httpBody := HttpBody{
+		NodeID: nodeID,
+	}
+
+	var nodeInfo []byte
+	var err error
+	nodeInfo, err = json.Marshal(httpBody)
+	if err != nil {
+		hwlog.RunLog.Errorf("marshal http body failed, error: %v", err)
+		return nil, err
+	}
+
+	return nodeInfo, nil
+}
+
+func constructHttpReq(dealSfwReq *DownloadSfwReqToSfwMgr, nodeInfo []byte) (*http.Request, error) {
+	var sfwUrl string
+	sfwMgrInfoFromTable := &SoftwareMgrInfo{}
+	if err := readInSfwMgrInfo(sfwMgrInfoFromTable); err != nil {
+		hwlog.RunLog.Errorf("read in table software manager info failed, error: %v", err)
+		return nil, err
+	}
+
+	sfwMgrInfo := &SoftwareManagerInfo{
+		SoftwareIP:   sfwMgrInfoFromTable.Address,
+		SoftwarePort: sfwMgrInfoFromTable.Port,
+		SoftRoute:    sfwMgrInfoFromTable.Route,
+	}
+
+	softwareName := dealSfwReq.SoftwareName
+	if dealSfwReq.SoftwareVersion == "" { // todo 后续需与软件仓统一修改为https
+		sfwUrl = fmt.Sprintf("http://%s:%s/%s/url?contentType=%s",
+			sfwMgrInfo.SoftwareIP, sfwMgrInfo.SoftwarePort, sfwMgrInfo.SoftRoute, softwareName)
+	} else {
+		softwareVersion := dealSfwReq.SoftwareVersion
+		sfwUrl = fmt.Sprintf("http://%s:%s/%s/url?contentType=%s&&version=%s",
+			sfwMgrInfo.SoftwareIP, sfwMgrInfo.SoftwarePort, sfwMgrInfo.SoftRoute, softwareName, softwareVersion)
+	}
+
+	req, err := http.NewRequest(HttpsMethod, sfwUrl, bytes.NewReader(nodeInfo))
+	if err != nil {
+		hwlog.RunLog.Errorf("new request for http failed, error: %v", err)
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func receiveRespFromHttp(req *http.Request) (*http.Response, error) {
 	hwlog.RunLog.Info("edge-installer sends request to software manager")
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
-			// 不校验服务端证书，直接信任
+			// todo 证书校验
 			InsecureSkipVerify: true,
 		},
 	}
@@ -95,49 +124,7 @@ func receiveRespFromHttp(req *http.Request) (*http.Response, error) {
 	return resp, nil
 }
 
-func constructHttpReq(dealSfwReq *util.DownloadSfwReq, nodeInfo []byte) (*http.Request, error) {
-	sfwMgrInfoFromTable := &SoftwareMgrInfo{}
-	if err := readInSfwMgrInfo(sfwMgrInfoFromTable); err != nil {
-		hwlog.RunLog.Errorf("read in table software manager info failed, error: %v", err)
-		return nil, err
-	}
-
-	sfwMgrInfo := &SoftwareManagerInfo{
-		SoftwareIP:   sfwMgrInfoFromTable.Address,
-		SoftwarePort: sfwMgrInfoFromTable.Port,
-		SoftRoute:    sfwMgrInfoFromTable.Route,
-	}
-
-	softwareName := dealSfwReq.SoftwareName
-	// todo 核对新的url格式
-	sfwUrl := fmt.Sprintf("http://%s:%s/%s/url?contentType=%s",
-		sfwMgrInfo.SoftwareIP, sfwMgrInfo.SoftwarePort, sfwMgrInfo.SoftRoute, softwareName)
-	req, err := http.NewRequest(HttpsMethod, sfwUrl, bytes.NewReader(nodeInfo))
-	if err != nil {
-		hwlog.RunLog.Errorf("new request for http failed, error: %v", err)
-		return nil, err
-	}
-
-	return req, nil
-}
-
-func constructHttpBody(nodeId string) ([]byte, error) {
-	httpBody := HttpBody{
-		NodeID: nodeId,
-	}
-
-	var nodeInfo []byte
-	var err error
-	nodeInfo, err = json.Marshal(httpBody)
-	if err != nil {
-		hwlog.RunLog.Errorf("marshal http body failed, error: %v", err)
-		return nil, err
-	}
-
-	return nodeInfo, nil
-}
-
-func dealRespFromSfwManager(resp *http.Response, nodeId string) (*util.DealSfwContent, error) {
+func dealRespFromSfwManager(resp *http.Response, nodeId string) (*ContentToConnector, error) {
 	resBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		hwlog.RunLog.Errorf("edge-manager could not read response body from software manager: %v", err)
@@ -155,77 +142,55 @@ func dealRespFromSfwManager(resp *http.Response, nodeId string) (*util.DealSfwCo
 		return nil, errors.New("get response from software manager failed")
 	}
 
-	dealSfwContent := respMsg.Data
-	if err = CheckDataFromSfwMgr(&dealSfwContent, nodeId); err != nil {
-		hwlog.RunLog.Errorf("check data from software manager failed, error: %v", err)
+	respDataFromSfwMgr := respMsg.Data
+	if err = CheckRespDataFromSfwMgr(&respDataFromSfwMgr, nodeId); err != nil {
+		hwlog.RunLog.Errorf("check response data from software manager failed, error: %v", err)
 		return nil, err
 	}
 
-	dealSfwContent = mergeSfwInfo(dealSfwContent)
-	if &dealSfwContent == nil {
-		hwlog.RunLog.Error("merge software info failed")
-		return nil, errors.New("merge software info failed")
+	contentToConnector := constructContentToConnector(respDataFromSfwMgr)
+	if &contentToConnector == nil {
+		hwlog.RunLog.Error("construct content to edge-connector failed")
+		return nil, errors.New("construct content to edge-connector failed")
 	}
-	return &dealSfwContent, nil
+	return &contentToConnector, nil
 }
 
-func mergeSfwInfo(dealSfwContent util.DealSfwContent) util.DealSfwContent {
-	downloadUrl := dealSfwContent.Url
-	dataBytes := strings.Split(downloadUrl, "=")
+func constructContentToConnector(respDataFromSfwMgr RespDataFromSfwMgr) ContentToConnector {
+	dataBytes := strings.Split(respDataFromSfwMgr.DownloadUrl, "=")
 	if len(dataBytes) < LocationRespSfwName || len(dataBytes) < LocationRespSfwVersion {
-		return util.DealSfwContent{}
+		return ContentToConnector{}
 	}
 	softwareName := strings.Split(dataBytes[LocationRespSfwName], "&")[LocationSfw]
 	softwareVersion := strings.Split(dataBytes[LocationRespSfwVersion], "&")[LocationSfw]
-	dealSfwContent.SoftwareName = softwareName
-	dealSfwContent.SoftwareVersion = softwareVersion
-	return dealSfwContent
+	contentToConnector := ContentToConnector{
+		DownloadUrl:     respDataFromSfwMgr.DownloadUrl,
+		SoftwareName:    softwareName,
+		SoftwareVersion: softwareVersion,
+		Username:        respDataFromSfwMgr.Username,
+		Password:        respDataFromSfwMgr.Password,
+	}
+
+	return contentToConnector
 }
 
-func downloadWithSfwMgr(dealSfwReq util.DownloadSfwReq) (*util.DealSfwContent, error) {
+func downloadWithSfwMgr(nodeID string, dealSfwReq DownloadSfwReqToSfwMgr) (*ContentToConnector, error) {
 	var resp *http.Response
-	var dealSfwContent *util.DealSfwContent
+	var contentToConnector *ContentToConnector
 	var err error
 
-	resp, err = sendToSoftwareManager(&dealSfwReq)
+	resp, err = sendToSoftwareManager(nodeID, &dealSfwReq)
 	if err != nil {
 		hwlog.RunLog.Errorf("send to software manager failed, error: %v", err)
 		return nil, err
 	}
 
-	if dealSfwContent, err = dealRespFromSfwManager(resp, dealSfwReq.NodeID); err != nil {
+	if contentToConnector, err = dealRespFromSfwManager(resp, nodeID); err != nil {
 		hwlog.RunLog.Errorf("deal resp from software manager failed, error: %v", err)
 		return nil, err
 	}
 
-	return dealSfwContent, nil
-}
-
-func upgradeWithSfwManager(upgradeSfwReq util.UpgradeSfwReq) (*util.DealSfwContent, error) {
-	nodeIds, err := getNodeNum(upgradeSfwReq.NodeIDs)
-	if err != nil {
-		hwlog.RunLog.Errorf("get node unique name failed, error: %v", err)
-		return nil, err
-	}
-
-	var dealSfwContent *util.DealSfwContent
-	for _, nodeId := range nodeIds { // todo 只针对单个节点
-		hwlog.RunLog.Infof("--------edge-installer %s upgrade software begin--------", nodeId)
-
-		downloadSfwReq := util.DownloadSfwReq{
-			NodeID:          nodeId,
-			SoftwareName:    upgradeSfwReq.SoftwareName,
-			SoftwareVersion: upgradeSfwReq.SoftwareVersion,
-		}
-		dealSfwContent, err = downloadWithSfwMgr(downloadSfwReq)
-		if err != nil {
-			hwlog.RunLog.Errorf("deal with software manager failed, error: %v", err)
-			return nil, err
-		}
-		continue
-	}
-
-	return dealSfwContent, nil
+	return contentToConnector, nil
 }
 
 func getNodeNum(nodeNums []int64) ([]string, error) {
@@ -242,37 +207,48 @@ func getNodeNum(nodeNums []int64) ([]string, error) {
 	return nodeIds, nil
 }
 
-func mergeContentAndSend(msg, resp *model.Message) {
-	data, err := json.Marshal(msg.GetContent())
+func getContentToConnector(upgradeSfwReqWithUrl *UpgradeSfwReq) *ContentToConnector {
+	downloadUrl := fmt.Sprintf("%s %s", common.OptPost, upgradeSfwReqWithUrl.DownloadUrlFromUser)
+	contentToConnector := &ContentToConnector{
+		DownloadUrl:     downloadUrl,
+		SoftwareName:    upgradeSfwReqWithUrl.SoftwareName,
+		SoftwareVersion: upgradeSfwReqWithUrl.SoftwareVersion,
+		Username:        upgradeSfwReqWithUrl.Username,
+		Password:        upgradeSfwReqWithUrl.Password,
+	}
+	return contentToConnector
+}
+
+func respRestful(message *model.Message) (*UpgradeSfwReq, error) {
+	var respContent = common.RespMsg{Status: common.Success, Msg: "", Data: nil}
+	upgradeSfwReq, err := constructContentToRestful(message)
 	if err != nil {
-		hwlog.RunLog.Errorf("marshal message content failed, error: %v", err)
-		return
+		respContent = common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+		return nil, errors.New("edge-installer construct content to restful module failed")
 	}
-	respData, err := json.Marshal(resp.GetContent())
+	respToRestful, err := message.NewResponse()
 	if err != nil {
-		hwlog.RunLog.Errorf("marshal resp message content failed, error: %v", err)
-		return
+		hwlog.RunLog.Errorf("edge-installer new response failed, error: %v", err)
+		return nil, errors.New("edge-installer new response failed")
 	}
-	content := make(map[string]interface{})
-	if err = json.Unmarshal(data, &content); err != nil {
-		hwlog.RunLog.Errorf("parse message content failed, error: %v", err)
-		return
-	}
-	if err = json.Unmarshal(respData, &content); err != nil {
-		hwlog.RunLog.Errorf("parse resp data failed, error: %v", err)
-		return
+	respToRestful.FillContent(respContent)
+	if err = modulemanager.SendMessage(respToRestful); err != nil {
+		hwlog.RunLog.Errorf("%s send response to restful failed", common.EdgeInstallerName)
+		return nil, err
 	}
 
-	respMsg, err := model.NewMessage()
-	if err != nil {
-		hwlog.RunLog.Errorf("new message failed, error: %v", err)
-		return
+	return upgradeSfwReq, nil
+}
+
+func constructContentToRestful(message *model.Message) (*UpgradeSfwReq, error) {
+	var upgradeSfwReq UpgradeSfwReq
+	if err := common.ParamConvert(message.GetContent(), &upgradeSfwReq); err != nil {
+		return nil, err
 	}
-	respMsg.SetRouter(common.EdgeInstallerName, common.EdgeConnectorName, common.Upgrade, common.Software)
-	respMsg.FillContent(content)
-	respMsg.SetIsSync(false)
-	if err = modulemanager.SendMessage(respMsg); err != nil {
-		hwlog.RunLog.Errorf("send message failed, error: %v", err)
-		return
+
+	if err := upgradeSfwReq.checkUpgradeSfwReq(); err != nil {
+		return nil, err
 	}
+
+	return &upgradeSfwReq, nil
 }
