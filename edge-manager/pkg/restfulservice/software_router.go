@@ -19,8 +19,8 @@ func upgradeSoftware(c *gin.Context) {
 	router := common.Router{
 		Source:      common.RestfulServiceName,
 		Destination: common.EdgeInstallerName,
-		Option:      common.Upgrade,
-		Resource:    common.Software,
+		Option:      common.OptPost,
+		Resource:    common.ResDownLoadSoftware,
 	}
 	resp := common.SendSyncMessageByRestful(string(res), &router)
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)

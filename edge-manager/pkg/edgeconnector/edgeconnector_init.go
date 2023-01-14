@@ -1,6 +1,6 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package edgeconnector for edgeconnector module register
+// Package edgeconnector module edge-connector init
 package edgeconnector
 
 import (
@@ -45,7 +45,7 @@ func (c *Connector) Enable() bool {
 
 // Start initializes the websocket server
 func (c *Connector) Start() {
-	hwlog.RunLog.Info("----------------edge connector start-----------------------")
+	hwlog.RunLog.Info("----------------edge connector start----------------")
 	if err := InitServer(); err != nil {
 		hwlog.RunLog.Errorf("init websocket server failed: %v", err)
 		return
