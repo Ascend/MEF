@@ -1,6 +1,6 @@
 FROM ubuntu:22.04 as build
 RUN useradd -d /home/MEFCenter -u 8000 -m -s  /usr/sbin/nologin MEFCenter
-COPY ./lib /home/cert_mgr_lib
+COPY --chown=MEFCenter:MEFCenter ./lib /home/cert_mgr_lib
 WORKDIR /home/MEFCenter
 COPY cert-manager .
 
