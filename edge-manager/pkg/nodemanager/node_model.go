@@ -25,8 +25,8 @@ type NodeServiceImpl struct {
 // NodeService for node method to operate db
 type NodeService interface {
 	createNode(*NodeInfo) error
-	deleteNodeByName(*NodeInfo) error
-	listNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
+	deleteNodeByName(*NodeInfo) (int64, error)
+	listManagedNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
 	listUnManagedNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
 	getNodeByUniqueName(string) (*NodeInfo, error)
 	getNodeByID(int64) (*NodeInfo, error)
@@ -38,17 +38,16 @@ type NodeService interface {
 	countNodeGroupsByName(string) (int64, error)
 	getNodeGroupByID(int64) (*NodeGroup, error)
 
-	deleteNodeToGroup(*NodeRelation) error
+	deleteNodeToGroup(*NodeRelation) (int64, error)
 	countNodeByGroup(groupID int64) (int64, error)
 
 	getRelationsByNodeID(int64) (*[]NodeRelation, error)
-	updateNode(int64, map[string]interface{}) error
-	updateGroup(int64, map[string]interface{}) error
+	updateNode(int64, int, map[string]interface{}) (int64, error)
+	updateGroup(int64, map[string]interface{}) (int64, error)
 	deleteRelationsToNode(int64) error
-	deleteRelation(*NodeRelation) (int64, error)
 	listNodeRelationsByGroupId(int64) (*[]NodeRelation, error)
 	addNodeToGroup(*[]NodeRelation) error
-	deleteNodeGroup(groupID int64) error
+	deleteNodeGroup(groupID int64) (int64, error)
 	listNodes() (*[]NodeInfo, error)
 }
 
@@ -81,13 +80,14 @@ func (n *NodeServiceImpl) createNodeGroup(nodeGroup *NodeGroup) error {
 }
 
 // DeleteNodeByName delete node
-func (n *NodeServiceImpl) deleteNodeByName(nodeInfo *NodeInfo) error {
-	return n.db.Model(&NodeInfo{}).Where("node_name = ?",
-		nodeInfo.NodeName).Delete(nodeInfo).Error
+func (n *NodeServiceImpl) deleteNodeByName(nodeInfo *NodeInfo) (int64, error) {
+	stmt := n.db.Model(&NodeInfo{}).Where("node_name = ?",
+		nodeInfo.NodeName).Delete(nodeInfo)
+	return stmt.RowsAffected, stmt.Error
 }
 
 // GetNodesByName return SQL result
-func (n *NodeServiceImpl) listNodesByName(page, pageSize uint64, nodeName string) (*[]NodeInfo, error) {
+func (n *NodeServiceImpl) listManagedNodesByName(page, pageSize uint64, nodeName string) (*[]NodeInfo, error) {
 	var nodes []NodeInfo
 	return &nodes,
 		n.db.Where("is_managed = ?", managed).Scopes(getNodeByLikeName(page, pageSize, nodeName)).
@@ -124,9 +124,10 @@ func whereGroupNameLike(nodeGroupName string) func(db *gorm.DB) *gorm.DB {
 }
 
 // DeleteNodeToGroup delete Node Db
-func (n *NodeServiceImpl) deleteNodeToGroup(relation *NodeRelation) error {
-	return n.db.Model(NodeRelation{}).Where("group_id = ? and node_id=?",
-		relation.GroupID, relation.NodeID).Delete(relation).Error
+func (n *NodeServiceImpl) deleteNodeToGroup(relation *NodeRelation) (int64, error) {
+	stmt := n.db.Model(NodeRelation{}).Where("group_id = ? and node_id=?",
+		relation.GroupID, relation.NodeID).Delete(relation)
+	return stmt.RowsAffected, stmt.Error
 }
 
 // GetNodeByUniqueName get node info by unique name in k8s
@@ -166,24 +167,19 @@ func (n *NodeServiceImpl) getRelationsByNodeID(id int64) (*[]NodeRelation, error
 }
 
 // UpdateNode update node
-func (n *NodeServiceImpl) updateNode(id int64, columns map[string]interface{}) error {
-	return n.db.Model(&NodeInfo{}).Where("`id` = ?", id).UpdateColumns(columns).Error
+func (n *NodeServiceImpl) updateNode(id int64, isManaged int, columns map[string]interface{}) (int64, error) {
+	stmt := n.db.Model(&NodeInfo{}).Where("`id` = ? and `is_managed` = ?", id, isManaged).UpdateColumns(columns)
+	return stmt.RowsAffected, stmt.Error
 }
 
 // UpdateGroup update group
-func (n *NodeServiceImpl) updateGroup(id int64, columns map[string]interface{}) error {
-	return n.db.Model(&NodeGroup{}).Where("`id` = ?", id).UpdateColumns(columns).Error
+func (n *NodeServiceImpl) updateGroup(id int64, columns map[string]interface{}) (int64, error) {
+	stmt := n.db.Model(&NodeGroup{}).Where("`id` = ?", id).UpdateColumns(columns)
+	return stmt.RowsAffected, stmt.Error
 }
 
 func (n *NodeServiceImpl) deleteRelationsToNode(id int64) error {
 	return n.db.Model(&NodeRelation{}).Where(&NodeRelation{NodeID: id}).Delete(&NodeRelation{}).Error
-}
-
-func (n *NodeServiceImpl) deleteRelation(relation *NodeRelation) (int64, error) {
-	stmt := n.db.Model(&NodeRelation{}).
-		Where(&NodeRelation{NodeID: relation.NodeID, GroupID: relation.GroupID}).
-		Delete(&NodeRelation{})
-	return stmt.RowsAffected, stmt.Error
 }
 
 func (n *NodeServiceImpl) listNodeRelationsByGroupId(groupId int64) (*[]NodeRelation, error) {
@@ -207,8 +203,9 @@ func (n *NodeServiceImpl) countGroupsByNode(nodeID int64) (int64, error) {
 	return num, n.db.Model(NodeRelation{}).Where("node_id = ?", nodeID).Count(&num).Error
 }
 
-func (n *NodeServiceImpl) deleteNodeGroup(groupID int64) error {
-	return n.db.Model(NodeGroup{}).Where("`id` = ?", groupID).Delete(&NodeGroup{}).Error
+func (n *NodeServiceImpl) deleteNodeGroup(groupID int64) (int64, error) {
+	stmt := n.db.Model(NodeGroup{}).Where("`id` = ?", groupID).Delete(&NodeGroup{})
+	return stmt.RowsAffected, stmt.Error
 }
 
 func (n *NodeServiceImpl) listNodes() (*[]NodeInfo, error) {

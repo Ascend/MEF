@@ -27,7 +27,7 @@ type NodeGroup struct {
 
 // NodeRelation is node relation table
 type NodeRelation struct {
-	GroupID   int64  `gorm:""`
-	NodeID    int64  `gorm:""`
+	GroupID   int64  `gorm:"uniqueIndex:unique_relation;not null"`
+	NodeID    int64  `gorm:"uniqueIndex:unique_relation;not null"`
 	CreatedAt string `gorm:"not null"`
 }

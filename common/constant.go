@@ -145,12 +145,6 @@ const (
 	RegImageVersion = `^[a-zA-Z]([-_a-zA-Z0-9]{0,14}[a-zA-Z0-9])?$`
 	// RegEnvKey regex pattern of environment variable key
 	RegEnvKey = `^[a-zA-Z]([_a-zA-Z0-9]{0,2046}[a-zA-Z0-9])?$`
-	// RegNodeName regex pattern of node name
-	RegNodeName = `^[a-zA-Z][-_a-zA-Z0-9]{0,62}[a-zA-Z0-9]$`
-	// RegDomainLabel regex pattern of domain label
-	RegDomainLabel = `^[a-zA-Z0-9]([-a-zA-Z0-9]{0,61}[a-zA-Z0-9])?$`
-	// RegNodeGroupDescription regex pattern of node group description
-	RegNodeGroupDescription = `^[\S ]{0,512}$`
 )
 
 // protocol
@@ -206,10 +200,6 @@ const (
 	TemplateEnvValueMin = 1
 	// TemplateEnvValueMax environment variable value max length
 	TemplateEnvValueMax = 2048
-	// NodeUniqueNameMin node unique name min
-	NodeUniqueNameMin = 1
-	// NodeUniqueNameMax node unique name max
-	NodeUniqueNameMax = 64
 )
 
 // used to check ip

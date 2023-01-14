@@ -196,6 +196,11 @@ func deleteNodeFromGroup(c *gin.Context) {
 		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
 		return
 	}
+	if req.NodeIDs == nil {
+		hwlog.OpLog.Error("delete node from group: NodeIDs didn't exist")
+		common.ConstructResp(c, common.ErrorParseBody, "NodeIDs didn't exist", nil)
+		return
+	}
 	router := common.Router{
 		Source:      common.RestfulServiceName,
 		Destination: common.NodeManagerName,
@@ -203,10 +208,10 @@ func deleteNodeFromGroup(c *gin.Context) {
 		Resource:    common.NodeRelation,
 	}
 	var batchDeleteReq nodemanager.BatchDeleteNodeRelationReq
-	for _, nodeID := range req.NodeIDs {
+	for _, nodeID := range *req.NodeIDs {
 		deleteReq := nodemanager.DeleteNodeRelationReq{
 			GroupID: req.GroupID,
-			NodeID:  nodeID,
+			NodeID:  &nodeID,
 		}
 		batchDeleteReq = append(batchDeleteReq, deleteReq)
 	}

@@ -33,9 +33,9 @@ func createNode(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("create node convert request error, %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
-	if err := req.Check(); err != nil {
-		hwlog.RunLog.Errorf("create node validate parameters error: %s", err.Error())
-		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
+	if checkResult := newCreateEdgeNodeChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("create node validate parameters error: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
 	}
 
 	checker := specificationChecker{nodeService: NodeServiceInstance()}
@@ -45,8 +45,8 @@ func createNode(input interface{}) common.RespMsg {
 	}
 	node := &NodeInfo{
 		Description: req.Description,
-		UniqueName:  req.UniqueName,
-		NodeName:    req.NodeName,
+		UniqueName:  *req.UniqueName,
+		NodeName:    *req.NodeName,
 		IsManaged:   true,
 		CreatedAt:   time.Now().Format(TimeFormat),
 		UpdatedAt:   time.Now().Format(TimeFormat),
@@ -71,16 +71,16 @@ func getNodeDetail(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("get node detail convert request error, %s", err.Error())
 		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
 	}
-	if err := req.Check(); err != nil {
-		hwlog.RunLog.Errorf("get node detail check parameters failed, %s", err.Error())
-		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
+	if checkResult := newGetNodeDetailChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("get node detail check parameters failed, %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
 	}
-	nodeInfo, err := NodeServiceInstance().getNodeByID(req.Id)
+	nodeInfo, err := NodeServiceInstance().getNodeByID(req.ID)
 	if err != nil {
 		hwlog.RunLog.Error("get node detail db query error")
 		return common.RespMsg{Status: "", Msg: "db query error", Data: nil}
 	}
-	nodeGroupName, err := evalNodeGroup(req.Id)
+	nodeGroupName, err := evalNodeGroup(req.ID)
 	if err != nil {
 		hwlog.RunLog.Errorf("get node detail db query error, %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
@@ -99,18 +99,17 @@ func modifyNode(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("modify node convert request error, %s", err.Error())
 		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
 	}
-	if err := req.Check(); err != nil {
-		hwlog.RunLog.Errorf("modify node check parameters failed, %s", err.Error())
-		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
+	if checkResult := newModifyNodeChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("modify node check parameters failed, %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
 	}
 	updatedColumns := map[string]interface{}{
 		"NodeName":    req.NodeName,
 		"Description": req.Description,
 		"UpdatedAt":   time.Now().Format(TimeFormat),
 	}
-	err := NodeServiceInstance().updateNode(req.NodeID, updatedColumns)
-	if err != nil {
-		if strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
+	if cnt, err := NodeServiceInstance().updateNode(*req.NodeID, managed, updatedColumns); err != nil || cnt != 1 {
+		if err != nil && strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
 			hwlog.RunLog.Error("node name is duplicate")
 			return common.RespMsg{Status: "", Msg: "node name is duplicate", Data: nil}
 		}
@@ -170,7 +169,7 @@ func listManagedNode(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("list node convert request error")
 		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
 	}
-	nodes, err := NodeServiceInstance().listNodesByName(req.PageNum, req.PageSize, req.Name)
+	nodes, err := NodeServiceInstance().listManagedNodesByName(req.PageNum, req.PageSize, req.Name)
 	if err != nil {
 		hwlog.RunLog.Error("list node failed")
 		return common.RespMsg{Status: "", Msg: "list node failed", Data: nil}
@@ -204,10 +203,9 @@ func listUnmanagedNode(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start list node unmanaged")
 	req, ok := input.(util.ListReq)
 	if !ok {
-		hwlog.RunLog.Info("list node convert request error")
+		hwlog.RunLog.Error("list node convert request error")
 		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
 	}
-
 	nodes, err := NodeServiceInstance().listUnManagedNodesByName(req.PageNum, req.PageSize, req.Name)
 	if err == nil {
 		var nodeInfoExs []NodeInfoEx
@@ -284,9 +282,9 @@ func batchDeleteNode(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("failed to delete node, error: %v", err)
 		return common.RespMsg{Msg: err.Error()}
 	}
-	if err := req.Check(); err != nil {
-		hwlog.RunLog.Errorf("failed to delete node, error: %v", err)
-		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
+	if checkResult := newBatchDeleteNodeChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("failed to delete node, error: %v", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
 	}
 	var deleteCount int64
 	for _, nodeID := range req {
@@ -319,7 +317,7 @@ func deleteSingleNode(nodeID int64) error {
 			}
 		}
 	}
-	if err = NodeServiceInstance().deleteNodeByName(&NodeInfo{NodeName: nodeInfo.NodeName}); err != nil {
+	if _, err := NodeServiceInstance().deleteNodeByName(&NodeInfo{NodeName: nodeInfo.NodeName}); err != nil {
 		return errors.New("db delete failed")
 	}
 	if err = NodeServiceInstance().deleteRelationsToNode(nodeID); err != nil {
@@ -349,13 +347,13 @@ func batchDeleteNodeRelation(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("failed to delete node relation, error: %v", err)
 		return common.RespMsg{Msg: err.Error()}
 	}
-	if err := req.Check(); err != nil {
-		hwlog.RunLog.Errorf("failed to delete node relation, error: %v", err)
-		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
+	if checkResult := newBatchDeleteNodeRelationChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("failed to delete node relation, error: %v", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
 	}
 	var deleteCount int64
 	for _, relation := range req {
-		if err := deleteSingleNodeRelation(relation.GroupID, relation.NodeID); err != nil {
+		if err := deleteSingleNodeRelation(*relation.GroupID, *relation.NodeID); err != nil {
 			hwlog.RunLog.Warnf("failed to delete node relation, error: err=%v", err)
 			continue
 		}
@@ -370,7 +368,7 @@ func deleteSingleNodeRelation(groupID, nodeID int64) error {
 	if err != nil {
 		return errors.New("db query failed")
 	}
-	rowsAffected, err := NodeServiceInstance().deleteRelation(&NodeRelation{NodeID: nodeID, GroupID: groupID})
+	rowsAffected, err := NodeServiceInstance().deleteNodeToGroup(&NodeRelation{NodeID: nodeID, GroupID: groupID})
 	if err != nil {
 		return errors.New("db delete failed")
 	}
@@ -423,9 +421,13 @@ func addNodeRelation(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("add node to group convert request error, %s", err.Error())
 		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
 	}
+	if checkResult := newAddNodeRelationChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("failed to add node to group, error: %v", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
+	}
 
 	checker := specificationChecker{nodeService: NodeServiceInstance()}
-	if err := checker.checkAddNodeToGroup(req.NodeIDs, []int64{req.GroupID}); err != nil {
+	if err := checker.checkAddNodeToGroup(*req.NodeIDs, []int64{*req.GroupID}); err != nil {
 		hwlog.RunLog.Errorf("add node to group check spec error: %s", err.Error())
 		return common.RespMsg{Msg: err.Error()}
 	}
@@ -438,38 +440,40 @@ func addNodeRelation(input interface{}) common.RespMsg {
 
 func addNode(req AddNodeToGroupReq) error {
 	var errorNode string
-	nodeGroup, err := NodeServiceInstance().getNodeGroupByID(req.GroupID)
+	nodeGroup, err := NodeServiceInstance().getNodeGroupByID(*req.GroupID)
 	if err != nil {
 		return errors.New("dont have this node group")
 	}
 	var nodeRelation []NodeRelation
-	for i, id := range req.NodeIDs {
+	for i, id := range *req.NodeIDs {
 		nodeDb, err := NodeServiceInstance().getManagedNodeByID(id)
 		if err != nil {
 			errorNode = fmt.Sprintf("%d,%s", id, errorNode)
 			hwlog.RunLog.Errorf("no found node id %d", id)
 			continue
 		}
-		label := make(map[string]string)
-		label[fmt.Sprintf("%s%d", common.NodeGroupLabelPrefix, nodeGroup.ID)] = ""
+		relation := NodeRelation{
+			NodeID:    (*req.NodeIDs)[i],
+			GroupID:   *req.GroupID,
+			CreatedAt: time.Now().Format(TimeFormat)}
+		if err := nodeServiceInstance.addNodeToGroup(&[]NodeRelation{relation}); err != nil {
+			errorNode = fmt.Sprintf("%d,%s", id, errorNode)
+			hwlog.RunLog.Errorf("add node(%s) to group(%d) to db error", nodeDb.NodeName, nodeGroup.ID)
+			continue
+		}
+		label := map[string]string{fmt.Sprintf("%s%d", common.NodeGroupLabelPrefix, nodeGroup.ID): ""}
 		if _, err := kubeclient.GetKubeClient().AddNodeLabels(nodeDb.UniqueName, label); err != nil {
+			errorNode = fmt.Sprintf("%d,%s", id, errorNode)
 			hwlog.RunLog.Errorf("node(%s) patch label(%d) error", nodeDb.NodeName, nodeGroup.ID)
 			continue
 		}
-		relation := NodeRelation{
-			NodeID:    req.NodeIDs[i],
-			GroupID:   req.GroupID,
-			CreatedAt: time.Now().Format(TimeFormat)}
 		nodeRelation = append(nodeRelation, relation)
 	}
 	if len(nodeRelation) == 0 {
 		return errors.New("all node failed to join group")
 	}
-	if err = nodeServiceInstance.addNodeToGroup(&nodeRelation); err != nil {
-		return errors.New("add node relations to db error")
-	}
 	if errorNode != "" {
-		return fmt.Errorf("not fount node id:%s", errorNode)
+		return fmt.Errorf("some node failed to join group:%s", errorNode)
 	}
 	return nil
 }
@@ -481,13 +485,13 @@ func addUnManagedNode(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("add unmanaged node convert request error, %s", err)
 		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
 	}
-	if err := req.Check(); err != nil {
-		hwlog.RunLog.Errorf("add unmanaged node validate parameters error, %s", err.Error())
-		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}
+	if checkResult := newAddUnManagedNodeChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("add unmanaged node validate parameters error, %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
 	}
 
 	checker := specificationChecker{nodeService: NodeServiceInstance()}
-	if err := checker.checkAddNodeToGroup([]int64{req.NodeID}, req.GroupIDs); err != nil {
+	if err := checker.checkAddNodeToGroup([]int64{*req.NodeID}, req.GroupIDs); err != nil {
 		hwlog.RunLog.Errorf("add unmanaged node to group check spec error: %s", err.Error())
 		return common.RespMsg{Msg: err.Error()}
 	}
@@ -497,13 +501,13 @@ func addUnManagedNode(input interface{}) common.RespMsg {
 		"IsManaged":   managed,
 		"UpdatedAt":   time.Now().Format(TimeFormat),
 	}
-	if err := NodeServiceInstance().updateNode(req.NodeID, updatedColumns); err != nil {
+	if cnt, err := NodeServiceInstance().updateNode(*req.NodeID, unmanaged, updatedColumns); err != nil || cnt != 1 {
 		hwlog.RunLog.Error("add unmanaged node error")
 		return common.RespMsg{Status: "", Msg: "add unmanaged node error", Data: nil}
 	}
 	var addNodeError string
 	for _, id := range req.GroupIDs {
-		addReq := AddNodeToGroupReq{NodeIDs: []int64{req.NodeID}, GroupID: id}
+		addReq := AddNodeToGroupReq{NodeIDs: &[]int64{*req.NodeID}, GroupID: &id}
 		if err := addNode(addReq); err != nil {
 			errorMessage := fmt.Sprintf("cannot join group:group=%d, node=%d", id, req.NodeID)
 			addNodeError = errorMessage
