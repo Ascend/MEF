@@ -50,35 +50,36 @@ compile:
       include:
         - makedir:
             path: "{{TOP_DIR}}/savedir"
-        - copy:
-            src:
-              - '{{EDGE_MANAGER_DIR}}/output/*.zip'
-            des: "{{TOP_DIR}}/savedir/"
-        - copy:
-            src:
-              - '{{SOFTWARE_MANAGER_DIR}}/output/*.zip'
-            des: "{{TOP_DIR}}/savedir/"
-        - copy:
-            src:
-              - '{{CERT_MANAGER_DIR}}/output/*.zip'
-            des: "{{TOP_DIR}}/savedir/"
-        - copy:
-            src:
-              - '{{MEF_CENTER_INSTALL_DIR}}/output/*.zip'
-            des: "{{TOP_DIR}}/savedir/"
-        - copy:
-            src:
-              - '{{NGINX_MANAGER_DIR}}/output/*.zip'
-            des: "{{TOP_DIR}}/savedir/"
+        - makedir:
+            path: "{{TOP_DIR}}/savedir/edge-manager"
+        - makedir:
+            path: "{{TOP_DIR}}/savedir/software-manager"
+        - makedir:
+            path: "{{TOP_DIR}}/savedir/cert-manager"
+        - makedir:
+            path: "{{TOP_DIR}}/savedir/installer"
+        - makedir:
+            path: "{{TOP_DIR}}/savedir/nginx-manager"
+        - commands:
+            - command: "fakeroot cp -rf {{EDGE_MANAGER_DIR}}/output/* {{TOP_DIR}}/savedir/edge-manager/"
+        - commands:
+            - command: "fakeroot cp -rf {{SOFTWARE_MANAGER_DIR}}/output/* {{TOP_DIR}}/savedir/software-manager/"
+        - commands:
+            - command: "fakeroot cp -rf {{MEF_CENTER_INSTALL_DIR}}/output/* {{TOP_DIR}}/savedir/installer/"
+        - commands:
+            - command: "fakeroot cp -rf {{NGINX_MANAGER_DIR}}/output/* {{TOP_DIR}}/savedir/nginx-manager/"
+        - commands:
+            - command: "fakeroot cp -rf {{CERT_MANAGER_DIR}}/output/* {{TOP_DIR}}/savedir/cert-manager/"
         - mode:
             src:
               - "{{TOP_DIR}}/savedir/*"
+            mode: "500"
+        - mode:
+            src:
+              - "{{TOP_DIR}}/savedir/installer/version.xml"
             mode: "400"
-        - makeArchive:
-            - src: "{{TOP_DIR}}/savedir/"
-              des: "{{TOP_DIR}}/savedir/Ascend-mindxedge-mefcenter_{{version}}_linux-{{systemEnv.processor}}"
-              prefix: gztar
-              arch: "{{systemEnv.processor}}"
+        - commands:
+            - command: "cd {{TOP_DIR}}/savedir && fakeroot tar -zcf Ascend-mindxedge-mefcenter_{{version}}_linux-{{systemEnv.processor}}.tar.gz ./*"
         - copy:
             src:
               - '{{TOP_DIR}}/savedir/Ascend-mindxedge-mefcenter_{{version}}_linux-{{systemEnv.processor}}.tar.gz'

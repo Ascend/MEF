@@ -6,7 +6,7 @@ systemEnv:
   - processor
   - version
 TOP_DIR: "{{systemEnv.workspace}}/{{product}}/{{component}}"
-DST_MEF_CENTER_SBIN_DIR: "{{TOP_DIR}}/output/sbin"
+DST_MEF_CENTER_SBIN_DIR: "{{TOP_DIR}}/output/bin"
 compile:
   input:
     dependency:
@@ -46,12 +46,28 @@ compile:
         - move:
             src: ["{{TOP_DIR}}/scripts/install.sh"]
             des: "{{TOP_DIR}}/output"
+        - commands:
+            - command: "commit_id=$(git --git-dir {{systemEnv.workspace}}/{{product}}/.git rev-parse HEAD) && sed -i s/{commit_id}/${commit_id}/g {{TOP_DIR}}/config/version.xml"
+        - sed:
+            option: "-i"
+            srcstr: "s/{version}/{{version}}/g"
+            curfile: "{{TOP_DIR}}/config/version.xml"
+        - sed:
+            option: "-i"
+            srcstr: "s/{arch}/{{systemEnv.processor}}/g"
+            curfile: "{{TOP_DIR}}/config/version.xml"
+        - move:
+            src: [ "{{TOP_DIR}}/config/version.xml" ]
+            des: "{{TOP_DIR}}/output"
         - move:
             src: ["{{TOP_DIR}}/scripts"]
             des: "{{TOP_DIR}}/output"
         - copy:
             src: [ '{{ systemEnv.workspace }}/lib' ]
             des: "{{TOP_DIR}}/output/"
+        - copy:
+            src: [ '/lib/{{systemEnv.processor}}-linux-gnu/libssl.so.1.1' ]
+            des: "{{TOP_DIR}}/output/lib"
         - mode:
             src: [ "{{TOP_DIR}}/output/lib" ]
             mode: "500"
@@ -59,11 +75,12 @@ compile:
             src: [ "{{TOP_DIR}}/output/lib/*" ]
             mode: "500"
         - mode:
+            src: [ "{{TOP_DIR}}/output/install.sh" ]
+            mode: "500"
+        - mode:
             src:
               - "{{DST_MEF_CENTER_SBIN_DIR}}/{{tool}}"
             mode: "500"
-        - makeArchive:
-            - src: "{{TOP_DIR}}/output/"
-              des: "{{TOP_DIR}}/output/Ascend-{{component}}_{{version}}_linux-{{systemEnv.processor}}"
-              prefix: zip
-              arch: "{{systemEnv.processor}}"
+        - mode:
+            src: [ "{{TOP_DIR}}/output/version.xml" ]
+            mode: "400"
