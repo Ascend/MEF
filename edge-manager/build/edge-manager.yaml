@@ -82,7 +82,7 @@ spec:
               mountPath: /etc/RootCA
           env:
             - name: installed-module
-              value:
+              value: '"{}"'
             - name: POD_IP
               valueFrom:
                 fieldRef:
@@ -90,17 +90,17 @@ spec:
       volumes:
         - name: edge-manager-log
           hostPath:
-            path:
+            path: /var/mef-center_log/edge-manager
             type: Directory
         - name: localtime
           hostPath:
             path: /etc/localtime
         - name: edge-manager-config
           hostPath:
-            path:
+            path: /usr/local/MEF-Center/mef-config/edge-manager
         - name: root-ca
           hostPath:
-            path:
+            path: /usr/local/MEF-Center/mef-config/root-ca
 
 ---
 apiVersion: v1

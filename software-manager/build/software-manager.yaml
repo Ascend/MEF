@@ -28,7 +28,7 @@ spec:
           image: ascend-software-manager:v1
           env:
             - name: installed-module
-              value:
+              value: '"{}"'
           resources:
             requests:
               memory: 500Mi
@@ -52,17 +52,17 @@ spec:
       volumes:
         - name: software-manager-log
           hostPath:
-            path:
+            path: /usr/local/MEF-Center/mef-config/software-manager
             type: Directory
         - name: localtime
           hostPath:
             path: /etc/localtime
         - name: software-manager-config
           hostPath:
-            path:
+            path: var/mef-center_log/software-manager
         - name: root-ca
           hostPath:
-            path:
+            path: /usr/local/MEF-Center/mef-config/root-ca
 
 ---
 apiVersion: v1

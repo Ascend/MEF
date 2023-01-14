@@ -30,7 +30,7 @@ spec:
             - name: SoftwareMgrSvcPort
               value: "30086"
             - name: installed-module
-              value:
+              value: '"{}"'
           command: [ "/bin/bash", "-c", "--"]
           args: ["./nginx-manager"]
           volumeMounts:
@@ -43,13 +43,13 @@ spec:
       volumes:
         - name: nginx-manager-config
           hostPath:
-            path:
+            path: /var/mef-center_log/nginx-manager
         - name: root-ca
           hostPath:
-            path:
+            path: /usr/local/MEF-Center/mef-config/root-ca
         - name: nginx-manager-log
           hostPath:
-            path:
+            path: /usr/local/MEF-Center/mef-config/nginx-manager
 
 ---
 apiVersion: v1
