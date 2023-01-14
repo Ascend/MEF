@@ -18,9 +18,9 @@ spec:
       containers:
         - name: cert-manager
           image: ascend-cert-manager:v1
-          -env:
+          env:
             - name: installed-module
-              value:
+              value: '"{}"'
           imagePullPolicy: IfNotPresent
           command: [ "/bin/bash", "-c", "--"]
           args: ["./cert-manager -ip=127.0.0.1 -port=8103"]
@@ -36,18 +36,18 @@ spec:
       volumes:
         - name: cert-manager-config
           hostPath:
-            path:
+            path: /usr/local/MEF-Center/mef-config/cert-manager
             type: Directory
         - name: cert-manager-log
           hostPath:
-            path:
+            path: /var/mef-center_log/cert-manager
             type: Directory
         - name: localtime
           hostPath:
             path: /etc/localtime
         - name: root-ca
           hostPath:
-            path:
+            path: /usr/local/MEF-Center/mef-config/root-ca
 
 ---
 apiVersion: v1
