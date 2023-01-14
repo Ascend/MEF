@@ -18,6 +18,9 @@ spec:
       containers:
         - name: cert-manager
           image: ascend-cert-manager:v1
+          -env:
+            - name: installed-module
+              value:
           imagePullPolicy: IfNotPresent
           command: [ "/bin/bash", "-c", "--"]
           args: ["./cert-manager -ip=127.0.0.1 -port=8103"]
@@ -28,18 +31,23 @@ spec:
               mountPath: /var/log/mindx-edge/cert-manager
             - name: localtime
               mountPath: /etc/localtime
+            - name: root-ca
+              mountPath: /etc/RootCA
       volumes:
         - name: cert-manager-config
           hostPath:
-            path: /home/data/
+            path:
             type: Directory
         - name: cert-manager-log
           hostPath:
-            path: /var/log/mindx-edge/cert-manager
+            path:
             type: Directory
         - name: localtime
           hostPath:
             path: /etc/localtime
+        - name: root-ca
+          hostPath:
+            path:
 
 ---
 apiVersion: v1

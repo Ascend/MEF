@@ -49,31 +49,17 @@ compile:
         - copy:
             src:
               - '{{TOP_DIR}}/build/{{component}}.yaml'
-            des: "{{TOP_DIR}}/output/{{component}}-{{version}}.yaml"
+            des: "{{TOP_DIR}}/output/{{component}}.yaml"
             rename: True
         - copy:
             src:
               - "{{TOP_DIR}}/build/Dockerfile"
-            des: "{{TOP_DIR}}/output/"
-        - copy:
-            src: [ '{{ systemEnv.workspace }}/lib' ]
             des: "{{TOP_DIR}}/output/"
         - mode:
             src:
               - "{{TOP_DIR}}/output/*"
             mode: "400"
         - mode:
-            src: [ "{{TOP_DIR}}/output/lib" ]
-            mode: "500"
-        - mode:
-            src: [ "{{TOP_DIR}}/output/lib/*" ]
-            mode: "500"
-        - mode:
             src:
               - "{{TOP_DIR}}/output/{{component}}"
             mode: "500"
-        - makeArchive:
-            - src: "{{TOP_DIR}}/output/"
-              des: "{{TOP_DIR}}/output/Ascend-mindx_edge-{{component}}_{{version}}_linux-{{systemEnv.processor}}"
-              prefix: zip
-              arch: "{{systemEnv.processor}}"

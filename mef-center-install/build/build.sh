@@ -9,6 +9,7 @@ export GO111MODULE="on"
 
 OUTPUT_INSTALLER_NAME="MEF-center-installer"
 OUTPUT_CONTROLLER_NAME="MEF-center-controller"
+INSTALL_SH_NAME="install.sh"
 
 arch=$(arch 2>&1)
 echo "Build Architecture is" "${arch}"
@@ -54,16 +55,18 @@ function build_controller() {
 
 function mv_file() {
     mkdir -p "${TOP_DIR}/output/mef_center_tools"
-    mkdir -p "${TOP_DIR}/output/mef_center_tools/sbin"
+    mkdir -p "${TOP_DIR}/output/mef_center_tools/bin"
     # 编译测试时暂时使用cp
     cp -r "${TOP_DIR}/scripts" "${TOP_DIR}/output/mef_center_tools"
     # 将install.sh放到根目录中
     mv "${TOP_DIR}/output/mef_center_tools/scripts/install.sh" "${TOP_DIR}/output/"
 
-    mv "${TOP_DIR}/tools/install/${OUTPUT_INSTALLER_NAME}" "${TOP_DIR}/output/mef_center_tools/sbin"
-    mv "${TOP_DIR}/tools/control/${OUTPUT_CONTROLLER_NAME}" "${TOP_DIR}/output/mef_center_tools/sbin"
-    chmod 500 "${TOP_DIR}/output/mef_center_tools/sbin/${OUTPUT_INSTALLER_NAME}"
-    chmod 500 "${TOP_DIR}/output/mef_center_tools/sbin/${OUTPUT_CONTROLLER_NAME}"
+    cp "/lib/${arch}-linux-gnu/libssl.so.1.1" "${TOP_DIR}/output/lib/"
+    mv "${TOP_DIR}/tools/install/${OUTPUT_INSTALLER_NAME}" "${TOP_DIR}/output/mef_center_tools/bin"
+    mv "${TOP_DIR}/tools/control/${OUTPUT_CONTROLLER_NAME}" "${TOP_DIR}/output/mef_center_tools/bin"
+    chmod 500 "${TOP_DIR}/output/mef_center_tools/${INSTALL_SH_NAME}"
+    chmod 500 "${TOP_DIR}/output/mef_center_tools/bin/${OUTPUT_INSTALLER_NAME}"
+    chmod 500 "${TOP_DIR}/output/mef_center_tools/bin/${OUTPUT_CONTROLLER_NAME}"
 
 }
 function main() {
