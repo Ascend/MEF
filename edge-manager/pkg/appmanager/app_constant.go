@@ -48,6 +48,7 @@ const (
 	minNpuQuantity         = 0.01
 	maxNpuQuantity         = 32
 
+	nodeStatusReady          = "ready"
 	podStatusUnknown         = "unknown"
 	containerStateUnknown    = "unknown"
 	containerStateWaiting    = "waiting"

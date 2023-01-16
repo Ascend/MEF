@@ -367,14 +367,13 @@ func listAppInstances(input interface{}) common.RespMsg {
 func getAppInstanceRespFromAppInstances(appInstances []AppInstance) ([]AppInstanceResp, error) {
 	var appInstanceResp []AppInstanceResp
 	for _, instance := range appInstances {
-		nodeUniqueName := instance.NodeUniqueName
-		nodeStatus, err := getNodeStatus(nodeUniqueName)
+		nodeStatus, err := getNodeStatus(instance.NodeUniqueName)
 		if err != nil {
 			hwlog.RunLog.Errorf("get node status error: %v", err)
 			return nil, err
 		}
-		podStatus := appStatusService.getPodStatusFromCache(instance.PodName)
-		containerInfos, err := appStatusService.getContainerInfos(instance)
+		podStatus := appStatusService.getPodStatusFromCache(instance.PodName, nodeStatus)
+		containerInfos, err := appStatusService.getContainerInfos(instance, nodeStatus)
 		if err != nil {
 			hwlog.RunLog.Errorf("get container infos error: %v", err)
 			return nil, err
@@ -467,7 +466,12 @@ func getAppInstanceOfNodeRespFromAppInstances(appInstances []AppInstance) ([]App
 			hwlog.RunLog.Errorf("get app node group info name db error: %v", err)
 			return nil, err
 		}
-		status := appStatusService.getPodStatusFromCache(instance.PodName)
+		nodeStatus, err := getNodeStatus(instance.NodeUniqueName)
+		if err != nil {
+			hwlog.RunLog.Errorf("get node status error: %v", err)
+			return nil, err
+		}
+		status := appStatusService.getPodStatusFromCache(instance.PodName, nodeStatus)
 		createdAt := instance.CreatedAt.Format(common.TimeFormat)
 		changedAt := instance.UpdatedAt.Format(common.TimeFormat)
 		instanceResp := AppInstanceOfNodeResp{

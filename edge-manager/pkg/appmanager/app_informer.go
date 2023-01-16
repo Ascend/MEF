@@ -195,7 +195,7 @@ func (a *appStatusServiceImpl) deleteTerminatingPod() {
 	}
 }
 
-func (a *appStatusServiceImpl) getContainerInfos(instance AppInstance) ([]ContainerInfo, error) {
+func (a *appStatusServiceImpl) getContainerInfos(instance AppInstance, nodeStatus string) ([]ContainerInfo, error) {
 	var containerInfos []ContainerInfo
 	if err := json.Unmarshal([]byte(instance.ContainerInfo), &containerInfos); err != nil {
 		return nil, errors.New("unmarshal app container info failed")
@@ -206,18 +206,18 @@ func (a *appStatusServiceImpl) getContainerInfos(instance AppInstance) ([]Contai
 		containerStatusKey := instance.PodName + "-" + containerInfos[i].Name
 		var ok bool
 		containerInfos[i].Status, ok = appStatusService.containerStatusCache[containerStatusKey]
-		if !ok {
+		if !ok || nodeStatus != nodeStatusReady {
 			containerInfos[i].Status = containerStateUnknown
 		}
 	}
 	return containerInfos, nil
 }
 
-func (a *appStatusServiceImpl) getPodStatusFromCache(appName string) string {
+func (a *appStatusServiceImpl) getPodStatusFromCache(appName, nodeStatus string) string {
 	a.appStatusCacheLock.Lock()
 	defer a.appStatusCacheLock.Unlock()
 	podStatus, ok := appStatusService.podStatusCache[appName]
-	if !ok {
+	if !ok || nodeStatus != nodeStatusReady {
 		podStatus = podStatusUnknown
 	}
 	return podStatus
@@ -368,6 +368,10 @@ func (a *appStatusServiceImpl) addDaemonSet(obj interface{}) {
 		return
 	}
 	appDaemonSet, err := parseDaemonSetToDB(daemonSet)
+	if err != nil {
+		hwlog.RunLog.Errorf("recovered add daemon set, generate app daemon set error: %v", err)
+		return
+	}
 	if err = AppRepositoryInstance().addDaemonSet(appDaemonSet); err != nil {
 		hwlog.RunLog.Error("recovered add object, add daemon set to db error")
 		return
@@ -381,6 +385,10 @@ func (a *appStatusServiceImpl) updateDaemonSet(_, newObj interface{}) {
 		return
 	}
 	appDaemonSet, err := parseDaemonSetToDB(daemonSet)
+	if err != nil {
+		hwlog.RunLog.Errorf("recovered update daemon set, generate app daemon set error: %v", err)
+		return
+	}
 	if err = AppRepositoryInstance().updateDaemonSet(appDaemonSet); err != nil {
 		hwlog.RunLog.Error("recovered update object, update daemon set to db error")
 		return
