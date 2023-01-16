@@ -6,10 +6,8 @@ import (
 	"context"
 	"fmt"
 	"path"
-	"path/filepath"
 
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/mef-center-install/pkg/install"
 )
 
 func newLogConfig(LogFileName string) *hwlog.LogConfig {
@@ -23,13 +21,8 @@ func newLogConfig(LogFileName string) *hwlog.LogConfig {
 
 // InitLogPath initialize logger
 func InitLogPath(logPath string) error {
-	realLogPath, err := filepath.EvalSymlinks(logPath)
-	if err != nil {
-		return fmt.Errorf("get the real path of log path [%s] failed, error: %s", logPath, err.Error())
-	}
-
-	runLogConf := newLogConfig(path.Join(realLogPath, install.RunLogFile))
-	opLogConf := newLogConfig(path.Join(realLogPath, install.OperateLogFile))
+	runLogConf := newLogConfig(path.Join(logPath, RunLogFile))
+	opLogConf := newLogConfig(path.Join(logPath, OperateLogFile))
 
 	if err := initHwLogger(runLogConf, opLogConf); err != nil {
 		return fmt.Errorf("initialize hwlog failed, error: %v", err.Error())

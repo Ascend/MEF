@@ -5,6 +5,7 @@ package nginxmgr
 
 import (
 	"fmt"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -14,7 +15,7 @@ const (
 
 // Start do the start nginx job
 func cmdStart() error {
-	_, err := common.RunCommand(startCommand)
+	_, err := common.RunCommand(startCommand, true)
 	if err != nil {
 		return fmt.Errorf("start error is %v", err)
 	}

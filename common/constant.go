@@ -240,3 +240,16 @@ const (
 	MB = 1024 * KB
 	GB = 1024 * MB
 )
+
+// mode constant
+const (
+	Mode700 = 0700
+	Mode600 = 0600
+	Mode500 = 0500
+	Mode400 = 0400
+)
+
+// command constant
+const (
+	CommandCopy = "cp"
+)
