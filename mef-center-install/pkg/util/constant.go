@@ -7,6 +7,7 @@ const (
 	CommandKubectl   = "kubectl"
 	CommandNamespace = "namespace"
 	CommandCopy      = "cp"
+	ArchCommand      = "uname"
 	IllegalChars     = "\n!\\; &$<>`"
 )
 

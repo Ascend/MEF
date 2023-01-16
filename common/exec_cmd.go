@@ -3,7 +3,9 @@
 package common
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -36,17 +38,22 @@ func runCommandWithUser(uid uint32, name string, arg ...string) (string, error) 
 }
 
 // RunCommand run command, return the output of command
-func RunCommand(name string, arg ...string) (string, error) {
-	if shellDefenceCheck(append(arg, name)) {
+func RunCommand(name string, ifCheck bool, arg ...string) (string, error) {
+	if ifCheck && shellDefenceCheck(append(arg, name)) {
+		fmt.Printf("shell check arg: %v\n", arg)
 		hwlog.RunLog.Error("exec command check failed: contain illegal chars")
 		return "", errors.New("exec command check failed")
 	}
 	cmd := exec.Command(name, arg...)
-	ret, err := cmd.Output()
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+	err := cmd.Run()
 	if err != nil {
-		return string(ret), err
+		return "", errors.New(stderr.String())
 	}
-	return strings.Trim(string(ret), "\n"), nil
+	return strings.Trim(out.String(), "\n"), nil
 }
 
 // RunCommandWithUser run command with specified user, return the output of command
