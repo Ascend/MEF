@@ -6,6 +6,8 @@ package appmanager
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"path/filepath"
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
@@ -140,24 +142,28 @@ func initAppTable() error {
 	return nil
 }
 
+var (
+	appUrlRootPath      = "/edgemanager/v1/app"
+	appTemplateRootPath = "/edgemanager/v1/apptemplate"
+)
+
 var handlerFuncMap = map[string]handlerFunc{
-	combine(common.Create, common.App):   createApp,
-	combine(common.Query, common.App):    queryApp,
-	combine(common.Update, common.App):   updateApp,
-	combine(common.List, common.App):     listAppInfo,
-	combine(common.Deploy, common.App):   deployApp,
-	combine(common.Undeploy, common.App): unDeployApp,
+	combine(http.MethodPost, appUrlRootPath):                                createApp,
+	combine(http.MethodGet, appUrlRootPath):                                 queryApp,
+	combine(http.MethodPatch, appUrlRootPath):                               updateApp,
+	combine(http.MethodGet, filepath.Join(appUrlRootPath, "list")):          listAppInfo,
+	combine(http.MethodPost, filepath.Join(appUrlRootPath, "deployment")):   deployApp,
+	combine(http.MethodDelete, filepath.Join(appUrlRootPath, "deployment")): unDeployApp,
+	combine(http.MethodGet, filepath.Join(appUrlRootPath, "deployment")):    listAppInstances,
+	combine(http.MethodDelete, appUrlRootPath):                              deleteApp,
+	combine(http.MethodGet, filepath.Join(appUrlRootPath, "node")):          listAppInstancesByNode,
 
-	combine(common.Delete, common.App):             deleteApp,
-	combine(common.List, common.AppInstance):       listAppInstances,
-	combine(common.List, common.AppInstanceByNode): listAppInstancesByNode,
-
-	combine(common.Create, common.AppTemplate):         createTemplate,
-	combine(common.Update, common.AppTemplate):         updateTemplate,
-	combine(common.Delete, common.AppTemplate):         deleteTemplate,
-	combine(common.List, common.AppTemplate):           getTemplates,
-	combine(common.Get, common.AppTemplate):            getTemplate,
-	combine(common.Get, common.AppInstanceByNodeGroup): getAppInstanceCountByNodeGroup,
+	combine(http.MethodPost, appTemplateRootPath):                       createTemplate,
+	combine(http.MethodPatch, appTemplateRootPath):                      updateTemplate,
+	combine(http.MethodDelete, appTemplateRootPath):                     deleteTemplate,
+	combine(http.MethodGet, appTemplateRootPath):                        getTemplate,
+	combine(http.MethodGet, filepath.Join(appTemplateRootPath, "list")): getTemplates,
+	combine(common.Get, common.AppInstanceByNodeGroup):                  getAppInstanceCountByNodeGroup,
 }
 
 func combine(option, resource string) string {

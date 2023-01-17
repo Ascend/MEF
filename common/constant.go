@@ -86,7 +86,7 @@ const (
 	CSR = "csr"
 	// AppTemplate resource app template
 	AppTemplate = "AppTemplate"
-	// ResponseTimeout Response timeout time
+	// ResponseTimeout response timeout time
 	ResponseTimeout = 3 * time.Second
 
 	// Software resource software
