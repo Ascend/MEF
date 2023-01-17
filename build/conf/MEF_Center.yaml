@@ -86,9 +86,8 @@ compile:
             des: "{{TOP_DIR}}/output/"
         - commands:
             - command: "bash {{ systemEnv.workspace }}/../CI/CleanCode/script/signature.sh MEF_Center"
-        - move:
-            src: ["{{TOP_DIR}}/output/crldata.crl"]
-            des: "{{TOP_DIR}}/output/Ascend-mindxedge-mefcenter_{{version}}_linux-{{systemEnv.processor}}.crl"
+        - commands:
+            - command: "mv {{TOP_DIR}}/output/crldata.crl {{TOP_DIR}}/output/Ascend-mindxedge-mefcenter_{{version}}_linux-{{systemEnv.processor}}.crl"
         - move:
             src: ["{{TOP_DIR}}/savedir/Ascend-mindxedge-mefcenter_{{version}}_linux-{{systemEnv.processor}}.tar.gz"]
             des: "{{TOP_DIR}}/output"
