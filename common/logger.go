@@ -82,10 +82,6 @@ func ConstructResp(c *gin.Context, errorCode string, msg string, data interface{
 		Msg:    msg,
 		Data:   data,
 	}
-	if errorCode == Success {
-		hwlog.OpLog.Info(msg)
-	} else {
-		hwlog.OpLog.Error(msg)
-	}
+
 	c.JSON(http.StatusOK, result)
 }

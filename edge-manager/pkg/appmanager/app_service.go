@@ -71,9 +71,10 @@ func createApp(input interface{}) common.RespMsg {
 // queryApp app info
 func queryApp(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start query app info")
+
 	appId, ok := input.(uint64)
 	if !ok {
-		hwlog.RunLog.Error("query app info failed")
+		hwlog.RunLog.Error("query app info failed: para type not valid")
 		return common.RespMsg{Status: "", Msg: "query app info failed", Data: nil}
 	}
 	appInfo, err := AppRepositoryInstance().queryApp(appId)

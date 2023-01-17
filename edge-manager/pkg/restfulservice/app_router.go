@@ -5,157 +5,72 @@ package restfulservice
 
 import (
 	"github.com/gin-gonic/gin"
-	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/restfulmgr"
 )
 
-func createApp(c *gin.Context) {
-	res, err := c.GetRawData()
-	if err != nil {
-		hwlog.OpLog.Error("create app: get input parameter failed")
-		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
-	}
-	router := common.Router{
-		Source:      common.RestfulServiceName,
-		Destination: common.AppManagerName,
-		Option:      common.Create,
-		Resource:    common.App,
-	}
-	resp := common.SendSyncMessageByRestful(string(res), &router)
-	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+type appQueryDispatcher struct {
+	restfulmgr.GenericDispatcher
 }
 
-func queryApp(c *gin.Context) {
+func (app appQueryDispatcher) ParseData(c *gin.Context) common.Result {
 	appId, err := getReqId(c, "appID")
 	if err != nil {
-		hwlog.RunLog.Errorf("get app id failed: %s", err.Error())
-		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
-	}
-	router := common.Router{
-		Source:      common.RestfulServiceName,
-		Destination: common.AppManagerName,
-		Option:      common.Query,
-		Resource:    common.App,
+		return common.Result{ResultFlag: false, ErrorMsg: "parse app id failed"}
 	}
 
-	resp := common.SendSyncMessageByRestful(appId, &router)
-	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+	return common.Result{ResultFlag: true, Data: appId}
 }
 
-func updateApp(c *gin.Context) {
-	res, err := c.GetRawData()
-	if err != nil {
-		hwlog.OpLog.Error("update app: get input parameter failed")
-		common.ConstructResp(c, common.ErrorParseBody, err.Error(), nil)
-	}
-	router := common.Router{
-		Source:      common.RestfulServiceName,
-		Destination: common.AppManagerName,
-		Option:      common.Update,
-		Resource:    common.App,
-	}
-	resp := common.SendSyncMessageByRestful(string(res), &router)
-	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+type appListDispatcher struct {
+	restfulmgr.GenericDispatcher
 }
 
-func listAppsInfo(c *gin.Context) {
+func (app appListDispatcher) ParseData(c *gin.Context) common.Result {
 	input, err := pageUtil(c)
 	if err != nil {
-		hwlog.OpLog.Error("list deployed apps: get input parameter failed")
-		common.ConstructResp(c, common.ErrorParseBody, "", nil)
-		return
+		return common.Result{ResultFlag: false, ErrorMsg: "parse app list para failed"}
 	}
-	router := common.Router{
-		Source:      common.RestfulServiceName,
-		Destination: common.AppManagerName,
-		Option:      common.List,
-		Resource:    common.App,
-	}
-	resp := common.SendSyncMessageByRestful(input, &router)
-	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+
+	return common.Result{ResultFlag: true, Data: input}
 }
 
-func deployApp(c *gin.Context) {
-	res, err := c.GetRawData()
-	if err != nil {
-		hwlog.OpLog.Error("deploy app: get input parameter failed")
-		common.ConstructResp(c, common.ErrorParseBody, "", nil)
-		return
-	}
-	router := common.Router{
-		Source:      common.RestfulServiceName,
-		Destination: common.AppManagerName,
-		Option:      common.Deploy,
-		Resource:    common.App,
-	}
-	resp := common.SendSyncMessageByRestful(string(res), &router)
-	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+type appInstanceDispatcher struct {
+	restfulmgr.GenericDispatcher
 }
 
-func unDeployApp(c *gin.Context) {
-	res, err := c.GetRawData()
+func (app appInstanceDispatcher) ParseData(c *gin.Context) common.Result {
+	input, err := getReqNodeId(c)
 	if err != nil {
-		hwlog.OpLog.Error("deploy app: get input parameter failed")
-		common.ConstructResp(c, common.ErrorParseBody, "", nil)
-		return
+		return common.Result{ResultFlag: false, ErrorMsg: "parse node id failed"}
 	}
-	router := common.Router{
-		Source:      common.RestfulServiceName,
-		Destination: common.AppManagerName,
-		Option:      common.Undeploy,
-		Resource:    common.App,
-	}
-	resp := common.SendSyncMessageByRestful(string(res), &router)
-	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+
+	return common.Result{ResultFlag: true, Data: input}
 }
 
-func deleteApp(c *gin.Context) {
-	res, err := c.GetRawData()
-	if err != nil {
-		hwlog.OpLog.Error("delete app: get input parameter failed")
-		common.ConstructResp(c, common.ErrorParseBody, "", nil)
-		return
-	}
-	router := common.Router{
-		Source:      common.RestfulServiceName,
-		Destination: common.AppManagerName,
-		Option:      common.Delete,
-		Resource:    common.App,
-	}
-	resp := common.SendSyncMessageByRestful(string(res), &router)
-	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+type listTemplateDispatcher struct {
+	restfulmgr.GenericDispatcher
 }
 
-func listAppInstance(c *gin.Context) {
-	appId, err := getReqId(c, "appID")
+func (t listTemplateDispatcher) ParseData(c *gin.Context) common.Result {
+	input, err := pageUtil(c)
 	if err != nil {
-		hwlog.OpLog.Error("list deployed app: get input parameter failed")
-		common.ConstructResp(c, common.ErrorParseBody, "", nil)
-		return
+		return common.Result{ResultFlag: false, ErrorMsg: "parse template list para failed"}
 	}
-	router := common.Router{
-		Source:      common.RestfulServiceName,
-		Destination: common.AppManagerName,
-		Option:      common.List,
-		Resource:    common.AppInstance,
-	}
-	resp := common.SendSyncMessageByRestful(appId, &router)
-	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+
+	return common.Result{ResultFlag: true, Data: input}
 }
 
-func listAppInstanceByNode(c *gin.Context) {
-	res, err := getReqNodeId(c)
+type templateDetailDispatcher struct {
+	restfulmgr.GenericDispatcher
+}
+
+func (t templateDetailDispatcher) ParseData(c *gin.Context) common.Result {
+	templateId, err := getReqId(c, "id")
 	if err != nil {
-		hwlog.OpLog.Error("list deployed app: get input parameter failed")
-		common.ConstructResp(c, common.ErrorParseBody, "", nil)
-		return
+		return common.Result{ResultFlag: false, ErrorMsg: "parse template detail para failed"}
 	}
-	router := common.Router{
-		Source:      common.RestfulServiceName,
-		Destination: common.AppManagerName,
-		Option:      common.List,
-		Resource:    common.AppInstanceByNode,
-	}
-	resp := common.SendSyncMessageByRestful(res, &router)
-	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
+
+	return common.Result{ResultFlag: true, Data: templateId}
 }

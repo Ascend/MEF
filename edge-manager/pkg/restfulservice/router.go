@@ -5,22 +5,83 @@ package restfulservice
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
+
+	"edge-manager/pkg/util"
 
 	"github.com/gin-gonic/gin"
 
-	"edge-manager/pkg/util"
+	"huawei.com/mindxedge/base/common/restfulmgr"
 
 	"huawei.com/mindxedge/base/common"
 )
 
+var appRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
+	"/edgemanager/v1/app": {
+		restfulmgr.GenericDispatcher{
+			Method:      http.MethodPost,
+			Destination: common.AppManagerName},
+		appQueryDispatcher{restfulmgr.GenericDispatcher{
+			Method:      http.MethodGet,
+			Destination: common.AppManagerName}},
+		restfulmgr.GenericDispatcher{
+			Method:      http.MethodPatch,
+			Destination: common.AppManagerName},
+		appListDispatcher{restfulmgr.GenericDispatcher{
+			RelativePath: "/list",
+			Method:       http.MethodGet,
+			Destination:  common.AppManagerName}},
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/deployment",
+			Method:       http.MethodPost,
+			Destination:  common.AppManagerName},
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/deployment",
+			Method:       http.MethodDelete,
+			Destination:  common.AppManagerName},
+		restfulmgr.GenericDispatcher{
+			Method:      http.MethodDelete,
+			Destination: common.AppManagerName},
+		appQueryDispatcher{restfulmgr.GenericDispatcher{
+			RelativePath: "/deployment",
+			Method:       http.MethodGet,
+			Destination:  common.AppManagerName}},
+		appInstanceDispatcher{restfulmgr.GenericDispatcher{
+			RelativePath: "/node",
+			Method:       http.MethodGet,
+			Destination:  common.AppManagerName}},
+	},
+}
+
+var templateRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
+	"/edgemanager/v1/apptemplate": {
+		restfulmgr.GenericDispatcher{
+			Method:      http.MethodPost,
+			Destination: common.AppManagerName},
+		restfulmgr.GenericDispatcher{
+			Method:      http.MethodDelete,
+			Destination: common.AppManagerName},
+		restfulmgr.GenericDispatcher{
+			Method:      http.MethodPatch,
+			Destination: common.AppManagerName},
+		templateDetailDispatcher{restfulmgr.GenericDispatcher{
+			Method:      http.MethodGet,
+			Destination: common.AppManagerName}},
+		listTemplateDispatcher{restfulmgr.GenericDispatcher{
+			RelativePath: "/list",
+			Method:       http.MethodGet,
+			Destination:  common.AppManagerName}},
+	},
+}
+
 func setRouter(engine *gin.Engine) {
 	engine.Use(gin.Recovery())
 	nodeRouter(engine)
-	appRouter(engine)
+	restfulmgr.InitRouter(engine, appRouterDispatchers)
+	restfulmgr.InitRouter(engine, templateRouterDispatchers)
 	softwareRouter(engine)
 	connInfoRouter(engine)
-	templateRouter(engine)
 }
 
 func nodeRouter(engine *gin.Engine) {
@@ -49,21 +110,6 @@ func nodeRouter(engine *gin.Engine) {
 	}
 }
 
-func appRouter(engine *gin.Engine) {
-	app := engine.Group("/edgemanager/v1/app")
-	{
-		app.POST("/", createApp)
-		app.GET("/", queryApp)
-		app.PATCH("/", updateApp)
-		app.GET("/list", listAppsInfo)
-		app.POST("/deployment", deployApp)
-		app.DELETE("/deployment", unDeployApp)
-		app.DELETE("/", deleteApp)
-		app.GET("/deployment", listAppInstance)
-		app.GET("/node", listAppInstanceByNode)
-	}
-}
-
 func softwareRouter(engine *gin.Engine) {
 	v1 := engine.Group("/edgemanager/v1/software")
 	{
@@ -75,17 +121,6 @@ func connInfoRouter(engine *gin.Engine) {
 	v1 := engine.Group("/edgemanager/v1/conninfo")
 	{
 		v1.POST("/update", updateConnInfo)
-	}
-}
-
-func templateRouter(engine *gin.Engine) {
-	v1 := engine.Group("/edgemanager/v1/apptemplate")
-	{
-		v1.POST("/", createTemplate)
-		v1.DELETE("/", deleteTemplate)
-		v1.PATCH("/", updateTemplate)
-		v1.GET("/", getTemplateDetail)
-		v1.GET("/list", getTemplates)
 	}
 }
 
