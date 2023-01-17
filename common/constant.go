@@ -253,3 +253,9 @@ const (
 const (
 	CommandCopy = "cp"
 )
+
+// user_mgr constant
+const (
+	UserGrepCommandPattern = "grep :%s: /etc/passwd | grep nologin | wc -l"
+	NoLoginCount           = 1
+)
