@@ -85,6 +85,21 @@ func (wpm *WorkPathMgr) GetInstallParamJsonPath() string {
 	return path.Join(wpm.workPath, InstallParamJson)
 }
 
+// GetRelativeImagesDirPath returns the image dir path in mef-center softlink
+func (wpm *WorkPathMgr) GetRelativeImagesDirPath() string {
+	return path.Join(wpm.workPath, ImagesDirName)
+}
+
+// GetRelativeImageConfigPath returns the image config dir path in mef-center softlink
+func (wpm *WorkPathMgr) GetRelativeImageConfigPath(component string) string {
+	return path.Join(wpm.GetRelativeImagesDirPath(), component, ImageConfigDir)
+}
+
+// GetRelativeYamlPath returns the relative component's yaml path in mef-center softlink
+func (wpm *WorkPathMgr) GetRelativeYamlPath(component string) string {
+	return path.Join(wpm.GetRelativeImageConfigPath(component), fmt.Sprintf("%s.yaml", component))
+}
+
 // WorkPathAMgr is a struct that controls all dir/file path in the mef-center-A dir
 // all dir/file path in the mef-center-A dir should be got by specified func in this struct
 type WorkPathAMgr struct {

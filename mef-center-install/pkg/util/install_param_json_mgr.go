@@ -19,6 +19,20 @@ type InstallParamJsonTemplate struct {
 	LogDir     string   `json:"log_dir"`
 }
 
+// GetInstallParamJsonInfo is used to get infos from install_param.json
+func GetInstallParamJsonInfo(jsonPath string) (*InstallParamJsonTemplate, error) {
+	var componentsIns InstallParamJsonTemplate
+	file, err := os.ReadFile(jsonPath)
+	if err != nil {
+		return nil, fmt.Errorf("read component json failed: %s", err.Error())
+	}
+	err = json.Unmarshal(file, &componentsIns)
+	if err != nil {
+		return nil, fmt.Errorf("parse json file failed: %s", err.Error())
+	}
+	return &componentsIns, nil
+}
+
 // SetInstallParamJsonInfo is used to save infos into install_param.json
 func (ins *InstallParamJsonTemplate) SetInstallParamJsonInfo(jsonPath string) error {
 	file, err := os.OpenFile(jsonPath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, common.Mode600)

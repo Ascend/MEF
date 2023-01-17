@@ -2,7 +2,15 @@
 
 package util
 
-import "huawei.com/mindxedge/base/common"
+import (
+	"fmt"
+	"os"
+	"path"
+	"path/filepath"
+
+	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
+)
 
 // GetArch is used to get the arch info
 func GetArch() (string, error) {
@@ -11,4 +19,23 @@ func GetArch() (string, error) {
 		return "", err
 	}
 	return arch, nil
+}
+
+func GetInstallInfo() (*InstallParamJsonTemplate, error) {
+	currentDir, err := filepath.Abs(filepath.Dir(filepath.Dir(os.Args[0])))
+	if err != nil {
+		fmt.Printf("get current absolute path error: %s", err)
+		hwlog.RunLog.Errorf("get current absolute path error: %s", err)
+		return nil, err
+	}
+
+	paramJsonPath := path.Join(currentDir, InstallParamJson)
+	paramJsonMgr, err := GetInstallParamJsonInfo(paramJsonPath)
+	if err != nil {
+		fmt.Printf("get current absolute path error: %s", err)
+		hwlog.RunLog.Errorf("get current absolute path error: %s", err)
+		return nil, err
+	}
+
+	return paramJsonMgr, nil
 }

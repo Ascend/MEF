@@ -2,12 +2,16 @@
 
 package util
 
+import "time"
+
 // Command constant for command
 const (
 	CommandKubectl   = "kubectl"
 	CommandNamespace = "namespace"
 	CommandCopy      = "cp"
 	ArchCommand      = "uname"
+	ActiveFlag       = "Active"
+	ReadyFlag        = "1/1"
 	IllegalChars     = "\n!\\; &$<>`"
 )
 
@@ -65,7 +69,7 @@ const (
 	ModuleLogName  = "mef-center-log"
 	MefScriptsDir  = "scripts"
 	RunLogFile     = "mef-center-install.log"
-	OperateLogFile = "mef-center-install-operate.log"
+	OperateLogFile = "mef-center-install-Operate.log"
 	InstallLogDir  = "mef-center-install"
 )
 
@@ -119,8 +123,12 @@ const (
 
 // constant for install
 const (
+	MefNamespace    = "mef-center"
 	RootUserName    = "root"
 	HelpExitCode    = 3
 	VersionExitCode = 3
 	ErrorExitCode   = 1
+
+	CheckStatusInterval = 3 * time.Second
+	CheckStatusTimes    = 5
 )

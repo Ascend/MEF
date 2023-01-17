@@ -30,6 +30,10 @@ compile:
         version: "1.0"
         type: opensource
         buildFile: "{{MEF_CENTER_INSTALL_DIR}}/build/conf"
+      - name: mef-center-control
+        version: "1.0"
+        type: opensource
+        buildFile: "{{MEF_CENTER_INSTALL_DIR}}/build/conf"
       - name: nginx-manager
         version: "1.0"
         type: opensource

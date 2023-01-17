@@ -1,22 +1,29 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ascend-cert-manager
+  namespace: mef-center
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cert-manager
-  namespace: mindx-edge
+  name: ascend-cert-manager
+  namespace: mef-center
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: cert-manager
+      app: ascend-cert-manager
   template:
     metadata:
       labels:
-        app: cert-manager
+        app: ascend-cert-manager
     spec:
       nodeSelector:
         masterselector: dls-master-node
+      serviceAccountName: ascend-cert-manager
       containers:
-        - name: cert-manager
+        - name: ascend-cert-manager
           image: ascend-cert-manager:v1
           env:
             - name: installed-module
@@ -54,7 +61,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ascend-cert-manager
-  namespace: mindx-edge
+  namespace: mef-center
   labels:
     app: ascend-cert-manager
 spec:
@@ -65,5 +72,5 @@ spec:
       protocol: TCP
       nodePort: 30040
   selector:
-    app: cert-manager
+    app: ascend-cert-manager
   type: NodePort

@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: ascend-edge-manager
-  namespace: mindx-edge
+  namespace: mef-center
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
@@ -26,7 +26,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: ascend-edge-manager
-    namespace: mindx-edge
+    namespace: mef-center
 roleRef:
   kind: ClusterRole
   name: pods-ascend-edge-manager-role
@@ -36,7 +36,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ascend-edge-manager
-  namespace: mindx-edge
+  namespace: mef-center
 spec:
   replicas: 1
   selector:
@@ -107,7 +107,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ascend-edge-manager
-  namespace: mindx-edge
+  namespace: mef-center
   labels:
     app: ascend-edge-manager
 spec:

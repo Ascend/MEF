@@ -29,7 +29,7 @@ const (
 
 const (
 	kbToMB           float64 = 1048576
-	defaultFilesPath         = "/etc/mindx-edge/software-manager/"
+	defaultFilesPath         = "/etc/mindx-edge/"
 	dBFileMode               = 0640
 	floatByteSize            = 64
 	zipFileHeader            = "504b0304"

@@ -26,11 +26,6 @@ compile:
         - remove: ["{{TOP_DIR}}/output/"]
         - makedir:
             path: "{{TOP_DIR}}/output"
-      include:
-        - sed:
-            option: "-i"
-            srcstr: "s/{{component}}:.*/{{component}}:{{version}}/"
-            curfile: "{{TOP_DIR}}/build/{{component}}.yaml"
 
   process:
     language: go
