@@ -248,12 +248,12 @@ func (c *InstallComponent) copyComponentFiles(pathMgr *WorkPathAMgr) error {
 	}
 
 	installRootDir := path.Dir(path.Dir(currentDir))
-	componentPath := path.Join(installRootDir, c.Name) + "/."
+	componentPath := path.Join(installRootDir, c.Name)
 
 	// copy InstallComponent files to InstallComponent directory
 	filesDst := pathMgr.GetImageConfigPath(c.Name)
 
-	if err = common.CopyDir(componentPath, filesDst); err != nil {
+	if err = common.CopyDir(componentPath, filesDst, false); err != nil {
 		hwlog.RunLog.Errorf("copy %s's dir failed: %s", c.Name, err.Error())
 		return fmt.Errorf("copy component dir failed")
 	}
@@ -372,7 +372,7 @@ func (c *InstallComponent) PrepareLibDir(libSrcPath string, pathMgr *WorkPathAMg
 		return fmt.Errorf("set path [%s] owner failed", libDir)
 	}
 
-	if err := common.CopyDir(libSrcPath, libDir); err != nil {
+	if err := common.CopyDir(libSrcPath, libDir, false); err != nil {
 		hwlog.RunLog.Errorf("copy component [%s]'s lib dir failed, error: %v", c.Name, err.Error())
 		return fmt.Errorf("copy lib component [%s]'s dir failed", c.Name)
 	}

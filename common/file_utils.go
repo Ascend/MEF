@@ -60,7 +60,11 @@ func MakeSurePath(tgtPath string) error {
 }
 
 // CopyDir is used to copy dir and all files into it
-func CopyDir(srcPath string, dstPath string) error {
+func CopyDir(srcPath string, dstPath string, includeDir bool) error {
+	if !includeDir {
+		srcPath = srcPath + "/."
+	}
+
 	if _, err := RunCommand(CommandCopy, true, "-r", srcPath, dstPath); err != nil {
 		return err
 	}
