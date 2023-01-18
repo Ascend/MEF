@@ -176,6 +176,11 @@ func (cc *CtlComponent) prepareNameSpace() error {
 // Operate is used to start an operate to a single component
 func (cc *CtlComponent) Operate() error {
 	hwlog.RunLog.Infof("start to %s module %s", cc.Operation, cc.Name)
+	if cc.InstallPathMgr == nil && cc.InstallPathMgr.WorkPathAMgr == nil {
+		hwlog.RunLog.Error("pointer InstallPathMgr is nil or invalid")
+		return errors.New("pointer InstallPathMgr is nil or invalid")
+	}
+
 	yamlPath := cc.InstallPathMgr.WorkPathMgr.GetRelativeYamlPath(cc.Name)
 	yamlRealPath, err := filepath.EvalSymlinks(yamlPath)
 	if err != nil {

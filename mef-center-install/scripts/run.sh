@@ -22,7 +22,7 @@ function main()
         method=$1
         binary_file=""
         case "$method" in
-             "start" | "stop" | "restart" | "status")
+             "start" | "stop" | "restart")
                 binary_file="MEF-center-controller"
                 manage_type="control"
                 if [[ -z $2 ]]; then
@@ -37,10 +37,6 @@ function main()
              "upgrade")
                 ${UPGRADE_SH_PATH} "$@"
                 exit $?
-            ;;
-             "uninstall")
-                binary_file="MEF-center-uninstall"
-                manage_type="uninstall"
             ;;
             "-h" | "--help" | "--h")
                 print_helps "$@"
