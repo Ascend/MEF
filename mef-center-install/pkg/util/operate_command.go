@@ -56,11 +56,8 @@ func (cc *CtlComponent) stopComponent(yamlPath string) error {
 		return nil
 	}
 
-	deploymentName := AscendPrefix + cc.Name
-	if _, err = common.RunCommand(CommandKubectl, true,
-		"scale", "deployment", deploymentName, "-n", MefNamespace, "--replicas=0"); err != nil {
-		hwlog.RunLog.Errorf("exec kubectl delete failed: %s", err.Error())
-		return fmt.Errorf("exec kubectl delete failed: %s", err.Error())
+	if err = cc.setReplicas(StopReplicasNum); err != nil {
+		return err
 	}
 	return nil
 }
@@ -93,6 +90,25 @@ func (cc *CtlComponent) getComponentStatus() (string, error) {
 	return ret, nil
 }
 
+func (cc *CtlComponent) checkIfStatusStopped(status string) bool {
+	if !strings.Contains(status, StopFlag) {
+		hwlog.RunLog.Warn("the component pod is not active yet")
+		return false
+	}
+	return true
+}
+
+func (cc *CtlComponent) setReplicas(num int) error {
+	deploymentName := AscendPrefix + cc.Name
+	if _, err := common.RunCommand(CommandKubectl, true, "scale", "deployment", deploymentName,
+		"-n", MefNamespace, fmt.Sprintf("--replicas=%d", num)); err != nil {
+		hwlog.RunLog.Errorf("exec kubectl delete failed: %s", err.Error())
+		return fmt.Errorf("exec kubectl delete failed: %s", err.Error())
+	}
+
+	return nil
+}
+
 func (cc *CtlComponent) checkIfStatusReady(status string) bool {
 	if !strings.Contains(status, ReadyFlag) {
 		hwlog.RunLog.Warn("the component pod is not active yet")
@@ -107,6 +123,12 @@ func (cc *CtlComponent) checkIfComponentReady() error {
 		if err != nil {
 			time.Sleep(CheckStatusInterval)
 			continue
+		}
+		if cc.checkIfStatusStopped(status) {
+			if err = cc.setReplicas(StartReplicasNum); err != nil {
+				time.Sleep(CheckStatusInterval)
+				continue
+			}
 		}
 		if cc.checkIfStatusReady(status) {
 			return nil

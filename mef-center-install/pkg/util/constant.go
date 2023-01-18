@@ -18,6 +18,9 @@ const (
 	X86              = "x86_64"
 	ActiveFlag       = "Active"
 	ReadyFlag        = "1/1"
+	StopFlag         = "0/0"
+	StopReplicasNum  = 0
+	StartReplicasNum = 1
 	IllegalChars     = "\n!\\; &$<>`"
 )
 
