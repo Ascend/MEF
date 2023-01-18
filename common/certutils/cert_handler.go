@@ -12,8 +12,7 @@ import (
 	"time"
 
 	"huawei.com/mindx/common/rand"
-	"huawei.com/mindx/common/utils"
-	hwCertMgr "huawei.com/mindx/common/x509"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -52,42 +51,6 @@ type RootCertMgr struct {
 	rootKeyPath string
 	commonName  string
 	kmcCfg      *common.KmcCfg
-}
-
-// CaPairInfo define cert and key pair info struct
-type CaPairInfo struct {
-	Cert   *x509.Certificate
-	PriKey *rsa.PrivateKey
-}
-
-// GetCertPair get cert and key pair info
-func GetCertPair(certPath, keyPath string, kmcCfg *common.KmcCfg) (*CaPairInfo, error) {
-	rootCa, err := utils.LoadFile(certPath)
-	if err != nil {
-		return nil, errors.New("load cert file failed: " + err.Error())
-	}
-	caCert, err := hwCertMgr.LoadCertsFromPEM(rootCa)
-	if err != nil {
-		return nil, errors.New("decode cert form pem failed: " + err.Error())
-	}
-	encryptKeyContent, err := utils.LoadFile(keyPath)
-	if err != nil {
-		return nil, errors.New("load key file failed: " + err.Error())
-	}
-	decryptKeyByte, err := common.DecryptContent(encryptKeyContent, kmcCfg)
-	if err != nil {
-		return nil, errors.New("decrypt key content failed: " + err.Error())
-	}
-	defer hwCertMgr.PaddingAndCleanSlice(decryptKeyByte)
-	caPrivate := PemUnwrapPrivKey(decryptKeyByte)
-	if caPrivate == nil {
-		return nil, errors.New("unwrap a private key pem failed")
-	}
-	var caPairInfo = &CaPairInfo{
-		Cert:   caCert,
-		PriKey: caPrivate,
-	}
-	return caPairInfo, nil
 }
 
 // InitRootCertMgr init root cert manager
