@@ -4,6 +4,8 @@
 package restfulservice
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 
 	"huawei.com/mindxedge/base/common"
@@ -15,7 +17,7 @@ type appQueryDispatcher struct {
 }
 
 func (app appQueryDispatcher) ParseData(c *gin.Context) common.Result {
-	appId, err := getReqId(c, "appID")
+	appId, err := getReqID(c, "appID")
 	if err != nil {
 		return common.Result{ResultFlag: false, ErrorMsg: "parse app id failed"}
 	}
@@ -41,7 +43,7 @@ type appInstanceDispatcher struct {
 }
 
 func (app appInstanceDispatcher) ParseData(c *gin.Context) common.Result {
-	input, err := getReqNodeId(c)
+	input, err := getReqNodeID(c)
 	if err != nil {
 		return common.Result{ResultFlag: false, ErrorMsg: "parse node id failed"}
 	}
@@ -67,10 +69,37 @@ type templateDetailDispatcher struct {
 }
 
 func (t templateDetailDispatcher) ParseData(c *gin.Context) common.Result {
-	templateId, err := getReqId(c, "id")
+	templateId, err := getReqID(c, "id")
 	if err != nil {
 		return common.Result{ResultFlag: false, ErrorMsg: "parse template detail para failed"}
 	}
 
 	return common.Result{ResultFlag: true, Data: templateId}
+}
+
+type cmQueryDispatcher struct {
+	restfulmgr.GenericDispatcher
+}
+
+func (cq cmQueryDispatcher) ParseData(c *gin.Context) common.Result {
+	configmapId, err := getReqIntID(c, "configmapID")
+	if err != nil {
+		return common.Result{ResultFlag: false, ErrorMsg: fmt.Sprintf("get configmap id failed: %s", err.Error())}
+	}
+
+	return common.Result{ResultFlag: true, Data: configmapId}
+}
+
+type cmListDispatcher struct {
+	restfulmgr.GenericDispatcher
+}
+
+func (cl cmListDispatcher) ParseData(c *gin.Context) common.Result {
+	input, err := pageUtil(c)
+	if err != nil {
+		return common.Result{ResultFlag: false, ErrorMsg: fmt.Sprintf("parse configmap list para failed: %s",
+			err.Error())}
+	}
+
+	return common.Result{ResultFlag: true, Data: input}
 }

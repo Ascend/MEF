@@ -11,11 +11,11 @@ import (
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
+
+	"edge-manager/pkg/database"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
-
-	"edge-manager/pkg/database"
 )
 
 type handlerFunc func(req interface{}) common.RespMsg
@@ -138,6 +138,10 @@ func initAppTable() error {
 		hwlog.RunLog.Error("create app template instance database table failed")
 		return err
 	}
+	if err := database.CreateTableIfNotExists(ConfigmapInfo{}); err != nil {
+		hwlog.RunLog.Error("create configmap instance database table failed")
+		return err
+	}
 
 	return nil
 }
@@ -164,6 +168,12 @@ var handlerFuncMap = map[string]handlerFunc{
 	combine(http.MethodGet, appTemplateRootPath):                        getTemplate,
 	combine(http.MethodGet, filepath.Join(appTemplateRootPath, "list")): getTemplates,
 	combine(common.Get, common.AppInstanceByNodeGroup):                  getAppInstanceCountByNodeGroup,
+
+	combine(http.MethodPost, filepath.Join(appUrlRootPath, configmap)):                 createConfigmap,
+	combine(http.MethodPost, filepath.Join(appUrlRootPath, configmap, "batch-delete")): deleteConfigmap,
+	combine(http.MethodPatch, filepath.Join(appUrlRootPath, configmap)):                updateConfigmap,
+	combine(http.MethodGet, filepath.Join(appUrlRootPath, configmap)):                  queryConfigmap,
+	combine(http.MethodGet, filepath.Join(appUrlRootPath, configmap, "list")):          listConfigmap,
 }
 
 func combine(option, resource string) string {

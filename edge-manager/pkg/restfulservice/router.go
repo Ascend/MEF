@@ -51,6 +51,26 @@ var appRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			RelativePath: "/node",
 			Method:       http.MethodGet,
 			Destination:  common.AppManagerName}},
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/configmap",
+			Method:       http.MethodPost,
+			Destination:  common.AppManagerName},
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/configmap",
+			Method:       http.MethodPost,
+			Destination:  common.AppManagerName},
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/configmap",
+			Method:       http.MethodPatch,
+			Destination:  common.AppManagerName},
+		cmQueryDispatcher{restfulmgr.GenericDispatcher{
+			RelativePath: "/configmap",
+			Method:       http.MethodGet,
+			Destination:  common.AppManagerName}},
+		cmListDispatcher{restfulmgr.GenericDispatcher{
+			RelativePath: "/configmap/list",
+			Method:       http.MethodGet,
+			Destination:  common.AppManagerName}},
 	},
 }
 
@@ -141,7 +161,7 @@ func pageUtil(c *gin.Context) (util.ListReq, error) {
 	return input, nil
 }
 
-func getReqId(c *gin.Context, idName string) (uint64, error) {
+func getReqID(c *gin.Context, idName string) (uint64, error) {
 	value, err := strconv.ParseUint(c.Query(idName), common.BaseHex, common.BitSize64)
 	if err != nil {
 		return 0, fmt.Errorf("id is invalid")
@@ -150,10 +170,19 @@ func getReqId(c *gin.Context, idName string) (uint64, error) {
 	return value, nil
 }
 
-func getReqNodeId(c *gin.Context) (int64, error) {
+func getReqNodeID(c *gin.Context) (int64, error) {
 	value, err := strconv.ParseInt(c.Query("nodeID"), common.BaseHex, common.BitSize64)
 	if err != nil {
 		return 0, fmt.Errorf("app id is invalid")
+	}
+
+	return value, nil
+}
+
+func getReqIntID(c *gin.Context, idName string) (int64, error) {
+	value, err := strconv.ParseInt(c.Query(idName), common.BaseHex, common.BitSize64)
+	if err != nil {
+		return 0, fmt.Errorf("id name [%s] is invalid", idName)
 	}
 
 	return value, nil

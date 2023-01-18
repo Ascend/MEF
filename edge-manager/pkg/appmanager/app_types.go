@@ -19,6 +19,14 @@ type Container struct {
 	Ports        []ContainerPort `json:"containerPort"`
 	UserID       int64           `json:"userID"`
 	GroupID      int64           `json:"groupID"`
+	VolumeMounts []VolumeMount   `json:"volumeMounts"`
+}
+
+// VolumeMount volume related request
+type VolumeMount struct {
+	LocalVolumeName string `json:"localVolumeName"`
+	MountPath       string `json:"mountPath"`
+	ConfigmapName   string `json:"configmapName"`
 }
 
 // EnvVar encapsulate env request

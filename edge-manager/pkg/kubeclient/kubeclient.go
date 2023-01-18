@@ -10,10 +10,9 @@ import (
 	"fmt"
 	"strings"
 
-	appv1 "k8s.io/api/apps/v1"
-
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/k8stool"
+	appv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -32,6 +31,8 @@ const (
 	systemNamespace = "kubeedge"
 	tokenSecretName = "tokensecret"
 	tokenDataName   = "tokendata"
+
+	defaultNamespace = "default"
 )
 
 var k8sClient *Client
@@ -152,17 +153,17 @@ func (ki *Client) makeLabelPath(name string) string {
 
 // CreateDaemonSet create daemonSet
 func (ki *Client) CreateDaemonSet(dm *appv1.DaemonSet) (*appv1.DaemonSet, error) {
-	return ki.kubeClient.AppsV1().DaemonSets("default").Create(context.Background(), dm, metav1.CreateOptions{})
+	return ki.kubeClient.AppsV1().DaemonSets(defaultNamespace).Create(context.Background(), dm, metav1.CreateOptions{})
 }
 
 // UpdateDaemonSet Update daemonSet
 func (ki *Client) UpdateDaemonSet(dm *appv1.DaemonSet) (*appv1.DaemonSet, error) {
-	return ki.kubeClient.AppsV1().DaemonSets("default").Update(context.Background(), dm, metav1.UpdateOptions{})
+	return ki.kubeClient.AppsV1().DaemonSets(defaultNamespace).Update(context.Background(), dm, metav1.UpdateOptions{})
 }
 
 // DeleteDaemonSet Delete daemonSet
 func (ki *Client) DeleteDaemonSet(name string) error {
-	return ki.kubeClient.AppsV1().DaemonSets("default").Delete(context.Background(), name, metav1.DeleteOptions{})
+	return ki.kubeClient.AppsV1().DaemonSets(defaultNamespace).Delete(context.Background(), name, metav1.DeleteOptions{})
 }
 
 // GetToken get token
@@ -173,4 +174,29 @@ func (ki *Client) GetToken() ([]byte, error) {
 		return nil, err
 	}
 	return secret.Data[tokenDataName], nil
+}
+
+// CreateConfigMap create configmap
+func (ki *Client) CreateConfigMap(cm *v1.ConfigMap) (*v1.ConfigMap, error) {
+	return ki.kubeClient.CoreV1().ConfigMaps(defaultNamespace).Create(context.Background(), cm, metav1.CreateOptions{})
+}
+
+// DeleteConfigMap delete configmap
+func (ki *Client) DeleteConfigMap(name string) error {
+	return ki.kubeClient.CoreV1().ConfigMaps(defaultNamespace).Delete(context.Background(), name, metav1.DeleteOptions{})
+}
+
+// UpdateConfigMap update configmap
+func (ki *Client) UpdateConfigMap(cm *v1.ConfigMap) (*v1.ConfigMap, error) {
+	return ki.kubeClient.CoreV1().ConfigMaps(defaultNamespace).Update(context.Background(), cm, metav1.UpdateOptions{})
+}
+
+// GetConfigMap get configmap
+func (ki *Client) GetConfigMap(name string) (*v1.ConfigMap, error) {
+	return ki.kubeClient.CoreV1().ConfigMaps(defaultNamespace).Get(context.Background(), name, metav1.GetOptions{})
+}
+
+// ListConfigMapList list configmap list
+func (ki *Client) ListConfigMapList() (*v1.ConfigMapList, error) {
+	return ki.kubeClient.CoreV1().ConfigMaps(defaultNamespace).List(context.Background(), metav1.ListOptions{})
 }

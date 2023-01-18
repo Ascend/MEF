@@ -10,7 +10,7 @@ metadata:
   name: pods-ascend-edge-manager-role
 rules:
   - apiGroups: [""]
-    resources: ["secrets","nodes","pods","pods/log","namespaces"]
+    resources: [ "secrets","nodes","pods","pods/log","namespaces","configmaps" ]
     verbs: ["*"]
   - apiGroups: ["apps"]
     resources: ["daemonsets"]
