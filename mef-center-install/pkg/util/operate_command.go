@@ -56,7 +56,8 @@ func (cc *CtlComponent) stopComponent(yamlPath string) error {
 		return nil
 	}
 
-	if _, err = common.RunCommand(CommandKubectl, true, "delete", "-f", yamlPath); err != nil {
+	if _, err = common.RunCommand(CommandKubectl, true,
+		"scale", "deployment", cc.Name, "-n", MefNamespace, "--replicas=0"); err != nil {
 		hwlog.RunLog.Errorf("exec kubectl delete failed: %s", err.Error())
 		return fmt.Errorf("exec kubectl delete failed: %s", err.Error())
 	}
@@ -79,11 +80,11 @@ func (cc *CtlComponent) checkNameSpaceExist() (bool, error) {
 }
 
 func (cc *CtlComponent) getComponentStatus() (string, error) {
-	checkCmd := fmt.Sprintf("%s get deployment -A | grep -w %s | grep -w %s",
+	checkCmd := fmt.Sprintf("%s get deployment -n %s | grep -w %s",
 		CommandKubectl, MefNamespace, cc.Name)
 	ret, err := common.RunCommand("sh", false, "-c", checkCmd)
 
-	if err != nil {
+	if err != nil && err.Error() != "" {
 		hwlog.RunLog.Warnf("check components %s's status failed: %s", cc.Name, err.Error())
 		return "", errors.New("check components status failed")
 	}
