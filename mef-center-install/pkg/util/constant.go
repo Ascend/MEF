@@ -2,7 +2,11 @@
 
 package util
 
-import "huawei.com/mindxedge/base/common"
+import (
+	"time"
+
+	"huawei.com/mindxedge/base/common"
+)
 
 // Command constant for command
 const (
@@ -12,6 +16,11 @@ const (
 	ArchCommand      = "uname"
 	Arch64           = "aarch64"
 	X86              = "x86_64"
+	ActiveFlag       = "Active"
+	ReadyFlag        = "1/1"
+	StopFlag         = "0/0"
+	StopReplicasNum  = 0
+	StartReplicasNum = 1
 	IllegalChars     = "\n!\\; &$<>`"
 )
 
@@ -85,9 +94,9 @@ const (
 
 // install constant
 const (
-	ImageManagerFlag    = "image_manager"
-	ResourceManagerFlag = "resource-manager"
-	SoftwareManagerFlag = "software-manager"
+	ImageManagerFlag    = ImageManagerName
+	ResourceManagerFlag = ResourceManagerName
+	SoftwareManagerFlag = SoftwareManagerName
 	AllInstallFlag      = "install_all"
 	LogPathFlag         = "log_path"
 	InstallPathFlag     = "install_path"
@@ -123,9 +132,15 @@ const (
 
 // constant for install
 const (
-	RootUserName     = "root"
-	InstallDiskSpace = 750 * common.MB
-	HelpExitCode     = 3
-	VersionExitCode  = 3
-	ErrorExitCode    = 1
+	MefNamespace    = "mef-center"
+	RootUserName    = "root"
+	AscendPrefix    = "ascend-"
+	HelpExitCode    = 3
+	VersionExitCode = 3
+	ErrorExitCode   = 1
+	RunFlagCount    = 3
+
+	InstallDiskSpace    = 750 * common.MB
+	CheckStatusInterval = 3 * time.Second
+	CheckStatusTimes    = 5
 )

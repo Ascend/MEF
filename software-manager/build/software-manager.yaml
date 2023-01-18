@@ -1,8 +1,14 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ascend-software-manager
+  namespace: mef-center
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ascend-software-manager
-  namespace: mindx-edge
+  namespace: mef-center
 spec:
   replicas: 1
   selector:
@@ -46,7 +52,7 @@ spec:
             - name: localtime
               mountPath: /etc/localtime
             - name: software-manager-config
-              mountPath: /home/data
+              mountPath: /etc/mindx-edge
             - name: root-ca
               mountPath: /etc/RootCA
       volumes:
@@ -69,7 +75,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ascend-software-manager
-  namespace: mindx-edge
+  namespace: mef-center
   labels:
     app: ascend-software-manager
 spec:

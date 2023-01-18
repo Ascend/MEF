@@ -33,7 +33,7 @@ const (
 	defaultWsPort         = 10000
 	defaultRunLogFile     = "/var/log/mindx-edge/edge-manager/run.log"
 	defaultOperateLogFile = "/var/log/mindx-edge/edge-manager/operate.log"
-	defaultDbPath         = "/etc/mindx-edge/edge-manager/edge-manager.db"
+	defaultDbPath         = "/etc/mindx-edge/edge-manager.db"
 )
 
 var (
