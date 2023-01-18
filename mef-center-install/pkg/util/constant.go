@@ -8,8 +8,6 @@ import (
 	"huawei.com/mindxedge/base/common"
 )
 
-
-
 // Command constant for command
 const (
 	CommandKubectl   = "kubectl"
@@ -136,8 +134,9 @@ const (
 	HelpExitCode    = 3
 	VersionExitCode = 3
 	ErrorExitCode   = 1
+	RunFlagCount    = 3
 
-	InstallDiskSpace = 750 * common.MB
+	InstallDiskSpace    = 750 * common.MB
 	CheckStatusInterval = 3 * time.Second
 	CheckStatusTimes    = 5
 )

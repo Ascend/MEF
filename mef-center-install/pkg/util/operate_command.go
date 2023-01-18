@@ -1,3 +1,5 @@
+// Copyright (c) 2023. Huawei Technologies Co., Ltd. All rights reserved.
+
 package util
 
 import (
@@ -12,13 +14,14 @@ import (
 	"huawei.com/mindxedge/base/common"
 )
 
+// CtlComponent is a struct used to do a specific command to a single component
 type CtlComponent struct {
 	Name           string
 	Operation      string
 	InstallPathMgr *InstallDirPathMgr
 }
 
-func (cc *CtlComponent) StartComponent(yamlPath string) error {
+func (cc *CtlComponent) startComponent(yamlPath string) error {
 	if err := cc.prepareNameSpace(); err != nil {
 		return err
 	}
@@ -146,6 +149,7 @@ func (cc *CtlComponent) prepareNameSpace() error {
 	return nil
 }
 
+// Operate is used to start an operate to a single component
 func (cc *CtlComponent) Operate() error {
 	hwlog.RunLog.Infof("start to %s module %s", cc.Operation, cc.Name)
 	yamlPath := cc.InstallPathMgr.WorkPathMgr.GetRelativeYamlPath(cc.Name)
@@ -163,7 +167,7 @@ func (cc *CtlComponent) Operate() error {
 
 	switch cc.Operation {
 	case "start":
-		if err = cc.StartComponent(filePath); err != nil {
+		if err = cc.startComponent(filePath); err != nil {
 			return err
 		}
 
@@ -176,7 +180,7 @@ func (cc *CtlComponent) Operate() error {
 		if err = cc.stopComponent(filePath); err != nil {
 			return err
 		}
-		if err = cc.StartComponent(filePath); err != nil {
+		if err = cc.startComponent(filePath); err != nil {
 			return err
 		}
 	default:

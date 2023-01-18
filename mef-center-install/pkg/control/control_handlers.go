@@ -1,3 +1,6 @@
+// Copyright (c)  2023. Huawei Technologies Co., Ltd.  All rights reserved.
+
+// Package control contains the unique method for start/stop/restart component
 package control
 
 import (
@@ -5,6 +8,7 @@ import (
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
+// SftControlMgr is a struct that used to start/stop/restart a component
 type SftControlMgr struct {
 	componentFlag      string
 	operate            string
@@ -13,6 +17,7 @@ type SftControlMgr struct {
 	componentList      []*util.CtlComponent
 }
 
+// DoControl is the main func to do a control handle
 func (scm *SftControlMgr) DoControl() error {
 	var installTasks = []func() error{
 		scm.init,
@@ -39,9 +44,8 @@ func (scm *SftControlMgr) init() error {
 			}
 			scm.componentList = append(scm.componentList, component)
 		}
-
-		// if just a certain componentFlag, then construct a single-element componentFlag list
 	} else {
+		// if just a certain componentFlag, then construct a single-element componentFlag list
 		component := &util.CtlComponent{
 			Name:           scm.componentFlag,
 			Operation:      scm.operate,
@@ -63,6 +67,7 @@ func (scm *SftControlMgr) deal() error {
 	return nil
 }
 
+// InitSftControlMgr is used to init a SftControlMgr struct
 func InitSftControlMgr(component, operate string,
 	installComponents []string, installPathMgr *util.InstallDirPathMgr) *SftControlMgr {
 	return &SftControlMgr{

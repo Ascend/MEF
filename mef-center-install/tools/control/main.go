@@ -43,7 +43,7 @@ func isFlagSet(name string) bool {
 
 func checkFlag() string {
 	// the first operate type will be performed
-	flags := [3]string{startFlag, stopFlag, restartFlag}
+	flags := [util.RunFlagCount]string{startFlag, stopFlag, restartFlag}
 	for _, s := range flags {
 		if isFlagSet(s) {
 			return s
