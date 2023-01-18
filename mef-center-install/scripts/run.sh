@@ -18,8 +18,8 @@ print_helps()
 
 function main()
 {
-    if [[ "$#" -gt 0 ]]; then
-        method=$1
+    if [[ "$#" -gt 0 ]];  then
+        method="$1"
         binary_file=""
         case "$method" in
              "start" | "stop" | "restart")
@@ -28,7 +28,7 @@ function main()
                 if [[ -z $2 ]]; then
                     component="all"
                 else
-                    component=$2
+                    component="$2"
                 fi
 
                 param_template='%s=%s'
