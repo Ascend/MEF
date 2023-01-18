@@ -52,7 +52,7 @@ func (cc *CtlComponent) stopComponent(yamlPath string) error {
 		return err
 	}
 	if status == "" {
-		hwlog.RunLog.Info("component %s does not start now, no need to stop")
+		hwlog.RunLog.Infof("component %s does not start now, no need to stop", cc.Name)
 		return nil
 	}
 
