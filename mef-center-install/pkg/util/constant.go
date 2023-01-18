@@ -131,6 +131,7 @@ const (
 const (
 	MefNamespace    = "mef-center"
 	RootUserName    = "root"
+	AscendPrefix    = "ascend-"
 	HelpExitCode    = 3
 	VersionExitCode = 3
 	ErrorExitCode   = 1

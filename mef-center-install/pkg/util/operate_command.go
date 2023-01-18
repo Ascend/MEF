@@ -56,8 +56,9 @@ func (cc *CtlComponent) stopComponent(yamlPath string) error {
 		return nil
 	}
 
+	deploymentName := AscendPrefix + cc.Name
 	if _, err = common.RunCommand(CommandKubectl, true,
-		"scale", "deployment", cc.Name, "-n", MefNamespace, "--replicas=0"); err != nil {
+		"scale", "deployment", deploymentName, "-n", MefNamespace, "--replicas=0"); err != nil {
 		hwlog.RunLog.Errorf("exec kubectl delete failed: %s", err.Error())
 		return fmt.Errorf("exec kubectl delete failed: %s", err.Error())
 	}
