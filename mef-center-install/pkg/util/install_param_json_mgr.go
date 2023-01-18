@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/utils"
 
 	"huawei.com/mindxedge/base/common"
 )
@@ -22,7 +23,7 @@ type InstallParamJsonTemplate struct {
 // GetInstallParamJsonInfo is used to get infos from install_param.json
 func GetInstallParamJsonInfo(jsonPath string) (*InstallParamJsonTemplate, error) {
 	var componentsIns InstallParamJsonTemplate
-	file, err := os.ReadFile(jsonPath)
+	file, err := utils.LoadFile(jsonPath)
 	if err != nil {
 		return nil, fmt.Errorf("read component json failed: %s", err.Error())
 	}
