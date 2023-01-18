@@ -52,7 +52,7 @@ spec:
             - name: localtime
               mountPath: /etc/localtime
             - name: software-manager-config
-              mountPath: /home/data
+              mountPath: /etc/mindx-edge
             - name: root-ca
               mountPath: /etc/RootCA
       volumes:

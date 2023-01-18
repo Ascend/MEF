@@ -75,7 +75,7 @@ const (
 	ModuleLogName  = "mef-center-log"
 	MefScriptsDir  = "scripts"
 	RunLogFile     = "mef-center-install.log"
-	OperateLogFile = "mef-center-install-Operate.log"
+	OperateLogFile = "mef-center-install-operate.log"
 	InstallLogDir  = "mef-center-install"
 )
 

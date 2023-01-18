@@ -106,8 +106,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	hwlog.RunLog.Errorf("start to %s %s component", operate, componentType)
-	hwlog.OpLog.Errorf("start to %s %s component", operate, componentType)
+	hwlog.RunLog.Infof("start to %s %s component", operate, componentType)
+	hwlog.OpLog.Infof("start to %s %s component", operate, componentType)
 	if err = doControl(operate, installParam); err != nil {
 		hwlog.RunLog.Errorf("%s %s component failed", operate, componentType)
 		hwlog.OpLog.Errorf("%s %s component failed", operate, componentType)
