@@ -47,10 +47,6 @@ func main() {
 		hwlog.RunLog.Errorf("port %d is not in [%d, %d]", softwaremanager.Port, common.MinPort, common.MaxPort)
 		return
 	}
-	if valid, err := checker.IsIpValid(softwaremanager.IP); !valid {
-		hwlog.RunLog.Error(err)
-		return
-	}
 	if err := register(); err != nil {
 		hwlog.RunLog.Error("register error")
 		return
