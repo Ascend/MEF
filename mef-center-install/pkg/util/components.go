@@ -169,10 +169,9 @@ func (c *InstallComponent) SetInstallOption(install bool) {
 }
 
 // SetVersion is used to set the version of a component, which is used as the version tag of the docker
-func (c *InstallComponent) SetVersion() error {
+func (c *InstallComponent) SetVersion() {
 	version := DockerTag
 	c.version = version
-	return nil
 }
 
 // PrepareComponentCertDir is used to create the cert dir for a single component

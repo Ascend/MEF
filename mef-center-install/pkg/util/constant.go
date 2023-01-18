@@ -2,12 +2,16 @@
 
 package util
 
+import "huawei.com/mindxedge/base/common"
+
 // Command constant for command
 const (
 	CommandKubectl   = "kubectl"
 	CommandNamespace = "namespace"
 	CommandCopy      = "cp"
 	ArchCommand      = "uname"
+	Arch64           = "aarch64"
+	X86              = "x86_64"
 	IllegalChars     = "\n!\\; &$<>`"
 )
 
@@ -81,9 +85,9 @@ const (
 
 // install constant
 const (
-	ImageManagerFlag    = ImageManagerName
-	ResourceManagerFlag = ResourceManagerName
-	SoftwareManagerFlag = SoftwareManagerName
+	ImageManagerFlag    = "image_manager"
+	ResourceManagerFlag = "resource-manager"
+	SoftwareManagerFlag = "software-manager"
 	AllInstallFlag      = "install_all"
 	LogPathFlag         = "log_path"
 	InstallPathFlag     = "install_path"
@@ -119,8 +123,9 @@ const (
 
 // constant for install
 const (
-	RootUserName    = "root"
-	HelpExitCode    = 3
-	VersionExitCode = 3
-	ErrorExitCode   = 1
+	RootUserName     = "root"
+	InstallDiskSpace = 750 * common.MB
+	HelpExitCode     = 3
+	VersionExitCode  = 3
+	ErrorExitCode    = 1
 )
