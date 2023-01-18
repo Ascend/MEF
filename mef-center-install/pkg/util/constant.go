@@ -2,7 +2,13 @@
 
 package util
 
-import "time"
+import (
+	"time"
+
+	"huawei.com/mindxedge/base/common"
+)
+
+
 
 // Command constant for command
 const (
@@ -10,6 +16,8 @@ const (
 	CommandNamespace = "namespace"
 	CommandCopy      = "cp"
 	ArchCommand      = "uname"
+	Arch64           = "aarch64"
+	X86              = "x86_64"
 	ActiveFlag       = "Active"
 	ReadyFlag        = "1/1"
 	IllegalChars     = "\n!\\; &$<>`"
@@ -129,6 +137,7 @@ const (
 	VersionExitCode = 3
 	ErrorExitCode   = 1
 
+	InstallDiskSpace = 750 * common.MB
 	CheckStatusInterval = 3 * time.Second
 	CheckStatusTimes    = 5
 )
