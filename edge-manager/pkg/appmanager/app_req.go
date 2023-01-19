@@ -43,11 +43,11 @@ type GetAppByAppIdReq struct {
 // AppInstanceResp encapsulate app instance information for return
 type AppInstanceResp struct {
 	AppName       string              `json:"appName"`
+	AppStatus     string              `json:"appStatus"`
 	NodeGroupInfo types.NodeGroupInfo `json:"nodeGroupInfo"`
 	NodeID        int64               `json:"nodeID"`
 	NodeName      string              `json:"nodeName"`
 	NodeStatus    string              `json:"nodeStatus"`
-	AppStatus     string              `json:"appStatus"`
 	CreatedAt     string              `json:"createdAt"`
 	ContainerInfo []ContainerInfo     `json:"containerInfo"`
 }

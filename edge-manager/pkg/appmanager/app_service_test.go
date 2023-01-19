@@ -169,7 +169,7 @@ func testDeleteNotExistApp() {
 				"appIDs": [100]
 				}`
 	resp := deleteApp(reqData)
-	convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
 func testDeleteApp() {
@@ -317,6 +317,7 @@ func testCreateTemplate() {
 
 func testUpdateTemplate() {
 	reqData := `{
+	"id":1,
     "name":"template1",
     "description":"",
     "containers":[
@@ -344,7 +345,7 @@ func testUpdateTemplate() {
 }
 
 func testGetTemplate() {
-	reqData := uint64((1))
+	reqData := uint64(1)
 	resp := getTemplate(reqData)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }

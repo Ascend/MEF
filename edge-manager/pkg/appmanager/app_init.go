@@ -90,7 +90,7 @@ func (app *appManager) Start() {
 	}
 }
 
-func (app appManager) housekeeper() {
+func (app *appManager) housekeeper() {
 	for {
 		delay := time.NewTimer(houseKeepingInterval)
 		select {

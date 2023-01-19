@@ -9,14 +9,14 @@ import (
 	"fmt"
 	"strings"
 
+	"gorm.io/gorm"
+	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
+
 	"edge-manager/pkg/appmanager/appchecker"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
 	"edge-manager/pkg/util"
-
-	"gorm.io/gorm"
-	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
 )
 
 // createApp Create application
@@ -26,14 +26,14 @@ func createApp(input interface{}) common.RespMsg {
 	if err := common.ParamConvert(input, &req); err != nil {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
-
-	checker := appchecker.CreateAppChecker{}
-	checkResult := checker.Check(req)
-	if !checkResult.Result {
+	if checkResult := appchecker.NewCreateAppChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("app create para check failed: %s", checkResult.Reason)
-		return common.RespMsg{Status: "", Msg: "check create app input param failed", Data: nil}
+		return common.RespMsg{Status: "", Msg: checkResult.Reason, Data: nil}
 	}
-
+	if err := NewAppSupplementalChecker(req).Check(); err != nil {
+		hwlog.RunLog.Errorf("app create para check failed: %v", err)
+		return common.RespMsg{Status: "", Msg: fmt.Sprintf("app create para check failed: %v", err), Data: nil}
+	}
 	total, err := GetTableCount(AppInfo{})
 	if err != nil {
 		hwlog.RunLog.Error("get app table num failed")
@@ -77,7 +77,11 @@ func queryApp(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("query app info failed: para type not valid")
 		return common.RespMsg{Status: "", Msg: "query app info failed", Data: nil}
 	}
-	appInfo, err := AppRepositoryInstance().queryApp(appId)
+	appInfo, err := AppRepositoryInstance().getAppInfoById(appId)
+	if err == gorm.ErrRecordNotFound {
+		hwlog.RunLog.Errorf("query app id [%d] not exist", appId)
+		return common.RespMsg{Status: "", Msg: "query app info failed", Data: nil}
+	}
 	if err != nil {
 		hwlog.RunLog.Errorf("query app info failed %s", err.Error())
 		return common.RespMsg{Status: "", Msg: "query app info failed", Data: nil}
@@ -176,9 +180,14 @@ func deployApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 	appInfo, err := AppRepositoryInstance().getAppInfoById(req.AppID)
+	if err == gorm.ErrRecordNotFound {
+		hwlog.RunLog.Errorf("app id [%d] not exist", req.AppID)
+		return common.RespMsg{Status: "",
+			Msg: fmt.Sprintf("app id [%d] not exist, deploy app failed", req.AppID), Data: nil}
+	}
 	if err != nil {
-		hwlog.RunLog.Error("get app information failed")
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+		hwlog.RunLog.Error("get app info error, deploy app failed")
+		return common.RespMsg{Status: "", Msg: "get app info error, deploy app failed", Data: nil}
 	}
 	for _, nodeGroupId := range req.NodeGroupIds {
 		daemonSet, err := initDaemonSet(appInfo, nodeGroupId)
@@ -215,9 +224,14 @@ func unDeployApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.Success, Msg: "do not have any group need to undeploy", Data: nil}
 	}
 	appInfo, err := AppRepositoryInstance().getAppInfoById(req.AppID)
+	if err == gorm.ErrRecordNotFound {
+		hwlog.RunLog.Errorf("app id [%d] not exist", req.AppID)
+		return common.RespMsg{Status: "",
+			Msg: fmt.Sprintf("app id [%d] not exist, undeploy app failed", req.AppID), Data: nil}
+	}
 	if err != nil {
-		hwlog.RunLog.Error("get app information failed")
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+		hwlog.RunLog.Error("get app info error, undeploy app failed")
+		return common.RespMsg{Status: "", Msg: "get app info error, undeploy app failed", Data: nil}
 	}
 	for _, nodeGroupId := range req.NodeGroupIds {
 		daemonSetName := formatDaemonSetName(appInfo.AppName, nodeGroupId)
@@ -283,16 +297,23 @@ func updateApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
 
-	checker := appParaChecker{req: &req.CreateAppReq}
-	if err = checker.Check(); err != nil {
-		hwlog.RunLog.Errorf("app update para check failed: %s", err.Error())
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	if checkResult := appchecker.NewUpdateAppChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("app update para check failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: "", Msg: checkResult.Reason, Data: nil}
+	}
+	if err := NewAppSupplementalChecker(req.CreateAppReq).Check(); err != nil {
+		hwlog.RunLog.Errorf("app create para check failed: %v", err)
+		return common.RespMsg{Status: "", Msg: fmt.Sprintf("app create para check failed: %v", err), Data: nil}
 	}
 
-	appInfo, err := AppRepositoryInstance().queryApp(req.AppID)
-	if err != nil {
+	appInfo, err := AppRepositoryInstance().getAppInfoById(req.AppID)
+	if err == gorm.ErrRecordNotFound {
 		hwlog.RunLog.Error("app info not exist, update failed")
 		return common.RespMsg{Status: "", Msg: "app info not exist, update failed", Data: nil}
+	}
+	if err != nil {
+		hwlog.RunLog.Error("get app info for app update, db failed")
+		return common.RespMsg{Status: "", Msg: "get app info for app update, db failed", Data: nil}
 	}
 
 	if err = modifyContainerPara(&req, appInfo); err != nil {
@@ -435,13 +456,13 @@ func getNodeStatus(nodeUniqueName string) (string, error) {
 // listAppInstancesByNode get deployed apps' list of a certain node
 func listAppInstancesByNode(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start list app instances by node id")
-	var nodeId int64
-	nodeId, ok := input.(int64)
+	var nodeId uint64
+	nodeId, ok := input.(uint64)
 	if !ok {
 		hwlog.RunLog.Error("list app instances by node id failed, param type is not integer")
 		return common.RespMsg{Status: "", Msg: "param type is not integer", Data: nil}
 	}
-	appInstances, err := AppRepositoryInstance().listAppInstancesByNode(nodeId)
+	appInstances, err := AppRepositoryInstance().listAppInstancesByNode(int64(nodeId))
 	if err != nil {
 		hwlog.RunLog.Error("list app instances by node failed, db failed")
 		return common.RespMsg{Status: "", Msg: "list app instances by node db failed", Data: nil}

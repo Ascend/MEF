@@ -9,27 +9,65 @@ import (
 	"huawei.com/mindxedge/base/common/checker/checker"
 )
 
-// CreateAppChecker [struct] for create app check
-type CreateAppChecker struct {
+// NewCreateAppChecker [method] for getting create app checker struct
+func NewCreateAppChecker() *createAppChecker {
+	return &createAppChecker{}
+}
+
+// NewUpdateAppChecker [method] for getting update app checker struct
+func NewUpdateAppChecker() *updateAppChecker {
+	return &updateAppChecker{}
+}
+
+type createAppChecker struct {
 	modelChecker checker.ModelChecker
 }
 
-func (cac *CreateAppChecker) init() {
+type updateAppChecker struct {
+	modelChecker checker.ModelChecker
+	createAppChecker
+}
+
+func (cac *createAppChecker) init() {
 	cac.modelChecker.Required = true
 	cac.modelChecker.Checker = checker.GetAndChecker(
 		checker.GetRegChecker("AppName", nameReg, true),
 		checker.GetRegChecker("Description", descriptionReg, true),
-		checker.GetListChecker("Containers", GetContainerChecker(""),
-			minContainerCountInPod, maxContainerCountInPod, true),
+		checker.GetListChecker(
+			"Containers",
+			GetContainerChecker(""),
+			minContainerCountInPod,
+			maxContainerCountInPod,
+			true,
+		),
 	)
 }
 
-// Check [method] for check create app checker
-func (cac *CreateAppChecker) Check(data interface{}) checker.CheckResult {
+func (uac *updateAppChecker) init() {
+	uac.modelChecker.Required = true
+	uac.createAppChecker.init()
+	uac.modelChecker.Checker = checker.GetAndChecker(
+		checker.GetUintChecker("AppID", minAppId, maxAppId, true),
+		&uac.createAppChecker.modelChecker,
+	)
+}
+
+// Check [method] for create app checker
+func (cac *createAppChecker) Check(data interface{}) checker.CheckResult {
 	cac.init()
 	checkResult := cac.modelChecker.Check(data)
 	if !checkResult.Result {
 		return checker.NewFailedResult(fmt.Sprintf("create app checker check failed: %s", checkResult.Reason))
+	}
+	return checker.NewSuccessResult()
+}
+
+// Check [method] for update app checker
+func (uac *updateAppChecker) Check(data interface{}) checker.CheckResult {
+	uac.init()
+	checkResult := uac.modelChecker.Check(data)
+	if !checkResult.Result {
+		return checker.NewFailedResult(fmt.Sprintf("update app checker check failed: %s", checkResult.Reason))
 	}
 	return checker.NewSuccessResult()
 }

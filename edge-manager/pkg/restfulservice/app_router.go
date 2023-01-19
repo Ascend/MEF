@@ -43,7 +43,7 @@ type appInstanceDispatcher struct {
 }
 
 func (app appInstanceDispatcher) ParseData(c *gin.Context) common.Result {
-	input, err := getReqNodeID(c)
+	input, err := getReqID(c, "nodeID")
 	if err != nil {
 		return common.Result{ResultFlag: false, ErrorMsg: "parse node id failed"}
 	}
