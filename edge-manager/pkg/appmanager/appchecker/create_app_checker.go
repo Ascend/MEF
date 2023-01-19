@@ -18,14 +18,9 @@ func (cac *CreateAppChecker) init() {
 	cac.modelChecker.Required = true
 	cac.modelChecker.Checker = checker.GetAndChecker(
 		checker.GetRegChecker("AppName", nameReg, true),
-		checker.GetRegChecker("Description", descriptReg, true),
-		checker.GetListChecker(
-			"Containers",
-			GetContainerChecker(""),
-			minContainerCountInPod,
-			maxContainerCountInPod,
-			true,
-		),
+		checker.GetRegChecker("Description", descriptionReg, true),
+		checker.GetListChecker("Containers", GetContainerChecker(""),
+			minContainerCountInPod, maxContainerCountInPod, true),
 	)
 }
 

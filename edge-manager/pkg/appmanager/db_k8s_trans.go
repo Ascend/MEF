@@ -9,11 +9,12 @@ import (
 	"strconv"
 
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
 	appv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"huawei.com/mindxedge/base/common"
 )
 
 func formatDaemonSetName(appName string, nodeGroupId int64) string {
@@ -22,16 +23,25 @@ func formatDaemonSetName(appName string, nodeGroupId int64) string {
 
 // initDaemonSet init daemonSet
 func initDaemonSet(appInfo *AppInfo, nodeGroupId int64) (*appv1.DaemonSet, error) {
-	containers, err := getContainers(appInfo)
+	var containerInfos []Container
+	if err := json.Unmarshal([]byte(appInfo.Containers), &containerInfos); err != nil {
+		hwlog.RunLog.Error("app containers unmarshal failed")
+		return nil, err
+	}
+
+	containers, err := getContainers(containerInfos)
 	if err != nil {
 		hwlog.RunLog.Error("app daemonSet get containers failed")
 		return nil, err
 	}
+	cmVolumes := getCmVolumes(containerInfos)
+
 	tmpSpec := v1.PodSpec{}
 	tmpSpec.Containers = containers
 	tmpSpec.NodeSelector = map[string]string{
 		common.NodeGroupLabelPrefix + strconv.FormatInt(nodeGroupId, DecimalScale): "",
 	}
+	tmpSpec.Volumes = cmVolumes
 	template := v1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
@@ -62,12 +72,36 @@ func initDaemonSet(appInfo *AppInfo, nodeGroupId int64) (*appv1.DaemonSet, error
 	}, nil
 }
 
-func getContainers(appContainer *AppInfo) ([]v1.Container, error) {
-	var containerInfos []Container
-	if err := json.Unmarshal([]byte(appContainer.Containers), &containerInfos); err != nil {
-		hwlog.RunLog.Error("app containers unmarshal failed")
-		return nil, err
+func getCmVolumes(containerInfos []Container) []v1.Volume {
+	var cmVolumes []v1.Volume
+	for _, containerInfo := range containerInfos {
+		cmVolumes = getCmVolumesFromContainerInfo(containerInfo)
 	}
+	return cmVolumes
+}
+
+func getCmVolumesFromContainerInfo(containerInfo Container) []v1.Volume {
+	var cmVolumes []v1.Volume
+	for _, volumeMount := range containerInfo.VolumeMounts {
+		var localObjectRef = v1.LocalObjectReference{
+			Name: volumeMount.ConfigmapName,
+		}
+
+		var cmVolumeSource = &v1.ConfigMapVolumeSource{
+			LocalObjectReference: localObjectRef,
+		}
+
+		cmVolumes = append(cmVolumes, v1.Volume{
+			Name: volumeMount.LocalVolumeName,
+			VolumeSource: v1.VolumeSource{
+				ConfigMap: cmVolumeSource,
+			},
+		})
+	}
+	return cmVolumes
+}
+
+func getContainers(containerInfos []Container) ([]v1.Container, error) {
 	var containers []v1.Container
 	for _, containerInfo := range containerInfos {
 		resources, err := getResources(containerInfo)
@@ -76,6 +110,7 @@ func getContainers(appContainer *AppInfo) ([]v1.Container, error) {
 			return nil, err
 		}
 
+		volumes := getVolumeMounts(containerInfo.VolumeMounts)
 		runAsNonRoot := true
 		RunAsUser := containerInfo.UserID
 		RunAsGroup := containerInfo.GroupID
@@ -88,6 +123,7 @@ func getContainers(appContainer *AppInfo) ([]v1.Container, error) {
 			Env:             getEnv(containerInfo.Env),
 			Ports:           getPorts(containerInfo.Ports),
 			Resources:       resources,
+			VolumeMounts:    volumes,
 			SecurityContext: &v1.SecurityContext{
 				RunAsUser:    &RunAsUser,
 				RunAsGroup:   &RunAsGroup,
@@ -96,6 +132,18 @@ func getContainers(appContainer *AppInfo) ([]v1.Container, error) {
 		})
 	}
 	return containers, nil
+}
+
+func getVolumeMounts(volumeMounts []VolumeMount) []v1.VolumeMount {
+	var mounts []v1.VolumeMount
+	for _, volumeMount := range volumeMounts {
+		mounts = append(mounts, v1.VolumeMount{
+			Name:      volumeMount.LocalVolumeName,
+			ReadOnly:  true,
+			MountPath: volumeMount.MountPath,
+		})
+	}
+	return mounts
 }
 
 func getPorts(containerPorts []ContainerPort) []v1.ContainerPort {
