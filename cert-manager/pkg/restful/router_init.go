@@ -4,11 +4,13 @@
 package restful
 
 import (
-	"fmt"
-
-	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
+
+	"cert-manager/pkg/certconstant"
+	"cert-manager/pkg/certmgr"
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/certutils"
+	"huawei.com/mindxedge/base/common/httpsmgr"
 )
 
 var (
@@ -20,24 +22,26 @@ var (
 
 // Service cert manager service init
 type Service struct {
-	enable bool
-	engine *gin.Engine
-	port   int
-	ip     string
-}
-
-func initGin() *gin.Engine {
-	gin.SetMode(gin.ReleaseMode)
-	return gin.New()
+	enable   bool
+	httpsSvr *httpsmgr.HttpsServer
+	ip       string
 }
 
 // NewRestfulService new restful service
 func NewRestfulService(enable bool, ip string, port int) *Service {
 	nm := &Service{
 		enable: enable,
-		engine: initGin(),
-		port:   port,
 		ip:     ip,
+		httpsSvr: &httpsmgr.HttpsServer{
+			Port: port,
+			TlsCertPath: certutils.TlsCertInfo{
+				RootCaPath: certconstant.RootCaPath,
+				CertPath:   certconstant.ServerCertPath,
+				KeyPath:    certconstant.ServerKeyPath,
+				SvrFlag:    true,
+				KmcCfg:     nil,
+			},
+		},
 	}
 	return nm
 }
@@ -49,12 +53,28 @@ func (r *Service) Name() string {
 
 // Start for RestfulService start
 func (r *Service) Start() {
-	r.engine.Use(common.LoggerAdapter())
-	setRouter(r.engine)
-	hwlog.RunLog.Info("start cert manager http server now...")
-	err := r.engine.Run(fmt.Sprintf(":%d", r.port))
+	err := certmgr.CheckAndCreateRootCa()
 	if err != nil {
-		hwlog.RunLog.Errorf("start restful at %d fail", r.port)
+		hwlog.RunLog.Errorf("start cert restful failed, check cert failed: %v", r.httpsSvr.Port, err)
+		return
+	}
+
+	err = r.httpsSvr.Init()
+	if err != nil {
+		hwlog.RunLog.Errorf("start restful at %d failed, init https server failed: %v", r.httpsSvr.Port, err)
+		return
+	}
+	hwlog.RunLog.Info("init cert manager https server success")
+	err = r.httpsSvr.RegisterRoutes(setRouter)
+	if err != nil {
+		hwlog.RunLog.Errorf("start restful at %d failed, set routers failed: %v", r.httpsSvr.Port, err)
+		return
+	}
+	hwlog.RunLog.Info("set cert manager https routers success")
+	hwlog.RunLog.Info("start cert manager https server ......")
+	err = r.httpsSvr.Start()
+	if err != nil {
+		hwlog.RunLog.Errorf("start restful at %d failed, listen failed: %v", r.httpsSvr.Port, err)
 	}
 }
 

@@ -8,9 +8,10 @@ import (
 	"flag"
 	"fmt"
 
+	"huawei.com/mindx/common/hwlog"
+
 	"cert-manager/pkg/restful"
 
-	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
 	"huawei.com/mindxedge/base/modulemanager"

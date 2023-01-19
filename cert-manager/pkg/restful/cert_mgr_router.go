@@ -7,33 +7,30 @@ import (
 	"fmt"
 
 	"cert-manager/pkg/certconstant"
-	"cert-manager/pkg/certid"
 	"cert-manager/pkg/certmgr"
 
 	"github.com/gin-gonic/gin"
+
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 )
 
 type csrJson struct {
-	UseId  string `json:"useId"`
-	CsrStr string `json:"csr"`
+	certName string
+	csr      string
 }
 
 func queryRootCA(c *gin.Context) {
-	useId := c.Param("useid")
-	if !certid.CheckUseId(useId) {
-		hwlog.RunLog.Error("check use id failed")
-		common.ConstructResp(c, common.ErrorParseBody, "check id failed", nil)
-		return
-	}
-	ca, err := certmgr.QueryRootCa(useId)
+	certName := c.Query("certName")
+	// todo 增加checker 验证
+	ca, err := certmgr.QueryRootCa(certName)
 	if err != nil {
-		hwlog.RunLog.Errorf("query cert [%s] root ca failed: %v", certid.GetUseIdName(useId), err)
+		hwlog.RunLog.Errorf("query cert [%s] root ca failed: %v", certName, err)
 		common.ConstructResp(c, certconstant.ErrorGetRootCa, "Query root ca failed", "")
 		return
 	}
-	hwlog.RunLog.Infof("query [%s] root ca success", certid.GetUseIdName(useId))
+	hwlog.RunLog.Infof("query [%s] root ca success", certName)
 	common.ConstructResp(c, common.Success, "query ca success", string(ca))
 }
 
@@ -45,21 +42,14 @@ func issueServiceCa(c *gin.Context) {
 		common.ConstructResp(c, certconstant.ErrorIssueSrvCert, "bind json data failed", nil)
 		return
 	}
-	useId := csrJsonData.UseId
-	csrFile := csrJsonData.CsrStr
-	csrPem := []byte(csrFile)
-	if !certid.CheckUseId(useId) {
-		hwlog.RunLog.Error("issue service cert failed, check use id failed")
-		common.ConstructResp(c, common.ErrorParseBody, "check id failed", nil)
-		return
-	}
-	cert, err := certmgr.IssueServiceCert(useId, csrPem)
+	// todo 增加checker 验证
+	cert, err := certmgr.IssueServiceCert(csrJsonData.certName, csrJsonData.csr)
 	if err != nil {
 		hwlog.RunLog.Errorf("issue service certificate failed: %v", err)
 		common.ConstructResp(c, certconstant.ErrorIssueSrvCert, "issue service certificate failed", nil)
 		return
 	}
-	hwlog.RunLog.Infof("issue [%s] service certificate success", certid.GetUseIdName(useId))
+	hwlog.RunLog.Infof("issue [%s] service certificate success", csrJsonData.certName)
 	common.ConstructResp(c, common.Success, "issue success", string(cert))
 }
 
