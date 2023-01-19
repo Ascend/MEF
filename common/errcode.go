@@ -4,7 +4,7 @@
 package common
 
 const (
-	// Success success code
+	// Success code
 	Success = "00000000"
 	// ErrorParseBody parse body failed
 	ErrorParseBody = "00001001"

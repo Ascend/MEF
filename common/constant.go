@@ -105,8 +105,6 @@ const (
 	NodeRelation = "nodeRelation"
 	// ServiceCert resource service cert
 	ServiceCert = "service cert"
-	// CSR resource csr
-	CSR = "csr"
 	// AppTemplate resource app template
 	AppTemplate = "AppTemplate"
 	// ResponseTimeout response timeout time
@@ -122,12 +120,6 @@ const (
 	Token = "/edgecore/token"
 	// URL link
 	URL = "url"
-)
-
-// result from edge-installer when downloading and upgrading software
-const (
-	SuccessResult = "success"
-	FailResult    = "fail"
 )
 
 const (
@@ -272,7 +264,7 @@ const (
 	Mode400 = 0400
 )
 
-// command constant
+// CommandCopy constant
 const (
 	CommandCopy = "cp"
 )
