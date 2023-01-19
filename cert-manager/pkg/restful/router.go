@@ -8,15 +8,10 @@ import (
 )
 
 func setRouter(engine *gin.Engine) {
-	engine.Use(gin.Recovery())
-	certManagerRouter(engine)
-}
-
-func certManagerRouter(engine *gin.Engine) {
 	v1 := engine.Group("certmanager/v1/certificates")
 	{
 		v1.POST("/import", importRootCa)
-		v1.GET("/ca/:useid", queryRootCA)
+		v1.GET("/rootca", queryRootCA)
 		v1.POST("/service", issueServiceCa)
 		v1.GET("/alert", queryAlert)
 	}

@@ -6,6 +6,29 @@ package common
 import "time"
 
 const (
+	// InnerName inner cert name
+	InnerName = "inner_cert"
+	// WsSerName websocket server cert name
+	WsSerName = "hub_svr"
+	// WsCltName websocket client cert name
+	WsCltName = "hub_client"
+	// SoftwareCertName software manager cert name
+	SoftwareCertName = "software"
+	// ImageCertName image manager cert name
+	ImageCertName = "image"
+	// ResFileCertName image manager cert name
+	ResFileCertName = "res_file"
+	// NginxCertName nginx apig cert name
+	NginxCertName = "apig"
+	// EdgeCoreCertName edge core sign cert name
+	EdgeCoreCertName = "edge_core"
+	// DevicePluginCertName device plugin sign cert name
+	DevicePluginCertName = "device_plugin"
+	// AlarmCertName alarm report cert name
+	AlarmCertName = "alarm"
+)
+
+const (
 	// MEF software name
 	MEF = "MEF"
 	// EdgeCore software edgecore name

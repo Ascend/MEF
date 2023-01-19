@@ -6,15 +6,15 @@ package common
 import (
 	"encoding/json"
 	"errors"
+	"os"
 	"path"
+	"path/filepath"
+	"strconv"
 	"strings"
 	"unsafe"
 
-	"os"
-	"path/filepath"
-	"strconv"
-
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
@@ -125,7 +125,7 @@ func GetIntParams(paramDic map[string][]string, paramName string, values *[]int)
 		for _, result := range results {
 			intVal, err := strconv.Atoi(result)
 			if err != nil {
-				hwlog.RunLog.Errorf("convert string to int failed")
+				hwlog.RunLog.Error("convert string to int failed")
 				return errors.New("get param failed")
 			}
 			*values = append(*values, intVal)
@@ -144,7 +144,7 @@ func GetUintParams(paramDic map[string][]string, paramName string, values *[]uin
 		for _, result := range results {
 			uintVal, err := strconv.ParseUint(result, BaseHex, BitSize64)
 			if err != nil {
-				hwlog.RunLog.Errorf("convert string to int failed")
+				hwlog.RunLog.Error("convert string to int failed")
 				return errors.New("get param failed")
 			}
 			*values = append(*values, uintVal)
