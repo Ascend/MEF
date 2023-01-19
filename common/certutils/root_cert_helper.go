@@ -16,35 +16,6 @@ import (
 	"huawei.com/mindxedge/base/common"
 )
 
-const (
-	// priKeyLength private key length
-	priKeyLength = 4096
-	// validationYearCA root ca validate year
-	validationYearCA = 10
-	// validationYearCert service Cert validate year
-	validationYearCert = 10
-	// validationMonth Cert validate month
-	validationMonth = 0
-	// validationDay Cert validate day
-	validationDay = 0
-	// bigIntSize server_number
-	bigIntSize = 2022
-	// caCountry issue country
-	caCountry = "CN"
-	// caOrganization issue organization
-	caOrganization = "Huawei"
-	// caOrganizationalUnit issue unit
-	caOrganizationalUnit = "Ascend"
-	// caCommonName issue name
-	caCommonName = "MEF"
-	// pubCertType Cert type
-	pubCertType = "CERTIFICATE"
-	// privKeyType Cert key type
-	privKeyType = "RSA PRIVATE KEY"
-	// fileMode Cert file mode
-	fileMode = 0600
-)
-
 // RootCertMgr define root cert manager struct
 type RootCertMgr struct {
 	rootCaPath  string
@@ -116,7 +87,7 @@ func (rcm *RootCertMgr) IssueServiceCert(csr []byte) ([]byte, error) {
 		return nil, errors.New("parse certificate request for csr failed: " + err.Error())
 	}
 
-	cer := rcm.makeServiceCertificate(srvCsr.Subject)
+	cer := rcm.makeServiceCertificate(srvCsr)
 	certBytes, err := x509.CreateCertificate(rand.Reader, cer, rootCaPair.Cert, srvCsr.PublicKey, rootCaPair.PriKey)
 	if err != nil {
 		return nil, errors.New("create service certificate failed: " + err.Error())
@@ -124,16 +95,16 @@ func (rcm *RootCertMgr) IssueServiceCert(csr []byte) ([]byte, error) {
 	return certBytes, nil
 }
 
-func (rcm *RootCertMgr) makeServiceCertificate(subject pkix.Name) *x509.Certificate {
+func (rcm *RootCertMgr) makeServiceCertificate(csr *x509.CertificateRequest) *x509.Certificate {
 	now := time.Now()
 	return &x509.Certificate{
 		SerialNumber: big.NewInt(bigIntSize),
-		Subject:      subject,
+		Subject:      csr.Subject,
 		NotBefore:    now,
 		NotAfter:     now.AddDate(validationYearCert, validationMonth, validationDay),
 		KeyUsage:     x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
-		DNSNames:     []string{subject.CommonName},
+		DNSNames:     csr.DNSNames,
 	}
 }
 
@@ -145,7 +116,7 @@ func (rcm *RootCertMgr) getRootCaCsr() *x509.Certificate {
 			Country:            []string{caCountry},
 			Organization:       []string{caOrganization},
 			OrganizationalUnit: []string{caOrganizationalUnit},
-			CommonName:         caCommonName + rcm.commonName,
+			CommonName:         caCommonName + "-" + rcm.commonName,
 		},
 		NotBefore:             now,
 		NotAfter:              now.AddDate(validationYearCA, validationMonth, validationDay),
@@ -155,55 +126,4 @@ func (rcm *RootCertMgr) getRootCaCsr() *x509.Certificate {
 		BasicConstraintsValid: true,
 	}
 	return csr
-}
-
-// SelfSignCert self singed cert struct
-type SelfSignCert struct {
-	RootCertMgr *RootCertMgr
-	SvcCertPath string
-	SvcKeyPath  string
-	CommonName  string
-}
-
-// CreateSignCert create a new singed cert for root ca and service cert
-func (sc *SelfSignCert) CreateSignCert() error {
-	if _, err := sc.RootCertMgr.GetRootCaPair(); err != nil {
-		if _, err := sc.RootCertMgr.NewRootCa(); err != nil {
-			return errors.New("new root ca pair failed: " + err.Error())
-		}
-	}
-	priv, err := rsa.GenerateKey(rand.Reader, priKeyLength)
-	if err != nil {
-		return errors.New("generate new key for self signed certificate failed: " + err.Error())
-	}
-
-	csr, err := sc.getCsr(priv)
-	if err != nil {
-		return err
-	}
-
-	certBytes, err := sc.RootCertMgr.IssueServiceCert(csr)
-	if err != nil {
-		return err
-	}
-
-	err = saveCertWithPem(sc.SvcCertPath, certBytes)
-	if err != nil {
-		return errors.New("save self singed cert with pem failed: " + err.Error())
-	}
-
-	err = saveKeyWithPem(sc.SvcKeyPath, priv, sc.RootCertMgr.kmcCfg)
-	if err != nil {
-		return errors.New("save self singed key with pem failed: " + err.Error())
-	}
-	return nil
-}
-
-func (sc *SelfSignCert) getCsr(priv *rsa.PrivateKey) ([]byte, error) {
-	template := x509.CertificateRequest{Subject: pkix.Name{CommonName: sc.CommonName}}
-	csrDer, err := x509.CreateCertificateRequest(rand.Reader, &template, priv)
-	if err != nil {
-		return nil, errors.New("generate csr for self signed certificate failed: " + err.Error())
-	}
-	return csrDer, nil
 }
