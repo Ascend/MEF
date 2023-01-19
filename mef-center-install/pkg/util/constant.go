@@ -54,6 +54,7 @@ const (
 	DockerFileName      = "Dockerfile"
 	NginxDirName        = "nginx"
 	ImageTarNamePattern = "Ascend-mef-%s-linux-%s.tar.gz"
+	ImagePrefix         = "ascend-"
 )
 
 // MEF-Config constant
