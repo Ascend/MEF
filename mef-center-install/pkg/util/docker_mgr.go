@@ -36,7 +36,7 @@ func (dd *DockerDealer) LoadImage(buildPath string) error {
 	// imageName is fixed name.
 	// version is read from file or filename, the verification will be added in setVersion.
 	// absPath has been verified
-	cmdStr := "docker build -t " + "ascend-" + dd.imageName + ":" + dd.version + " " + absPath + "/."
+	cmdStr := "docker build -t " + ImagePrefix + dd.imageName + ":" + dd.version + " " + absPath + "/."
 	if _, err = common.RunCommand("sh", false, "-c", cmdStr); err != nil {
 		hwlog.RunLog.Errorf("load docker image [%s] failed:%s", dd.imageName, err)
 		return errors.New("load docker image failed")
@@ -53,7 +53,7 @@ func (dd *DockerDealer) SaveImage(savePath string) error {
 	}
 
 	savePath = path.Join(savePath, imageTarName)
-	cmdStr := fmt.Sprintf("docker save %s:%s > %s", dd.imageName, dd.version, savePath)
+	cmdStr := fmt.Sprintf("docker save %s:%s > %s", ImagePrefix+dd.imageName, dd.version, savePath)
 	if _, err = common.RunCommand("sh", false, "-c", cmdStr); err != nil {
 		hwlog.RunLog.Errorf("save docker image [%s:%s] failed:%s", dd.imageName, dd.version, err)
 		return errors.New("save docker image failed")
