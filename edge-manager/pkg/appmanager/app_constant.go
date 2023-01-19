@@ -55,3 +55,15 @@ const (
 	containerStateRunning    = "running"
 	containerStateTerminated = "terminated"
 )
+
+// app router
+const (
+	configmap = "configmap"
+)
+
+// configmap para pattern
+const (
+	configmapName        = "configmapName"
+	configmapDescription = "configmapDescription"
+	configmapContentKey  = "configmapContentKey"
+)

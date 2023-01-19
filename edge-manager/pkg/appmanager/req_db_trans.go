@@ -8,6 +8,7 @@ import (
 	"errors"
 
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -99,4 +100,18 @@ func (dto *AppTemplate) FromDb(template *AppTemplateDb) error {
 	}
 
 	return nil
+}
+
+func (cr *ConfigmapReq) toDb() (*ConfigmapInfo, error) {
+	configmapContentBytes, err := json.Marshal(cr.ConfigmapContent)
+	if err != nil {
+		hwlog.RunLog.Errorf("marshal configmap content failed, error: %v", err)
+		return nil, err
+	}
+
+	return &ConfigmapInfo{
+		ConfigmapName:    cr.ConfigmapName,
+		ConfigmapContent: string(configmapContentBytes),
+		Description:      cr.Description,
+	}, nil
 }

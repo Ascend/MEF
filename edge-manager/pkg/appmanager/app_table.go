@@ -50,3 +50,13 @@ type AppTemplateDb struct {
 	UpdatedAt    time.Time `gorm:"type:time"`
 	Containers   string    `gorm:"type:text;not null" json:"containers"`
 }
+
+// ConfigmapInfo is configmap table info
+type ConfigmapInfo struct {
+	ConfigmapID      int64     `gorm:"type:integer;primaryKey;autoIncrement:true"`
+	ConfigmapName    string    `gorm:"type:char(64);unique;not null"`
+	ConfigmapContent string    `gorm:"type:char(65535)"`
+	Description      string    `gorm:"type:char(255)"`
+	CreatedAt        time.Time `gorm:"type:time"`
+	UpdatedAt        time.Time `gorm:"type:time"`
+}
