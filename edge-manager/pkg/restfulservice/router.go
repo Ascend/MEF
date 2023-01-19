@@ -56,7 +56,7 @@ var appRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			Method:       http.MethodPost,
 			Destination:  common.AppManagerName},
 		restfulmgr.GenericDispatcher{
-			RelativePath: "/configmap",
+			RelativePath: "/configmap/batch-delete",
 			Method:       http.MethodPost,
 			Destination:  common.AppManagerName},
 		restfulmgr.GenericDispatcher{
