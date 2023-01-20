@@ -4,6 +4,7 @@ package install
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -32,12 +33,14 @@ func (wdc *workingDirCtl) doPrepare() error {
 		wdc.prepareSymlinks,
 	}
 
+	fmt.Println("start to prepare working dir")
 	hwlog.RunLog.Info("-----Start to prepare working dir-----")
 	for _, function := range prepareWorkingDirTasks {
 		if err := function(); err != nil {
 			return err
 		}
 	}
+	fmt.Println("prepare working dir success")
 	hwlog.RunLog.Info("-----Prepare working dir successful-----")
 	return nil
 }

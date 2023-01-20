@@ -105,6 +105,7 @@ func main() {
 		fmt.Printf("init log path %s failed:%s\n", logPath, err.Error())
 		os.Exit(1)
 	}
+	fmt.Println("init log success")
 
 	hwlog.RunLog.Infof("start to %s %s component", operate, componentType)
 	hwlog.OpLog.Infof("start to %s %s component", operate, componentType)
