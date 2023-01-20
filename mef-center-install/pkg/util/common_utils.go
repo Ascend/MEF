@@ -9,6 +9,7 @@ import (
 	"os/user"
 	"path"
 	"path/filepath"
+	"strconv"
 	"syscall"
 
 	"huawei.com/mindx/common/hwlog"
@@ -66,4 +67,27 @@ func GetInstallInfo() (*InstallParamJsonTemplate, error) {
 	}
 
 	return paramJsonMgr, nil
+}
+
+// GetMefId is used to get uid/gid for user/group MEFCenter
+func GetMefId() (int, int, error) {
+	mefUser, err := user.Lookup(MefCenterName)
+	if err != nil {
+		return 0, 0, fmt.Errorf("get MEFCenter uid failed： %s", err.Error())
+	}
+	uid, err := strconv.Atoi(mefUser.Uid)
+	if err != nil {
+		return 0, 0, fmt.Errorf("transfer %s uid into int failed: %s", MefCenterName, err.Error())
+	}
+
+	mefGroup, err := user.LookupGroup(MefCenterGroup)
+	if err != nil {
+		return 0, 0, fmt.Errorf("get MEFCenter gid failed: %s", err.Error())
+	}
+	gid, err := strconv.Atoi(mefGroup.Gid)
+	if err != nil {
+		return 0, 0, fmt.Errorf("transfer %s gid into int failed: %s", MefCenterGroup, err.Error())
+	}
+
+	return uid, gid, nil
 }

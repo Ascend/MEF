@@ -346,7 +346,13 @@ func (c *InstallComponent) PrepareLogDir(pathMgr *LogDirPathMgr) error {
 		return fmt.Errorf("prepare component [%s] log dir failed", c.Name)
 	}
 
-	if err := os.Chown(logDir, MefCenterUid, MefCenterGid); err != nil {
+	mefUid, mefGid, err := GetMefId()
+	if err != nil {
+		fmt.Printf("get mef uid or gid failed: %s", err.Error())
+		return errors.New("get mef uid or gid failed")
+	}
+
+	if err = os.Chown(logDir, mefUid, mefGid); err != nil {
 		hwlog.RunLog.Errorf("set path [%s] owner failed, error: %s", logDir, err.Error())
 		return errors.New("set run script path owner failed")
 	}
@@ -366,12 +372,18 @@ func (c *InstallComponent) PrepareLibDir(libSrcPath string, pathMgr *WorkPathAMg
 		return fmt.Errorf("prepare component [%s] lib dir failed", c.Name)
 	}
 
-	if err := os.Chown(libDir, MefCenterUid, MefCenterGid); err != nil {
+	mefUid, mefGid, err := GetMefId()
+	if err != nil {
+		fmt.Printf("get mef uid or gid failed: %s", err.Error())
+		return errors.New("get mef uid or gid failed")
+	}
+
+	if err = os.Chown(libDir, mefUid, mefGid); err != nil {
 		hwlog.RunLog.Errorf("set path [%s] owner failed, error: %s", libDir, err.Error())
 		return fmt.Errorf("set path [%s] owner failed", libDir)
 	}
 
-	if err := common.CopyDir(libSrcPath, libDir, false); err != nil {
+	if err = common.CopyDir(libSrcPath, libDir, false); err != nil {
 		hwlog.RunLog.Errorf("copy component [%s]'s lib dir failed, error: %v", c.Name, err.Error())
 		return fmt.Errorf("copy lib component [%s]'s dir failed", c.Name)
 	}
