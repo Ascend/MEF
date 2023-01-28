@@ -118,8 +118,14 @@ func (cpc *certPrepareCtl) setCertsOwner() error {
 		return errors.New("pointer cpc.certPathMgr is nil")
 	}
 
-	if err = util.SetPathOwnerGroup(cpc.certPathMgr.GetConfigPath(), util.MefCenterUid,
-		util.MefCenterGid, true, false); err != nil {
+	mefUid, mefGid, err := util.GetMefId()
+	if err != nil {
+		hwlog.RunLog.Errorf("get mef uid or gid failed: %s", err.Error())
+		return errors.New("get mef uid or gid failed")
+	}
+
+	if err = util.SetPathOwnerGroup(cpc.certPathMgr.GetConfigPath(), mefUid,
+		mefGid, true, false); err != nil {
 		hwlog.RunLog.Errorf("set path [%s] owner and group failed: %v",
 			cpc.certPathMgr.GetConfigPath(), err.Error())
 		return errors.New("set cert root path owner and group failed")
