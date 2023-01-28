@@ -22,13 +22,13 @@ var appRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 		restfulmgr.GenericDispatcher{
 			Method:      http.MethodPost,
 			Destination: common.AppManagerName},
-		appQueryDispatcher{restfulmgr.GenericDispatcher{
+		queryDispatcher{restfulmgr.GenericDispatcher{
 			Method:      http.MethodGet,
-			Destination: common.AppManagerName}},
+			Destination: common.AppManagerName}, "appID"},
 		restfulmgr.GenericDispatcher{
 			Method:      http.MethodPatch,
 			Destination: common.AppManagerName},
-		appListDispatcher{restfulmgr.GenericDispatcher{
+		listDispatcher{restfulmgr.GenericDispatcher{
 			RelativePath: "/list",
 			Method:       http.MethodGet,
 			Destination:  common.AppManagerName}},
@@ -37,20 +37,21 @@ var appRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			Method:       http.MethodPost,
 			Destination:  common.AppManagerName},
 		restfulmgr.GenericDispatcher{
-			RelativePath: "/deployment",
-			Method:       http.MethodDelete,
+			RelativePath: "/deployment/batch-delete",
+			Method:       http.MethodPost,
 			Destination:  common.AppManagerName},
 		restfulmgr.GenericDispatcher{
-			Method:      http.MethodDelete,
-			Destination: common.AppManagerName},
-		appQueryDispatcher{restfulmgr.GenericDispatcher{
+			RelativePath: "/batch-delete",
+			Method:       http.MethodPost,
+			Destination:  common.AppManagerName},
+		queryDispatcher{restfulmgr.GenericDispatcher{
 			RelativePath: "/deployment",
 			Method:       http.MethodGet,
-			Destination:  common.AppManagerName}},
-		appInstanceDispatcher{restfulmgr.GenericDispatcher{
+			Destination:  common.AppManagerName}, "appID"},
+		queryDispatcher{restfulmgr.GenericDispatcher{
 			RelativePath: "/node",
 			Method:       http.MethodGet,
-			Destination:  common.AppManagerName}},
+			Destination:  common.AppManagerName}, "nodeID"},
 		restfulmgr.GenericDispatcher{
 			RelativePath: "/configmap",
 			Method:       http.MethodPost,
@@ -63,11 +64,11 @@ var appRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			RelativePath: "/configmap",
 			Method:       http.MethodPatch,
 			Destination:  common.AppManagerName},
-		cmQueryDispatcher{restfulmgr.GenericDispatcher{
+		queryDispatcher{restfulmgr.GenericDispatcher{
 			RelativePath: "/configmap",
 			Method:       http.MethodGet,
-			Destination:  common.AppManagerName}},
-		cmListDispatcher{restfulmgr.GenericDispatcher{
+			Destination:  common.AppManagerName}, "configmapID"},
+		listDispatcher{restfulmgr.GenericDispatcher{
 			RelativePath: "/configmap/list",
 			Method:       http.MethodGet,
 			Destination:  common.AppManagerName}},
@@ -80,15 +81,16 @@ var templateRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			Method:      http.MethodPost,
 			Destination: common.AppManagerName},
 		restfulmgr.GenericDispatcher{
-			Method:      http.MethodDelete,
-			Destination: common.AppManagerName},
+			RelativePath: "/batch-delete",
+			Method:       http.MethodPost,
+			Destination:  common.AppManagerName},
 		restfulmgr.GenericDispatcher{
 			Method:      http.MethodPatch,
 			Destination: common.AppManagerName},
-		templateDetailDispatcher{restfulmgr.GenericDispatcher{
+		queryDispatcher{restfulmgr.GenericDispatcher{
 			Method:      http.MethodGet,
-			Destination: common.AppManagerName}},
-		listTemplateDispatcher{restfulmgr.GenericDispatcher{
+			Destination: common.AppManagerName}, "id"},
+		listDispatcher{restfulmgr.GenericDispatcher{
 			RelativePath: "/list",
 			Method:       http.MethodGet,
 			Destination:  common.AppManagerName}},
@@ -97,37 +99,84 @@ var templateRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 
 func setRouter(engine *gin.Engine) {
 	engine.Use(gin.Recovery())
-	nodeRouter(engine)
+	restfulmgr.InitRouter(engine, nodeRouterDispatchers)
+	restfulmgr.InitRouter(engine, nodeGroupRouterDispatchers)
 	restfulmgr.InitRouter(engine, appRouterDispatchers)
 	restfulmgr.InitRouter(engine, templateRouterDispatchers)
 	softwareRouter(engine)
 	connInfoRouter(engine)
 }
 
-func nodeRouter(engine *gin.Engine) {
-	node := engine.Group("/edgemanager/v1/node")
-	{
-		node.POST("/", createEdgeNode)
-		node.GET("/stats", getNodeStatistics)
-		node.GET("/:id", getNodeDetail)
-		node.PATCH("/", modifyNode)
-		node.DELETE("/", deleteNode)
-		node.GET("/list/managed", listNodeManaged)
-		node.GET("/list/unmanaged", listNodeUnManaged)
-		node.POST("/add", addUnManagedNode)
-	}
-	nodeGroup := engine.Group("/edgemanager/v1/nodegroup")
-	{
-		nodeGroup.POST("/", createEdgeNodeGroup)
-		nodeGroup.GET("/", listEdgeNodeGroup)
-		nodeGroup.PATCH("/", modifyNodeGroup)
-		nodeGroup.GET("/stats", getNodeGroupStatistics)
-		nodeGroup.GET("/:id", getEdgeNodeGroupDetail)
-		nodeGroup.POST("/node", addNodeToGroup)
-		nodeGroup.DELETE("/node", deleteNodeFromGroup)
-		nodeGroup.DELETE("/pod", batchDeleteNodeRelation)
-		nodeGroup.DELETE("/", batchDeleteNodeGroup)
-	}
+var nodeRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
+	"/edgemanager/v1/node": {
+		restfulmgr.GenericDispatcher{
+			Method:      http.MethodPost,
+			Destination: common.NodeManagerName},
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/stats",
+			Method:       http.MethodGet,
+			Destination:  common.NodeManagerName},
+		queryDispatcher{restfulmgr.GenericDispatcher{
+			Method:      http.MethodGet,
+			Destination: common.NodeManagerName}, "id"},
+		restfulmgr.GenericDispatcher{
+			Method:      http.MethodPatch,
+			Destination: common.NodeManagerName},
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/batch-delete",
+			Method:       http.MethodPost,
+			Destination:  common.NodeManagerName},
+		listDispatcher{restfulmgr.GenericDispatcher{
+			RelativePath: "/list/managed",
+			Method:       http.MethodGet,
+			Destination:  common.NodeManagerName}},
+		listDispatcher{restfulmgr.GenericDispatcher{
+			RelativePath: "/list/unmanaged",
+			Method:       http.MethodGet,
+			Destination:  common.NodeManagerName}},
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/add",
+			Method:       http.MethodPost,
+			Destination:  common.NodeManagerName},
+	},
+}
+
+var nodeGroupRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
+	"/edgemanager/v1/nodegroup": {
+		restfulmgr.GenericDispatcher{
+			Method:      http.MethodPost,
+			Destination: common.NodeManagerName},
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/stats",
+			Method:       http.MethodGet,
+			Destination:  common.NodeManagerName},
+		queryDispatcher{restfulmgr.GenericDispatcher{
+			Method:      http.MethodGet,
+			Destination: common.NodeManagerName}, "id"},
+		restfulmgr.GenericDispatcher{
+			Method:      http.MethodPatch,
+			Destination: common.NodeManagerName},
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/batch-delete",
+			Method:       http.MethodPost,
+			Destination:  common.NodeManagerName},
+		listDispatcher{restfulmgr.GenericDispatcher{
+			RelativePath: "/list",
+			Method:       http.MethodGet,
+			Destination:  common.NodeManagerName}},
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/node",
+			Method:       http.MethodPost,
+			Destination:  common.NodeManagerName},
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/node/batch-delete",
+			Method:       http.MethodPost,
+			Destination:  common.NodeManagerName},
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/pod/batch-delete",
+			Method:       http.MethodPost,
+			Destination:  common.NodeManagerName},
+	},
 }
 
 func softwareRouter(engine *gin.Engine) {
@@ -148,11 +197,11 @@ func pageUtil(c *gin.Context) (util.ListReq, error) {
 	input := util.ListReq{}
 	var err error
 	// for slice page on ucd
-	input.PageNum, err = strconv.ParseUint(c.Query("pageNum"), common.BaseHex, common.BitSize64)
+	input.PageNum, err = getIntReq(c, "pageNum")
 	if err != nil {
 		return input, err
 	}
-	input.PageSize, err = strconv.ParseUint(c.Query("pageSize"), common.BaseHex, common.BitSize64)
+	input.PageSize, err = getIntReq(c, "pageSize")
 	if err != nil {
 		return input, err
 	}
@@ -161,29 +210,27 @@ func pageUtil(c *gin.Context) (util.ListReq, error) {
 	return input, nil
 }
 
-func getReqID(c *gin.Context, idName string) (uint64, error) {
+func getIntReq(c *gin.Context, idName string) (uint64, error) {
 	value, err := strconv.ParseUint(c.Query(idName), common.BaseHex, common.BitSize64)
-	if err != nil {
-		return 0, fmt.Errorf("id is invalid")
-	}
-
-	return value, nil
-}
-
-func getReqNodeID(c *gin.Context) (int64, error) {
-	value, err := strconv.ParseInt(c.Query("nodeID"), common.BaseHex, common.BitSize64)
-	if err != nil {
-		return 0, fmt.Errorf("app id is invalid")
-	}
-
-	return value, nil
-}
-
-func getReqIntID(c *gin.Context, idName string) (int64, error) {
-	value, err := strconv.ParseInt(c.Query(idName), common.BaseHex, common.BitSize64)
 	if err != nil {
 		return 0, fmt.Errorf("id name [%s] is invalid", idName)
 	}
-
 	return value, nil
+}
+
+type queryDispatcher struct {
+	restfulmgr.GenericDispatcher
+	name string
+}
+
+func (query queryDispatcher) ParseData(c *gin.Context) (interface{}, error) {
+	return getIntReq(c, query.name)
+}
+
+type listDispatcher struct {
+	restfulmgr.GenericDispatcher
+}
+
+func (list listDispatcher) ParseData(c *gin.Context) (interface{}, error) {
+	return pageUtil(c)
 }

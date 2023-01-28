@@ -176,22 +176,9 @@ func (a *AppRepositoryImpl) getAppInfoByName(appName string) (*AppInfo, error) {
 	return appInfo, nil
 }
 
-func paginate(page, pageSize uint64) func(db *gorm.DB) *gorm.DB {
-	return func(db *gorm.DB) *gorm.DB {
-		if page == 0 {
-			page = common.DefaultPage
-		}
-		if pageSize > common.DefaultMaxPageSize {
-			pageSize = common.DefaultMaxPageSize
-		}
-		offset := (page - 1) * pageSize
-		return db.Offset(int(offset)).Limit(int(pageSize))
-	}
-}
-
 func getAppInfoByLikeName(page, pageSize uint64, appName string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Scopes(paginate(page, pageSize)).Where("app_name like ?", "%"+appName+"%")
+		return db.Scopes(common.Paginate(page, pageSize)).Where("app_name like ?", "%"+appName+"%")
 	}
 }
 

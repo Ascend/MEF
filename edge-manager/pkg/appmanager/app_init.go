@@ -5,7 +5,6 @@ package appmanager
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"path/filepath"
 	"time"
@@ -111,7 +110,7 @@ func (app *appManager) housekeeper() {
 
 func methodSelect(req *model.Message) *common.RespMsg {
 	var res common.RespMsg
-	method, exit := handlerFuncMap[combine(req.GetOption(), req.GetResource())]
+	method, exit := handlerFuncMap[common.Combine(req.GetOption(), req.GetResource())]
 	if !exit {
 		hwlog.RunLog.Errorf("handler func is not exist, option: %s, resource: %s", req.GetOption(),
 			req.GetResource())
@@ -152,30 +151,26 @@ var (
 )
 
 var handlerFuncMap = map[string]handlerFunc{
-	combine(http.MethodPost, appUrlRootPath):                                createApp,
-	combine(http.MethodGet, appUrlRootPath):                                 queryApp,
-	combine(http.MethodPatch, appUrlRootPath):                               updateApp,
-	combine(http.MethodGet, filepath.Join(appUrlRootPath, "list")):          listAppInfo,
-	combine(http.MethodPost, filepath.Join(appUrlRootPath, "deployment")):   deployApp,
-	combine(http.MethodDelete, filepath.Join(appUrlRootPath, "deployment")): unDeployApp,
-	combine(http.MethodGet, filepath.Join(appUrlRootPath, "deployment")):    listAppInstances,
-	combine(http.MethodDelete, appUrlRootPath):                              deleteApp,
-	combine(http.MethodGet, filepath.Join(appUrlRootPath, "node")):          listAppInstancesByNode,
+	common.Combine(http.MethodPost, appUrlRootPath):                                           createApp,
+	common.Combine(http.MethodGet, appUrlRootPath):                                            queryApp,
+	common.Combine(http.MethodPatch, appUrlRootPath):                                          updateApp,
+	common.Combine(http.MethodGet, filepath.Join(appUrlRootPath, "list")):                     listAppInfo,
+	common.Combine(http.MethodPost, filepath.Join(appUrlRootPath, "deployment")):              deployApp,
+	common.Combine(http.MethodPost, filepath.Join(appUrlRootPath, "deployment/batch-delete")): unDeployApp,
+	common.Combine(http.MethodGet, filepath.Join(appUrlRootPath, "deployment")):               listAppInstances,
+	common.Combine(http.MethodPost, filepath.Join(appUrlRootPath, "batch-delete")):            deleteApp,
+	common.Combine(http.MethodGet, filepath.Join(appUrlRootPath, "node")):                     listAppInstancesByNode,
 
-	combine(http.MethodPost, appTemplateRootPath):                       createTemplate,
-	combine(http.MethodPatch, appTemplateRootPath):                      updateTemplate,
-	combine(http.MethodDelete, appTemplateRootPath):                     deleteTemplate,
-	combine(http.MethodGet, appTemplateRootPath):                        getTemplate,
-	combine(http.MethodGet, filepath.Join(appTemplateRootPath, "list")): getTemplates,
-	combine(common.Get, common.AppInstanceByNodeGroup):                  getAppInstanceCountByNodeGroup,
+	common.Combine(http.MethodPost, appTemplateRootPath):                                createTemplate,
+	common.Combine(http.MethodPatch, appTemplateRootPath):                               updateTemplate,
+	common.Combine(http.MethodPost, filepath.Join(appTemplateRootPath, "batch-delete")): deleteTemplate,
+	common.Combine(http.MethodGet, appTemplateRootPath):                                 getTemplate,
+	common.Combine(http.MethodGet, filepath.Join(appTemplateRootPath, "list")):          getTemplates,
+	common.Combine(common.Get, common.AppInstanceByNodeGroup):                           getAppInstanceCountByNodeGroup,
 
-	combine(http.MethodPost, filepath.Join(appUrlRootPath, configmap)):                 createConfigmap,
-	combine(http.MethodPost, filepath.Join(appUrlRootPath, configmap, "batch-delete")): deleteConfigmap,
-	combine(http.MethodPatch, filepath.Join(appUrlRootPath, configmap)):                updateConfigmap,
-	combine(http.MethodGet, filepath.Join(appUrlRootPath, configmap)):                  queryConfigmap,
-	combine(http.MethodGet, filepath.Join(appUrlRootPath, configmap, "list")):          listConfigmap,
-}
-
-func combine(option, resource string) string {
-	return fmt.Sprintf("%s%s", option, resource)
+	common.Combine(http.MethodPost, filepath.Join(appUrlRootPath, configmap)):                 createConfigmap,
+	common.Combine(http.MethodPost, filepath.Join(appUrlRootPath, configmap, "batch-delete")): deleteConfigmap,
+	common.Combine(http.MethodPatch, filepath.Join(appUrlRootPath, configmap)):                updateConfigmap,
+	common.Combine(http.MethodGet, filepath.Join(appUrlRootPath, configmap)):                  queryConfigmap,
+	common.Combine(http.MethodGet, filepath.Join(appUrlRootPath, configmap, "list")):          listConfigmap,
 }

@@ -117,7 +117,7 @@ func (ci *ConfigmapRepositoryImpl) listConfigmapInfo(page, pageSize uint64, name
 
 func getConfigmapInfoByLikeName(page, pageSize uint64, configmapName string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Scopes(paginate(page, pageSize)).Where("configmap_name like ?", "%"+configmapName+"%")
+		return db.Scopes(common.Paginate(page, pageSize)).Where("configmap_name like ?", "%"+configmapName+"%")
 	}
 }
 

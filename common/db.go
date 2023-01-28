@@ -35,3 +35,17 @@ func InitDbConnection(dbPath string) *gorm.DB {
 	hwlog.RunLog.Info("init database connection success")
 	return db
 }
+
+// Paginate slice page
+func Paginate(page, pageSize uint64) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		if page <= 0 {
+			page = DefaultPage
+		}
+		if pageSize > DefaultMaxPageSize {
+			pageSize = DefaultMaxPageSize
+		}
+		offset := (page - 1) * pageSize
+		return db.Offset(int(offset)).Limit(int(pageSize))
+	}
+}

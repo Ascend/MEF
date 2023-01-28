@@ -66,21 +66,17 @@ func createNode(input interface{}) common.RespMsg {
 // getNodeDetail get node detail
 func getNodeDetail(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start get node detail")
-	var req GetNodeDetailReq
-	if err := common.ParamConvert(input, &req); err != nil {
-		hwlog.RunLog.Errorf("get node detail convert request error, %s", err.Error())
-		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
+	id, ok := input.(int64)
+	if !ok {
+		hwlog.RunLog.Error("query node detail failed: para type not valid")
+		return common.RespMsg{Status: "", Msg: "query node detail failed", Data: nil}
 	}
-	if checkResult := newGetNodeDetailChecker().Check(req); !checkResult.Result {
-		hwlog.RunLog.Errorf("get node detail check parameters failed, %s", checkResult.Reason)
-		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
-	}
-	nodeInfo, err := NodeServiceInstance().getNodeByID(req.ID)
+	nodeInfo, err := NodeServiceInstance().getNodeByID(id)
 	if err != nil {
 		hwlog.RunLog.Error("get node detail db query error")
 		return common.RespMsg{Status: "", Msg: "db query error", Data: nil}
 	}
-	nodeGroupName, err := evalNodeGroup(req.ID)
+	nodeGroupName, err := evalNodeGroup(id)
 	if err != nil {
 		hwlog.RunLog.Errorf("get node detail db query error, %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
