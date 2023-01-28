@@ -53,7 +53,7 @@ func (yd *YamlMgr) modifyLogDir(content string) (string, error) {
 	modifierIns := modifier{
 		component:      yd.component,
 		content:        content,
-		mark:           yd.component + util.LogSuffix,
+		mark:           util.LogFlag,
 		modifiedString: path.Join(yd.logDir, util.ModuleLogName, yd.component),
 	}
 
@@ -74,7 +74,7 @@ func (yd *YamlMgr) modifyModuleDir(content string) (string, error) {
 	modifierIns := modifier{
 		component:      yd.component,
 		content:        content,
-		mark:           yd.component + util.ConfigSuffix,
+		mark:           util.ConfigFlag,
 		modifiedString: yd.pathMgr.ConfigPathMgr.GetComponentConfigPath(yd.component),
 	}
 	return modifierIns.modifyMntDir()
@@ -84,7 +84,7 @@ func (yd *YamlMgr) modifyInstalledModule(content string, installedModule []strin
 	modifierIns := modifier{
 		component:      yd.component,
 		content:        content,
-		mark:           util.InstalledModuleName,
+		mark:           util.InstalledModuleFlag,
 		modifiedString: yd.getModuleString(installedModule),
 	}
 	return modifierIns.modifyEnv()
@@ -153,24 +153,15 @@ func (yd *YamlMgr) EditSingleYaml(installedModule []string) error {
 
 func (md *modifier) modifyMntDir() (string, error) {
 	var retString string
-	subStrings := strings.SplitN(md.content, md.mark, util.ComponentSplitCount)
-
-	if len(subStrings) < util.ComponentSplitCount {
+	subStrings := strings.SplitN(md.content, md.mark, util.SplitCount)
+	if len(subStrings) < util.SplitCount {
 		hwlog.RunLog.Errorf("split [%s]'s yaml by [%s] failed, not enough substrings", md.component, md.mark)
 		return "", fmt.Errorf("modify [%s]'s yaml failed", md.component)
 	}
-	retString = subStrings[0] + md.mark + subStrings[1] + md.mark
+	retString = subStrings[0] + md.modifiedString
 
-	subStrings = strings.SplitN(subStrings[2], util.PathSplitter, util.PathSplitCount)
-	if len(subStrings) < util.PathSplitCount {
-		hwlog.RunLog.Errorf("split [%s]'s yaml by [%s] failed, not enough substrings",
-			md.component, util.PathSplitter)
-		return "", fmt.Errorf("modify [%s]'s yaml failed", md.component)
-	}
-	retString = retString + subStrings[0] + util.PathSplitter + " " + md.modifiedString
-
-	subStrings = strings.SplitN(subStrings[1], util.LineSplitter, util.LineSplitCount)
-	if len(subStrings) < util.LineSplitCount {
+	subStrings = strings.SplitN(subStrings[1], util.LineSplitter, util.SplitCount)
+	if len(subStrings) < util.SplitCount {
 		hwlog.RunLog.Errorf("split [%s]'s yaml by [%s] failed, not enough substrings",
 			md.component, util.LineSplitter)
 		return "", fmt.Errorf("modify [%s]'s yaml failed", md.component)
@@ -182,23 +173,15 @@ func (md *modifier) modifyMntDir() (string, error) {
 
 func (md *modifier) modifyEnv() (string, error) {
 	var retString string
-	subStrings := strings.SplitN(md.content, md.mark, util.InstalledModuleSpiltCount)
-	if len(subStrings) < util.InstalledModuleSpiltCount {
+	subStrings := strings.SplitN(md.content, md.mark, util.SplitCount)
+	if len(subStrings) < util.SplitCount {
 		hwlog.RunLog.Errorf("split [%s]'s yaml by [%s] failed, not enough substrings", md.component, md.mark)
 		return "", fmt.Errorf("modify [%s]'s yaml failed", md.component)
 	}
-	retString = subStrings[0] + md.mark
+	retString = subStrings[0] + md.modifiedString
 
-	subStrings = strings.SplitN(subStrings[1], util.ValueSplitter, util.ValueSplitCount)
-	if len(subStrings) < util.ValueSplitCount {
-		hwlog.RunLog.Errorf("split [%s]'s yaml by [%s] failed, not enough substrings",
-			md.component, util.ValueSplitter)
-		return "", fmt.Errorf("modify [%s]'s yaml failed", md.component)
-	}
-	retString = retString + subStrings[0] + util.ValueSplitter + " " + md.modifiedString
-
-	subStrings = strings.SplitN(subStrings[1], util.LineSplitter, util.LineSplitCount)
-	if len(subStrings) < util.LineSplitCount {
+	subStrings = strings.SplitN(subStrings[1], util.LineSplitter, util.SplitCount)
+	if len(subStrings) < util.SplitCount {
 		hwlog.RunLog.Errorf("split [%s]'s yaml by [%s] failed, not enough substrings",
 			md.component, util.LineSplitter)
 		return "", fmt.Errorf("modify [%s]'s yaml failed", md.component)

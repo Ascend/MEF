@@ -27,7 +27,7 @@ spec:
           image: ascend-cert-manager:v1
           env:
             - name: installed-module
-              value: '"{}"'
+              value: ${installed_module}
           imagePullPolicy: IfNotPresent
           command: [ "/bin/bash", "-c", "--"]
           args: ["./cert-manager -ip=127.0.0.1 -port=8103"]
@@ -43,18 +43,18 @@ spec:
       volumes:
         - name: cert-manager-config
           hostPath:
-            path: /home/data/mef/config/cert-manger/
+            path: ${config}
             type: Directory
         - name: cert-manager-log
           hostPath:
-            path: /var/log/mindx-edge/cert-manager/
+            path: ${log}
             type: Directory
         - name: localtime
           hostPath:
             path: /etc/localtime
         - name: root-ca
           hostPath:
-            path: /home/data/mef/root-ca/
+            path: ${root-ca}
 
 ---
 apiVersion: v1
