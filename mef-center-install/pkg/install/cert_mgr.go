@@ -118,7 +118,7 @@ func (cpc *certPrepareCtl) setCertsOwner() error {
 
 	mefUid, mefGid, err := util.GetMefId()
 	if err != nil {
-		fmt.Printf("get mef uid or gid failed: %s", err.Error())
+		hwlog.RunLog.Errorf("get mef uid or gid failed: %s", err.Error())
 		return errors.New("get mef uid or gid failed")
 	}
 

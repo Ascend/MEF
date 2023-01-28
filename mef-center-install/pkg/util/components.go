@@ -348,7 +348,7 @@ func (c *InstallComponent) PrepareLogDir(pathMgr *LogDirPathMgr) error {
 
 	mefUid, mefGid, err := GetMefId()
 	if err != nil {
-		fmt.Printf("get mef uid or gid failed: %s", err.Error())
+		hwlog.RunLog.Errorf("get mef uid or gid failed: %s", err.Error())
 		return errors.New("get mef uid or gid failed")
 	}
 
@@ -374,7 +374,7 @@ func (c *InstallComponent) PrepareLibDir(libSrcPath string, pathMgr *WorkPathAMg
 
 	mefUid, mefGid, err := GetMefId()
 	if err != nil {
-		fmt.Printf("get mef uid or gid failed: %s", err.Error())
+		hwlog.RunLog.Errorf("get mef uid or gid failed: %s", err.Error())
 		return errors.New("get mef uid or gid failed")
 	}
 
