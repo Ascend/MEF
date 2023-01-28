@@ -58,7 +58,7 @@ func (u *UserMgr) createUser() error {
 }
 
 func (u *UserMgr) checkNoLogin() error {
-	cmdStr := fmt.Sprintf(UserGrepCommandPattern, strconv.Itoa(u.uid))
+	cmdStr := fmt.Sprintf(UserGrepCommandPattern, u.user)
 	lines, err := RunCommand("sh", false, "-c", cmdStr)
 	if err != nil {
 		hwlog.RunLog.Errorf("exec check nologin command failed, error: %s", err.Error())
