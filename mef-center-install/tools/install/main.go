@@ -119,6 +119,7 @@ func main() {
 		fmt.Printf("check path failed: %s\n", err.Error())
 		os.Exit(util.ErrorExitCode)
 	}
+	fmt.Println("check path success")
 
 	logPathMgr := util.InitLogDirPathMgr(logRootPath)
 	installLogPath := logPathMgr.GetInstallLogPath()
@@ -133,6 +134,7 @@ func main() {
 		fmt.Println(err.Error())
 		os.Exit(util.ErrorExitCode)
 	}
+	fmt.Println("init log success")
 
 	hwlog.OpLog.Info("start to install MEF Center")
 	hwlog.RunLog.Info("--------------------Start to install MEF-Center--------------------")

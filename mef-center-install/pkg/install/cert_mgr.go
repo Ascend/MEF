@@ -24,11 +24,13 @@ func (cpc *certPrepareCtl) doPrepare() error {
 		cpc.prepareCerts,
 	}
 
+	fmt.Println("start to prepare certs")
 	for _, function := range prepareCertsTasks {
 		if err := function(); err != nil {
 			return err
 		}
 	}
+	fmt.Println("prepare certs success")
 	return nil
 }
 

@@ -37,7 +37,7 @@ func (cc *CtlComponent) startComponent(yamlPath string) error {
 	return nil
 }
 
-func (cc *CtlComponent) stopComponent(yamlPath string) error {
+func (cc *CtlComponent) stopComponent() error {
 	ret, err := cc.checkNameSpaceExist()
 	if err != nil {
 		return err
@@ -176,6 +176,7 @@ func (cc *CtlComponent) prepareNameSpace() error {
 // Operate is used to start an operate to a single component
 func (cc *CtlComponent) Operate() error {
 	hwlog.RunLog.Infof("start to %s module %s", cc.Operation, cc.Name)
+	fmt.Printf("start to %s module %s\n", cc.Operation, cc.Name)
 	if cc.InstallPathMgr == nil && cc.InstallPathMgr.WorkPathAMgr == nil {
 		hwlog.RunLog.Error("pointer InstallPathMgr is nil or invalid")
 		return errors.New("pointer InstallPathMgr is nil or invalid")
@@ -201,12 +202,12 @@ func (cc *CtlComponent) Operate() error {
 		}
 
 	case "stop":
-		if err = cc.stopComponent(filePath); err != nil {
+		if err = cc.stopComponent(); err != nil {
 			return err
 		}
 
 	case "restart":
-		if err = cc.stopComponent(filePath); err != nil {
+		if err = cc.stopComponent(); err != nil {
 			return err
 		}
 		if err = cc.startComponent(filePath); err != nil {
@@ -216,6 +217,7 @@ func (cc *CtlComponent) Operate() error {
 		hwlog.RunLog.Errorf("unsupported Operate type")
 		return errors.New("unsupported Operate type")
 	}
+	fmt.Printf("%s module %s successful\n", cc.Operation, cc.Name)
 	hwlog.RunLog.Infof("%s module %s successful", cc.Operation, cc.Name)
 	return nil
 }

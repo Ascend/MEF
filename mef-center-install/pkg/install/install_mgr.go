@@ -90,6 +90,7 @@ func (sic *SftInstallCtl) preCheck() error {
 		}
 	}
 
+	fmt.Println("install pre check success")
 	return nil
 }
 
@@ -284,6 +285,7 @@ func (sic *SftInstallCtl) prepareYaml() error {
 }
 
 func (sic *SftInstallCtl) componentsInstall() error {
+	fmt.Println("start to prepare docker image")
 	hwlog.RunLog.Info("-----Start to install components-----")
 	for _, component := range sic.fullInstallingComponents {
 		if err := (*component).LoadAndSaveImage(sic.installPathMgr.WorkPathAMgr); err != nil {
@@ -300,6 +302,7 @@ func (sic *SftInstallCtl) componentsInstall() error {
 				component.Name, err.Error())
 		}
 	}
+	fmt.Println("prepare docker image success")
 	hwlog.RunLog.Info("-----Install components successful-----")
 
 	return nil
