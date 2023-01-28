@@ -115,20 +115,12 @@ const (
 
 // yaml editor constant
 const (
-	RootCaFlag          = "root-ca"
-	LogSuffix           = "-log"
-	ConfigSuffix        = "-config"
-	InstalledModuleName = "installed-module"
-
-	PathSplitter  = "path:"
-	LineSplitter  = "\n"
-	ValueSplitter = "value:"
-
-	ComponentSplitCount       = 3
-	PathSplitCount            = 2
-	LineSplitCount            = 2
-	InstalledModuleSpiltCount = 2
-	ValueSplitCount           = 2
+	RootCaFlag          = "${root-ca}"
+	LogFlag             = "${log}"
+	ConfigFlag          = "${config}"
+	InstalledModuleFlag = "${installed_module}"
+	LineSplitter        = "\n"
+	SplitCount          = 2
 )
 
 // constant for install
