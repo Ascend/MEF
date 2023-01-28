@@ -4,7 +4,6 @@
 package appmanager
 
 import (
-	"errors"
 	"sync"
 
 	"edge-manager/pkg/database"
@@ -98,9 +97,9 @@ func (r *repositoryImpl) getTemplates(name string, pageNum, pageSize uint64) ([]
 // GetTemplate get app template
 func (r *repositoryImpl) getTemplate(id uint64) (*AppTemplateDb, error) {
 	var template AppTemplateDb
-	if err := r.db.Where(&AppTemplateDb{ID: id}).First(&template).Error; err != nil {
+	if err := r.db.Model(AppTemplateDb{}).Where("id = ?", id).First(&template).Error; err != nil {
 		hwlog.RunLog.Error("get db template failed")
-		return nil, errors.New("get template failed")
+		return nil, err
 	}
 	return &template, nil
 }

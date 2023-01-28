@@ -4,27 +4,33 @@
 package appmanager
 
 import (
-	"edge-manager/pkg/util"
+	"fmt"
 
+	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
+
+	"edge-manager/pkg/appmanager/appchecker"
+	"edge-manager/pkg/util"
 )
 
 // createTemplate create app template
 func createTemplate(param interface{}) common.RespMsg {
-	hwlog.RunLog.Info("create app template,start")
+	hwlog.RunLog.Info("start to create app template")
 	var req CreateTemplateReq
 	if err := common.ParamConvert(param, &req); err != nil {
-		hwlog.RunLog.Error("create app template,failed,error:request parameter convert failed")
+		hwlog.RunLog.Error("create app template failed, error: request parameter convert failed")
 		return common.RespMsg{Status: common.ErrorParamInvalid}
 	}
-
-	checker := templateParaChecker{req: &req}
-	if err := checker.Check(); err != nil {
-		hwlog.RunLog.Errorf("template create para check failed: %s", err.Error())
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	if checkResult := appchecker.NewCreateTemplateChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("app template create para check failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: "", Msg: checkResult.Reason, Data: nil}
 	}
-
+	if err := NewTemplateSupplementalChecker(req).Check(); err != nil {
+		hwlog.RunLog.Errorf("app template create para check failed: %v", err)
+		return common.RespMsg{Status: "",
+			Msg: fmt.Sprintf("app template create para check failed: %v", err), Data: nil}
+	}
 	total, err := GetTableCount(AppTemplateDb{})
 	if err != nil {
 		hwlog.RunLog.Error("get app template num failed")
@@ -74,11 +80,14 @@ func updateTemplate(param interface{}) common.RespMsg {
 		hwlog.RunLog.Error("modify app template,failed,error:request parameter convert failed")
 		return common.RespMsg{Status: common.ErrorParamInvalid}
 	}
-
-	checker := templateParaChecker{req: &req.CreateTemplateReq}
-	if err := checker.Check(); err != nil {
-		hwlog.RunLog.Errorf("template update para check failed: %s", err.Error())
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	if checkResult := appchecker.NewUpdateTemplateChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("app template update para check failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: "", Msg: checkResult.Reason, Data: nil}
+	}
+	if err := NewTemplateSupplementalChecker(req.CreateTemplateReq).Check(); err != nil {
+		hwlog.RunLog.Errorf("app template create para check failed: %v", err)
+		return common.RespMsg{Status: "",
+			Msg: fmt.Sprintf("app template create para check failed: %v", err), Data: nil}
 	}
 
 	var template AppTemplateDb
@@ -140,6 +149,16 @@ func getTemplate(param interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "get app template failed", Data: nil}
 	}
 	template, err := RepositoryInstance().getTemplate(id)
+	if err == gorm.ErrRecordNotFound {
+		hwlog.RunLog.Errorf("template id [%d] not found", id)
+		return common.RespMsg{Status: "",
+			Msg: fmt.Sprintf("template id [%d] not found", id), Data: nil}
+	}
+	if err != nil {
+		hwlog.RunLog.Errorf("get template id [%d] failed, db error", id)
+		return common.RespMsg{Status: "",
+			Msg: fmt.Sprintf("get template id [%d] failed, db error", id), Data: nil}
+	}
 	var dto AppTemplate
 	if err = (&dto).FromDb(template); err != nil {
 		hwlog.RunLog.Errorf("get app template detail,failed,error:%v", err)

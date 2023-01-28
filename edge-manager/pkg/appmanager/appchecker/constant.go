@@ -3,6 +3,8 @@
 // Package appchecker constant
 package appchecker
 
+import "math"
+
 const (
 	minContainerCountInPod = 1
 	maxContainerCountInPod = 10
@@ -40,4 +42,9 @@ const (
 	localVolumeReg         = "^[a-z0-9]{1,63}$"
 	configmapMountPathReg  = `^/[a-zA-Z\d_\-/.]{1,1023}`
 	configmapNameReg       = "^[a-zA-Z0-9][a-zA-Z0-9-_]{0,61}[a-zA-Z0-9]$"
+
+	minAppId      = 1
+	maxAppId      = math.MaxInt64
+	minTemplateId = 1
+	maxTemplateId = math.MaxInt64
 )

@@ -5,15 +5,14 @@ package appmanager
 
 import (
 	"errors"
-	"fmt"
 	"sync"
 
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/database"
 	"edge-manager/pkg/types"
+	"huawei.com/mindxedge/base/common"
 )
 
 var (
@@ -30,7 +29,6 @@ type AppRepositoryImpl struct {
 type AppRepository interface {
 	createApp(*AppInfo) error
 	updateApp(appId uint64, column string, value interface{}) error
-	queryApp(appId uint64) (*AppInfo, error)
 	listAppsInfo(page, pageSize uint64, name string) ([]AppInfo, error)
 	countListAppsInfo(string) (int64, error)
 	countDeployedApp() (int64, int64, error)
@@ -38,7 +36,6 @@ type AppRepository interface {
 	getAppInfoById(appId uint64) (*AppInfo, error)
 	getAppInstanceByIdAndGroup(uint64, string) (*AppInstance, error)
 	getAppInfoByName(string) (*AppInfo, error)
-	deployApp(*AppInstance) error
 	deleteAppById(uint64) error
 	deleteAppInstanceByIdAndGroup(uint64, string) error
 	queryNodeGroup(uint64) ([]types.NodeGroupInfo, error)
@@ -90,20 +87,6 @@ func (a *AppRepositoryImpl) updateApp(appId uint64, column string, value interfa
 	return nil
 }
 
-func (a *AppRepositoryImpl) queryApp(appId uint64) (*AppInfo, error) {
-	var appInfo *AppInfo
-	var err error
-	if appInfo, err = a.getAppInfoById(appId); err != nil {
-		hwlog.RunLog.Errorf("query app id [%d] info from db failed", appId)
-		return appInfo, fmt.Errorf("query app id [%d] info from db failed", appId)
-	}
-	if appInfo == nil {
-		return appInfo, fmt.Errorf("query app id [%d] info failed, info is nil", appId)
-	}
-
-	return appInfo, nil
-}
-
 func (a *AppRepositoryImpl) queryNodeGroup(appId uint64) ([]types.NodeGroupInfo, error) {
 	var daemonSets []AppDaemonSet
 	if err := a.db.Model(AppDaemonSet{}).Where("app_id = ?", appId).Find(&daemonSets).Error; err != nil {
@@ -153,17 +136,8 @@ func (a *AppRepositoryImpl) countDeployedApp() (int64, int64, error) {
 	return deployedAppNums, unDeployedAppNums, nil
 }
 
-func (a *AppRepositoryImpl) deployApp(appInstance *AppInstance) error {
-	return a.db.Model(AppInstance{}).Create(appInstance).Error
-}
-
 func (a *AppRepositoryImpl) deleteAppById(appId uint64) error {
-	appInfo, err := a.getAppInfoById(appId)
-	if err != nil {
-		hwlog.RunLog.Error("get appInfo failed when delete")
-		return err
-	}
-	err = a.db.Where("app_name = ?", appInfo.AppName).First(&AppInstance{}).Error
+	err := a.db.Model(AppDaemonSet{}).Where("app_id = ?", appId).First(&AppDaemonSet{}).Error
 	if err == nil {
 		hwlog.RunLog.Error("app is referenced, can not delete")
 		return errors.New("app is referenced, can not delete ")
@@ -172,8 +146,7 @@ func (a *AppRepositoryImpl) deleteAppById(appId uint64) error {
 		hwlog.RunLog.Error("find app instance failed when delete app")
 		return errors.New("find app instance failed when delete app")
 	}
-
-	return a.db.Model(AppInfo{}).Delete(appInfo).Error
+	return a.db.Model(AppInfo{}).Where("id = ?", appId).Delete(&AppInfo{}).Error
 }
 
 func (a *AppRepositoryImpl) getAppInfoById(appId uint64) (*AppInfo, error) {
