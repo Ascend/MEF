@@ -5,6 +5,7 @@ systemEnv:
   - processor
   - version
 TOP_DIR: "{{systemEnv.workspace}}/{{product}}/{{component}}"
+WORK_DIR: "{{systemEnv.workspace}}/{{product}}"
 compile:
   input:
     envVariables:
@@ -43,11 +44,15 @@ compile:
             src:
               - "{{TOP_DIR}}/build/Dockerfile"
             des: "{{TOP_DIR}}/output/"
-        - mode:
+        - copy:
             src:
-              - "{{TOP_DIR}}/output/*"
-            mode: "400"
-        - mode:
+              - "{{WORK_DIR}}/output/bin/*"
+            des: "{{TOP_DIR}}/output/bin/"
+        - copy:
             src:
-              - "{{TOP_DIR}}/output/{{component}}"
-            mode: "500"
+              - "{{WORK_DIR}}/output/lib/*"
+            des: "{{TOP_DIR}}/output/lib/"
+        - commands:
+            - command: "find {{TOP_DIR}}/output/ -type f |xargs chmod 400"
+            - command: "chmod 500 {{TOP_DIR}}/output/{{component}}"
+            - command: "find {{TOP_DIR}}/output/bin/ -type f |xargs chmod 500"
