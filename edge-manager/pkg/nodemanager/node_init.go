@@ -125,6 +125,7 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodPost, filepath.Join(nodeUrlRootPath, "batch-delete")):  batchDeleteNode,
 	common.Combine(http.MethodGet, filepath.Join(nodeUrlRootPath, "list/managed")):   listManagedNode,
 	common.Combine(http.MethodGet, filepath.Join(nodeUrlRootPath, "list/unmanaged")): listUnmanagedNode,
+	common.Combine(http.MethodGet, filepath.Join(nodeUrlRootPath, "list")):           listNode,
 	common.Combine(http.MethodPost, filepath.Join(nodeUrlRootPath, "add")):           addUnManagedNode,
 
 	common.Combine(http.MethodPost, nodeGroupRootPath):                                     createGroup,

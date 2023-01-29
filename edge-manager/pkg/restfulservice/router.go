@@ -8,13 +8,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"edge-manager/pkg/util"
-
 	"github.com/gin-gonic/gin"
 
-	"huawei.com/mindxedge/base/common/restfulmgr"
-
+	"edge-manager/pkg/util"
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/restfulmgr"
 )
 
 var appRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
@@ -132,6 +130,10 @@ var nodeRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			Destination:  common.NodeManagerName}},
 		listDispatcher{restfulmgr.GenericDispatcher{
 			RelativePath: "/list/unmanaged",
+			Method:       http.MethodGet,
+			Destination:  common.NodeManagerName}},
+		listDispatcher{restfulmgr.GenericDispatcher{
+			RelativePath: "/list",
 			Method:       http.MethodGet,
 			Destination:  common.NodeManagerName}},
 		restfulmgr.GenericDispatcher{
