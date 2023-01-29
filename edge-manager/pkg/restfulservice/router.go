@@ -52,6 +52,10 @@ var appRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			RelativePath: "/node",
 			Method:       http.MethodGet,
 			Destination:  common.AppManagerName}, "nodeID"},
+		listDispatcher{restfulmgr.GenericDispatcher{
+			RelativePath: "/deployment/list",
+			Method:       http.MethodGet,
+			Destination:  common.AppManagerName}},
 		restfulmgr.GenericDispatcher{
 			RelativePath: "/configmap",
 			Method:       http.MethodPost,

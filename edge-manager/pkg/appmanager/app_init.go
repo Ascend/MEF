@@ -157,16 +157,18 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodGet, filepath.Join(appUrlRootPath, "list")):                     listAppInfo,
 	common.Combine(http.MethodPost, filepath.Join(appUrlRootPath, "deployment")):              deployApp,
 	common.Combine(http.MethodPost, filepath.Join(appUrlRootPath, "deployment/batch-delete")): unDeployApp,
-	common.Combine(http.MethodGet, filepath.Join(appUrlRootPath, "deployment")):               listAppInstances,
+	common.Combine(http.MethodGet, filepath.Join(appUrlRootPath, "deployment")):               listAppInstancesById,
 	common.Combine(http.MethodPost, filepath.Join(appUrlRootPath, "batch-delete")):            deleteApp,
 	common.Combine(http.MethodGet, filepath.Join(appUrlRootPath, "node")):                     listAppInstancesByNode,
+	common.Combine(http.MethodGet, filepath.Join(appUrlRootPath, "deployment/list")):          listAppInstances,
 
 	common.Combine(http.MethodPost, appTemplateRootPath):                                createTemplate,
 	common.Combine(http.MethodPatch, appTemplateRootPath):                               updateTemplate,
 	common.Combine(http.MethodPost, filepath.Join(appTemplateRootPath, "batch-delete")): deleteTemplate,
 	common.Combine(http.MethodGet, appTemplateRootPath):                                 getTemplate,
 	common.Combine(http.MethodGet, filepath.Join(appTemplateRootPath, "list")):          getTemplates,
-	common.Combine(common.Get, common.AppInstanceByNodeGroup):                           getAppInstanceCountByNodeGroup,
+
+	common.Combine(common.Get, common.AppInstanceByNodeGroup): getAppInstanceCountByNodeGroup,
 
 	common.Combine(http.MethodPost, filepath.Join(appUrlRootPath, configmap)):                 createConfigmap,
 	common.Combine(http.MethodPost, filepath.Join(appUrlRootPath, configmap, "batch-delete")): deleteConfigmap,
