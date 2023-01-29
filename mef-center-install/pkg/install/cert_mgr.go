@@ -82,21 +82,16 @@ func (cpc *certPrepareCtl) prepareCerts() error {
 	}
 
 	var (
-		err     error
-		certMng *certutils.RootCertMgr
+		err         error
+		rootCertMgr *certutils.RootCertMgr
 	)
 
-	if err = cpc.prepareCA(); err != nil {
+	if rootCertMgr, err = cpc.prepareCA(); err != nil {
 		return err
 	}
 
 	for _, component := range cpc.components {
-		certMng, err = cpc.getComponentCertMgr(component.Name)
-		if err != nil {
-			hwlog.RunLog.Errorf("init %s component cert mgr failed: %s", component.Name, err.Error())
-			return errors.New("init single component cert mgr failed")
-		}
-		if err = component.PrepareComponentCert(certMng, cpc.certPathMgr); err != nil {
+		if err = component.PrepareComponentCert(rootCertMgr, cpc.certPathMgr); err != nil {
 			hwlog.RunLog.Errorf("prepare %s component cert failed: %s", component.Name, err.Error())
 			return errors.New("prepare single component cert failed")
 		}
@@ -147,10 +142,10 @@ func (cpc *certPrepareCtl) setCertsOwner() error {
 	return nil
 }
 
-func (cpc *certPrepareCtl) prepareCA() error {
+func (cpc *certPrepareCtl) prepareCA() (*certutils.RootCertMgr, error) {
 	if cpc.certPathMgr == nil {
 		hwlog.RunLog.Error("pointer cpc.certPathMgr is nil")
-		return errors.New("pointer cpc.certPathMgr is nil")
+		return nil, errors.New("pointer cpc.certPathMgr is nil")
 	}
 
 	rootCaFilePath := cpc.certPathMgr.GetRootCaCertPath()
@@ -164,25 +159,7 @@ func (cpc *certPrepareCtl) prepareCA() error {
 	initCertMgr := certutils.InitRootCertMgr(rootCaFilePath, rootPrivFilePath, util.CaCommonName, &rootKmcCfg)
 	if _, err := initCertMgr.NewRootCa(); err != nil {
 		hwlog.RunLog.Errorf("init root ca info failed: %v", err)
-		return errors.New("init root ca info failed")
+		return nil, errors.New("init root ca info failed")
 	}
-	return nil
-}
-
-func (cpc *certPrepareCtl) getComponentCertMgr(component string) (*certutils.RootCertMgr, error) {
-	if cpc.certPathMgr == nil {
-		hwlog.RunLog.Error("pointer cpc.certPathMgr is nil")
-		return nil, errors.New("pointer cpc.certPathMgr is nil")
-	}
-
-	rootCaFilePath := cpc.certPathMgr.GetRootCaCertPath()
-	rootPrivFilePath := cpc.certPathMgr.GetRootCaKeyPath()
-	componentKmcCfg := common.KmcCfg{
-		SdpAlgID:       common.Aes256gcm,
-		PrimaryKeyPath: cpc.certPathMgr.GetComponentMasterKmcPath(component),
-		StandbyKeyPath: cpc.certPathMgr.GetComponentBackKmcPath(component),
-		DoMainId:       common.DoMainId,
-	}
-	CertMgr := certutils.InitRootCertMgr(rootCaFilePath, rootPrivFilePath, util.CaCommonName, &componentKmcCfg)
-	return CertMgr, nil
+	return initCertMgr, nil
 }
