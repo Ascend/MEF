@@ -6,6 +6,8 @@ package nodemanager
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"path/filepath"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
@@ -102,7 +104,7 @@ func initNodeTable() error {
 
 func dispatchMsg(req *model.Message) (*common.RespMsg, error) {
 	var res common.RespMsg
-	method, exit := handlerFuncMap[combine(req.GetOption(), req.GetResource())]
+	method, exit := handlerFuncMap[common.Combine(req.GetOption(), req.GetResource())]
 	if !exit {
 		return nil, fmt.Errorf("method not found for router: option=%s, resource=%s", req.GetOption(), req.GetResource())
 	}
@@ -110,29 +112,31 @@ func dispatchMsg(req *model.Message) (*common.RespMsg, error) {
 	return &res, nil
 }
 
+var (
+	nodeUrlRootPath   = "/edgemanager/v1/node"
+	nodeGroupRootPath = "/edgemanager/v1/nodegroup"
+)
+
 var handlerFuncMap = map[string]handlerFunc{
-	combine(common.Create, common.Node):             createNode,
-	combine(common.Create, common.NodeGroup):        createGroup,
-	combine(common.List, common.Node):               listManagedNode,
-	combine(common.List, common.NodeUnManaged):      listUnmanagedNode,
-	combine(common.Get, common.Node):                getNodeDetail,
-	combine(common.Update, common.Node):             modifyNode,
-	combine(common.Update, common.NodeGroup):        modifyNodeGroup,
-	combine(common.Delete, common.Node):             batchDeleteNode,
-	combine(common.Add, common.Node):                addUnManagedNode,
-	combine(common.Add, common.NodeRelation):        addNodeRelation,
-	combine(common.Delete, common.NodeRelation):     batchDeleteNodeRelation,
-	combine(common.Get, common.NodeStatistics):      getNodeStatistics,
-	combine(common.Get, common.NodeGroupStatistics): getGroupNodeStatistics,
-	combine(common.List, common.NodeGroup):          listEdgeNodeGroup,
-	combine(common.Get, common.NodeGroup):           getEdgeNodeGroupDetail,
-	combine(common.Delete, common.NodeGroup):        batchDeleteNodeGroup,
+	common.Combine(http.MethodPost, nodeUrlRootPath):                                 createNode,
+	common.Combine(http.MethodGet, filepath.Join(nodeUrlRootPath, "stats")):          getNodeStatistics,
+	common.Combine(http.MethodGet, nodeUrlRootPath):                                  getNodeDetail,
+	common.Combine(http.MethodPatch, nodeUrlRootPath):                                modifyNode,
+	common.Combine(http.MethodPost, filepath.Join(nodeUrlRootPath, "batch-delete")):  batchDeleteNode,
+	common.Combine(http.MethodGet, filepath.Join(nodeUrlRootPath, "list/managed")):   listManagedNode,
+	common.Combine(http.MethodGet, filepath.Join(nodeUrlRootPath, "list/unmanaged")): listUnmanagedNode,
+	common.Combine(http.MethodPost, filepath.Join(nodeUrlRootPath, "add")):           addUnManagedNode,
 
-	combine(common.Inner, common.Node):       innerGetNodeInfoByUniqueName,
-	combine(common.Inner, common.NodeGroup):  innerGetNodeGroupInfosByIds,
-	combine(common.Inner, common.NodeStatus): innerGetNodeStatus,
-}
+	common.Combine(http.MethodPost, nodeGroupRootPath):                                     createGroup,
+	common.Combine(http.MethodGet, filepath.Join(nodeGroupRootPath, "stats")):              getGroupNodeStatistics,
+	common.Combine(http.MethodGet, nodeGroupRootPath):                                      getEdgeNodeGroupDetail,
+	common.Combine(http.MethodPatch, nodeGroupRootPath):                                    modifyNodeGroup,
+	common.Combine(http.MethodPost, filepath.Join(nodeGroupRootPath, "batch-delete")):      batchDeleteNodeGroup,
+	common.Combine(http.MethodGet, filepath.Join(nodeGroupRootPath, "list")):               listEdgeNodeGroup,
+	common.Combine(http.MethodPost, filepath.Join(nodeGroupRootPath, "node")):              addNodeRelation,
+	common.Combine(http.MethodPost, filepath.Join(nodeGroupRootPath, "node/batch-delete")): batchDeleteNodeRelation,
 
-func combine(option, resource string) string {
-	return fmt.Sprintf("%s%s", option, resource)
+	common.Combine(common.Inner, common.Node):       innerGetNodeInfoByUniqueName,
+	common.Combine(common.Inner, common.NodeGroup):  innerGetNodeGroupInfosByIds,
+	common.Combine(common.Inner, common.NodeStatus): innerGetNodeStatus,
 }

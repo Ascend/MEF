@@ -344,8 +344,7 @@ func getNodeDetailFunctionalTest() {
 	So(env.createNode(node), ShouldBeNil)
 
 	Convey("normal input", func() {
-		args := fmt.Sprintf(`{"id": %d}`, node.ID)
-		resp := getNodeDetail(args)
+		resp := getNodeDetail(node.ID)
 		So(resp.Status, ShouldEqual, common.Success)
 		nodeInfoDetail, ok := resp.Data.(NodeInfoDetail)
 		So(ok, ShouldBeTrue)
@@ -510,8 +509,7 @@ func getGroupDetailFunctionalTest() {
 	So(env.createGroup(group), ShouldBeNil)
 
 	Convey("normal input", func() {
-		args := fmt.Sprintf(`{"id": %d}`, group.ID)
-		resp := getEdgeNodeGroupDetail(args)
+		resp := getEdgeNodeGroupDetail(group.ID)
 		So(resp.Status, ShouldEqual, common.Success)
 		groupDetail, ok := resp.Data.(NodeGroupDetail)
 		So(ok, ShouldBeTrue)

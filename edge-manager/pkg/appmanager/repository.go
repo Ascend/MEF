@@ -6,10 +6,11 @@ package appmanager
 import (
 	"sync"
 
-	"edge-manager/pkg/database"
-
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
+
+	"edge-manager/pkg/database"
 )
 
 var (
@@ -77,7 +78,7 @@ func (r *repositoryImpl) updateTemplate(template *AppTemplateDb) error {
 
 func getTemplateByLikeName(page, pageSize uint64, appName string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Scopes(paginate(page, pageSize)).Where("template_name like ?", "%"+appName+"%")
+		return db.Scopes(common.Paginate(page, pageSize)).Where("template_name like ?", "%"+appName+"%")
 	}
 }
 

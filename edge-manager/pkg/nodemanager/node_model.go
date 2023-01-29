@@ -106,7 +106,7 @@ func (n *NodeServiceImpl) listUnManagedNodesByName(page, pageSize uint64, nodeNa
 func (n *NodeServiceImpl) getNodeGroupsByName(pageNum, pageSize uint64, nodeGroup string) (*[]NodeGroup, error) {
 	var nodeGroups []NodeGroup
 	return &nodeGroups,
-		n.db.Scopes(paginate(pageNum, pageSize), whereGroupNameLike(nodeGroup)).
+		n.db.Scopes(common.Paginate(pageNum, pageSize), whereGroupNameLike(nodeGroup)).
 			Find(&nodeGroups).Error
 }
 
@@ -155,7 +155,7 @@ func (n *NodeServiceImpl) getNodeByID(nodeID int64) (*NodeInfo, error) {
 
 func getNodeByLikeName(page, pageSize uint64, nodeName string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Scopes(paginate(page, pageSize)).Where("node_name like ?", "%"+nodeName+"%")
+		return db.Scopes(common.Paginate(page, pageSize)).Where("node_name like ?", "%"+nodeName+"%")
 	}
 }
 
@@ -211,17 +211,4 @@ func (n *NodeServiceImpl) deleteNodeGroup(groupID int64) (int64, error) {
 func (n *NodeServiceImpl) listNodes() (*[]NodeInfo, error) {
 	var nodes []NodeInfo
 	return &nodes, n.db.Model(NodeInfo{}).Find(&nodes).Error
-}
-
-func paginate(page, pageSize uint64) func(db *gorm.DB) *gorm.DB {
-	return func(db *gorm.DB) *gorm.DB {
-		if page == 0 {
-			page = common.DefaultPage
-		}
-		if pageSize > common.DefaultMaxPageSize {
-			pageSize = common.DefaultMaxPageSize
-		}
-		offset := (page - 1) * pageSize
-		return db.Offset(int(offset)).Limit(int(pageSize))
-	}
 }

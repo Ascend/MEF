@@ -72,6 +72,10 @@ type RespMsg struct {
 	Data   interface{} `json:"data,omitempty"`
 }
 
+func (r RespMsg) String() string {
+	return fmt.Sprintf("result=%s; errorMsg=%s", r.Status, r.Msg)
+}
+
 // ConstructResp construct response
 func ConstructResp(c *gin.Context, errorCode string, msg string, data interface{}) {
 	if msg == "" {

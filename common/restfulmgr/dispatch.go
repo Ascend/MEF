@@ -20,7 +20,7 @@ var dispatcherLock sync.RWMutex
 
 // DispatcherItf [interface] for Dispatch massage
 type DispatcherItf interface {
-	ParseData(c *gin.Context) common.Result
+	ParseData(c *gin.Context) (interface{}, error)
 	dispatch(c *gin.Context)
 	getMethod() string
 	getRelativePath() string
@@ -34,17 +34,17 @@ type GenericDispatcher struct {
 }
 
 // ParseData [method] parse url data
-func (g GenericDispatcher) ParseData(c *gin.Context) common.Result {
+func (g GenericDispatcher) ParseData(c *gin.Context) (interface{}, error) {
 	data, err := c.GetRawData()
 	if err != nil {
-		return common.Result{ResultFlag: false, ErrorMsg: "get input parameter failed"}
+		return "", fmt.Errorf("get input parameter failed")
 	}
 
-	return common.Result{ResultFlag: true, Data: string(data)}
+	return string(data), nil
 }
 
 // sendToModule [method] send to other module
-func (g GenericDispatcher) sendToModule(resource string, data interface{}) common.Result {
+func (g GenericDispatcher) sendToModule(resource string, data interface{}) common.RespMsg {
 	router := common.Router{
 		Source:      common.RestfulServiceName,
 		Destination: g.Destination,
@@ -52,18 +52,17 @@ func (g GenericDispatcher) sendToModule(resource string, data interface{}) commo
 		Resource:    resource,
 	}
 
-	resp := common.SendSyncMessageByRestful(data, &router)
-	return common.Result{ResultFlag: resp.Status == common.Success, Data: resp.Data, ErrorMsg: resp.Msg}
+	return common.SendSyncMessageByRestful(data, &router)
 }
 
-func (g GenericDispatcher) response(c *gin.Context, errorCode string, msg string, Data interface{}) {
-	if msg == "" {
-		msg = common.ErrorMap[errorCode]
+func (g GenericDispatcher) response(c *gin.Context, result common.RespMsg) {
+	if result.Msg == "" {
+		result.Msg = common.ErrorMap[result.Status]
 	}
-	result := common.RespMsg{
-		Status: errorCode,
-		Msg:    msg,
-		Data:   Data,
+
+	if result.Status != common.Success {
+		c.JSON(http.StatusBadRequest, result)
+		return
 	}
 	c.JSON(http.StatusOK, result)
 }
@@ -77,14 +76,14 @@ func (g GenericDispatcher) getRelativePath() string {
 }
 
 func (g GenericDispatcher) dispatch(c *gin.Context) {
-	var res common.Result
+	var res common.RespMsg
 	defer func() {
-		hwlog.RunLog.Infof("deal %s result is %v", c.FullPath(), res.ResultFlag)
+		hwlog.RunLog.Infof("deal %s result is %v", c.FullPath(), res.Status == common.Success)
 
 		if g.getMethod() == http.MethodGet {
 			return
 		}
-		if !res.ResultFlag {
+		if res.Status != common.Success {
 			hwlog.OpLog.Errorf("%s %s %s %s failed\n", c.ClientIP(), c.Request.Header["user"],
 				g.getMethod(), c.FullPath())
 			return
@@ -95,23 +94,19 @@ func (g GenericDispatcher) dispatch(c *gin.Context) {
 
 	dispatcher, ok := allModuleDispatchers[combine(c.FullPath(), c.Request.Method)]
 	if !ok {
-		res = common.Result{ResultFlag: false, ErrorMsg: "get dispatcher failed"}
-		g.response(c, common.ErrorParamInvalid, res.ErrorMsg, nil)
+		res = common.RespMsg{Status: common.ErrorParamInvalid, Msg: "get dispatcher failed", Data: nil}
+		g.response(c, res)
 		return
 	}
-	res = dispatcher.ParseData(c)
-	if !res.ResultFlag {
-		g.response(c, common.ErrorParseBody, res.ErrorMsg, nil)
-		return
-	}
-
-	res = g.sendToModule(c.FullPath(), res.Data)
-	if !res.ResultFlag {
-		g.response(c, common.ErrorsSendSyncMessageByRestful, res.ErrorMsg, nil)
+	data, err := dispatcher.ParseData(c)
+	if err != nil {
+		res = common.RespMsg{Status: common.ErrorParseBody, Msg: err.Error(), Data: nil}
+		g.response(c, res)
 		return
 	}
 
-	g.response(c, common.Success, "message deal success", res.Data)
+	res = g.sendToModule(c.FullPath(), data)
+	g.response(c, res)
 	return
 }
 

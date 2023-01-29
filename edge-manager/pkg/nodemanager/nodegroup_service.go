@@ -90,23 +90,19 @@ func listEdgeNodeGroup(input interface{}) common.RespMsg {
 
 func getEdgeNodeGroupDetail(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start get node group detail")
-	var req GetNodeGroupDetailReq
-	if err := common.ParamConvert(input, &req); err != nil {
-		hwlog.RunLog.Errorf("get node group detail convert request error, %s", err.Error())
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
-	}
-	if checkResult := newGetGroupDetailChecker().Check(req); !checkResult.Result {
-		hwlog.RunLog.Errorf("get node detail check parameters failed, %s", checkResult.Reason)
-		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
+	id, ok := input.(int64)
+	if !ok {
+		hwlog.RunLog.Error("get node group detail convert request error")
+		return common.RespMsg{Status: "", Msg: "query node detail failed", Data: nil}
 	}
 	var resp NodeGroupDetail
-	nodeGroup, err := NodeServiceInstance().getNodeGroupByID(req.ID)
+	nodeGroup, err := NodeServiceInstance().getNodeGroupByID(id)
 	if err != nil {
 		hwlog.RunLog.Error("node group db query failed")
 		return common.RespMsg{Status: "", Msg: "db query failed", Data: nil}
 	}
 	resp.NodeGroup = *nodeGroup
-	relations, err := NodeServiceInstance().listNodeRelationsByGroupId(req.ID)
+	relations, err := NodeServiceInstance().listNodeRelationsByGroupId(id)
 	if err != nil {
 		hwlog.RunLog.Error("node group db query failed")
 		return common.RespMsg{Status: "", Msg: "db query failed", Data: nil}
