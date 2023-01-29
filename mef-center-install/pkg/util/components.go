@@ -285,6 +285,12 @@ func (c *InstallComponent) PrepareComponentCert(certMng *certutils.RootCertMgr, 
 		SvcCertPath: componentsCertPath,
 		SvcKeyPath:  componentPrivPath,
 		CommonName:  c.Name,
+		KmcCfg: &common.KmcCfg{
+			SdpAlgID:       common.Aes256gcm,
+			PrimaryKeyPath: certPathMgr.GetComponentMasterKmcPath(c.Name),
+			StandbyKeyPath: certPathMgr.GetComponentBackKmcPath(c.Name),
+			DoMainId:       common.DoMainId,
+		},
 	}
 
 	if err := componentCert.CreateSignCert(); err != nil {
