@@ -14,6 +14,10 @@ NGINX_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/nginx-manager"
 compile:
   input:
     dependency:
+      - name: MEF_Dependency
+        version: "1.0"
+        type: opensource
+        buildFile: "{{TOP_DIR}}/build/conf"
       - name: edge-manager
         version: "1.0"
         type: opensource
@@ -39,12 +43,6 @@ compile:
         type: opensource
         buildFile: "{{NGINX_MANAGER_DIR}}/build/conf"
 
-
-    files:
-      exclude:
-        - remove: ["{{TOP_DIR}}/output/"]
-        - makedir:
-            path: "{{TOP_DIR}}/output"
   process:
     language: go
     compilePath:
@@ -95,6 +93,8 @@ compile:
         - move:
             src: ["{{TOP_DIR}}/savedir/Ascend-mindxedge-mefcenter_{{version}}_linux-{{systemEnv.processor}}.tar.gz"]
             des: "{{TOP_DIR}}/output"
+        - commands:
+            - command: "fakeroot rm -rf {{TOP_DIR}}/output/lib {{TOP_DIR}}/output/include {{TOP_DIR}}/output/bin"
         - mode:
             src:
               - "{{TOP_DIR}}/output/*"

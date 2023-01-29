@@ -1,0 +1,23 @@
+component: MEF_Center
+product: MEF_Center
+systemEnv:
+  - workspace
+  - processor
+  - version
+TOP_DIR: "{{systemEnv.workspace}}/{{component}}"
+
+compile:
+  input:
+    files:
+      exclude:
+        - remove: [ "{{TOP_DIR}}/output/" ]
+        - makedir:
+            path: "{{TOP_DIR}}/output"
+      include:
+        - commands:
+            - command: "sh {{TOP_DIR}}/build/build_c_package.sh"
+
+  process:
+    language: go
+    compilePath:
+    parameters:
