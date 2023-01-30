@@ -51,7 +51,7 @@ func createGroup(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "db group create failed", Data: nil}
 	}
 	hwlog.RunLog.Info("node group db create success")
-	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: group.ID}
 }
 
 func listEdgeNodeGroup(input interface{}) common.RespMsg {
