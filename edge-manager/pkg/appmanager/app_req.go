@@ -132,3 +132,9 @@ type ListTemplatesResp struct {
 type DeleteTemplateReq struct {
 	Ids []uint64 `json:"ids"`
 }
+
+// ListAppInstancesResp encapsulate app instances list for return
+type ListAppInstancesResp struct {
+	AppInstances []AppInstanceResp `json:"appInstances"`
+	Total        int64             `json:"total"`
+}
