@@ -14,19 +14,19 @@ import (
 )
 
 // GetTlsCfgWithPath [method] for get tls config
-func GetTlsCfgWithPath(tlsCertPath TlsCertInfo) (*tls.Config, error) {
-	pemPair, err := GetCertPairForPem(tlsCertPath.CertPath, tlsCertPath.KeyPath, tlsCertPath.KmcCfg)
+func GetTlsCfgWithPath(tlsCertInfo TlsCertInfo) (*tls.Config, error) {
+	pemPair, err := GetCertPairForPem(tlsCertInfo.CertPath, tlsCertInfo.KeyPath, tlsCertInfo.KmcCfg)
 	if err != nil {
 		return nil, err
 	}
-	rootCaPemBytes, err := utils.LoadFile(tlsCertPath.RootCaPath)
+	rootCaPemBytes, err := utils.LoadFile(tlsCertInfo.RootCaPath)
 	if rootCaPemBytes == nil {
-		return nil, fmt.Errorf("get tls failed, load root ca path [%s] file failed", tlsCertPath.RootCaPath)
+		return nil, fmt.Errorf("get tls failed, load root ca path [%s] file failed", tlsCertInfo.RootCaPath)
 	}
-	return getTlsConfig(rootCaPemBytes, pemPair.CertPem, pemPair.KeyPem, tlsCertPath.SvrFlag)
+	return getTlsConfig(rootCaPemBytes, pemPair.CertPem, pemPair.KeyPem, tlsCertInfo.SvrFlag, tlsCertInfo.IgnoreCltCert)
 }
 
-func getTlsConfig(rootPem, certPem, keyPem []byte, svrFlag bool) (*tls.Config, error) {
+func getTlsConfig(rootPem, certPem, keyPem []byte, svrFlag bool, ignoreCltCert bool) (*tls.Config, error) {
 	rootCaPool := x509.NewCertPool()
 	ok := rootCaPool.AppendCertsFromPEM(rootPem)
 	if !ok {
@@ -52,7 +52,11 @@ func getTlsConfig(rootPem, certPem, keyPem []byte, svrFlag bool) (*tls.Config, e
 		MinVersion: tls.VersionTLS13,
 	}
 	if svrFlag {
-		tlsCfg.ClientAuth = tls.RequireAndVerifyClientCert
+		if ignoreCltCert {
+			tlsCfg.ClientAuth = tls.VerifyClientCertIfGiven
+		} else {
+			tlsCfg.ClientAuth = tls.RequireAndVerifyClientCert
+		}
 		tlsCfg.ClientCAs = rootCaPool
 	} else {
 		tlsCfg.RootCAs = rootCaPool

@@ -32,7 +32,7 @@ func QueryRootCa(certName string) ([]byte, error) {
 // IssueServiceCert issue service certificate with csr file(only support pem type csr)
 func IssueServiceCert(certName string, serviceCsr string) ([]byte, error) {
 	if !checkCertName(certName) {
-		hwlog.RunLog.Error("issue service cert failed, check cert name failed")
+		hwlog.RunLog.Errorf("issue service cert failed, check cert name [%s] failed", certName)
 		return nil, errors.New("check cert name failed, not a support cert name")
 	}
 

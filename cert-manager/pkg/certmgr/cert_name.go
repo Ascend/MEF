@@ -11,7 +11,6 @@ import (
 )
 
 var certImportMap = map[string]bool{
-	common.InnerName:            false,
 	common.WsSerName:            false,
 	common.WsCltName:            false,
 	common.SoftwareCertName:     true,
@@ -21,6 +20,7 @@ var certImportMap = map[string]bool{
 	common.EdgeCoreCertName:     true,
 	common.DevicePluginCertName: true,
 	common.AlarmCertName:        true,
+	common.InnerName:            false,
 }
 
 // checkCertName check use id if valid

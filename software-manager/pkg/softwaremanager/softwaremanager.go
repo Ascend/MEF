@@ -11,7 +11,9 @@ import (
 	"software-manager/pkg/restfulservice"
 
 	"gorm.io/gorm"
+
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -29,7 +31,7 @@ const (
 
 const (
 	kbToMB           float64 = 1048576
-	defaultFilesPath         = "/etc/mindx-edge/"
+	defaultFilesPath         = "/home/data/config/"
 	dBFileMode               = 0640
 	floatByteSize            = 64
 	zipFileHeader            = "504b0304"
@@ -38,11 +40,11 @@ const (
 // SoftwareRecord is to define the struct of software record table
 type softwareRecord struct {
 	ID          uint    `gorm:"primaryKey" json:"id"`
-	CreatedAt   string  `gorm:"not null"json:"createdAt"`
+	CreatedAt   string  `gorm:"not null" json:"createdAt"`
 	ContentType string  `gorm:"type:varchar(64);not null" json:"contentType"`
 	Version     string  `gorm:"type:varchar(64);not null" json:"version"`
 	FileSize    float64 `gorm:"type:float(64);not null" json:"fileSize"`
-	Description string  `gorm:"type:varchar(64);not null"json:"description"`
+	Description string  `gorm:"type:varchar(64);not null" json:"description"`
 }
 
 type downloadData struct {

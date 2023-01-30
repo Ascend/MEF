@@ -25,7 +25,7 @@ type appManager struct {
 }
 
 // NewAppManager create app manager
-func NewAppManager(enable bool) *appManager {
+func NewAppManager(enable bool) model.Module {
 	am := &appManager{
 		enable: enable,
 		ctx:    context.Background(),

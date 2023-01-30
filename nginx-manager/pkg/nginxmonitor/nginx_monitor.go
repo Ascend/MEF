@@ -14,12 +14,13 @@ import (
 	"nginx-manager/pkg/nginxcom"
 
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 const (
-	nginxUsedPort   = 443
+	nginxUsedPort   = 8443
 	splitCount      = 2
 	tcpFilePath     = "/proc/net/tcp"
 	monitorInterval = 5 * time.Second

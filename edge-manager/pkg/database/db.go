@@ -8,6 +8,8 @@ import (
 	"fmt"
 
 	"gorm.io/gorm"
+
+	"huawei.com/mindx/common/utils"
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -17,6 +19,10 @@ var (
 
 // InitDB init database client
 func InitDB(dbPath string) error {
+	err := utils.MakeSureDir(dbPath)
+	if err != nil {
+		return err
+	}
 	gormDB = common.InitDbConnection(dbPath)
 	if gormDB == nil {
 		return fmt.Errorf("initialise database failed")

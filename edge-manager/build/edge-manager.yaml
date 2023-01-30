@@ -77,9 +77,9 @@ spec:
             - name: localtime
               mountPath: /etc/localtime
             - name: edge-manager-config
-              mountPath: /etc/mindx-edge
+              mountPath: /home/data/config/
             - name: root-ca
-              mountPath: /etc/RootCA
+              mountPath: /home/data/inner-root-ca/
           env:
             - name: installed-module
               value: ${installed_module}
@@ -116,6 +116,10 @@ spec:
       port: 8101
       targetPort: 8101
       protocol: TCP
+    - name: ws-port
+      port: 10000
+      targetPort: 10000
+      nodePort: 30003
   selector:
     app: ascend-edge-manager
-  type: ClusterIP
+  type: NodePort

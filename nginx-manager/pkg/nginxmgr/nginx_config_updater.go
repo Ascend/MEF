@@ -7,11 +7,11 @@ import (
 	"bytes"
 	"fmt"
 
-	"huawei.com/mindx/common/utils"
-	"huawei.com/mindxedge/base/common"
-
 	"nginx-manager/pkg/checker"
 	"nginx-manager/pkg/nginxcom"
+
+	"huawei.com/mindx/common/utils"
+	"huawei.com/mindxedge/base/common"
 )
 
 type nginxConfUpdater struct {

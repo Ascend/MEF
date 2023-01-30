@@ -6,6 +6,21 @@ package common
 import "time"
 
 const (
+	// EdgeMgrDns Edge manager dns name
+	EdgeMgrDns = "ascend-edge-manager.mef-center.svc.cluster.local"
+	// EdgeMgrPort Edge manager port
+	EdgeMgrPort = 8101
+	// SoftwareMgrDns software manager dns name
+	SoftwareMgrDns = "ascend-software-manager.mef-center.svc.cluster.local"
+	// SoftwareMgrPort software manager port
+	SoftwareMgrPort = 8102
+	// CertMgrDns cert manager dns name
+	CertMgrDns = "ascend-cert-manager.mef-center.svc.cluster.local"
+	// CertMgrPort cert manager port
+	CertMgrPort = 8103
+)
+
+const (
 	// InnerName inner cert name
 	InnerName = "inner_cert"
 	// WsSerName websocket server cert name
