@@ -271,6 +271,38 @@ func autoAddUnmanagedNode() error {
 	return nil
 }
 
+func listNode(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start list all nodes")
+	req, ok := input.(util.ListReq)
+	if !ok {
+		hwlog.RunLog.Error("list nodes convert request error")
+		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
+	}
+	nodes, err := NodeServiceInstance().listAllNodesByName(req.PageNum, req.PageSize, req.Name)
+	if err != nil {
+		hwlog.RunLog.Error("list all nodes failed")
+		return common.RespMsg{Status: "", Msg: "list all nodes failed", Data: nil}
+	}
+	var nodeInfoDetails []NodeInfoDetail
+	for _, nodeInfo := range *nodes {
+		nodeGroup, err := evalNodeGroup(nodeInfo.ID)
+		if err != nil {
+			hwlog.RunLog.Errorf("list node id [%d] db error: %s", nodeInfo.ID, err.Error())
+			return common.RespMsg{Msg: err.Error()}
+		}
+		nodeInfoDynamic, _ := NodeStatusServiceInstance().Get(nodeInfo.UniqueName)
+		var nodeInfoDetail NodeInfoDetail
+		nodeInfoDetail.Extend(&nodeInfo, nodeInfoDynamic, nodeGroup)
+		nodeInfoDetails = append(nodeInfoDetails, nodeInfoDetail)
+	}
+	resp := ListNodesResp{
+		Nodes: &nodeInfoDetails,
+		Total: len(*nodes),
+	}
+	hwlog.RunLog.Info("list all nodes success")
+	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
+}
+
 func batchDeleteNode(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start delete node")
 	var req BatchDeleteNodeReq

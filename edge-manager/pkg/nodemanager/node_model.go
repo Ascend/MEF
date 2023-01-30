@@ -28,6 +28,7 @@ type NodeService interface {
 	deleteNodeByName(*NodeInfo) (int64, error)
 	listManagedNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
 	listUnManagedNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
+	listAllNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
 	getNodeByUniqueName(string) (*NodeInfo, error)
 	getNodeByID(int64) (*NodeInfo, error)
 	getManagedNodeByID(int64) (*NodeInfo, error)
@@ -100,6 +101,12 @@ func (n *NodeServiceImpl) listUnManagedNodesByName(page, pageSize uint64, nodeNa
 	return &nodes,
 		n.db.Where("is_managed = ?", unmanaged).Scopes(getNodeByLikeName(page, pageSize, nodeName)).
 			Find(&nodes).Error
+}
+
+// listAllNodesByName return SQL result
+func (n *NodeServiceImpl) listAllNodesByName(page, pageSize uint64, nodeName string) (*[]NodeInfo, error) {
+	var nodes []NodeInfo
+	return &nodes, n.db.Model(&NodeInfo{}).Scopes(getNodeByLikeName(page, pageSize, nodeName)).Find(&nodes).Error
 }
 
 // GetNodeGroupsByName return SQL result

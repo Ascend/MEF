@@ -624,6 +624,18 @@ func listUnManagedNodeFunctionalTest() {
 	})
 }
 
+func TestListNode(t *testing.T) {
+	Convey("listNode functional test", t, litNodeFunctionalTest)
+}
+
+func litNodeFunctionalTest() {
+	Convey("normal input", func() {
+		args := util.ListReq{PageNum: 1, PageSize: defaultPageSize}
+		resp := listNode(args)
+		So(resp.Status, ShouldEqual, common.Success)
+	})
+}
+
 func TestBatchDeleteNode(t *testing.T) {
 	Convey("batchDeleteNode functional test", t, batchDeleteNodeFunctionalTest)
 	Convey("batchDeleteNode validation test", t, batchDeleteNodeValidationTest)
