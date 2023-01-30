@@ -160,6 +160,16 @@ const (
 	RegImageVersion = `^[a-zA-Z]([-_a-zA-Z0-9]{0,14}[a-zA-Z0-9])?$`
 	// RegEnvKey regex pattern of environment variable key
 	RegEnvKey = `^[a-zA-Z]([_a-zA-Z0-9]{0,2046}[a-zA-Z0-9])?$`
+	// LowercaseCharactersRegex LowercaseCharactersRegex
+	LowercaseCharactersRegex = "[a-z]{1,}"
+	// UppercaseCharactersRegex UppercaseCharactersRegex
+	UppercaseCharactersRegex = "[A-Z]{1,}"
+	// BaseNumberRegex BaseNumberRegex
+	BaseNumberRegex = "[0-9]{1,}"
+	// SpecialCharactersRegex SpecialCharactersRegex
+	SpecialCharactersRegex = "[!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~]{1,}"
+	// PassWordRegex PassWordRegex
+	PassWordRegex = "^[a-zA-z0-9!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~]{8,20}$"
 )
 
 // protocol
@@ -215,6 +225,8 @@ const (
 	TemplateEnvValueMin = 1
 	// TemplateEnvValueMax environment variable value max length
 	TemplateEnvValueMax = 2048
+	// MinComplexCount MinComplexCount
+	MinComplexCount = 2
 )
 
 // used to check ip
