@@ -60,7 +60,7 @@ func createNode(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "db create failed", Data: nil}
 	}
 	hwlog.RunLog.Info("node db create success")
-	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: node.ID}
 }
 
 // getNodeDetail get node detail
