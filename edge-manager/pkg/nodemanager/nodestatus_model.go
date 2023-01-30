@@ -5,6 +5,7 @@ package nodemanager
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
@@ -16,7 +17,6 @@ import (
 	"k8s.io/client-go/tools/cache"
 
 	"edge-manager/pkg/kubeclient"
-	"huawei.com/mindxedge/base/common"
 )
 
 const (
@@ -29,19 +29,20 @@ var (
 
 // NodeStatusService provide node status from k8s
 type NodeStatusService interface {
-	// List lists all k8s node status
-	List() *[]NodeInfoDynamic
-	// Get gets specific node status by hostname
-	Get(hostname string) (*NodeInfoDynamic, bool)
+	// GetNodeStatus gets specific node status by hostname
+	GetNodeStatus(hostname string) (string, error)
+	// ListNodeStatus lists all k8s node status
+	ListNodeStatus() map[string]string
+	// GetAllocatableResource gets specific node resource(cpu & resource) by hostname
+	GetAllocatableResource(hostname string) (*NodeResource, error)
+	// GetAllocatableNpu gets specific node npu by hostname
+	GetAllocatableNpu(hostname string) (int64, error)
 }
 
-// NodeInfoDynamic dynamic node information from k8s
-type NodeInfoDynamic struct {
-	Hostname string `json:"-"`
-	Status   string `json:"status"`
-	Cpu      int64  `json:"cpu"`
-	Npu      int64  `json:"npu"`
-	Memory   int64  `json:"memory"`
+// NodeResource dynamic node information from k8s
+type NodeResource struct {
+	Cpu    int64 `json:"cpu"`
+	Memory int64 `json:"memory"`
 }
 
 type nodeStatusServiceImpl struct {
@@ -85,51 +86,57 @@ func (s *nodeStatusServiceImpl) initNodeInformer(stopCh <-chan struct{}, clientS
 	nodeInformerFactory.Start(stopCh)
 }
 
-func (s *nodeStatusServiceImpl) Get(nodeName string) (*NodeInfoDynamic, bool) {
-	obj, ok, err := s.informer.GetStore().GetByKey(nodeName)
+func (s *nodeStatusServiceImpl) GetAllocatableResource(hostname string) (*NodeResource, error) {
+	node, err := s.getNode(hostname)
 	if err != nil {
-		hwlog.RunLog.Warnf("get node status failed: %s", err.Error())
-		return nil, false
+		return nil, err
 	}
-	if !ok {
-		hwlog.RunLog.Warnf("get node status failed: no such node %s", nodeName)
-		return nil, false
+	resource := &NodeResource{
+		Cpu:    node.Status.Allocatable.Cpu().Value(),
+		Memory: node.Status.Allocatable.Memory().Value(),
 	}
-	node, ok := obj.(*v1.Node)
-	if !ok {
-		hwlog.RunLog.Warnf("get node status failed: type convert error %T", obj)
-		return nil, false
-	}
-	return newDynamicInfo(node), true
+	return resource, nil
 }
 
-func (s *nodeStatusServiceImpl) List() *[]NodeInfoDynamic {
+func (s *nodeStatusServiceImpl) GetNodeStatus(hostname string) (string, error) {
+	node, err := s.getNode(hostname)
+	if err != nil {
+		return "", err
+	}
+	return evalNodeStatus(node), nil
+}
+
+func (s *nodeStatusServiceImpl) ListNodeStatus() map[string]string {
 	objects := s.informer.GetStore().List()
-	var allNodes []NodeInfoDynamic
+	allNodeStatus := make(map[string]string)
 	for _, obj := range objects {
 		node, ok := obj.(*v1.Node)
 		if !ok {
 			hwlog.RunLog.Warnf("list node status failed: failed to convert type %T", obj)
 			continue
 		}
-		allNodes = append(allNodes, *newDynamicInfo(node))
+		allNodeStatus[node.Name] = evalNodeStatus(node)
 	}
-	return &allNodes
+	return allNodeStatus
 }
 
-func newDynamicInfo(node *v1.Node) *NodeInfoDynamic {
-	npuCapacity, ok := node.Status.Capacity[common.DeviceType]
-	var npu int64
-	if ok {
-		npu = npuCapacity.Value()
+func (s *nodeStatusServiceImpl) GetAllocatableNpu(hostname string) (int64, error) {
+	return 0, nil
+}
+
+func (s *nodeStatusServiceImpl) getNode(hostname string) (*v1.Node, error) {
+	obj, ok, err := s.informer.GetStore().GetByKey(hostname)
+	if err != nil {
+		return nil, err
 	}
-	return &NodeInfoDynamic{
-		Hostname: node.Name,
-		Status:   evalNodeStatus(node),
-		Cpu:      node.Status.Capacity.Cpu().Value(),
-		Memory:   node.Status.Capacity.Memory().Value(),
-		Npu:      npu,
+	if !ok {
+		return nil, fmt.Errorf("no such node %s", hostname)
 	}
+	node, ok := obj.(*v1.Node)
+	if !ok {
+		return nil, fmt.Errorf("type convert error %T", obj)
+	}
+	return node, nil
 }
 
 func evalNodeStatus(node *v1.Node) string {

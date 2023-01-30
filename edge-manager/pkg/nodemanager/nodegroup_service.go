@@ -108,15 +108,18 @@ func getEdgeNodeGroupDetail(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "db query failed", Data: nil}
 	}
 	for _, relation := range *relations {
+		var respItem NodeInfoEx
 		node, err := NodeServiceInstance().getNodeByID(relation.NodeID)
 		if err != nil {
 			hwlog.RunLog.Error("node group db query failed")
 			return common.RespMsg{Status: "", Msg: "db query failed", Data: nil}
 		}
-		nodeInfoDynamic, _ := NodeStatusServiceInstance().Get(node.UniqueName)
-		var nodeInfoEx NodeInfoEx
-		nodeInfoEx.Extend(node, nodeInfoDynamic)
-		resp.Nodes = append(resp.Nodes, nodeInfoEx)
+		respItem.NodeInfo = *node
+		respItem.Status, err = NodeStatusServiceInstance().GetNodeStatus(node.UniqueName)
+		if err != nil {
+			respItem.Status = statusOffline
+		}
+		resp.Nodes = append(resp.Nodes, respItem)
 	}
 	hwlog.RunLog.Info("node group db query success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
