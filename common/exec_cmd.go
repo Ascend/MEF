@@ -51,7 +51,7 @@ func RunCommand(name string, ifCheck bool, arg ...string) (string, error) {
 	cmd.Stderr = &stderr
 	err := cmd.Run()
 	if err != nil {
-		return "", errors.New(stderr.String())
+		return "", fmt.Errorf("excuting result: %s, err: %s", err, stderr.String())
 	}
 	return strings.Trim(out.String(), "\n"), nil
 }

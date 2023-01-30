@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/terminal"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/control"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
@@ -107,14 +108,21 @@ func main() {
 	}
 	fmt.Println("init log success")
 
-	hwlog.RunLog.Infof("start to %s %s component", operate, componentType)
+	user, ip, err := terminal.GetLoginUserAndIP()
+	if err != nil {
+		hwlog.RunLog.Errorf("get current user or ip info failed: %s", err.Error())
+		hwlog.OpLog.Error("install MEF Center failed: cannot get local user or ip")
+		os.Exit(util.ErrorExitCode)
+	}
+
+	hwlog.RunLog.Infof("%s: %s, start to %s %s component", ip, user, operate, componentType)
 	hwlog.OpLog.Infof("start to %s %s component", operate, componentType)
 	if err = doControl(operate, installParam); err != nil {
 		hwlog.RunLog.Errorf("%s %s component failed", operate, componentType)
-		hwlog.OpLog.Errorf("%s %s component failed", operate, componentType)
+		hwlog.OpLog.Errorf("%s: %s, %s %s component failed", ip, user, operate, componentType)
 		os.Exit(1)
 	}
 	hwlog.RunLog.Infof("%s %s component successful", operate, componentType)
-	hwlog.OpLog.Infof("%s %s component successful", operate, componentType)
+	hwlog.OpLog.Infof("%s: %s, %s %s component successful", ip, user, operate, componentType)
 	fmt.Printf("%s %s component successful\n", operate, componentType)
 }

@@ -25,6 +25,7 @@ var (
 		"grep",
 		"useradd",
 		"wc",
+		"who",
 	}
 )
 

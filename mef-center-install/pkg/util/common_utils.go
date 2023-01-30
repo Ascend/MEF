@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/user"
+
 	"path"
 	"path/filepath"
 	"strconv"
@@ -27,12 +28,12 @@ func GetArch() (string, error) {
 
 // CheckUser is used to check if the current user is root and returns error if not
 func CheckUser() error {
-	usr, err := user.Current()
+	usr, err := common.GetCurrentUser()
 	if err != nil {
-		return fmt.Errorf("get current user info failed : %s", err)
+		return err
 	}
-	if usr.Username != RootUserName {
-		return fmt.Errorf("install failed: the install user must be root, can not be %s", usr.Username)
+	if usr != RootUserName {
+		return fmt.Errorf("install failed: the install user must be root, can not be %s", usr)
 	}
 
 	return nil
