@@ -328,6 +328,12 @@ func (c *InstallComponent) prepareNginxServerCert(certMng *certutils.RootCertMgr
 		SvcCertPath: componentsCertPath,
 		SvcKeyPath:  componentPrivPath,
 		CommonName:  c.Name + NginxServerSuffix,
+		KmcCfg: &common.KmcCfg{
+			SdpAlgID:       common.Aes256gcm,
+			PrimaryKeyPath: certPathMgr.GetComponentMasterKmcPath(c.Name),
+			StandbyKeyPath: certPathMgr.GetComponentBackKmcPath(c.Name),
+			DoMainId:       common.DoMainId,
+		},
 	}
 
 	if err := componentCert.CreateSignCert(); err != nil {
