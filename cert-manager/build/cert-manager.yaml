@@ -20,7 +20,7 @@ spec:
         app: ascend-cert-manager
     spec:
       nodeSelector:
-        masterselector: dls-master-node
+        mef-center-node: ""
       serviceAccountName: ascend-cert-manager
       containers:
         - name: ascend-cert-manager

@@ -19,7 +19,7 @@ spec:
         app: ascend-nginx-manager
     spec:
       nodeSelector:
-        masterselector: dls-master-node
+        mef-center-node: ""
       imagePullSecrets:
         - name: image-pull-secret
       serviceAccountName: ascend-nginx-manager

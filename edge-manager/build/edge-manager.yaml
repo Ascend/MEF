@@ -48,7 +48,7 @@ spec:
         app: ascend-edge-manager
     spec:
       nodeSelector:
-        masterselector: dls-master-node
+        mef-center-node: ""
       imagePullSecrets:
         - name: image-pull-secret
       serviceAccountName: ascend-edge-manager

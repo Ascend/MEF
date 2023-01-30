@@ -45,6 +45,7 @@ func (sic *SftInstallCtl) DoInstall() error {
 		sic.init,
 		sic.preCheck,
 		sic.prepareMefUser,
+		sic.prepareK8sLabel,
 		sic.prepareComponentLogDir,
 		sic.prepareInstallPkgDir,
 		sic.prepareCerts,
@@ -217,6 +218,31 @@ func (sic *SftInstallCtl) prepareMefUser() error {
 	}
 
 	hwlog.RunLog.Info("prepare mef user successful")
+	return nil
+}
+
+func (sic *SftInstallCtl) prepareK8sLabel() error {
+	hwlog.RunLog.Info("start to set label for master node")
+	localIp, err := util.GetLocalIp()
+	if err != nil {
+		hwlog.RunLog.Errorf("get local IP failed: %s", err.Error())
+		return err
+	}
+
+	cmd := fmt.Sprintf(util.GetNodeCmdPattern, localIp)
+	nodeName, err := common.RunCommand("sh", false, "-c", cmd)
+	if err != nil {
+		hwlog.RunLog.Errorf("get current node failed: %s", err.Error())
+		return err
+	}
+
+	cmd = fmt.Sprintf(util.SetLabelCmdPattern, nodeName)
+	_, err = common.RunCommand("sh", false, "-c", cmd)
+	if err != nil {
+		hwlog.RunLog.Errorf("set mef label failed: %s", err.Error())
+		return err
+	}
+	hwlog.RunLog.Info("start to set label for master node")
 	return nil
 }
 
