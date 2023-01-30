@@ -20,7 +20,7 @@ spec:
         app: ascend-software-manager
     spec:
       nodeSelector:
-        masterselector: dls-master-node
+        mef-center-node: ""
       imagePullSecrets:
         - name: image-pull-secret
       serviceAccountName: ascend-software-manager

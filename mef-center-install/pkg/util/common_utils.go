@@ -4,7 +4,9 @@
 package util
 
 import (
+	"errors"
 	"fmt"
+	"net"
 	"os"
 	"os/user"
 
@@ -91,4 +93,27 @@ func GetMefId() (int, int, error) {
 	}
 
 	return uid, gid, nil
+}
+
+// GetLocalIp get local ip
+func GetLocalIp() (string, error) {
+	addresses, err := net.InterfaceAddrs()
+	if err != nil {
+		return "", fmt.Errorf("get local ip address failed: %s", err.Error())
+	}
+	privateIp := ""
+	for _, address := range addresses {
+		ipNet, ok := address.(*net.IPNet)
+		if !ok || ipNet.IP.IsLoopback() {
+			continue
+		}
+		if !ipNet.IP.IsPrivate() {
+			return ipNet.IP.String(), nil
+		}
+		privateIp = ipNet.IP.String()
+	}
+	if privateIp != "" {
+		return privateIp, nil
+	}
+	return "", errors.New("get local ip address failed")
 }

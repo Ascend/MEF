@@ -137,3 +137,9 @@ const (
 	CheckStatusInterval = 3 * time.Second
 	CheckStatusTimes    = 5
 )
+
+// constant for set k8s label
+const (
+	GetNodeCmdPattern  = "kubectl get nodes -o wide | grep -w %s | awk '{print$1}'"
+	SetLabelCmdPattern = "kubectl label nodes %s --overwrite mef-center-node="
+)
