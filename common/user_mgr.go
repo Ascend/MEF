@@ -95,3 +95,13 @@ func (u *UserMgr) AddUserAccount() error {
 	}
 	return u.createUser()
 }
+
+// GetCurrentUser is used to get current username
+func GetCurrentUser() (string, error) {
+	userInfo, err := user.Current()
+	if err != nil {
+		return "", fmt.Errorf("get current user info failed: %s", err)
+	}
+
+	return userInfo.Username, nil
+}

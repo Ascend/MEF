@@ -19,12 +19,13 @@ type SftControlMgr struct {
 
 // DoControl is the main func to do a control handle
 func (scm *SftControlMgr) DoControl() error {
-	var installTasks = []func() error{
+	var controlTasks = []func() error{
 		scm.init,
+		scm.check,
 		scm.deal,
 	}
 
-	for _, function := range installTasks {
+	for _, function := range controlTasks {
 		if err := function(); err != nil {
 			return err
 		}
@@ -55,6 +56,30 @@ func (scm *SftControlMgr) init() error {
 	}
 
 	hwlog.RunLog.Info("init componentFlag list successful")
+	return nil
+}
+
+func (scm *SftControlMgr) check() error {
+	var checkTasks = []func() error{
+		scm.checkUser,
+	}
+
+	for _, function := range checkTasks {
+		if err := function(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (scm *SftControlMgr) checkUser() error {
+	hwlog.RunLog.Info("start to check user")
+	if err := util.CheckUser(); err != nil {
+		hwlog.RunLog.Errorf("check user failed: %s", err.Error())
+		return err
+	}
+	hwlog.RunLog.Info("check user successful")
 	return nil
 }
 
