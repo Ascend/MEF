@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
@@ -51,6 +52,7 @@ func (c *Connector) Start() {
 		return
 	}
 
+	hwlog.RunLog.Info("init websocket server success")
 	for {
 		select {
 		case _, ok := <-c.ctx.Done():

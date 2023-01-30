@@ -12,6 +12,7 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -20,6 +21,10 @@ func Load(keyPath, pipePath string) error {
 	var keyContent []byte
 	var err error
 	if keyContent, err = loadKey(keyPath); err != nil {
+		return err
+	}
+	err = utils.MakeSureDir(pipePath)
+	if err != nil {
 		return err
 	}
 	if utils.IsExist(pipePath) {
@@ -63,8 +68,8 @@ func LoadForClient(keyPath, pipeDir string, pipeCount int) error {
 
 func loadKey(path string) ([]byte, error) {
 	encryptKeyContent, err := utils.LoadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("load key file failed: %s" + err.Error())
+	if encryptKeyContent == nil {
+		return nil, fmt.Errorf("load key path [%s] file failed", path)
 	}
 	decryptKeyByte, err := common.DecryptContent(encryptKeyContent, common.GetDefKmcCfg())
 	if err != nil {

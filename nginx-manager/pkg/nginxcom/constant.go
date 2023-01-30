@@ -16,6 +16,11 @@ const (
 	SoftUrlKey = "SoftwareMgrSvcDomain"
 	// SoftPortKey 软件仓port对应的key
 	SoftPortKey = "SoftwareMgrSvcPort"
+	// CertUrlKey 软件仓url对应的key
+	CertUrlKey = "CertMgrSvcDomain"
+	// CertPortKey 软件仓port对应的key
+	CertPortKey = "CertMgrSvcPort"
+
 	// UrlPattern 校验url的正则
 	UrlPattern = "^[a-z][a-z-.]{1,64}$"
 	// PortMin 端口最小值
@@ -27,13 +32,13 @@ const (
 	// NginxConfigPath nginx配置文件
 	NginxConfigPath = "/home/MEFCenter/conf/nginx.conf"
 	// CertKeyFile 证书私钥文件
-	CertKeyFile = "/home/MEFCenter/certs/nginx-manager.key"
+	CertKeyFile = "/home/data/config/mef-certs/nginx-manager-server.key"
 	// ClientCertKeyFile 内部转发消息的证书私钥文件
-	ClientCertKeyFile = "/home/MEFCenter/certs/client.key"
+	ClientCertKeyFile = "/home/data/config/mef-certs/nginx-manager.key"
 	// PipePath 证书私钥管道
-	PipePath = "/home/MEFCenter/conf/keyPipe"
+	PipePath = "/home/MEFCenter/pipe/apig_keyPipe"
 	// ClientPipeDir 内部转发消息的证书私钥管道
-	ClientPipeDir = "/home/MEFCenter/conf/"
+	ClientPipeDir = "/home/MEFCenter/pipe/"
 	// FifoPermission 证书私钥管道权限
 	FifoPermission = 0600
 	// NginxManagerName nginx manager模块对应收发消息的key

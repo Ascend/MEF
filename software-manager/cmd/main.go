@@ -12,6 +12,7 @@ import (
 	"software-manager/pkg/softwaremanager"
 
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
 	"huawei.com/mindxedge/base/modulemanager"

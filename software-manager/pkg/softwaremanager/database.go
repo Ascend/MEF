@@ -5,9 +5,10 @@ package softwaremanager
 import (
 	"errors"
 	"fmt"
-	"path/filepath"
+	"path"
 
 	"gorm.io/gorm"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -15,7 +16,7 @@ var gormDB *gorm.DB
 
 // InitDB is used to init database in main.go
 func InitDB() error {
-	gormDB = common.InitDbConnection(filepath.Join(RepositoryFilesPath, "/repository.db"))
+	gormDB = common.InitDbConnection(path.Join(RepositoryFilesPath, "repository.db"))
 	if gormDB == nil {
 		return fmt.Errorf("initialise database failed")
 	}

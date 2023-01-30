@@ -12,6 +12,7 @@ import (
 	"nginx-manager/pkg/nginxcom"
 
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
@@ -44,6 +45,8 @@ func loadEnvs() map[string]string {
 	envs[nginxcom.EdgePortKey] = os.Getenv(nginxcom.EdgePortKey)
 	envs[nginxcom.SoftUrlKey] = os.Getenv(nginxcom.SoftUrlKey)
 	envs[nginxcom.SoftPortKey] = os.Getenv(nginxcom.SoftPortKey)
+	envs[nginxcom.CertUrlKey] = os.Getenv(nginxcom.CertUrlKey)
+	envs[nginxcom.CertPortKey] = os.Getenv(nginxcom.CertPortKey)
 	return envs
 }
 

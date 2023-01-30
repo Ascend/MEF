@@ -5,7 +5,6 @@ go 1.16
 require (
 	github.com/agiledragon/gomonkey/v2 v2.8.0
 	github.com/gin-gonic/gin v1.8.1
-	github.com/gorilla/websocket v1.5.0
 	github.com/smartystreets/goconvey v1.7.2
 	gorm.io/driver/sqlite v1.4.3
 	gorm.io/gorm v1.24.0

@@ -12,6 +12,7 @@ import (
 	"nginx-manager/pkg/nginxmonitor"
 
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 )

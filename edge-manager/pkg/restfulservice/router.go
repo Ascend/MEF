@@ -9,7 +9,9 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"huawei.com/mindx/common/hwlog"
 
+	"edge-manager/pkg/config"
 	"edge-manager/pkg/util"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/restfulmgr"
@@ -100,13 +102,18 @@ var templateRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 }
 
 func setRouter(engine *gin.Engine) {
-	engine.Use(gin.Recovery())
+	engine.GET("/edgemanager/v1/version", versionQuery)
 	restfulmgr.InitRouter(engine, nodeRouterDispatchers)
 	restfulmgr.InitRouter(engine, nodeGroupRouterDispatchers)
 	restfulmgr.InitRouter(engine, appRouterDispatchers)
 	restfulmgr.InitRouter(engine, templateRouterDispatchers)
 	softwareRouter(engine)
 	connInfoRouter(engine)
+}
+func versionQuery(c *gin.Context) {
+	msg := fmt.Sprintf("%s version: %s", config.BuildName, config.BuildVersion)
+	hwlog.RunLog.Infof("query edge manager version: %s successfully", msg)
+	common.ConstructResp(c, common.Success, "", msg)
 }
 
 var nodeRouterDispatchers = map[string][]restfulmgr.DispatcherItf{

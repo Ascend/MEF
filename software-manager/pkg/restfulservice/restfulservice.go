@@ -10,7 +10,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/certutils"
+	"huawei.com/mindxedge/base/common/httpsmgr"
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
@@ -36,10 +39,14 @@ const (
 	Page = "page"
 	// PageSize is the parameter of paging query in SoftwareInfo struct
 	PageSize = "pageSize"
-	// nodeID is used to check the right of downloading in SoftwareInfo struct
-	nodeID = "node_id"
 	// Description is used to describe the uploaded software
 	Description = "description"
+)
+
+const (
+	serverCertPath = "/home/data/config/mef-certs/software-manager.crt"
+	serverKeyPath  = "/home/data/config/mef-certs/software-manager.key"
+	rootCaPath     = "/home/data/inner-root-ca/RootCA.crt"
 )
 
 const (
@@ -59,11 +66,30 @@ type UserPriInfo struct {
 	UserName string
 }
 
+// NewRestfulService init restful service
+func NewRestfulService(enable bool, ip string, port int) model.Module {
+	gin.SetMode(gin.ReleaseMode)
+	return &restfulService{
+		enable: enable,
+		ip:     ip,
+		httpsSvr: &httpsmgr.HttpsServer{
+			Port: port,
+			TlsCertPath: certutils.TlsCertInfo{
+				RootCaPath:    rootCaPath,
+				CertPath:      serverCertPath,
+				KeyPath:       serverKeyPath,
+				SvrFlag:       true,
+				IgnoreCltCert: false,
+				KmcCfg:        nil,
+			},
+		},
+	}
+}
+
 type restfulService struct {
-	engine *gin.Engine
-	enable bool
-	ip     string
-	port   int
+	httpsSvr *httpsmgr.HttpsServer
+	enable   bool
+	ip       string
 }
 
 // Name module name
@@ -78,11 +104,20 @@ func (r *restfulService) Enable() bool {
 
 // Start module start
 func (r *restfulService) Start() {
-	r.engine.Use(common.LoggerAdapter())
-	setRouter(r.engine)
+	err := r.httpsSvr.Init()
+	if err != nil {
+		hwlog.RunLog.Errorf("start restful at %d failed, init https server failed: %v", r.httpsSvr.Port, err)
+		return
+	}
+	err = r.httpsSvr.RegisterRoutes(setRouter)
+	if err != nil {
+		hwlog.RunLog.Errorf("start restful at %d failed, set routers failed: %v", r.httpsSvr.Port, err)
+		return
+	}
 	hwlog.RunLog.Info("start http server now...")
-	if err := r.engine.Run(fmt.Sprintf(":%d", r.port)); err != nil {
-		hwlog.RunLog.Errorf("start restful at %d fail", r.port)
+	err = r.httpsSvr.Start()
+	if err != nil {
+		hwlog.RunLog.Errorf("start restful at %d failed, listen failed: %v", r.httpsSvr.Port, err)
 	}
 }
 
@@ -103,17 +138,6 @@ func AddUserInfo(nodeID string, info *UserPriInfo) error {
 	}
 	userInfoMap[nodeID] = *info
 	return nil
-}
-
-// NewRestfulService init restful service
-func NewRestfulService(enable bool, ip string, port int) model.Module {
-	gin.SetMode(gin.ReleaseMode)
-	return &restfulService{
-		enable: enable,
-		engine: gin.New(),
-		ip:     ip,
-		port:   port,
-	}
 }
 
 func downloadInfoMapping(c *gin.Context) (SoftwareInfo, error) {

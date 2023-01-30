@@ -7,6 +7,8 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/http"
+
+	"huawei.com/mindxedge/base/common/certutils"
 )
 
 // ProxyConfig Websocket proxy config
@@ -28,13 +30,16 @@ func (pc *ProxyConfig) RegModInfos(regHandlers []RegisterModuleInfo) {
 }
 
 // InitProxyConfig init proxy config
-func InitProxyConfig(name string, ip string, port int, certInfo CertPathInfo) (*ProxyConfig, error) {
+func InitProxyConfig(name string, ip string, port int, tlsCertInfo certutils.TlsCertInfo) (*ProxyConfig, error) {
 	netConfig := &ProxyConfig{}
 	netConfig.name = name
 	netConfig.hosts = fmt.Sprintf("%s:%d", ip, port)
 	netConfig.handlerMgr = WsMsgHandler{}
-	// todo TlsConfig公共能力待增加
-	netConfig.tlsConfig = nil
+	tlsConfig, err := certutils.GetTlsCfgWithPath(tlsCertInfo)
+	if err != nil {
+		return nil, fmt.Errorf("init proxy config failed: %v", err)
+	}
+	netConfig.tlsConfig = tlsConfig
 	netConfig.headers = http.Header{}
 	netConfig.headers.Set(clientNameKey, name)
 	netConfig.ctx, netConfig.cancel = context.WithCancel(context.Background())

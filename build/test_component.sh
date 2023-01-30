@@ -21,7 +21,7 @@ function execute_component_ut() {
 
 file_input='testEdgeManager.txt'
 file_detail_output="api.html"
-DB_PATH="/etc/mindx-edge/edge-manager/"
+DB_PATH="/home/data/config/"
 ut_xml_output="unit-tests.xml"
 echo "************************************* Start $COMPONENT_NAME LLT Test *************************************"
 echo "to delete, current dir:$CUR_DIR"

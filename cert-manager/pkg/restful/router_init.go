@@ -35,11 +35,12 @@ func NewRestfulService(enable bool, ip string, port int) *Service {
 		httpsSvr: &httpsmgr.HttpsServer{
 			Port: port,
 			TlsCertPath: certutils.TlsCertInfo{
-				RootCaPath: certconstant.RootCaPath,
-				CertPath:   certconstant.ServerCertPath,
-				KeyPath:    certconstant.ServerKeyPath,
-				SvrFlag:    true,
-				KmcCfg:     nil,
+				RootCaPath:    certconstant.RootCaPath,
+				CertPath:      certconstant.ServerCertPath,
+				KeyPath:       certconstant.ServerKeyPath,
+				SvrFlag:       true,
+				IgnoreCltCert: false,
+				KmcCfg:        nil,
 			},
 		},
 	}
@@ -53,13 +54,15 @@ func (r *Service) Name() string {
 
 // Start for RestfulService start
 func (r *Service) Start() {
-	err := certmgr.CheckAndCreateRootCa()
-	if err != nil {
-		hwlog.RunLog.Errorf("start cert restful failed, check cert failed: %v", r.httpsSvr.Port, err)
-		return
-	}
+	go func() {
+		err := certmgr.CheckAndCreateRootCa()
+		if err != nil {
+			hwlog.RunLog.Errorf("start cert restful at %d failed, check cert failed: %v", r.httpsSvr.Port, err)
+			return
+		}
+	}()
 
-	err = r.httpsSvr.Init()
+	err := r.httpsSvr.Init()
 	if err != nil {
 		hwlog.RunLog.Errorf("start restful at %d failed, init https server failed: %v", r.httpsSvr.Port, err)
 		return

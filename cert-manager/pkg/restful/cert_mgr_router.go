@@ -17,8 +17,8 @@ import (
 )
 
 type csrJson struct {
-	certName string
-	csr      string
+	CertName string `json:"certName"`
+	Csr      string `json:"csr"`
 }
 
 func queryRootCA(c *gin.Context) {
@@ -43,13 +43,13 @@ func issueServiceCa(c *gin.Context) {
 		return
 	}
 	// todo 增加checker 验证
-	cert, err := certmgr.IssueServiceCert(csrJsonData.certName, csrJsonData.csr)
+	cert, err := certmgr.IssueServiceCert(csrJsonData.CertName, csrJsonData.Csr)
 	if err != nil {
 		hwlog.RunLog.Errorf("issue service certificate failed: %v", err)
 		common.ConstructResp(c, certconstant.ErrorIssueSrvCert, "issue service certificate failed", nil)
 		return
 	}
-	hwlog.RunLog.Infof("issue [%s] service certificate success", csrJsonData.certName)
+	hwlog.RunLog.Infof("issue [%s] service certificate success", csrJsonData.CertName)
 	common.ConstructResp(c, common.Success, "issue success", string(cert))
 }
 

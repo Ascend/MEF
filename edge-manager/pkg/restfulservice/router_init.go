@@ -4,62 +4,66 @@
 package restfulservice
 
 import (
-	"fmt"
-
-	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
 
-	"edge-manager/pkg/config"
+	"edge-manager/pkg/util"
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/certutils"
+	"huawei.com/mindxedge/base/common/httpsmgr"
 )
 
-type restfulService struct {
-	enable bool
-	engine *gin.Engine
-	port   int
-	ip     string
-}
-
-func initGin() *gin.Engine {
-	gin.SetMode(gin.ReleaseMode)
-	return gin.New()
+// EdgeMgrService [struct] for Edge Manager Service
+type EdgeMgrService struct {
+	enable   bool
+	httpsSvr *httpsmgr.HttpsServer
+	ip       string
 }
 
 // NewRestfulService new restful service
-func NewRestfulService(enable bool, port int) *restfulService {
-	nm := &restfulService{
+func NewRestfulService(enable bool, port int) *EdgeMgrService {
+	nm := &EdgeMgrService{
 		enable: enable,
-		port:   port,
-		engine: initGin(),
+		httpsSvr: &httpsmgr.HttpsServer{
+			Port: port,
+			TlsCertPath: certutils.TlsCertInfo{
+				RootCaPath:    util.RootCaPath,
+				CertPath:      util.ServerCertPath,
+				KeyPath:       util.ServerKeyPath,
+				SvrFlag:       true,
+				IgnoreCltCert: false,
+				KmcCfg:        nil,
+			},
+		},
 	}
 	return nm
 }
 
-// Name for RestfulService name
-func (r *restfulService) Name() string {
+// Name for EdgeMgrService name
+func (r *EdgeMgrService) Name() string {
 	return common.RestfulServiceName
 }
 
-// Start for RestfulService start
-func (r *restfulService) Start() {
-	r.engine.Use(common.LoggerAdapter())
-	setRouter(r.engine)
-	r.engine.GET("/edgemanager/v1/version", versionQuery)
+// Start for EdgeMgrService start
+func (r *EdgeMgrService) Start() {
+	err := r.httpsSvr.Init()
+	if err != nil {
+		hwlog.RunLog.Errorf("start restful at %d failed, init https server failed: %v", r.httpsSvr.Port, err)
+		return
+	}
+	err = r.httpsSvr.RegisterRoutes(setRouter)
+	if err != nil {
+		hwlog.RunLog.Errorf("start restful at %d failed, set routers failed: %v", r.httpsSvr.Port, err)
+		return
+	}
 
 	hwlog.RunLog.Info("start http server now...")
-	err := r.engine.Run(fmt.Sprintf(":%d", r.port))
+	err = r.httpsSvr.Start()
 	if err != nil {
-		hwlog.RunLog.Errorf("start restful at %d fail", r.port)
+		hwlog.RunLog.Errorf("start restful at %d fail", r.httpsSvr.Port)
 	}
 }
 
-// Enable for RestfulService enable
-func (r *restfulService) Enable() bool {
+// Enable for EdgeMgrService enable
+func (r *EdgeMgrService) Enable() bool {
 	return r.enable
-}
-
-func versionQuery(c *gin.Context) {
-	msg := fmt.Sprintf("%s version: %s", config.BuildName, config.BuildVersion)
-	hwlog.OpLog.Infof("query edge manager version: %s successfully", msg)
-	common.ConstructResp(c, common.Success, "", msg)
 }

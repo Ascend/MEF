@@ -5,11 +5,11 @@ package certconstant
 
 const (
 	// ServerCertPath  cert-manager server cert path
-	ServerCertPath = "/home/data/config/certs/cert-manager.crt"
+	ServerCertPath = "/home/data/config/mef-certs/cert-manager.crt"
 	// ServerKeyPath cert-manager server key path
-	ServerKeyPath = "/home/data/config/certs/cert-manager.key"
+	ServerKeyPath = "/home/data/config/mef-certs/cert-manager.key"
 	// RootCaPath  cert-manager server root ca path
-	RootCaPath = "/home/data/inner-root-ca/root.crt"
+	RootCaPath = "/home/data/inner-root-ca/RootCA.crt"
 	// RootCaMgrDir root ca save directory
 	RootCaMgrDir = "/home/data/config/root-ca/"
 	// InnerRootCaDir inner root ca dir

@@ -23,9 +23,10 @@ type CaPairInfoWithPem struct {
 
 // TlsCertInfo [struct] for get tls config parameters
 type TlsCertInfo struct {
-	KeyPath    string
-	CertPath   string
-	KmcCfg     *common.KmcCfg
-	RootCaPath string
-	SvrFlag    bool
+	KmcCfg        *common.KmcCfg
+	KeyPath       string
+	CertPath      string
+	RootCaPath    string
+	SvrFlag       bool
+	IgnoreCltCert bool
 }

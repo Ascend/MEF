@@ -15,9 +15,9 @@ const (
 	// DoMainId default do main id for kmc
 	DoMainId = 0
 	// DefaultPrimaryKeyPath kmc primary key
-	DefaultPrimaryKeyPath = "/home/data/mef/kmc/master.ks"
+	DefaultPrimaryKeyPath = "/home/data/config/kmc/master.ks"
 	// DefaultStandKeyPath kmc stand key
-	DefaultStandKeyPath = "/home/data/mef/kmc/backup.ks"
+	DefaultStandKeyPath = "/home/data/config/kmc/backup.ks"
 )
 
 // KmcCfg kmc config struct
@@ -70,7 +70,7 @@ func DecryptContent(encryptByte []byte, kmcCfg *KmcCfg) ([]byte, error) {
 	}
 	defer func() {
 		if err := kmc.Finalize(); err != nil {
-			hwlog.RunLog.Errorf("%s", err.Error())
+			hwlog.RunLog.Errorf("kmc finalize failed: %s", err.Error())
 		}
 	}()
 	decryptByte, err := kmc.Decrypt(kmcCfg.DoMainId, encryptByte)

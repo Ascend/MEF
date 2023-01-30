@@ -17,6 +17,7 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
 	"huawei.com/mindxedge/base/modulemanager"
@@ -33,11 +34,11 @@ const (
 	defaultWsPort         = 10000
 	defaultRunLogFile     = "/var/log/mindx-edge/edge-manager/run.log"
 	defaultOperateLogFile = "/var/log/mindx-edge/edge-manager/operate.log"
-	defaultDbPath         = "/etc/mindx-edge/edge-manager.db"
+	defaultDbPath         = "/home/data/config/edge-manager.db"
 )
 
 var (
-	serverRunConf = &hwlog.LogConfig{LogFileName: defaultRunLogFile}
+	serverRunConf = &hwlog.LogConfig{LogFileName: defaultRunLogFile, MaxLineLength: 512}
 	serverOpConf  = &hwlog.LogConfig{LogFileName: defaultOperateLogFile}
 	port          int
 	wsPort        int

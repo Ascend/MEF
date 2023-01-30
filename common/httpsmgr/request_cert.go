@@ -17,8 +17,8 @@ const (
 )
 
 type reqIssueCertBody struct {
-	certName string
-	csr      string
+	CertName string `json:"certName"`
+	Csr      string `json:"csr"`
 }
 
 type respBody struct {
@@ -29,14 +29,13 @@ type respBody struct {
 
 // ReqCertParams [struct] for req cert params
 type ReqCertParams struct {
-	Address       string
-	Port          int
 	ClientTlsCert certutils.TlsCertInfo
 }
 
 // GetRootCa [method] for get root ca with certName
 func (rcp *ReqCertParams) GetRootCa(certName string) (string, error) {
-	url := fmt.Sprintf("https://%s:%d/%s/?certName=%s", rcp.Address, rcp.Port, getRootCaUrl, certName)
+	url := fmt.Sprintf("https://%s:%d/%s/?certName=%s", common.CertMgrDns, common.CertMgrPort,
+		getRootCaUrl, certName)
 	httpsReq := GetHttpsReq(url, rcp.ClientTlsCert)
 	resp, err := httpsReq.Get()
 	if err != nil {
@@ -47,9 +46,9 @@ func (rcp *ReqCertParams) GetRootCa(certName string) (string, error) {
 
 // ReqIssueSvrCert [method] for issue server cert
 func (rcp *ReqCertParams) ReqIssueSvrCert(certName string, csr []byte) (string, error) {
-	url := fmt.Sprintf("https://%s:%d/%s", rcp.Address, rcp.Port, reqSvrUrl)
+	url := fmt.Sprintf("https://%s:%d/%s", common.CertMgrDns, common.CertMgrPort, reqSvrUrl)
 	httpsReq := GetHttpsReq(url, rcp.ClientTlsCert)
-	issueCertBody := &reqIssueCertBody{certName: certName, csr: string(certutils.PemWrapCert(csr))}
+	issueCertBody := &reqIssueCertBody{CertName: certName, Csr: string(certutils.PemWrapCert(csr))}
 	jsonBody, err := json.Marshal(issueCertBody)
 	if err != nil {
 		return "", err

@@ -20,6 +20,7 @@ import (
 type InstallComponent struct {
 	Name     string
 	Required bool
+	DnsName  string
 	version  string
 }
 
@@ -28,19 +29,18 @@ type InstallComponent struct {
 func GetCompulsoryMap() map[string]*InstallComponent {
 	return map[string]*InstallComponent{
 		EdgeManagerName: {
-			EdgeManagerName,
-			true,
-			"",
+			Name:     EdgeManagerName,
+			Required: true,
+			DnsName:  common.EdgeMgrDns,
 		},
 		CertManagerName: {
-			CertManagerName,
-			true,
-			"",
+			Name:     CertManagerName,
+			Required: true,
+			DnsName:  common.CertMgrDns,
 		},
 		NginxManagerName: {
-			NginxManagerName,
-			true,
-			"",
+			Name:     NginxManagerName,
+			Required: true,
 		},
 	}
 }
@@ -50,9 +50,9 @@ func GetCompulsoryMap() map[string]*InstallComponent {
 func GetOptionalMap() map[string]*InstallComponent {
 	return map[string]*InstallComponent{
 		SoftwareManagerName: {
-			SoftwareManagerName,
-			false,
-			"",
+			Name:     SoftwareManagerName,
+			Required: false,
+			DnsName:  common.SoftwareMgrDns,
 		},
 	}
 }
@@ -285,6 +285,7 @@ func (c *InstallComponent) PrepareComponentCert(certMng *certutils.RootCertMgr, 
 		SvcCertPath: componentsCertPath,
 		SvcKeyPath:  componentPrivPath,
 		CommonName:  c.Name,
+		DnsName:     c.DnsName,
 		KmcCfg: &common.KmcCfg{
 			SdpAlgID:       common.Aes256gcm,
 			PrimaryKeyPath: certPathMgr.GetComponentMasterKmcPath(c.Name),
