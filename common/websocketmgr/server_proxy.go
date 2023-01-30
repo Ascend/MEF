@@ -112,7 +112,7 @@ func (wsp *WsServerProxy) serveHTTP(w http.ResponseWriter, r *http.Request) {
 	connMgr := &wsConnectMgr{}
 	connMgr.start(conn, clientName, &wsp.ProxyCfg.handlerMgr)
 	wsp.clientMap.Store(clientName, connMgr)
-	hwlog.RunLog.Errorf("client[name=%v, addr=%v] connect", clientName, r.RemoteAddr)
+	hwlog.RunLog.Infof("client [name=%v, addr=%v] connect", clientName, r.RemoteAddr)
 }
 
 func (wsp *WsServerProxy) listen() error {

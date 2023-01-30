@@ -70,19 +70,19 @@ func (cm *wsConnectMgr) receive() {
 		}
 		messageType, reader, err := cm.conn.NextReader()
 		if err != nil {
-			hwlog.RunLog.Errorf("[%s]websocket NextReader error: %v\n", cm.name, err)
+			hwlog.RunLog.Errorf("[%s] websocket NextReader error: %v", cm.name, err)
 			err := cm.stop()
 			if err != nil {
 				return
 			}
 		}
 		if messageType != websocket.TextMessage {
-			hwlog.RunLog.Errorf("[%s]received not support message type: %v\n", cm.name, messageType)
+			hwlog.RunLog.Errorf("[%s] received not support message type: %v", cm.name, messageType)
 			continue
 		}
 		msg, err := io.ReadAll(io.LimitReader(reader, defaultReadLimit))
 		if err != nil {
-			hwlog.RunLog.Errorf("[%s]read msg from reader error: %v\n", cm.name, err)
+			hwlog.RunLog.Errorf("[%s] read msg from reader error: %v", cm.name, err)
 			continue
 		}
 		go cm.handler.handleMsg(msg)
@@ -99,7 +99,7 @@ func (cm *wsConnectMgr) heartbeat() {
 		cm.sendPingMsg()
 		time.Sleep(defaultHeartbeatDuration)
 		if time.Now().Sub(cm.lastAlive) > defaultHeartbeatTimeout {
-			hwlog.RunLog.Errorf("[%s]heartbeat timeout", cm.name)
+			hwlog.RunLog.Errorf("[%s] heartbeat timeout", cm.name)
 			err := cm.stop()
 			if err != nil {
 				return
@@ -110,7 +110,7 @@ func (cm *wsConnectMgr) heartbeat() {
 
 func (cm *wsConnectMgr) pingHandle(appData string) error {
 	cm.lastAlive = time.Now()
-	hwlog.RunLog.Infof("[%s] received ping message: %v\n", cm.name, appData)
+	hwlog.RunLog.Debugf("[%s] received ping message: %v", cm.name, appData)
 	return nil
 }
 
@@ -125,7 +125,7 @@ func (cm *wsConnectMgr) send(msg wsMessage) error {
 	cm.sendLock.Lock()
 	defer cm.sendLock.Unlock()
 	if !cm.isConnected() {
-		return fmt.Errorf("[%s]websocket not connect, please connect first", cm.name)
+		return fmt.Errorf("[%s] websocket not connect, please connect first", cm.name)
 	}
 
 	err := cm.conn.WriteMessage(msg.MsgType, msg.Value)
@@ -137,12 +137,12 @@ func (cm *wsConnectMgr) send(msg wsMessage) error {
 
 func (cm *wsConnectMgr) pongHandle(appData string) error {
 	cm.lastAlive = time.Now()
-	hwlog.RunLog.Infof("[%s] received pong message: %v\n", cm.name, appData)
+	hwlog.RunLog.Debugf("[%s] received pong message: %v", cm.name, appData)
 	return nil
 }
 
 func (cm *wsConnectMgr) closeHandle(code int, text string) error {
-	hwlog.RunLog.Errorf("[%s]websocket connection closed, code:%d, text:%v\n", cm.name, code, text)
+	hwlog.RunLog.Errorf("[%s] websocket connection closed, code:%d, text:%v", cm.name, code, text)
 	err := cm.stop()
 	if err != nil {
 		return err
