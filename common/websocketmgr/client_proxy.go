@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"huawei.com/mindx/common/hwlog"
 )
 
 type wsMessage struct {
@@ -28,6 +29,15 @@ func (wcp *WsClientProxy) GetName() string {
 
 // Start websocket client start
 func (wcp *WsClientProxy) Start() error {
+	if err := wcp.start(); err != nil {
+		hwlog.RunLog.Errorf("websocket start failed, error: %v", err)
+		return err
+	}
+	go wcp.ReConnect()
+	return nil
+}
+
+func (wcp *WsClientProxy) start() error {
 	dialer := &websocket.Dialer{
 		TLSClientConfig:  wcp.ProxyCfg.tlsConfig,
 		HandshakeTimeout: handshakeTimeout,
@@ -38,9 +48,30 @@ func (wcp *WsClientProxy) Start() error {
 	if err != nil {
 		return fmt.Errorf("connect the server failed: %v", err)
 	}
+	hwlog.RunLog.Info("websocket client connect the server success")
 	wcp.connMgr = &wsConnectMgr{}
 	wcp.connMgr.start(connect, wcp.ProxyCfg.name, &wcp.ProxyCfg.handlerMgr)
 	return nil
+}
+
+// ReConnect  reconnecting with websocket server
+func (wcp *WsClientProxy) ReConnect() {
+	for {
+		select {
+		case <-wcp.ProxyCfg.ctx.Done():
+			return
+		default:
+		}
+		time.Sleep(reconnectWaitTime)
+		if wcp.IsConnected() {
+			continue
+		}
+		hwlog.RunLog.Info("websocket client start reconnecting now...")
+		if err := wcp.start(); err != nil {
+			hwlog.RunLog.Errorf("websocket client start failed, error: %v", err)
+			continue
+		}
+	}
 }
 
 // Stop websocket client stop

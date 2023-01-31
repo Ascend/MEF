@@ -20,4 +20,5 @@ const (
 	defaultRetryCount = 5
 	clientNameKey     = "clientName"
 	retryTime         = 5 * time.Second
+	reconnectWaitTime = 2 * time.Second
 )

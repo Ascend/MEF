@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
@@ -33,7 +34,7 @@ func (wcs *WsCltSender) Send(msg *model.Message) error {
 	}
 	err = wcs.proxy.Send(sendMsg)
 	if err != nil {
-		hwlog.RunLog.Errorf("websocket client send data failed: %v\n", err)
+		hwlog.RunLog.Errorf("websocket client send data failed: %v", err)
 		return err
 	}
 	return nil

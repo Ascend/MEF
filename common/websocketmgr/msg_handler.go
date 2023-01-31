@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
@@ -30,7 +31,7 @@ func (wh *WsMsgHandler) handleMsg(msgBytes []byte) {
 	var msg model.Message
 	err := json.Unmarshal(msgBytes, &msg)
 	if err != nil {
-		hwlog.RunLog.Errorf("Unmarshal message failed: %v\n", err)
+		hwlog.RunLog.Errorf("Unmarshal message failed: %v", err)
 		return
 	}
 	if msg.GetParentId() == "" {
@@ -46,7 +47,7 @@ func (wh *WsMsgHandler) handleMsg(msgBytes []byte) {
 	}
 	err = modulemanager.SendMessage(&msg)
 	if err != nil {
-		hwlog.RunLog.Errorf("send module message failed: %v\n", err)
+		hwlog.RunLog.Errorf("send module message failed: %v", err)
 		return
 	}
 }
