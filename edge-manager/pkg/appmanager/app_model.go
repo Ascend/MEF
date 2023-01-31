@@ -103,7 +103,7 @@ func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) ([]
 
 func (a *AppRepositoryImpl) countListAppsInfo(name string) (int64, error) {
 	var totalAppInfo int64
-	if err := a.db.Model(AppInfo{}).Where("app_name like ?", "%"+name+"%").Count(&totalAppInfo).Error; err != nil {
+	if err := a.db.Model(AppInfo{}).Where("INSTR(app_name, ?)", name).Count(&totalAppInfo).Error; err != nil {
 		return 0, err
 	}
 	return totalAppInfo, nil
@@ -158,7 +158,7 @@ func (a *AppRepositoryImpl) getAppInfoByName(appName string) (*AppInfo, error) {
 
 func getAppInfoByLikeName(page, pageSize uint64, appName string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Scopes(common.Paginate(page, pageSize)).Where("app_name like ?", "%"+appName+"%")
+		return db.Scopes(common.Paginate(page, pageSize)).Where("INSTR(app_name, ?)", appName)
 	}
 }
 

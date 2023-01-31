@@ -78,7 +78,7 @@ func (r *repositoryImpl) updateTemplate(template *AppTemplateDb) error {
 
 func getTemplateByLikeName(page, pageSize uint64, appName string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Scopes(common.Paginate(page, pageSize)).Where("template_name like ?", "%"+appName+"%")
+		return db.Scopes(common.Paginate(page, pageSize)).Where("INSTR(template_name, ?)", appName)
 	}
 }
 
@@ -107,8 +107,8 @@ func (r *repositoryImpl) getTemplate(id uint64) (*AppTemplateDb, error) {
 
 func (r *repositoryImpl) getTemplateCount(name string) (int64, error) {
 	var totalTemplateCount int64
-	if err := r.db.Model(AppTemplateDb{}).Where("template_name like ?",
-		"%"+name+"%").Count(&totalTemplateCount).Error; err != nil {
+	if err := r.db.Model(AppTemplateDb{}).Where("INSTR(template_name, ?)",
+		name).Count(&totalTemplateCount).Error; err != nil {
 		hwlog.RunLog.Error("count list appInfo db failed")
 		return 0, err
 	}

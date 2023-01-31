@@ -126,7 +126,7 @@ func (n *NodeServiceImpl) countNodeGroupsByName(nodeGroup string) (int64, error)
 
 func whereGroupNameLike(nodeGroupName string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("group_name like ?", "%"+nodeGroupName+"%")
+		return db.Where("INSTR(group_name, ?)", nodeGroupName)
 	}
 }
 
@@ -162,7 +162,7 @@ func (n *NodeServiceImpl) getNodeByID(nodeID int64) (*NodeInfo, error) {
 
 func getNodeByLikeName(page, pageSize uint64, nodeName string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Scopes(common.Paginate(page, pageSize)).Where("node_name like ?", "%"+nodeName+"%")
+		return db.Scopes(common.Paginate(page, pageSize)).Where("INSTR(node_name, ?)", nodeName)
 	}
 }
 
