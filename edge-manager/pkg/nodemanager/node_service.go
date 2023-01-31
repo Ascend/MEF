@@ -71,19 +71,33 @@ func getNodeDetail(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("query node detail failed: para type not valid")
 		return common.RespMsg{Status: "", Msg: "query node detail failed", Data: nil}
 	}
+	var resp NodeInfoDetail
 	nodeInfo, err := NodeServiceInstance().getNodeByID(id)
 	if err != nil {
 		hwlog.RunLog.Error("get node detail db query error")
 		return common.RespMsg{Status: "", Msg: "db query error", Data: nil}
 	}
-	nodeGroupName, err := evalNodeGroup(id)
+	resp.NodeInfo = *nodeInfo
+	resp.NodeGroup, err = evalNodeGroup(id)
 	if err != nil {
 		hwlog.RunLog.Errorf("get node detail db query error, %s", err.Error())
 		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
-	nodeInfoDynamic, _ := NodeStatusServiceInstance().Get(nodeInfo.UniqueName)
-	var resp NodeInfoDetail
-	resp.Extend(nodeInfo, nodeInfoDynamic, nodeGroupName)
+	nodeResource, err := NodeStatusServiceInstance().GetAllocatableResource(nodeInfo.UniqueName)
+	if err != nil {
+		hwlog.RunLog.Warnf("get node detail query node resource error, %s", err.Error())
+		nodeResource = &NodeResource{}
+	}
+	resp.NodeResource = *nodeResource
+	resp.Status, err = NodeStatusServiceInstance().GetNodeStatus(nodeInfo.UniqueName)
+	if err != nil {
+		hwlog.RunLog.Warnf("get node detail query node status error, %s", err.Error())
+		resp.Status = statusOffline
+	}
+	resp.Npu, err = NodeStatusServiceInstance().GetAllocatableNpu(nodeInfo.UniqueName)
+	if err != nil {
+		hwlog.RunLog.Warnf("get node detail query node npu error, %s", err.Error())
+	}
 	hwlog.RunLog.Info("node detail db query success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
@@ -123,10 +137,10 @@ func getNodeStatistics(interface{}) common.RespMsg {
 		hwlog.RunLog.Error("failed to get node statistics, db query failed")
 		return common.RespMsg{Msg: "db query failed"}
 	}
-	nodeInfoDynamics := NodeStatusServiceInstance().List()
 	statusMap := make(map[string]string)
-	for _, dynamic := range *nodeInfoDynamics {
-		statusMap[dynamic.Hostname] = dynamic.Status
+	allNodeStatus := NodeStatusServiceInstance().ListNodeStatus()
+	for hostname, status := range allNodeStatus {
+		statusMap[hostname] = status
 	}
 	resp := make(map[string]int64)
 	for _, node := range *nodes {
@@ -170,21 +184,24 @@ func listManagedNode(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("list node failed")
 		return common.RespMsg{Status: "", Msg: "list node failed", Data: nil}
 	}
-	var nodeInfoDetails []NodeInfoDetail
+	var nodeList []NodeInfoExManaged
 	for _, nodeInfo := range *nodes {
-		nodeGroup, err := evalNodeGroup(nodeInfo.ID)
+		var respItem NodeInfoExManaged
+		respItem.NodeInfo = nodeInfo
+		respItem.NodeGroup, err = evalNodeGroup(nodeInfo.ID)
 		if err != nil {
 			hwlog.RunLog.Errorf("list node db error: %s", err.Error())
 			return common.RespMsg{Msg: err.Error()}
 		}
-		nodeInfoDynamic, _ := NodeStatusServiceInstance().Get(nodeInfo.UniqueName)
-		var nodeInfoDetail NodeInfoDetail
-		nodeInfoDetail.Extend(&nodeInfo, nodeInfoDynamic, nodeGroup)
-		nodeInfoDetails = append(nodeInfoDetails, nodeInfoDetail)
+		respItem.Status, err = NodeStatusServiceInstance().GetNodeStatus(nodeInfo.UniqueName)
+		if err != nil {
+			respItem.Status = statusOffline
+		}
+		nodeList = append(nodeList, respItem)
 	}
 	resp := ListNodesResp{
-		Nodes: &nodeInfoDetails,
-		Total: len(*nodes),
+		Nodes: nodeList,
+		Total: len(nodeList),
 	}
 	hwlog.RunLog.Info("list node success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
@@ -204,16 +221,19 @@ func listUnmanagedNode(input interface{}) common.RespMsg {
 	}
 	nodes, err := NodeServiceInstance().listUnManagedNodesByName(req.PageNum, req.PageSize, req.Name)
 	if err == nil {
-		var nodeInfoExs []NodeInfoEx
+		var nodeList []NodeInfoEx
 		for _, node := range *nodes {
-			nodeInfoDynamic, _ := NodeStatusServiceInstance().Get(node.UniqueName)
-			var nodeInfoEx NodeInfoEx
-			nodeInfoEx.Extend(&node, nodeInfoDynamic)
-			nodeInfoExs = append(nodeInfoExs, nodeInfoEx)
+			var respItem NodeInfoEx
+			respItem.NodeInfo = node
+			respItem.Status, err = NodeStatusServiceInstance().GetNodeStatus(node.UniqueName)
+			if err != nil {
+				respItem.Status = statusOffline
+			}
+			nodeList = append(nodeList, respItem)
 		}
 		resp := ListNodesUnmanagedResp{
-			Nodes: &nodeInfoExs,
-			Total: len(*nodes),
+			Nodes: nodeList,
+			Total: len(nodeList),
 		}
 		hwlog.RunLog.Info("list node unmanaged success")
 		return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
@@ -283,20 +303,22 @@ func listNode(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("list all nodes failed")
 		return common.RespMsg{Status: "", Msg: "list all nodes failed", Data: nil}
 	}
-	var nodeInfoDetails []NodeInfoDetail
+	var nodeList []NodeInfoExManaged
 	for _, nodeInfo := range *nodes {
-		nodeGroup, err := evalNodeGroup(nodeInfo.ID)
+		var respItem NodeInfoExManaged
+		respItem.NodeGroup, err = evalNodeGroup(nodeInfo.ID)
 		if err != nil {
 			hwlog.RunLog.Errorf("list node id [%d] db error: %s", nodeInfo.ID, err.Error())
 			return common.RespMsg{Msg: err.Error()}
 		}
-		nodeInfoDynamic, _ := NodeStatusServiceInstance().Get(nodeInfo.UniqueName)
-		var nodeInfoDetail NodeInfoDetail
-		nodeInfoDetail.Extend(&nodeInfo, nodeInfoDynamic, nodeGroup)
-		nodeInfoDetails = append(nodeInfoDetails, nodeInfoDetail)
+		respItem.Status, err = NodeStatusServiceInstance().GetNodeStatus(nodeInfo.UniqueName)
+		if err != nil {
+			respItem.Status = statusOffline
+		}
+		nodeList = append(nodeList, respItem)
 	}
 	resp := ListNodesResp{
-		Nodes: &nodeInfoDetails,
+		Nodes: nodeList,
 		Total: len(*nodes),
 	}
 	hwlog.RunLog.Info("list all nodes success")
@@ -584,13 +606,13 @@ func innerGetNodeStatus(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("parse inner message content failed")
 		return common.RespMsg{Status: "", Msg: "parse inner message content failed", Data: nil}
 	}
-	nodeInfoDynamic, ok := NodeStatusServiceInstance().Get(req.UniqueName)
-	if !ok {
+	status, err := NodeStatusServiceInstance().GetNodeStatus(req.UniqueName)
+	if err != nil {
 		hwlog.RunLog.Error("inner message get node status failed")
 		return common.RespMsg{Status: "", Msg: "internal get node status failed", Data: nil}
 	}
 	resp := types.InnerGetNodeStatusResp{
-		NodeStatus: nodeInfoDynamic.Status,
+		NodeStatus: status,
 	}
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }

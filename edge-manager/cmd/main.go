@@ -89,7 +89,7 @@ func init() {
 
 	// hwOpLog configuration
 	flag.IntVar(&serverOpConf.LogLevel, "operateLogLevel", 0,
-		"Operation log level, -1-debug, 0-info, 1-warning, 2-error, 3-dpanic, 4-panic, 5-fatal (default 0)")
+		"Operation log level, -1-debug, 0-info, 1-warning, 2-error, 3-fatal (default 0)")
 	flag.IntVar(&serverOpConf.MaxAge, "operateLogMaxAge", hwlog.DefaultMinSaveAge,
 		"Maximum number of days for backup operation log files, must be greater than or equal to 7 days")
 	flag.StringVar(&serverOpConf.LogFileName, "operateLogFile", defaultOperateLogFile,
@@ -99,7 +99,7 @@ func init() {
 
 	// hwRunLog configuration
 	flag.IntVar(&serverRunConf.LogLevel, "runLogLevel", 0,
-		"Run log level, -1-debug, 0-info, 1-warning, 2-error, 3-dpanic, 4-panic, 5-fatal (default 0)")
+		"Run log level, -1-debug, 0-info, 1-warning, 2-error, 3-fatal (default 0)")
 	flag.IntVar(&serverRunConf.MaxAge, "runLogMaxAge", hwlog.DefaultMinSaveAge,
 		"Maximum number of days for backup run log files, must be greater than or equal to 7 days")
 	flag.StringVar(&serverRunConf.LogFileName, "runLogFile", defaultRunLogFile,

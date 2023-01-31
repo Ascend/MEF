@@ -17,14 +17,6 @@ type CreateNodeGroupReq struct {
 	NodeGroupName *string `json:"nodeGroupName"`
 }
 
-// GetNodeDetailReq request object
-type GetNodeDetailReq struct {
-	ID int64 `json:"id" uri:"id"`
-}
-
-// GetNodeGroupDetailReq request object
-type GetNodeGroupDetailReq = GetNodeDetailReq
-
 // BatchDeleteNodeReq batch delete node
 type BatchDeleteNodeReq []int64
 
@@ -84,14 +76,14 @@ type ListNodeGroupResp struct {
 
 // ListNodesResp list managed nodes response
 type ListNodesResp struct {
-	Nodes *[]NodeInfoDetail `json:"nodes"`
-	Total int               `json:"total"`
+	Nodes []NodeInfoExManaged `json:"nodes"`
+	Total int                 `json:"total"`
 }
 
 // ListNodesUnmanagedResp list unmanaged nodes response
 type ListNodesUnmanagedResp struct {
-	Nodes *[]NodeInfoEx `json:"nodes"`
-	Total int           `json:"total"`
+	Nodes []NodeInfoEx `json:"nodes"`
+	Total int          `json:"total"`
 }
 
 // NodeGroupDetail get node group detail response
@@ -106,43 +98,21 @@ type NodeGroupEx struct {
 	NodeCount int64 `json:"nodeCount"`
 }
 
-// Extend construct NodeGroupEx
-func (n *NodeGroupEx) Extend(nodeGroup *NodeGroup, nodeCount int64) {
-	*n = NodeGroupEx{
-		NodeGroup: *nodeGroup,
-		NodeCount: nodeCount,
-	}
-}
-
-// NodeInfoEx contains static info and dynamic info
+// NodeInfoEx node information for unmanaged node
 type NodeInfoEx struct {
 	NodeInfo
-	NodeInfoDynamic
+	Status string `json:"status"`
 }
 
-// Extend construct NodeInfoEx
-func (n *NodeInfoEx) Extend(info *NodeInfo, dynamicInfo *NodeInfoDynamic) {
-	if dynamicInfo == nil {
-		dynamicInfo = &NodeInfoDynamic{Status: statusOffline}
-	}
-	*n = NodeInfoEx{
-		NodeInfo:        *info,
-		NodeInfoDynamic: *dynamicInfo,
-	}
-}
-
-// NodeInfoDetail contains static info, dynamic info and group names
-type NodeInfoDetail struct {
+// NodeInfoExManaged node information for managed node
+type NodeInfoExManaged struct {
 	NodeInfoEx
 	NodeGroup string `json:"nodeGroup"`
 }
 
-// Extend construct NodeInfoDetail
-func (n *NodeInfoDetail) Extend(info *NodeInfo, dynamicInfo *NodeInfoDynamic, nodeGroup string) {
-	var nodeInfoEx NodeInfoEx
-	nodeInfoEx.Extend(info, dynamicInfo)
-	*n = NodeInfoDetail{
-		NodeInfoEx: nodeInfoEx,
-		NodeGroup:  nodeGroup,
-	}
+// NodeInfoDetail contains static info, dynamic info and group names
+type NodeInfoDetail struct {
+	NodeInfoExManaged
+	NodeResource
+	Npu int64 `json:"npu"`
 }

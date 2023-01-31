@@ -80,8 +80,10 @@ func (e *environment) setupGoMonkeyPatches(db *gorm.DB) *Patches {
 	client := &kubeclient.Client{}
 	return ApplyFuncReturn(database.GetDb, db).
 		ApplyFuncReturn(NodeStatusServiceInstance, service).
-		ApplyMethodReturn(service, "List", &[]NodeInfoDynamic{}).
-		ApplyMethodReturn(service, "Get", nil, false).
+		ApplyMethodReturn(service, "ListNodeStatus", map[string]string{}).
+		ApplyMethodReturn(service, "GetNodeStatus", statusOffline, nil).
+		ApplyMethodReturn(service, "GetAllocatableResource", &NodeResource{}, nil).
+		ApplyMethodReturn(service, "GetAllocatableNpu", int64(0), nil).
 		ApplyFuncReturn(kubeclient.GetKubeClient, client).
 		ApplyPrivateMethod(client, "patchNode", e.mockPatchNode).
 		ApplyMethodReturn(client, "ListNode", &v1.NodeList{}, nil).
