@@ -117,13 +117,13 @@ func (ci *ConfigmapRepositoryImpl) listConfigmapInfo(page, pageSize uint64, name
 
 func getConfigmapInfoByLikeName(page, pageSize uint64, configmapName string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Scopes(common.Paginate(page, pageSize)).Where("configmap_name like ?", "%"+configmapName+"%")
+		return db.Scopes(common.Paginate(page, pageSize)).Where("INSTR(configmap_name, ?)", configmapName)
 	}
 }
 
 func (ci *ConfigmapRepositoryImpl) configmapInfosListCountByName(name string) (int64, error) {
 	var totalConfigmapInfo int64
-	if err := ci.db.Model(ConfigmapInfo{}).Where("configmap_name like ?", "%"+name+"%").
+	if err := ci.db.Model(ConfigmapInfo{}).Where("INSTR(configmap_name, ?)", name).
 		Count(&totalConfigmapInfo).Error; err != nil {
 		return 0, err
 	}
