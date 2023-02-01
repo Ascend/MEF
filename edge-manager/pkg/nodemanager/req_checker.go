@@ -66,6 +66,10 @@ func newAddNodeRelationChecker() *checker.AndChecker {
 	)
 }
 
+func newDeleteNodeFromGroupChecker() *checker.AndChecker {
+	return newAddNodeRelationChecker()
+}
+
 func newAddUnManagedNodeChecker() *checker.AndChecker {
 	return checker.GetAndChecker(
 		idChecker(fieldNodeID),

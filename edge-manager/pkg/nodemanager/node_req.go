@@ -24,8 +24,8 @@ type BatchDeleteNodeReq struct {
 
 // DeleteNodeToGroupReq delete nodes to group
 type DeleteNodeToGroupReq struct {
-	GroupID *uint64  `json:"groupID"`
-	NodeIDs *[]int64 `json:"nodeIDs"`
+	GroupID *uint64   `json:"groupID"`
+	NodeIDs *[]uint64 `json:"nodeIDs"`
 }
 
 // BatchDeleteNodeRelationReq delete multiple node-group relation
