@@ -39,6 +39,7 @@ type AppRepository interface {
 	listAppInstancesById(uint64) ([]AppInstance, error)
 	listAppInstancesByNode(int64) ([]AppInstance, error)
 	listAppInstances(page, pageSize uint64, name string) ([]AppInstance, error)
+	countListAppInstances(string) (int64, error)
 	deleteAllRemainingInstance() error
 	addPod(*AppInstance) error
 	updatePod(*AppInstance) error
@@ -185,6 +186,15 @@ func (a *AppRepositoryImpl) listAppInstances(page, pageSize uint64, name string)
 		return nil, err
 	}
 	return deployedApps, nil
+}
+
+func (a *AppRepositoryImpl) countListAppInstances(name string) (int64, error) {
+	var totalAppInstances int64
+	if err := a.db.Model(AppInstance{}).Where("INSTR(app_name, ?)", name).
+		Count(&totalAppInstances).Error; err != nil {
+		return 0, err
+	}
+	return totalAppInstances, nil
 }
 
 func (a *AppRepositoryImpl) deleteAllRemainingInstance() error {
