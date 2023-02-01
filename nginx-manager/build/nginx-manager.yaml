@@ -20,32 +20,28 @@ spec:
     spec:
       nodeSelector:
         mef-center-node: ""
-      imagePullSecrets:
-        - name: image-pull-secret
       serviceAccountName: ascend-nginx-manager
       containers:
         - name: ascend-nginx-manager
           image: ascend-nginx-manager:v1
           env:
-            - name: EdgeMgrSvcDomain
-              value: "ascend-edge-manager.mef-center.svc.cluster.local"
             - name: EdgeMgrSvcPort
               value: "8101"
-            - name: SoftwareMgrSvcDomain
-              value: "ascend-software-manager.mef-center.svc.cluster.local"
             - name: SoftwareMgrSvcPort
               value: "8102"
-            - name: CertMgrSvcDomain
-              value: "ascend-cert-manager.mef-center.svc.cluster.local"
             - name: CertMgrSvcPort
               value: "8103"
+            - name: NginxSslPort
+              value: "8443"
+            - name: DefaultUsername
+              value: "admin"
             - name: installed-module
               value: ${installed_module}
           command: [ "/bin/bash", "-c", "--"]
           args: ["./nginx-manager"]
           volumeMounts:
             - name: nginx-manager-log
-              mountPath: /home/MEFCenter/log/
+              mountPath: /home/MEFCenter/logs/
             - name: root-ca
               mountPath: /home/data/inner-root-ca/
             - name: nginx-manager-config
@@ -60,7 +56,6 @@ spec:
         - name: nginx-manager-log
           hostPath:
             path: ${log}
-
 ---
 apiVersion: v1
 kind: Service
@@ -71,7 +66,7 @@ metadata:
     app: ascend-nginx-manager
 spec:
   ports:
-    - name: port443
+    - name: port8443
       port: 8443
       targetPort: 8443
       protocol: TCP

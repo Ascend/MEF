@@ -8,23 +8,14 @@ const (
 	KeyPrefix = "set $"
 	// ClientPipePrefix 内部https转发使用的pipe前缀
 	ClientPipePrefix = "client_pipe"
-	// EdgeUrlKey url对应在配置文件的key
-	EdgeUrlKey = "EdgeMgrSvcDomain"
 	// EdgePortKey port对应在配置文件的key
 	EdgePortKey = "EdgeMgrSvcPort"
-	// SoftUrlKey 软件仓url对应的key
-	SoftUrlKey = "SoftwareMgrSvcDomain"
 	// SoftPortKey 软件仓port对应的key
 	SoftPortKey = "SoftwareMgrSvcPort"
-	// CertUrlKey 软件仓url对应的key
-	CertUrlKey = "CertMgrSvcDomain"
-	// CertPortKey 软件仓port对应的key
+	// CertPortKey 证书服务port对应的key
 	CertPortKey = "CertMgrSvcPort"
-
-	// UrlPattern 校验url的正则
-	UrlPattern = "^[a-z][a-z-.]{1,64}$"
 	// PortMin 端口最小值
-	PortMin = 1
+	PortMin = 1024
 	// PortMax 端口最大值
 	PortMax = 65535
 	// NginxDefaultConfigPath nginx配置文件模板
@@ -55,4 +46,6 @@ const (
 	ReqRestartNginx = "ReqRestartNginx"
 	// RespRestartNginx 回复重启Nginx操作
 	RespRestartNginx = "RespRestartNginx"
+	// NginxSslPortKey nginx使用ssl的端口
+	NginxSslPortKey = "NginxSslPort"
 )

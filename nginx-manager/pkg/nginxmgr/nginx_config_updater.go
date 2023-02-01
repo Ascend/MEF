@@ -7,11 +7,13 @@ import (
 	"bytes"
 	"fmt"
 
+	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/utils"
+
+	"huawei.com/mindxedge/base/common"
+
 	"nginx-manager/pkg/checker"
 	"nginx-manager/pkg/nginxcom"
-
-	"huawei.com/mindx/common/utils"
-	"huawei.com/mindxedge/base/common"
 )
 
 type nginxConfUpdater struct {
@@ -20,16 +22,17 @@ type nginxConfUpdater struct {
 }
 
 // NewNginxConfUpdater 创建一个nginx配置文件修改器
-func NewNginxConfUpdater(confItems []nginxcom.NginxConfItem, confPath string) (*nginxConfUpdater, error) {
+func NewNginxConfUpdater(confItems []nginxcom.NginxConfItem, confPath string) *nginxConfUpdater {
 	return &nginxConfUpdater{
 		confItems: confItems,
 		confPath:  confPath,
-	}, nil
+	}
 }
 
 func loadConf(path string) ([]byte, error) {
 	b, err := utils.LoadFile(path)
 	if err != nil {
+		hwlog.RunLog.Errorf("failed to read file. error:%s", err.Error())
 		return nil, fmt.Errorf("failed to read file. error:%s", err.Error())
 	}
 	return b, nil
@@ -63,6 +66,7 @@ func (n *nginxConfUpdater) updateUrl(content []byte) error {
 	}
 	err := common.WriteData(nginxcom.NginxConfigPath, content)
 	if err != nil {
+		hwlog.RunLog.Errorf("writeFile failed. error:%s", err.Error())
 		return fmt.Errorf("writeFile failed. error:%s", err.Error())
 	}
 	return nil

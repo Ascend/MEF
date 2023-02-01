@@ -7,7 +7,12 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 
+	"nginx-manager/pkg/checker"
+	"nginx-manager/pkg/nginxcom"
 	"nginx-manager/pkg/nginxmgr"
 	"nginx-manager/pkg/nginxmonitor"
 
@@ -18,8 +23,8 @@ import (
 )
 
 const (
-	runLogFile     = "/home/MEFCenter/log/run.log"
-	operateLogFile = "/home/MEFCenter/log/operate.log"
+	runLogFile     = "/home/MEFCenter/logs/run.log"
+	operateLogFile = "/home/MEFCenter/logs/operate.log"
 )
 
 var (
@@ -34,13 +39,16 @@ func main() {
 		fmt.Printf("initialize hwlog failed, %s.\n", err.Error())
 		return
 	}
-	if err := register(); err != nil {
-		fmt.Printf("register module failed, %s.\n", err.Error())
+	if err := initResource(); err != nil {
+		hwlog.RunLog.Errorf("initialize resource failed, %s", err.Error())
 		return
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	<-ctx.Done()
+	if err := register(ctx); err != nil {
+		hwlog.RunLog.Errorf("register module failed, %s", err.Error())
+		return
+	}
+	gracefulShutdown(cancel)
 }
 
 func init() {
@@ -65,14 +73,32 @@ func init() {
 		"Maximum number of backup run logs, range (0, 30]")
 }
 
-func register() error {
-	modulemanager.ModuleInit()
-	if err := modulemanager.Registry(nginxmgr.NewNginxManager(true)); err != nil {
+func initResource() error {
+	nginxcom.InitEnvs()
+	if err := checker.Check(checker.Env, nginxcom.Envs); err != nil {
 		return err
 	}
-	if err := modulemanager.Registry(nginxmonitor.NewNginxMonitor(true)); err != nil {
+	return nil
+}
+
+func register(ctx context.Context) error {
+	modulemanager.ModuleInit()
+	if err := modulemanager.Registry(nginxmgr.NewNginxManager(true, ctx)); err != nil {
+		return err
+	}
+	if err := modulemanager.Registry(nginxmonitor.NewNginxMonitor(true, ctx)); err != nil {
 		return err
 	}
 	modulemanager.Start()
 	return nil
+}
+
+func gracefulShutdown(cancelFunc context.CancelFunc) {
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGHUP, syscall.SIGTERM,
+		syscall.SIGQUIT, syscall.SIGILL, syscall.SIGTRAP, syscall.SIGABRT)
+	select {
+	case <-signalChan:
+	}
+	cancelFunc()
 }

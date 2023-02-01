@@ -19,38 +19,35 @@ import (
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
-const (
-	nginxUsedPort   = 8443
-	splitCount      = 2
-	tcpFilePath     = "/proc/net/tcp"
-	monitorInterval = 5 * time.Second
-)
-
 type mStatus int
 
 const (
-	idle       mStatus = 0
-	processing mStatus = 1
+	splitCount              = 2
+	tcpFilePath             = "/proc/net/tcp"
+	monitorInterval         = 5 * time.Second
+	idle            mStatus = 0
+	processing      mStatus = 1
 )
+
+var nginxSslPort int
 
 type monitorItem struct {
 	monitorType   string
 	monitorStatus mStatus
-	monitorTarget int64
 }
 
-var monitorPortItem = monitorItem{monitorType: "port", monitorStatus: idle, monitorTarget: nginxUsedPort}
+var monitorPortItem = monitorItem{monitorType: "port", monitorStatus: idle}
 
 type nginxMonitor struct {
 	enable bool
-	ctx    chan struct{}
+	ctx    context.Context
 }
 
 // NewNginxMonitor create NewNginxManager module
-func NewNginxMonitor(enable bool) model.Module {
+func NewNginxMonitor(enable bool, ctx context.Context) model.Module {
 	return &nginxMonitor{
 		enable: enable,
-		ctx:    make(chan struct{}),
+		ctx:    ctx,
 	}
 }
 
@@ -61,23 +58,32 @@ func (n *nginxMonitor) Name() string {
 
 // Enable module enable
 func (n *nginxMonitor) Enable() bool {
+	sslPort, err := nginxcom.GetEnvAsInt(nginxcom.NginxSslPortKey)
+	if err != nil {
+		return false
+	}
+	nginxSslPort = sslPort
+	hwlog.RunLog.Infof("%s: %d", nginxcom.NginxSslPortKey, nginxSslPort)
 	return n.enable
 }
 
 // Start module start
 func (n *nginxMonitor) Start() {
 	registerHandlers()
-	go startMonitor()
+	go startMonitor(n.ctx)
 	for {
 		select {
-		case <-n.ctx:
+		case _, ok := <-n.ctx.Done():
+			if !ok {
+				hwlog.RunLog.Info("nginx monitor service catch stop signal channel is closed")
+			}
+			hwlog.RunLog.Info("nginx monitor service has listened stop signal")
 			return
 		default:
 		}
 		req, err := modulemanager.ReceiveMessage(nginxcom.NginxMonitorName)
-		hwlog.RunLog.Infof("%s receive request from software manager", nginxcom.NginxMonitorName)
 		if err != nil {
-			hwlog.RunLog.Errorf("%s receive request from software manager failed", nginxcom.NginxMonitorName)
+			hwlog.RunLog.Errorf("%s receive request failed", nginxcom.NginxMonitorName)
 			continue
 		}
 		msgutil.Handle(req)
@@ -89,12 +95,14 @@ func registerHandlers() {
 	msgutil.RegisterHandlers(msgutil.Combine(nginxcom.ReqActiveMonitor, nginxcom.Monitor), reqActiveMonitor)
 }
 
-func startMonitor() {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+func startMonitor(ctx context.Context) {
 	for {
 		select {
-		case <-ctx.Done():
+		case _, ok := <-ctx.Done():
+			if !ok {
+				hwlog.RunLog.Info("nginx monitor catch stop signal channel is closed")
+			}
+			hwlog.RunLog.Info("nginx monitor has listened stop signal")
 			return
 		default:
 		}
@@ -102,7 +110,7 @@ func startMonitor() {
 		if monitorPortItem.monitorStatus != processing {
 			continue
 		}
-		isUp := isNginxUp(monitorPortItem.monitorTarget)
+		isUp := isNginxUp(nginxSslPort)
 		if !isUp {
 			msgutil.SendVoidMsg(nginxcom.NginxMonitorName, nginxcom.NginxManagerName,
 				nginxcom.ReqRestartNginx, nginxcom.Nginx)
@@ -111,7 +119,7 @@ func startMonitor() {
 	}
 }
 
-func isNginxUp(targetPort int64) bool {
+func isNginxUp(targetPort int) bool {
 	data, err := ioutil.ReadFile(tcpFilePath)
 	if err != nil {
 		hwlog.RunLog.Error(err)
@@ -132,11 +140,11 @@ func isNginxUp(targetPort int64) bool {
 		if err != nil {
 			continue
 		}
-		if port == targetPort {
+		if int(port) == targetPort {
 			return true
 		}
 	}
-	hwlog.RunLog.Errorf("port %d not used, nginx is down", nginxUsedPort)
+	hwlog.RunLog.Errorf("port %d not used, nginx is down", targetPort)
 	return false
 }
 

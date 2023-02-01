@@ -4,7 +4,8 @@
 package nginxmgr
 
 import (
-	"os"
+	"context"
+	"os/exec"
 	"time"
 
 	"nginx-manager/pkg/checker"
@@ -18,17 +19,15 @@ import (
 )
 
 const (
-	maxRetryTime  = 50
-	retryInterval = 10 * time.Second
+	retryInterval = 15 * time.Second
+	restyBinPath  = "/usr/bin/openresty"
+	restyPrefix   = "/home/MEFCenter/"
 )
 
 // InitResource 初始化nginx需要的资源
 func InitResource() error {
-	err := checkEnvs()
-	if err != nil {
-		return err
-	}
-	err = updateConf()
+	err := updateConf()
+
 	if err != nil {
 		return err
 	}
@@ -39,29 +38,9 @@ func InitResource() error {
 	return nil
 }
 
-func loadEnvs() map[string]string {
-	envs := make(map[string]string)
-	envs[nginxcom.EdgeUrlKey] = os.Getenv(nginxcom.EdgeUrlKey)
-	envs[nginxcom.EdgePortKey] = os.Getenv(nginxcom.EdgePortKey)
-	envs[nginxcom.SoftUrlKey] = os.Getenv(nginxcom.SoftUrlKey)
-	envs[nginxcom.SoftPortKey] = os.Getenv(nginxcom.SoftPortKey)
-	envs[nginxcom.CertUrlKey] = os.Getenv(nginxcom.CertUrlKey)
-	envs[nginxcom.CertPortKey] = os.Getenv(nginxcom.CertPortKey)
-	return envs
-}
-
-func checkEnvs() error {
-	envs := loadEnvs()
-	return checker.Check(checker.Env, envs)
-}
-
 func updateConf() error {
-	envs := loadEnvs()
-	items := CreateConfItems(envs)
-	updater, err := NewNginxConfUpdater(items, nginxcom.NginxDefaultConfigPath)
-	if err != nil {
-		return err
-	}
+	items := CreateConfItems(nginxcom.Envs)
+	updater := NewNginxConfUpdater(items, nginxcom.NginxDefaultConfigPath)
 	return updater.Update()
 }
 
@@ -70,7 +49,7 @@ func loadCerts() error {
 	if err != nil {
 		return err
 	}
-	updater, err := NewNginxConfUpdater(nil, nginxcom.NginxDefaultConfigPath)
+	updater := NewNginxConfUpdater(nil, nginxcom.NginxDefaultConfigPath)
 	pipeCount, err := updater.calculatePipeCount()
 	if err != nil {
 		return err
@@ -95,16 +74,16 @@ func CreateConfItems(envs map[string]string) []nginxcom.NginxConfItem {
 }
 
 // NewNginxManager create NewNginxManager module
-func NewNginxManager(enable bool) model.Module {
+func NewNginxManager(enable bool, ctx context.Context) model.Module {
 	return &nginxManager{
 		enable: enable,
-		ctx:    make(chan struct{}),
+		ctx:    ctx,
 	}
 }
 
 type nginxManager struct {
 	enable bool
-	ctx    chan struct{}
+	ctx    context.Context
 }
 
 // Name module name
@@ -124,48 +103,41 @@ func doStartNginx() bool {
 		return false
 	}
 
-	err = cmdStart()
-	if err != nil {
-		hwlog.RunLog.Error(err)
-		return false
-	}
-	return true
+	return startResty()
 }
 
-func startNginx() bool {
+func startNginx() {
 	count := 0
 	for {
 		success := doStartNginx()
 		if success {
-			return true
+			return
 		}
 		count++
-		if count >= maxRetryTime {
-			hwlog.RunLog.Errorf("try start nginx fail exceed %d times, exit program", maxRetryTime)
-		}
+		hwlog.RunLog.Errorf("start nginx fail exceed %d times", count)
 		time.Sleep(retryInterval)
 	}
 }
 
 // Start module start
 func (n *nginxManager) Start() {
-	hwlog.RunLog.Error("try start nginx ")
-	if !startNginx() {
-		return
-	}
+	startNginx()
 	registerHandlers()
 	msgutil.SendVoidMsg(nginxcom.NginxManagerName, nginxcom.NginxMonitorName,
 		nginxcom.ReqActiveMonitor, nginxcom.Monitor)
 	for {
 		select {
-		case <-n.ctx:
+		case _, ok := <-n.ctx.Done():
+			if !ok {
+				hwlog.RunLog.Info("nginx manager catch stop signal channel is closed")
+			}
+			hwlog.RunLog.Info("nginx manager has listened stop signal")
 			return
 		default:
 		}
 		req, err := modulemanager.ReceiveMessage(nginxcom.NginxManagerName)
-		hwlog.RunLog.Infof("%s receive request from software manager", nginxcom.NginxManagerName)
 		if err != nil {
-			hwlog.RunLog.Errorf("%s receive request from software manager failed", nginxcom.NginxManagerName)
+			hwlog.RunLog.Errorf("%s receive request failed", nginxcom.NginxManagerName)
 			continue
 		}
 		msgutil.Handle(req)
@@ -177,8 +149,17 @@ func registerHandlers() {
 }
 
 func reqRestartNginx(req *model.Message) {
-	if !startNginx() {
-		return
-	}
+	startNginx()
 	msgutil.SendVoidMsg(nginxcom.NginxManagerName, nginxcom.NginxMonitorName, nginxcom.RespRestartNginx, nginxcom.Nginx)
+}
+
+func startResty() bool {
+	cmd := exec.Command(restyBinPath, "-p", restyPrefix)
+	_, err := cmd.CombinedOutput()
+	if err != nil {
+		hwlog.RunLog.Errorf("run openresty failed: %s", err.Error())
+		return false
+	}
+	hwlog.RunLog.Info("run openresty success")
+	return true
 }

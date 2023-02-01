@@ -1,12 +1,11 @@
-FROM ubuntu:22.04 as build
+FROM openresty/openresty:buster as build
 RUN useradd -d /home/MEFCenter -u 8000 -m -s  /usr/sbin/nologin MEFCenter
 WORKDIR /home/MEFCenter
 
 COPY nginx .
 COPY --chown=MEFCenter:MEFCenter ./lib/* ./lib/
 
-RUN mkdir -p /home/MEFCenter/log &&\
-    chmod 750 /home/MEFCenter &&\
+RUN chmod 750 /home/MEFCenter &&\
     chmod 750 -R /home/MEFCenter/* &&\
     chown MEFCenter:MEFCenter -R /home/MEFCenter/* &&\
     echo 'umask 027' >> /etc/profile && \
