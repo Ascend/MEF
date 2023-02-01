@@ -527,56 +527,21 @@ func listAppInstances(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("list all app instances failed: db failed")
 		return common.RespMsg{Status: "", Msg: "list all app instances failed: db failed", Data: nil}
 	}
-	resp, err := getAppInstancesResp(appInstances)
+	appInstanceResp, err := getAppInstanceRespFromAppInstances(appInstances)
 	if err != nil {
 		hwlog.RunLog.Error("list all app instances from app instances failed")
 		return common.RespMsg{Status: "", Msg: "list all app instances from app instances failed", Data: nil}
 	}
-	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
-}
-
-func getAppInstancesResp(appInstances []AppInstance) (*ListAppInstancesResp, error) {
-	var appList []AppInstanceResp
-	for _, instance := range appInstances {
-		nodeGroupName, err := AppRepositoryInstance().getNodeGroupName(instance.AppID, instance.NodeGroupID)
-		if err != nil {
-			hwlog.RunLog.Errorf("get app id [%d] node group [%d] name failed, db error",
-				instance.AppID, instance.NodeGroupID)
-			return nil, err
-		}
-		nodeStatus, err := getNodeStatus(instance.NodeUniqueName)
-		if err != nil {
-			hwlog.RunLog.Errorf("get node [%s] status error: %v", instance.NodeUniqueName, err)
-			return nil, err
-		}
-		podStatus := appStatusService.getPodStatusFromCache(instance.PodName, nodeStatus)
-		containerInfos, err := appStatusService.getContainerInfos(instance, nodeStatus)
-		if err != nil {
-			hwlog.RunLog.Errorf("get app id [%d] of node [%d] container infos error: %v",
-				instance.AppID, instance.NodeID, err)
-			return nil, err
-		}
-		createdAt := instance.CreatedAt.Format(common.TimeFormat)
-		instanceResp := AppInstanceResp{
-			AppName:       instance.AppName,
-			AppStatus:     podStatus,
-			NodeID:        instance.NodeID,
-			NodeName:      instance.NodeName,
-			NodeStatus:    nodeStatus,
-			ContainerInfo: containerInfos,
-			CreatedAt:     createdAt,
-			NodeGroupInfo: types.NodeGroupInfo{
-				NodeGroupID:   instance.NodeGroupID,
-				NodeGroupName: nodeGroupName,
-			},
-		}
-		appList = append(appList, instanceResp)
+	total, err := AppRepositoryInstance().countListAppInstances(req.Name)
+	if err != nil {
+		hwlog.RunLog.Error("count all app instances list failed")
+		return common.RespMsg{Status: "", Msg: "count app instances list failed", Data: nil}
 	}
 	resp := &ListAppInstancesResp{
-		AppInstances: appList,
-		Total:        int64(len(appList)),
+		AppInstances: appInstanceResp,
+		Total:        total,
 	}
-	return resp, nil
+	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
 func getAppInstanceCountByNodeGroup(input interface{}) common.RespMsg {

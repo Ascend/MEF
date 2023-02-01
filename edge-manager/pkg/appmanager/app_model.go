@@ -39,6 +39,7 @@ type AppRepository interface {
 	listAppInstancesById(uint64) ([]AppInstance, error)
 	listAppInstancesByNode(int64) ([]AppInstance, error)
 	listAppInstances(page, pageSize uint64, name string) ([]AppInstance, error)
+	countListAppInstances(string) (int64, error)
 	deleteAllRemainingInstance() error
 	addPod(*AppInstance) error
 	updatePod(*AppInstance) error
@@ -103,7 +104,7 @@ func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) ([]
 
 func (a *AppRepositoryImpl) countListAppsInfo(name string) (int64, error) {
 	var totalAppInfo int64
-	if err := a.db.Model(AppInfo{}).Where("app_name like ?", "%"+name+"%").Count(&totalAppInfo).Error; err != nil {
+	if err := a.db.Model(AppInfo{}).Where("INSTR(app_name, ?)", name).Count(&totalAppInfo).Error; err != nil {
 		return 0, err
 	}
 	return totalAppInfo, nil
@@ -158,7 +159,7 @@ func (a *AppRepositoryImpl) getAppInfoByName(appName string) (*AppInfo, error) {
 
 func getAppInfoByLikeName(page, pageSize uint64, appName string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Scopes(common.Paginate(page, pageSize)).Where("app_name like ?", "%"+appName+"%")
+		return db.Scopes(common.Paginate(page, pageSize)).Where("INSTR(app_name, ?)", appName)
 	}
 }
 
@@ -185,6 +186,15 @@ func (a *AppRepositoryImpl) listAppInstances(page, pageSize uint64, name string)
 		return nil, err
 	}
 	return deployedApps, nil
+}
+
+func (a *AppRepositoryImpl) countListAppInstances(name string) (int64, error) {
+	var totalAppInstances int64
+	if err := a.db.Model(AppInstance{}).Where("INSTR(app_name, ?)", name).
+		Count(&totalAppInstances).Error; err != nil {
+		return 0, err
+	}
+	return totalAppInstances, nil
 }
 
 func (a *AppRepositoryImpl) deleteAllRemainingInstance() error {
