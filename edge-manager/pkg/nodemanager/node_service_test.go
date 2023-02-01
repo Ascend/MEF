@@ -649,6 +649,7 @@ func batchDeleteNodeFunctionalTest() {
 		NodeName:    "test-batch-delete-node-1-name",
 		UniqueName:  "test-batch-delete-node-1-unique-name",
 		IP:          "0.0.0.0",
+		IsManaged:   true,
 		CreatedAt:   time.Now().Format(TimeFormat),
 		UpdatedAt:   time.Now().Format(TimeFormat),
 	}
