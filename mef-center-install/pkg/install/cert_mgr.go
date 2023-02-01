@@ -15,7 +15,7 @@ import (
 
 type certPrepareCtl struct {
 	certPathMgr *util.ConfigPathMgr
-	components  map[string]*util.InstallComponent
+	components  []string
 }
 
 func (cpc *certPrepareCtl) doPrepare() error {
@@ -65,9 +65,10 @@ func (cpc *certPrepareCtl) prepareCertsDir() error {
 
 	// prepare component's certs directory
 	for _, component := range cpc.components {
-		if err := component.PrepareComponentCertDir(certPath); err != nil {
-			hwlog.RunLog.Errorf("prepare component [%s]'s cert dir failed: %v", component.Name, err.Error())
-			return fmt.Errorf("prepare component [%s]'s cert dir failed", component.Name)
+		componentMgr := util.GetComponentMgr(component)
+		if err := componentMgr.PrepareComponentCertDir(certPath); err != nil {
+			hwlog.RunLog.Errorf("prepare component [%s]'s cert dir failed: %v", component, err.Error())
+			return fmt.Errorf("prepare component [%s]'s cert dir failed", component)
 		}
 	}
 	hwlog.RunLog.Info("prepare component certs directories successful")
@@ -91,8 +92,9 @@ func (cpc *certPrepareCtl) prepareCerts() error {
 	}
 
 	for _, component := range cpc.components {
-		if err = component.PrepareComponentCert(rootCertMgr, cpc.certPathMgr); err != nil {
-			hwlog.RunLog.Errorf("prepare %s component cert failed: %s", component.Name, err.Error())
+		componentMgr := util.GetComponentMgr(component)
+		if err = componentMgr.PrepareComponentCert(rootCertMgr, cpc.certPathMgr); err != nil {
+			hwlog.RunLog.Errorf("prepare %s component cert failed: %s", component, err.Error())
 			return errors.New("prepare single component cert failed")
 		}
 	}

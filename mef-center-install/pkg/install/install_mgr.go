@@ -25,24 +25,18 @@ var (
 		"grep",
 		"useradd",
 		"wc",
-		"who",
 	}
 )
 
 // SftInstallCtl is the main struct to install mef-center
 type SftInstallCtl struct {
-	optComponents            []string
-	installPathMgr           *util.InstallDirPathMgr
-	logPathMgr               *util.LogDirPathMgr
-	compulsoryComponents     map[string]*util.InstallComponent
-	optionalComponents       map[string]*util.InstallComponent
-	fullInstallingComponents map[string]*util.InstallComponent
+	util.SoftwareMgr
+	logPathMgr *util.LogDirPathMgr
 }
 
 // DoInstall is the main function to install mef-center
 func (sic *SftInstallCtl) DoInstall() error {
 	var installTasks = []func() error{
-		sic.init,
 		sic.preCheck,
 		sic.prepareMefUser,
 		sic.prepareK8sLabel,
@@ -55,24 +49,15 @@ func (sic *SftInstallCtl) DoInstall() error {
 		sic.componentsInstall,
 	}
 
-	defer sic.clearAll()
 	for _, function := range installTasks {
-		if err := function(); err != nil {
-			return err
+		err := function()
+		if err == nil {
+			continue
 		}
-	}
 
-	return nil
-}
-
-func (sic *SftInstallCtl) init() error {
-	sic.compulsoryComponents = util.GetCompulsoryMap()
-	sic.optionalComponents = util.GetOptionalMap()
-	if err := sic.setComponents(); err != nil {
-		return nil
+		sic.clearAll()
+		return err
 	}
-	sic.setComponentVersion()
-	sic.setFullComponents()
 
 	return nil
 }
@@ -124,7 +109,7 @@ func (sic *SftInstallCtl) checkArch() error {
 }
 
 func (sic *SftInstallCtl) checkDiskSpace() error {
-	rootPath := sic.installPathMgr.GetRootPath()
+	rootPath := sic.InstallPathMgr.GetRootPath()
 	availSpace, err := util.GetDiskFree(rootPath)
 	if err != nil {
 		hwlog.RunLog.Errorf("get disk free space failed: %s", err.Error())
@@ -150,45 +135,14 @@ func (sic *SftInstallCtl) checkNecessaryTools() error {
 	return nil
 }
 
-func (sic *SftInstallCtl) setComponents() error {
-	for _, component := range sic.optComponents {
-		if sic.optionalComponents[component] == nil {
-			hwlog.RunLog.Errorf("unsupported component %s", component)
-			return fmt.Errorf("unsupported component %s", component)
-		}
-		sic.optionalComponents[component].Required = true
-	}
-
-	return nil
-}
-
-func (sic *SftInstallCtl) setComponentVersion() {
-	for _, component := range sic.optionalComponents {
-		component.SetVersion()
-	}
-	for _, component := range sic.compulsoryComponents {
-		component.SetVersion()
-	}
-}
-
-func (sic *SftInstallCtl) setFullComponents() {
-	sic.fullInstallingComponents = sic.compulsoryComponents
-	for key, value := range sic.optionalComponents {
-		if !value.Required {
-			continue
-		}
-		sic.fullInstallingComponents[key] = value
-	}
-}
-
 func (sic *SftInstallCtl) setInstallJson() error {
 	hwlog.RunLog.Info("start to set install json")
 	jsonHandler := util.InstallParamJsonTemplate{
-		Components: sic.getFullComponents(),
-		InstallDir: sic.installPathMgr.GetRootPath(),
+		Components: sic.Components,
+		InstallDir: sic.InstallPathMgr.GetRootPath(),
 		LogDir:     sic.logPathMgr.GetLogRootPath(),
 	}
-	jsonPath := sic.installPathMgr.WorkPathMgr.GetInstallParamJsonPath()
+	jsonPath := sic.InstallPathMgr.WorkPathMgr.GetInstallParamJsonPath()
 	if err := jsonHandler.SetInstallParamJsonInfo(jsonPath); err != nil {
 		hwlog.RunLog.Errorf("record install_param.json failed: %v", err.Error())
 		return err
@@ -199,7 +153,7 @@ func (sic *SftInstallCtl) setInstallJson() error {
 
 func (sic *SftInstallCtl) checkInstalled() error {
 	hwlog.RunLog.Info("start to check if the software has been installed")
-	_, err := os.Stat(sic.installPathMgr.GetMefPath())
+	_, err := os.Stat(sic.InstallPathMgr.GetMefPath())
 	if err == nil {
 		hwlog.RunLog.Error("the software has already been installed")
 		return errors.New("the software has already been installed")
@@ -229,7 +183,8 @@ func (sic *SftInstallCtl) prepareK8sLabel() error {
 		return err
 	}
 
-	cmd := fmt.Sprintf(util.GetNodeCmdPattern, localIp)
+	ipReg := fmt.Sprintf("\\s*%s\\s*", localIp)
+	cmd := fmt.Sprintf(util.GetNodeCmdPattern, ipReg)
 	nodeName, err := common.RunCommand("sh", false, "-c", cmd)
 	if err != nil {
 		hwlog.RunLog.Errorf("get current node failed: %s", err.Error())
@@ -248,8 +203,9 @@ func (sic *SftInstallCtl) prepareK8sLabel() error {
 
 func (sic *SftInstallCtl) prepareComponentLogDir() error {
 	hwlog.RunLog.Info("start to prepare components' log dir")
-	for _, component := range sic.fullInstallingComponents {
-		if err := (*component).PrepareLogDir(sic.logPathMgr); err != nil {
+	for _, component := range sic.Components {
+		componentMgr := util.GetComponentMgr(component)
+		if err := componentMgr.PrepareLogDir(sic.logPathMgr); err != nil {
 			return err
 		}
 	}
@@ -259,7 +215,7 @@ func (sic *SftInstallCtl) prepareComponentLogDir() error {
 
 func (sic *SftInstallCtl) prepareInstallPkgDir() error {
 	hwlog.RunLog.Info("start to prepare install_package dir")
-	installPkgDir := sic.installPathMgr.GetInstallPkgDir() + "/"
+	installPkgDir := sic.InstallPathMgr.GetInstallPkgDir() + "/"
 	if err := utils.MakeSureDir(installPkgDir); err != nil {
 		hwlog.RunLog.Errorf("prepare install_package dir failed: %s", err.Error())
 		return errors.New("prepare install_package dir failed")
@@ -270,8 +226,8 @@ func (sic *SftInstallCtl) prepareInstallPkgDir() error {
 
 func (sic *SftInstallCtl) prepareCerts() error {
 	certHandleCtl := certPrepareCtl{
-		certPathMgr: sic.installPathMgr.ConfigPathMgr,
-		components:  sic.fullInstallingComponents,
+		certPathMgr: sic.InstallPathMgr.ConfigPathMgr,
+		components:  sic.Components,
 	}
 
 	hwlog.RunLog.Info("-----Start to prepare certs-----")
@@ -285,9 +241,9 @@ func (sic *SftInstallCtl) prepareCerts() error {
 
 func (sic *SftInstallCtl) prepareWorkingDir() error {
 	workingDirHandleCtl := workingDirCtl{
-		pathMgr:     sic.installPathMgr.WorkPathAMgr,
-		mefLinkPath: sic.installPathMgr.GetWorkPath(),
-		components:  sic.fullInstallingComponents,
+		pathMgr:     sic.InstallPathMgr.WorkPathAMgr,
+		mefLinkPath: sic.InstallPathMgr.GetWorkPath(),
+		components:  sic.Components,
 	}
 
 	if err := workingDirHandleCtl.doPrepare(); err != nil {
@@ -300,9 +256,9 @@ func (sic *SftInstallCtl) prepareWorkingDir() error {
 func (sic *SftInstallCtl) prepareYaml() error {
 	hwlog.RunLog.Info("start to prepare components' yaml")
 	yamlDealers := GetYamlDealers(
-		sic.fullInstallingComponents, sic.installPathMgr, sic.logPathMgr.GetLogRootPath())
+		sic.Components, sic.InstallPathMgr, sic.logPathMgr.GetLogRootPath())
 	for _, yamlDealer := range yamlDealers {
-		err := yamlDealer.EditSingleYaml(sic.getFullComponents())
+		err := yamlDealer.EditSingleYaml(sic.Components)
 		if err != nil {
 			return err
 		}
@@ -314,45 +270,44 @@ func (sic *SftInstallCtl) prepareYaml() error {
 func (sic *SftInstallCtl) componentsInstall() error {
 	fmt.Println("start to prepare docker image")
 	hwlog.RunLog.Info("-----Start to install components-----")
-	for _, component := range sic.fullInstallingComponents {
-		if err := (*component).LoadAndSaveImage(sic.installPathMgr.WorkPathAMgr); err != nil {
-			return fmt.Errorf("install component [%s] failed: %s", component.Name, err.Error())
+	for _, component := range sic.Components {
+		componentMgr := util.GetComponentMgr(component)
+		if err := componentMgr.LoadAndSaveImage(sic.InstallPathMgr.WorkPathAMgr); err != nil {
+			return fmt.Errorf("install component [%s] failed: %s", component, err.Error())
 		}
 
-		if err := (*component).ClearDockerFile(sic.installPathMgr.WorkPathAMgr); err != nil {
-			return fmt.Errorf("clear component [%s]'s docker file failed: %s",
-				component.Name, err.Error())
+		if err := componentMgr.ClearDockerFile(sic.InstallPathMgr.WorkPathAMgr); err != nil {
+			return fmt.Errorf("clear component [%s]'s docker file failed: %s", component, err.Error())
 		}
 
-		if err := (*component).ClearLibDir(sic.installPathMgr.WorkPathAMgr); err != nil {
-			return fmt.Errorf("clear component [%s]'s lib dir failed: %s",
-				component.Name, err.Error())
+		if err := componentMgr.ClearLibDir(sic.InstallPathMgr.WorkPathAMgr); err != nil {
+			return fmt.Errorf("clear component [%s]'s lib dir failed: %s", component, err.Error())
 		}
 	}
 	fmt.Println("prepare docker image success")
 	hwlog.RunLog.Info("-----Install components successful-----")
-
 	return nil
 }
 
 func (sic *SftInstallCtl) clearAll() {
-	// todo 待实现
+	fmt.Println("install failed, start to clear environment")
+	hwlog.RunLog.Info("-----Start to clear environment-----")
+	if err := sic.DoClear(); err != nil {
+		fmt.Println("clear environment failed, please clear manually")
+		hwlog.RunLog.Warnf("clear environment meets err:%s, need to do it manually", err.Error())
+	}
+	fmt.Println("clear manually success")
+	hwlog.RunLog.Info("-----End to clear environment-----")
 	return
 }
 
-func (sic *SftInstallCtl) getFullComponents() []string {
-	var result []string
-	for module := range sic.fullInstallingComponents {
-		result = append(result, module)
-	}
-	return result
-}
-
-// GetSftInstallCtl is used to init a SftInstallCtl struct
-func GetSftInstallCtl(optionalComponents []string, installPath string, logRootPath string) SftInstallCtl {
+// GetSftInstallMgrIns is used to init a SftInstallCtl struct
+func GetSftInstallMgrIns(components []string, installPath string, logRootPath string) SftInstallCtl {
 	return SftInstallCtl{
-		optComponents:  optionalComponents,
-		installPathMgr: util.InitInstallDirPathMgr(installPath),
-		logPathMgr:     util.InitLogDirPathMgr(logRootPath),
+		SoftwareMgr: util.SoftwareMgr{
+			Components:     components,
+			InstallPathMgr: util.InitInstallDirPathMgr(installPath),
+		},
+		logPathMgr: util.InitLogDirPathMgr(logRootPath),
 	}
 }

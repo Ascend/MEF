@@ -66,7 +66,8 @@ func paramOptionalComponents() []string {
 
 func doInstall() error {
 	optionalComponents := paramOptionalComponents()
-	installCtlIns := install.GetSftInstallCtl(optionalComponents, installPath, logRootPath)
+	fullComponents := append(optionalComponents, util.GetCompulsorySlice()...)
+	installCtlIns := install.GetSftInstallMgrIns(fullComponents, installPath, logRootPath)
 
 	if err := installCtlIns.DoInstall(); err != nil {
 		return err

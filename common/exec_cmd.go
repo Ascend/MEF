@@ -51,7 +51,8 @@ func RunCommand(name string, ifCheck bool, arg ...string) (string, error) {
 	cmd.Stderr = &stderr
 	err := cmd.Run()
 	if err != nil {
-		return "", fmt.Errorf("excuting result: %s, err: %s", err, stderr.String())
+		hwlog.RunLog.Warnf("exec cmd exit code: %s", err.Error())
+		return "", errors.New(stderr.String())
 	}
 	return strings.Trim(out.String(), "\n"), nil
 }

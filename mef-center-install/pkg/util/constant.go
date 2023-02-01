@@ -12,7 +12,6 @@ import (
 const (
 	CommandKubectl   = "kubectl"
 	CommandNamespace = "namespace"
-	CommandCopy      = "cp"
 	ArchCommand      = "uname"
 	Arch64           = "aarch64"
 	X86              = "x86_64"
@@ -21,7 +20,8 @@ const (
 	StopFlag         = "0/0"
 	StopReplicasNum  = 0
 	StartReplicasNum = 1
-	IllegalChars     = "\n!\\; &$<>`"
+	DockerImageExist = 2
+	NamespaceExist   = 1
 )
 
 // MEF-Center Dir constant
@@ -88,15 +88,11 @@ const (
 	EdgeManagerName     = "edge-manager"
 	CertManagerName     = "cert-manager"
 	NginxManagerName    = "nginx-manager"
-	ImageManagerName    = "image-manager"
-	ResourceManagerName = "resource-manager"
 	SoftwareManagerName = "software-manager"
 )
 
 // install constant
 const (
-	ImageManagerFlag    = ImageManagerName
-	ResourceManagerFlag = ResourceManagerName
 	SoftwareManagerFlag = SoftwareManagerName
 	AllInstallFlag      = "install_all"
 	LogPathFlag         = "log_path"
@@ -136,6 +132,16 @@ const (
 	InstallDiskSpace    = 750 * common.MB
 	CheckStatusInterval = 3 * time.Second
 	CheckStatusTimes    = 5
+)
+
+// constant for mef control bin
+const (
+	OperateFlag   = "operate"
+	UninstallFlag = "uninstall"
+
+	StartOperateFlag   = "start"
+	StopOperateFlag    = "stop"
+	RestartOperateFlag = "restart"
 )
 
 // constant for set k8s label

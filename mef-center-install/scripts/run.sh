@@ -24,19 +24,18 @@ function main()
         case "$method" in
              "start" | "stop" | "restart")
                 binary_file="MEF-center-controller"
-                manage_type="control"
+                manage_type="operate"
                 if [[ -z $2 ]]; then
                     component="all"
                 else
                     component="$2"
                 fi
 
-                param_template='%s=%s'
-                params=$(printf "$param_template" "$method" "$component")
+                params="-$method=$component"
             ;;
-             "upgrade")
-                ${UPGRADE_SH_PATH} "$@"
-                exit $?
+             "uninstall")
+                binary_file="MEF-center-controller"
+                manage_type="uninstall"
             ;;
             "-h" | "--help" | "--h")
                 print_helps "$@"
@@ -49,24 +48,26 @@ function main()
             ;;
         esac
 
-        param_template='%s=%s'
-        params=$(printf "$param_template" "$method" "$component")
+        if [[ "${manage_type}" == "operate" ]]; then
+            "${TOOL_BINARY_PATH}"/"${binary_file}" "$params" "-operate=operate"
 
-        if [[ ! -z "$config" ]]; then
-            echo "params:" "$params"
-            "${TOOL_BINARY_PATH}"/"${binary_file}" "-$params" "$config"
+            ret=$?
+            if [[ "${ret}" != 0 ]];then
+                echo "${method} ${component} component failed"
+                return ${ret}
+            fi
+            echo "${method} ${component} component success"
         else
-            echo "params:" "$params"
-            "${TOOL_BINARY_PATH}"/"${binary_file}" "-$params"
+            "${TOOL_BINARY_PATH}"/"${binary_file}" "-operate=$manage_type"
+
+            ret=$?
+            if [[ "${ret}" != 0 ]];then
+                echo "${method} MEF Center failed"
+                return ${ret}
+            fi
+            echo "${method} MEF Center success"
         fi
 
-        ret=$?
-        if [[ "${ret}" != 0 ]];then
-            echo "${manage_type} MEF center failed"
-            return ${ret}
-        fi
-
-        echo "${manage_type} MEF center success"
         return ${ret_ok}
     fi
 }
