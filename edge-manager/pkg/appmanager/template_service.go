@@ -11,7 +11,7 @@ import (
 	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/appmanager/appchecker"
-	"edge-manager/pkg/util"
+	"edge-manager/pkg/types"
 )
 
 // createTemplate create app template
@@ -107,7 +107,7 @@ func updateTemplate(param interface{}) common.RespMsg {
 // getTemplates get app templates
 func getTemplates(param interface{}) common.RespMsg {
 	hwlog.RunLog.Info("get app templates, start")
-	req, ok := param.(util.ListReq)
+	req, ok := param.(types.ListReq)
 	if !ok {
 		hwlog.RunLog.Error("get app templates,failed: para type is invalid")
 		return common.RespMsg{Status: "", Msg: "list app info error", Data: nil}

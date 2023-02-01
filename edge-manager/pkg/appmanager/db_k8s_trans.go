@@ -17,12 +17,12 @@ import (
 	"huawei.com/mindxedge/base/common"
 )
 
-func formatDaemonSetName(appName string, nodeGroupId int64) string {
-	return fmt.Sprintf("%s-%s", appName, strconv.FormatInt(nodeGroupId, DecimalScale))
+func formatDaemonSetName(appName string, nodeGroupId uint64) string {
+	return fmt.Sprintf("%s-%s", appName, strconv.FormatUint(nodeGroupId, DecimalScale))
 }
 
 // initDaemonSet init daemonSet
-func initDaemonSet(appInfo *AppInfo, nodeGroupId int64) (*appv1.DaemonSet, error) {
+func initDaemonSet(appInfo *AppInfo, nodeGroupId uint64) (*appv1.DaemonSet, error) {
 	var containerInfos []Container
 	if err := json.Unmarshal([]byte(appInfo.Containers), &containerInfos); err != nil {
 		hwlog.RunLog.Error("app containers unmarshal failed")
@@ -39,7 +39,7 @@ func initDaemonSet(appInfo *AppInfo, nodeGroupId int64) (*appv1.DaemonSet, error
 	tmpSpec := v1.PodSpec{}
 	tmpSpec.Containers = containers
 	tmpSpec.NodeSelector = map[string]string{
-		common.NodeGroupLabelPrefix + strconv.FormatInt(nodeGroupId, DecimalScale): "",
+		common.NodeGroupLabelPrefix + strconv.FormatUint(nodeGroupId, DecimalScale): "",
 	}
 	tmpSpec.Volumes = cmVolumes
 	template := v1.PodTemplateSpec{

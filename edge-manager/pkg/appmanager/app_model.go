@@ -14,6 +14,8 @@ import (
 	"huawei.com/mindxedge/base/common"
 )
 
+const noneDealRecode = 0
+
 var (
 	repositoryInitOnce sync.Once
 	appRepository      AppRepository
@@ -34,10 +36,10 @@ type AppRepository interface {
 	getNodeGroupInfosByAppID(uint64) ([]types.NodeGroupInfo, error)
 	getAppInfoById(appId uint64) (*AppInfo, error)
 	getAppInfoByName(string) (*AppInfo, error)
-	deleteAppById(uint64) error
+	deleteAppById(uint64) (int64, error)
 	queryNodeGroup(uint64) ([]types.NodeGroupInfo, error)
 	listAppInstancesById(uint64) ([]AppInstance, error)
-	listAppInstancesByNode(int64) ([]AppInstance, error)
+	listAppInstancesByNode(uint64) ([]AppInstance, error)
 	listAppInstances(page, pageSize uint64, name string) ([]AppInstance, error)
 	countListAppInstances(string) (int64, error)
 	deleteAllRemainingInstance() error
@@ -48,8 +50,8 @@ type AppRepository interface {
 	addDaemonSet(*AppDaemonSet) error
 	updateDaemonSet(*AppDaemonSet) error
 	deleteDaemonSet(string) error
-	getNodeGroupName(appID int64, nodeGroupID int64) (string, error)
-	countDeployedAppByGroupID(int64) (int64, error)
+	getNodeGroupName(appID uint64, nodeGroupID uint64) (string, error)
+	countDeployedAppByGroupID(uint64) (int64, error)
 }
 
 // GetTableCount get table count
@@ -122,15 +124,19 @@ func (a *AppRepositoryImpl) countDeployedApp() (int64, int64, error) {
 	return deployedAppNums, unDeployedAppNums, nil
 }
 
-func (a *AppRepositoryImpl) deleteAppById(appId uint64) error {
+func (a *AppRepositoryImpl) deleteAppById(appId uint64) (int64, error) {
 	err := a.db.Model(AppDaemonSet{}).Where("app_id = ?", appId).First(&AppDaemonSet{}).Error
 	if err == nil {
-		return errors.New("app is referenced, can not delete ")
+		return noneDealRecode, errors.New("app is referenced, can not delete ")
 	}
 	if err != gorm.ErrRecordNotFound {
-		return errors.New("find app instance failed when delete app")
+		return noneDealRecode, errors.New("find app instance failed when delete app")
 	}
-	return a.db.Model(AppInfo{}).Where("id = ?", appId).Delete(&AppInfo{}).Error
+	rowsAffected := a.db.Model(AppInfo{}).Where("id = ?", appId).Delete(&AppInfo{})
+	if rowsAffected.Error != nil {
+		return rowsAffected.RowsAffected, errors.New("delete app info db error")
+	}
+	return rowsAffected.RowsAffected, nil
 }
 
 func (a *AppRepositoryImpl) getAppInfoById(appId uint64) (*AppInfo, error) {
@@ -171,7 +177,7 @@ func (a *AppRepositoryImpl) listAppInstancesById(appId uint64) ([]AppInstance, e
 	return deployedApps, nil
 }
 
-func (a *AppRepositoryImpl) listAppInstancesByNode(nodeId int64) ([]AppInstance, error) {
+func (a *AppRepositoryImpl) listAppInstancesByNode(nodeId uint64) ([]AppInstance, error) {
 	var deployedApps []AppInstance
 	if err := a.db.Model(AppInstance{}).Where("node_id = ?", nodeId).Find(&deployedApps).Error; err != nil {
 		return nil, err
@@ -240,7 +246,7 @@ func (a *AppRepositoryImpl) deleteDaemonSet(name string) error {
 	return a.db.Model(AppDaemonSet{}).Where("daemon_set_name = ?", name).Delete(&AppDaemonSet{}).Error
 }
 
-func (a *AppRepositoryImpl) getNodeGroupName(appID int64, nodeGroupID int64) (string, error) {
+func (a *AppRepositoryImpl) getNodeGroupName(appID uint64, nodeGroupID uint64) (string, error) {
 	var appDaemonSet AppDaemonSet
 	if err := a.db.Model(AppDaemonSet{}).Where("app_id = ? and node_group_id = ?", appID, nodeGroupID).
 		First(&appDaemonSet).Error; err != nil {
@@ -249,7 +255,7 @@ func (a *AppRepositoryImpl) getNodeGroupName(appID int64, nodeGroupID int64) (st
 	return appDaemonSet.NodeGroupName, nil
 }
 
-func (a *AppRepositoryImpl) countDeployedAppByGroupID(nodeGroupID int64) (int64, error) {
+func (a *AppRepositoryImpl) countDeployedAppByGroupID(nodeGroupID uint64) (int64, error) {
 	var deployedAppCount int64
 	if err := a.db.Model(AppDaemonSet{}).Where("node_group_id = ?", nodeGroupID).
 		Count(&deployedAppCount).Error; err != nil {

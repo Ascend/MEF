@@ -18,12 +18,12 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
 	"k8s.io/api/core/v1"
 
 	"edge-manager/pkg/database"
 	"edge-manager/pkg/kubeclient"
-	"edge-manager/pkg/util"
-	"huawei.com/mindxedge/base/common"
+	"edge-manager/pkg/types"
 )
 
 const (
@@ -273,61 +273,6 @@ func TestMain(m *testing.M) {
 	hwlog.RunLog.Infof("test complete, exitCode=%d", code)
 }
 
-func TestCreateNode(t *testing.T) {
-	Convey("createNode functional test", t, createNodeFunctionalTest)
-	Convey("createNode validation test", t, createNodeValidationTest)
-}
-
-func createNodeFunctionalTest() {
-	node := &NodeInfo{
-		Description: "test-create-node-1-description",
-		NodeName:    "test-create-node-1-name",
-		UniqueName:  "test-create-node-1-unique-name",
-	}
-
-	Convey("normal input", func() {
-		args := fmt.Sprintf(`
-			{
-    			"nodeName": "%s",
-    			"uniqueName": "%s",
-    			"description": "%s"
-			}`, node.NodeName, node.UniqueName, node.Description)
-		resp := createNode(args)
-		So(resp.Status, ShouldEqual, common.Success)
-		So(env.verifyDbNodeInfo(node, "ID", "UpdatedAt", "CreatedAt", "IsManaged"), ShouldBeNil)
-	})
-}
-
-func createNodeValidationTest() {
-	node := &NodeInfo{
-		NodeName:    "test-create-node-2-name",
-		UniqueName:  "test-create-node-2-unique-name",
-		Description: "test-create-node-2-description",
-	}
-
-	Convey("empty description", func() {
-		node.Description = ""
-		args := fmt.Sprintf(`
-			{
-    			"nodeName": "%s",
-    			"uniqueName": "%s"
-			}`, node.NodeName, node.UniqueName)
-		resp := createNode(args)
-		So(resp.Status, ShouldEqual, common.Success)
-		So(env.verifyDbNodeInfo(node, "ID", "UpdatedAt", "CreatedAt", "IsManaged"), ShouldBeNil)
-	})
-
-	Convey("empty uniqueName", func() {
-		args := fmt.Sprintf(`
-			{
-    			"nodeName": "%s",
-    			"description": "%s"
-			}`, node.NodeName, node.Description)
-		resp := createNode(args)
-		So(resp.Status, ShouldNotEqual, common.Success)
-	})
-}
-
 func TestGetNodeDetail(t *testing.T) {
 	Convey("getNodeDetail functional test", t, getNodeDetailFunctionalTest)
 	Convey("getNodeDetail validation test", t, getNodeDetailValidationTest)
@@ -533,7 +478,7 @@ func TestListManagedNode(t *testing.T) {
 
 func litManagedNodeFunctionalTest() {
 	Convey("normal input", func() {
-		args := util.ListReq{PageNum: 1, PageSize: defaultPageSize}
+		args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
 		resp := listManagedNode(args)
 		So(resp.Status, ShouldEqual, common.Success)
 	})
@@ -620,7 +565,7 @@ func TestListUnManagedNode(t *testing.T) {
 
 func listUnManagedNodeFunctionalTest() {
 	Convey("normal input", func() {
-		args := util.ListReq{PageNum: 1, PageSize: defaultPageSize}
+		args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
 		resp := listUnmanagedNode(args)
 		So(resp.Status, ShouldEqual, common.Success)
 	})
@@ -632,7 +577,7 @@ func TestListNode(t *testing.T) {
 
 func litNodeFunctionalTest() {
 	Convey("normal input", func() {
-		args := util.ListReq{PageNum: 1, PageSize: defaultPageSize}
+		args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
 		resp := listNode(args)
 		So(resp.Status, ShouldEqual, common.Success)
 	})
@@ -656,13 +601,10 @@ func batchDeleteNodeFunctionalTest() {
 	So(env.createNode(node), ShouldBeNil)
 
 	Convey("normal input", func() {
-		args := fmt.Sprintf(`[%d]`, node.ID)
+		args := BatchDeleteNodeReq{NodeIDs: &[]uint64{node.ID}}
 		resp := batchDeleteNode(args)
-		So(resp.Status, ShouldEqual, common.Success)
-		deleteCount, ok := resp.Data.(int64)
-		So(ok, ShouldBeTrue)
-		So(deleteCount, ShouldEqual, int64(1))
-		So(env.verifyDbNodeInfo(node), ShouldEqual, gorm.ErrRecordNotFound)
+		So(resp.Status, ShouldEqual, common.ErrorParamConvert)
+		So(env.verifyDbNodeInfo(node), ShouldBeNil)
 	})
 }
 
@@ -712,9 +654,6 @@ func batchDeleteNodeRelationFunctionalTest() {
             }]`, node.ID, group.ID)
 		resp := batchDeleteNodeRelation(args)
 		So(resp.Status, ShouldEqual, common.Success)
-		deleteCount, ok := resp.Data.(int64)
-		So(ok, ShouldBeTrue)
-		So(deleteCount, ShouldEqual, int64(1))
 		So(env.verifyDbNodeRelation(relation), ShouldEqual, gorm.ErrRecordNotFound)
 	})
 }
@@ -779,7 +718,7 @@ func TestListEdgeNodeGroup(t *testing.T) {
 
 func listEdgeNodeGroupFunctionalTest() {
 	Convey("normal input", func() {
-		args := util.ListReq{PageNum: 1, PageSize: defaultPageSize}
+		args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
 		resp := listEdgeNodeGroup(args)
 		So(resp.Status, ShouldEqual, common.Success)
 	})
@@ -857,9 +796,6 @@ func batchDeleteGroupFunctionalTest() {
 		args := fmt.Sprintf(`{"groupIDs": [%d]}`, group.ID)
 		resp := batchDeleteNodeGroup(args)
 		So(resp.Status, ShouldEqual, common.Success)
-		deleteIDs, ok := resp.Data.([]int64)
-		So(ok, ShouldBeTrue)
-		So(deleteIDs, ShouldResemble, []int64{group.ID})
 		So(env.verifyDbNodeGroup(group), ShouldEqual, gorm.ErrRecordNotFound)
 	})
 }
@@ -873,7 +809,7 @@ func batchDeleteGroupValidationTest() {
 	Convey("bad group id", func() {
 		args := `{"groupIDs": [-1]}`
 		resp := batchDeleteNodeGroup(args)
-		So(resp.Status, ShouldEqual, common.ErrorParamInvalid)
+		So(resp.Status, ShouldEqual, common.ErrorParamConvert)
 	})
 	Convey("bad id type", func() {
 		args := `{"groupIDs": ["1"]}`

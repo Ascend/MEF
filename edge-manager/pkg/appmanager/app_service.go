@@ -16,7 +16,6 @@ import (
 	"edge-manager/pkg/appmanager/appchecker"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
-	"edge-manager/pkg/util"
 )
 
 // createApp Create application
@@ -24,48 +23,40 @@ func createApp(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start create app")
 	var req CreateAppReq
 	if err := common.ParamConvert(input, &req); err != nil {
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}
 	if checkResult := appchecker.NewCreateAppChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("app create para check failed: %s", checkResult.Reason)
-		return common.RespMsg{Status: "", Msg: checkResult.Reason, Data: nil}
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
 	}
 	if err := NewAppSupplementalChecker(req).Check(); err != nil {
 		hwlog.RunLog.Errorf("app create para check failed: %v", err)
-		return common.RespMsg{Status: "", Msg: fmt.Sprintf("app create para check failed: %v", err), Data: nil}
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: fmt.Sprintf("para check failed: %v", err)}
 	}
 	total, err := GetTableCount(AppInfo{})
 	if err != nil {
 		hwlog.RunLog.Error("get app table num failed")
-		return common.RespMsg{Status: "", Msg: "get app table num failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorCheckAppMrgSize, Msg: "get app table num failed", Data: nil}
 	}
-	if total >= MaxApp {
+	if total+1 >= MaxApp {
 		hwlog.RunLog.Error("app number is enough, can not create")
-		return common.RespMsg{Status: "", Msg: "app number is enough, can not create", Data: nil}
+		return common.RespMsg{Status: common.ErrorCheckAppMrgSize, Msg: "app number is enough, can not create"}
 	}
 	app, err := req.toDb()
 	if err != nil {
-		hwlog.RunLog.Error("get appInfo failed ")
-		return common.RespMsg{Status: "", Msg: "get appInfo failed", Data: nil}
+		hwlog.RunLog.Error("create app requst conver to db failed ")
+		return common.RespMsg{Status: common.ErrorAppParamConvertDb, Msg: "get appInfo failed", Data: nil}
 	}
 	if err = AppRepositoryInstance().createApp(app); err != nil {
 		if strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
 			hwlog.RunLog.Error("app name is duplicate")
-			return common.RespMsg{Status: "", Msg: "app name is duplicate", Data: nil}
+			return common.RespMsg{Status: common.ErrorAppMrgDuplicate, Msg: "app name is duplicate", Data: nil}
 		}
 		hwlog.RunLog.Error("app db create failed")
-		return common.RespMsg{Status: "", Msg: "app db create failed", Data: nil}
-	}
-	appInfo, err := AppRepositoryInstance().getAppInfoByName(app.AppName)
-	if err != nil {
-		hwlog.RunLog.Error("get app id failed when create")
-		return common.RespMsg{Status: "", Msg: "get app id failed when create", Data: nil}
-	}
-	createReturnInfo := CreateReturnInfo{
-		AppID: appInfo.ID,
+		return common.RespMsg{Status: common.ErrorCreateApp, Msg: "app db create failed", Data: nil}
 	}
 	hwlog.RunLog.Info("app db create success")
-	return common.RespMsg{Status: common.Success, Msg: "", Data: createReturnInfo}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: app.ID}
 }
 
 // queryApp app info
@@ -75,16 +66,16 @@ func queryApp(input interface{}) common.RespMsg {
 	appId, ok := input.(uint64)
 	if !ok {
 		hwlog.RunLog.Error("query app info failed: para type not valid")
-		return common.RespMsg{Status: "", Msg: "query app info failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "query app request convert error", Data: nil}
 	}
 	appInfo, err := AppRepositoryInstance().getAppInfoById(appId)
 	if err == gorm.ErrRecordNotFound {
 		hwlog.RunLog.Errorf("query app id [%d] not exist", appId)
-		return common.RespMsg{Status: "", Msg: "query app info failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorAppMrgRecodeNoFound, Msg: "query app record no found", Data: nil}
 	}
 	if err != nil {
 		hwlog.RunLog.Errorf("query app info failed %s", err.Error())
-		return common.RespMsg{Status: "", Msg: "query app info failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorQueryApp, Msg: "query app info failed", Data: nil}
 	}
 
 	var resp AppReturnInfo
@@ -94,7 +85,7 @@ func queryApp(input interface{}) common.RespMsg {
 
 	if err = json.Unmarshal([]byte(appInfo.Containers), &resp.Containers); err != nil {
 		hwlog.RunLog.Error("unmarshal containers info failed")
-		return common.RespMsg{Status: "", Msg: "unmarshal containers info failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorUnmarshalContainer, Msg: "unmarshal containers info failed", Data: nil}
 	}
 
 	hwlog.RunLog.Info("query app success")
@@ -104,10 +95,10 @@ func queryApp(input interface{}) common.RespMsg {
 // listAppInfo get appInfo list
 func listAppInfo(input interface{}) common.RespMsg {
 	hwlog.RunLog.Infof("start list app infos")
-	req, ok := input.(util.ListReq)
+	req, ok := input.(types.ListReq)
 	if !ok {
 		hwlog.RunLog.Error("get apps Infos list failed: para type is invalid")
-		return common.RespMsg{Status: "", Msg: "list app info error", Data: nil}
+		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "", Data: nil}
 	}
 
 	apps, err := getListReturnInfo(req)
@@ -117,24 +108,24 @@ func listAppInfo(input interface{}) common.RespMsg {
 	}
 	if err != nil {
 		hwlog.RunLog.Error("get apps Infos list failed")
-		return common.RespMsg{Status: "", Msg: "get apps Infos list failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorListApp, Msg: "get apps Infos list failed", Data: nil}
 	}
 
 	apps.Total, err = AppRepositoryInstance().countListAppsInfo(req.Name)
 	if err != nil {
 		hwlog.RunLog.Error("count apps Infos list failed")
-		return common.RespMsg{Status: "", Msg: "count apps Infos list failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorListApp, Msg: "count apps Infos list failed", Data: nil}
 	}
 	apps.Deployed, apps.UnDeployed, err = AppRepositoryInstance().countDeployedApp()
 	if err != nil {
 		hwlog.RunLog.Error("count deployed app failed")
-		return common.RespMsg{Status: "", Msg: "count apps Infos list failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorListApp, Msg: "count apps Infos list failed", Data: nil}
 	}
 	hwlog.RunLog.Info("list apps Infos success")
 	return common.RespMsg{Status: common.Success, Msg: "list apps Infos success", Data: apps}
 }
 
-func getListReturnInfo(req util.ListReq) (*ListReturnInfo, error) {
+func getListReturnInfo(req types.ListReq) (*ListReturnInfo, error) {
 	appsInfo, err := AppRepositoryInstance().listAppsInfo(req.PageNum, req.PageSize, req.Name)
 	if err != nil {
 		return nil, err
@@ -172,37 +163,42 @@ func deployApp(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start deploy app")
 	var req DeployAppReq
 	if err := common.ParamConvert(input, &req); err != nil {
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}
 	checker := deployParaChecker{req: &req}
 	if err := checker.Check(); err != nil {
 		hwlog.RunLog.Errorf("deploy app para check failed: %s", err.Error())
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error(), Data: nil}
 	}
 	appInfo, err := AppRepositoryInstance().getAppInfoById(req.AppID)
 	if err == gorm.ErrRecordNotFound {
 		hwlog.RunLog.Errorf("app id [%d] not exist", req.AppID)
-		return common.RespMsg{Status: "",
+		return common.RespMsg{Status: common.ErrorAppMrgRecodeNoFound,
 			Msg: fmt.Sprintf("app id [%d] not exist, deploy app failed", req.AppID), Data: nil}
 	}
 	if err != nil {
 		hwlog.RunLog.Error("get app info error, deploy app failed")
-		return common.RespMsg{Status: "", Msg: "get app info error, deploy app failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorDeployApp, Msg: "get app info error, deploy app failed", Data: nil}
 	}
+	var deployRes types.BatchResp
 	for _, nodeGroupId := range req.NodeGroupIds {
 		daemonSet, err := initDaemonSet(appInfo, nodeGroupId)
 		if err != nil {
-			hwlog.RunLog.Errorf("deploy app [%s] on node group id [%d] failed: %s",
+			hwlog.RunLog.Errorf("init daemonSet app [%s] on node group id [%d] failed: %s",
 				appInfo.AppName, nodeGroupId, err.Error())
-			return common.RespMsg{Status: "", Msg: "app daemonSet init failed", Data: nil}
+			deployRes.FailedIDs = append(deployRes.FailedIDs, nodeGroupId)
+			continue
 		}
 		daemonSet, err = kubeclient.GetKubeClient().CreateDaemonSet(daemonSet)
 		if err != nil {
 			hwlog.RunLog.Errorf("app daemonSet create failed: %s", err.Error())
-			return common.RespMsg{Status: "", Msg: "app daemonSet create failed", Data: nil}
+			deployRes.FailedIDs = append(deployRes.FailedIDs, nodeGroupId)
+			continue
 		}
-		hwlog.RunLog.Infof("deploy app [%s] on node group id [%d] success",
-			appInfo.AppName, nodeGroupId)
+		deployRes.SuccessIDs = append(deployRes.SuccessIDs, nodeGroupId)
+	}
+	if len(deployRes.FailedIDs) != 0 {
+		return common.RespMsg{Status: common.ErrorDeployApp, Msg: "", Data: deployRes}
 	}
 	hwlog.RunLog.Info("all app daemonSets create success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
@@ -213,37 +209,35 @@ func unDeployApp(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start unDeploy app")
 	var req UndeployAppReq
 	if err := common.ParamConvert(input, &req); err != nil {
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}
 	checker := undeployParaParser{req: &req}
 	if err := checker.Parse(); err != nil {
 		hwlog.RunLog.Errorf("undeploy app para check failed: %s", err.Error())
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error(), Data: nil}
 	}
 	if len(req.NodeGroupIds) == 0 {
-		return common.RespMsg{Status: common.Success, Msg: "do not have any group need to undeploy", Data: nil}
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "do not have any group can be undeploy", Data: nil}
 	}
 	appInfo, err := AppRepositoryInstance().getAppInfoById(req.AppID)
-	if err == gorm.ErrRecordNotFound {
-		hwlog.RunLog.Errorf("app id [%d] not exist", req.AppID)
-		return common.RespMsg{Status: "",
-			Msg: fmt.Sprintf("app id [%d] not exist, undeploy app failed", req.AppID), Data: nil}
-	}
 	if err != nil {
 		hwlog.RunLog.Error("get app info error, undeploy app failed")
-		return common.RespMsg{Status: "", Msg: "get app info error, undeploy app failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorUnDeployApp, Msg: "get app info error, undeploy app failed"}
 	}
+	var unDeployRes types.BatchResp
 	for _, nodeGroupId := range req.NodeGroupIds {
 		daemonSetName := formatDaemonSetName(appInfo.AppName, nodeGroupId)
 		if err = kubeclient.GetKubeClient().DeleteDaemonSet(daemonSetName); err != nil {
 			hwlog.RunLog.Errorf("undeploy app [%s] on node group id [%d] failed: %s",
 				appInfo.AppName, nodeGroupId, err.Error())
-			return common.RespMsg{Status: "", Msg: "undeploy app failed", Data: nil}
+			unDeployRes.FailedIDs = append(unDeployRes.FailedIDs, nodeGroupId)
+			continue
 		}
-		hwlog.RunLog.Infof("undeploy app [%s] on node group id [%d] success",
-			appInfo.AppName, nodeGroupId)
+		unDeployRes.SuccessIDs = append(unDeployRes.SuccessIDs, nodeGroupId)
 	}
-
+	if len(unDeployRes.FailedIDs) != 0 {
+		return common.RespMsg{Status: common.ErrorUnDeployApp, Msg: "undeploy app failed", Data: unDeployRes}
+	}
 	hwlog.RunLog.Info("undeploy app on node group success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
@@ -294,51 +288,52 @@ func updateApp(input interface{}) common.RespMsg {
 	var req UpdateAppReq
 	var err error
 	if err = common.ParamConvert(input, &req); err != nil {
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}
 
 	if checkResult := appchecker.NewUpdateAppChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("app update para check failed: %s", checkResult.Reason)
-		return common.RespMsg{Status: "", Msg: checkResult.Reason, Data: nil}
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
 	}
 	if err := NewAppSupplementalChecker(req.CreateAppReq).Check(); err != nil {
 		hwlog.RunLog.Errorf("app create para check failed: %v", err)
-		return common.RespMsg{Status: "", Msg: fmt.Sprintf("app create para check failed: %v", err), Data: nil}
+		return common.RespMsg{Status: common.ErrorParamInvalid,
+			Msg: fmt.Sprintf("app create para check failed: %v", err), Data: nil}
 	}
 
 	appInfo, err := AppRepositoryInstance().getAppInfoById(req.AppID)
 	if err == gorm.ErrRecordNotFound {
 		hwlog.RunLog.Error("app info not exist, update failed")
-		return common.RespMsg{Status: "", Msg: "app info not exist, update failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorAppMrgRecodeNoFound, Msg: "app info not exist, update failed"}
 	}
 	if err != nil {
 		hwlog.RunLog.Error("get app info for app update, db failed")
-		return common.RespMsg{Status: "", Msg: "get app info for app update, db failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorUpdateApp, Msg: "get app info for app update, db failed", Data: nil}
 	}
 
 	if err = modifyContainerPara(&req, appInfo); err != nil {
 		hwlog.RunLog.Errorf("modify app info failed: %s", err.Error())
-		return common.RespMsg{Status: "", Msg: "update app info failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorUpdateApp, Msg: "update app info failed", Data: nil}
 	}
 
 	if err = AppRepositoryInstance().updateApp(appInfo.ID, "containers", appInfo.Containers); err != nil {
 		if strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
 			hwlog.RunLog.Error("update app to db failed")
-			return common.RespMsg{Status: "", Msg: "update app to db failed", Data: nil}
+			return common.RespMsg{Status: common.ErrorAppMrgDuplicate, Msg: "update app to db failed", Data: nil}
 		}
 		hwlog.RunLog.Error("update app to db failed")
-		return common.RespMsg{Status: "", Msg: "update app to db failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorUpdateApp, Msg: "update app to db failed", Data: nil}
 	}
 
 	nodeGroups, err := AppRepositoryInstance().queryNodeGroup(req.AppID)
 	if err != nil {
 		hwlog.RunLog.Error("get node group failed ")
-		return common.RespMsg{Status: "", Msg: "get node group failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorUpdateApp, Msg: "get node group failed", Data: nil}
 	}
 
 	if err = updateNodeGroupDaemonSet(appInfo, nodeGroups); err != nil {
 		hwlog.RunLog.Errorf("update node group daemon set failed: %s", err.Error())
-		return common.RespMsg{Status: "", Msg: "update node group daemon set failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorUpdateApp, Msg: "update node group daemon set failed", Data: nil}
 	}
 
 	hwlog.RunLog.Info("app daemonSet update success")
@@ -350,16 +345,20 @@ func deleteApp(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start delete app")
 	var req DeleteAppReq
 	if err := common.ParamConvert(input, &req); err != nil {
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}
-
+	var deleteRes types.BatchResp
 	for _, appId := range req.AppIDs {
-		if err := AppRepositoryInstance().deleteAppById(appId); err != nil {
-			hwlog.RunLog.Error("app db delete failed")
-			return common.RespMsg{Status: "", Msg: "app db delete failed", Data: nil}
+		if rowsAffected, err := AppRepositoryInstance().deleteAppById(appId); err != nil || rowsAffected != 1 {
+			hwlog.RunLog.Errorf("app db delete failed: %v", err)
+			deleteRes.FailedIDs = append(deleteRes.FailedIDs, appId)
+			continue
 		}
+		deleteRes.SuccessIDs = append(deleteRes.SuccessIDs, appId)
 	}
-
+	if len(deleteRes.FailedIDs) != 0 {
+		return common.RespMsg{Status: common.ErrorDeleteApp, Msg: "", Data: deleteRes}
+	}
 	hwlog.RunLog.Info("app db delete success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
@@ -371,17 +370,18 @@ func listAppInstancesById(input interface{}) common.RespMsg {
 	appId, ok := input.(uint64)
 	if !ok {
 		hwlog.RunLog.Error("list app instances failed, param type is not integer")
-		return common.RespMsg{Status: "", Msg: "param type is not integer", Data: nil}
+		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "param type is not integer", Data: nil}
 	}
 	appInstances, err := AppRepositoryInstance().listAppInstancesById(appId)
 	if err != nil {
 		hwlog.RunLog.Error("list app instances db failed")
-		return common.RespMsg{Status: "", Msg: "list app instances db failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorListAppInstancesByID, Msg: "list app instances db failed", Data: nil}
 	}
 	appInstanceResp, err := getAppInstanceRespFromAppInstances(appInstances)
 	if err != nil {
 		hwlog.RunLog.Error("get app instance response from app instances failed")
-		return common.RespMsg{Status: "", Msg: "get app instance response from app instances failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorListAppInstancesByID,
+			Msg: "get app instance response from app instances failed", Data: nil}
 	}
 	return common.RespMsg{Status: common.Success, Msg: "", Data: appInstanceResp}
 }
@@ -462,17 +462,18 @@ func listAppInstancesByNode(input interface{}) common.RespMsg {
 	nodeId, ok := input.(uint64)
 	if !ok {
 		hwlog.RunLog.Error("list app instances by node id failed, param type is not integer")
-		return common.RespMsg{Status: "", Msg: "param type is not integer", Data: nil}
+		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "param type is not integer", Data: nil}
 	}
-	appInstances, err := AppRepositoryInstance().listAppInstancesByNode(int64(nodeId))
+	appInstances, err := AppRepositoryInstance().listAppInstancesByNode(nodeId)
 	if err != nil {
 		hwlog.RunLog.Error("list app instances by node failed, db failed")
-		return common.RespMsg{Status: "", Msg: "list app instances by node db failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorListAppInstancesByNode, Msg: "list app instances by node db failed"}
 	}
 	appList, err := getAppInstanceOfNodeRespFromAppInstances(appInstances)
 	if err != nil {
 		hwlog.RunLog.Error("get app instance of node response from app instances failed")
-		return common.RespMsg{Status: "", Msg: "get app instance of node response from app instances failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorListAppInstancesByNode,
+			Msg: "get app instance of node response from app instances failed", Data: nil}
 	}
 	return common.RespMsg{Status: common.Success, Msg: "", Data: appList}
 }
@@ -517,20 +518,20 @@ func getAppInstanceOfNodeRespFromAppInstances(appInstances []AppInstance) ([]App
 
 func listAppInstances(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start to list all app instances")
-	req, ok := input.(util.ListReq)
+	req, ok := input.(types.ListReq)
 	if !ok {
 		hwlog.RunLog.Error("list all app instances failed: para type is invalid")
-		return common.RespMsg{Status: "", Msg: "para type is invalid", Data: nil}
+		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "para type is invalid", Data: nil}
 	}
 	appInstances, err := AppRepositoryInstance().listAppInstances(req.PageNum, req.PageSize, req.Name)
 	if err != nil {
 		hwlog.RunLog.Error("list all app instances failed: db failed")
-		return common.RespMsg{Status: "", Msg: "list all app instances failed: db failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorListAppInstances, Msg: "list all app instances failed: db failed"}
 	}
 	appInstanceResp, err := getAppInstanceRespFromAppInstances(appInstances)
 	if err != nil {
 		hwlog.RunLog.Error("list all app instances from app instances failed")
-		return common.RespMsg{Status: "", Msg: "list all app instances from app instances failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorListAppInstances, Msg: "list all app instances failed", Data: nil}
 	}
 	total, err := AppRepositoryInstance().countListAppInstances(req.Name)
 	if err != nil {
@@ -546,17 +547,17 @@ func listAppInstances(input interface{}) common.RespMsg {
 
 func getAppInstanceCountByNodeGroup(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start to get appInstance count")
-	req, ok := input.([]int64)
+	req, ok := input.([]uint64)
 	if !ok {
 		hwlog.RunLog.Error("failed to convert param")
-		return common.RespMsg{Msg: "failed to convert param"}
+		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "failed to convert param"}
 	}
-	appInstanceCount := make(map[int64]int64)
+	appInstanceCount := make(map[uint64]int64)
 	for _, groupId := range req {
 		count, err := AppRepositoryInstance().countDeployedAppByGroupID(groupId)
 		if err != nil {
 			hwlog.RunLog.Error("failed to count appInstance by node group")
-			return common.RespMsg{Msg: "failed to count appInstance by node group"}
+			return common.RespMsg{Status: common.ErrorGetAppInstanceCountByNodeGroup, Msg: ""}
 		}
 		appInstanceCount[groupId] = count
 	}

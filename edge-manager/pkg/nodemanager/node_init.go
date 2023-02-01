@@ -118,7 +118,6 @@ var (
 )
 
 var handlerFuncMap = map[string]handlerFunc{
-	common.Combine(http.MethodPost, nodeUrlRootPath):                                 createNode,
 	common.Combine(http.MethodGet, filepath.Join(nodeUrlRootPath, "stats")):          getNodeStatistics,
 	common.Combine(http.MethodGet, nodeUrlRootPath):                                  getNodeDetail,
 	common.Combine(http.MethodPatch, nodeUrlRootPath):                                modifyNode,

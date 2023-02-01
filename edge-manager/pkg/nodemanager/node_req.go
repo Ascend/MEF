@@ -5,10 +5,10 @@ package nodemanager
 
 // CreateEdgeNodeReq Create edge node
 type CreateEdgeNodeReq struct {
-	Description string  `json:"description,omitempty"`
-	NodeName    *string `json:"nodeName"`
-	UniqueName  *string `json:"uniqueName"`
-	GroupIDs    []int64 `json:"nodeGroup,omitempty"`
+	Description string   `json:"description,omitempty"`
+	NodeName    *string  `json:"nodeName"`
+	UniqueName  *string  `json:"uniqueName"`
+	GroupIDs    []uint64 `json:"nodeGroup,omitempty"`
 }
 
 // CreateNodeGroupReq Create edge node group
@@ -18,11 +18,13 @@ type CreateNodeGroupReq struct {
 }
 
 // BatchDeleteNodeReq batch delete node
-type BatchDeleteNodeReq []int64
+type BatchDeleteNodeReq struct {
+	NodeIDs *[]uint64 `json:"nodeIDs"`
+}
 
 // DeleteNodeToGroupReq delete nodes to group
 type DeleteNodeToGroupReq struct {
-	GroupID *int64   `json:"groupID"`
+	GroupID *uint64  `json:"groupID"`
 	NodeIDs *[]int64 `json:"nodeIDs"`
 }
 
@@ -31,41 +33,41 @@ type BatchDeleteNodeRelationReq []DeleteNodeRelationReq
 
 // DeleteNodeRelationReq delete single node-group relation
 type DeleteNodeRelationReq struct {
-	GroupID *int64 `json:"groupID"`
-	NodeID  *int64 `json:"nodeID"`
+	GroupID *uint64 `json:"groupID"`
+	NodeID  *uint64 `json:"nodeID"`
 }
 
 // ModifyNodeReq request object
 type ModifyNodeReq struct {
-	NodeID      *int64  `json:"nodeID"`
+	NodeID      *uint64 `json:"nodeID"`
 	NodeName    *string `json:"nodeName"`
 	Description string  `json:"description"`
 }
 
 // ModifyNodeGroupReq request object
 type ModifyNodeGroupReq struct {
-	GroupID     *int64  `json:"groupID"`
+	GroupID     *uint64 `json:"groupID"`
 	GroupName   *string `json:"nodeGroupName"`
 	Description string  `json:"description"`
 }
 
 // AddNodeToGroupReq Create edge node group
 type AddNodeToGroupReq struct {
-	NodeIDs *[]int64 `json:"nodeIDs"`
-	GroupID *int64   `json:"groupID"`
+	NodeIDs *[]uint64 `json:"nodeIDs"`
+	GroupID *uint64   `json:"groupID"`
 }
 
 // AddUnManagedNodeReq add unmanaged node
 type AddUnManagedNodeReq struct {
-	NodeID      *int64  `json:"nodeID"`
-	NodeName    *string `json:"name"`
-	GroupIDs    []int64 `json:"groupIDs,omitempty"`
-	Description string  `json:"description,omitempty"`
+	NodeID      *uint64  `json:"nodeID"`
+	NodeName    *string  `json:"name"`
+	GroupIDs    []uint64 `json:"groupIDs,omitempty"`
+	Description string   `json:"description,omitempty"`
 }
 
 // BatchDeleteNodeGroupReq batch delete node group
 type BatchDeleteNodeGroupReq struct {
-	GroupIDs *[]int64 `json:"groupIDs"`
+	GroupIDs *[]uint64 `json:"groupIDs"`
 }
 
 // ListNodeGroupResp response object for listNodeGroup

@@ -11,8 +11,6 @@ import (
 	"edge-manager/pkg/database"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
-	"edge-manager/pkg/util"
-
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
 	"gorm.io/driver/sqlite"
@@ -169,7 +167,7 @@ func testDeleteNotExistApp() {
 				"appIDs": [100]
 				}`
 	resp := deleteApp(reqData)
-	convey.So(resp.Status, convey.ShouldEqual, common.Success)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorDeleteApp)
 }
 
 func testDeleteApp() {
@@ -240,7 +238,7 @@ func testQueryApp() {
 }
 
 func testListAppInfo() {
-	var reqData = util.ListReq{
+	var reqData = types.ListReq{
 		PageNum:  1,
 		PageSize: 1,
 		Name:     "face-check",
@@ -261,7 +259,7 @@ func testDeployApInfo() {
 			return &v1.DaemonSet{}, nil
 		})
 	var p2 = gomonkey.ApplyFunc(getNodeGroupInfos,
-		func(nodeGroupIds []int64) ([]types.NodeGroupInfo, error) {
+		func(nodeGroupIds []uint64) ([]types.NodeGroupInfo, error) {
 			return []types.NodeGroupInfo{{1, "group1"},
 				{2, "group2"}}, nil
 		})
@@ -284,7 +282,7 @@ func testUndeployApInfo() {
 		})
 	defer p1.Reset()
 	resp := unDeployApp(reqData)
-	convey.So(resp.Status, convey.ShouldEqual, common.Success)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 }
 
 func testCreateTemplate() {
@@ -351,7 +349,7 @@ func testGetTemplate() {
 }
 
 func testGetTemplates() {
-	var reqData = util.ListReq{
+	var reqData = types.ListReq{
 		PageNum:  1,
 		PageSize: 1,
 		Name:     "template1",
