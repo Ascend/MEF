@@ -22,7 +22,8 @@ type CtlComponent struct {
 }
 
 func (cc *CtlComponent) startComponent(yamlPath string) error {
-	if err := cc.prepareNameSpace(); err != nil {
+	nsMgr := NewNamespaceMgr(MefNamespace)
+	if err := nsMgr.prepareNameSpace(); err != nil {
 		return err
 	}
 
@@ -38,7 +39,8 @@ func (cc *CtlComponent) startComponent(yamlPath string) error {
 }
 
 func (cc *CtlComponent) stopComponent() error {
-	ret, err := cc.checkNameSpaceExist()
+	nsMgr := NewNamespaceMgr(MefNamespace)
+	ret, err := nsMgr.checkNameSpaceExist()
 	if err != nil {
 		return err
 	}
@@ -52,7 +54,7 @@ func (cc *CtlComponent) stopComponent() error {
 		return err
 	}
 	if status == "" {
-		hwlog.RunLog.Infof("component %s does not start now, no need to stop", cc.Name)
+		hwlog.RunLog.Warnf("component %s does not start now, no need to stop", cc.Name)
 		return nil
 	}
 
@@ -62,24 +64,10 @@ func (cc *CtlComponent) stopComponent() error {
 	return nil
 }
 
-func (cc *CtlComponent) checkNameSpaceExist() (bool, error) {
-	checkCmd := fmt.Sprintf("%s get namespaces | grep -w %s", CommandKubectl, MefNamespace)
-	ret, err := common.RunCommand("sh", false, "-c", checkCmd)
-	if err != nil {
-		hwlog.RunLog.Errorf("check namespace command exec failed: %s", err.Error())
-		return false, errors.New("check namespace command exec failed")
-	}
-
-	if ret == "" {
-		return false, nil
-	}
-
-	return true, nil
-}
-
 func (cc *CtlComponent) getComponentStatus() (string, error) {
+	deploymentReg := fmt.Sprintf("'^%s\\s'", AscendPrefix+cc.Name)
 	checkCmd := fmt.Sprintf("%s get deployment -n %s | grep -w %s",
-		CommandKubectl, MefNamespace, cc.Name)
+		CommandKubectl, MefNamespace, deploymentReg)
 	ret, err := common.RunCommand("sh", false, "-c", checkCmd)
 
 	if err != nil && err.Error() != "" {
@@ -139,40 +127,6 @@ func (cc *CtlComponent) checkIfComponentReady() error {
 	return fmt.Errorf("componentFlag [%s] is not running", cc.Name)
 }
 
-func (cc *CtlComponent) prepareNameSpace() error {
-	hwlog.RunLog.Info("start to prepare namespace")
-	checkCmd := fmt.Sprintf("%s get namespaces | grep -w %s | awk '{print$2}'", CommandKubectl, MefNamespace)
-	status, err := common.RunCommand("sh", false, "-c", checkCmd)
-	if err != nil {
-		hwlog.RunLog.Errorf("check namespace failed: %s", err.Error())
-		return errors.New("get namespace failed")
-	}
-	if status == ActiveFlag {
-		hwlog.RunLog.Info("the namespace has already existed")
-		return nil
-	}
-
-	if status != "" && status != ActiveFlag {
-		_, err = common.RunCommand(CommandKubectl, true,
-			"delete", CommandNamespace, MefNamespace)
-		if err != nil {
-			hwlog.RunLog.Errorf("the namespace exists but not active, delete it failed: %s", err.Error())
-			return errors.New("the namespace exists but not active, delete it failed")
-		}
-	}
-
-	// namespace does not exist, then create
-	hwlog.RunLog.Info("start to create namespace")
-	_, err = common.RunCommand(CommandKubectl, true, "create", CommandNamespace, MefNamespace)
-	if err != nil {
-		hwlog.RunLog.Errorf("create namespace failed: %s", err.Error())
-		return fmt.Errorf("create namespace failed")
-	}
-
-	hwlog.RunLog.Info("prepare namespace successful")
-	return nil
-}
-
 // Operate is used to start an operate to a single component
 func (cc *CtlComponent) Operate() error {
 	hwlog.RunLog.Infof("start to %s module %s", cc.Operation, cc.Name)
@@ -196,17 +150,17 @@ func (cc *CtlComponent) Operate() error {
 	}
 
 	switch cc.Operation {
-	case "start":
+	case StartOperateFlag:
 		if err = cc.startComponent(filePath); err != nil {
 			return err
 		}
 
-	case "stop":
+	case StopOperateFlag:
 		if err = cc.stopComponent(); err != nil {
 			return err
 		}
 
-	case "restart":
+	case RestartOperateFlag:
 		if err = cc.stopComponent(); err != nil {
 			return err
 		}

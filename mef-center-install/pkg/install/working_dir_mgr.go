@@ -19,7 +19,7 @@ import (
 type workingDirCtl struct {
 	pathMgr     *util.WorkPathAMgr
 	mefLinkPath string
-	components  map[string]*util.InstallComponent
+	components  []string
 }
 
 func (wdc *workingDirCtl) doPrepare() error {
@@ -78,7 +78,8 @@ func (wdc *workingDirCtl) prepareLibDir() error {
 	}
 
 	for _, component := range wdc.components {
-		if err = (*component).PrepareLibDir(libSrc, wdc.pathMgr); err != nil {
+		componentMgr := util.GetComponentMgr(component)
+		if err = componentMgr.PrepareLibDir(libSrc, wdc.pathMgr); err != nil {
 			return err
 		}
 	}
@@ -183,7 +184,8 @@ func (wdc *workingDirCtl) prepareComponentWorkDir() error {
 
 	// prepare components' working directory
 	for _, component := range wdc.components {
-		if err := (*component).PrepareSingleComponentDir(wdc.pathMgr); err != nil {
+		componentMgr := util.GetComponentMgr(component)
+		if err := componentMgr.PrepareSingleComponentDir(wdc.pathMgr); err != nil {
 			return err
 		}
 	}

@@ -8,8 +8,8 @@ import (
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
-// SftControlMgr is a struct that used to start/stop/restart a component
-type SftControlMgr struct {
+// SftOperateMgr is a struct that used to start/stop/restart a component
+type SftOperateMgr struct {
 	componentFlag      string
 	operate            string
 	installedComponent []string
@@ -17,8 +17,8 @@ type SftControlMgr struct {
 	componentList      []*util.CtlComponent
 }
 
-// DoControl is the main func to do a control handle
-func (scm *SftControlMgr) DoControl() error {
+// DoOperate is the main func to do an operate handle
+func (scm *SftOperateMgr) DoOperate() error {
 	var controlTasks = []func() error{
 		scm.init,
 		scm.check,
@@ -34,7 +34,7 @@ func (scm *SftControlMgr) DoControl() error {
 	return nil
 }
 
-func (scm *SftControlMgr) init() error {
+func (scm *SftOperateMgr) init() error {
 	// if all, then construct a full componentFlag list. (Does not support batch configuration)
 	if scm.componentFlag == "all" {
 		for _, c := range scm.installedComponent {
@@ -59,7 +59,7 @@ func (scm *SftControlMgr) init() error {
 	return nil
 }
 
-func (scm *SftControlMgr) check() error {
+func (scm *SftOperateMgr) check() error {
 	var checkTasks = []func() error{
 		scm.checkUser,
 	}
@@ -73,7 +73,7 @@ func (scm *SftControlMgr) check() error {
 	return nil
 }
 
-func (scm *SftControlMgr) checkUser() error {
+func (scm *SftOperateMgr) checkUser() error {
 	hwlog.RunLog.Info("start to check user")
 	if err := util.CheckUser(); err != nil {
 		hwlog.RunLog.Errorf("check user failed: %s", err.Error())
@@ -83,7 +83,7 @@ func (scm *SftControlMgr) checkUser() error {
 	return nil
 }
 
-func (scm *SftControlMgr) deal() error {
+func (scm *SftOperateMgr) deal() error {
 	for _, component := range scm.componentList {
 		if err := component.Operate(); err != nil {
 			return err
@@ -92,13 +92,13 @@ func (scm *SftControlMgr) deal() error {
 	return nil
 }
 
-// InitSftControlMgr is used to init a SftControlMgr struct
-func InitSftControlMgr(component, operate string,
-	installComponents []string, installPathMgr *util.InstallDirPathMgr) *SftControlMgr {
-	return &SftControlMgr{
+// InitSftOperateMgr is used to init a SftOperateMgr struct
+func InitSftOperateMgr(component, operate string,
+	installComponents []string, installPath string) *SftOperateMgr {
+	return &SftOperateMgr{
 		componentFlag:      component,
 		operate:            operate,
 		installedComponent: installComponents,
-		installPathMgr:     installPathMgr,
+		installPathMgr:     util.InitInstallDirPathMgr(installPath),
 	}
 }

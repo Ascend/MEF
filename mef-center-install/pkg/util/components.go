@@ -11,66 +11,48 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/certutils"
 )
 
-// InstallComponent is the struct for a single component's installation
-type InstallComponent struct {
-	Name     string
-	Required bool
-	DnsName  string
-	version  string
+// ComponentMgr is the struct for a single component's installation
+type ComponentMgr struct {
+	name string
 }
 
-// GetCompulsoryMap returns a map that contains all compulsory components
-// the key is the component's name and value is a InstallComponent to control the component
-func GetCompulsoryMap() map[string]*InstallComponent {
-	return map[string]*InstallComponent{
-		EdgeManagerName: {
-			Name:     EdgeManagerName,
-			Required: true,
-			DnsName:  common.EdgeMgrDns,
-		},
-		CertManagerName: {
-			Name:     CertManagerName,
-			Required: true,
-			DnsName:  common.CertMgrDns,
-		},
-		NginxManagerName: {
-			Name:     NginxManagerName,
-			Required: true,
-		},
+// GetComponentMgr is the func to init a ComponentMgr struct
+func GetComponentMgr(name string) *ComponentMgr {
+	return &ComponentMgr{name: name}
+}
+
+// GetCompulsorySlice returns a slice that contains all compulsory components
+func GetCompulsorySlice() []string {
+	return []string{
+		EdgeManagerName,
+		CertManagerName,
+		NginxManagerName,
 	}
 }
 
-// GetOptionalMap returns a map that contains all optional components
-// the key is the component's name and value is a InstallComponent to control the component
-func GetOptionalMap() map[string]*InstallComponent {
-	return map[string]*InstallComponent{
-		SoftwareManagerName: {
-			Name:     SoftwareManagerName,
-			Required: false,
-			DnsName:  common.SoftwareMgrDns,
-		},
+func getComponentDns(component string) string {
+	DnsMap := map[string]string{
+		EdgeManagerName:     common.EdgeMgrDns,
+		CertManagerName:     common.CertMgrDns,
+		SoftwareManagerName: common.SoftwareMgrDns,
 	}
+	return DnsMap[component]
 }
 
 // LoadAndSaveImage is used to build a docker image and save it to component's image dir
-func (c *InstallComponent) LoadAndSaveImage(pathMgr *WorkPathAMgr) error {
-	if !c.Required {
-		return nil
-	}
-
+func (c *ComponentMgr) LoadAndSaveImage(pathMgr *WorkPathAMgr) error {
 	if pathMgr == nil {
 		hwlog.RunLog.Error("pointer pathMgr is nil")
 		return errors.New("pointer pathMgr is nil")
 	}
 
-	dockerDealerIns := GetDockerDealer(c.Name, c.version)
-	imageConfigPath := pathMgr.GetImageConfigPath(c.Name)
-	imagePath := pathMgr.GetImagePath(c.Name)
+	dockerDealerIns := GetDockerDealer(c.name, DockerTag)
+	imageConfigPath := pathMgr.GetImageConfigPath(c.name)
+	imagePath := pathMgr.GetImagePath(c.name)
 	if err := c.loadImage(&dockerDealerIns, imageConfigPath); err != nil {
 		return err
 	}
@@ -82,8 +64,8 @@ func (c *InstallComponent) LoadAndSaveImage(pathMgr *WorkPathAMgr) error {
 	return nil
 }
 
-func (c *InstallComponent) loadImage(dealer *DockerDealer, imageConfigPath string) error {
-	hwlog.RunLog.Infof("start to build [%s] component's docker", c.Name)
+func (c *ComponentMgr) loadImage(dealer *DockerDealer, imageConfigPath string) error {
+	hwlog.RunLog.Infof("start to build [%s] component's docker", c.name)
 	if dealer == nil {
 		hwlog.RunLog.Error("pointer dealer is nil")
 		return errors.New("pointer dealer is nil")
@@ -95,7 +77,7 @@ func (c *InstallComponent) loadImage(dealer *DockerDealer, imageConfigPath strin
 	}
 
 	if !utils.IsExist(imageConfigAbsPath) {
-		return fmt.Errorf("failed to build [%s] component's docker, the docker path does not exist", c.Name)
+		return fmt.Errorf("failed to build [%s] component's docker, the docker path does not exist", c.name)
 	}
 
 	if err = dealer.LoadImage(imageConfigAbsPath); err != nil {
@@ -105,15 +87,15 @@ func (c *InstallComponent) loadImage(dealer *DockerDealer, imageConfigPath strin
 	return nil
 }
 
-func (c *InstallComponent) saveImage(dealer *DockerDealer, savePath string) error {
-	hwlog.RunLog.Infof("start to save [%s] component's image", c.Name)
+func (c *ComponentMgr) saveImage(dealer *DockerDealer, savePath string) error {
+	hwlog.RunLog.Infof("start to save [%s] component's image", c.name)
 	if dealer == nil {
 		hwlog.RunLog.Error("pointer dealer is nil")
 		return errors.New("pointer dealer is nil")
 	}
 
 	if !utils.IsExist(savePath) {
-		return fmt.Errorf("failed to save [%s] component's image, the save path does not exist", c.Name)
+		return fmt.Errorf("failed to save [%s] component's image, the save path does not exist", c.name)
 	}
 
 	if err := dealer.SaveImage(savePath); err != nil {
@@ -124,29 +106,25 @@ func (c *InstallComponent) saveImage(dealer *DockerDealer, savePath string) erro
 }
 
 // ClearDockerFile is used to clear Dockerfile and its binary file after the docker has been build
-func (c *InstallComponent) ClearDockerFile(pathMgr *WorkPathAMgr) error {
-	if !c.Required {
-		return nil
-	}
-
+func (c *ComponentMgr) ClearDockerFile(pathMgr *WorkPathAMgr) error {
 	if pathMgr == nil {
 		hwlog.RunLog.Error("pointer pathMgr is nil")
 		return errors.New("pointer pathMgr is nil")
 	}
 
-	componentPath := pathMgr.GetDockerFilePath(c.Name)
+	componentPath := pathMgr.GetDockerFilePath(c.name)
 	componentAbsPath, err := filepath.EvalSymlinks(componentPath)
 	if err != nil {
-		hwlog.RunLog.Errorf("get [%s]'s Dockerfile's abs path failed: %s", c.Name, err.Error())
-		return fmt.Errorf("get [%s]'s Dockerfile's abs path failed", c.Name)
+		hwlog.RunLog.Errorf("get [%s]'s Dockerfile's abs path failed: %s", c.name, err.Error())
+		return fmt.Errorf("get [%s]'s Dockerfile's abs path failed", c.name)
 	}
 
 	if err = common.DeleteAllFile(componentAbsPath); err != nil {
-		hwlog.RunLog.Errorf("delete component [%s]'s Dockerfile failed: %s", c.Name, err.Error())
-		return fmt.Errorf("delete component [%s]'s Dockerfile's failed", c.Name)
+		hwlog.RunLog.Errorf("delete component [%s]'s Dockerfile failed: %s", c.name, err.Error())
+		return fmt.Errorf("delete component [%s]'s Dockerfile's failed", c.name)
 	}
 
-	if c.Name == NginxManagerName {
+	if c.name == NginxManagerName {
 		err = common.DeleteAllFile(pathMgr.GetNginxDirPath())
 		if err != nil {
 			hwlog.RunLog.Errorf("delete nginx's dir failed: %s", err.Error())
@@ -155,32 +133,17 @@ func (c *InstallComponent) ClearDockerFile(pathMgr *WorkPathAMgr) error {
 		return nil
 	}
 
-	err = common.DeleteAllFile(pathMgr.GetComponentBinaryPath(c.Name))
+	err = common.DeleteAllFile(pathMgr.GetComponentBinaryPath(c.name))
 	if err != nil {
-		hwlog.RunLog.Errorf("delete component [%s]'s binary file failed: %s", c.Name, err.Error())
-		return fmt.Errorf("delete component [%s]'s binary file failed", c.Name)
+		hwlog.RunLog.Errorf("delete component [%s]'s binary file failed: %s", c.name, err.Error())
+		return fmt.Errorf("delete component [%s]'s binary file failed", c.name)
 	}
 	return nil
 }
 
-// SetInstallOption is used to set a component's required status, which indicates if a component should be installed
-func (c *InstallComponent) SetInstallOption(install bool) {
-	c.Required = install
-}
-
-// SetVersion is used to set the version of a component, which is used as the version tag of the docker
-func (c *InstallComponent) SetVersion() {
-	version := DockerTag
-	c.version = version
-}
-
 // PrepareComponentCertDir is used to create the cert dir for a single component
-func (c *InstallComponent) PrepareComponentCertDir(rootPath string) error {
-	if !c.Required {
-		return nil
-	}
-
-	certPath := path.Join(rootPath, c.Name, CertsDir)
+func (c *ComponentMgr) PrepareComponentCertDir(rootPath string) error {
+	certPath := path.Join(rootPath, c.name, CertsDir)
 	if err := common.MakeSurePath(certPath); err != nil {
 		return fmt.Errorf("create cert path [%s] failed", certPath)
 	}
@@ -189,11 +152,7 @@ func (c *InstallComponent) PrepareComponentCertDir(rootPath string) error {
 }
 
 // PrepareSingleComponentDir is used to create a single component's dir and copy its files into it
-func (c *InstallComponent) PrepareSingleComponentDir(pathMgr *WorkPathAMgr) error {
-	if !c.Required {
-		return nil
-	}
-
+func (c *ComponentMgr) PrepareSingleComponentDir(pathMgr *WorkPathAMgr) error {
 	if pathMgr == nil {
 		hwlog.RunLog.Error("pointer pathMgr is nil")
 		return errors.New("pointer pathMgr is nil")
@@ -204,37 +163,37 @@ func (c *InstallComponent) PrepareSingleComponentDir(pathMgr *WorkPathAMgr) erro
 	}
 
 	if err := c.copyComponentFiles(pathMgr); err != nil {
-		hwlog.RunLog.Errorf("copy component [%s] files failed: %v", c.Name, err.Error())
+		hwlog.RunLog.Errorf("copy component [%s] files failed: %v", c.name, err.Error())
 		return errors.New("copy component files failed")
 	}
 
 	return nil
 }
 
-func (c *InstallComponent) prepareComponentDir(pathMgr *WorkPathAMgr) error {
+func (c *ComponentMgr) prepareComponentDir(pathMgr *WorkPathAMgr) error {
 	if pathMgr == nil {
 		hwlog.RunLog.Error("pointer pathMgr is nil")
 		return errors.New("pointer pathMgr is nil")
 	}
 
-	imageConfigPath := pathMgr.GetImageConfigPath(c.Name)
+	imageConfigPath := pathMgr.GetImageConfigPath(c.name)
 	if err := common.MakeSurePath(imageConfigPath); err != nil {
 		hwlog.RunLog.Errorf(
-			"create component [%s] cert path [%s] failed: %s", c.Name, imageConfigPath, err.Error())
+			"create component [%s] cert path [%s] failed: %s", c.name, imageConfigPath, err.Error())
 		return errors.New("create component cert path failed")
 	}
 
-	imagePath := pathMgr.GetImagePath(c.Name)
+	imagePath := pathMgr.GetImagePath(c.name)
 	if err := common.MakeSurePath(imagePath); err != nil {
 		hwlog.RunLog.Errorf(
-			"create component [%s] image path [%s] failed: %s", c.Name, imageConfigPath, err.Error())
+			"create component [%s] image path [%s] failed: %s", c.name, imageConfigPath, err.Error())
 		return errors.New("create component image path failed")
 	}
 
 	return nil
 }
 
-func (c *InstallComponent) copyComponentFiles(pathMgr *WorkPathAMgr) error {
+func (c *ComponentMgr) copyComponentFiles(pathMgr *WorkPathAMgr) error {
 	if pathMgr == nil {
 		hwlog.RunLog.Error("pointer pathMgr is nil")
 		return errors.New("pointer pathMgr is nil")
@@ -242,18 +201,18 @@ func (c *InstallComponent) copyComponentFiles(pathMgr *WorkPathAMgr) error {
 
 	currentDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
-		hwlog.RunLog.Errorf("copy %s's file dir since cannot get current dir: %s", c.Name, err.Error())
+		hwlog.RunLog.Errorf("copy %s's file dir since cannot get current dir: %s", c.name, err.Error())
 		return errors.New("copy component dir failed")
 	}
 
 	installRootDir := path.Dir(path.Dir(currentDir))
-	componentPath := path.Join(installRootDir, c.Name)
+	componentPath := path.Join(installRootDir, c.name)
 
-	// copy InstallComponent files to InstallComponent directory
-	filesDst := pathMgr.GetImageConfigPath(c.Name)
+	// copy ComponentMgr files to ComponentMgr directory
+	filesDst := pathMgr.GetImageConfigPath(c.name)
 
 	if err = common.CopyDir(componentPath, filesDst, false); err != nil {
-		hwlog.RunLog.Errorf("copy %s's dir failed: %s", c.Name, err.Error())
+		hwlog.RunLog.Errorf("copy %s's dir failed: %s", c.name, err.Error())
 		return fmt.Errorf("copy component dir failed")
 	}
 
@@ -263,11 +222,7 @@ func (c *InstallComponent) copyComponentFiles(pathMgr *WorkPathAMgr) error {
 // PrepareComponentCert is used to prepare certs for a single component
 // the key file is encrypted by kmc
 // for nginx module, an addition server certs needs to be created for northern channel
-func (c *InstallComponent) PrepareComponentCert(certMng *certutils.RootCertMgr, certPathMgr *ConfigPathMgr) error {
-	if !c.Required {
-		return nil
-	}
-
+func (c *ComponentMgr) PrepareComponentCert(certMng *certutils.RootCertMgr, certPathMgr *ConfigPathMgr) error {
 	if certMng == nil {
 		hwlog.RunLog.Error("pointer certMng is nil")
 		return errors.New("pointer certMng is nil")
@@ -277,29 +232,29 @@ func (c *InstallComponent) PrepareComponentCert(certMng *certutils.RootCertMgr, 
 		return errors.New("pointer certPathMgr is nil")
 	}
 
-	componentsCertPath := certPathMgr.GetComponentCertPath(c.Name)
-	componentPrivPath := certPathMgr.GetComponentKeyPath(c.Name)
+	componentsCertPath := certPathMgr.GetComponentCertPath(c.name)
+	componentPrivPath := certPathMgr.GetComponentKeyPath(c.name)
 
 	componentCert := certutils.SelfSignCert{
 		RootCertMgr: certMng,
 		SvcCertPath: componentsCertPath,
 		SvcKeyPath:  componentPrivPath,
-		CommonName:  c.Name,
-		DnsName:     c.DnsName,
+		CommonName:  c.name,
+		DnsName:     getComponentDns(c.name),
 		KmcCfg: &common.KmcCfg{
 			SdpAlgID:       common.Aes256gcm,
-			PrimaryKeyPath: certPathMgr.GetComponentMasterKmcPath(c.Name),
-			StandbyKeyPath: certPathMgr.GetComponentBackKmcPath(c.Name),
+			PrimaryKeyPath: certPathMgr.GetComponentMasterKmcPath(c.name),
+			StandbyKeyPath: certPathMgr.GetComponentBackKmcPath(c.name),
 			DoMainId:       common.DoMainId,
 		},
 	}
 
 	if err := componentCert.CreateSignCert(); err != nil {
-		hwlog.RunLog.Errorf("create component [%s] cert failed: %v", c.Name, err)
-		return fmt.Errorf("create component [%s] cert failed", c.Name)
+		hwlog.RunLog.Errorf("create component [%s] cert failed: %v", c.name, err)
+		return fmt.Errorf("create component [%s] cert failed", c.name)
 	}
 
-	if c.Name != NginxManagerName {
+	if c.name != NginxManagerName {
 		return nil
 	}
 
@@ -309,7 +264,7 @@ func (c *InstallComponent) PrepareComponentCert(certMng *certutils.RootCertMgr, 
 	return nil
 }
 
-func (c *InstallComponent) prepareNginxServerCert(certMng *certutils.RootCertMgr, certPathMgr *ConfigPathMgr) error {
+func (c *ComponentMgr) prepareNginxServerCert(certMng *certutils.RootCertMgr, certPathMgr *ConfigPathMgr) error {
 	hwlog.RunLog.Infof("start to prepare nginx server cert")
 
 	if certMng == nil {
@@ -328,11 +283,11 @@ func (c *InstallComponent) prepareNginxServerCert(certMng *certutils.RootCertMgr
 		RootCertMgr: certMng,
 		SvcCertPath: componentsCertPath,
 		SvcKeyPath:  componentPrivPath,
-		CommonName:  c.Name + NginxServerSuffix,
+		CommonName:  c.name + NginxServerSuffix,
 		KmcCfg: &common.KmcCfg{
 			SdpAlgID:       common.Aes256gcm,
-			PrimaryKeyPath: certPathMgr.GetComponentMasterKmcPath(c.Name),
-			StandbyKeyPath: certPathMgr.GetComponentBackKmcPath(c.Name),
+			PrimaryKeyPath: certPathMgr.GetComponentMasterKmcPath(c.name),
+			StandbyKeyPath: certPathMgr.GetComponentBackKmcPath(c.name),
 			DoMainId:       common.DoMainId,
 		},
 	}
@@ -347,16 +302,16 @@ func (c *InstallComponent) prepareNginxServerCert(certMng *certutils.RootCertMgr
 }
 
 // PrepareLogDir creates log dir for a single component and change owner into MEFCenter:MEFCenter
-func (c *InstallComponent) PrepareLogDir(pathMgr *LogDirPathMgr) error {
+func (c *ComponentMgr) PrepareLogDir(pathMgr *LogDirPathMgr) error {
 	if pathMgr == nil {
 		hwlog.RunLog.Error("pointer pathMgr is nil")
 		return errors.New("pointer pathMgr is nil")
 	}
 
-	logDir := pathMgr.GetComponentLogPath(c.Name)
+	logDir := pathMgr.GetComponentLogPath(c.name)
 	if err := common.MakeSurePath(logDir); err != nil {
-		hwlog.RunLog.Errorf("prepare component [%s] Log Dir failed: %s", c.Name, err.Error())
-		return fmt.Errorf("prepare component [%s] log dir failed", c.Name)
+		hwlog.RunLog.Errorf("prepare component [%s] Log Dir failed: %s", c.name, err.Error())
+		return fmt.Errorf("prepare component [%s] log dir failed", c.name)
 	}
 
 	mefUid, mefGid, err := GetMefId()
@@ -373,16 +328,16 @@ func (c *InstallComponent) PrepareLogDir(pathMgr *LogDirPathMgr) error {
 }
 
 // PrepareLibDir creates lib dir for a single component and copy libs into it
-func (c *InstallComponent) PrepareLibDir(libSrcPath string, pathMgr *WorkPathAMgr) error {
+func (c *ComponentMgr) PrepareLibDir(libSrcPath string, pathMgr *WorkPathAMgr) error {
 	if pathMgr == nil {
 		hwlog.RunLog.Error("pointer pathMgr is nil")
 		return errors.New("pointer pathMgr is nil")
 	}
 
-	libDir := pathMgr.GetComponentLibPath(c.Name)
+	libDir := pathMgr.GetComponentLibPath(c.name)
 	if err := common.MakeSurePath(libDir); err != nil {
-		hwlog.RunLog.Errorf("prepare component [%s] lib Dir failed: %s", c.Name, err.Error())
-		return fmt.Errorf("prepare component [%s] lib dir failed", c.Name)
+		hwlog.RunLog.Errorf("prepare component [%s] lib Dir failed: %s", c.name, err.Error())
+		return fmt.Errorf("prepare component [%s] lib dir failed", c.name)
 	}
 
 	mefUid, mefGid, err := GetMefId()
@@ -397,30 +352,30 @@ func (c *InstallComponent) PrepareLibDir(libSrcPath string, pathMgr *WorkPathAMg
 	}
 
 	if err = common.CopyDir(libSrcPath, libDir, false); err != nil {
-		hwlog.RunLog.Errorf("copy component [%s]'s lib dir failed, error: %v", c.Name, err.Error())
-		return fmt.Errorf("copy lib component [%s]'s dir failed", c.Name)
+		hwlog.RunLog.Errorf("copy component [%s]'s lib dir failed, error: %v", c.name, err.Error())
+		return fmt.Errorf("copy lib component [%s]'s dir failed", c.name)
 	}
 
 	return nil
 }
 
 // ClearLibDir deleted the lib dir for single component, which is used after docker has been build
-func (c *InstallComponent) ClearLibDir(pathMgr *WorkPathAMgr) error {
+func (c *ComponentMgr) ClearLibDir(pathMgr *WorkPathAMgr) error {
 	if pathMgr == nil {
 		hwlog.RunLog.Error("pointer pathMgr is nil")
 		return errors.New("pointer pathMgr is nil")
 	}
 
-	libDir := pathMgr.GetComponentLibPath(c.Name)
+	libDir := pathMgr.GetComponentLibPath(c.name)
 	absPath, err := filepath.EvalSymlinks(libDir)
 	if err != nil {
-		hwlog.RunLog.Errorf("get [%s]'s lib dir's abs path failed: %s", c.Name, err.Error())
-		return fmt.Errorf("get [%s]'s lib dir's abs path failed", c.Name)
+		hwlog.RunLog.Errorf("get [%s]'s lib dir's abs path failed: %s", c.name, err.Error())
+		return fmt.Errorf("get [%s]'s lib dir's abs path failed", c.name)
 	}
 
 	if err = common.DeleteAllFile(absPath); err != nil {
-		hwlog.RunLog.Errorf("delete component [%s]'s lib dir failed: %s", c.Name, err.Error())
-		return fmt.Errorf("delete component [%s]'s lib dir failed", c.Name)
+		hwlog.RunLog.Errorf("delete component [%s]'s lib dir failed: %s", c.name, err.Error())
+		return fmt.Errorf("delete component [%s]'s lib dir failed", c.name)
 	}
 
 	return nil

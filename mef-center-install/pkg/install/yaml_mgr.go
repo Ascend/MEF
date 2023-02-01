@@ -30,12 +30,11 @@ type modifier struct {
 }
 
 // GetYamlDealers returns a list of YamlMgr for all necessary components
-func GetYamlDealers(components map[string]*util.InstallComponent,
-	pathMgr *util.InstallDirPathMgr, logDir string) []YamlMgr {
+func GetYamlDealers(components []string, pathMgr *util.InstallDirPathMgr, logDir string) []YamlMgr {
 	var ret []YamlMgr
 	for _, component := range components {
 		singleDealer := YamlMgr{
-			component: component.Name,
+			component: component,
 			pathMgr:   pathMgr,
 			logDir:    logDir,
 		}
