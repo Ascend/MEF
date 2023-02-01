@@ -351,6 +351,33 @@ func deleteSingleNode(nodeID uint64) error {
 	return nil
 }
 
+func deleteNodeFromGroup(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start delete node from group")
+	var req DeleteNodeToGroupReq
+	if err := common.ParamConvert(input, &req); err != nil {
+		hwlog.RunLog.Errorf("failed to delete from group, error: %v", err)
+		return common.RespMsg{Msg: err.Error()}
+	}
+	if checkResult := newDeleteNodeFromGroupChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("failed to delete node from group, error: %v", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
+	}
+	var res types.BatchResp
+	for _, nodeID := range *req.NodeIDs {
+		if err := deleteSingleNodeRelation(*req.GroupID, nodeID); err != nil {
+			hwlog.RunLog.Warnf("failed to delete node from group, error: err=%v", err)
+			res.FailedIDs = append(res.FailedIDs, nodeID)
+			continue
+		}
+		res.SuccessIDs = append(res.SuccessIDs, nodeID)
+	}
+	if len(res.FailedIDs) != 0 {
+		return common.RespMsg{Status: common.ErrorDeleteNodeFromGroup, Msg: "", Data: res}
+	}
+	hwlog.RunLog.Info("delete node relation success")
+	return common.RespMsg{Status: common.Success, Data: nil}
+}
+
 func batchDeleteNodeRelation(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start delete node relation")
 	var req BatchDeleteNodeRelationReq
@@ -530,7 +557,7 @@ func addUnManagedNode(input interface{}) common.RespMsg {
 	}
 	if len(addNodeRes.FailedIDs) != 0 {
 		return common.RespMsg{Status: common.ErrorAddUnManagedNode,
-			Msg: "add node to mef succeess, but node cannot join some group", Data: addNodeRes}
+			Msg: "add node to mef success, but node cannot join some group", Data: addNodeRes}
 	}
 	hwlog.RunLog.Info("add unmanaged node success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
