@@ -19,7 +19,6 @@ arch=$(arch 2>&1)
 function mv_file() {
 
   mkdir -p "${TOP_DIR}/output/nginx/conf"
-  mkdir -p "${TOP_DIR}/output/nginx/html"
   cp -R "${TOP_DIR}/../opensource/nginx/conf/mime.types" "${TOP_DIR}/output/nginx/conf/"
   cp "${TOP_DIR}/build/nginx_default.conf" "${TOP_DIR}/output/nginx/conf/"
   cp "${TOP_DIR}/cmd/${OUTPUT_NAME}" "${TOP_DIR}/output/nginx/"
