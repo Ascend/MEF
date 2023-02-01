@@ -347,6 +347,10 @@ func deleteApp(input interface{}) common.RespMsg {
 	if err := common.ParamConvert(input, &req); err != nil {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}
+	if checkResult := appchecker.NewDeleteAppChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("app delete para check failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
+	}
 	var deleteRes types.BatchResp
 	for _, appId := range req.AppIDs {
 		if rowsAffected, err := AppRepositoryInstance().deleteAppById(appId); err != nil || rowsAffected != 1 {
