@@ -5,7 +5,8 @@ package checker
 
 import (
 	"fmt"
-	"regexp"
+
+	"huawei.com/mindx/common/hwlog"
 )
 
 // CheckType the type for check type
@@ -28,11 +29,6 @@ func Check(cType CheckType, param interface{}) error {
 	if c, ok := checkers[cType]; ok {
 		return c(param)
 	}
+	hwlog.RunLog.Errorf("no checker found %d", cType)
 	return fmt.Errorf("no checker found %d", cType)
-}
-
-// RegexStringChecker use regexp to check str
-func RegexStringChecker(str, matchStr string) bool {
-	strSlice := regexp.MustCompile(matchStr)
-	return strSlice.MatchString(str)
 }

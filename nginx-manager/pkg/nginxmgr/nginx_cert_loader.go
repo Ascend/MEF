@@ -69,10 +69,12 @@ func LoadForClient(keyPath, pipeDir string, pipeCount int) error {
 func loadKey(path string) ([]byte, error) {
 	encryptKeyContent, err := utils.LoadFile(path)
 	if encryptKeyContent == nil {
-		return nil, fmt.Errorf("load key path [%s] file failed", path)
+		hwlog.RunLog.Errorf("load key file failed: %s" + err.Error())
+		return nil, fmt.Errorf("load key file failed: %s" + err.Error())
 	}
 	decryptKeyByte, err := common.DecryptContent(encryptKeyContent, common.GetDefKmcCfg())
 	if err != nil {
+		hwlog.RunLog.Errorf("decrypt key content failed: %s" + err.Error())
 		return nil, fmt.Errorf("decrypt key content failed: %s" + err.Error())
 	}
 	return decryptKeyByte, nil
@@ -115,7 +117,8 @@ func createPipe(pipeFile string) error {
 	}
 	err = syscall.Mkfifo(pipeFile, nginxcom.FifoPermission)
 	if err != nil {
-		return fmt.Errorf("make pipe %s error: %v", pipeFile, err)
+		hwlog.RunLog.Errorf("make pipe %s error: %s", pipeFile, err.Error())
+		return fmt.Errorf("make pipe %s error: %s", pipeFile, err.Error())
 	}
 	hwlog.RunLog.Infof("make pipe %v success", pipeFile)
 	return nil

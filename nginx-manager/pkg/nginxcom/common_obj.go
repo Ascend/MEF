@@ -5,11 +5,9 @@ package nginxcom
 
 // Endpoint 路径端口信息
 type Endpoint struct {
-	UrlKey  string
 	PortKey string
-	UrlVal  string
+
 	PortVal string
-	Regexp  string
 }
 
 // NginxConfItem nginx配置替换项

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
@@ -27,7 +28,7 @@ func newMsg(src, dst, opt, res string) *model.Message {
 func SendVoidMsg(src, dst, opt, res string) {
 	msg := newMsg(src, dst, opt, res)
 	if err := modulemanager.SendMessage(msg); err != nil {
-		hwlog.RunLog.Errorf("send message failed, error: %v", err)
+		hwlog.RunLog.Errorf("send message failed, error: %s", err.Error())
 	}
 }
 
