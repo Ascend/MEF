@@ -47,4 +47,6 @@ const (
 	maxAppId      = math.MaxInt64
 	minTemplateId = 1
 	maxTemplateId = math.MaxInt64
+	minList       = 1
+	maxList       = 1024
 )

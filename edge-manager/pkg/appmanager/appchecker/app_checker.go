@@ -5,6 +5,7 @@ package appchecker
 
 import (
 	"fmt"
+	"math"
 
 	"huawei.com/mindxedge/base/common/checker/checker"
 )
@@ -19,6 +20,11 @@ func NewUpdateAppChecker() *updateAppChecker {
 	return &updateAppChecker{}
 }
 
+// NewDeleteAppChecker [method] for getting delete app checker struct
+func NewDeleteAppChecker() *deleteAppChecker {
+	return &deleteAppChecker{}
+}
+
 type createAppChecker struct {
 	modelChecker checker.ModelChecker
 }
@@ -26,6 +32,10 @@ type createAppChecker struct {
 type updateAppChecker struct {
 	modelChecker checker.ModelChecker
 	createAppChecker
+}
+
+type deleteAppChecker struct {
+	idListChecker checker.UniqueListChecker
 }
 
 func (cac *createAppChecker) init() {
@@ -68,6 +78,20 @@ func (uac *updateAppChecker) Check(data interface{}) checker.CheckResult {
 	checkResult := uac.modelChecker.Check(data)
 	if !checkResult.Result {
 		return checker.NewFailedResult(fmt.Sprintf("update app checker check failed: %s", checkResult.Reason))
+	}
+	return checker.NewSuccessResult()
+}
+
+func (dac deleteAppChecker) Check(data interface{}) checker.CheckResult {
+	listChecker := checker.GetUniqueListChecker(
+		"AppIDs",
+		checker.GetUintChecker("", 1, math.MaxInt64, true),
+		minList,
+		maxList,
+		true)
+	checkResult := listChecker.Check(data)
+	if !checkResult.Result {
+		return checker.NewFailedResult(fmt.Sprintf("delete app checker check failed: %s", checkResult.Reason))
 	}
 	return checker.NewSuccessResult()
 }

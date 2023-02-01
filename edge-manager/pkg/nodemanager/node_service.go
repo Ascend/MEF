@@ -277,6 +277,7 @@ func listNode(input interface{}) common.RespMsg {
 		if err != nil {
 			respItem.Status = statusOffline
 		}
+		respItem.NodeInfo = nodeInfo
 		nodeList = append(nodeList, respItem)
 	}
 	resp := ListNodesResp{
