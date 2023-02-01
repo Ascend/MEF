@@ -11,7 +11,7 @@ type specificationChecker struct {
 	nodeService NodeService
 }
 
-func (checker specificationChecker) checkAddNodeToGroup(nodeIds, groupIds []int64) error {
+func (checker specificationChecker) checkAddNodeToGroup(nodeIds, groupIds []uint64) error {
 	for _, groupId := range groupIds {
 		total, err := checker.nodeService.countNodeByGroup(groupId)
 		if err != nil {

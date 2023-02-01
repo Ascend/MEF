@@ -30,7 +30,7 @@ func (cc *ContainerChecker) init() {
 		checker.GetFloatChecker("CpuLimit", minCpuQuantity, maxCpuQuantity, false),
 		checker.GetIntChecker("MemRequest", minMemoryQuantity, maxMemoryQuantity, true),
 		checker.GetIntChecker("MemLimit", minMemoryQuantity, maxMemoryQuantity, false),
-		checker.GetFloatChecker("Npu", minNpuQuantity, maxNpuQuantity, false),
+		checker.GetIntChecker("Npu", minNpuQuantity, maxNpuQuantity, false),
 		checker.GetListChecker("Command", checker.GetRegChecker("", cmdAndArgsReg, true),
 			minCmdCount, maxCmdCount, true,
 		),

@@ -12,7 +12,7 @@ type Container struct {
 	CpuLimit     *float64        `json:"cpuLimit,omitempty"`
 	MemRequest   int64           `json:"memRequest"`
 	MemLimit     *int64          `json:"memLimit,omitempty"`
-	Npu          *float64        `json:"npu,omitempty"`
+	Npu          *int64          `json:"npu,omitempty"`
 	Command      []string        `json:"command"`
 	Args         []string        `json:"args"`
 	Env          []EnvVar        `json:"env"`

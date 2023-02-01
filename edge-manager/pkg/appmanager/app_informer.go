@@ -262,7 +262,7 @@ func parsePodToInstance(eventPod *corev1.Pod) (*AppInstance, error) {
 	return &newAppInstance, nil
 }
 
-func getAppNameAndId(eventPod *corev1.Pod) (string, int64, error) {
+func getAppNameAndId(eventPod *corev1.Pod) (string, uint64, error) {
 	podLabels := eventPod.Labels
 	if podLabels == nil {
 		return "", 0, errors.New("node selector is nil")
@@ -275,14 +275,14 @@ func getAppNameAndId(eventPod *corev1.Pod) (string, int64, error) {
 	if !ok {
 		return "", 0, errors.New("app id label do not exist")
 	}
-	appId, err := strconv.Atoi(value)
+	appId, err := strconv.ParseUint(value, common.BaseHex, common.BitSize64)
 	if err != nil {
 		return "", 0, err
 	}
-	return appName, int64(appId), nil
+	return appName, appId, nil
 }
 
-func getNodeInfoByUniqueName(eventPod *corev1.Pod) (int64, string, error) {
+func getNodeInfoByUniqueName(eventPod *corev1.Pod) (uint64, string, error) {
 	if eventPod.Spec.NodeName == "" {
 		hwlog.RunLog.Warn("app instance node name is empty, pod is in pending phase")
 		return 0, "", nil
@@ -311,23 +311,24 @@ func getNodeInfoByUniqueName(eventPod *corev1.Pod) (int64, string, error) {
 	return nodeInfo.NodeID, nodeInfo.NodeName, nil
 }
 
-func getNodeGroupId(eventPod *corev1.Pod) (int64, error) {
-	var nodeGroupId int
-	var err error
+func getNodeGroupId(eventPod *corev1.Pod) (uint64, error) {
 	nodeSelector := eventPod.Spec.NodeSelector
 	if nodeSelector == nil {
 		return 0, errors.New("node selector is nil")
 	}
+	var nodeGroupId uint64
+	var err error
 	for labelKey := range nodeSelector {
 		if !strings.HasPrefix(labelKey, common.NodeGroupLabelPrefix) {
 			continue
 		}
-		nodeGroupId, err = strconv.Atoi(strings.TrimPrefix(labelKey, common.NodeGroupLabelPrefix))
+		nodeGroupId, err = strconv.ParseUint(strings.TrimPrefix(labelKey, common.NodeGroupLabelPrefix),
+			common.BaseHex, common.BitSize64)
 		if err != nil {
 			return 0, err
 		}
 	}
-	return int64(nodeGroupId), nil
+	return nodeGroupId, nil
 }
 
 func getContainerInfoString(eventPod *corev1.Pod) (string, error) {
@@ -424,17 +425,18 @@ func parseDaemonSetToDB(eventSet *appv1.DaemonSet) (*AppDaemonSet, error) {
 	if nodeSelector == nil {
 		return nil, errors.New("node selector is nil")
 	}
-	var nodeGroupId int
+	var nodeGroupId uint64
 	for labelKey := range nodeSelector {
 		if !strings.HasPrefix(labelKey, common.NodeGroupLabelPrefix) {
 			continue
 		}
-		nodeGroupId, err = strconv.Atoi(strings.TrimPrefix(labelKey, common.NodeGroupLabelPrefix))
+		nodeGroupId, err = strconv.ParseUint(strings.TrimPrefix(labelKey, common.NodeGroupLabelPrefix),
+			common.BaseHex, common.BitSize64)
 		if err != nil {
 			return nil, err
 		}
 	}
-	nodeGroupInfos, err := getNodeGroupInfos([]int64{int64(nodeGroupId)})
+	nodeGroupInfos, err := getNodeGroupInfos([]uint64{nodeGroupId})
 	if err != nil {
 		return nil, fmt.Errorf("get group name or id error, %v", err)
 	}
@@ -451,20 +453,20 @@ func parseDaemonSetToDB(eventSet *appv1.DaemonSet) (*AppDaemonSet, error) {
 	return &set, nil
 }
 
-func getAppId(eventSet *appv1.DaemonSet) (int64, error) {
+func getAppId(eventSet *appv1.DaemonSet) (uint64, error) {
 	podLabels := eventSet.Spec.Template.Labels
 	value, ok := podLabels[AppId]
 	if !ok {
 		return 0, errors.New("app id label do not exist")
 	}
-	appId, err := strconv.Atoi(value)
+	appId, err := strconv.ParseUint(value, common.BaseHex, common.BaseHex)
 	if err != nil {
 		return 0, err
 	}
-	return int64(appId), nil
+	return appId, nil
 }
 
-func getNodeGroupInfos(nodeGroupIds []int64) ([]types.NodeGroupInfo, error) {
+func getNodeGroupInfos(nodeGroupIds []uint64) ([]types.NodeGroupInfo, error) {
 	router := common.Router{
 		Source:      common.AppManagerName,
 		Destination: common.NodeManagerName,

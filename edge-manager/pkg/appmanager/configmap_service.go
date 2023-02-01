@@ -9,10 +9,10 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/kubeclient"
-	"edge-manager/pkg/util"
-	"huawei.com/mindxedge/base/common"
+	"edge-manager/pkg/types"
 )
 
 const maxConfigmapItemNum = 64
@@ -226,7 +226,7 @@ func queryConfigmap(input interface{}) common.RespMsg {
 func listConfigmap(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("list the configmap items start")
 
-	listReq, ok := input.(util.ListReq)
+	listReq, ok := input.(types.ListReq)
 	if !ok {
 		hwlog.RunLog.Error("get list request failed: para type is not ListReq")
 		return common.RespMsg{Status: "", Msg: "para type is not ListReq", Data: nil}
@@ -250,7 +250,7 @@ func listConfigmap(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "list configmap items success", Data: configmaps}
 }
 
-func getListConfigmapReturnInfo(listReq util.ListReq) (*ListConfigmapReturnInfo, error) {
+func getListConfigmapReturnInfo(listReq types.ListReq) (*ListConfigmapReturnInfo, error) {
 	cmInfoList, err := ConfigmapRepositoryInstance().listConfigmapInfo(listReq.PageNum,
 		listReq.PageSize, listReq.Name)
 	if err != nil {

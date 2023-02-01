@@ -12,7 +12,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 
 	"edge-manager/pkg/config"
-	"edge-manager/pkg/util"
+	"edge-manager/pkg/types"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/restfulmgr"
 )
@@ -119,9 +119,6 @@ func versionQuery(c *gin.Context) {
 var nodeRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 	"/edgemanager/v1/node": {
 		restfulmgr.GenericDispatcher{
-			Method:      http.MethodPost,
-			Destination: common.NodeManagerName},
-		restfulmgr.GenericDispatcher{
 			RelativePath: "/stats",
 			Method:       http.MethodGet,
 			Destination:  common.NodeManagerName},
@@ -206,8 +203,8 @@ func connInfoRouter(engine *gin.Engine) {
 	}
 }
 
-func pageUtil(c *gin.Context) (util.ListReq, error) {
-	input := util.ListReq{}
+func pageUtil(c *gin.Context) (types.ListReq, error) {
+	input := types.ListReq{}
 	var err error
 	// for slice page on ucd
 	input.PageNum, err = getIntReq(c, "pageNum")

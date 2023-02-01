@@ -32,11 +32,11 @@ func descriptionChecker(fieldName string) *checker.RegChecker {
 	return checker.GetRegChecker(fieldName, regexpDescription, false)
 }
 
-func idChecker(fieldName string) *checker.IntChecker {
-	return checker.GetIntChecker(fieldName, 1, math.MaxInt64, true)
+func idChecker(fieldName string) *checker.UintChecker {
+	return checker.GetUintChecker(fieldName, 1, math.MaxInt64, true)
 }
 
-func idListChecker(fieldName string, elemChecker *checker.IntChecker) *checker.UniqueListChecker {
+func idListChecker(fieldName string, elemChecker *checker.UintChecker) *checker.UniqueListChecker {
 	return checker.GetUniqueListChecker(
 		fieldName,
 		elemChecker,
@@ -46,7 +46,7 @@ func idListChecker(fieldName string, elemChecker *checker.IntChecker) *checker.U
 	)
 }
 
-func optionalIDListChecker(fieldName string, elemChecker *checker.IntChecker) *checker.UniqueListChecker {
+func optionalIDListChecker(fieldName string, elemChecker *checker.UintChecker) *checker.UniqueListChecker {
 	return checker.GetUniqueListChecker(
 		fieldName,
 		elemChecker,

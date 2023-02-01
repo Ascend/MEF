@@ -29,11 +29,11 @@ func newCreateEdgeNodeChecker() *checker.AndChecker {
 	)
 }
 
-func newGetNodeDetailChecker() *checker.IntChecker {
+func newGetNodeDetailChecker() *checker.UintChecker {
 	return idChecker(fieldID)
 }
 
-func newGetGroupDetailChecker() *checker.IntChecker {
+func newGetGroupDetailChecker() *checker.UintChecker {
 	return idChecker(fieldID)
 }
 
@@ -46,7 +46,7 @@ func newModifyNodeChecker() *checker.AndChecker {
 }
 
 func newBatchDeleteNodeChecker() *checker.UniqueListChecker {
-	return idListChecker("", idChecker(""))
+	return idListChecker(fieldNodeIDs, idChecker(""))
 }
 
 func newBatchDeleteNodeRelationChecker() *checker.UniqueListChecker {

@@ -145,7 +145,7 @@ func (c *deployParaChecker) Check() error {
 }
 
 func (c *deployParaChecker) checkDuplicate() error {
-	nodeGroupIDs := make(map[int64]struct{})
+	nodeGroupIDs := make(map[uint64]struct{})
 	for _, id := range c.req.NodeGroupIds {
 		if _, ok := nodeGroupIDs[id]; ok {
 			return errors.New("duplicated deploy group ids")
@@ -160,7 +160,7 @@ func (c *deployParaChecker) checkIsDeployed() error {
 	if err != nil {
 		return errors.New("get deployed node group info, db error")
 	}
-	deployedGroupMap := make(map[int64]string)
+	deployedGroupMap := make(map[uint64]string)
 	for _, nodeGroupInfo := range deployedNodeGroupInfos {
 		deployedGroupMap[nodeGroupInfo.NodeGroupID] = nodeGroupInfo.NodeGroupName
 	}
@@ -178,7 +178,7 @@ func (c *deployParaChecker) checkGroupIdExist() error {
 	if err != nil {
 		return fmt.Errorf("get legal node group info error: %v", err)
 	}
-	legalGroupMap := make(map[int64]struct{})
+	legalGroupMap := make(map[uint64]struct{})
 	for _, nodeGroupInfo := range nodeGroupInfos {
 		legalGroupMap[nodeGroupInfo.NodeGroupID] = struct{}{}
 	}
@@ -213,11 +213,11 @@ func (c *undeployParaParser) parseLegalGroupIds() error {
 	if err != nil {
 		return errors.New("get node group info, db error")
 	}
-	deployedGroup := make(map[int64]struct{})
+	deployedGroup := make(map[uint64]struct{})
 	for _, nodeGroupInfo := range nodeGroupInfos {
 		deployedGroup[nodeGroupInfo.NodeGroupID] = struct{}{}
 	}
-	var nodeGroupIds []int64
+	var nodeGroupIds []uint64
 	for _, id := range c.req.NodeGroupIds {
 		_, ok := deployedGroup[id]
 		if !ok {
@@ -230,8 +230,8 @@ func (c *undeployParaParser) parseLegalGroupIds() error {
 }
 
 func (c *undeployParaParser) removeDuplicate() {
-	nodeGroupIdMap := make(map[int64]struct{})
-	var nodeGroupIds []int64
+	nodeGroupIdMap := make(map[uint64]struct{})
+	var nodeGroupIds []uint64
 	for _, id := range c.req.NodeGroupIds {
 		if _, ok := nodeGroupIdMap[id]; ok {
 			continue

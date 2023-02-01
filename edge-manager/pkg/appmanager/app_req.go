@@ -25,14 +25,14 @@ type DeleteAppReq struct {
 
 // DeployAppReq Deploy application
 type DeployAppReq struct {
-	AppID        uint64  `json:"appID"`
-	NodeGroupIds []int64 `json:"nodeGroupIds"`
+	AppID        uint64   `json:"appID"`
+	NodeGroupIds []uint64 `json:"nodeGroupIds"`
 }
 
 // UndeployAppReq Undeploy application
 type UndeployAppReq struct {
-	AppID        uint64  `json:"appID"`
-	NodeGroupIds []int64 `json:"nodeGroupIds"`
+	AppID        uint64   `json:"appID"`
+	NodeGroupIds []uint64 `json:"nodeGroupIds"`
 }
 
 // GetAppByAppIdReq get app by application id
@@ -45,7 +45,7 @@ type AppInstanceResp struct {
 	AppName       string              `json:"appName"`
 	AppStatus     string              `json:"appStatus"`
 	NodeGroupInfo types.NodeGroupInfo `json:"nodeGroupInfo"`
-	NodeID        int64               `json:"nodeID"`
+	NodeID        uint64              `json:"nodeID"`
 	NodeName      string              `json:"nodeName"`
 	NodeStatus    string              `json:"nodeStatus"`
 	CreatedAt     string              `json:"createdAt"`

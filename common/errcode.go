@@ -16,6 +16,10 @@ const (
 	ErrorResourceOptionNotFound = "00001004"
 	// ErrorParamInvalid parameter invalid
 	ErrorParamInvalid = "00001005"
+	// ErrorParamConvert parameter convert error
+	ErrorParamConvert = "00001006"
+	// ErrorTypeAssert parameter type assert error
+	ErrorTypeAssert = "00001007"
 	// ErrorCreateAppTemplate failed to create app template
 	ErrorCreateAppTemplate = "00002005"
 	// ErrorDeleteAppTemplate failed to delete app template
@@ -45,6 +49,75 @@ const (
 	ErrorUserAlreadyFirstLogin = "10001009"
 	// ErrorPassOrUser username or password error
 	ErrorPassOrUser = "10001010"
+
+	// ErrorCheckNodeMrgSize failed to check data size while creating
+	ErrorCheckNodeMrgSize = "40011000"
+	// ErrorNodeMrgDuplicate failed to create/update data cause of duplicate
+	ErrorNodeMrgDuplicate = "40012000"
+	// ErrorCreateNodeGroup failed to create node group
+	ErrorCreateNodeGroup = "40012001"
+	// ErrorListNodeGroups failed to list node group
+	ErrorListNodeGroups = "40012002"
+	// ErrorGetNodeGroup failed to get node group detail
+	ErrorGetNodeGroup = "40012003"
+	// ErrorModifyNodeGroup failed to modify node group
+	ErrorModifyNodeGroup = "40012004"
+	// ErrorCountNodeGroup failed to count node groups
+	ErrorCountNodeGroup = "40012005"
+	// ErrorDeleteNodeGroup failed to delete node groups
+	ErrorDeleteNodeGroup = "40012006"
+
+	// ErrorGetNode failed to get node detail
+	ErrorGetNode = "40012007"
+	// ErrorModifyNode failed to modify node
+	ErrorModifyNode = "40012008"
+	// ErrorCountNodeByStatus failed to count node by status
+	ErrorCountNodeByStatus = "40012009"
+	// ErrorListNode failed to list node
+	ErrorListNode = "40012010"
+	// ErrorListUnManagedNode failed to list node
+	ErrorListUnManagedNode = "40012011"
+	// ErrorAddNodeToGroup failed to add node to group
+	ErrorAddNodeToGroup = "40012012"
+	// ErrorAddUnManagedNode failed to add unmanaged node mef
+	ErrorAddUnManagedNode = "40012013"
+	// ErrorDeleteNode failed to delete node
+	ErrorDeleteNode = "40012014"
+	// ErrorDeleteNodeFromGroup failed to delete node from group
+	ErrorDeleteNodeFromGroup = "40012015"
+
+	// ErrorCheckAppMrgSize failed to check data size while creating
+	ErrorCheckAppMrgSize = "40021000"
+	// ErrorAppParamConvertDb failed to convert request param to db
+	ErrorAppParamConvertDb = "40021001"
+	// ErrorUnmarshalContainer failed to unmarshal container param from db
+	ErrorUnmarshalContainer = "40021002"
+	// ErrorAppMrgDuplicate failed to create/update data cause of duplicate
+	ErrorAppMrgDuplicate = "40022000"
+	// ErrorAppMrgRecodeNoFound failed to query data cause of db data no found
+	ErrorAppMrgRecodeNoFound = "40022001"
+	// ErrorCreateApp failed to create app
+	ErrorCreateApp = "40022002"
+	// ErrorQueryApp failed to query app
+	ErrorQueryApp = "40022003"
+	// ErrorListApp failed to list app
+	ErrorListApp = "40022004"
+	// ErrorDeployApp failed to deploy app
+	ErrorDeployApp = "40022005"
+	// ErrorUnDeployApp failed to undeploy app
+	ErrorUnDeployApp = "40022006"
+	// ErrorUpdateApp failed to update app
+	ErrorUpdateApp = "40022007"
+	// ErrorDeleteApp failed to delete app
+	ErrorDeleteApp = "40022008"
+	// ErrorListAppInstancesByID failed to list app instances by id
+	ErrorListAppInstancesByID = "40022009"
+	// ErrorListAppInstancesByNode failed to list app instances by node
+	ErrorListAppInstancesByNode = "40022010"
+	// ErrorListAppInstances failed to list app instances
+	ErrorListAppInstances = "40022011"
+	// ErrorGetAppInstanceCountByNodeGroup failed to count app instances by node group
+	ErrorGetAppInstanceCountByNodeGroup = "40022012"
 )
 
 // ErrorMap error code and error msg map
@@ -61,6 +134,8 @@ var ErrorMap = map[string]string{
 	ErrorResourceOptionNotFound: "module resource or option not found",
 	// ErrorParamInvalid parameter invalid info
 	ErrorParamInvalid: "parameter invalid",
+	// ErrorTypeAssert parameter type assert error
+	ErrorTypeAssert: "parameter type assert error",
 	// ErrorCreateAppTemplate failed to create app template info
 	ErrorCreateAppTemplate: "failed to create app template",
 	// ErrorDeleteAppTemplate failed to delete app template info
@@ -90,4 +165,75 @@ var ErrorMap = map[string]string{
 	ErrorUserAlreadyFirstLogin: "user already first login",
 	// ErrorPassOrUser username or password error
 	ErrorPassOrUser: "username or password error",
+	// ErrorParamConvert convert request error
+	ErrorParamConvert: "convert request error",
+
+	// ErrorCheckNodeMrgSize failed to check data size while creating
+	ErrorCheckNodeMrgSize: "failed to check data size while creating",
+	// ErrorNodeMrgDuplicate failed to create/update data cause of duplicate
+	ErrorNodeMrgDuplicate: "failed to create/update data cause of duplicate",
+	// ErrorCreateNodeGroup failed to create node group
+	ErrorCreateNodeGroup: "failed to create node group",
+	// ErrorListNodeGroups failed to list node group
+	ErrorListNodeGroups: "failed to list node group",
+	// ErrorGetNodeGroup failed to get node group detail
+	ErrorGetNodeGroup: "failed to get node group detail",
+	// ErrorModifyNodeGroup failed to modify node group
+	ErrorModifyNodeGroup: "failed to modify node group",
+	// ErrorCountNodeGroup failed to count node groups
+	ErrorCountNodeGroup: "failed to count node groups",
+	// ErrorDeleteNodeGroup failed to delete node groups
+	ErrorDeleteNodeGroup: "failed to delete node groups",
+
+	// ErrorGetNode failed to get node detail
+	ErrorGetNode: "failed to get node detail",
+	// ErrorModifyNode failed to modify node
+	ErrorModifyNode: "failed to modify node",
+	// ErrorCountNodeByStatus failed to count node by status
+	ErrorCountNodeByStatus: "failed to count node by status",
+	// ErrorListNode failed to list node
+	ErrorListNode: "failed to list node",
+	// ErrorListUnManagedNode failed to list node
+	ErrorListUnManagedNode: "failed to list node",
+	// ErrorAddNodeToGroup failed to add node to group
+	ErrorAddNodeToGroup: "failed to add node to group",
+	// ErrorAddUnManagedNode failed to add unmanaged node mef
+	ErrorAddUnManagedNode: "failed to add unmanaged node mef",
+	// ErrorDeleteNode failed to delete node
+	ErrorDeleteNode: "failed to delete node",
+	// ErrorDeleteNodeFromGroup failed to delete node from group
+	ErrorDeleteNodeFromGroup: "failed to delete node from group",
+
+	// ErrorAppMrgDuplicate failed to check data size while creating
+	ErrorCheckAppMrgSize: "failed to check data size while creating",
+	// ErrorAppParamConvertDb failed to convert request param to db
+	ErrorAppParamConvertDb: "failed to convert request param to db",
+	// ErrorUnmarshalContainer failed to unmarshal container param from db
+	ErrorUnmarshalContainer: "failed to unmarshal container param from db",
+	// ErrorAppMrgDuplicate failed to create/update data cause of duplicate
+	ErrorAppMrgDuplicate: "failed to create/update data cause of duplicate",
+	// ErrorAppMrgRecodeNoFound failed to query data cause of db data no found
+	ErrorAppMrgRecodeNoFound: "failed to query data cause of db data no found",
+	// ErrorCreateApp failed to create app
+	ErrorCreateApp: "failed to create app",
+	// ErrorQueryApp failed to query app
+	ErrorQueryApp: "failed to query app",
+	// ErrorListApp failed to list app
+	ErrorListApp: "failed to list app",
+	// ErrorDeployApp failed to deploy app
+	ErrorDeployApp: "failed to deploy app",
+	// ErrorUnDeployApp failed to undeploy app
+	ErrorUnDeployApp: "failed to undeploy app",
+	// ErrorUpdateApp failed to update app
+	ErrorUpdateApp: "failed to update app",
+	// ErrorDeleteApp failed to delete app
+	ErrorDeleteApp: "failed to delete app",
+	// ErrorListAppInstancesByID failed to list app instances by id
+	ErrorListAppInstancesByID: "failed to list app instances by id",
+	// ErrorListAppInstancesByNode failed to list app instances by node
+	ErrorListAppInstancesByNode: "failed to list app instances by node",
+	// ErrorListAppInstances failed to list app instances
+	ErrorListAppInstances: "failed to list app instances",
+	// ErrorGetAppInstanceCountByNodeGroup failed to count app instances by node group
+	ErrorGetAppInstanceCountByNodeGroup: "failed to count app instances by node group",
 }
