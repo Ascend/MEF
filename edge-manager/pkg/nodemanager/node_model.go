@@ -26,8 +26,10 @@ type NodeServiceImpl struct {
 type NodeService interface {
 	createNode(*NodeInfo) error
 	deleteNodeByName(*NodeInfo) (int64, error)
+	countNodesByName(string, int) (int64, error)
 	listManagedNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
 	listUnManagedNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
+	countAllNodesByName(string) (int64, error)
 	listAllNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
 	getNodeByUniqueName(string) (*NodeInfo, error)
 	getNodeByID(int64) (*NodeInfo, error)
@@ -218,4 +220,20 @@ func (n *NodeServiceImpl) deleteNodeGroup(groupID int64) (int64, error) {
 func (n *NodeServiceImpl) listNodes() (*[]NodeInfo, error) {
 	var nodes []NodeInfo
 	return &nodes, n.db.Model(NodeInfo{}).Find(&nodes).Error
+}
+
+// countNodesByName count nodes by name
+func (n *NodeServiceImpl) countNodesByName(name string, isManaged int) (int64, error) {
+	var count int64
+	return count,
+		n.db.Model(&NodeInfo{}).Where("INSTR(node_name, ?) and is_managed = ?", name, isManaged).
+			Count(&count).Error
+}
+
+// countNodesByName count all nodes by name
+func (n *NodeServiceImpl) countAllNodesByName(name string) (int64, error) {
+	var count int64
+	return count,
+		n.db.Model(&NodeInfo{}).Where("INSTR(node_name, ?)", name).
+			Count(&count).Error
 }

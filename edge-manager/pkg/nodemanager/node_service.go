@@ -179,6 +179,11 @@ func listManagedNode(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("list node convert request error")
 		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
 	}
+	total, err := NodeServiceInstance().countNodesByName(req.Name, managed)
+	if err != nil {
+		hwlog.RunLog.Error("count node failed")
+		return common.RespMsg{Status: "", Msg: "count node failed", Data: nil}
+	}
 	nodes, err := NodeServiceInstance().listManagedNodesByName(req.PageNum, req.PageSize, req.Name)
 	if err != nil {
 		hwlog.RunLog.Error("list node failed")
@@ -201,7 +206,7 @@ func listManagedNode(input interface{}) common.RespMsg {
 	}
 	resp := ListNodesResp{
 		Nodes: nodeList,
-		Total: len(nodeList),
+		Total: int(total),
 	}
 	hwlog.RunLog.Info("list node success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
@@ -219,6 +224,11 @@ func listUnmanagedNode(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("list node convert request error")
 		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
 	}
+	total, err := NodeServiceInstance().countNodesByName(req.Name, unmanaged)
+	if err != nil {
+		hwlog.RunLog.Error("count node failed")
+		return common.RespMsg{Status: "", Msg: "count node failed", Data: nil}
+	}
 	nodes, err := NodeServiceInstance().listUnManagedNodesByName(req.PageNum, req.PageSize, req.Name)
 	if err == nil {
 		var nodeList []NodeInfoEx
@@ -233,7 +243,7 @@ func listUnmanagedNode(input interface{}) common.RespMsg {
 		}
 		resp := ListNodesUnmanagedResp{
 			Nodes: nodeList,
-			Total: len(nodeList),
+			Total: int(total),
 		}
 		hwlog.RunLog.Info("list node unmanaged success")
 		return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
@@ -298,6 +308,11 @@ func listNode(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("list nodes convert request error")
 		return common.RespMsg{Status: "", Msg: "convert request error", Data: nil}
 	}
+	total, err := NodeServiceInstance().countAllNodesByName(req.Name)
+	if err != nil {
+		hwlog.RunLog.Error("count node failed")
+		return common.RespMsg{Status: "", Msg: "count node failed", Data: nil}
+	}
 	nodes, err := NodeServiceInstance().listAllNodesByName(req.PageNum, req.PageSize, req.Name)
 	if err != nil {
 		hwlog.RunLog.Error("list all nodes failed")
@@ -319,7 +334,7 @@ func listNode(input interface{}) common.RespMsg {
 	}
 	resp := ListNodesResp{
 		Nodes: nodeList,
-		Total: len(*nodes),
+		Total: int(total),
 	}
 	hwlog.RunLog.Info("list all nodes success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
@@ -352,6 +367,9 @@ func deleteSingleNode(nodeID int64) error {
 	nodeInfo, err := NodeServiceInstance().getNodeByID(nodeID)
 	if err != nil {
 		return errors.New("db query failed")
+	}
+	if !nodeInfo.IsManaged {
+		return errors.New("can't delete unmanaged node")
 	}
 
 	groupLabels := make([]string, 0, 4)
