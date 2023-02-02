@@ -75,16 +75,26 @@ func (u *UserMgr) checkNoLogin() error {
 // AddUserAccount add a user account
 func (u *UserMgr) AddUserAccount() error {
 	var isUserExist, isGroupExist bool
-	_, err := user.Lookup(u.user)
+	userInfo, err := user.Lookup(u.user)
 	if err == nil {
 		hwlog.RunLog.Warnf("user [%s] exists in device", u.user)
 		isUserExist = true
 	}
-	if _, err = user.LookupGroup(u.group); err == nil {
+	groupInfo, err := user.LookupGroup(u.group)
+	if err == nil {
 		hwlog.RunLog.Warnf("group [%s] exists in device", u.group)
 		isGroupExist = true
 	}
 	if isUserExist && isGroupExist {
+		gIds, err := userInfo.GroupIds()
+		if err != nil {
+			hwlog.RunLog.Errorf("get user groups failed,error:%v", err)
+			return err
+		}
+		if !isInGroup(groupInfo.Gid, gIds) {
+			hwlog.RunLog.Errorf("the existing user[%s] is not in group[%s]", u.user, u.group)
+			return fmt.Errorf("the existing user[%s] is not in group[%s]", u.user, u.group)
+		}
 		if err = u.checkNoLogin(); err != nil {
 			return err
 		}
@@ -104,4 +114,13 @@ func GetCurrentUser() (string, error) {
 	}
 
 	return userInfo.Username, nil
+}
+
+func isInGroup(groupId string, groupIds []string) bool {
+	for _, gid := range groupIds {
+		if gid == groupId {
+			return true
+		}
+	}
+	return false
 }
