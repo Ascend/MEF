@@ -5,8 +5,9 @@ package certmanager
 
 import (
 	"context"
-	"edge-manager/pkg/util"
 	"errors"
+
+	"edge-manager/pkg/util"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
@@ -97,7 +98,7 @@ func (cm *CertMgr) handleIssueService(message *model.Message) error {
 		NodeId:      issueReq.nodeId,
 		ServiceCert: serviceCert,
 	}
-	respMsg.SetRouter(cm.Name(), common.EdgeConnectorName, message.GetOption(), common.ServiceCert)
+	respMsg.SetRouter(cm.Name(), common.CloudHubName, message.GetOption(), common.ServiceCert)
 	respMsg.FillContent(content)
 	respMsg.SetIsSync(false)
 	if err = modulemanager.SendMessage(respMsg); err != nil {

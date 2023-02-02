@@ -14,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
@@ -65,10 +66,6 @@ func getDestination(message *model.Message) string {
 		destination = common.CertManagerName
 	case common.Upgrade:
 		destination = common.RestfulServiceName
-	case common.Download:
-		destination = common.EdgeInstallerName
-	case common.Get:
-		destination = common.EdgeInstallerName
 	default:
 		hwlog.RunLog.Error("invalid option")
 		return ""

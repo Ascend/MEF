@@ -1,7 +1,7 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package edgeconnector server init
-package edgeconnector
+// Package cloudhub server init
+package cloudhub
 
 import (
 	"errors"
@@ -49,7 +49,7 @@ func InitServer() error {
 		return errors.New("get edge-manager pod ip failed")
 	}
 
-	proxyConfig, err := websocketmgr.InitProxyConfig(name, podIp, connector.wsPort, certInfo)
+	proxyConfig, err := websocketmgr.InitProxyConfig(name, podIp, server.wsPort, certInfo)
 	if err != nil {
 		hwlog.RunLog.Errorf("init proxy config failed: %v", err)
 		return err

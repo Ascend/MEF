@@ -1,7 +1,7 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package edgeinstaller request used when downloading and upgrading software
-package edgeinstaller
+// Package nodemsgmanager request used when downloading and upgrading software
+package nodemsgmanager
 
 // DownloadSfwReqToSfwMgr download software request to software manager
 type DownloadSfwReqToSfwMgr struct {

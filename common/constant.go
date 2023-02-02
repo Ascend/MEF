@@ -58,10 +58,10 @@ const (
 	NodeManagerName = "NodeManager"
 	// AppManagerName AppManagerName
 	AppManagerName = "AppManager"
-	// EdgeConnectorName edge-connector
-	EdgeConnectorName = "edge-connector"
-	// EdgeInstallerName edge-installer
-	EdgeInstallerName = "edge-installer"
+	// CloudHubName edge-connector
+	CloudHubName = "CloudHub"
+	// NodeMsgManagerName node msg manager
+	NodeMsgManagerName = "NodeMsgManagerName"
 	// CertManagerName CertManager
 	CertManagerName = "CertManager"
 	// SoftwareManagerName software manager
@@ -263,7 +263,9 @@ const (
 	// OptReport option for report
 	OptReport = "report"
 	// ResProgressReport resource progress report
-	ResProgressReport = "/progress"
+	ResProgressReport = "/upgrade-progress"
+	// ResSoftwareInfoReport resource software info
+	ResSoftwareInfoReport = "/software-info"
 	// ResDownLoadSoftware resource for downloading software
 	ResDownLoadSoftware = "/software/download_info"
 	// ResEdgeCoreConfig resource for querying edgecore config

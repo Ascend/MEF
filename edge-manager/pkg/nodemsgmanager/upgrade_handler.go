@@ -1,7 +1,7 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package edgeinstaller upgrade handler
-package edgeinstaller
+// Package nodemsgmanager upgrade handler
+package nodemsgmanager
 
 import (
 	"encoding/json"
@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager/model"
 )

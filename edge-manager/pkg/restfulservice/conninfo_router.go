@@ -6,6 +6,7 @@ package restfulservice
 import (
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -18,7 +19,7 @@ func updateConnInfo(c *gin.Context) {
 	}
 	router := common.Router{
 		Source:      common.RestfulServiceName,
-		Destination: common.EdgeConnectorName,
+		Destination: common.CloudHubName,
 		Option:      common.Update,
 		Resource:    "",
 	}

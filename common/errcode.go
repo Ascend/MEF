@@ -20,6 +20,8 @@ const (
 	ErrorParamConvert = "00001006"
 	// ErrorTypeAssert parameter type assert error
 	ErrorTypeAssert = "00001007"
+	// ErrorNewMsg new msg error
+	ErrorNewMsg = "00001008"
 	// ErrorCreateAppTemplate failed to create app template
 	ErrorCreateAppTemplate = "00002005"
 	// ErrorDeleteAppTemplate failed to delete app template
@@ -85,6 +87,11 @@ const (
 	ErrorDeleteNode = "40012014"
 	// ErrorDeleteNodeFromGroup failed to delete node from group
 	ErrorDeleteNodeFromGroup = "40012015"
+
+	// ErrorSendMsgToNode failed to delete node groups
+	ErrorSendMsgToNode = "40012016"
+	// ErrorGetToken failed to get token
+	ErrorGetToken = "40012017"
 
 	// ErrorCheckAppMrgSize failed to check data size while creating
 	ErrorCheckAppMrgSize = "40021000"
@@ -184,6 +191,10 @@ var ErrorMap = map[string]string{
 	ErrorCountNodeGroup: "failed to count node groups",
 	// ErrorDeleteNodeGroup failed to delete node groups
 	ErrorDeleteNodeGroup: "failed to delete node groups",
+	// ErrorSendMsgToNode failed to send msg to node
+	ErrorSendMsgToNode: "failed to send msg to node",
+	// ErrorGetToken failed to get token
+	ErrorGetToken: "failed to get token",
 
 	// ErrorGetNode failed to get node detail
 	ErrorGetNode: "failed to get node detail",

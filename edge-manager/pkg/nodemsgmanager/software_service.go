@@ -1,7 +1,7 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package edgeinstaller software manager info db service
-package edgeinstaller
+// Package nodemsgmanager software manager info db service
+package nodemsgmanager
 
 import (
 	"time"
@@ -9,6 +9,7 @@ import (
 	"edge-manager/pkg/database"
 
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 )
 

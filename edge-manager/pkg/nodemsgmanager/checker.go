@@ -1,7 +1,7 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package edgeinstaller the checker used in edge-installer module
-package edgeinstaller
+// Package nodemsgmanager the checker used in edge-installer module
+package nodemsgmanager
 
 import (
 	"errors"
@@ -13,6 +13,7 @@ import (
 	"edge-manager/pkg/util"
 
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 )
 

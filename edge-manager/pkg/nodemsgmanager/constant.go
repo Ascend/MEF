@@ -1,12 +1,9 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package edgeinstaller the constants used in edge-installer module
-package edgeinstaller
+// Package nodemsgmanager the constants used in edge-installer module
+package nodemsgmanager
 
 import "time"
-
-// WaitSfwSyncTime waiting for a response from the software manager
-const WaitSfwSyncTime = 10 * time.Second
 
 // HttpTimeout timeout in http
 const HttpTimeout = 60 * time.Second

@@ -1,7 +1,7 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package edgeinstaller processing used in edge-installer module
-package edgeinstaller
+// Package nodemsgmanager processing used in edge-installer module
+package nodemsgmanager
 
 import (
 	"bytes"
@@ -17,6 +17,7 @@ import (
 	"edge-manager/pkg/nodemanager"
 
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
@@ -233,7 +234,7 @@ func respRestful(message *model.Message) (*UpgradeSfwReq, error) {
 	}
 	respToRestful.FillContent(respContent)
 	if err = modulemanager.SendMessage(respToRestful); err != nil {
-		hwlog.RunLog.Errorf("%s send response to restful failed", common.EdgeInstallerName)
+		hwlog.RunLog.Errorf("%s send response to restful failed", common.NodeMsgManagerName)
 		return nil, err
 	}
 

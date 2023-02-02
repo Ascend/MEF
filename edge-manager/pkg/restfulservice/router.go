@@ -107,7 +107,7 @@ func setRouter(engine *gin.Engine) {
 	restfulmgr.InitRouter(engine, nodeGroupRouterDispatchers)
 	restfulmgr.InitRouter(engine, appRouterDispatchers)
 	restfulmgr.InitRouter(engine, templateRouterDispatchers)
-	softwareRouter(engine)
+	restfulmgr.InitRouter(engine, softwareRouterDispatchers)
 	connInfoRouter(engine)
 }
 func versionQuery(c *gin.Context) {
@@ -189,11 +189,25 @@ var nodeGroupRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 	},
 }
 
-func softwareRouter(engine *gin.Engine) {
-	v1 := engine.Group("/edgemanager/v1/software")
-	{
-		v1.POST("/upgrade", upgradeSoftware)
-	}
+var softwareRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
+	"/edgemanager/v1/software/edge": {
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/upgrade",
+			Method:       http.MethodPost,
+			Destination:  common.NodeMsgManagerName},
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/effect",
+			Method:       http.MethodPost,
+			Destination:  common.NodeMsgManagerName},
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/info",
+			Method:       http.MethodGet,
+			Destination:  common.NodeMsgManagerName},
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/upgrade-progress",
+			Method:       http.MethodGet,
+			Destination:  common.NodeMsgManagerName},
+	},
 }
 
 func connInfoRouter(engine *gin.Engine) {
