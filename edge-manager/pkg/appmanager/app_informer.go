@@ -305,11 +305,14 @@ func getNodeInfoByUniqueName(eventPod *corev1.Pod) (uint64, string, error) {
 	if err != nil {
 		return 0, "", errors.New("marshal internal response error")
 	}
-	var nodeInfo types.InnerGetNodeInfoByNameResp
+	var nodeInfo []types.InnerGetNodeInfoByNameResp
 	if err = json.Unmarshal(data, &nodeInfo); err != nil {
 		return 0, "", errors.New("unmarshal internal response error")
 	}
-	return nodeInfo.NodeID, nodeInfo.NodeName, nil
+	if len(nodeInfo) == 0 {
+		return 0, "", errors.New("get node info error")
+	}
+	return nodeInfo[0].NodeID, nodeInfo[0].NodeName, nil
 }
 
 func getNodeGroupId(eventPod *corev1.Pod) (uint64, error) {

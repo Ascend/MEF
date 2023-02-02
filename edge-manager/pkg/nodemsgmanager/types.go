@@ -1,3 +1,6 @@
+// Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
+
+// Package nodemsgmanager to deal node msg
 package nodemsgmanager
 
 // EdgeUpgradeInfoReq software upgrade req
