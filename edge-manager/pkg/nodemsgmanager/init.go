@@ -15,7 +15,7 @@ import (
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
-// NodeMsgManager edge-installer struct
+//
 type NodeMsgManager struct {
 	ctx    context.Context
 	enable bool

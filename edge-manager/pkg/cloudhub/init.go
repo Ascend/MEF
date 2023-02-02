@@ -75,8 +75,12 @@ func (c *CloudServer) Start() {
 }
 
 func sendToClient(msg *model.Message) {
-	sender := GetSvrSender()
-	if err := sender.Send(msg.GetNodeId(), msg); err != nil {
+	sender, err := GetSvrSender()
+	if err != nil {
+		hwlog.RunLog.Errorf("send to client [%s] failed", msg.GetNodeId())
+		return
+	}
+	if err = sender.Send(msg.GetNodeId(), msg); err != nil {
 		hwlog.RunLog.Errorf("cloud hub send msg to edge node error: %v, operation is [%s], resource is [%s]",
 			err, msg.GetOption(), msg.GetResource())
 		return

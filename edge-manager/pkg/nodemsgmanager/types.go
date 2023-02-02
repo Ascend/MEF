@@ -12,6 +12,7 @@ type EdgeUpgradeInfoReq struct {
 	DownloadInfo    DownloadInfo `json:"downloadInfo"`
 }
 
+// DownloadInfo [struct] for package download info
 type DownloadInfo struct {
 	Url      string `json:"url"`
 	UserName string `json:"userName"`

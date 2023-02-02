@@ -53,6 +53,7 @@ func sendResponse(msg *model.Message, resp string) error {
 	return nil
 }
 
+// UpgradeEdgeSoftware [method] upgrade edge software
 func UpgradeEdgeSoftware(message *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start update edge software")
 	var req EdgeUpgradeInfoReq
@@ -90,6 +91,7 @@ func UpgradeEdgeSoftware(message *model.Message) common.RespMsg {
 	}
 }
 
+// EffectEdgeSoftware [method] effect edge software
 func EffectEdgeSoftware(message *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start update edge software")
 	var req EffectInfoReq
@@ -163,6 +165,7 @@ func getNodesVersionInfo(nodeNames []string) (map[string]map[string]string, erro
 	return res, nil
 }
 
+// QueryEdgeSoftwareVersion [method] query edge software version
 func QueryEdgeSoftwareVersion(message *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start query edge software version")
 	var req SoftwareVersionInfoReq
