@@ -1,7 +1,7 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package nodemsgmanager software manager info db table
-package nodemsgmanager
+// Package edgemsgmanager software manager info db table
+package edgemsgmanager
 
 // SoftwareMgrInfo software manager info db table
 type SoftwareMgrInfo struct {

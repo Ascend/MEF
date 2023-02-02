@@ -1,7 +1,7 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package nodemsgmanager the constants used in edge-installer module
-package nodemsgmanager
+// Package edgemsgmanager the constants used in edge-installer module
+package edgemsgmanager
 
 import "time"
 

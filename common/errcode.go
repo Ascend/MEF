@@ -22,6 +22,7 @@ const (
 	ErrorTypeAssert = "00001007"
 	// ErrorNewMsg new msg error
 	ErrorNewMsg = "00001008"
+
 	// ErrorCreateAppTemplate failed to create app template
 	ErrorCreateAppTemplate = "00002005"
 	// ErrorDeleteAppTemplate failed to delete app template

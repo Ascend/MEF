@@ -577,7 +577,7 @@ func evalIpAddress(node *v1.Node) string {
 	return strings.Join(ipAddresses, ",")
 }
 
-func innerGetNodeInfoByUniqueName(input interface{}) common.RespMsg {
+func innerGetNodesInfoByUniqueName(input interface{}) common.RespMsg {
 	req, ok := input.(types.InnerGetNodesInfoByNameReq)
 	if !ok {
 		hwlog.RunLog.Error("parse inner message content failed")

@@ -1,7 +1,7 @@
 // Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
 
-// Package nodemsgmanager to deal node msg
-package nodemsgmanager
+// Package edgemsgmanager to deal node msg
+package edgemsgmanager
 
 // EdgeUpgradeInfoReq software upgrade req
 type EdgeUpgradeInfoReq struct {

@@ -98,8 +98,6 @@ const (
 
 	// Node resource node
 	Node = "node"
-	// NodeVersion software version
-	NodeVersion = "nodeVersion"
 	// NodeUnManaged resource node unmanaged
 	NodeUnManaged = "nodeUnManaged"
 	// App resource app

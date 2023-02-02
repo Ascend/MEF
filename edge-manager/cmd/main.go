@@ -25,8 +25,8 @@ import (
 	"edge-manager/pkg/cloudhub"
 	"edge-manager/pkg/config"
 	"edge-manager/pkg/database"
+	"edge-manager/pkg/edgemsgmanager"
 	"edge-manager/pkg/kubeclient"
-	"edge-manager/pkg/nodemsgmanager"
 )
 
 const (
@@ -145,7 +145,7 @@ func register(ctx context.Context) error {
 	if err := modulemanager.Registry(cloudhub.NewCloudServer(true, wsPort)); err != nil {
 		return err
 	}
-	if err := modulemanager.Registry(nodemsgmanager.NewNodeMsgManager(true)); err != nil {
+	if err := modulemanager.Registry(edgemsgmanager.NewNodeMsgManager(true)); err != nil {
 		return err
 	}
 

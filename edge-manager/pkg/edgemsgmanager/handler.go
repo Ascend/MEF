@@ -1,7 +1,7 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package nodemsgmanager handler
-package nodemsgmanager
+// Package edgemsgmanager handler
+package edgemsgmanager
 
 import (
 	"encoding/json"
@@ -54,11 +54,15 @@ func sendResponse(msg *model.Message, resp string) error {
 }
 
 // UpgradeEdgeSoftware [method] upgrade edge software
-func UpgradeEdgeSoftware(message *model.Message) common.RespMsg {
+func UpgradeEdgeSoftware(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start update edge software")
 	var req EdgeUpgradeInfoReq
 	var err error
-	if err = common.ParamConvert(message.Content, &req); err != nil {
+	if err = common.ParamConvert(input, &req); err != nil {
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
+	}
+
+	if err = common.ParamConvert(input, &req); err != nil {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}
 
@@ -69,7 +73,7 @@ func UpgradeEdgeSoftware(message *model.Message) common.RespMsg {
 	}
 
 	msg.SetRouter(common.NodeMsgManagerName, common.CloudHubName, common.OptPost, msg.GetResource())
-	msg.FillContent(message.Content)
+	msg.FillContent(input)
 	var batchResp types.BatchResp
 	for _, sn := range req.SNs {
 		msg.SetNodeId(sn)
@@ -92,11 +96,11 @@ func UpgradeEdgeSoftware(message *model.Message) common.RespMsg {
 }
 
 // EffectEdgeSoftware [method] effect edge software
-func EffectEdgeSoftware(message *model.Message) common.RespMsg {
+func EffectEdgeSoftware(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start update edge software")
 	var req EffectInfoReq
 	var err error
-	if err = common.ParamConvert(message.Content, &req); err != nil {
+	if err = common.ParamConvert(input, &req); err != nil {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}
 
@@ -107,7 +111,7 @@ func EffectEdgeSoftware(message *model.Message) common.RespMsg {
 	}
 
 	msg.SetRouter(common.NodeMsgManagerName, common.CloudHubName, common.OptPost, msg.GetResource())
-	msg.FillContent(message.Content)
+	msg.FillContent(input)
 	var batchResp types.BatchResp
 	for _, sn := range req.SNs {
 		msg.SetNodeId(sn)
@@ -138,7 +142,7 @@ func getNodesVersionInfo(nodeNames []string) (map[string]map[string]string, erro
 		Source:      common.NodeMsgManagerName,
 		Destination: common.NodeManagerName,
 		Option:      common.Inner,
-		Resource:    common.NodeVersion,
+		Resource:    common.Node,
 	}
 	req := types.InnerGetNodesInfoByNameReq{
 		UniqueNames: nodeNames,
@@ -166,11 +170,12 @@ func getNodesVersionInfo(nodeNames []string) (map[string]map[string]string, erro
 }
 
 // QueryEdgeSoftwareVersion [method] query edge software version
-func QueryEdgeSoftwareVersion(message *model.Message) common.RespMsg {
+func QueryEdgeSoftwareVersion(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start query edge software version")
+
 	var req SoftwareVersionInfoReq
 	var err error
-	if err = common.ParamConvert(message.Content, &req); err != nil {
+	if err = common.ParamConvert(input, &req); err != nil {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}
 
@@ -183,10 +188,17 @@ func QueryEdgeSoftwareVersion(message *model.Message) common.RespMsg {
 }
 
 // ReportEdgeSoftwareVersion [method] report edge software version
-func ReportEdgeSoftwareVersion(message *model.Message) common.RespMsg {
+func ReportEdgeSoftwareVersion(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start query edge software version")
+	message, ok := input.(*model.Message)
+	if !ok {
+		hwlog.RunLog.Errorf("get message failed")
+		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "get message failed", Data: nil}
+	}
+
 	var req SoftwareVersionInfoReq
 	var err error
+
 	if err = common.ParamConvert(message.Content, &req); err != nil {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}

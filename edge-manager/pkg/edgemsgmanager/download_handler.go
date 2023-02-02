@@ -1,7 +1,7 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package nodemsgmanager download handler
-package nodemsgmanager
+// Package edgemsgmanager download handler
+package edgemsgmanager
 
 import (
 	"encoding/json"

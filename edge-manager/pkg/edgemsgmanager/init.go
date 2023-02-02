@@ -1,7 +1,7 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package nodemsgmanager module nodemsgmanager init
-package nodemsgmanager
+// Package edgemsgmanager module edgemsgmanager init
+package edgemsgmanager
 
 import (
 	"context"
@@ -85,7 +85,7 @@ func dispatch(req *model.Message) {
 	}
 }
 
-type handlerFunc func(req *model.Message) common.RespMsg
+type handlerFunc func(req interface{}) common.RespMsg
 
 func methodSelect(req *model.Message) *common.RespMsg {
 	var res common.RespMsg
@@ -107,6 +107,6 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodPost, filepath.Join(edgeSoftwareRootPath, "/upgrade")):     UpgradeEdgeSoftware,
 	common.Combine(http.MethodPost, filepath.Join(edgeSoftwareRootPath, "/effect")):      EffectEdgeSoftware,
 	common.Combine(http.MethodGet, filepath.Join(edgeSoftwareRootPath, "/version-info")): QueryEdgeSoftwareVersion,
-	common.Combine(common.OptReport, "/edgecore/version-info"):                           ReportEdgeSoftwareVersion,
-	common.Combine(common.OptPost, "/edgecore/config"):                                   GetConfigInfo,
+	common.Combine(common.OptReport, "/edge-core/version-info"):                          ReportEdgeSoftwareVersion,
+	common.Combine(common.OptGet, "/edge-core/config"):                                   GetConfigInfo,
 }
