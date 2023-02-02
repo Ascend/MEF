@@ -47,6 +47,7 @@ func (c *Connector) Enable() bool {
 // Start initializes the websocket server
 func (c *Connector) Start() {
 	hwlog.RunLog.Info("----------------edge connector start----------------")
+
 	if err := InitServer(); err != nil {
 		hwlog.RunLog.Errorf("init websocket server failed: %v", err)
 		return
@@ -74,8 +75,13 @@ func (c *Connector) Start() {
 }
 
 func (c *Connector) sendToClient(msg *model.Message) {
-	sender := GetSvrSender()
-	if err := sender.Send(msg.GetNodeId(), msg); err != nil {
+	sender, err := GetSvrSender()
+	if err != nil {
+		hwlog.RunLog.Errorf("edge-connector get server sender failed, error: %v", err)
+		return
+	}
+
+	if err = sender.Send(msg.GetNodeId(), msg); err != nil {
 		hwlog.RunLog.Errorf("edge-connector send msg to edge node error: %v, operation is [%s], resource is [%s]",
 			err, msg.GetOption(), msg.GetResource())
 		return
