@@ -8,9 +8,9 @@ export GO111MODULE="on"
 export GOPATH="/opt/buildtools/go"
 export PATH=$GOPATH/bin:$PATH
 
-function execute_base_manager_ut() {
+function execute_edge_manager_ut() {
   if ! (go test -gcflags=-l -v -mod=mod -coverprofile cov.out ${TOP_DIR}/... >./$file_input); then
-    echo '****** base-manager go test cases error! ******'
+    echo '****** edge-manager go test cases error! ******'
     cat $file_input
     exit 1
   else
@@ -21,11 +21,13 @@ function execute_base_manager_ut() {
   fi
 }
 
-file_input='testBaseManager.txt'
+file_input='testEdgeManager.txt'
 file_detail_output='api.html'
+DB_PATH="/home/data/config/"
 
-echo "************************************* Start Base-Manager LLT Test *************************************"
+echo "************************************* Start Edge-Manager LLT Test *************************************"
 mkdir -p "${TOP_DIR}"/inner-test/
+mkdir -p "${DB_PATH}"
 cd "${TOP_DIR}"/inner-test/
 if [ -f "$file_detail_output" ]; then
   rm -rf $file_detail_output
@@ -33,7 +35,8 @@ fi
 if [ -f "$file_input" ]; then
   rm -rf $file_input
 fi
-execute_base_manager_ut
-echo "************************************* End Base-Manager LLT Test *************************************"
+execute_edge_manager_ut
+rm -rf "${DB_PATH}"
+echo "************************************* End Edge-Manager LLT Test *************************************"
 
 exit 0
