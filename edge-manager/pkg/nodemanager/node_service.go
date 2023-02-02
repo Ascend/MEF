@@ -595,7 +595,7 @@ func innerGetNodeInfoByUniqueName(input interface{}) common.RespMsg {
 			NodeName:   nodeInfo.NodeName,
 			UniqueName: nodeInfo.UniqueName,
 		}
-		if err = json.Unmarshal([]byte(nodeInfo.SoftwareInfo), &resp.VersionInfos); err != nil {
+		if err = json.Unmarshal([]byte(nodeInfo.SoftwareInfo), &resp.SoftwareInfos); err != nil {
 			hwlog.RunLog.Error("get node info by unique name failed")
 			return common.RespMsg{Status: "", Msg: "get node info by unique name failed because unmarshal failed", Data: nil}
 		}
@@ -620,4 +620,27 @@ func innerGetNodeStatus(input interface{}) common.RespMsg {
 		NodeStatus: status,
 	}
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
+}
+
+func updateNodeSoftwareInfo(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start to update node software info")
+	var req types.EdgeReportSoftwareInfoReq
+	if err := common.ParamConvert(input, &req); err != nil {
+		hwlog.RunLog.Errorf("update node software info error, %s", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "convert request error", Data: nil}
+	}
+
+	softwareInfo, err := json.Marshal(req.SoftwareInfos)
+	if err != nil {
+		hwlog.RunLog.Error("marshal version info failed")
+		return common.RespMsg{Status: "", Msg: "marshal version info failed", Data: nil}
+	}
+
+	err = NodeServiceInstance().updateNodeByUniqueName(req.UniqueName, "softwareInfo", string(softwareInfo))
+	if err != nil {
+		hwlog.RunLog.Error("update node software info failed")
+		return common.RespMsg{Status: "", Msg: "update node software info failed", Data: nil}
+	}
+
+	return common.RespMsg{Status: common.Success, Msg: "", Data: ""}
 }

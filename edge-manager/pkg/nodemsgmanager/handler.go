@@ -160,13 +160,30 @@ func getNodesVersionInfo(nodeNames []string) (map[string]map[string]string, erro
 
 	var res = make(map[string]map[string]string)
 	for _, nodeVersion := range nodeVersionInfos {
-		res[nodeVersion.UniqueName] = nodeVersion.VersionInfos
+		res[nodeVersion.UniqueName] = nodeVersion.SoftwareInfos
 	}
 	return res, nil
 }
 
 // QueryEdgeSoftwareVersion [method] query edge software version
 func QueryEdgeSoftwareVersion(message *model.Message) common.RespMsg {
+	hwlog.RunLog.Info("start query edge software version")
+	var req SoftwareVersionInfoReq
+	var err error
+	if err = common.ParamConvert(message.Content, &req); err != nil {
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
+	}
+
+	nodeVersionInfo, err := getNodesVersionInfo(req.SNs)
+	if err != nil {
+		return common.RespMsg{Status: common.ErrorGetNodesVersion, Msg: "", Data: nil}
+	}
+
+	return common.RespMsg{Status: common.Success, Msg: "", Data: nodeVersionInfo}
+}
+
+// ReportEdgeSoftwareVersion [method] report edge software version
+func ReportEdgeSoftwareVersion(message *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start query edge software version")
 	var req SoftwareVersionInfoReq
 	var err error

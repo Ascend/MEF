@@ -20,10 +20,10 @@ type InnerGetNodeStatusReq struct {
 
 // InnerGetNodeInfoByNameResp is the response struct of node info
 type InnerGetNodeInfoByNameResp struct {
-	NodeID       uint64            `json:"nodeID"`
-	NodeName     string            `json:"nodeName"`
-	UniqueName   string            `json:"uniqueName"`
-	VersionInfos map[string]string `json:"versionInfos"`
+	NodeID        uint64            `json:"nodeID"`
+	NodeName      string            `json:"nodeName"`
+	UniqueName    string            `json:"uniqueName"`
+	SoftwareInfos map[string]string `json:"softwareInfos"`
 }
 
 // InnerGetNodeGroupInfosResp is the response struct of node group infos by group ids
@@ -34,4 +34,10 @@ type InnerGetNodeGroupInfosResp struct {
 // InnerGetNodeStatusResp is the response struct of node status
 type InnerGetNodeStatusResp struct {
 	NodeStatus string `json:"nodeStatus"`
+}
+
+// EdgeReportSoftwareInfoReq [struct] to report edge software info
+type EdgeReportSoftwareInfoReq struct {
+	UniqueName    string            `json:"uniqueName"`
+	SoftwareInfos map[string]string `json:"softwareInfos"`
 }

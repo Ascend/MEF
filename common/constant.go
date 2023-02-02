@@ -265,9 +265,9 @@ const (
 	// OptReport option for report
 	OptReport = "report"
 	// ResProgressReport resource progress report
-	ResProgressReport = "/upgrade-progress"
+	ResProgressReport = "/edge-core/upgrade-progress"
 	// ResSoftwareInfoReport resource software info
-	ResSoftwareInfoReport = "/software-info"
+	ResSoftwareInfoReport = "/edge-core/software-info"
 	// ResDownLoadSoftware resource for downloading software
 	ResDownLoadSoftware = "/software/download_info"
 	// ResEdgeCoreConfig resource for querying edgecore config
