@@ -46,7 +46,7 @@ func GetConfigInfo(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorGetToken, Msg: "get token from k8s failed", Data: nil}
 	}
 
-	if err = sendMessage(message, string(data)); err != nil {
+	if err = sendMessageToEdge(message, string(data)); err != nil {
 		hwlog.RunLog.Errorf("edge msg manager send message to edge hub for config failed, error: %v", err)
 		return common.RespMsg{Status: common.ErrorSendMsgToNode, Msg: "get token from k8s failed", Data: nil}
 	}

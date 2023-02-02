@@ -110,7 +110,7 @@ func (uh *upgradeHandler) constructMsgSendToConnector(nodeId string, message *mo
 	}
 
 	message.SetNodeId(nodeId)
-	if err = sendMessage(message, string(contentToConnectorAfterMarshal)); err != nil {
+	if err = sendMessageToEdge(message, string(contentToConnectorAfterMarshal)); err != nil {
 		hwlog.RunLog.Errorf("edge-installer send message to edge-connector for upgrading failed, error: %v", err)
 		return fmt.Errorf("edge-installer send message to edge-connector for upgrading failed, error: %v", err)
 	}

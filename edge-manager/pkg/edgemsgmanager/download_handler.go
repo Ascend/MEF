@@ -43,7 +43,7 @@ func (dh *downloadHandler) Handle(message *model.Message) error {
 		return fmt.Errorf("marshal content to edge-connector failed, error: %v", err)
 	}
 
-	if err = sendMessage(message, string(contentToConnectorAfterMarshal)); err != nil {
+	if err = sendMessageToEdge(message, string(contentToConnectorAfterMarshal)); err != nil {
 		hwlog.RunLog.Errorf("edge-installer send message to edge-connector for downloading failed, error: %v", err)
 		return fmt.Errorf("edge-installer send message to edge-connector for downloading failed, error: %v", err)
 	}

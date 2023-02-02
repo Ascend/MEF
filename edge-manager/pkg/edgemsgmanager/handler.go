@@ -16,7 +16,7 @@ import (
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
-func sendMessage(msg *model.Message, content string) error {
+func sendMessageToEdge(msg *model.Message, content string) error {
 	respMsg, err := model.NewMessage()
 	if err != nil {
 		hwlog.RunLog.Errorf("edge msg manager new message failed, error: %v", err)
@@ -58,10 +58,6 @@ func UpgradeEdgeSoftware(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start update edge software")
 	var req EdgeUpgradeInfoReq
 	var err error
-	if err = common.ParamConvert(input, &req); err != nil {
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
-	}
-
 	if err = common.ParamConvert(input, &req); err != nil {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}
@@ -176,30 +172,6 @@ func QueryEdgeSoftwareVersion(input interface{}) common.RespMsg {
 	var req SoftwareVersionInfoReq
 	var err error
 	if err = common.ParamConvert(input, &req); err != nil {
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
-	}
-
-	nodeVersionInfo, err := getNodesVersionInfo(req.SNs)
-	if err != nil {
-		return common.RespMsg{Status: common.ErrorGetNodesVersion, Msg: "", Data: nil}
-	}
-
-	return common.RespMsg{Status: common.Success, Msg: "", Data: nodeVersionInfo}
-}
-
-// ReportEdgeSoftwareVersion [method] report edge software version
-func ReportEdgeSoftwareVersion(input interface{}) common.RespMsg {
-	hwlog.RunLog.Info("start query edge software version")
-	message, ok := input.(*model.Message)
-	if !ok {
-		hwlog.RunLog.Errorf("get message failed")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "get message failed", Data: nil}
-	}
-
-	var req SoftwareVersionInfoReq
-	var err error
-
-	if err = common.ParamConvert(message.Content, &req); err != nil {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}
 
