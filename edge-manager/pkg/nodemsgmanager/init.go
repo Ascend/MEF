@@ -15,28 +15,28 @@ import (
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
-//
-type NodeMsgManager struct {
+// NodeMsgDealer [struct] to deal node msg
+type NodeMsgDealer struct {
 	ctx    context.Context
 	enable bool
 }
 
-// Name returns the name of edge installer module
-func (nm *NodeMsgManager) Name() string {
+// Name returns the name of NodeMsgDealer module
+func (nm *NodeMsgDealer) Name() string {
 	return common.NodeMsgManagerName
 }
 
 // Enable indicates whether this module is enabled
-func (nm *NodeMsgManager) Enable() bool {
+func (nm *NodeMsgDealer) Enable() bool {
 	if !nm.enable {
 		return !nm.enable
 	}
 	return nm.enable
 }
 
-// NewNodeMsgManager new NodeMsgManager
-func NewNodeMsgManager(enable bool) *NodeMsgManager {
-	i := &NodeMsgManager{
+// NewNodeMsgManager new NodeMsgDealer
+func NewNodeMsgManager(enable bool) *NodeMsgDealer {
+	i := &NodeMsgDealer{
 		enable: enable,
 		ctx:    context.Background(),
 	}
@@ -44,7 +44,7 @@ func NewNodeMsgManager(enable bool) *NodeMsgManager {
 }
 
 // Start receives and sends message
-func (nm *NodeMsgManager) Start() {
+func (nm *NodeMsgDealer) Start() {
 	for {
 		select {
 		case _, ok := <-nm.ctx.Done():
