@@ -36,6 +36,11 @@ type SftInstallCtl struct {
 
 // DoInstall is the main function to install mef-center
 func (sic *SftInstallCtl) DoInstall() error {
+	// MEFCenter已安装时不进行环境清理
+	if err := sic.checkInstalled(); err != nil {
+		return nil
+	}
+
 	var installTasks = []func() error{
 		sic.preCheck,
 		sic.prepareMefUser,
@@ -65,7 +70,6 @@ func (sic *SftInstallCtl) DoInstall() error {
 func (sic *SftInstallCtl) preCheck() error {
 	var checkTasks = []func() error{
 		sic.checkUser,
-		sic.checkInstalled,
 		sic.checkArch,
 		sic.checkDiskSpace,
 		sic.checkNecessaryTools,
