@@ -21,6 +21,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/kubeclient"
@@ -293,8 +294,8 @@ func getNodeInfoByUniqueName(eventPod *corev1.Pod) (uint64, string, error) {
 		Option:      common.Inner,
 		Resource:    common.Node,
 	}
-	req := types.InnerGetNodeInfoByNameReq{
-		UniqueName: eventPod.Spec.NodeName,
+	req := types.InnerGetNodesInfoByNameReq{
+		UniqueNames: append([]string{}, eventPod.Spec.NodeName),
 	}
 	resp := common.SendSyncMessageByRestful(req, &router)
 	if resp.Status != common.Success {

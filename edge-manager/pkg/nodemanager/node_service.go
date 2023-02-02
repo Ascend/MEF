@@ -5,6 +5,7 @@ package nodemanager
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"regexp"
@@ -13,8 +14,9 @@ import (
 
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
 	"k8s.io/api/core/v1"
+
+	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
@@ -576,21 +578,31 @@ func evalIpAddress(node *v1.Node) string {
 }
 
 func innerGetNodeInfoByUniqueName(input interface{}) common.RespMsg {
-	req, ok := input.(types.InnerGetNodeInfoByNameReq)
+	req, ok := input.(types.InnerGetNodesInfoByNameReq)
 	if !ok {
 		hwlog.RunLog.Error("parse inner message content failed")
 		return common.RespMsg{Status: "", Msg: "parse inner message content failed", Data: nil}
 	}
-	nodeInfo, err := NodeServiceInstance().getNodeByUniqueName(req.UniqueName)
-	if err != nil {
-		hwlog.RunLog.Error("get node info by unique name failed")
-		return common.RespMsg{Status: "", Msg: "get node info by unique name failed", Data: nil}
+	var res []types.InnerGetNodeInfoByNameResp
+	for _, uniqueName := range req.UniqueNames {
+		nodeInfo, err := NodeServiceInstance().getNodeByUniqueName(uniqueName)
+		if err != nil {
+			hwlog.RunLog.Error("get node info by unique name failed")
+			return common.RespMsg{Status: "", Msg: "get node info by unique name failed", Data: nil}
+		}
+		resp := types.InnerGetNodeInfoByNameResp{
+			NodeID:     nodeInfo.ID,
+			NodeName:   nodeInfo.NodeName,
+			UniqueName: nodeInfo.UniqueName,
+		}
+		if err = json.Unmarshal([]byte(nodeInfo.SoftwareInfo), &resp.VersionInfos); err != nil {
+			hwlog.RunLog.Error("get node info by unique name failed")
+			return common.RespMsg{Status: "", Msg: "get node info by unique name failed because unmarshal failed", Data: nil}
+		}
+		res = append(res, resp)
 	}
-	resp := types.InnerGetNodeInfoByNameResp{
-		NodeID:   nodeInfo.ID,
-		NodeName: nodeInfo.NodeName,
-	}
-	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
+
+	return common.RespMsg{Status: common.Success, Msg: "", Data: res}
 }
 
 func innerGetNodeStatus(input interface{}) common.RespMsg {

@@ -200,7 +200,7 @@ var softwareRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			Method:       http.MethodPost,
 			Destination:  common.NodeMsgManagerName},
 		restfulmgr.GenericDispatcher{
-			RelativePath: "/info",
+			RelativePath: "/version-info",
 			Method:       http.MethodGet,
 			Destination:  common.NodeMsgManagerName},
 		restfulmgr.GenericDispatcher{

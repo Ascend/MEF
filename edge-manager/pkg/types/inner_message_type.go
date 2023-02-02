@@ -3,9 +3,9 @@
 // Package types defines structs which could be used in different package
 package types
 
-// InnerGetNodeInfoByNameReq is the request struct for internal module to get node info by node name
-type InnerGetNodeInfoByNameReq struct {
-	UniqueName string `json:"uniqueName"`
+// InnerGetNodesInfoByNameReq is the request struct for internal module to get node info by node name
+type InnerGetNodesInfoByNameReq struct {
+	UniqueNames []string `json:"uniqueName"`
 }
 
 // InnerGetNodeGroupInfosReq is the request struct for internal module to get node group infos by group ids
@@ -20,8 +20,10 @@ type InnerGetNodeStatusReq struct {
 
 // InnerGetNodeInfoByNameResp is the response struct of node info
 type InnerGetNodeInfoByNameResp struct {
-	NodeID   uint64 `json:"nodeID"`
-	NodeName string `json:"nodeName"`
+	NodeID       uint64            `json:"nodeID"`
+	NodeName     string            `json:"nodeName"`
+	UniqueName   string            `json:"uniqueName"`
+	VersionInfos map[string]string `json:"versionInfos"`
 }
 
 // InnerGetNodeGroupInfosResp is the response struct of node group infos by group ids

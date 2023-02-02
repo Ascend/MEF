@@ -93,6 +93,9 @@ const (
 	// ErrorGetToken failed to get token
 	ErrorGetToken = "40012017"
 
+	// ErrorGetNodesVersion failed to delete node groups
+	ErrorGetNodesVersion = "40012018"
+
 	// ErrorCheckAppMrgSize failed to check data size while creating
 	ErrorCheckAppMrgSize = "40021000"
 	// ErrorAppParamConvertDb failed to convert request param to db
@@ -193,6 +196,8 @@ var ErrorMap = map[string]string{
 	ErrorDeleteNodeGroup: "failed to delete node groups",
 	// ErrorSendMsgToNode failed to send msg to node
 	ErrorSendMsgToNode: "failed to send msg to node",
+	// ErrorDeleteNodeFromGroup failed to send msg to node
+	ErrorGetNodesVersion: "failed to get node version",
 	// ErrorGetToken failed to get token
 	ErrorGetToken: "failed to get token",
 

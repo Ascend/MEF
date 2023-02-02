@@ -4,6 +4,8 @@
 package nodemsgmanager
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
@@ -123,4 +125,56 @@ func EffectEdgeSoftware(message *model.Message) common.RespMsg {
 		hwlog.RunLog.Info("deal edge software effect info success")
 		return common.RespMsg{Status: common.Success, Msg: "", Data: batchResp}
 	}
+}
+
+func getNodesVersionInfo(nodeNames []string) (map[string]map[string]string, error) {
+	if len(nodeNames) == 0 {
+		hwlog.RunLog.Warn("node names is nil, get version info failed")
+		return map[string]map[string]string{}, nil
+	}
+	router := common.Router{
+		Source:      common.NodeMsgManagerName,
+		Destination: common.NodeManagerName,
+		Option:      common.Inner,
+		Resource:    common.NodeVersion,
+	}
+	req := types.InnerGetNodesInfoByNameReq{
+		UniqueNames: nodeNames,
+	}
+	resp := common.SendSyncMessageByRestful(req, &router)
+	if resp.Status != common.Success {
+		return map[string]map[string]string{}, errors.New(resp.Msg)
+	}
+
+	data, err := json.Marshal(resp.Data)
+	if err != nil {
+		return map[string]map[string]string{}, errors.New("marshal internal response error")
+	}
+
+	var nodeVersionInfos []types.InnerGetNodeInfoByNameResp
+	if err = json.Unmarshal(data, &nodeVersionInfos); err != nil {
+		return map[string]map[string]string{}, errors.New("unmarshal internal response error")
+	}
+
+	var res = make(map[string]map[string]string)
+	for _, nodeVersion := range nodeVersionInfos {
+		res[nodeVersion.UniqueName] = nodeVersion.VersionInfos
+	}
+	return res, nil
+}
+
+func QueryEdgeSoftwareVersion(message *model.Message) common.RespMsg {
+	hwlog.RunLog.Info("start query edge software version")
+	var req SoftwareVersionInfoReq
+	var err error
+	if err = common.ParamConvert(message.Content, &req); err != nil {
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
+	}
+
+	nodeVersionInfo, err := getNodesVersionInfo(req.SNs)
+	if err != nil {
+		return common.RespMsg{Status: common.ErrorGetNodesVersion, Msg: "", Data: nil}
+	}
+
+	return common.RespMsg{Status: common.Success, Msg: "", Data: nodeVersionInfo}
 }

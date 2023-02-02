@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
@@ -63,9 +64,9 @@ func (node *nodeManager) Start() {
 		default:
 		}
 		req, err := modulemanager.ReceiveMessage(common.NodeManagerName)
-		hwlog.RunLog.Debugf("%s revice requst from restful service", common.NodeManagerName)
+		hwlog.RunLog.Debugf("%s receive request from restful service", common.NodeManagerName)
 		if err != nil {
-			hwlog.RunLog.Errorf("%s revice requst from restful service failed", common.NodeManagerName)
+			hwlog.RunLog.Errorf("%s receive request from restful service failed", common.NodeManagerName)
 			continue
 		}
 		msg, err := dispatchMsg(req)
