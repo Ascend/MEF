@@ -10,20 +10,33 @@ UPGRADE_SH_PATH="${CURRENT_PATH}/upgrade.sh"
 print_helps()
 {
     echo "MEF run entry cmd help:"
-    echo "--------control--------- ./run.sh start edge_manager "
-    echo "--------upgrade--------- ./run.sh upgrade "
-    echo "--------uninstall--------- ./run.sh uninstall"
-
+    echo "-version -- display the program name and version"
+    echo "-h/--help/--h -- display the helps information"
+    echo "start -- start all or a component"
+    echo "parameters: "
+    echo "        all: start all component, default value"
+    echo "        {component_name}: start a single component. eg: run.sh start edge-manager"
+    echo " "
+    echo "stop -- stop all or a component"
+    echo "parameters: "
+    echo "        all: stop all component, default value"
+    echo "        {component_name}: stop a single component. eg: run.sh stop edge-manager"
+    echo " "
+    echo "restart -- restart all or a component"
+    echo "parameters: "
+    echo "        all: restart all component, default value"
+    echo "        {component_name}: restart a single component. eg: run.sh restart edge-manager"
+    echo " "
+    echo "uninstall -- uninstall MEF Center"
 }
 
 function main()
 {
+    binary_file="MEF-center-controller"
     if [[ "$#" -gt 0 ]];  then
         method="$1"
-        binary_file=""
         case "$method" in
              "start" | "stop" | "restart")
-                binary_file="MEF-center-controller"
                 manage_type="operate"
                 if [[ -z $2 ]]; then
                     component="all"
@@ -34,11 +47,14 @@ function main()
                 params="-$method=$component"
             ;;
              "uninstall")
-                binary_file="MEF-center-controller"
                 manage_type="uninstall"
             ;;
             "-h" | "--help" | "--h")
                 print_helps "$@"
+                exit 0
+            ;;
+            "-version" )
+                "${TOOL_BINARY_PATH}"/"${binary_file}" "-version"
                 exit 0
             ;;
             * )

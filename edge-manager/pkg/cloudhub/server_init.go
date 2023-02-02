@@ -52,8 +52,9 @@ func InitServer() error {
 	proxyConfig, err := websocketmgr.InitProxyConfig(name, podIp, server.wsPort, certInfo)
 	if err != nil {
 		hwlog.RunLog.Errorf("init proxy config failed: %v", err)
-		return err
+		return errors.New("init proxy config failed")
 	}
+
 	proxyConfig.RegModInfos(getRegModuleInfoList())
 	proxy := &websocketmgr.WsServerProxy{
 		ProxyCfg: proxyConfig,
@@ -61,7 +62,7 @@ func InitServer() error {
 	serverSender.SetProxy(proxy)
 	if err = proxy.Start(); err != nil {
 		hwlog.RunLog.Errorf("proxy.Start failed: %v", err)
-		return err
+		return errors.New("proxy.Start failed")
 	}
 
 	initFlag = true
@@ -132,11 +133,12 @@ func getWsCert(keyPath string) (string, string, error) {
 }
 
 // GetSvrSender get server sender
-func GetSvrSender() websocketmgr.WsSvrSender {
+func GetSvrSender() (websocketmgr.WsSvrSender, error) {
 	if !initFlag {
 		if err := InitServer(); err != nil {
-			return websocketmgr.WsSvrSender{}
+			hwlog.RunLog.Errorf("init websocket server failed before sending message to mef-edge, error: %v", err)
+			return websocketmgr.WsSvrSender{}, errors.New("init websocket server failed before sending message to mef-edge")
 		}
 	}
-	return serverSender
+	return serverSender, nil
 }

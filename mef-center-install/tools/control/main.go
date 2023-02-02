@@ -30,7 +30,13 @@ type uninstallController struct {
 }
 
 var (
+	// BuildName the program name
+	BuildName string
+	// BuildVersion the program version
+	BuildVersion string
+
 	componentType string
+	version       bool
 	operateType   string
 )
 
@@ -47,6 +53,7 @@ func init() {
 	flag.StringVar(&componentType, restartFlag, "all", "restart a component, default all components")
 	flag.StringVar(&operateType, operateFlag, "",
 		"to illustrate the operate type: control, uninstall or upgrade")
+	flag.BoolVar(&version, util.VersionFlag, false, "Output the program version")
 }
 
 func isFlagSet(name string) bool {
@@ -113,9 +120,13 @@ func (oc *uninstallController) doControl() error {
 
 func main() {
 	flag.Parse()
-	fmt.Println("in main control")
-	operate := checkFlag()
 
+	if version {
+		fmt.Printf("%s version: %s\n", BuildName, BuildVersion)
+		os.Exit(util.VersionExitCode)
+	}
+
+	operate := checkFlag()
 	installParam, err := util.GetInstallInfo()
 	if err != nil {
 		fmt.Printf("get info from install-param.json failed:%s\n", err.Error())
