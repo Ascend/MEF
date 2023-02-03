@@ -41,11 +41,11 @@ func (node *nodeManager) Name() string {
 func (node *nodeManager) Enable() bool {
 	if node.enable {
 		if err := initNodeTable(); err != nil {
-			hwlog.RunLog.Errorf("module (%s) init database table failed, cannot enable", common.NodeManagerName)
+			hwlog.RunLog.Errorf("module (%s) init database table failed, cannot enable", node.Name())
 			return !node.enable
 		}
 		if err := initNodeStatusService(); err != nil {
-			hwlog.RunLog.Errorf("module (%s) init node status service failed, cannot enable", common.NodeManagerName)
+			hwlog.RunLog.Errorf("module (%s) init node status service failed, cannot enable", node.Name())
 			return !node.enable
 		}
 	}
@@ -64,25 +64,25 @@ func (node *nodeManager) Start() {
 			return
 		default:
 		}
-		req, err := modulemanager.ReceiveMessage(common.NodeManagerName)
-		hwlog.RunLog.Debugf("%s receive request from restful service", common.NodeManagerName)
+		req, err := modulemanager.ReceiveMessage(node.Name())
+		hwlog.RunLog.Debugf("%s receive request from restful service", node.Name())
 		if err != nil {
-			hwlog.RunLog.Errorf("%s receive request from restful service failed", common.NodeManagerName)
+			hwlog.RunLog.Errorf("%s receive request from restful service failed", node.Name())
 			continue
 		}
 		msg, err := dispatchMsg(req)
 		if err != nil {
-			hwlog.RunLog.Errorf("%s get method by option and resource failed", common.NodeManagerName)
+			hwlog.RunLog.Errorf("%s get method by option and resource failed", node.Name())
 			continue
 		}
 		resp, err := req.NewResponse()
 		if err != nil {
-			hwlog.RunLog.Errorf("%s new response failed", common.NodeManagerName)
+			hwlog.RunLog.Errorf("%s new response failed", node.Name())
 			continue
 		}
 		resp.FillContent(msg)
 		if err = modulemanager.SendMessage(resp); err != nil {
-			hwlog.RunLog.Errorf("%s send response failed", common.NodeManagerName)
+			hwlog.RunLog.Errorf("%s send response failed", node.Name())
 			continue
 		}
 	}
