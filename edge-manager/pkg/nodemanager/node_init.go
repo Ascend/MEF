@@ -53,6 +53,7 @@ func (node *nodeManager) Enable() bool {
 }
 
 func (node *nodeManager) Start() {
+	hwlog.RunLog.Info("----------------node manager start----------------")
 	for {
 		select {
 		case _, ok := <-node.ctx.Done():

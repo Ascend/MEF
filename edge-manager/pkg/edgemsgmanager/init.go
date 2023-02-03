@@ -95,7 +95,7 @@ func methodSelect(req *model.Message) *common.RespMsg {
 			req.GetResource())
 		return nil
 	}
-	res = method(req)
+	res = method(req.GetContent())
 	return &res
 }
 
