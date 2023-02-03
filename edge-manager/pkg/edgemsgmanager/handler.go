@@ -141,7 +141,7 @@ func EffectEdgeSoftware(input interface{}) common.RespMsg {
 	}
 }
 
-func getNodesVersionInfo(nodeName string) (map[string]map[string]string, error) {
+func getNodeVersionInfo(nodeName string) (map[string]map[string]string, error) {
 	router := common.Router{
 		Source:      common.NodeMsgManagerName,
 		Destination: common.NodeManagerName,
@@ -153,6 +153,7 @@ func getNodesVersionInfo(nodeName string) (map[string]map[string]string, error) 
 	}
 	resp := common.SendSyncMessageByRestful(req, &router)
 	if resp.Status != common.Success {
+		hwlog.RunLog.Errorf("get node info failed:%s", resp.Msg)
 		return map[string]map[string]string{}, errors.New(resp.Msg)
 	}
 
@@ -166,10 +167,7 @@ func getNodesVersionInfo(nodeName string) (map[string]map[string]string, error) 
 		return map[string]map[string]string{}, errors.New("unmarshal internal response error")
 	}
 
-	var res = make(map[string]map[string]string)
-	res[nodeVersionInfos.UniqueName] = nodeVersionInfos.SoftwareInfos
-
-	return res, nil
+	return nodeVersionInfos.SoftwareInfo, nil
 }
 
 // QueryEdgeSoftwareVersion [method] query edge software version
@@ -187,7 +185,7 @@ func QueryEdgeSoftwareVersion(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "query app request convert error", Data: nil}
 	}
 
-	nodeVersionInfo, err := getNodesVersionInfo(uniqueName)
+	nodeVersionInfo, err := getNodeVersionInfo(uniqueName)
 	if err != nil {
 		return common.RespMsg{Status: common.ErrorGetNodesVersion, Msg: "", Data: nil}
 	}

@@ -20,10 +20,10 @@ type InnerGetNodeStatusReq struct {
 
 // InnerGetNodeInfoByNameResp is the response struct of node info
 type InnerGetNodeInfoByNameResp struct {
-	NodeID        uint64            `json:"nodeID"`
-	NodeName      string            `json:"nodeName"`
-	UniqueName    string            `json:"uniqueName"`
-	SoftwareInfos map[string]string `json:"softwareInfos"`
+	NodeID       uint64                       `json:"nodeID"`
+	NodeName     string                       `json:"nodeName"`
+	UniqueName   string                       `json:"uniqueName"`
+	SoftwareInfo map[string]map[string]string `json:"softwareInfos"`
 }
 
 // InnerGetNodeGroupInfosResp is the response struct of node group infos by group ids

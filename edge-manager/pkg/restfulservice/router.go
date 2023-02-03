@@ -24,7 +24,7 @@ var appRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			Destination: common.AppManagerName},
 		queryDispatcher{restfulmgr.GenericDispatcher{
 			Method:      http.MethodGet,
-			Destination: common.AppManagerName}, "appID"},
+			Destination: common.AppManagerName}, "appID", false},
 		restfulmgr.GenericDispatcher{
 			Method:      http.MethodPatch,
 			Destination: common.AppManagerName},
@@ -47,11 +47,11 @@ var appRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 		queryDispatcher{restfulmgr.GenericDispatcher{
 			RelativePath: "/deployment",
 			Method:       http.MethodGet,
-			Destination:  common.AppManagerName}, "appID"},
+			Destination:  common.AppManagerName}, "appID", false},
 		queryDispatcher{restfulmgr.GenericDispatcher{
 			RelativePath: "/node",
 			Method:       http.MethodGet,
-			Destination:  common.AppManagerName}, "nodeID"},
+			Destination:  common.AppManagerName}, "nodeID", false},
 		listDispatcher{restfulmgr.GenericDispatcher{
 			RelativePath: "/deployment/list",
 			Method:       http.MethodGet,
@@ -71,7 +71,7 @@ var appRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 		queryDispatcher{restfulmgr.GenericDispatcher{
 			RelativePath: "/configmap",
 			Method:       http.MethodGet,
-			Destination:  common.AppManagerName}, "configmapID"},
+			Destination:  common.AppManagerName}, "configmapID", false},
 		listDispatcher{restfulmgr.GenericDispatcher{
 			RelativePath: "/configmap/list",
 			Method:       http.MethodGet,
@@ -93,7 +93,7 @@ var templateRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			Destination: common.AppManagerName},
 		queryDispatcher{restfulmgr.GenericDispatcher{
 			Method:      http.MethodGet,
-			Destination: common.AppManagerName}, "id"},
+			Destination: common.AppManagerName}, "id", false},
 		listDispatcher{restfulmgr.GenericDispatcher{
 			RelativePath: "/list",
 			Method:       http.MethodGet,
@@ -124,7 +124,7 @@ var nodeRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			Destination:  common.NodeManagerName},
 		queryDispatcher{restfulmgr.GenericDispatcher{
 			Method:      http.MethodGet,
-			Destination: common.NodeManagerName}, "id"},
+			Destination: common.NodeManagerName}, "id", false},
 		restfulmgr.GenericDispatcher{
 			Method:      http.MethodPatch,
 			Destination: common.NodeManagerName},
@@ -162,7 +162,7 @@ var nodeGroupRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			Destination:  common.NodeManagerName},
 		queryDispatcher{restfulmgr.GenericDispatcher{
 			Method:      http.MethodGet,
-			Destination: common.NodeManagerName}, "id"},
+			Destination: common.NodeManagerName}, "id", false},
 		restfulmgr.GenericDispatcher{
 			Method:      http.MethodPatch,
 			Destination: common.NodeManagerName},
@@ -202,11 +202,11 @@ var softwareRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 		queryDispatcher{restfulmgr.GenericDispatcher{
 			RelativePath: "/version-info",
 			Method:       http.MethodGet,
-			Destination:  common.NodeMsgManagerName}, "uniqueName"},
+			Destination:  common.NodeMsgManagerName}, "uniqueName", true},
 		queryDispatcher{restfulmgr.GenericDispatcher{
 			RelativePath: "/upgrade-progress",
 			Method:       http.MethodGet,
-			Destination:  common.NodeMsgManagerName}, "uniqueName"},
+			Destination:  common.NodeMsgManagerName}, "uniqueName", true},
 	},
 }
 
@@ -221,11 +221,11 @@ func pageUtil(c *gin.Context) (types.ListReq, error) {
 	input := types.ListReq{}
 	var err error
 	// for slice page on ucd
-	input.PageNum, err = getIntReq(c, "pageNum")
+	input.PageNum, err = getIntReqPara(c, "pageNum")
 	if err != nil {
 		return input, err
 	}
-	input.PageSize, err = getIntReq(c, "pageSize")
+	input.PageSize, err = getIntReqPara(c, "pageSize")
 	if err != nil {
 		return input, err
 	}
@@ -234,21 +234,34 @@ func pageUtil(c *gin.Context) (types.ListReq, error) {
 	return input, nil
 }
 
-func getIntReq(c *gin.Context, idName string) (uint64, error) {
-	value, err := strconv.ParseUint(c.Query(idName), common.BaseHex, common.BitSize64)
+func getIntReqPara(c *gin.Context, paraName string) (uint64, error) {
+	value, err := strconv.ParseUint(c.Query(paraName), common.BaseHex, common.BitSize64)
 	if err != nil {
-		return 0, fmt.Errorf("id name [%s] is invalid", idName)
+		return 0, fmt.Errorf("req int para [%s] is invalid", paraName)
+	}
+	return value, nil
+}
+
+func getStringReqPara(c *gin.Context, paraName string) (string, error) {
+	value := c.Query(paraName)
+	if value == "" {
+		return "", fmt.Errorf("req string para [%s] is invalid", paraName)
 	}
 	return value, nil
 }
 
 type queryDispatcher struct {
 	restfulmgr.GenericDispatcher
-	name string
+	name     string
+	isString bool
 }
 
 func (query queryDispatcher) ParseData(c *gin.Context) (interface{}, error) {
-	return getIntReq(c, query.name)
+	if query.isString {
+		return getStringReqPara(c, query.name)
+	} else {
+		return getIntReqPara(c, query.name)
+	}
 }
 
 type listDispatcher struct {

@@ -56,32 +56,34 @@ func (nm *NodeMsgDealer) Start() {
 		default:
 		}
 
-		req, err := modulemanager.ReceiveMessage(nm.Name())
+		msg, err := modulemanager.ReceiveMessage(nm.Name())
 		if err != nil {
 			hwlog.RunLog.Errorf("module [%s] receive message from channel failed, error: %v", nm.Name(), err)
 			continue
 		}
+		hwlog.RunLog.Infof("module [%s] receive message option:%s, resource:%s", nm.Name(),
+			msg.GetOption(), msg.GetResource())
 
-		dispatch(req)
+		nm.dispatch(msg)
 	}
 }
 
-func dispatch(req *model.Message) {
+func (nm *NodeMsgDealer) dispatch(req *model.Message) {
 	msg := methodSelect(req)
 	if msg == nil {
-		hwlog.RunLog.Errorf("%s get method by option and resource failed", common.NodeMsgManagerName)
+		hwlog.RunLog.Errorf("%s get method by option and resource failed", nm.Name())
 		return
 	}
 
 	resp, err := req.NewResponse()
 	if err != nil {
-		hwlog.RunLog.Errorf("%s new response failed", common.NodeMsgManagerName)
+		hwlog.RunLog.Errorf("%s new response failed", nm.Name())
 		return
 	}
 
 	resp.FillContent(msg)
 	if err = modulemanager.SendMessage(resp); err != nil {
-		hwlog.RunLog.Errorf("%s send response failed", common.NodeMsgManagerName)
+		hwlog.RunLog.Errorf("%s send response failed", nm.Name())
 	}
 }
 

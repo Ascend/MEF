@@ -593,8 +593,8 @@ func innerGetNodeInfoByUniqueName(input interface{}) common.RespMsg {
 		NodeName:   nodeInfo.NodeName,
 		UniqueName: nodeInfo.UniqueName,
 	}
-	if err = json.Unmarshal([]byte(nodeInfo.SoftwareInfo), &resp.SoftwareInfos); err != nil {
-		hwlog.RunLog.Error("get node software info by unique name failed")
+	if err = json.Unmarshal([]byte(nodeInfo.SoftwareInfo), &resp.SoftwareInfo); err != nil {
+		hwlog.RunLog.Error("unmarshall node software info failed")
 		return common.RespMsg{Status: "", Msg: "get node info by unique name failed because unmarshal failed", Data: nil}
 	}
 
