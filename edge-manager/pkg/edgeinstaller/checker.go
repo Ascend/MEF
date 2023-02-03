@@ -1,7 +1,7 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package edgemsgmanager the checker used in edge-installer module
-package edgemsgmanager
+// Package edgeinstaller the checker used in edge-installer module
+package edgeinstaller
 
 import (
 	"errors"

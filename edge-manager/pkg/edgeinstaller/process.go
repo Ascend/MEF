@@ -1,7 +1,7 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package edgemsgmanager processing used in edge-installer module
-package edgemsgmanager
+// Package edgeinstaller processing used in edge-installer module
+package edgeinstaller
 
 import (
 	"bytes"
@@ -234,7 +234,7 @@ func respRestful(message *model.Message) (*UpgradeSfwReq, error) {
 	}
 	respToRestful.FillContent(respContent)
 	if err = modulemanager.SendMessage(respToRestful); err != nil {
-		hwlog.RunLog.Errorf("%s send response to restful failed", common.NodeMsgManagerName)
+		hwlog.RunLog.Errorf("%s send response to restful failed", common.EdgeInstallerName)
 		return nil, err
 	}
 

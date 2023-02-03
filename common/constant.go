@@ -62,6 +62,8 @@ const (
 	CloudHubName = "CloudHub"
 	// NodeMsgManagerName node msg manager
 	NodeMsgManagerName = "NodeMsgManagerName"
+	// EdgeInstallerName edge-installer
+	EdgeInstallerName = "edge-installer"
 	// CertManagerName CertManager
 	CertManagerName = "CertManager"
 	// SoftwareManagerName software manager

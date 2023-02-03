@@ -1,7 +1,7 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package edgemsgmanager software manager info db module
-package edgemsgmanager
+// Package edgeinstaller software manager info db module
+package edgeinstaller
 
 import (
 	"edge-manager/pkg/database"

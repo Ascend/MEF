@@ -1,7 +1,7 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package edgemsgmanager download handler
-package edgemsgmanager
+// Package edgeinstaller download handler
+package edgeinstaller
 
 import (
 	"encoding/json"
@@ -43,7 +43,7 @@ func (dh *downloadHandler) Handle(message *model.Message) error {
 		return fmt.Errorf("marshal content to edge-connector failed, error: %v", err)
 	}
 
-	if err = sendMessageToEdge(message, string(contentToConnectorAfterMarshal)); err != nil {
+	if err = sendMessage(message, string(contentToConnectorAfterMarshal)); err != nil {
 		hwlog.RunLog.Errorf("edge-installer send message to edge-connector for downloading failed, error: %v", err)
 		return fmt.Errorf("edge-installer send message to edge-connector for downloading failed, error: %v", err)
 	}

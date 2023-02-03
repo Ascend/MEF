@@ -1,7 +1,7 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package edgemsgmanager software manager info db service
-package edgemsgmanager
+// Package edgeinstaller software manager info db service
+package edgeinstaller
 
 import (
 	"time"
