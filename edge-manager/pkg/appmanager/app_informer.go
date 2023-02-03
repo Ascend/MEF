@@ -294,8 +294,8 @@ func getNodeInfoByUniqueName(eventPod *corev1.Pod) (uint64, string, error) {
 		Option:      common.Inner,
 		Resource:    common.Node,
 	}
-	req := types.InnerGetNodesInfoByNameReq{
-		UniqueNames: append([]string{}, eventPod.Spec.NodeName),
+	req := types.InnerGetNodeInfoByNameReq{
+		UniqueName: eventPod.Spec.NodeName,
 	}
 	resp := common.SendSyncMessageByRestful(req, &router)
 	if resp.Status != common.Success {
@@ -305,14 +305,11 @@ func getNodeInfoByUniqueName(eventPod *corev1.Pod) (uint64, string, error) {
 	if err != nil {
 		return 0, "", errors.New("marshal internal response error")
 	}
-	var nodeInfo []types.InnerGetNodeInfoByNameResp
+	var nodeInfo types.InnerGetNodeInfoByNameResp
 	if err = json.Unmarshal(data, &nodeInfo); err != nil {
 		return 0, "", errors.New("unmarshal internal response error")
 	}
-	if len(nodeInfo) == 0 {
-		return 0, "", errors.New("get node info error")
-	}
-	return nodeInfo[0].NodeID, nodeInfo[0].NodeName, nil
+	return nodeInfo.NodeID, nodeInfo.NodeName, nil
 }
 
 func getNodeGroupId(eventPod *corev1.Pod) (uint64, error) {

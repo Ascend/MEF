@@ -56,9 +56,15 @@ func sendResponse(msg *model.Message, resp string) error {
 // UpgradeEdgeSoftware [method] upgrade edge software
 func UpgradeEdgeSoftware(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start update edge software")
+	message, ok := input.(*model.Message)
+	if !ok {
+		hwlog.RunLog.Errorf("get message failed")
+		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "get message failed", Data: nil}
+	}
+
 	var req EdgeUpgradeInfoReq
 	var err error
-	if err = common.ParamConvert(input, &req); err != nil {
+	if err = common.ParamConvert(message.GetContent(), &req); err != nil {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}
 
@@ -93,10 +99,16 @@ func UpgradeEdgeSoftware(input interface{}) common.RespMsg {
 
 // EffectEdgeSoftware [method] effect edge software
 func EffectEdgeSoftware(input interface{}) common.RespMsg {
-	hwlog.RunLog.Info("start update edge software")
+	hwlog.RunLog.Info("start effect edge software")
+	message, ok := input.(*model.Message)
+	if !ok {
+		hwlog.RunLog.Errorf("get message failed")
+		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "get message failed", Data: nil}
+	}
+
 	var req EffectInfoReq
 	var err error
-	if err = common.ParamConvert(input, &req); err != nil {
+	if err = common.ParamConvert(message.GetContent(), &req); err != nil {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}
 
@@ -129,19 +141,15 @@ func EffectEdgeSoftware(input interface{}) common.RespMsg {
 	}
 }
 
-func getNodesVersionInfo(nodeNames []string) (map[string]map[string]string, error) {
-	if len(nodeNames) == 0 {
-		hwlog.RunLog.Warn("node names is nil, get version info failed")
-		return map[string]map[string]string{}, nil
-	}
+func getNodesVersionInfo(nodeName string) (map[string]map[string]string, error) {
 	router := common.Router{
 		Source:      common.NodeMsgManagerName,
 		Destination: common.NodeManagerName,
 		Option:      common.Inner,
 		Resource:    common.Node,
 	}
-	req := types.InnerGetNodesInfoByNameReq{
-		UniqueNames: nodeNames,
+	req := types.InnerGetNodeInfoByNameReq{
+		UniqueName: nodeName,
 	}
 	resp := common.SendSyncMessageByRestful(req, &router)
 	if resp.Status != common.Success {
@@ -153,29 +161,33 @@ func getNodesVersionInfo(nodeNames []string) (map[string]map[string]string, erro
 		return map[string]map[string]string{}, errors.New("marshal internal response error")
 	}
 
-	var nodeVersionInfos []types.InnerGetNodeInfoByNameResp
+	var nodeVersionInfos types.InnerGetNodeInfoByNameResp
 	if err = json.Unmarshal(data, &nodeVersionInfos); err != nil {
 		return map[string]map[string]string{}, errors.New("unmarshal internal response error")
 	}
 
 	var res = make(map[string]map[string]string)
-	for _, nodeVersion := range nodeVersionInfos {
-		res[nodeVersion.UniqueName] = nodeVersion.SoftwareInfos
-	}
+	res[nodeVersionInfos.UniqueName] = nodeVersionInfos.SoftwareInfos
+
 	return res, nil
 }
 
 // QueryEdgeSoftwareVersion [method] query edge software version
 func QueryEdgeSoftwareVersion(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start query edge software version")
-
-	var req SoftwareVersionInfoReq
-	var err error
-	if err = common.ParamConvert(input, &req); err != nil {
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
+	message, ok := input.(*model.Message)
+	if !ok {
+		hwlog.RunLog.Errorf("get message failed")
+		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "get message failed", Data: nil}
 	}
 
-	nodeVersionInfo, err := getNodesVersionInfo(req.SNs)
+	uniqueName, ok := message.GetContent().(string)
+	if !ok {
+		hwlog.RunLog.Error("query app info failed: para type not valid")
+		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "query app request convert error", Data: nil}
+	}
+
+	nodeVersionInfo, err := getNodesVersionInfo(uniqueName)
 	if err != nil {
 		return common.RespMsg{Status: common.ErrorGetNodesVersion, Msg: "", Data: nil}
 	}

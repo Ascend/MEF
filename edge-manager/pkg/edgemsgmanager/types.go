@@ -24,9 +24,3 @@ type EffectInfoReq struct {
 	NodeIDs []uint64 `json:"nodeIDs"`
 	SNs     []string `json:"sns"`
 }
-
-// SoftwareVersionInfoReq software version info req
-type SoftwareVersionInfoReq struct {
-	NodeIDs []uint64 `json:"nodeIDs"`
-	SNs     []string `json:"sns"`
-}

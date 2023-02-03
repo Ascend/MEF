@@ -64,17 +64,16 @@ func (c *CloudServer) Start() {
 		default:
 		}
 
-		req, err := modulemanager.ReceiveMessage(c.Name())
+		message, err := modulemanager.ReceiveMessage(c.Name())
 		if err != nil {
 			hwlog.RunLog.Errorf("module [%s] receive message from channel failed, error: %v", c.Name(), err)
 			continue
 		}
-
-		sendToClient(req)
+		c.sendToClient(message)
 	}
 }
 
-func sendToClient(msg *model.Message) {
+func (c *CloudServer) sendToClient(msg *model.Message) {
 	sender, err := GetSvrSender()
 	if err != nil {
 		hwlog.RunLog.Errorf("send to client [%s] failed", msg.GetNodeId())

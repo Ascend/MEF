@@ -577,32 +577,28 @@ func evalIpAddress(node *v1.Node) string {
 	return strings.Join(ipAddresses, ",")
 }
 
-func innerGetNodesInfoByUniqueName(input interface{}) common.RespMsg {
-	req, ok := input.(types.InnerGetNodesInfoByNameReq)
+func innerGetNodeInfoByUniqueName(input interface{}) common.RespMsg {
+	req, ok := input.(types.InnerGetNodeInfoByNameReq)
 	if !ok {
 		hwlog.RunLog.Error("parse inner message content failed")
 		return common.RespMsg{Status: "", Msg: "parse inner message content failed", Data: nil}
 	}
-	var res []types.InnerGetNodeInfoByNameResp
-	for _, uniqueName := range req.UniqueNames {
-		nodeInfo, err := NodeServiceInstance().getNodeByUniqueName(uniqueName)
-		if err != nil {
-			hwlog.RunLog.Error("get node info by unique name failed")
-			return common.RespMsg{Status: "", Msg: "get node info by unique name failed", Data: nil}
-		}
-		resp := types.InnerGetNodeInfoByNameResp{
-			NodeID:     nodeInfo.ID,
-			NodeName:   nodeInfo.NodeName,
-			UniqueName: nodeInfo.UniqueName,
-		}
-		if err = json.Unmarshal([]byte(nodeInfo.SoftwareInfo), &resp.SoftwareInfos); err != nil {
-			hwlog.RunLog.Error("get node info by unique name failed")
-			return common.RespMsg{Status: "", Msg: "get node info by unique name failed because unmarshal failed", Data: nil}
-		}
-		res = append(res, resp)
+	nodeInfo, err := NodeServiceInstance().getNodeByUniqueName(req.UniqueName)
+	if err != nil {
+		hwlog.RunLog.Error("get node info by unique name failed")
+		return common.RespMsg{Status: "", Msg: "get node info by unique name failed", Data: nil}
+	}
+	resp := types.InnerGetNodeInfoByNameResp{
+		NodeID:     nodeInfo.ID,
+		NodeName:   nodeInfo.NodeName,
+		UniqueName: nodeInfo.UniqueName,
+	}
+	if err = json.Unmarshal([]byte(nodeInfo.SoftwareInfo), &resp.SoftwareInfos); err != nil {
+		hwlog.RunLog.Error("get node software info by unique name failed")
+		return common.RespMsg{Status: "", Msg: "get node info by unique name failed because unmarshal failed", Data: nil}
 	}
 
-	return common.RespMsg{Status: common.Success, Msg: "", Data: res}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
 func innerGetNodeStatus(input interface{}) common.RespMsg {

@@ -199,14 +199,14 @@ var softwareRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			RelativePath: "/effect",
 			Method:       http.MethodPost,
 			Destination:  common.NodeMsgManagerName},
-		restfulmgr.GenericDispatcher{
+		queryDispatcher{restfulmgr.GenericDispatcher{
 			RelativePath: "/version-info",
 			Method:       http.MethodGet,
-			Destination:  common.NodeMsgManagerName},
-		restfulmgr.GenericDispatcher{
+			Destination:  common.NodeMsgManagerName}, "uniqueName"},
+		queryDispatcher{restfulmgr.GenericDispatcher{
 			RelativePath: "/upgrade-progress",
 			Method:       http.MethodGet,
-			Destination:  common.NodeMsgManagerName},
+			Destination:  common.NodeMsgManagerName}, "uniqueName"},
 	},
 }
 
