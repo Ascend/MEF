@@ -94,8 +94,10 @@ const (
 	// ErrorGetToken failed to get token
 	ErrorGetToken = "40012017"
 
-	// ErrorGetNodesVersion failed to delete node groups
-	ErrorGetNodesVersion = "40012018"
+	// ErrorGetNodeVersion failed to delete node groups
+	ErrorGetNodeVersion = "40012018"
+	// ErrorGetNodesUpgradeProgress failed to get node software upgrade progess
+	ErrorGetNodesUpgradeProgress = "40012019"
 
 	// ErrorCheckAppMrgSize failed to check data size while creating
 	ErrorCheckAppMrgSize = "40021000"
@@ -198,7 +200,9 @@ var ErrorMap = map[string]string{
 	// ErrorSendMsgToNode failed to send msg to node
 	ErrorSendMsgToNode: "failed to send msg to node",
 	// ErrorDeleteNodeFromGroup failed to send msg to node
-	ErrorGetNodesVersion: "failed to get node version",
+	ErrorGetNodeVersion: "failed to get node version",
+	// ErrorGetNodesUpgradeProgress
+	ErrorGetNodesUpgradeProgress: "failed to get node upgrade progress",
 	// ErrorGetToken failed to get token
 	ErrorGetToken: "failed to get token",
 

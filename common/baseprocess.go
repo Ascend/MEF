@@ -49,6 +49,7 @@ func SendSyncMessageByRestful(input interface{}, router *Router) RespMsg {
 		hwlog.RunLog.Error("new message error")
 		return RespMsg{Status: ErrorsSendSyncMessageByRestful, Msg: "", Data: nil}
 	}
+	msg.SetIsSync(true)
 	msg.SetRouter(router.Source, router.Destination, router.Option, router.Resource)
 	msg.FillContent(input)
 	respMsg, err := modulemanager.SendSyncMessage(msg, ResponseTimeout)

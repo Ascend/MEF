@@ -45,7 +45,7 @@ func sendMessage(msg *model.Message, resp string) error {
 
 	respMsg.SetNodeId(msg.GetNodeId())
 	respMsg.FillContent(resp)
-	respMsg.SetRouter(common.EdgeInstallerName, common.EdgeConnectorName, common.OptPost, msg.GetResource())
+	respMsg.SetRouter(common.EdgeInstallerName, common.NodeMsgManagerName, common.OptPost, msg.GetResource())
 
 	if err = modulemanager.SendMessage(respMsg); err != nil {
 		hwlog.RunLog.Errorf("edge-installer send message failed, error: %v", err)
@@ -63,7 +63,7 @@ func sendResponse(msg *model.Message, resp string) error {
 	}
 
 	newResponse.FillContent(resp)
-	newResponse.SetRouter(common.EdgeInstallerName, common.EdgeConnectorName, common.OptPost, msg.GetResource())
+	newResponse.SetRouter(common.EdgeInstallerName, common.NodeMsgManagerName, common.OptPost, msg.GetResource())
 
 	if err = modulemanager.SendAsyncMessage(newResponse); err != nil {
 		hwlog.RunLog.Errorf("edge-installer send sync message failed, error: %v", err)

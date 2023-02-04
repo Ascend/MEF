@@ -75,14 +75,19 @@ func (node *nodeManager) Start() {
 			hwlog.RunLog.Errorf("%s get method by option and resource failed", node.Name())
 			continue
 		}
+
+		if !req.GetIsSync() {
+			continue
+		}
+
 		resp, err := req.NewResponse()
 		if err != nil {
-			hwlog.RunLog.Errorf("%s new response failed", node.Name())
+			hwlog.RunLog.Errorf("%s new response failed: %v", node.Name(), err)
 			continue
 		}
 		resp.FillContent(msg)
 		if err = modulemanager.SendMessage(resp); err != nil {
-			hwlog.RunLog.Errorf("%s send response failed", node.Name())
+			hwlog.RunLog.Errorf("%s send response failed: %v", node.Name(), err)
 			continue
 		}
 	}
@@ -143,5 +148,6 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(common.Inner, common.NodeGroup):  innerGetNodeGroupInfosByIds,
 	common.Combine(common.Inner, common.NodeStatus): innerGetNodeStatus,
 
-	common.Combine(common.OptReport, common.ResSoftwareInfoReport): updateNodeSoftwareInfo,
+	common.Combine(common.OptReport, common.ResSoftwareInfoReport):    updateNodeSoftwareInfo,
+	common.Combine(common.OptReport, common.ResUpgradeProgressReport): updateNodeUpgradeProgress,
 }

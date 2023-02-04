@@ -264,10 +264,14 @@ const (
 	OptPost = "post"
 	// OptReport option for report
 	OptReport = "report"
-	// ResProgressReport resource progress report
-	ResProgressReport = "/edge-core/upgrade-progress"
+	// ResEdgeUpgradeInfo resource for upgrade software
+	ResEdgeUpgradeInfo = "/edge/upgrade"
+	// ResEdgeEffectInfo resource for effect software
+	ResEdgeEffectInfo = "/edge/effect"
+	// ResUpgradeProgressReport resource progress report
+	ResUpgradeProgressReport = "/edge/upgrade-progress"
 	// ResSoftwareInfoReport resource software info
-	ResSoftwareInfoReport = "/edge-core/software-info"
+	ResSoftwareInfoReport = "/edge/version-info"
 	// ResDownLoadSoftware resource for downloading software
 	ResDownLoadSoftware = "/software/download_info"
 	// ResEdgeCoreConfig resource for querying edgecore config

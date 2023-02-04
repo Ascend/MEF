@@ -143,7 +143,7 @@ func (n *NodeServiceImpl) deleteNodeToGroup(relation *NodeRelation) (int64, erro
 
 // GetNodeByUniqueName get node info by unique name in k8s
 func (n *NodeServiceImpl) updateNodeByUniqueName(name, column, value string) error {
-	return n.db.Model(NodeInfo{}).Where("uniqueName = ?", name).Update(column, value).Error
+	return n.db.Model(NodeInfo{}).Where("unique_name = ?", name).Update(column, value).Error
 }
 
 // GetNodeByUniqueName get node info by unique name in k8s

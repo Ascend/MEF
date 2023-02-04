@@ -10,7 +10,7 @@ import (
 
 var regInfoList = []websocketmgr.RegisterModuleInfo{
 	{MsgOpt: common.OptGet, MsgRes: common.ResEdgeCoreConfig, ModuleName: common.NodeMsgManagerName},
-	{MsgOpt: common.OptReport, MsgRes: common.ResProgressReport, ModuleName: common.NodeMsgManagerName},
+	{MsgOpt: common.OptReport, MsgRes: common.ResUpgradeProgressReport, ModuleName: common.NodeManagerName},
 	{MsgOpt: common.OptReport, MsgRes: common.ResSoftwareInfoReport, ModuleName: common.NodeManagerName},
 }
 
