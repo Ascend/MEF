@@ -26,6 +26,14 @@ func GetTlsCfgWithPath(tlsCertInfo TlsCertInfo) (*tls.Config, error) {
 		}
 		return getTlsConfig(rootCaPemBytes, pemPair.CertPem, pemPair.KeyPem, tlsCertInfo.SvrFlag, tlsCertInfo.IgnoreCltCert)
 	}
+	// client may or may not send certs
+	if tlsCertInfo.CertPath != "" && tlsCertInfo.KeyPath != "" && tlsCertInfo.KmcCfg != nil {
+		pemPair, err := GetCertPairForPem(tlsCertInfo.CertPath, tlsCertInfo.KeyPath, tlsCertInfo.KmcCfg)
+		if err != nil {
+			return nil, err
+		}
+		return getTlsConfig(rootCaPemBytes, pemPair.CertPem, pemPair.KeyPem, tlsCertInfo.SvrFlag, tlsCertInfo.IgnoreCltCert)
+	}
 	return getTlsConfig(rootCaPemBytes, nil, nil, tlsCertInfo.SvrFlag, tlsCertInfo.IgnoreCltCert)
 }
 
@@ -36,7 +44,7 @@ func getTlsConfig(rootPem, certPem, keyPem []byte, svrFlag bool, ignoreCltCert b
 	}
 	var pair tls.Certificate
 	var err error
-	if svrFlag {
+	if len(certPem) > 0 && len(keyPem) > 0 {
 		pair, err = tls.X509KeyPair(certPem, keyPem)
 	}
 	if err != nil {
@@ -65,6 +73,9 @@ func getTlsConfig(rootPem, certPem, keyPem []byte, svrFlag bool, ignoreCltCert b
 		}
 	} else {
 		tlsCfg.RootCAs = rootCaPool
+		if len(certPem) > 0 && len(keyPem) > 0 {
+			tlsCfg.Certificates = []tls.Certificate{pair}
+		}
 	}
 	return tlsCfg, nil
 }
