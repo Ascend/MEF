@@ -115,7 +115,7 @@ func (wcp *WsClientProxy) tryConnect(dialer *websocket.Dialer) (*websocket.Conn,
 			return nil, fmt.Errorf("connect has be canceled")
 		default:
 		}
-		connect, _, err := dialer.Dial(wsProtocol+wcp.ProxyCfg.hosts, wcp.ProxyCfg.headers)
+		connect, _, err := dialer.Dial(wssProtocol+wcp.ProxyCfg.hosts, wcp.ProxyCfg.headers)
 		retErr = err
 		if err == nil {
 			return connect, nil
