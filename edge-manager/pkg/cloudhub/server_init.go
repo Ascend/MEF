@@ -36,6 +36,7 @@ var initFlag bool
 func InitServer() error {
 	checkAndGetWsCert()
 	certInfo := certutils.TlsCertInfo{
+		KmcCfg:        common.GetDefKmcCfg(),
 		RootCaPath:    path.Join(certPathDir, rootNameValidEdge),
 		CertPath:      path.Join(certPathDir, serviceName),
 		KeyPath:       path.Join(certPathDir, keyFileName),

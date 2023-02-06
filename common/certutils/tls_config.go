@@ -15,31 +15,43 @@ import (
 
 // GetTlsCfgWithPath [method] for get tls config
 func GetTlsCfgWithPath(tlsCertInfo TlsCertInfo) (*tls.Config, error) {
-	pemPair, err := GetCertPairForPem(tlsCertInfo.CertPath, tlsCertInfo.KeyPath, tlsCertInfo.KmcCfg)
-	if err != nil {
-		return nil, err
-	}
-	rootCaPemBytes, err := utils.LoadFile(tlsCertInfo.RootCaPath)
+	rootCaPemBytes, _ := utils.LoadFile(tlsCertInfo.RootCaPath)
 	if rootCaPemBytes == nil {
 		return nil, fmt.Errorf("get tls failed, load root ca path [%s] file failed", tlsCertInfo.RootCaPath)
 	}
-	return getTlsConfig(rootCaPemBytes, pemPair.CertPem, pemPair.KeyPem, tlsCertInfo.SvrFlag, tlsCertInfo.IgnoreCltCert)
+	if tlsCertInfo.SvrFlag {
+		pemPair, err := GetCertPairForPem(tlsCertInfo.CertPath, tlsCertInfo.KeyPath, tlsCertInfo.KmcCfg)
+		if err != nil {
+			return nil, err
+		}
+		return getTlsConfig(rootCaPemBytes, pemPair.CertPem, pemPair.KeyPem, tlsCertInfo.SvrFlag, tlsCertInfo.IgnoreCltCert)
+	}
+	// client may not send certs
+	if tlsCertInfo.CertPath != "" && tlsCertInfo.KeyPath != "" {
+		pemPair, err := GetCertPairForPem(tlsCertInfo.CertPath, tlsCertInfo.KeyPath, tlsCertInfo.KmcCfg)
+		if err != nil {
+			return nil, err
+		}
+		return getTlsConfig(rootCaPemBytes, pemPair.CertPem, pemPair.KeyPem, tlsCertInfo.SvrFlag, tlsCertInfo.IgnoreCltCert)
+	}
+	return getTlsConfig(rootCaPemBytes, nil, nil, tlsCertInfo.SvrFlag, tlsCertInfo.IgnoreCltCert)
 }
 
 func getTlsConfig(rootPem, certPem, keyPem []byte, svrFlag bool, ignoreCltCert bool) (*tls.Config, error) {
 	rootCaPool := x509.NewCertPool()
-	ok := rootCaPool.AppendCertsFromPEM(rootPem)
-	if !ok {
+	if ok := rootCaPool.AppendCertsFromPEM(rootPem); !ok {
 		return nil, errors.New("append root ca to cert pool failed")
 	}
-
-	pair, err := tls.X509KeyPair(certPem, keyPem)
+	var pair tls.Certificate
+	var err error
+	if len(certPem) > 0 && len(keyPem) > 0 {
+		pair, err = tls.X509KeyPair(certPem, keyPem)
+	}
 	if err != nil {
 		return nil, err
 	}
 	tlsCfg := &tls.Config{
 		Rand:               rand.Reader,
-		Certificates:       []tls.Certificate{pair},
 		InsecureSkipVerify: false,
 		CipherSuites: []uint16{
 			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
@@ -52,14 +64,18 @@ func getTlsConfig(rootPem, certPem, keyPem []byte, svrFlag bool, ignoreCltCert b
 		MinVersion: tls.VersionTLS13,
 	}
 	if svrFlag {
+		tlsCfg.ClientCAs = rootCaPool
+		tlsCfg.Certificates = []tls.Certificate{pair}
 		if ignoreCltCert {
 			tlsCfg.ClientAuth = tls.VerifyClientCertIfGiven
 		} else {
 			tlsCfg.ClientAuth = tls.RequireAndVerifyClientCert
 		}
-		tlsCfg.ClientCAs = rootCaPool
 	} else {
 		tlsCfg.RootCAs = rootCaPool
+		if len(certPem) > 0 && len(keyPem) > 0 {
+			tlsCfg.Certificates = []tls.Certificate{pair}
+		}
 	}
 	return tlsCfg, nil
 }
