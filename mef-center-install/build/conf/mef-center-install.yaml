@@ -65,9 +65,6 @@ compile:
         - copy:
             src: [ '{{ systemEnv.workspace }}/lib' ]
             des: "{{TOP_DIR}}/output/"
-        - copy:
-            src: [ '/lib/{{systemEnv.processor}}-linux-gnu/libssl.so.1.1' ]
-            des: "{{TOP_DIR}}/output/lib"
         - mode:
             src: [ "{{TOP_DIR}}/output/lib" ]
             mode: "500"
