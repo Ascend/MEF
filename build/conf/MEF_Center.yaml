@@ -94,7 +94,7 @@ compile:
             src: ["{{TOP_DIR}}/savedir/Ascend-mindxedge-mefcenter_{{version}}_linux-{{systemEnv.processor}}.tar.gz"]
             des: "{{TOP_DIR}}/output"
         - commands:
-            - command: "fakeroot rm -rf {{TOP_DIR}}/output/lib {{TOP_DIR}}/output/include {{TOP_DIR}}/output/bin"
+            - command: "fakeroot rm -rf {{TOP_DIR}}/output/lib {{TOP_DIR}}/output/include"
         - mode:
             src:
               - "{{TOP_DIR}}/output/*"
