@@ -69,7 +69,6 @@ function build_opensource()
         echo "-----------end build ${taskname} ------------------------"
     done
     cp "$OPENSOURCE_DIR"/openssl/ascend-ci/output/libcrypto.so* "$TOP_DIR"/output/lib
-    cp "$OPENSOURCE_DIR"/openssl/ascend-ci/output/libssl.so* "$TOP_DIR"/output/lib
     cp "$OPENSOURCE_DIR"/openssl/ascend-ci/output/bin/openssl "$TOP_DIR"/output/bin
     cp "$OPENSOURCE_DIR"/openssl/ascend-ci/output/include/*  "$TOP_DIR"/output/include -rf
     return 0
