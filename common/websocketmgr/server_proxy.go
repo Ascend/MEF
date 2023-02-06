@@ -61,7 +61,7 @@ func (wsp *WsServerProxy) Stop() error {
 	wsp.clientMap.Range(wsp.closeOneClient)
 	err := wsp.httpServer.Close()
 	if err != nil {
-		return fmt.Errorf("stop websocket server failed: %v", err)
+		return fmt.Errorf("stop websocket server failed, error: %v", err)
 	}
 	return nil
 }
@@ -93,7 +93,7 @@ func (wsp *WsServerProxy) closeOneClient(name, conn interface{}) bool {
 	}
 	err := wsConn.stop()
 	if err != nil {
-		hwlog.RunLog.Errorf("close client [%v] failed: %v", name, err)
+		hwlog.RunLog.Errorf("close client [%v] failed, error: %v", name, err)
 	}
 	return true
 }
@@ -106,7 +106,7 @@ func (wsp *WsServerProxy) serveHTTP(w http.ResponseWriter, r *http.Request) {
 	clientName := r.Header.Get(clientNameKey)
 	conn, err := wsp.upgrade.Upgrade(w, r, nil)
 	if err != nil {
-		hwlog.RunLog.Errorf("websocket start server http failed: %v", err)
+		hwlog.RunLog.Errorf("websocket start server http failed, error: %v", err)
 		return
 	}
 	connMgr := &wsConnectMgr{}
@@ -126,7 +126,7 @@ func (wsp *WsServerProxy) listen() error {
 		default:
 		}
 		if err := wsp.httpServer.ListenAndServeTLS("", ""); err != nil {
-			hwlog.RunLog.Errorf("websocket listen and serve with tls failed: %v", err)
+			hwlog.RunLog.Errorf("websocket listen and serve with tls failed, error: %v", err)
 		}
 		time.Sleep(retryTime)
 	}
