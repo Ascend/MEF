@@ -61,7 +61,6 @@ function mv_file() {
     # 将install.sh放到根目录中
     mv "${TOP_DIR}/output/mef_center_tools/scripts/install.sh" "${TOP_DIR}/output/"
 
-    cp "/lib/${arch}-linux-gnu/libssl.so.1.1" "${TOP_DIR}/output/lib/"
     mv "${TOP_DIR}/tools/install/${OUTPUT_INSTALLER_NAME}" "${TOP_DIR}/output/mef_center_tools/bin"
     mv "${TOP_DIR}/tools/control/${OUTPUT_CONTROLLER_NAME}" "${TOP_DIR}/output/mef_center_tools/bin"
     chmod 500 "${TOP_DIR}/output/mef_center_tools/${INSTALL_SH_NAME}"
