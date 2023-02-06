@@ -46,13 +46,8 @@ compile:
             des: "{{TOP_DIR}}/output/"
         - copy:
             src:
-              - "{{WORK_DIR}}/output/bin/*"
-            des: "{{TOP_DIR}}/output/bin/"
-        - copy:
-            src:
               - "{{WORK_DIR}}/output/lib/*"
             des: "{{TOP_DIR}}/output/lib/"
         - commands:
             - command: "find {{TOP_DIR}}/output/ -type f |xargs chmod 400"
             - command: "chmod 500 {{TOP_DIR}}/output/{{component}}"
-            - command: "find {{TOP_DIR}}/output/bin/ -type f |xargs chmod 500"
