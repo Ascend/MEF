@@ -19,7 +19,7 @@ type CreateNodeGroupReq struct {
 
 // BatchDeleteNodeReq batch delete node
 type BatchDeleteNodeReq struct {
-	NodeIDs *[]uint64 `json:"nodeIDs"`
+	NodeIDs []uint64 `json:"nodeIDs"`
 }
 
 // DeleteNodeToGroupReq delete nodes to group

@@ -1,5 +1,6 @@
 // Copyright (c) 2023. Huawei Technologies Co., Ltd. All rights reserved.
 
+// Package install this package is for handle mef center install
 package install
 
 import (
