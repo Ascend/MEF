@@ -315,6 +315,11 @@ func (c *ComponentMgr) PrepareLogDir(pathMgr *LogDirPathMgr) error {
 		return fmt.Errorf("prepare component [%s] log dir failed", c.name)
 	}
 
+	if _, err := utils.CheckPath(logDir); err != nil {
+		hwlog.RunLog.Errorf("check component [%s] Log Dir failed: %s", c.name, err.Error())
+		return fmt.Errorf("check component [%s] log dir failed", c.name)
+	}
+
 	mefUid, mefGid, err := GetMefId()
 	if err != nil {
 		hwlog.RunLog.Errorf("get mef uid or gid failed: %s", err.Error())
