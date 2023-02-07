@@ -39,7 +39,7 @@ type SftInstallCtl struct {
 func (sic *SftInstallCtl) DoInstall() error {
 	// MEFCenter已安装时不进行环境清理
 	if err := sic.checkInstalled(); err != nil {
-		return nil
+		return err
 	}
 
 	var installTasks = []func() error{
