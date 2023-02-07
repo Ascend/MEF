@@ -11,16 +11,17 @@ import (
 	"huawei.com/mindxedge/base/common"
 )
 
-// SoftwareMgr is the father struct of install/uninstall struct that manages functions to clear enviroment
+// SoftwareMgr is the father struct of install/uninstall struct that manages functions to clear environment
 type SoftwareMgr struct {
 	Components     []string
 	InstallPathMgr *InstallDirPathMgr
 }
 
-func (sm *SoftwareMgr) clearDockerImage() error {
+// ClearDockerImage is used to clear docker images
+func (sm *SoftwareMgr) ClearDockerImage(components []string) error {
 	fmt.Println("start to clear docker image")
 	hwlog.RunLog.Info("start to clear docker image")
-	for _, name := range sm.Components {
+	for _, name := range components {
 		dockerMgr := GetDockerDealer(name, DockerTag)
 		if err := dockerMgr.DeleteImage(); err != nil {
 			return err
@@ -29,6 +30,11 @@ func (sm *SoftwareMgr) clearDockerImage() error {
 	fmt.Println("clear docker image success")
 	hwlog.RunLog.Info("clear docker image success")
 	return nil
+}
+
+// ClearAllDockerImages is used to clear all docker images for installed components
+func (sm *SoftwareMgr) ClearAllDockerImages() error {
+	return sm.ClearDockerImage(sm.Components)
 }
 
 func (sm *SoftwareMgr) clearInstallPkg() error {
@@ -76,10 +82,9 @@ func (sm *SoftwareMgr) clearNodeLabel() error {
 	return nil
 }
 
-// DoClear is the func that used to recover the environment that effected by installation
-func (sm *SoftwareMgr) DoClear() error {
+// ClearAndLabel is the func that used to recover the environment that effected by installation
+func (sm *SoftwareMgr) ClearAndLabel() error {
 	var installTasks = []func() error{
-		sm.clearDockerImage,
 		sm.clearInstallPkg,
 		sm.clearNodeLabel,
 	}

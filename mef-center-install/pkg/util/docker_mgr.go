@@ -34,6 +34,16 @@ func (dd *DockerDealer) LoadImage(buildPath string) error {
 	if err != nil {
 		return err
 	}
+
+	ret, err := dd.checkImageExist()
+	if err != nil {
+		return err
+	}
+
+	if ret {
+		hwlog.RunLog.Errorf("same docker image [%s] exists,cannot reload it", dd.imageName)
+		return errors.New("load docker image failed")
+	}
 	// imageName is fixed name.
 	// tag is read from file or filename, the verification will be added in setVersion.
 	// absPath has been verified

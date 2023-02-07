@@ -19,7 +19,8 @@ func (sum *SftUninstallMgr) DoUninstall() error {
 	var installTasks = []func() error{
 		sum.checkUser,
 		sum.clearNamespace,
-		sum.DoClear,
+		sum.ClearAllDockerImages,
+		sum.ClearAndLabel,
 	}
 
 	for _, function := range installTasks {

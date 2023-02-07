@@ -31,7 +31,8 @@ var (
 // SftInstallCtl is the main struct to install mef-center
 type SftInstallCtl struct {
 	util.SoftwareMgr
-	logPathMgr *util.LogDirPathMgr
+	logPathMgr          *util.LogDirPathMgr
+	installedComponents []string
 }
 
 // DoInstall is the main function to install mef-center
@@ -279,6 +280,7 @@ func (sic *SftInstallCtl) componentsInstall() error {
 		if err := componentMgr.LoadAndSaveImage(sic.InstallPathMgr.WorkPathAMgr); err != nil {
 			return fmt.Errorf("install component [%s] failed: %s", component, err.Error())
 		}
+		sic.installedComponents = append(sic.installedComponents, component)
 
 		if err := componentMgr.ClearDockerFile(sic.InstallPathMgr.WorkPathAMgr); err != nil {
 			return fmt.Errorf("clear component [%s]'s docker file failed: %s", component, err.Error())
@@ -296,9 +298,18 @@ func (sic *SftInstallCtl) componentsInstall() error {
 func (sic *SftInstallCtl) clearAll() {
 	fmt.Println("install failed, start to clear environment")
 	hwlog.RunLog.Info("-----Start to clear environment-----")
-	if err := sic.DoClear(); err != nil {
+	if err := sic.ClearDockerImage(sic.installedComponents); err != nil {
 		fmt.Println("clear environment failed, please clear manually")
 		hwlog.RunLog.Warnf("clear environment meets err:%s, need to do it manually", err.Error())
+		hwlog.RunLog.Info("-----End to clear environment-----")
+		return
+	}
+
+	if err := sic.ClearAndLabel(); err != nil {
+		fmt.Println("clear environment failed, please clear manually")
+		hwlog.RunLog.Warnf("clear environment meets err:%s, need to do it manually", err.Error())
+		hwlog.RunLog.Info("-----End to clear environment-----")
+		return
 	}
 	fmt.Println("clear manually success")
 	hwlog.RunLog.Info("-----End to clear environment-----")
