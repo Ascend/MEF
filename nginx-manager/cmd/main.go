@@ -12,6 +12,7 @@ import (
 	"syscall"
 
 	"nginx-manager/pkg/checker"
+	"nginx-manager/pkg/database"
 	"nginx-manager/pkg/nginxcom"
 	"nginx-manager/pkg/nginxmgr"
 	"nginx-manager/pkg/nginxmonitor"
@@ -30,6 +31,7 @@ const (
 var (
 	serverRunConf = &hwlog.LogConfig{LogFileName: runLogFile}
 	serverOpConf  = &hwlog.LogConfig{LogFileName: operateLogFile}
+	restfulPort   = 8080
 )
 
 func main() {
@@ -78,6 +80,15 @@ func initResource() error {
 	if err := checker.Check(checker.Env, nginxcom.Envs); err != nil {
 		return err
 	}
+	usrMgrPort, err := nginxcom.GetEnvAsInt(nginxcom.UserMgrSvcPortKey)
+	if err != nil {
+		return err
+	}
+	restfulPort = usrMgrPort
+	if err := database.InitDB(nginxcom.DefaultDbPath); err != nil {
+		hwlog.RunLog.Errorf("init database failed, error: %s", err.Error())
+		return err
+	}
 	return nil
 }
 
@@ -98,7 +109,10 @@ func gracefulShutdown(cancelFunc context.CancelFunc) {
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGHUP, syscall.SIGTERM,
 		syscall.SIGQUIT, syscall.SIGILL, syscall.SIGTRAP, syscall.SIGABRT)
 	select {
-	case <-signalChan:
+	case _, ok := <-signalChan:
+		if !ok {
+			hwlog.RunLog.Info("catch stop signal channel is closed")
+		}
 	}
 	cancelFunc()
 }

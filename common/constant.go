@@ -18,6 +18,8 @@ const (
 	CertMgrDns = "ascend-cert-manager.mef-center.svc.cluster.local"
 	// CertMgrPort cert manager port
 	CertMgrPort = 8103
+	// NginxMgrDns nginx manager port
+	NginxMgrDns = "ascend-nginx-manager.mef-center.svc.cluster.local"
 )
 
 const (

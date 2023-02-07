@@ -33,6 +33,8 @@ spec:
               value: "8103"
             - name: NginxSslPort
               value: "8443"
+            - name: UserMgrSvcPort
+              value: "8080"
             - name: DefaultUsername
               value: "admin"
             - name: installed-module
@@ -71,6 +73,10 @@ spec:
       targetPort: 8443
       protocol: TCP
       nodePort: 30035
+    - name: port8080
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
   selector:
     app: ascend-nginx-manager
   type: NodePort

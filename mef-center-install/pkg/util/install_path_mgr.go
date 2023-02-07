@@ -197,9 +197,9 @@ func (cpm *ConfigPathMgr) GetComponentCertPath(component string) string {
 	return path.Join(cpm.GetMefCertsDirPath(component), component+CertSuffix)
 }
 
-// GetNginxServerCrtPath returns nginx module's server cert file path
-func (cpm *ConfigPathMgr) GetNginxServerCrtPath() string {
-	return path.Join(cpm.GetMefCertsDirPath(NginxManagerName), NginxManagerName+NginxServerSuffix+CertSuffix)
+// GetUserServerCrtPath returns user module's server cert file path
+func (cpm *ConfigPathMgr) GetUserServerCrtPath() string {
+	return path.Join(cpm.GetMefCertsDirPath(NginxManagerName), UserManagerName+CertSuffix)
 }
 
 // GetComponentKeyPath returns single component's certs key path by component's name
@@ -207,9 +207,9 @@ func (cpm *ConfigPathMgr) GetComponentKeyPath(component string) string {
 	return path.Join(cpm.GetMefCertsDirPath(component), component+KeySuffix)
 }
 
-// GetNginxServerKeyPath returns nginx module's server key file path
-func (cpm *ConfigPathMgr) GetNginxServerKeyPath() string {
-	return path.Join(cpm.GetMefCertsDirPath(NginxManagerName), NginxManagerName+NginxServerSuffix+KeySuffix)
+// GetUserServerKeyPath returns user module's server key file path
+func (cpm *ConfigPathMgr) GetUserServerKeyPath() string {
+	return path.Join(cpm.GetMefCertsDirPath(NginxManagerName), UserManagerName+KeySuffix)
 }
 
 // GetRootCaDirPath returns the root ca dir path
