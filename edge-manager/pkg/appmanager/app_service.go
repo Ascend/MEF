@@ -505,12 +505,12 @@ func getAppInstanceOfNodeRespFromAppInstances(appInstances []AppInstance) ([]App
 		if err != nil {
 			hwlog.RunLog.Errorf("get app id [%d] node group [%d] name failed, db error",
 				instance.AppID, instance.NodeGroupID)
-			return nil, err
+			continue
 		}
 		nodeStatus, err := getNodeStatus(instance.NodeUniqueName)
 		if err != nil {
 			hwlog.RunLog.Errorf("get node [%s] status error: %v", instance.NodeUniqueName, err)
-			return nil, err
+			continue
 		}
 		status := appStatusService.getPodStatusFromCache(instance.PodName, nodeStatus)
 		createdAt := instance.CreatedAt.Format(common.TimeFormat)
