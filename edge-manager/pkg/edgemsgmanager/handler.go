@@ -77,7 +77,7 @@ func UpgradeEdgeSoftware(input interface{}) common.RespMsg {
 	msg.SetRouter(common.NodeMsgManagerName, common.CloudHubName, common.OptPost, common.ResEdgeUpgradeInfo)
 	msg.FillContent(input)
 	var batchResp types.BatchResp
-	for _, sn := range req.SNs {
+	for _, sn := range req.UniqueNames {
 		msg.SetNodeId(sn)
 
 		err = modulemanager.SendMessage(msg)
@@ -121,7 +121,7 @@ func effectEdgeSoftware(input interface{}) common.RespMsg {
 	msg.SetRouter(common.NodeMsgManagerName, common.CloudHubName, common.OptPost, common.ResEdgeEffectInfo)
 	msg.FillContent(input)
 	var batchResp types.BatchResp
-	for _, sn := range req.SNs {
+	for _, sn := range req.UniqueNames {
 		msg.SetNodeId(sn)
 
 		err = modulemanager.SendMessage(msg)

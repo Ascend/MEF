@@ -585,7 +585,7 @@ func innerGetNodeInfoByUniqueName(input interface{}) common.RespMsg {
 	}
 	nodeInfo, err := NodeServiceInstance().getNodeByUniqueName(req.UniqueName)
 	if err != nil {
-		hwlog.RunLog.Error("get node info by unique name failed")
+		hwlog.RunLog.Errorf("get node info by unique name [%s] failed:%v", req.UniqueName, err)
 		return common.RespMsg{Status: "", Msg: "get node info by unique name failed", Data: nil}
 	}
 	resp := types.InnerGetNodeInfoByNameResp{

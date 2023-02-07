@@ -6,7 +6,7 @@ package edgemsgmanager
 // EdgeUpgradeInfoReq software upgrade req
 type EdgeUpgradeInfoReq struct {
 	NodeIDs         []uint64     `json:"nodeIDs"`
-	SNs             []string     `json:"sns"`
+	UniqueNames     []string     `json:"uniqueNames"`
 	SoftWareName    string       `json:"softWareName"`
 	SoftWareVersion string       `json:"softWarVersion"`
 	DownloadInfo    DownloadInfo `json:"downloadInfo"`
@@ -21,6 +21,6 @@ type DownloadInfo struct {
 
 // EffectInfoReq effect software
 type EffectInfoReq struct {
-	NodeIDs []uint64 `json:"nodeIDs"`
-	SNs     []string `json:"sns"`
+	NodeIDs     []uint64 `json:"nodeIDs"`
+	UniqueNames []string `json:"uniqueNames"`
 }
