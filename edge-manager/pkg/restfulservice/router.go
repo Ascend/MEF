@@ -204,7 +204,7 @@ var softwareRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			Method:       http.MethodGet,
 			Destination:  common.NodeMsgManagerName}, "uniqueName", true},
 		queryDispatcher{restfulmgr.GenericDispatcher{
-			RelativePath: "/upgrade-progress",
+			RelativePath: "/upgrade-result",
 			Method:       http.MethodGet,
 			Destination:  common.NodeMsgManagerName}, "uniqueName", true},
 	},

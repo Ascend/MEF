@@ -268,8 +268,8 @@ const (
 	ResEdgeUpgradeInfo = "/edge/upgrade"
 	// ResEdgeEffectInfo resource for effect software
 	ResEdgeEffectInfo = "/edge/effect"
-	// ResUpgradeProgressReport resource progress report
-	ResUpgradeProgressReport = "/edge/upgrade-progress"
+	// ResUpgradeResultReport resource progress report
+	ResUpgradeResultReport = "/edge/upgrade-result"
 	// ResSoftwareInfoReport resource software info
 	ResSoftwareInfoReport = "/edge/version-info"
 	// ResDownLoadSoftware resource for downloading software

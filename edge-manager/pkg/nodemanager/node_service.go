@@ -589,15 +589,19 @@ func innerGetNodeInfoByUniqueName(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "get node info by unique name failed", Data: nil}
 	}
 	resp := types.InnerGetNodeInfoByNameResp{
-		NodeID:          nodeInfo.ID,
-		NodeName:        nodeInfo.NodeName,
-		UniqueName:      nodeInfo.UniqueName,
-		UpgradeProgress: nodeInfo.UpgradeProgress,
+		NodeID:     nodeInfo.ID,
+		NodeName:   nodeInfo.NodeName,
+		UniqueName: nodeInfo.UniqueName,
 	}
 
 	if err = json.Unmarshal([]byte(nodeInfo.SoftwareInfo), &resp.SoftwareInfo); err != nil {
 		hwlog.RunLog.Error("unmarshall node software info failed")
-		return common.RespMsg{Status: "", Msg: "get node info by unique name failed because unmarshal failed", Data: nil}
+		return common.RespMsg{Status: "", Msg: "get node info failed because unmarshal failed", Data: nil}
+	}
+
+	if err = json.Unmarshal([]byte(nodeInfo.UpgradeResult), &resp.UpgradeResult); err != nil {
+		hwlog.RunLog.Error("unmarshall node upgrade result failed")
+		return common.RespMsg{Status: "", Msg: "get node info failed because unmarshal failed", Data: nil}
 	}
 
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
@@ -643,18 +647,24 @@ func updateNodeSoftwareInfo(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
-func updateNodeUpgradeProgress(input interface{}) common.RespMsg {
+func updateNodeUpgradeResult(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start to update node upgrade progress info")
-	var req types.EdgeReportUpgradeProgressInfoReq
+	var req types.EdgeReportUpgradeResInfoReq
 	if err := common.ParamConvert(input, &req); err != nil {
 		hwlog.RunLog.Errorf("update node upgrade progress info error, %v", err)
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "convert request error", Data: nil}
 	}
 
-	err := NodeServiceInstance().updateNodeByUniqueName(req.UniqueName, "upgrade_progress", req.UpgradeProgress)
+	upgradeResInfo, err := json.Marshal(req.UpgradeResInfo)
 	if err != nil {
-		hwlog.RunLog.Error("update node upgrade progress info failed")
-		return common.RespMsg{Status: "", Msg: "update node upgrade progress info failed", Data: nil}
+		hwlog.RunLog.Error("marshal upgrade result info failed")
+		return common.RespMsg{Status: "", Msg: "marshal upgrade result info failed", Data: nil}
+	}
+
+	err = NodeServiceInstance().updateNodeByUniqueName(req.UniqueName, "upgrade_result", string(upgradeResInfo))
+	if err != nil {
+		hwlog.RunLog.Error("update node upgrade result info failed")
+		return common.RespMsg{Status: "", Msg: "update node upgrade result info failed", Data: nil}
 	}
 
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}

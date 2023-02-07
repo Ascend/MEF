@@ -148,6 +148,6 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(common.Inner, common.NodeGroup):  innerGetNodeGroupInfosByIds,
 	common.Combine(common.Inner, common.NodeStatus): innerGetNodeStatus,
 
-	common.Combine(common.OptReport, common.ResSoftwareInfoReport):    updateNodeSoftwareInfo,
-	common.Combine(common.OptReport, common.ResUpgradeProgressReport): updateNodeUpgradeProgress,
+	common.Combine(common.OptReport, common.ResSoftwareInfoReport):  updateNodeSoftwareInfo,
+	common.Combine(common.OptReport, common.ResUpgradeResultReport): updateNodeUpgradeResult,
 }

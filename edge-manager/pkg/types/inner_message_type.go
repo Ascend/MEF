@@ -20,11 +20,11 @@ type InnerGetNodeStatusReq struct {
 
 // InnerGetNodeInfoByNameResp is the response struct of node info
 type InnerGetNodeInfoByNameResp struct {
-	NodeID          uint64                       `json:"nodeID"`
-	NodeName        string                       `json:"nodeName"`
-	UniqueName      string                       `json:"uniqueName"`
-	UpgradeProgress string                       `json:"upgradeProgress"`
-	SoftwareInfo    map[string]map[string]string `json:"softwareInfo"`
+	NodeID        uint64                       `json:"nodeID"`
+	NodeName      string                       `json:"nodeName"`
+	UniqueName    string                       `json:"uniqueName"`
+	UpgradeResult UpgradeResInfo               `json:"upgradeResult"`
+	SoftwareInfo  map[string]map[string]string `json:"softwareInfo"`
 }
 
 // InnerGetNodeGroupInfosResp is the response struct of node group infos by group ids
@@ -43,8 +43,15 @@ type EdgeReportSoftwareInfoReq struct {
 	SoftwareInfo map[string]map[string]string `json:"softwareInfo"`
 }
 
-// EdgeReportUpgradeProgressInfoReq [struct] to report edge software upgrade progress
-type EdgeReportUpgradeProgressInfoReq struct {
-	UniqueName      string `json:"uniqueName"`
-	UpgradeProgress string `json:"upgradeProgress"`
+// UpgradeResInfo [struct] to report edge software upgrade result info
+type UpgradeResInfo struct {
+	Progress uint64 `json:"progress"`
+	Res      string `json:"res"`
+	Msg      string `json:"msg"`
+}
+
+// EdgeReportUpgradeResInfoReq [struct] to report edge software upgrade progress
+type EdgeReportUpgradeResInfoReq struct {
+	UniqueName     string         `json:"uniqueName"`
+	UpgradeResInfo UpgradeResInfo `json:"upgradeResInfo"`
 }

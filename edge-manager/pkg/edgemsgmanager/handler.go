@@ -182,14 +182,14 @@ func getNodeVersionInfo(nodeName string) (map[string]map[string]string, error) {
 	return nodeInfo.SoftwareInfo, nil
 }
 
-func getNodeUpgradeProgressInfo(nodeName string) (string, error) {
+func getNodeUpgradeProgressInfo(nodeName string) (types.UpgradeResInfo, error) {
 	nodeInfo, err := getNodeInfo(nodeName)
 	if err != nil {
 		hwlog.RunLog.Error("get node upgrade progress failed")
-		return "", errors.New("get node upgrade progress failed")
+		return types.UpgradeResInfo{}, errors.New("get node upgrade progress failed")
 	}
 
-	return nodeInfo.UpgradeProgress, nil
+	return nodeInfo.UpgradeResult, nil
 }
 
 // queryEdgeSoftwareVersion [method] query edge software version
@@ -232,10 +232,10 @@ func queryEdgeSoftwareUpgradeProgress(input interface{}) common.RespMsg {
 			" convert error", Data: nil}
 	}
 
-	upgradeProgress, err := getNodeUpgradeProgressInfo(uniqueName)
+	upgradeResult, err := getNodeUpgradeProgressInfo(uniqueName)
 	if err != nil {
 		return common.RespMsg{Status: common.ErrorGetNodesUpgradeProgress, Msg: "", Data: nil}
 	}
 
-	return common.RespMsg{Status: common.Success, Msg: "", Data: upgradeProgress}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: upgradeResult}
 }
