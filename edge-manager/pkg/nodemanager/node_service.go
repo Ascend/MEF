@@ -129,7 +129,7 @@ func listManagedNode(input interface{}) common.RespMsg {
 	total, err := NodeServiceInstance().countNodesByName(req.Name, managed)
 	if err != nil {
 		hwlog.RunLog.Error("count node failed")
-		return common.RespMsg{Status: "", Msg: "count node failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorListNode, Msg: "count node failed", Data: nil}
 	}
 	nodes, err := NodeServiceInstance().listManagedNodesByName(req.PageNum, req.PageSize, req.Name)
 	if err != nil {
@@ -258,12 +258,12 @@ func listNode(input interface{}) common.RespMsg {
 	total, err := NodeServiceInstance().countAllNodesByName(req.Name)
 	if err != nil {
 		hwlog.RunLog.Error("count node failed")
-		return common.RespMsg{Status: "", Msg: "count node failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorListNode, Msg: "get node total num failed", Data: nil}
 	}
 	nodes, err := NodeServiceInstance().listAllNodesByName(req.PageNum, req.PageSize, req.Name)
 	if err != nil {
 		hwlog.RunLog.Error("list all nodes failed")
-		return common.RespMsg{Status: "", Msg: "list all nodes failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorListNode, Msg: "list all nodes failed", Data: nil}
 	}
 	var nodeList []NodeInfoExManaged
 	for _, nodeInfo := range *nodes {
@@ -271,7 +271,7 @@ func listNode(input interface{}) common.RespMsg {
 		respItem.NodeGroup, err = evalNodeGroup(nodeInfo.ID)
 		if err != nil {
 			hwlog.RunLog.Errorf("list node id [%d] db error: %s", nodeInfo.ID, err.Error())
-			return common.RespMsg{Msg: err.Error()}
+			return common.RespMsg{Status: common.ErrorListNode, Msg: err.Error()}
 		}
 		respItem.Status, err = NodeStatusServiceInstance().GetNodeStatus(nodeInfo.UniqueName)
 		if err != nil {
@@ -300,7 +300,7 @@ func batchDeleteNode(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
 	}
 	var res types.BatchResp
-	for _, nodeID := range *req.NodeIDs {
+	for _, nodeID := range req.NodeIDs {
 		if err := deleteSingleNode(nodeID); err != nil {
 			hwlog.RunLog.Warnf("failed to delete node, error: err=%v", err)
 			res.FailedIDs = append(res.FailedIDs, nodeID)
@@ -357,7 +357,7 @@ func deleteNodeFromGroup(input interface{}) common.RespMsg {
 	var req DeleteNodeToGroupReq
 	if err := common.ParamConvert(input, &req); err != nil {
 		hwlog.RunLog.Errorf("failed to delete from group, error: %v", err)
-		return common.RespMsg{Msg: err.Error()}
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error()}
 	}
 	if checkResult := newDeleteNodeFromGroupChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("failed to delete node from group, error: %v", checkResult.Reason)
@@ -436,7 +436,7 @@ func evalNodeGroup(nodeID uint64) (string, error) {
 	relations, err := NodeServiceInstance().getRelationsByNodeID(nodeID)
 	if err != nil {
 		hwlog.RunLog.Error("get node detail db query error")
-		return "", errors.New("db query error")
+		return "", errors.New("get node relation by id failed")
 	}
 	nodeGroupName := ""
 	if len(*relations) > 0 {
@@ -444,8 +444,8 @@ func evalNodeGroup(nodeID uint64) (string, error) {
 		for index, relation := range *relations {
 			nodeGroup, err := NodeServiceInstance().getNodeGroupByID(relation.GroupID)
 			if err != nil {
-				hwlog.RunLog.Error("get node detail db query error")
-				return "", errors.New("db query error")
+				hwlog.RunLog.Error("get node group by id failed")
+				return "", errors.New("get node group by id failed")
 			}
 			if index != 0 {
 				buffer.WriteString(",")

@@ -540,7 +540,7 @@ func listAppInstances(input interface{}) common.RespMsg {
 	total, err := AppRepositoryInstance().countListAppInstances(req.Name)
 	if err != nil {
 		hwlog.RunLog.Error("count all app instances list failed")
-		return common.RespMsg{Status: "", Msg: "count app instances list failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorListAppInstances, Msg: "count app instances list failed", Data: nil}
 	}
 	resp := &ListAppInstancesResp{
 		AppInstances: appInstanceResp,
