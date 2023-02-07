@@ -16,6 +16,7 @@ import (
 	"edge-manager/pkg/appmanager/appchecker"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
+	"edge-manager/pkg/util"
 )
 
 // createApp Create application
@@ -100,7 +101,10 @@ func listAppInfo(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("get apps Infos list failed: para type is invalid")
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "", Data: nil}
 	}
-
+	if checkResult := util.NewPaginationQueryChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("get apps Infos list failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
+	}
 	apps, err := getListReturnInfo(req)
 	if err == gorm.ErrRecordNotFound {
 		hwlog.RunLog.Info("dont have any apps")
@@ -165,10 +169,9 @@ func deployApp(input interface{}) common.RespMsg {
 	if err := common.ParamConvert(input, &req); err != nil {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}
-	checker := deployParaChecker{req: &req}
-	if err := checker.Check(); err != nil {
-		hwlog.RunLog.Errorf("deploy app para check failed: %s", err.Error())
-		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error(), Data: nil}
+	if checkResult := appchecker.NewDeployAppChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("deploy app para check failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
 	}
 	appInfo, err := AppRepositoryInstance().getAppInfoById(req.AppID)
 	if err == gorm.ErrRecordNotFound {
@@ -180,8 +183,24 @@ func deployApp(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("get app info error, deploy app failed")
 		return common.RespMsg{Status: common.ErrorDeployApp, Msg: "get app info error, deploy app failed", Data: nil}
 	}
+	deployRes := deployAppToNodeGroups(appInfo, req.NodeGroupIds)
+	if len(deployRes.FailedIDs) != 0 {
+		return common.RespMsg{Status: common.ErrorDeployApp, Msg: "", Data: deployRes}
+	}
+	hwlog.RunLog.Info("all app daemonSets create success")
+	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
+}
+
+func deployAppToNodeGroups(appInfo *AppInfo, NodeGroupIds []uint64) types.BatchResp {
 	var deployRes types.BatchResp
-	for _, nodeGroupId := range req.NodeGroupIds {
+	for _, nodeGroupId := range NodeGroupIds {
+		_, err := getNodeGroupInfos([]uint64{nodeGroupId})
+		if err != nil {
+			hwlog.RunLog.Errorf("init daemonSet app [%s] on node group id [%d] failed: group id no exist",
+				appInfo.AppName, nodeGroupId)
+			deployRes.FailedIDs = append(deployRes.FailedIDs, nodeGroupId)
+			continue
+		}
 		daemonSet, err := initDaemonSet(appInfo, nodeGroupId)
 		if err != nil {
 			hwlog.RunLog.Errorf("init daemonSet app [%s] on node group id [%d] failed: %s",
@@ -197,11 +216,7 @@ func deployApp(input interface{}) common.RespMsg {
 		}
 		deployRes.SuccessIDs = append(deployRes.SuccessIDs, nodeGroupId)
 	}
-	if len(deployRes.FailedIDs) != 0 {
-		return common.RespMsg{Status: common.ErrorDeployApp, Msg: "", Data: deployRes}
-	}
-	hwlog.RunLog.Info("all app daemonSets create success")
-	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
+	return deployRes
 }
 
 // unDeployApp deploy application on node group
@@ -211,13 +226,9 @@ func unDeployApp(input interface{}) common.RespMsg {
 	if err := common.ParamConvert(input, &req); err != nil {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}
-	checker := undeployParaParser{req: &req}
-	if err := checker.Parse(); err != nil {
-		hwlog.RunLog.Errorf("undeploy app para check failed: %s", err.Error())
-		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error(), Data: nil}
-	}
-	if len(req.NodeGroupIds) == 0 {
-		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "do not have any group can be undeploy", Data: nil}
+	if checkResult := appchecker.NewUndeployAppChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("undeploy app para check failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
 	}
 	appInfo, err := AppRepositoryInstance().getAppInfoById(req.AppID)
 	if err != nil {
@@ -396,20 +407,20 @@ func getAppInstanceRespFromAppInstances(appInstances []AppInstance) ([]AppInstan
 		nodeStatus, err := getNodeStatus(instance.NodeUniqueName)
 		if err != nil {
 			hwlog.RunLog.Errorf("get node [%s] status error: %v", instance.NodeUniqueName, err)
-			return nil, err
+			continue
 		}
 		podStatus := appStatusService.getPodStatusFromCache(instance.PodName, nodeStatus)
 		containerInfos, err := appStatusService.getContainerInfos(instance, nodeStatus)
 		if err != nil {
 			hwlog.RunLog.Errorf("get app id [%d] of node [%d] container infos error: %v",
 				instance.AppID, instance.NodeID, err)
-			return nil, err
+			continue
 		}
 		nodeGroupName, err := AppRepositoryInstance().getNodeGroupName(instance.AppID, instance.NodeGroupID)
 		if err != nil {
 			hwlog.RunLog.Errorf("get app id [%d] node group [%d] name failed, db error",
 				instance.AppID, instance.NodeGroupID)
-			return nil, err
+			continue
 		}
 		createdAt := instance.CreatedAt.Format(common.TimeFormat)
 		resp := AppInstanceResp{
@@ -433,7 +444,7 @@ func getAppInstanceRespFromAppInstances(appInstances []AppInstance) ([]AppInstan
 func getNodeStatus(nodeUniqueName string) (string, error) {
 	if nodeUniqueName == "" {
 		hwlog.RunLog.Warn("app instance node name is empty, pod is in pending phase")
-		return "", nil
+		return nodeStatusUnknown, nil
 	}
 	router := common.Router{
 		Source:      common.AppManagerName,
@@ -446,15 +457,15 @@ func getNodeStatus(nodeUniqueName string) (string, error) {
 	}
 	resp := common.SendSyncMessageByRestful(req, &router)
 	if resp.Status == "" {
-		return "", fmt.Errorf("get info from other module error, %v", resp.Msg)
+		return nodeStatusUnknown, fmt.Errorf("get info from other module error, %v", resp.Msg)
 	}
 	data, err := json.Marshal(resp.Data)
 	if err != nil {
-		return "", errors.New("marshal internal response error")
+		return nodeStatusUnknown, errors.New("marshal internal response error")
 	}
 	var node types.InnerGetNodeStatusResp
 	if err = json.Unmarshal(data, &node); err != nil {
-		return "", errors.New("unmarshal internal response error")
+		return nodeStatusUnknown, errors.New("unmarshal internal response error")
 	}
 	return node.NodeStatus, nil
 }
@@ -526,6 +537,10 @@ func listAppInstances(input interface{}) common.RespMsg {
 	if !ok {
 		hwlog.RunLog.Error("list all app instances failed: para type is invalid")
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "para type is invalid", Data: nil}
+	}
+	if checkResult := util.NewPaginationQueryChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("list all app instances failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
 	}
 	appInstances, err := AppRepositoryInstance().listAppInstances(req.PageNum, req.PageSize, req.Name)
 	if err != nil {

@@ -15,6 +15,7 @@ import (
 	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/types"
+	"edge-manager/pkg/util"
 )
 
 // CreateGroup Create Node Group
@@ -58,6 +59,10 @@ func listEdgeNodeGroup(input interface{}) common.RespMsg {
 	req, ok := input.(types.ListReq)
 	if !ok {
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "convert list request error"}
+	}
+	if checkResult := util.NewPaginationQueryChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("list node group para check failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
 	}
 	var resp ListNodeGroupResp
 	count, err := NodeServiceInstance().countNodeGroupsByName(req.Name)
