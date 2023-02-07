@@ -16,6 +16,7 @@ import (
 var endpointTemplate = []nginxcom.Endpoint{
 	{PortKey: nginxcom.EdgePortKey},
 	{PortKey: nginxcom.SoftPortKey},
+	{PortKey: nginxcom.UserMgrSvcPortKey},
 	{PortKey: nginxcom.NginxSslPortKey},
 	{PortKey: nginxcom.CertPortKey},
 }

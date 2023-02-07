@@ -17,6 +17,7 @@ var confItemsTemplate = []nginxcom.NginxConfItem{
 	{Key: nginxcom.EdgePortKey, From: nginxcom.KeyPrefix + nginxcom.EdgePortKey},
 	{Key: nginxcom.SoftPortKey, From: nginxcom.KeyPrefix + nginxcom.SoftPortKey},
 	{Key: nginxcom.CertPortKey, From: nginxcom.KeyPrefix + nginxcom.CertPortKey},
+	{Key: nginxcom.UserMgrSvcPortKey, From: nginxcom.KeyPrefix + nginxcom.UserMgrSvcPortKey},
 }
 
 func checkNginxConfig(param interface{}) error {

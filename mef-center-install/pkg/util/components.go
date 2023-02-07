@@ -40,6 +40,7 @@ func getComponentDns(component string) string {
 		EdgeManagerName:     common.EdgeMgrDns,
 		CertManagerName:     common.CertMgrDns,
 		SoftwareManagerName: common.SoftwareMgrDns,
+		NginxManagerName:    common.NginxMgrDns,
 	}
 	return DnsMap[component]
 }
@@ -259,15 +260,15 @@ func (c *ComponentMgr) PrepareComponentCert(certMng *certutils.RootCertMgr, cert
 		return nil
 	}
 
-	if err := c.prepareNginxServerCert(certMng, certPathMgr); err != nil {
+	if err := c.prepareUserMgrCert(certMng, certPathMgr); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *ComponentMgr) prepareNginxServerCert(certMng *certutils.RootCertMgr, certPathMgr *ConfigPathMgr) error {
-	hwlog.RunLog.Infof("start to prepare nginx server cert")
-
+// prepareUserMgrCert create service crt for user manager module
+func (c *ComponentMgr) prepareUserMgrCert(certMng *certutils.RootCertMgr, certPathMgr *ConfigPathMgr) error {
+	hwlog.RunLog.Info("start to prepare user manager server cert")
 	if certMng == nil {
 		hwlog.RunLog.Error("pointer certMng is nil")
 		return errors.New("pointer certMng is nil")
@@ -276,15 +277,14 @@ func (c *ComponentMgr) prepareNginxServerCert(certMng *certutils.RootCertMgr, ce
 		hwlog.RunLog.Error("pointer certPathMgr is nil")
 		return errors.New("pointer certPathMgr is nil")
 	}
-
-	componentsCertPath := certPathMgr.GetNginxServerCrtPath()
-	componentPrivPath := certPathMgr.GetNginxServerKeyPath()
-
+	componentsCertPath := certPathMgr.GetUserServerCrtPath()
+	componentPrivPath := certPathMgr.GetUserServerKeyPath()
 	componentCert := certutils.SelfSignCert{
 		RootCertMgr: certMng,
 		SvcCertPath: componentsCertPath,
 		SvcKeyPath:  componentPrivPath,
-		CommonName:  c.name + NginxServerSuffix,
+		CommonName:  c.name,
+		DnsName:     getComponentDns(c.name),
 		KmcCfg: &common.KmcCfg{
 			SdpAlgID:       common.Aes256gcm,
 			PrimaryKeyPath: certPathMgr.GetComponentMasterKmcPath(c.name),
@@ -292,13 +292,12 @@ func (c *ComponentMgr) prepareNginxServerCert(certMng *certutils.RootCertMgr, ce
 			DoMainId:       common.DoMainId,
 		},
 	}
-
 	if err := componentCert.CreateSignCert(); err != nil {
-		hwlog.RunLog.Errorf("create nginx server cert failed: %v", err)
-		return errors.New("create nginx server cert failed")
+		hwlog.RunLog.Errorf("create user-manager server cert failed: %v", err)
+		return errors.New("create user-manager server cert failed")
 	}
 
-	hwlog.RunLog.Infof("prepare nginx server cert successful")
+	hwlog.RunLog.Infof("prepare user-manager server cert successful")
 	return nil
 }
 

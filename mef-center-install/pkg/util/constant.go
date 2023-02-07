@@ -89,6 +89,7 @@ const (
 	CertManagerName     = "cert-manager"
 	NginxManagerName    = "nginx-manager"
 	SoftwareManagerName = "software-manager"
+	UserManagerName     = "user-manager"
 )
 
 // install constant
