@@ -31,7 +31,7 @@ func (wh *WsMsgHandler) handleMsg(msgBytes []byte) {
 	var msg model.Message
 	err := json.Unmarshal(msgBytes, &msg)
 	if err != nil {
-		hwlog.RunLog.Errorf("Unmarshal message failed: %v", err)
+		hwlog.RunLog.Errorf("unmarshal message failed, error: %v", err)
 		return
 	}
 	if msg.GetParentId() == "" {
@@ -40,14 +40,14 @@ func (wh *WsMsgHandler) handleMsg(msgBytes []byte) {
 		key := msgOpt + ":" + msgRes
 		moduleName := wh.handlersMap[key]
 		if moduleName == "" {
-			hwlog.RunLog.Errorf("no register msg Handler[MsgOpt=%v, MsgRes=%v]", msgOpt, msgRes)
+			hwlog.RunLog.Errorf("no register msg Handler [MsgOpt = %v, MsgRes = %v]", msgOpt, msgRes)
 			return
 		}
 		msg.SetRouter("websocket", moduleName, msgOpt, msgRes)
 	}
 	err = modulemanager.SendMessage(&msg)
 	if err != nil {
-		hwlog.RunLog.Errorf("send module message failed: %v", err)
+		hwlog.RunLog.Errorf("send module message failed, error: %v", err)
 		return
 	}
 }

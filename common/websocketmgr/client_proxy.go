@@ -31,7 +31,7 @@ func (wcp *WsClientProxy) GetName() string {
 func (wcp *WsClientProxy) Start() error {
 	if err := wcp.start(); err != nil {
 		hwlog.RunLog.Errorf("websocket start failed, error: %v", err)
-		return err
+		return fmt.Errorf("websocket cilent proxy start falied, error: %v", err)
 	}
 	go wcp.ReConnect()
 	return nil
@@ -44,11 +44,11 @@ func (wcp *WsClientProxy) start() error {
 		ReadBufferSize:   readBufferSize,
 		WriteBufferSize:  writeBufferSize,
 	}
+	hwlog.RunLog.Info("websocket client begin try to connect the server")
 	connect, err := wcp.tryConnect(dialer)
 	if err != nil {
-		return fmt.Errorf("connect the server failed: %v", err)
+		return fmt.Errorf("connect the server failed, error: %v", err)
 	}
-	hwlog.RunLog.Info("websocket client connect the server success")
 	wcp.connMgr = &wsConnectMgr{}
 	wcp.connMgr.start(connect, wcp.ProxyCfg.name, &wcp.ProxyCfg.handlerMgr)
 	return nil
@@ -79,7 +79,7 @@ func (wcp *WsClientProxy) Stop() error {
 	wcp.ProxyCfg.cancel()
 	err := wcp.connMgr.stop()
 	if err != nil {
-		return fmt.Errorf("stop websocket connection failed: %v", err)
+		return fmt.Errorf("stop websocket connection failed, error: %v", err)
 	}
 	return nil
 }
@@ -108,19 +108,24 @@ func (wcp *WsClientProxy) IsConnected() bool {
 }
 
 func (wcp *WsClientProxy) tryConnect(dialer *websocket.Dialer) (*websocket.Conn, error) {
-	var retErr error
-	for i := 0; i < defaultRetryCount; i++ {
+	tryConnInterval := 1 * time.Second
+	for {
 		select {
 		case <-wcp.ProxyCfg.ctx.Done():
 			return nil, fmt.Errorf("connect has be canceled")
 		default:
 		}
+
+		hwlog.RunLog.Info("websocket client try to connect server")
 		connect, _, err := dialer.Dial(wssProtocol+wcp.ProxyCfg.hosts, wcp.ProxyCfg.headers)
-		retErr = err
 		if err == nil {
+			hwlog.RunLog.Info("websocket client connect the server success")
 			return connect, nil
 		}
-		time.Sleep(retryTime)
+		hwlog.RunLog.Errorf("websocket client connect the server failed, error: %v", err)
+		time.Sleep(tryConnInterval)
+		if tryConnInterval < maxTryConnInterval {
+			tryConnInterval = tryConnInterval * tryConnIntervalGrowRate
+		}
 	}
-	return nil, fmt.Errorf("connect failed: %v", retErr)
 }
