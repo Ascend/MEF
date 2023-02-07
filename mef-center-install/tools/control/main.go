@@ -98,7 +98,8 @@ func (oc *operateController) doControl() error {
 		return err
 	}
 
-	controlMgr := control.InitSftOperateMgr(componentType, oc.operate, installedComponents, oc.installParam.InstallDir)
+	controlMgr := control.InitSftOperateMgr(componentType, oc.operate,
+		installedComponents, oc.installParam.InstallDir, oc.installParam.LogDir)
 	if err := controlMgr.DoOperate(); err != nil {
 		return err
 	}
