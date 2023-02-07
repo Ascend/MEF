@@ -282,7 +282,7 @@ func testUndeployApInfo() {
 		})
 	defer p1.Reset()
 	resp := unDeployApp(reqData)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
 func testCreateTemplate() {

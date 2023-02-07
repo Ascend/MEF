@@ -18,6 +18,7 @@ import (
 
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
+	"edge-manager/pkg/util"
 )
 
 var (
@@ -126,6 +127,10 @@ func listManagedNode(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("list node convert request error")
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "convert list request error", Data: nil}
 	}
+	if checkResult := util.NewPaginationQueryChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("list node para check failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
+	}
 	total, err := NodeServiceInstance().countNodesByName(req.Name, managed)
 	if err != nil {
 		hwlog.RunLog.Error("count node failed")
@@ -170,6 +175,10 @@ func listUnmanagedNode(input interface{}) common.RespMsg {
 	if !ok {
 		hwlog.RunLog.Error("list node convert request error")
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "", Data: nil}
+	}
+	if checkResult := util.NewPaginationQueryChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("list unmanaged node para check failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
 	}
 	total, err := NodeServiceInstance().countNodesByName(req.Name, unmanaged)
 	if err != nil {
@@ -254,6 +263,10 @@ func listNode(input interface{}) common.RespMsg {
 	if !ok {
 		hwlog.RunLog.Error("list nodes convert request error")
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "convert request error", Data: nil}
+	}
+	if checkResult := util.NewPaginationQueryChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("list nodes para check failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
 	}
 	total, err := NodeServiceInstance().countAllNodesByName(req.Name)
 	if err != nil {
