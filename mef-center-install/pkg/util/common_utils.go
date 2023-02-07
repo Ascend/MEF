@@ -48,7 +48,7 @@ func GetDiskFree(path string) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
-	diskFree := fs.Bfree * uint64(fs.Bsize)
+	diskFree := fs.Bavail * uint64(fs.Bsize)
 	return diskFree, nil
 }
 
