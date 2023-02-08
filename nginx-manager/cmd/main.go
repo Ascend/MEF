@@ -16,6 +16,7 @@ import (
 	"nginx-manager/pkg/nginxcom"
 	"nginx-manager/pkg/nginxmgr"
 	"nginx-manager/pkg/nginxmonitor"
+	"nginx-manager/pkg/usermgr"
 
 	"huawei.com/mindx/common/hwlog"
 
@@ -98,6 +99,13 @@ func register(ctx context.Context) error {
 		return err
 	}
 	if err := modulemanager.Registry(nginxmonitor.NewNginxMonitor(true, ctx)); err != nil {
+		return err
+	}
+
+	if err := modulemanager.Registry(usermgr.NewRestfulService(true, restfulPort)); err != nil {
+		return err
+	}
+	if err := modulemanager.Registry(usermgr.NewUserManager(true, ctx)); err != nil {
 		return err
 	}
 	modulemanager.Start()

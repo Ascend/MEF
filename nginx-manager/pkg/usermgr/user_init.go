@@ -15,6 +15,7 @@ import (
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
 
+	"nginx-manager/pkg/database"
 	"nginx-manager/pkg/nginxcom"
 )
 
@@ -45,8 +46,11 @@ func (u *userManager) Name() string {
 func (u *userManager) Enable() bool {
 	if u.enable {
 		if err := initTable(); err != nil {
-			hwlog.RunLog.Errorf("module (%s) init database table failed, cannot enable",
-				nginxcom.UserManagerName)
+			hwlog.RunLog.Errorf("module (%s) init database table failed, cannot enable", u.Name())
+			return !u.enable
+		}
+		if err := createDefaultUser(); err != nil {
+			hwlog.RunLog.Errorf("module (%s) init database table failed, cannot enable", u.Name())
 			return !u.enable
 		}
 	}
@@ -54,7 +58,7 @@ func (u *userManager) Enable() bool {
 }
 
 func (u *userManager) Start() {
-	go intervalUnlockUser(u.ctx)
+	go u.intervalUnlockUserAndIp()
 	for {
 		select {
 		case _, ok := <-u.ctx.Done():
@@ -65,34 +69,34 @@ func (u *userManager) Start() {
 			return
 		default:
 		}
-		req, err := modulemanager.ReceiveMessage(nginxcom.UserManagerName)
+		req, err := modulemanager.ReceiveMessage(u.Name())
 		if err != nil {
-			hwlog.RunLog.Errorf("%s receive request from restful service failed", nginxcom.UserManagerName)
+			hwlog.RunLog.Errorf("%s receive request from restful service failed", u.Name())
 			continue
 		}
 		msg := methodSelect(req)
 		if msg == nil {
-			hwlog.RunLog.Errorf("%s get method by option and resource failed", nginxcom.UserManagerName)
+			hwlog.RunLog.Errorf("%s get method by option and resource failed", u.Name())
 			continue
 		}
 		resp, err := req.NewResponse()
 		if err != nil {
-			hwlog.RunLog.Errorf("%s new response failed", nginxcom.UserManagerName)
+			hwlog.RunLog.Errorf("%s new response failed", u.Name())
 			continue
 		}
 		resp.FillContent(msg)
 		if err = modulemanager.SendMessage(resp); err != nil {
-			hwlog.RunLog.Errorf("%s send response failed", nginxcom.UserManagerName)
+			hwlog.RunLog.Errorf("%s send response failed", u.Name())
 			continue
 		}
 	}
 }
 
-func intervalUnlockUser(ctx context.Context) {
+func (u *userManager) intervalUnlockUserAndIp() {
 	timer := time.NewTimer(unlockInterval)
 	for {
 		select {
-		case _, ok := <-ctx.Done():
+		case _, ok := <-u.ctx.Done():
 			if !ok {
 				hwlog.RunLog.Info("catch stop signal channel is closed")
 			}
@@ -102,9 +106,9 @@ func intervalUnlockUser(ctx context.Context) {
 			timer.Reset(unlockInterval)
 			router := common.Router{
 				Source:      common.RestfulServiceName,
-				Destination: nginxcom.UserManagerName,
+				Destination: u.Name(),
 				Option:      http.MethodPost,
-				Resource:    filepath.Join(userMgrPath, "intervalUnlock"),
+				Resource:    filepath.Join(userMgrPath, "interval-unlock"),
 			}
 			common.SendSyncMessageByRestful("", &router)
 		}
@@ -123,9 +127,26 @@ func methodSelect(req *model.Message) *common.RespMsg {
 	return &res
 }
 
-var handlerFuncMap = map[string]handlerFunc{}
+var handlerFuncMap = map[string]handlerFunc{
+	common.Combine(http.MethodPost, filepath.Join(userMgrPath, "login")):           Login,
+	common.Combine(http.MethodPatch, filepath.Join(userMgrPath, "first-change")):   FirstChange,
+	common.Combine(http.MethodPatch, filepath.Join(userMgrPath, "change")):         Change,
+	common.Combine(http.MethodPost, filepath.Join(userMgrPath, "interval-unlock")): intervalUnlock,
+	common.Combine(http.MethodPost, filepath.Join(userMgrPath, "islocked")):        svcIpLocked,
+}
 
 func initTable() error {
-	// todo 数据库初始化
+	if err := database.CreateTableIfNotExists(User{}); err != nil {
+		hwlog.RunLog.Error("create database table user failed")
+		return err
+	}
+	if err := database.CreateTableIfNotExists(IpForbidden{}); err != nil {
+		hwlog.RunLog.Error("create database table ip_forbidden failed")
+		return err
+	}
+	if err := database.CreateTableIfNotExists(HistoryPassword{}); err != nil {
+		hwlog.RunLog.Error("create database table history_password failed")
+		return err
+	}
 	return nil
 }

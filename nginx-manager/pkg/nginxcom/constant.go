@@ -7,7 +7,7 @@ import "time"
 
 const (
 	// KeyPrefix 前缀
-	KeyPrefix = "set $"
+	KeyPrefix = "$"
 	// ClientPipePrefix 内部https转发使用的pipe前缀
 	ClientPipePrefix = "client_pipe"
 	// EdgePortKey port对应在配置文件的key

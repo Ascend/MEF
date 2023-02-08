@@ -26,11 +26,15 @@ var routers = map[string][]restfulmgr.DispatcherItf{
 			Method:       http.MethodPost,
 			Destination:  nginxcom.UserManagerName}},
 		userDispatcher{restfulmgr.GenericDispatcher{
-			RelativePath: "/firstChange",
+			RelativePath: "/first-change",
 			Method:       http.MethodPatch,
 			Destination:  nginxcom.UserManagerName}},
 		userDispatcher{restfulmgr.GenericDispatcher{
 			RelativePath: "/change",
+			Method:       http.MethodPatch,
+			Destination:  nginxcom.UserManagerName}},
+		userDispatcher{restfulmgr.GenericDispatcher{
+			RelativePath: "/islocked",
 			Method:       http.MethodPatch,
 			Destination:  nginxcom.UserManagerName}},
 	},
