@@ -5,6 +5,7 @@ package certutils
 import (
 	"crypto/rsa"
 	"crypto/x509"
+	"net"
 
 	"huawei.com/mindxedge/base/common"
 )
@@ -29,4 +30,10 @@ type TlsCertInfo struct {
 	RootCaPath    string
 	SvrFlag       bool
 	IgnoreCltCert bool
+}
+
+// CertSan [struct] for server cert san fields
+type CertSan struct {
+	DnsName []string
+	IpAddr  []net.IP
 }

@@ -242,15 +242,16 @@ func (c *ComponentMgr) PrepareComponentCert(certMng *certutils.RootCertMgr, cert
 		SvcCertPath: componentsCertPath,
 		SvcKeyPath:  componentPrivPath,
 		CommonName:  c.name,
-		DnsName:     getComponentDns(c.name),
 		KmcCfg: &common.KmcCfg{
 			SdpAlgID:       common.Aes256gcm,
 			PrimaryKeyPath: certPathMgr.GetComponentMasterKmcPath(c.name),
 			StandbyKeyPath: certPathMgr.GetComponentBackKmcPath(c.name),
 			DoMainId:       common.DoMainId,
 		},
+		San: certutils.CertSan{
+			DnsName: []string{getComponentDns(c.name)},
+		},
 	}
-
 	if err := componentCert.CreateSignCert(); err != nil {
 		hwlog.RunLog.Errorf("create component [%s] cert failed: %v", c.name, err)
 		return fmt.Errorf("create component [%s] cert failed", c.name)
@@ -284,12 +285,14 @@ func (c *ComponentMgr) prepareUserMgrCert(certMng *certutils.RootCertMgr, certPa
 		SvcCertPath: componentsCertPath,
 		SvcKeyPath:  componentPrivPath,
 		CommonName:  c.name,
-		DnsName:     getComponentDns(c.name),
 		KmcCfg: &common.KmcCfg{
 			SdpAlgID:       common.Aes256gcm,
 			PrimaryKeyPath: certPathMgr.GetComponentMasterKmcPath(c.name),
 			StandbyKeyPath: certPathMgr.GetComponentBackKmcPath(c.name),
 			DoMainId:       common.DoMainId,
+		},
+		San: certutils.CertSan{
+			DnsName: []string{getComponentDns(c.name)},
 		},
 	}
 	if err := componentCert.CreateSignCert(); err != nil {
