@@ -70,7 +70,7 @@ func CreateConfItems(envs map[string]string) []nginxcom.NginxConfItem {
 		createdItem := nginxcom.NginxConfItem{
 			Key:  item.Key,
 			From: item.From,
-			To:   item.From + " " + envs[item.Key],
+			To:   envs[item.Key],
 		}
 		ret = append(ret, createdItem)
 	}
