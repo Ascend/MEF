@@ -39,6 +39,10 @@ spec:
               value: "admin"
             - name: installed-module
               value: ${installed_module}
+            - name: NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
           command: [ "/bin/bash", "-c", "--"]
           args: ["./nginx-manager"]
           volumeMounts:

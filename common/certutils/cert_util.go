@@ -10,18 +10,17 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-
 	"huawei.com/mindx/common/rand"
 	"huawei.com/mindx/common/utils"
 	hwCertMgr "huawei.com/mindx/common/x509"
-
 	"huawei.com/mindxedge/base/common"
 )
 
-func getCsr(priv *rsa.PrivateKey, commonName string, dnsName string) ([]byte, error) {
+func getCsr(priv *rsa.PrivateKey, commonName string, certSan CertSan) ([]byte, error) {
 	template := x509.CertificateRequest{
-		Subject:  pkix.Name{CommonName: commonName},
-		DNSNames: []string{dnsName},
+		Subject:     pkix.Name{CommonName: commonName},
+		DNSNames:    certSan.DnsName,
+		IPAddresses: certSan.IpAddr,
 	}
 	csrDer, err := x509.CreateCertificateRequest(rand.Reader, &template, priv)
 	if err != nil {
@@ -31,13 +30,12 @@ func getCsr(priv *rsa.PrivateKey, commonName string, dnsName string) ([]byte, er
 }
 
 // CreateCsr [method] for create csr content
-func CreateCsr(keyPath string, commonName string, dnsName string, kmcCfg *common.KmcCfg) ([]byte, error) {
+func CreateCsr(keyPath string, commonName string, kmcCfg *common.KmcCfg, san CertSan) ([]byte, error) {
 	priv, err := rsa.GenerateKey(rand.Reader, priKeyLength)
 	if err != nil {
 		return nil, errors.New("generate new key for self signed certificate failed: " + err.Error())
 	}
-
-	csr, err := getCsr(priv, commonName, dnsName)
+	csr, err := getCsr(priv, commonName, san)
 	if err != nil {
 		return nil, err
 	}
