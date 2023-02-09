@@ -7,6 +7,7 @@ const (
 	// TimeFormat used for friendly display
 	TimeFormat         = "2006-01-02 15:04:05"
 	masterNodeLabelKey = "node-role.kubernetes.io/master"
+	snNodeLabelKey     = "serialNumber"
 	maxNode            = 1024
 	maxNodeGroup       = 1024
 	maxNodePerGroup    = 1024

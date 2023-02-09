@@ -13,8 +13,9 @@ import (
 
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
 	"k8s.io/api/core/v1"
+
+	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
@@ -230,21 +231,30 @@ func autoAddUnmanagedNode() error {
 		if _, ok := node.Labels[masterNodeLabelKey]; ok {
 			continue
 		}
-		_, err := NodeServiceInstance().getNodeByUniqueName(node.Name)
-		if err == nil {
+		if _, ok := node.Labels[snNodeLabelKey]; !ok {
+			hwlog.RunLog.Errorf("create node failed: node serial number is nil")
+			continue
+		}
+		if _, err = NodeServiceInstance().getNodeByUniqueName(node.Name); err == nil {
 			continue
 		}
 		if err != gorm.ErrRecordNotFound {
 			return fmt.Errorf("get node by name(%s) failed", node.Name)
 		}
 		nodeInfo := &NodeInfo{
-			NodeName:   node.Name,
-			UniqueName: node.Name,
-			IsManaged:  false,
-			IP:         evalIpAddress(&node),
-			CreatedAt:  time.Now().Format(TimeFormat),
-			UpdatedAt:  time.Now().Format(TimeFormat),
+			NodeName:     node.Name,
+			UniqueName:   node.Name,
+			SerialNumber: node.Labels[snNodeLabelKey],
+			IsManaged:    false,
+			IP:           evalIpAddress(&node),
+			CreatedAt:    time.Now().Format(TimeFormat),
+			UpdatedAt:    time.Now().Format(TimeFormat),
 		}
+		if checkResult := newNodeInfoChecker().Check(*nodeInfo); !checkResult.Result {
+			hwlog.RunLog.Errorf("node info check failed:%s", checkResult.Reason)
+			continue
+		}
+
 		if dbNodeCount >= maxNode {
 			return errors.New("node number is enough, cannot create")
 		}

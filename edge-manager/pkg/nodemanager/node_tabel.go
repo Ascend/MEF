@@ -5,15 +5,16 @@ package nodemanager
 
 // NodeInfo is node db table info
 type NodeInfo struct {
-	ID          uint64 `gorm:"primaryKey;autoIncrement:true"  json:"id"`
-	Description string `gorm:"size:256"                       json:"description"`
-	NodeType    string `gorm:"size:128"                       json:"nodeType"`
-	NodeName    string `gorm:"size:255;unique;not null"       json:"nodeName"`
-	UniqueName  string `gorm:"size:255;unique;not null"       json:"uniqueName"`
-	IP          string `gorm:"size:256"                       json:"ip"`
-	IsManaged   bool   `gorm:"size:4;not null"                json:"isManaged"`
-	CreatedAt   string `gorm:"not null"                       json:"createdAt"`
-	UpdatedAt   string `gorm:"not null"                       json:"updatedAt"`
+	ID           uint64 `gorm:"primaryKey;autoIncrement:true"  json:"id"`
+	Description  string `gorm:"size:256"                       json:"description"`
+	NodeType     string `gorm:"size:128"                       json:"nodeType"`
+	NodeName     string `gorm:"size:255;unique;not null"       json:"nodeName"`
+	UniqueName   string `gorm:"size:255;unique;not null"       json:"uniqueName"`
+	SerialNumber string `gorm:"size:255;unique;not null"       json:"serialNumber"`
+	IP           string `gorm:"size:256"                       json:"ip"`
+	IsManaged    bool   `gorm:"size:4;not null"                json:"isManaged"`
+	CreatedAt    string `gorm:"not null"                       json:"createdAt"`
+	UpdatedAt    string `gorm:"not null"                       json:"updatedAt"`
 }
 
 // NodeGroup is node group db table
