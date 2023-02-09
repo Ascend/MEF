@@ -18,8 +18,9 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
 	"k8s.io/api/core/v1"
+
+	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/database"
 	"edge-manager/pkg/kubeclient"
@@ -280,12 +281,13 @@ func TestGetNodeDetail(t *testing.T) {
 
 func getNodeDetailFunctionalTest() {
 	node := &NodeInfo{
-		Description: "test-get-node-detail-1-description",
-		NodeName:    "test-get-node-detail-1-name",
-		UniqueName:  "test-get-node-detail-1-unique-name",
-		IP:          "0.0.0.0",
-		CreatedAt:   time.Now().Format(TimeFormat),
-		UpdatedAt:   time.Now().Format(TimeFormat),
+		Description:  "test-get-node-detail-1-description",
+		NodeName:     "test-get-node-detail-1-name",
+		UniqueName:   "test-get-node-detail-1-unique-name",
+		SerialNumber: "test-get-node-detail-1-serial-number",
+		IP:           "0.0.0.0",
+		CreatedAt:    time.Now().Format(TimeFormat),
+		UpdatedAt:    time.Now().Format(TimeFormat),
 	}
 	res := env.createNode(node)
 	So(res, ShouldBeNil)
@@ -314,13 +316,14 @@ func TestModifyNode(t *testing.T) {
 
 func modifyNodeFunctionalTest() {
 	node := &NodeInfo{
-		Description: "test-modify-node-1-description",
-		NodeName:    "test-modify-node-1-name",
-		UniqueName:  "test-modify-node-1-unique-name",
-		IsManaged:   true,
-		IP:          "0.0.0.0",
-		CreatedAt:   time.Now().Format(TimeFormat),
-		UpdatedAt:   time.Now().Format(TimeFormat),
+		Description:  "test-modify-node-1-description",
+		NodeName:     "test-modify-node-1-name",
+		UniqueName:   "test-modify-node-1-unique-name",
+		SerialNumber: "test-modify-node-1-serial-number",
+		IsManaged:    true,
+		IP:           "0.0.0.0",
+		CreatedAt:    time.Now().Format(TimeFormat),
+		UpdatedAt:    time.Now().Format(TimeFormat),
 	}
 	So(env.createNode(node), ShouldBeNil)
 	node.Description = "test-modify-node-1-description-modified"
@@ -341,13 +344,14 @@ func modifyNodeFunctionalTest() {
 
 func modifyNodeValidationTest() {
 	node := &NodeInfo{
-		Description: "test-modify-node-2-#{random}-description",
-		NodeName:    "test-modify-node-2-#{random}-name",
-		UniqueName:  "test-modify-node-2-#{random}-unique-name",
-		IP:          "0.0.0.0",
-		IsManaged:   true,
-		CreatedAt:   time.Now().Format(TimeFormat),
-		UpdatedAt:   time.Now().Format(TimeFormat),
+		Description:  "test-modify-node-2-#{random}-description",
+		NodeName:     "test-modify-node-2-#{random}-name",
+		UniqueName:   "test-modify-node-2-#{random}-unique-name",
+		SerialNumber: "test-modify-node-2-#{random}-serial-number",
+		IP:           "0.0.0.0",
+		IsManaged:    true,
+		CreatedAt:    time.Now().Format(TimeFormat),
+		UpdatedAt:    time.Now().Format(TimeFormat),
 	}
 	env.randomize(node)
 
@@ -527,13 +531,14 @@ func TestAddUnManagedNode(t *testing.T) {
 
 func addUnManagedNodeFunctionalTest() {
 	node := &NodeInfo{
-		Description: "test-adn-1-description",
-		NodeName:    "test-adn-1-name",
-		UniqueName:  "test-adn-1-unique-name",
-		IP:          "0.0.0.0",
-		IsManaged:   false,
-		CreatedAt:   time.Now().Format(TimeFormat),
-		UpdatedAt:   time.Now().Format(TimeFormat),
+		Description:  "test-adn-1-description",
+		NodeName:     "test-adn-1-name",
+		UniqueName:   "test-adn-1-unique-name",
+		SerialNumber: "test-adn-1-serial-number",
+		IP:           "0.0.0.0",
+		IsManaged:    false,
+		CreatedAt:    time.Now().Format(TimeFormat),
+		UpdatedAt:    time.Now().Format(TimeFormat),
 	}
 	group := &NodeGroup{
 		Description: "test-add-adn-1-description",
@@ -562,13 +567,14 @@ func addUnManagedNodeFunctionalTest() {
 
 func addUnManagedNodeValidationTest() {
 	node := &NodeInfo{
-		Description: "test-adn-#{random}-description",
-		NodeName:    "test-adn-#{random}-name",
-		UniqueName:  "test-adn-#{random}-unique-name",
-		IP:          "0.0.0.0",
-		IsManaged:   false,
-		CreatedAt:   time.Now().Format(TimeFormat),
-		UpdatedAt:   time.Now().Format(TimeFormat),
+		Description:  "test-adn-#{random}-description",
+		NodeName:     "test-adn-#{random}-name",
+		UniqueName:   "test-adn-#{random}-unique-name",
+		SerialNumber: "test-adn-#{random}-serial-umber",
+		IP:           "0.0.0.0",
+		IsManaged:    false,
+		CreatedAt:    time.Now().Format(TimeFormat),
+		UpdatedAt:    time.Now().Format(TimeFormat),
 	}
 	env.randomize(node)
 	So(env.createNode(node), ShouldBeNil)
@@ -644,13 +650,14 @@ func TestBatchDeleteNode(t *testing.T) {
 
 func batchDeleteNodeFunctionalTest() {
 	node := &NodeInfo{
-		Description: "test-batch-delete-node-1-description",
-		NodeName:    "test-batch-delete-node-1-name",
-		UniqueName:  "test-batch-delete-node-1-unique-name",
-		IP:          "0.0.0.0",
-		IsManaged:   true,
-		CreatedAt:   time.Now().Format(TimeFormat),
-		UpdatedAt:   time.Now().Format(TimeFormat),
+		Description:  "test-batch-delete-node-1-description",
+		NodeName:     "test-batch-delete-node-1-name",
+		UniqueName:   "test-batch-delete-node-1-unique-name",
+		SerialNumber: "test-batch-delete-node-1-serial-number",
+		IP:           "0.0.0.0",
+		IsManaged:    true,
+		CreatedAt:    time.Now().Format(TimeFormat),
+		UpdatedAt:    time.Now().Format(TimeFormat),
 	}
 	So(env.createNode(node), ShouldBeNil)
 
@@ -677,13 +684,14 @@ func TestBatchDeleteNodeRelation(t *testing.T) {
 
 func batchDeleteNodeRelationFunctionalTest() {
 	node := &NodeInfo{
-		Description: "test-batch-delete-relation-1-description",
-		NodeName:    "test-batch-delete-relation-1-name",
-		UniqueName:  "test-batch-delete-relation-1-unique-name",
-		IP:          "0.0.0.0",
-		IsManaged:   true,
-		CreatedAt:   time.Now().Format(TimeFormat),
-		UpdatedAt:   time.Now().Format(TimeFormat),
+		Description:  "test-batch-delete-relation-1-description",
+		NodeName:     "test-batch-delete-relation-1-name",
+		UniqueName:   "test-batch-delete-relation-1-unique-name",
+		SerialNumber: "test-batch-delete-relation-1-serial-number",
+		IP:           "0.0.0.0",
+		IsManaged:    true,
+		CreatedAt:    time.Now().Format(TimeFormat),
+		UpdatedAt:    time.Now().Format(TimeFormat),
 	}
 	group := &NodeGroup{
 		Description: "test-batch-delete-relation-1-description",
@@ -732,13 +740,14 @@ func TestAddNodeRelation(t *testing.T) {
 
 func addNodeRelationFunctionalTest() {
 	node := &NodeInfo{
-		Description: "test-add-relation-1-description",
-		NodeName:    "test-add-relation-1-name",
-		UniqueName:  "test-add-relation-1-description-unique-name",
-		IP:          "0.0.0.0",
-		IsManaged:   true,
-		CreatedAt:   time.Now().Format(TimeFormat),
-		UpdatedAt:   time.Now().Format(TimeFormat),
+		Description:  "test-add-relation-1-description",
+		NodeName:     "test-add-relation-1-name",
+		UniqueName:   "test-add-relation-1-description-unique-name",
+		SerialNumber: "test-add-relation-1-serial-number",
+		IP:           "0.0.0.0",
+		IsManaged:    true,
+		CreatedAt:    time.Now().Format(TimeFormat),
+		UpdatedAt:    time.Now().Format(TimeFormat),
 	}
 	group := &NodeGroup{
 		Description: "test-add-relation-1-description",
@@ -898,12 +907,13 @@ func TestDeleteNodeFromGroup(t *testing.T) {
 
 func testDeleteNodeFromGroup() {
 	node := &NodeInfo{
-		NodeName:   "test-delete-node-from-group-1-name",
-		UniqueName: "test-delete-node-from-group-1-unique-name",
-		IP:         "0.0.0.0",
-		IsManaged:  true,
-		CreatedAt:  time.Now().Format(TimeFormat),
-		UpdatedAt:  time.Now().Format(TimeFormat),
+		NodeName:     "test-delete-node-from-group-1-name",
+		UniqueName:   "test-delete-node-from-group-1-unique-name",
+		SerialNumber: "test-delete-node-from-group-1-serial-number",
+		IP:           "0.0.0.0",
+		IsManaged:    true,
+		CreatedAt:    time.Now().Format(TimeFormat),
+		UpdatedAt:    time.Now().Format(TimeFormat),
 	}
 	group := &NodeGroup{
 		GroupName: "test_delete_node_from_group_1_name",
@@ -943,12 +953,13 @@ func TestInnerGetNodeInfoByUniqueName(t *testing.T) {
 	Convey("InnerGetNodeInfoByUniqueName functional test", t, func() {
 		Convey("innerGetNodeInfoByUniqueName success", func() {
 			node := &NodeInfo{
-				NodeName:   "test-inner-node1",
-				UniqueName: "test-inner-node-unique-name1",
-				IP:         "0.0.0.0",
-				IsManaged:  true,
-				CreatedAt:  time.Now().Format(TimeFormat),
-				UpdatedAt:  time.Now().Format(TimeFormat),
+				NodeName:     "test-inner-node1",
+				UniqueName:   "test-inner-node-unique-name1",
+				SerialNumber: "test-inner-node-serial-number1",
+				IP:           "0.0.0.0",
+				IsManaged:    true,
+				CreatedAt:    time.Now().Format(TimeFormat),
+				UpdatedAt:    time.Now().Format(TimeFormat),
 			}
 			resNode := env.createNode(node)
 			So(resNode, ShouldBeNil)
@@ -968,12 +979,13 @@ func TestInnerGetNodeStatus(t *testing.T) {
 	Convey("InnerGetNodeStatus functional test", t, func() {
 		Convey("innerGetNodeInfoByUniqueName success", func() {
 			node := &NodeInfo{
-				NodeName:   "test-inner-node2",
-				UniqueName: "test-inner-node-unique-name2",
-				IP:         "0.0.0.0",
-				IsManaged:  true,
-				CreatedAt:  time.Now().Format(TimeFormat),
-				UpdatedAt:  time.Now().Format(TimeFormat),
+				NodeName:     "test-inner-node2",
+				UniqueName:   "test-inner-node-unique-name2",
+				SerialNumber: "test-inner-node-unique-serial-number2",
+				IP:           "0.0.0.0",
+				IsManaged:    true,
+				CreatedAt:    time.Now().Format(TimeFormat),
+				UpdatedAt:    time.Now().Format(TimeFormat),
 			}
 			resNode := env.createNode(node)
 			So(resNode, ShouldBeNil)
