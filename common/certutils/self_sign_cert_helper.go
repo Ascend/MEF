@@ -6,7 +6,9 @@ package certutils
 import (
 	"errors"
 	"fmt"
+
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 )
 
