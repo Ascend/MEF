@@ -40,6 +40,7 @@ type NodeService interface {
 	getNodeGroupsByName(uint64, uint64, string) (*[]NodeGroup, error)
 	countNodeGroupsByName(string) (int64, error)
 	getNodeGroupByID(uint64) (*NodeGroup, error)
+	updateNodeGroupRes(uint64, map[string]interface{}) (int64, error)
 
 	deleteNodeToGroup(*NodeRelation) (int64, error)
 	countNodeByGroup(uint64) (int64, error)
@@ -236,4 +237,9 @@ func (n *NodeServiceImpl) countAllNodesByName(name string) (int64, error) {
 	return count,
 		n.db.Model(&NodeInfo{}).Where("INSTR(node_name, ?)", name).
 			Count(&count).Error
+}
+
+func (n *NodeServiceImpl) updateNodeGroupRes(groupId uint64, columns map[string]interface{}) (int64, error) {
+	stmt := n.db.Model(NodeGroup{}).Where("id = ?", groupId).UpdateColumns(columns)
+	return stmt.RowsAffected, stmt.Error
 }

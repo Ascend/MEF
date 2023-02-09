@@ -435,8 +435,13 @@ func testDeployApInfo() {
 			return []types.NodeGroupInfo{{NodeGroupID: 1, NodeGroupName: "group1"},
 				{NodeGroupID: 2, NodeGroupName: "group2"}}, nil
 		})
+	var p3 = gomonkey.ApplyFunc(checkNodeGroupResources,
+		func(groupID uint64, daemonSet *v1.DaemonSet) error {
+			return nil
+		})
 	defer p1.Reset()
 	defer p2.Reset()
+	defer p3.Reset()
 	resp := deployApp(reqData)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
@@ -625,7 +630,7 @@ func testListAppInstanceInvalid() {
 }
 
 func testGetInstanceFromAppInstances() {
-	patchFunc := gomonkey.ApplyFunc(getAppId, func(_ *v1.DaemonSet) (uint64, error) {
+	patchFunc := gomonkey.ApplyFunc(getAppIdFromDaemonSet, func(_ *v1.DaemonSet) (uint64, error) {
 		return 1, nil
 	})
 	patchFunc2 := gomonkey.ApplyFunc(common.SendSyncMessageByRestful, func(interface{}, *common.Router) common.RespMsg {
