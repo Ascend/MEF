@@ -66,7 +66,7 @@ func FirstChange(input interface{}) common.RespMsg {
 	if resp.Status != common.Success {
 		return resp
 	}
-	if err := passutils.CheckPassWord(cachedUser.Username, string(req.Password)); err != nil {
+	if err := passutils.CheckPassWord(cachedUser.Username, req.Password); err != nil {
 		hwlog.RunLog.Errorf("change password err: %s", err.Error())
 		return common.RespMsg{Status: common.ErrorChangePassword, Msg: "", Data: nil}
 	}
@@ -139,7 +139,7 @@ func Change(input interface{}) common.RespMsg {
 	if resp = dealLockAndComparePwd(req.Ip, req.OldPassword, cachedUser); resp.Status != common.Success {
 		return resp
 	}
-	if err := passutils.CheckPassWord(cachedUser.Username, string(req.Password)); err != nil {
+	if err := passutils.CheckPassWord(cachedUser.Username, req.Password); err != nil {
 		hwlog.RunLog.Errorf("change password err: %s", err.Error())
 		return common.RespMsg{Status: common.ErrorChangePassword, Msg: "", Data: nil}
 	}
