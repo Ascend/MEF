@@ -47,10 +47,10 @@ type queryIpLockReq struct {
 }
 
 type lockInfoResp struct {
-	userLocked bool   `json:"userLocked"`
-	ipLocked   bool   `json:"ipLocked"`
-	userid     uint64 `json:"userid"`
-	ip         string `json:"ip"`
+	UserLocked bool   `json:"userLocked"`
+	IpLocked   bool   `json:"ipLocked"`
+	Userid     uint64 `json:"userid"`
+	Ip         string `json:"ip"`
 }
 
 // UserServiceImpl  an implement for UserService
