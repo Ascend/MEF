@@ -41,10 +41,6 @@ func (cpc *certPrepareCtl) prepareCertsDir() error {
 		hwlog.RunLog.Error("pointer cpc.certPathMgr is nil")
 		return errors.New("pointer cpc.certPathMgr is nil")
 	}
-	if cpc.components == nil {
-		hwlog.RunLog.Error("pointer cpc.components is nil")
-		return errors.New("pointer cpc.components is nil")
-	}
 
 	certPath := cpc.certPathMgr.GetConfigPath()
 	if err := common.MakeSurePath(certPath); err != nil {
@@ -78,10 +74,6 @@ func (cpc *certPrepareCtl) prepareCertsDir() error {
 
 func (cpc *certPrepareCtl) prepareCerts() error {
 	hwlog.RunLog.Info("start to prepare certs")
-	if cpc.components == nil {
-		hwlog.RunLog.Error("pointer cpc.components is nil")
-		return errors.New("pointer cpc.components is nil")
-	}
 
 	var (
 		err         error
@@ -101,7 +93,7 @@ func (cpc *certPrepareCtl) prepareCerts() error {
 	}
 
 	if err = cpc.setCertsOwner(); err != nil {
-		return nil
+		return err
 	}
 
 	hwlog.RunLog.Info("prepare certs successful")

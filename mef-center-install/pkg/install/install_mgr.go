@@ -317,8 +317,8 @@ func (sic *SftInstallCtl) clearAll() {
 }
 
 // GetSftInstallMgrIns is used to init a SftInstallCtl struct
-func GetSftInstallMgrIns(components []string, installPath string, logRootPath string) SftInstallCtl {
-	return SftInstallCtl{
+func GetSftInstallMgrIns(components []string, installPath string, logRootPath string) *SftInstallCtl {
+	return &SftInstallCtl{
 		SoftwareMgr: util.SoftwareMgr{
 			Components:     components,
 			InstallPathMgr: util.InitInstallDirPathMgr(installPath),
