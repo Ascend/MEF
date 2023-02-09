@@ -233,7 +233,7 @@ func autoAddUnmanagedNode() error {
 			continue
 		}
 		if _, ok := node.Labels[snNodeLabelKey]; !ok {
-			hwlog.RunLog.Errorf("create node failed: node serial number is nil")
+			hwlog.RunLog.Errorf("create node [%s] failed: node serial number is nil", node.Name)
 			continue
 		}
 		if _, err = NodeServiceInstance().getNodeByUniqueName(node.Name); err == nil {
@@ -252,7 +252,7 @@ func autoAddUnmanagedNode() error {
 			UpdatedAt:    time.Now().Format(TimeFormat),
 		}
 		if checkResult := newNodeInfoChecker().Check(*nodeInfo); !checkResult.Result {
-			hwlog.RunLog.Errorf("node info check failed:%s", checkResult.Reason)
+			hwlog.RunLog.Errorf("node info [%s] check failed:%s", checkResult.Reason, node.Name)
 			continue
 		}
 
