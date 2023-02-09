@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"huawei.com/mindx/common/rand"
+
 	"huawei.com/mindxedge/base/common"
 )
 

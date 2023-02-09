@@ -3,14 +3,25 @@
 set -e
 
 # ../atlas-base/build
-CUR_DIR=$(dirname $(readlink -f $0))
+CUR_DIR=$(dirname "$(readlink -f $0)")
 # ../atlas-base
 TOP_DIR=$(realpath "${CUR_DIR}"/..)
 TMP_DIR="${TOP_DIR}/test_tmp"
 TEST_DIR="${TOP_DIR}/test/results"
 
-echo ${TOP_DIR}
+echo "TOP_DIR=${TOP_DIR}"
 EDGE_MANAGER="edge-manager"
+
+function prepare(){
+  local lib_dir
+  lib_dir=$(dirname "${TOP_DIR}")
+  echo "lib_dir=$lib_dir"
+  tar -zxf "$(ls "$lib_dir"/*kmc*.tar.gz)" -C "$lib_dir"
+  sleep 2
+  echo "ls_lib=$(ls -l $lib_dir/lib)"
+  export LD_LIBRARY_PATH=$lib_dir/lib:"$LD_LIBRARY_PATH"
+  echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+}
 
 function clean() {
   rm -rf "${TMP_DIR}"
@@ -54,6 +65,7 @@ function merge_llt_result_and_create_new_file() {
 
 function main() {
   clean
+  prepare
   execute_edge_manager_ut
   execute_base_ut
   copy_base_file
