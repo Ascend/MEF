@@ -11,6 +11,8 @@ g_session_timeout = 600
 g_success = "00000000"
 g_not_logged_in = "10002001"
 g_upstream_not_found = "10002002"
+g_error_lock_state = "10001006"
+g_error_pass_or_user = "10001010"
 
 libdns.read_dns_servers_from_resolv_file()
 

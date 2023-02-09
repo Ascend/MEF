@@ -43,7 +43,7 @@ type loginReq struct {
 
 type queryIpLockReq struct {
 	baseReq
-	targetIp string `json:"targetIp"`
+	TargetIp string `json:"targetIp"`
 }
 
 type lockInfoResp struct {

@@ -3,6 +3,7 @@
 local cjson = require("cjson")
 local common = require("common")
 local libdynamic = require("libdynamic")
+local libaccess = require("libaccess")
 
 local function create_session(resp)
     local session = {}
@@ -37,11 +38,15 @@ if res.status == ngx.HTTP_OK and ok and resp.status == g_success then
     ngx.header["Content-Type"] = "application/json"
     ngx.say(cjson.encode(resp))
     ngx.log(ngx.NOTICE, "Auth success: user id = " .. session.UserID)
+elseif resp.status == g_error_pass_or_user then
+    libaccess.handleLockResp(resp)
 else
     resp={}
-    resp["info"] = "failed"
     ngx.status = ngx.HTTP_UNAUTHORIZED
     if res and res.body then
+        resp = res.body
+    else
+        resp["info"] = "failed"
         resp["msg"] = res.body
     end
     ngx.say(cjson.encode(resp))

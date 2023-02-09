@@ -2,6 +2,7 @@
 
 local _M = {}   -- 局部变量，模块名称
 local b64 = require("ngx.base64")
+local cjson = require("cjson")
 
 -- 获取经过base64编码的随机字符串
 function _M.get_random_string(length)
@@ -23,6 +24,5 @@ function _M.parse_session_tag()
     local userID = m()
     return sessionID, userID
 end
-
 
 return  _M

@@ -37,8 +37,8 @@ func comparePwdAndLock(clientIp string, targetPass []byte, user *User) common.Re
 	lockUser(user, exceedMaxCount)
 	lockIp(clientIp, exceedMaxCount)
 	if exceedMaxCount {
-		lockInfo := lockInfoResp{userLocked: true, ipLocked: true, userid: user.ID, ip: clientIp}
-		hwlog.RunLog.Errorf("compare password fail, lock user: %d, lock ip: %s", lockInfo.userid, clientIp)
+		lockInfo := lockInfoResp{UserLocked: true, IpLocked: true, Userid: user.ID, Ip: clientIp}
+		hwlog.RunLog.Errorf("compare password fail, lock user: %d, lock ip: %s", lockInfo.Userid, clientIp)
 		return common.RespMsg{Status: common.ErrorPassOrUser, Msg: "", Data: lockInfo}
 	}
 	hwlog.RunLog.Errorf("compare password fail, user: %s", user.Username)
@@ -128,8 +128,8 @@ func svcIpLocked(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("query lock convert param error: %s", err.Error())
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "", Data: nil}
 	}
-	if len(req.targetIp) > 0 {
-		_, err := UserServiceInstance().getForbiddenIp(req.targetIp)
+	if len(req.TargetIp) > 0 {
+		_, err := UserServiceInstance().getForbiddenIp(req.TargetIp)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return common.RespMsg{Status: common.Success, Msg: "", Data: false}
 		} else if err != nil {
