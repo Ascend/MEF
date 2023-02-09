@@ -113,8 +113,8 @@ func getWsCert(keyPath string) (string, string, error) {
 			RootCaPath:    util.RootCaPath,
 			CertPath:      util.ServerCertPath,
 			KeyPath:       util.ServerKeyPath,
-			SvrFlag:       false,
-			IgnoreCltCert: false,
+			SvrFlag:       true,
+			IgnoreCltCert: true,
 		},
 	}
 	var certStr, rootCaStr string
