@@ -1,5 +1,6 @@
 // Copyright (c) 2023. Huawei Technologies Co., Ltd. All rights reserved.
 
+// Package certutils
 package certutils
 
 import (
@@ -7,6 +8,7 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -16,8 +18,8 @@ type SelfSignCert struct {
 	SvcCertPath string
 	SvcKeyPath  string
 	CommonName  string
-	DnsName     string
 	KmcCfg      *common.KmcCfg
+	San         CertSan
 }
 
 // CreateSignCert create a new singed cert for root ca and service cert
@@ -32,8 +34,7 @@ func (sc *SelfSignCert) CreateSignCert() error {
 				"get root failed [%v] and new root failed [%v]", getErr, err)
 		}
 	}
-
-	csr, err := CreateCsr(sc.SvcKeyPath, sc.CommonName, sc.DnsName, sc.KmcCfg)
+	csr, err := CreateCsr(sc.SvcKeyPath, sc.CommonName, sc.KmcCfg, sc.San)
 	if err != nil {
 		return err
 	}

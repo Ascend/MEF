@@ -3,9 +3,11 @@
 // Package nginxcom this file is for common constant or method
 package nginxcom
 
+import "time"
+
 const (
 	// KeyPrefix 前缀
-	KeyPrefix = "set $"
+	KeyPrefix = "$"
 	// ClientPipePrefix 内部https转发使用的pipe前缀
 	ClientPipePrefix = "client_pipe"
 	// EdgePortKey port对应在配置文件的key
@@ -22,10 +24,20 @@ const (
 	NginxDefaultConfigPath = "/home/MEFCenter/conf/nginx_default.conf"
 	// NginxConfigPath nginx配置文件
 	NginxConfigPath = "/home/MEFCenter/conf/nginx.conf"
-	// CertKeyFile 证书私钥文件
-	CertKeyFile = "/home/data/config/mef-certs/nginx-manager-server.key"
+	// ServerCertFile nginx对外服务证书
+	ServerCertFile = "/home/data/config/mef-certs/nginx-manager-server.crt"
+	// ServerCertKeyFile nginx对外服务证书私钥文件
+	ServerCertKeyFile = "/home/data/config/mef-certs/nginx-manager-server.key"
+	// UserCertFile 用户管理模块证书文件
+	UserCertFile = "/home/data/config/mef-certs/user-manager.crt"
+	// UserCertKeyFile 用户管理模块证书key
+	UserCertKeyFile = "/home/data/config/mef-certs/user-manager.key"
+	// ClientCertFile 内部转发消息的证书
+	ClientCertFile = "/home/data/config/mef-certs/nginx-manager.crt"
 	// ClientCertKeyFile 内部转发消息的证书私钥文件
 	ClientCertKeyFile = "/home/data/config/mef-certs/nginx-manager.key"
+	// RootCaPath 内部消息转发根证书文件
+	RootCaPath = "/home/data/inner-root-ca/RootCA.crt"
 	// PipePath 证书私钥管道
 	PipePath = "/home/MEFCenter/pipe/apig_keyPipe"
 	// ClientPipeDir 内部转发消息的证书私钥管道
@@ -46,6 +58,24 @@ const (
 	ReqRestartNginx = "ReqRestartNginx"
 	// RespRestartNginx 回复重启Nginx操作
 	RespRestartNginx = "RespRestartNginx"
+	// DefaultDbPath 默认数据库地址
+	DefaultDbPath = "/home/data/config/user-manager.db"
+	// UserManagerName user manager模块对应收发消息的服务名
+	UserManagerName = "UserManager"
+	// UserRestfulServiceName 用户管理模块对应的restful服务名
+	UserRestfulServiceName = "UserRestfulService"
+	// DefaultUsernameKey 用户管理模块默认账号对应的key
+	DefaultUsernameKey = "DefaultUsername"
+	// UserMgrSvcPortKey 用户管理模块端口
+	UserMgrSvcPortKey = "UserMgrSvcPort"
 	// NginxSslPortKey nginx使用ssl的端口
 	NginxSslPortKey = "NginxSslPort"
+	// UserLockTime 用户锁定时长
+	UserLockTime = time.Second * 600
+	// IpLockTime Ip锁定时长
+	IpLockTime = time.Second * 600
+	// MaxPwdWrongTimes 密码最大错误次数
+	MaxPwdWrongTimes = 5
+	// HistoryPasswordSaveCount 相同密码缓存次数
+	HistoryPasswordSaveCount = 5
 )

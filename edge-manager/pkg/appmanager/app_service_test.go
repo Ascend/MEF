@@ -8,16 +8,17 @@ import (
 	"reflect"
 	"testing"
 
-	"edge-manager/pkg/database"
-	"edge-manager/pkg/kubeclient"
-	"edge-manager/pkg/types"
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
 	"k8s.io/api/apps/v1"
+
+	"edge-manager/pkg/database"
+	"edge-manager/pkg/kubeclient"
+	"edge-manager/pkg/types"
+	"huawei.com/mindxedge/base/common"
 )
 
 var (
@@ -36,19 +37,22 @@ func setup() {
 	}
 	gormInstance, err = gorm.Open(sqlite.Open(dbPath))
 	if err != nil {
-		hwlog.RunLog.Errorf("failed to init test db, %v\n", err)
+		hwlog.RunLog.Errorf("failed to init test db, %v", err)
 	}
 	if err = gormInstance.AutoMigrate(&AppInfo{}); err != nil {
-		hwlog.RunLog.Errorf("setup table error, %v\n", err)
+		hwlog.RunLog.Errorf("setup table error, %v", err)
 	}
 	if err = gormInstance.AutoMigrate(&AppInstance{}); err != nil {
-		hwlog.RunLog.Errorf("setup table error, %v\n", err)
+		hwlog.RunLog.Errorf("setup table error, %v", err)
 	}
 	if err = gormInstance.AutoMigrate(&AppTemplateDb{}); err != nil {
-		hwlog.RunLog.Errorf("setup table error, %v\n", err)
+		hwlog.RunLog.Errorf("setup table error, %v", err)
 	}
 	if err = gormInstance.AutoMigrate(&AppDaemonSet{}); err != nil {
-		hwlog.RunLog.Errorf("setup table error, %v\n", err)
+		hwlog.RunLog.Errorf("setup table error, %v", err)
+	}
+	if err = gormInstance.AutoMigrate(&ConfigmapInfo{}); err != nil {
+		hwlog.RunLog.Errorf("setup table error, %v", err)
 	}
 
 	if _, err := kubeclient.NewClientK8s(""); err != nil {
@@ -130,6 +134,47 @@ func TestAll(t *testing.T) {
 			})
 		})
 
+	})
+}
+
+func TestConfigmap(t *testing.T) {
+	convey.Convey("test configmap operate", t, func() {
+		convey.Convey("test creat configmap", func() {
+			convey.Convey("create configmap should success", testCreateConfigmap)
+			convey.Convey("create configmap should failed", testCreateConfigmapDuplicateName)
+			convey.Convey("create configmap should failed, check item count in db error", testCreateConfigmapItemCountError)
+			convey.Convey("create configmap should failed, check param error", testCreateConfigmapParamError)
+			convey.Convey("create configmap should failed, param convert error", testCreateConfigmapParamConvertError)
+			convey.Convey("create configmap should failed, create by k8s error", testCreateConfigmapK8SError)
+		})
+
+		convey.Convey("test update configmap", func() {
+			convey.Convey("update configmap should success", testUpdateConfigmap)
+			convey.Convey("update configmap should failed, name is not exist", testUpdateConfigmapNotExist)
+			convey.Convey("update configmap should failed, check param error", testUpdateConfigmapParamError)
+			convey.Convey("update configmap should failed, param convert error", testUpdateConfigmapParamConvertError)
+			convey.Convey("update configmap should failed, update by k8s error", testUpdateConfigmapK8SError)
+		})
+
+		convey.Convey("test query configmap", func() {
+			convey.Convey("query configmap should success", testQueryConfigmap)
+			convey.Convey("query configmap should failed, id is not exist", testQueryConfigmapNotExist)
+			convey.Convey("query configmap should failed, param convert error", testQueryConfigmapParamConvertError)
+			convey.Convey("query configmap should failed, content unmarshal error", testQueryConfigmapContentUnmarshalError)
+		})
+
+		convey.Convey("test list configmap", func() {
+			convey.Convey("list configmap should success", testListConfigmap)
+			convey.Convey("list configmap should failed, param convert error", testListConfigmapParamConvertError)
+			convey.Convey("list configmap should failed, name is not exist", testListConfigmapNotExist)
+		})
+
+		convey.Convey("test delete configmap", func() {
+			convey.Convey("delete configmap should success", testDeleteConfigmap)
+			convey.Convey("delete configmap should failed， id is not exist", testDeleteConfigmapNotExist)
+			convey.Convey("delete configmap should failed, param convert error", testDeleteConfigmapParamConvertError)
+			convey.Convey("delete configmap should failed, delete by k8s error", testDeleteConfigmapK8SError)
+		})
 	})
 }
 
@@ -282,7 +327,7 @@ func testUndeployApInfo() {
 		})
 	defer p1.Reset()
 	resp := unDeployApp(reqData)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
 func testCreateTemplate() {

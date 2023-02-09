@@ -14,9 +14,8 @@ import (
 
 // confItemsTemplate nginx.conf需要替换的配置项
 var confItemsTemplate = []nginxcom.NginxConfItem{
-	{Key: nginxcom.EdgePortKey, From: nginxcom.KeyPrefix + nginxcom.EdgePortKey},
-	{Key: nginxcom.SoftPortKey, From: nginxcom.KeyPrefix + nginxcom.SoftPortKey},
-	{Key: nginxcom.CertPortKey, From: nginxcom.KeyPrefix + nginxcom.CertPortKey},
+	{Key: nginxcom.NginxSslPortKey, From: nginxcom.KeyPrefix + nginxcom.NginxSslPortKey},
+	{Key: nginxcom.UserMgrSvcPortKey, From: nginxcom.KeyPrefix + nginxcom.UserMgrSvcPortKey},
 }
 
 func checkNginxConfig(param interface{}) error {

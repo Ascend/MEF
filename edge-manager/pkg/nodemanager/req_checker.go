@@ -11,8 +11,10 @@ const (
 	fieldDescription   = "Description"
 	fieldNodeName      = "NodeName"
 	fieldUniqueName    = "UniqueName"
+	fieldSerialNumber  = "SerialNumber"
 	fieldGroupName     = "GroupName"
 	fieldNodeGroupName = "NodeGroupName"
+	fieldIP            = "IP"
 	fieldID            = "ID"
 	fieldNodeID        = "NodeID"
 	fieldGroupID       = "GroupID"
@@ -64,6 +66,14 @@ func newAddNodeRelationChecker() *checker.AndChecker {
 		idChecker(fieldGroupID),
 		idListChecker(fieldNodeIDs, idChecker("")),
 	)
+}
+
+func newNodeInfoChecker() *checker.AndChecker {
+	return checker.GetAndChecker(
+		nodeNameChecker(fieldNodeName),
+		uniqueNameChecker(fieldUniqueName),
+		nodeSerialNumberChecker(fieldSerialNumber),
+		checker.GetIpChecker(fieldIP, true))
 }
 
 func newDeleteNodeFromGroupChecker() *checker.AndChecker {

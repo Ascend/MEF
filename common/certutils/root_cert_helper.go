@@ -105,6 +105,7 @@ func (rcm *RootCertMgr) makeServiceCertificate(csr *x509.CertificateRequest) *x5
 		KeyUsage:     x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		DNSNames:     csr.DNSNames,
+		IPAddresses:  csr.IPAddresses,
 	}
 }
 

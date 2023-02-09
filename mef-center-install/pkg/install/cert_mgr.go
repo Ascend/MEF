@@ -1,5 +1,6 @@
 // Copyright (c) 2023. Huawei Technologies Co., Ltd. All rights reserved.
 
+// Package install this package is for handle mef center install
 package install
 
 import (
@@ -128,6 +129,13 @@ func (cpc *certPrepareCtl) setCertsOwner() error {
 		return errors.New("set cert root path owner and group failed")
 	}
 
+	if err = util.SetPathOwnerGroup(cpc.certPathMgr.GetConfigPath(), util.RootUid,
+		util.RootGid, false, false); err != nil {
+		hwlog.RunLog.Errorf("set path [%s] owner and group failed: %v",
+			cpc.certPathMgr.GetConfigPath(), err.Error())
+		return errors.New("set cert root path owner and group failed")
+	}
+
 	if err = util.SetPathOwnerGroup(cpc.certPathMgr.GetRootKmcDirPath(), util.RootUid,
 		util.RootGid, true, false); err != nil {
 		hwlog.RunLog.Errorf("set path [%s] owner and group failed: %v",
@@ -135,10 +143,17 @@ func (cpc *certPrepareCtl) setCertsOwner() error {
 		return errors.New("set cert root path owner and group failed")
 	}
 
-	if err = util.SetPathOwnerGroup(cpc.certPathMgr.GetRootCaKeyPath(), util.RootUid,
+	if err = util.SetPathOwnerGroup(cpc.certPathMgr.GetRootCaKeyDirPath(), util.RootUid,
+		util.RootGid, true, false); err != nil {
+		hwlog.RunLog.Errorf("set path [%s] owner and group failed: %v",
+			cpc.certPathMgr.GetRootCaKeyDirPath(), err.Error())
+		return errors.New("set cert root path owner and group failed")
+	}
+
+	if err = util.SetPathOwnerGroup(cpc.certPathMgr.GetRootCaDirPath(), util.RootUid,
 		util.RootGid, false, false); err != nil {
 		hwlog.RunLog.Errorf("set path [%s] owner and group failed: %v",
-			cpc.certPathMgr.GetRootCaKeyPath(), err.Error())
+			cpc.certPathMgr.GetRootCaDirPath(), err.Error())
 		return errors.New("set cert root path owner and group failed")
 	}
 	return nil

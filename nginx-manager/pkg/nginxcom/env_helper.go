@@ -20,6 +20,7 @@ func InitEnvs() {
 	Envs[EdgePortKey] = os.Getenv(EdgePortKey)
 	Envs[SoftPortKey] = os.Getenv(SoftPortKey)
 	Envs[CertPortKey] = os.Getenv(CertPortKey)
+	Envs[UserMgrSvcPortKey] = os.Getenv(UserMgrSvcPortKey)
 	Envs[NginxSslPortKey] = os.Getenv(NginxSslPortKey)
 }
 

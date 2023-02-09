@@ -18,6 +18,8 @@ const (
 	CertMgrDns = "ascend-cert-manager.mef-center.svc.cluster.local"
 	// CertMgrPort cert manager port
 	CertMgrPort = 8103
+	// NginxMgrDns nginx manager port
+	NginxMgrDns = "ascend-nginx-manager.mef-center.svc.cluster.local"
 )
 
 const (
@@ -151,6 +153,8 @@ const (
 )
 
 const (
+	// DefaultMinPageSize pageSize
+	DefaultMinPageSize = 1
 	// DefaultMaxPageSize pageSize
 	DefaultMaxPageSize = 100
 	// DefaultPage 1
@@ -167,6 +171,8 @@ const (
 
 // regex patterns
 const (
+	// PaginationNameReg name reg of pagination query
+	PaginationNameReg = "^[\\S]{0,32}$"
 	// RegAppTemplate regex pattern of app template version name
 	RegAppTemplate = `^[a-zA-Z]([-_a-zA-Z0-9]{0,62}[a-zA-Z0-9])?$`
 	// RegContainerName regex pattern of container name

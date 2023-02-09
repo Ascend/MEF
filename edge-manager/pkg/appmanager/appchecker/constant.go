@@ -43,10 +43,12 @@ const (
 	configmapMountPathReg  = `^/[a-zA-Z\d_\-/.]{1,1023}`
 	configmapNameReg       = "^[a-zA-Z0-9][a-zA-Z0-9-_]{0,61}[a-zA-Z0-9]$"
 
-	minAppId      = 1
-	maxAppId      = math.MaxInt64
-	minTemplateId = 1
-	maxTemplateId = math.MaxInt64
-	minList       = 1
-	maxList       = 1024
+	minAppId       = 1
+	maxAppId       = math.MaxInt64
+	minTemplateId  = 1
+	maxTemplateId  = math.MaxInt64
+	minNodeGroupId = 1
+	maxNodeGroupId = math.MaxInt64
+	minList        = 1
+	maxList        = 1024
 )

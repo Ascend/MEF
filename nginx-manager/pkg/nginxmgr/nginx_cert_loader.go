@@ -8,13 +8,65 @@ import (
 	"os"
 	"syscall"
 
-	"nginx-manager/pkg/nginxcom"
-
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/certutils"
+	"huawei.com/mindxedge/base/common/httpsmgr"
+
+	"nginx-manager/pkg/nginxcom"
 )
+
+func prepareServerCert() error {
+	keyPath := nginxcom.ServerCertKeyFile
+	certPath := nginxcom.ServerCertFile
+	if utils.IsExist(keyPath) && utils.IsExist(certPath) {
+		hwlog.RunLog.Info("check nginx server certs success")
+		return nil
+	}
+	hwlog.RunLog.Warn("check nginx server certs failed, start to create")
+	certStr, err := getServerCert(keyPath)
+	if err != nil {
+		return err
+	}
+	err = common.WriteData(certPath, []byte(certStr))
+	if err != nil {
+		hwlog.RunLog.Errorf("save cert for nginx service cert failed: %s", err.Error())
+		return err
+	}
+	hwlog.RunLog.Info("create cert for nginx service success")
+	return nil
+}
+
+func getServerCert(keyPath string) (string, error) {
+	ips, err := common.GetHostIpV4()
+	if err != nil {
+		return "", err
+	}
+	san := certutils.CertSan{IpAddr: ips}
+	csr, err := certutils.CreateCsr(keyPath, common.NginxCertName, nil, san)
+	if err != nil {
+		hwlog.RunLog.Errorf("create nginx service cert csr failed: %s", err.Error())
+		return "", err
+	}
+	reqCertParams := httpsmgr.ReqCertParams{
+		ClientTlsCert: certutils.TlsCertInfo{
+			RootCaPath:    nginxcom.RootCaPath,
+			CertPath:      nginxcom.ClientCertFile,
+			KeyPath:       nginxcom.ClientCertKeyFile,
+			SvrFlag:       false,
+			IgnoreCltCert: false,
+		},
+	}
+	var certStr string
+	certStr, err = reqCertParams.ReqIssueSvrCert(common.NginxCertName, csr)
+	if err != nil {
+		hwlog.RunLog.Errorf("issue certStr for nginx service cert failed: %s", err.Error())
+		return "", err
+	}
+	return certStr, nil
+}
 
 // Load 加载北向密钥文件并写入pipe
 func Load(keyPath, pipePath string) error {

@@ -31,6 +31,10 @@ func InitResource() error {
 	if err != nil {
 		return err
 	}
+	err = prepareServerCert()
+	if err != nil {
+		return err
+	}
 	err = loadCerts()
 	if err != nil {
 		return err
@@ -45,7 +49,7 @@ func updateConf() error {
 }
 
 func loadCerts() error {
-	err := Load(nginxcom.CertKeyFile, nginxcom.PipePath)
+	err := Load(nginxcom.ServerCertKeyFile, nginxcom.PipePath)
 	if err != nil {
 		return err
 	}
@@ -66,7 +70,7 @@ func CreateConfItems(envs map[string]string) []nginxcom.NginxConfItem {
 		createdItem := nginxcom.NginxConfItem{
 			Key:  item.Key,
 			From: item.From,
-			To:   item.From + " " + envs[item.Key],
+			To:   envs[item.Key],
 		}
 		ret = append(ret, createdItem)
 	}

@@ -97,7 +97,13 @@ func checkAndGetWsCert() {
 }
 
 func getWsCert(keyPath string) (string, string, error) {
-	csr, err := certutils.CreateCsr(keyPath, common.WsSerName, common.EdgeMgrDns, nil)
+	san := certutils.CertSan{DnsName: []string{common.EdgeMgrDns}}
+	ips, err := common.GetHostIpV4()
+	if err != nil {
+		return "", "", err
+	}
+	san.IpAddr = ips
+	csr, err := certutils.CreateCsr(keyPath, common.WsSerName, nil, san)
 	if err != nil {
 		hwlog.RunLog.Errorf("create websocket service cert csr failed: %v", err)
 		return "", "", err
@@ -123,7 +129,6 @@ func getWsCert(keyPath string) (string, string, error) {
 		hwlog.RunLog.Errorf("get valid root ca for websocket service failed: %v", err)
 		return "", "", err
 	}
-
 	certStr, err = reqCertParams.ReqIssueSvrCert(common.WsSerName, csr)
 	if err != nil {
 		hwlog.RunLog.Errorf("issue certStr for websocket service cert failed: %v", err)

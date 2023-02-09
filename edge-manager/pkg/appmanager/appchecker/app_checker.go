@@ -5,7 +5,6 @@ package appchecker
 
 import (
 	"fmt"
-	"math"
 
 	"huawei.com/mindxedge/base/common/checker/checker"
 )
@@ -25,6 +24,16 @@ func NewDeleteAppChecker() *deleteAppChecker {
 	return &deleteAppChecker{}
 }
 
+// NewDeployAppChecker [method] for getting delete app checker struct
+func NewDeployAppChecker() *deployAppChecker {
+	return &deployAppChecker{}
+}
+
+// NewUndeployAppChecker [method] for getting delete app checker struct
+func NewUndeployAppChecker() *undeployAppChecker {
+	return &undeployAppChecker{}
+}
+
 type createAppChecker struct {
 	modelChecker checker.ModelChecker
 }
@@ -36,6 +45,14 @@ type updateAppChecker struct {
 
 type deleteAppChecker struct {
 	idListChecker checker.UniqueListChecker
+}
+
+type deployAppChecker struct {
+	modelChecker checker.ModelChecker
+}
+
+type undeployAppChecker struct {
+	deployAppChecker
 }
 
 func (cac *createAppChecker) init() {
@@ -62,6 +79,28 @@ func (uac *updateAppChecker) init() {
 	)
 }
 
+func (dac *deleteAppChecker) init() {
+	dac.idListChecker = *checker.GetUniqueListChecker(
+		"AppIDs",
+		checker.GetUintChecker("", minAppId, maxAppId, true),
+		minList,
+		maxList,
+		true)
+}
+
+func (dac *deployAppChecker) init() {
+	dac.modelChecker.Required = true
+	dac.modelChecker.Checker = checker.GetAndChecker(
+		checker.GetUintChecker("AppID", minAppId, maxAppId, true),
+		checker.GetUniqueListChecker(
+			"NodeGroupIds",
+			checker.GetUintChecker("", minNodeGroupId, maxNodeGroupId, true),
+			minList,
+			maxList,
+			true),
+	)
+}
+
 // Check [method] for create app checker
 func (cac *createAppChecker) Check(data interface{}) checker.CheckResult {
 	cac.init()
@@ -82,16 +121,29 @@ func (uac *updateAppChecker) Check(data interface{}) checker.CheckResult {
 	return checker.NewSuccessResult()
 }
 
-func (dac deleteAppChecker) Check(data interface{}) checker.CheckResult {
-	listChecker := checker.GetUniqueListChecker(
-		"AppIDs",
-		checker.GetUintChecker("", 1, math.MaxInt64, true),
-		minList,
-		maxList,
-		true)
-	checkResult := listChecker.Check(data)
+func (dac *deleteAppChecker) Check(data interface{}) checker.CheckResult {
+	dac.init()
+	checkResult := dac.idListChecker.Check(data)
 	if !checkResult.Result {
 		return checker.NewFailedResult(fmt.Sprintf("delete app checker check failed: %s", checkResult.Reason))
+	}
+	return checker.NewSuccessResult()
+}
+
+func (dac *deployAppChecker) Check(data interface{}) checker.CheckResult {
+	dac.init()
+	checkResult := dac.modelChecker.Check(data)
+	if !checkResult.Result {
+		return checker.NewFailedResult(fmt.Sprintf("deploy app checker check failed: %s", checkResult.Reason))
+	}
+	return checker.NewSuccessResult()
+}
+
+func (uac *undeployAppChecker) Check(data interface{}) checker.CheckResult {
+	uac.init()
+	checkResult := uac.modelChecker.Check(data)
+	if !checkResult.Result {
+		return checker.NewFailedResult(fmt.Sprintf("undeploy app checker check failed: %s", checkResult.Reason))
 	}
 	return checker.NewSuccessResult()
 }

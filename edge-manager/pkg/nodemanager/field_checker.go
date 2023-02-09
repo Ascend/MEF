@@ -10,10 +10,12 @@ import (
 )
 
 const (
-	regexpNodeName    = `^[a-zA-Z][-_a-zA-Z0-9]{0,62}[a-zA-Z0-9]$`
-	regexpGroupName   = `^[a-zA-Z]([_a-zA-Z0-9]{0,30}[a-zA-Z0-9])?$`
-	regexpDescription = `^[\S ]{0,512}$`
-	maxListSize       = 1024
+	regexpNodeName         = `^[a-zA-Z0-9]([-_a-zA-Z0-9]{0,62}[a-zA-Z0-9])?$`
+	regUniqueName          = `^[a-zA-Z0-9]([-_a-zA-Z0-9]{0,62}[a-zA-Z0-9])?$`
+	regexpNodeSerialNumber = `^[a-zA-Z0-9]([-_a-zA-Z0-9]{0,62}[a-zA-Z0-9])?$`
+	regexpGroupName        = `^[a-zA-Z]([_a-zA-Z0-9]{0,30}[a-zA-Z0-9])?$`
+	regexpDescription      = `^[\S ]{0,512}$`
+	maxListSize            = 1024
 )
 
 func nodeNameChecker(fieldName string) *checker.RegChecker {
@@ -24,8 +26,12 @@ func groupNameChecker(fieldName string) *checker.RegChecker {
 	return checker.GetRegChecker(fieldName, regexpGroupName, true)
 }
 
-func uniqueNameChecker(fieldName string) *checker.ExistChecker {
-	return checker.GetExistChecker(fieldName)
+func uniqueNameChecker(fieldName string) *checker.RegChecker {
+	return checker.GetRegChecker(fieldName, regUniqueName, true)
+}
+
+func nodeSerialNumberChecker(fieldName string) *checker.RegChecker {
+	return checker.GetRegChecker(fieldName, regexpNodeSerialNumber, true)
 }
 
 func descriptionChecker(fieldName string) *checker.RegChecker {

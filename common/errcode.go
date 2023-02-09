@@ -52,6 +52,10 @@ const (
 	ErrorUserAlreadyFirstLogin = "10001009"
 	// ErrorPassOrUser username or password error
 	ErrorPassOrUser = "10001010"
+	// ErrorQueryLock query lock info error
+	ErrorQueryLock = "10001011"
+	// ErrorQueryHisPassword query history pass error
+	ErrorQueryHisPassword = "10001012"
 
 	// ErrorCheckNodeMrgSize failed to check data size while creating
 	ErrorCheckNodeMrgSize = "40011000"
@@ -180,6 +184,10 @@ var ErrorMap = map[string]string{
 	ErrorPassOrUser: "username or password error",
 	// ErrorParamConvert convert request error
 	ErrorParamConvert: "convert request error",
+	// ErrorQueryLock query lock info error
+	ErrorQueryLock: "query lock info error",
+	// ErrorQueryHisPassword query history password error
+	ErrorQueryHisPassword: "query history password error",
 
 	// ErrorCheckNodeMrgSize failed to check data size while creating
 	ErrorCheckNodeMrgSize: "failed to check data size while creating",

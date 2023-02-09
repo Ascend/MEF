@@ -37,7 +37,7 @@ func InitProxyConfig(name string, ip string, port int, tlsCertInfo certutils.Tls
 	netConfig.handlerMgr = WsMsgHandler{}
 	tlsConfig, err := certutils.GetTlsCfgWithPath(tlsCertInfo)
 	if err != nil {
-		return nil, fmt.Errorf("init proxy config failed: %v", err)
+		return nil, fmt.Errorf("init proxy config failed, error: %v", err)
 	}
 	netConfig.tlsConfig = tlsConfig
 	netConfig.headers = http.Header{}

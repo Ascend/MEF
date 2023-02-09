@@ -16,8 +16,9 @@ import (
 var endpointTemplate = []nginxcom.Endpoint{
 	{PortKey: nginxcom.EdgePortKey},
 	{PortKey: nginxcom.SoftPortKey},
-	{PortKey: nginxcom.NginxSslPortKey},
 	{PortKey: nginxcom.CertPortKey},
+	{PortKey: nginxcom.UserMgrSvcPortKey},
+	{PortKey: nginxcom.NginxSslPortKey},
 }
 
 func checkEnv(envs interface{}) error {

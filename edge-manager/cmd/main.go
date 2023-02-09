@@ -158,7 +158,10 @@ func gracefulShutdown(cancelFunc context.CancelFunc) {
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGHUP, syscall.SIGTERM,
 		syscall.SIGQUIT, syscall.SIGILL, syscall.SIGTRAP, syscall.SIGABRT)
 	select {
-	case <-signalChan:
+	case _, ok := <-signalChan:
+		if !ok {
+			hwlog.RunLog.Info("catch stop signal channel is closed")
+		}
 	}
 	cancelFunc()
 }

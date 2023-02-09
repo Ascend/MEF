@@ -12,6 +12,7 @@ import (
 
 	"edge-manager/pkg/appmanager/appchecker"
 	"edge-manager/pkg/types"
+	"edge-manager/pkg/util"
 )
 
 // createTemplate create app template
@@ -53,7 +54,7 @@ func createTemplate(param interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorCreateAppTemplate, Msg: err.Error()}
 	}
 	hwlog.RunLog.Info("create app template,success")
-	return common.RespMsg{Status: common.Success}
+	return common.RespMsg{Status: common.Success, Data: template.ID}
 }
 
 // deleteTemplate delete app template
@@ -111,6 +112,10 @@ func getTemplates(param interface{}) common.RespMsg {
 	if !ok {
 		hwlog.RunLog.Error("get app templates,failed: para type is invalid")
 		return common.RespMsg{Status: "", Msg: "list app info error", Data: nil}
+	}
+	if checkResult := util.NewPaginationQueryChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("get app templates para check failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
 	}
 
 	templates, err := RepositoryInstance().getTemplates(req.Name, req.PageNum, req.PageSize)
