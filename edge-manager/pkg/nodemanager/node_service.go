@@ -25,6 +25,8 @@ var (
 	nodeNotFoundPattern = regexp.MustCompile(`nodes "([^"]+)" not found`)
 )
 
+const groupLabelLen = 4
+
 // getNodeDetail get node detail
 func getNodeDetail(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start get node detail")
@@ -337,7 +339,7 @@ func deleteSingleNode(nodeID uint64) error {
 		return errors.New("can't delete unmanaged node")
 	}
 
-	groupLabels := make([]string, 0, 4)
+	groupLabels := make([]string, 0, groupLabelLen)
 	node, err := kubeclient.GetKubeClient().GetNode(nodeInfo.UniqueName)
 	if err != nil && isNodeNotFound(err) {
 		hwlog.RunLog.Warnf("k8s query node failed, err=%v", err)
