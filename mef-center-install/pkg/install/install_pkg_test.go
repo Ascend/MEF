@@ -59,6 +59,7 @@ func TestMain(m *testing.M) {
 
 func TestInstallPkg(t *testing.T) {
 	Convey("test install pkg", t, func() {
+		Convey("test install mgr file", DoInstallMgrTest)
 		Convey("test cert mgr file", CertMgrTest)
 		Convey("test working dir mgr file", WorkingDirMgrTest)
 		Convey("test yaml mgr file", YamlMgrTest)
