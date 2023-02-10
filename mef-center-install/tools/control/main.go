@@ -51,7 +51,7 @@ func init() {
 	flag.StringVar(&componentType, startFlag, "all", "start a component, default all components")
 	flag.StringVar(&componentType, stopFlag, "all", "stop a component, default all components")
 	flag.StringVar(&componentType, restartFlag, "all", "restart a component, default all components")
-	flag.StringVar(&operateType, operateFlag, "",
+	flag.StringVar(&operateType, operateFlag, "other",
 		"to illustrate the operate type: control, uninstall or upgrade")
 	flag.BoolVar(&version, util.VersionFlag, false, "Output the program version")
 }
