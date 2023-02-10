@@ -5,6 +5,7 @@ package nginxmonitor
 
 import (
 	"context"
+	"huawei.com/mindxedge/base/common"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -27,6 +28,7 @@ const (
 	monitorInterval         = 5 * time.Second
 	idle            mStatus = 0
 	processing      mStatus = 1
+	int64base               = 10
 )
 
 var nginxSslPort int
@@ -136,7 +138,7 @@ func isNginxUp(targetPort int) bool {
 		if len(ipPort) != splitCount {
 			continue
 		}
-		port, err := strconv.ParseInt(ipPort[1], 16, 64)
+		port, err := strconv.ParseInt(ipPort[1], int64base, common.BitSize64)
 		if err != nil {
 			continue
 		}

@@ -144,7 +144,7 @@ func (ki *Client) patchNode(nodeName string, patch []map[string]interface{}) (*v
 		Patch(context.Background(), nodeName, types.JSONPatchType, patchBytes, metav1.PatchOptions{})
 }
 
-// makeLabelPath make valid JSON Pointer(rfc6901)
+// makeLabelPath make valid JSON Pointer: rfc6901
 func (ki *Client) makeLabelPath(name string) string {
 	name = strings.ReplaceAll(name, "~", "~0")
 	name = strings.ReplaceAll(name, "/", "~1")

@@ -27,6 +27,11 @@ var (
 	dbPath       = "./test.db"
 )
 
+const (
+	notExitID      = 100
+	exceedPageSize = 101
+)
+
 func setup() {
 	var err error
 	logConfig := &hwlog.LogConfig{OnlyToStdout: true}
@@ -373,7 +378,7 @@ func testUpdateAppErrorInput() {
 }
 
 func testQueryAppNotExist() {
-	var reqData = uint64(100)
+	var reqData = uint64(notExitID)
 	resp := queryApp(reqData)
 	convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
 }
@@ -409,7 +414,7 @@ func testListAppInfoError() {
 func testListAppInfoInvalid() {
 	var reqData = types.ListReq{
 		PageNum:  1,
-		PageSize: 101,
+		PageSize: exceedPageSize,
 		Name:     "face-check",
 	}
 	resp := listAppInfo(reqData)
@@ -574,7 +579,7 @@ func testGetTemplatesError() {
 func testGetTemplatesInvalid() {
 	var reqData = types.ListReq{
 		PageNum:  1,
-		PageSize: 101,
+		PageSize: exceedPageSize,
 		Name:     "template1",
 	}
 	resp := getTemplates(reqData)
@@ -613,7 +618,7 @@ func testListAppInstanceError() {
 func testListAppInstanceInvalid() {
 	var reqData = types.ListReq{
 		PageNum:  1,
-		PageSize: 101,
+		PageSize: exceedPageSize,
 	}
 	resp := listAppInstances(reqData)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
