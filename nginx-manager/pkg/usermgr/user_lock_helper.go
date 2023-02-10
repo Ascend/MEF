@@ -145,7 +145,7 @@ func svcLocked(input interface{}) common.RespMsg {
 	}
 	lockInfo := lockInfoResp{
 		UserLocked: user.LockState,
-		IpLocked: ipLocked,
+		IpLocked:   ipLocked,
 	}
 	return common.RespMsg{Status: common.Success, Msg: "", Data: lockInfo}
 }

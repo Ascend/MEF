@@ -56,7 +56,6 @@ const (
 	// ErrorQueryHisPassword query history pass error
 	ErrorQueryHisPassword = "10001012"
 
-
 	// ErrorCheckNodeMrgSize failed to check data size while creating
 	ErrorCheckNodeMrgSize = "40011000"
 	// ErrorNodeMrgDuplicate failed to create/update data cause of duplicate
