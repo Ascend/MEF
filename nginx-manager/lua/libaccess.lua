@@ -53,29 +53,23 @@ end
 
 function _M.handleLockResp(resp)
     if resp.data == nil then
-        ngx.say(cjson.encode(resp))
-        return false
+        common.sendRespByBody(ngx.HTTP_BAD_REQUEST, nil, resp)
+        return
     end
+
     if resp.data.userLocked == true then
-        _M.libaccess.del_session_by_id(resp.data.userid)
+        ngx.shared.user_failed_cache:set(1, true, 800)
         ngx.log(ngx.NOTICE, resp.data.userid .. " locked")
-        ngx.status = ngx.HTTP_UNAUTHORIZED
-        local resp={}
-        resp["status"] = g_error_lock_state
-        resp["msg"] = "user or ip in lock state"
-        ngx.say(cjson.encode(resp))
-        return true
-    elseif resp.data.ipLocked == true then
-        local cache = ngx.shared.auth_failed_cache
-        cache:set(ngx.var.remote_addr, true, 300)
-        local resp={}
-        resp["status"] = g_error_lock_state
-        resp["msg"] = "user or ip in lock state"
-        ngx.say(cjson.encode(resp))
-        return true
+    end
+    if resp.data.ipLocked == true then
+        ngx.shared.ip_failed_cache:set(ngx.var.remote_addr, true, 800)
+        ngx.log(ngx.NOTICE, resp.data.ip .. " locked")
+    end
+
+    if resp.data.ipLocked == true or resp.data.userLocked == true then
+        common.sendResp(ngx.HTTP_UNAUTHORIZED, nil, g_error_lock_state, g_error_lock_state_info)
     else
         ngx.say(cjson.encode(resp))
-        return false
     end
 end
 

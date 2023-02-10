@@ -71,9 +71,9 @@ const (
 	// NginxSslPortKey nginx使用ssl的端口
 	NginxSslPortKey = "NginxSslPort"
 	// UserLockTime 用户锁定时长
-	UserLockTime = time.Second * 600
+	UserLockTime = time.Second * 30
 	// IpLockTime Ip锁定时长
-	IpLockTime = time.Second * 600
+	IpLockTime = time.Second * 30
 	// MaxPwdWrongTimes 密码最大错误次数
 	MaxPwdWrongTimes = 5
 	// HistoryPasswordSaveCount 相同密码缓存次数
