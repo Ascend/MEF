@@ -339,7 +339,8 @@ func modifyNodeFunctionalTest() {
 			}`, node.Description, node.NodeName, node.ID)
 		resp := modifyNode(args)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
-		convey.So(env.verifyDbNodeInfo(node, "UpdatedAt"), convey.ShouldBeNil)
+		verifyRes := env.verifyDbNodeInfo(node, "UpdatedAt")
+		convey.So(verifyRes, convey.ShouldBeNil)
 	})
 }
 
@@ -357,7 +358,8 @@ func modifyNodeValidationTest() {
 	env.randomize(node)
 
 	convey.Convey("empty description", func() {
-		convey.So(env.createNode(node), convey.ShouldBeNil)
+		nodeRes := env.createNode(node)
+		convey.So(nodeRes, convey.ShouldBeNil)
 		node.Description = ""
 		args := fmt.Sprintf(`
 			{
@@ -366,12 +368,14 @@ func modifyNodeValidationTest() {
 			}`, node.NodeName, node.ID)
 		resp := modifyNode(args)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
-		convey.So(env.verifyDbNodeInfo(node, "UpdatedAt"), convey.ShouldBeNil)
+		verifyRes := env.verifyDbNodeInfo(node, "UpdatedAt")
+		convey.So(verifyRes, convey.ShouldBeNil)
 	})
 
 	convey.Convey("modify unmanaged node", func() {
 		node.IsManaged = false
-		convey.So(env.createNode(node), convey.ShouldBeNil)
+		nodeRes := env.createNode(node)
+		convey.So(nodeRes, convey.ShouldBeNil)
 		args := fmt.Sprintf(`
 			{
     			"nodeName": "%s",
@@ -423,7 +427,8 @@ func createGroupFunctionalTest() {
 			}`, group.GroupName, group.Description)
 		resp := createGroup(args)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
-		convey.So(env.verifyDbNodeGroup(group, "ID", "UpdatedAt", "CreatedAt"), convey.ShouldBeNil)
+		verifyRes := env.verifyDbNodeGroup(group, "ID", "UpdatedAt", "CreatedAt")
+		convey.So(verifyRes, convey.ShouldBeNil)
 	})
 }
 
@@ -670,7 +675,8 @@ func batchDeleteNodeFunctionalTest() {
 		args := fmt.Sprintf(`{"nodeIDs": [%d]}`, node.ID)
 		resp := batchDeleteNode(args)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
-		convey.So(env.verifyDbNodeInfo(node), convey.ShouldNotEqual, "record not found")
+		verifyRes := env.verifyDbNodeInfo(node)
+		convey.So(verifyRes, convey.ShouldNotEqual, "record not found")
 	})
 }
 
@@ -724,7 +730,8 @@ func batchDeleteNodeRelationFunctionalTest() {
             }]`, node.ID, group.ID)
 		resp := batchDeleteNodeRelation(args)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
-		convey.So(env.verifyDbNodeRelation(relation), convey.ShouldEqual, gorm.ErrRecordNotFound)
+		verifyRes := env.verifyDbNodeRelation(relation)
+		convey.So(verifyRes, convey.ShouldEqual, gorm.ErrRecordNotFound)
 	})
 }
 
@@ -773,7 +780,8 @@ func addNodeRelationFunctionalTest() {
 		resp := addNodeRelation(args)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
 		relation := &NodeRelation{NodeID: node.ID, GroupID: group.ID}
-		convey.So(env.verifyDbNodeRelation(relation, "CreatedAt"), convey.ShouldBeNil)
+		verifyRes := env.verifyDbNodeRelation(relation, "CreatedAt")
+		convey.So(verifyRes, convey.ShouldBeNil)
 	})
 }
 
@@ -830,7 +838,8 @@ func modifyGroupFunctionalTest() {
 				}`, group.ID, group.GroupName, group.Description)
 		resp := modifyNodeGroup(args)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
-		convey.So(env.verifyDbNodeGroup(group, "UpdatedAt"), convey.ShouldBeNil)
+		verifyRes := env.verifyDbNodeGroup(group, "UpdatedAt")
+		convey.So(verifyRes, convey.ShouldBeNil)
 	})
 }
 
@@ -881,7 +890,8 @@ func batchDeleteGroupFunctionalTest() {
 		args := fmt.Sprintf(`{"groupIDs": [%d]}`, group.ID)
 		resp := batchDeleteNodeGroup(args)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
-		convey.So(env.verifyDbNodeGroup(group), convey.ShouldEqual, gorm.ErrRecordNotFound)
+		verifyRes := env.verifyDbNodeGroup(group)
+		convey.So(verifyRes, convey.ShouldEqual, gorm.ErrRecordNotFound)
 	})
 }
 
