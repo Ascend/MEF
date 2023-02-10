@@ -37,7 +37,7 @@ func comparePwdAndLock(clientIp string, targetPass []byte, user *User) common.Re
 	lockUser(user, exceedMaxCount)
 	lockIp(clientIp, exceedMaxCount)
 	if exceedMaxCount {
-		lockInfo := lockInfoResp{UserLocked: false, IpLocked: true, Userid: user.ID, Ip: clientIp}
+		lockInfo := lockInfoResp{UserLocked: true, IpLocked: true, Userid: user.ID, Ip: clientIp}
 		hwlog.RunLog.Errorf("compare password fail, lock user: %d, lock ip: %s", lockInfo.Userid, clientIp)
 		return common.RespMsg{Status: common.ErrorPassOrUser, Msg: "", Data: lockInfo}
 	}
