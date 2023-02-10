@@ -53,11 +53,7 @@ end
 
 function _M.check_locked()
     if _M.is_locked() then
-        ngx.status = ngx.HTTP_FORBIDDEN
-        resp = {}
-        resp["status"] = g_error_lock_state
-        resp["msg"] = g_error_lock_state_info
-        ngx.say(cjson.encode(resp))
+        _M.sendResp(ngx.HTTP_FORBIDDEN, nil, g_error_lock_state, g_error_lock_state_info)
         return ngx.exit(ngx.HTTP_FORBIDDEN)
     end
 end
