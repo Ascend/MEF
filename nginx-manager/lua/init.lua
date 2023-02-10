@@ -25,8 +25,8 @@ libdns.read_dns_servers_from_resolv_file()
 g_service_map={}
 g_service_map["edgemanager"] = "ascend-edge-manager.mef-center.svc.cluster.local"
 g_service_map["softwaremanager"] = "ascend-software-manager.mef-center.svc.cluster.local"
-g_service_map["usermanager"] ="ascend-nginx-manager.mef-center.svc.cluster.local"
-g_service_map["certmanager"] ="ascend-cert-manager.mef-center.svc.cluster.local"
+g_service_map["usermanager"] = "127.0.0.1"
+g_service_map["certmanager"] = "ascend-cert-manager.mef-center.svc.cluster.local"
 
 g_port_map={}
 g_port_map["edgemanager"]     = os.getenv("EdgeMgrSvcPort")
