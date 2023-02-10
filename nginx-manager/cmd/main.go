@@ -27,12 +27,13 @@ import (
 const (
 	runLogFile     = "/home/MEFCenter/logs/run.log"
 	operateLogFile = "/home/MEFCenter/logs/operate.log"
+	defaultPort    = 8080
 )
 
 var (
 	serverRunConf = &hwlog.LogConfig{LogFileName: runLogFile}
 	serverOpConf  = &hwlog.LogConfig{LogFileName: operateLogFile}
-	restfulPort   = 8080
+	restfulPort   = defaultPort
 )
 
 func main() {

@@ -4,6 +4,7 @@
 package nodemanager
 
 import (
+	"github.com/smartystreets/goconvey/convey"
 	"net/http"
 	"testing"
 
@@ -12,17 +13,17 @@ import (
 )
 
 func TestDispatchMsg(t *testing.T) {
-	Convey("dispatchMsg functional test", t, func() {
-		Convey("innerGetNodeInfoByUniqueName success", func() {
+	convey.Convey("dispatchMsg functional test", t, func() {
+		convey.Convey("innerGetNodeInfoByUniqueName success", func() {
 			input := model.Message{}
 			_, err := dispatchMsg(&input)
-			So(err, ShouldNotBeNil)
+			So(err, convey.ShouldNotBeNil)
 		})
-		Convey("innerGetNodeInfoByUniqueName param error", func() {
+		convey.Convey("innerGetNodeInfoByUniqueName param error", func() {
 			input := model.Message{}
 			input.SetRouter("", "", http.MethodGet, nodeUrlRootPath)
 			_, err := dispatchMsg(&input)
-			So(err, ShouldBeNil)
+			So(err, convey.ShouldBeNil)
 		})
 	})
 }

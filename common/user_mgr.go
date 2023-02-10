@@ -110,7 +110,7 @@ func (u *UserMgr) AddUserAccount() error {
 func GetCurrentUser() (string, error) {
 	userInfo, err := user.Current()
 	if err != nil {
-		return "", fmt.Errorf("get current user info failed: %s", err)
+		return "", fmt.Errorf("get current user info failed: %s", err.Error())
 	}
 
 	return userInfo.Username, nil

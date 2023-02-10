@@ -166,8 +166,8 @@ func (wdc *workingDirCtl) prepareVersionXml() error {
 func (wdc *workingDirCtl) getCurrentPath() (string, error) {
 	currentDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
-		hwlog.RunLog.Error("prepare lib path failed, get current path failed")
-		return "", errors.New("prepare lib path failed")
+		hwlog.RunLog.Error("get current path failed")
+		return "", errors.New("get current path failed")
 	}
 	currentPath := path.Dir(currentDir)
 

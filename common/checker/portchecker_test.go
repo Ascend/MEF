@@ -9,28 +9,34 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	testMinPort = 900
+	testMaxPort = 2000
+	inRange     = 1000
+)
+
 func TestPortInRange(t *testing.T) {
-	port := 1000
-	minPort := 900
-	maxPort := 2000
+	port := inRange
+	minPort := testMinPort
+	maxPort := testMaxPort
 
 	inRange := IsPortInRange(minPort, maxPort, port)
 	assert.True(t, inRange)
 }
 
 func TestPortSmallerThanMinPort(t *testing.T) {
-	port := 800
-	minPort := 900
-	maxPort := 2000
+	port := testMinPort - 1
+	minPort := testMinPort
+	maxPort := testMaxPort
 
 	inRange := IsPortInRange(minPort, maxPort, port)
 	assert.False(t, inRange)
 }
 
 func TestPortBiggerThanMaxPort(t *testing.T) {
-	port := 3000
-	minPort := 900
-	maxPort := 2000
+	port := testMaxPort + 1
+	minPort := testMinPort
+	maxPort := testMaxPort
 
 	inRange := IsPortInRange(minPort, maxPort, port)
 	assert.False(t, inRange)

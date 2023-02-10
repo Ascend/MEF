@@ -30,7 +30,7 @@ const (
 var hashFunc = sha256.New
 
 // CheckPassWord 校验密码复杂度等
-func CheckPassWord(userName, passWord string) error {
+func CheckPassWord(userName string, passWord []byte) error {
 	if err := checkPassWordForPattern(userName, passWord); err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func CheckPassWord(userName, passWord string) error {
 	return checkPassWordComplexity(passWord)
 }
 
-func checkPassWordComplexity(s string) error {
+func checkPassWordComplexity(b []byte) error {
 	complexCheckRegexArr := []string{
 		common.LowercaseCharactersRegex,
 		common.UppercaseCharactersRegex,
@@ -47,7 +47,7 @@ func checkPassWordComplexity(s string) error {
 	}
 	complexCount := 0
 	for _, pattern := range complexCheckRegexArr {
-		if matched, err := regexp.MatchString(pattern, s); matched && err == nil {
+		if matched, err := regexp.Match(pattern, b); matched && err == nil {
 			complexCount++
 		}
 	}
@@ -58,28 +58,32 @@ func checkPassWordComplexity(s string) error {
 	return nil
 }
 
-func checkPassWordForPattern(userName, passWord string) error {
-	if matched, err := regexp.MatchString(common.PassWordRegex, passWord); err != nil || !matched {
+func checkPassWordForPattern(userName string, passWord []byte) error {
+	if matched, err := regexp.Match(common.PassWordRegex, passWord); err != nil || !matched {
 		return errors.New("password not meet requirement")
 	}
-	if userName == passWord {
+	passWordStr := string(passWord)
+	defer func() {
+		common.ClearStringMemory(passWordStr)
+	}()
+	if userName == passWordStr {
 		return errors.New("password cannot equals username")
 	}
-	if utils.ReverseString(userName) == passWord {
+	if utils.ReverseString(userName) == passWordStr {
 		return errors.New("password cannot equal reversed username")
 	}
 	return nil
 }
 
 // ComparePassword 比较混淆后的新旧密码
-func ComparePassword(newPassword []byte, passwordHash string, salt string) bool {
+func ComparePassword(newPassword []byte, hashVal string, salt string) bool {
 	saltByte, err := convertStringToByteArr(salt)
 	if err != nil {
 		hwlog.RunLog.Error(err)
 		return false
 	}
 	encryptPassWord := getEncryptedStrBySalt(newPassword, saltByte)
-	return passwordHash == encryptPassWord
+	return hashVal == encryptPassWord
 }
 
 // GetEncryptPassword 获取混淆后的密码

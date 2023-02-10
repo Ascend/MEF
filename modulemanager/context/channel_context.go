@@ -37,6 +37,9 @@ func (context *channelContext) findChannel(moduleName string) (chan model.Messag
 }
 
 func (context *channelContext) sendMsgByChannel(channel chan model.Message, msg *model.Message) error {
+	if channel == nil {
+		return errors.New("model.Message channel is nil")
+	}
 	select {
 	case channel <- *msg:
 	case <-time.After(defaultMsgTimeout):

@@ -35,10 +35,11 @@ const (
 	defaultRunLogFile     = "/var/log/mindx-edge/edge-manager/run.log"
 	defaultOperateLogFile = "/var/log/mindx-edge/edge-manager/operate.log"
 	defaultDbPath         = "/home/data/config/edge-manager.db"
+	logMaxLineLength      = 512
 )
 
 var (
-	serverRunConf = &hwlog.LogConfig{LogFileName: defaultRunLogFile, MaxLineLength: 512}
+	serverRunConf = &hwlog.LogConfig{LogFileName: defaultRunLogFile, MaxLineLength: logMaxLineLength}
 	serverOpConf  = &hwlog.LogConfig{LogFileName: defaultOperateLogFile}
 	port          int
 	wsPort        int

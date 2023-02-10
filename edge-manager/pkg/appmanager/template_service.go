@@ -63,7 +63,7 @@ func deleteTemplate(param interface{}) common.RespMsg {
 	req := DeleteTemplateReq{}
 	if err := common.ParamConvert(param, &req); err != nil {
 		hwlog.RunLog.Error("delete app template,failed,error:request parameter convert failed")
-		return common.RespMsg{Status: common.ErrorParamInvalid}
+		return common.RespMsg{Status: common.ErrorParamConvert}
 	}
 	if err := RepositoryInstance().deleteTemplates(req.Ids); err != nil {
 		hwlog.RunLog.Errorf("delete app template,failed,error:%v", err)
