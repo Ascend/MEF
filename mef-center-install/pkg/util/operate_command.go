@@ -21,21 +21,26 @@ type CtlComponent struct {
 	InstallPathMgr *InstallDirPathMgr
 }
 
-func (cc *CtlComponent) startComponent(yamlPath string) error {
+func (cc *CtlComponent) startComponent(yamlPath string) (bool, error) {
 	nsMgr := NewNamespaceMgr(MefNamespace)
 	if err := nsMgr.prepareNameSpace(); err != nil {
-		return err
+		return false, err
 	}
 
-	if _, err := common.RunCommand(CommandKubectl, true, "apply", "-f", yamlPath); err != nil {
+	status, err := cc.getComponentStatus()
+	if cc.checkIfStatusReady(status) && err == nil {
+		return true, nil
+	}
+
+	if _, err = common.RunCommand(CommandKubectl, true, "apply", "-f", yamlPath); err != nil {
 		hwlog.RunLog.Errorf("exec kubectl apply failed: %s", err.Error())
-		return fmt.Errorf("exec kubectl apply failed: %s", err.Error())
+		return false, fmt.Errorf("exec kubectl apply failed: %s", err.Error())
 	}
 
-	if err := cc.checkIfComponentReady(); err != nil {
-		return err
+	if err = cc.checkIfComponentReady(); err != nil {
+		return false, err
 	}
-	return nil
+	return false, nil
 }
 
 func (cc *CtlComponent) stopComponent() error {
@@ -151,8 +156,15 @@ func (cc *CtlComponent) Operate() error {
 
 	switch cc.Operation {
 	case StartOperateFlag:
-		if err = cc.startComponent(filePath); err != nil {
+		started, err := cc.startComponent(filePath)
+		if err != nil {
 			return err
+		}
+
+		if started {
+			fmt.Printf("module %s's status unchanged\n", cc.Name)
+			hwlog.RunLog.Infof("%s module %s, the component's status unchanged", cc.Operation, cc.Name)
+			return nil
 		}
 
 	case StopOperateFlag:
@@ -164,7 +176,7 @@ func (cc *CtlComponent) Operate() error {
 		if err = cc.stopComponent(); err != nil {
 			return err
 		}
-		if err = cc.startComponent(filePath); err != nil {
+		if _, err = cc.startComponent(filePath); err != nil {
 			return err
 		}
 	default:
