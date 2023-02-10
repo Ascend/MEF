@@ -191,7 +191,7 @@ func checkHistoryPassword(newPassword []byte, cacheUser *User) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
-func saveHistoryPassword(newPasswordHash string, newSalt string, userId uint64) {
+func saveHistoryPassword(hashVal string, newSalt string, userId uint64) {
 	historyPasswords, err := UserServiceInstance().getHistoryPasswords(userId)
 	if err != nil {
 		hwlog.RunLog.Error("save password err")
@@ -208,7 +208,7 @@ func saveHistoryPassword(newPasswordHash string, newSalt string, userId uint64) 
 	}
 	toUpdateHisPass := &HistoryPassword{
 		UserId:          userId,
-		HistoryPassword: newPasswordHash,
+		HistoryPassword: hashVal,
 		Salt:            newSalt,
 		CreatedAt:       time.Now().Format(common.TimeFormat),
 	}

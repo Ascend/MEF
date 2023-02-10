@@ -19,5 +19,5 @@ local ok, resp = pcall(cjson.decode, res.body)
 if resp and resp.status == g_error_pass_or_user then
     libaccess.handleLockResp(resp)
 else
-    common.sendRespByBody(res.status, nil, res.body)
+    common.sendRespByCapture(res)
 end
