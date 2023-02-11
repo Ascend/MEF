@@ -43,14 +43,14 @@ type loginReq struct {
 
 type queryIpLockReq struct {
 	baseReq
-	targetIp string `json:"targetIp"`
+	TargetIp string `json:"targetIp"`
 }
 
 type lockInfoResp struct {
-	userLocked bool   `json:"userLocked"`
-	ipLocked   bool   `json:"ipLocked"`
-	userid     uint64 `json:"userid"`
-	ip         string `json:"ip"`
+	UserLocked bool   `json:"userLocked"`
+	IpLocked   bool   `json:"ipLocked"`
+	Userid     uint64 `json:"userid"`
+	Ip         string `json:"ip"`
 }
 
 // UserServiceImpl  an implement for UserService
@@ -62,6 +62,7 @@ type UserServiceImpl struct {
 type UserService interface {
 	createUser(*User) error
 	getUserByName(string) (*User, error)
+	getUserById(uint64) (*User, error)
 	getLockedUsers() (*[]User, error)
 	updatePassword(*User) error
 	updateUserLogin(*User) error
@@ -90,6 +91,11 @@ func (u *UserServiceImpl) createUser(user *User) error {
 func (u *UserServiceImpl) getUserByName(username string) (*User, error) {
 	var user User
 	return &user, u.db.Model(User{}).Where("username = ?", username).First(&user).Error
+}
+
+func (u *UserServiceImpl) getUserById(userid uint64) (*User, error) {
+	var user User
+	return &user, u.db.Model(User{}).Where("id = ?", userid).First(&user).Error
 }
 
 func (u *UserServiceImpl) updatePassword(user *User) error {
