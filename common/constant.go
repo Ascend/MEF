@@ -100,30 +100,16 @@ const (
 
 	// Node resource node
 	Node = "node"
-	// NodeUnManaged resource node unmanaged
-	NodeUnManaged = "nodeUnManaged"
-	// App resource app
-	App = "app"
-	// AppInstance resource app instance
-	AppInstance = "appInstance"
-	// AppInstanceByNode resource app instance by node
-	AppInstanceByNode = "appInstanceByNode"
 	// AppInstanceByNodeGroup resource app instance by node group
 	AppInstanceByNodeGroup = "appInstanceByNodeGroup"
 	// NodeGroup resource nodeGroup
 	NodeGroup = "nodeGroup"
 	// NodeStatus resource node status
 	NodeStatus = "nodeStatus"
-	// NodeStatistics node statistics
-	NodeStatistics = "nodeStatistics"
-	// NodeGroupStatistics node group statistics
-	NodeGroupStatistics = "nodeGroupStatistics"
-	// NodeRelation node relation
-	NodeRelation = "nodeRelation"
-	// ServiceCert resource service cert
-	ServiceCert = "service cert"
-	// AppTemplate resource app template
-	AppTemplate = "AppTemplate"
+	// CheckResource resources allocatable node resources in node group
+	CheckResource = "checkResource"
+	// UpdateResource resources allocatable node resources in node group
+	UpdateResource = "updateResource"
 	// ResponseTimeout response timeout time
 	ResponseTimeout = 3 * time.Second
 
@@ -166,7 +152,9 @@ const (
 	// NodeGroupLabelPrefix k8s label prefix for node group
 	NodeGroupLabelPrefix = "MEF-Node"
 	// DeviceType for Ascend device
-	DeviceType = "huawei.com/davinci-mini"
+	DeviceType = "huawei.com/Ascend310"
+	// DefaultImagePullSecret for image pull
+	DefaultImagePullSecret = "image-pull-secret"
 )
 
 // regex patterns

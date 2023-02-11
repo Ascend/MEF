@@ -35,9 +35,11 @@ func initDaemonSet(appInfo *AppInfo, nodeGroupId uint64) (*appv1.DaemonSet, erro
 		return nil, err
 	}
 	cmVolumes := getCmVolumes(containerInfos)
+	reference := v1.LocalObjectReference{Name: common.DefaultImagePullSecret}
 
 	tmpSpec := v1.PodSpec{}
 	tmpSpec.Containers = containers
+	tmpSpec.ImagePullSecrets = []v1.LocalObjectReference{reference}
 	tmpSpec.NodeSelector = map[string]string{
 		common.NodeGroupLabelPrefix + strconv.FormatUint(nodeGroupId, DecimalScale): "",
 	}

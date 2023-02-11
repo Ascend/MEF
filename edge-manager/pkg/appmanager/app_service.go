@@ -79,10 +79,19 @@ func queryApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorQueryApp, Msg: "query app info failed", Data: nil}
 	}
 
-	var resp AppReturnInfo
-	resp.AppID = appInfo.ID
-	resp.AppName = appInfo.AppName
-	resp.Description = appInfo.Description
+	nodeGroupInfos, err := AppRepositoryInstance().getNodeGroupInfosByAppID(appId)
+	if err != nil {
+		hwlog.RunLog.Errorf("query app info failed, db error")
+		return common.RespMsg{Status: common.ErrorQueryApp, Msg: "query app info failed", Data: nil}
+	}
+	resp := AppReturnInfo{
+		AppID:          appInfo.ID,
+		AppName:        appInfo.AppName,
+		Description:    appInfo.Description,
+		CreatedAt:      appInfo.CreatedAt.Format(common.TimeFormat),
+		ModifiedAt:     appInfo.UpdatedAt.Format(common.TimeFormat),
+		NodeGroupInfos: nodeGroupInfos,
+	}
 
 	if err = json.Unmarshal([]byte(appInfo.Containers), &resp.Containers); err != nil {
 		hwlog.RunLog.Error("unmarshal containers info failed")
@@ -204,6 +213,12 @@ func deployAppToNodeGroups(appInfo *AppInfo, NodeGroupIds []uint64) types.BatchR
 		daemonSet, err := initDaemonSet(appInfo, nodeGroupId)
 		if err != nil {
 			hwlog.RunLog.Errorf("init daemonSet app [%s] on node group id [%d] failed: %s",
+				appInfo.AppName, nodeGroupId, err.Error())
+			deployRes.FailedIDs = append(deployRes.FailedIDs, nodeGroupId)
+			continue
+		}
+		if err := checkNodeGroupResources(nodeGroupId, daemonSet); err != nil {
+			hwlog.RunLog.Errorf("check app [%s] resources on node group id [%d] failed: %s",
 				appInfo.AppName, nodeGroupId, err.Error())
 			deployRes.FailedIDs = append(deployRes.FailedIDs, nodeGroupId)
 			continue
@@ -406,19 +421,19 @@ func getAppInstanceRespFromAppInstances(appInstances []AppInstance) ([]AppInstan
 	for _, instance := range appInstances {
 		nodeStatus, err := getNodeStatus(instance.NodeUniqueName)
 		if err != nil {
-			hwlog.RunLog.Errorf("get node [%s] status error: %v", instance.NodeUniqueName, err)
+			hwlog.RunLog.Warnf("get node [%s] status error: %v", instance.NodeUniqueName, err)
 			continue
 		}
 		podStatus := appStatusService.getPodStatusFromCache(instance.PodName, nodeStatus)
 		containerInfos, err := appStatusService.getContainerInfos(instance, nodeStatus)
 		if err != nil {
-			hwlog.RunLog.Errorf("get app id [%d] of node [%d] container infos error: %v",
+			hwlog.RunLog.Warnf("get app id [%d] of node [%d] container infos error: %v",
 				instance.AppID, instance.NodeID, err)
 			continue
 		}
 		nodeGroupName, err := AppRepositoryInstance().getNodeGroupName(instance.AppID, instance.NodeGroupID)
 		if err != nil {
-			hwlog.RunLog.Errorf("get app id [%d] node group [%d] name failed, db error",
+			hwlog.RunLog.Warnf("get app id [%d] node group [%d] name failed, db error",
 				instance.AppID, instance.NodeGroupID)
 			continue
 		}
@@ -439,35 +454,6 @@ func getAppInstanceRespFromAppInstances(appInstances []AppInstance) ([]AppInstan
 		appInstanceResp = append(appInstanceResp, resp)
 	}
 	return appInstanceResp, nil
-}
-
-func getNodeStatus(nodeUniqueName string) (string, error) {
-	if nodeUniqueName == "" {
-		hwlog.RunLog.Warn("app instance node name is empty, pod is in pending phase")
-		return nodeStatusUnknown, nil
-	}
-	router := common.Router{
-		Source:      common.AppManagerName,
-		Destination: common.NodeManagerName,
-		Option:      common.Inner,
-		Resource:    common.NodeStatus,
-	}
-	req := types.InnerGetNodeStatusReq{
-		UniqueName: nodeUniqueName,
-	}
-	resp := common.SendSyncMessageByRestful(req, &router)
-	if resp.Status == "" {
-		return nodeStatusUnknown, fmt.Errorf("get info from other module error, %v", resp.Msg)
-	}
-	data, err := json.Marshal(resp.Data)
-	if err != nil {
-		return nodeStatusUnknown, errors.New("marshal internal response error")
-	}
-	var node types.InnerGetNodeStatusResp
-	if err = json.Unmarshal(data, &node); err != nil {
-		return nodeStatusUnknown, errors.New("unmarshal internal response error")
-	}
-	return node.NodeStatus, nil
 }
 
 // listAppInstancesByNode get deployed apps' list of a certain node
@@ -503,13 +489,13 @@ func getAppInstanceOfNodeRespFromAppInstances(appInstances []AppInstance) ([]App
 		}
 		nodeGroupName, err := AppRepositoryInstance().getNodeGroupName(instance.AppID, instance.NodeGroupID)
 		if err != nil {
-			hwlog.RunLog.Errorf("get app id [%d] node group [%d] name failed, db error",
+			hwlog.RunLog.Warnf("get app id [%d] node group [%d] name failed, db error",
 				instance.AppID, instance.NodeGroupID)
 			continue
 		}
 		nodeStatus, err := getNodeStatus(instance.NodeUniqueName)
 		if err != nil {
-			hwlog.RunLog.Errorf("get node [%s] status error: %v", instance.NodeUniqueName, err)
+			hwlog.RunLog.Warnf("get node [%s] status error: %v", instance.NodeUniqueName, err)
 			continue
 		}
 		status := appStatusService.getPodStatusFromCache(instance.PodName, nodeStatus)
@@ -562,24 +548,4 @@ func listAppInstances(input interface{}) common.RespMsg {
 		Total:        total,
 	}
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
-}
-
-func getAppInstanceCountByNodeGroup(input interface{}) common.RespMsg {
-	hwlog.RunLog.Info("start to get appInstance count")
-	req, ok := input.([]uint64)
-	if !ok {
-		hwlog.RunLog.Error("failed to convert param")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "failed to convert param"}
-	}
-	appInstanceCount := make(map[uint64]int64)
-	for _, groupId := range req {
-		count, err := AppRepositoryInstance().countDeployedAppByGroupID(groupId)
-		if err != nil {
-			hwlog.RunLog.Error("failed to count appInstance by node group")
-			return common.RespMsg{Status: common.ErrorGetAppInstanceCountByNodeGroup, Msg: ""}
-		}
-		appInstanceCount[groupId] = count
-	}
-	hwlog.RunLog.Info("get appInstance count success")
-	return common.RespMsg{Status: common.Success, Data: appInstanceCount}
 }
