@@ -236,18 +236,15 @@ func (c *ComponentMgr) PrepareComponentCert(certMng *certutils.RootCertMgr, cert
 
 	componentsCertPath := certPathMgr.GetComponentCertPath(c.name)
 	componentPrivPath := certPathMgr.GetComponentKeyPath(c.name)
+	kmcKeyPath := certPathMgr.GetComponentMasterKmcPath(c.name)
+	kmcBackKeyPath := certPathMgr.GetComponentBackKmcPath(c.name)
 
 	componentCert := certutils.SelfSignCert{
 		RootCertMgr: certMng,
 		SvcCertPath: componentsCertPath,
 		SvcKeyPath:  componentPrivPath,
 		CommonName:  c.name,
-		KmcCfg: &common.KmcCfg{
-			SdpAlgID:       common.Aes256gcm,
-			PrimaryKeyPath: certPathMgr.GetComponentMasterKmcPath(c.name),
-			StandbyKeyPath: certPathMgr.GetComponentBackKmcPath(c.name),
-			DoMainId:       common.DoMainId,
-		},
+		KmcCfg:      common.GetKmcCfg(kmcKeyPath, kmcBackKeyPath),
 		San: certutils.CertSan{
 			DnsName: []string{getComponentDns(c.name)},
 		},
@@ -280,17 +277,15 @@ func (c *ComponentMgr) prepareUserMgrCert(certMng *certutils.RootCertMgr, certPa
 	}
 	componentsCertPath := certPathMgr.GetUserServerCrtPath()
 	componentPrivPath := certPathMgr.GetUserServerKeyPath()
+	kmcKeyPath := certPathMgr.GetComponentMasterKmcPath(c.name)
+	kmcBackKeyPath := certPathMgr.GetComponentBackKmcPath(c.name)
+
 	componentCert := certutils.SelfSignCert{
 		RootCertMgr: certMng,
 		SvcCertPath: componentsCertPath,
 		SvcKeyPath:  componentPrivPath,
 		CommonName:  c.name,
-		KmcCfg: &common.KmcCfg{
-			SdpAlgID:       common.Aes256gcm,
-			PrimaryKeyPath: certPathMgr.GetComponentMasterKmcPath(c.name),
-			StandbyKeyPath: certPathMgr.GetComponentBackKmcPath(c.name),
-			DoMainId:       common.DoMainId,
-		},
+		KmcCfg:      common.GetKmcCfg(kmcKeyPath, kmcBackKeyPath),
 		San: certutils.CertSan{
 			DnsName: []string{getComponentDns(c.name)},
 		},
