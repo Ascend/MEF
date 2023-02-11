@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
+	"strings"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
@@ -39,6 +41,7 @@ type SftInstallCtl struct {
 func (sic *SftInstallCtl) DoInstall() error {
 	// MEFCenter已安装时不进行环境清理
 	if err := sic.checkInstalled(); err != nil {
+		fmt.Println("MEF-Center has already been installed")
 		return err
 	}
 
@@ -163,8 +166,40 @@ func (sic *SftInstallCtl) checkInstalled() error {
 		hwlog.RunLog.Error("the software has already been installed")
 		return errors.New("the software has already been installed")
 	}
+
+	err = sic.checkK8sLabel()
+	if err != nil {
+		return err
+	}
 	hwlog.RunLog.Info("check if the software has been installed successful")
 	return nil
+}
+
+func (sic *SftInstallCtl) checkK8sLabel() error {
+	nodeName, err := sic.getCurrentNodeName()
+	if err != nil {
+		return nil
+	}
+
+	if strings.ContainsAny(nodeName, common.IllegalChars) {
+		hwlog.RunLog.Error("the nodeName contains illegal characters")
+		return errors.New("the nodeName contains illegal characters")
+	}
+
+	nodeNameReg := fmt.Sprintf("'^%s\\s'", nodeName)
+	cmd := fmt.Sprintf(util.CheckLabelCmdPattern, util.K8sLabel, nodeNameReg)
+	ret, err := common.RunCommand("sh", false, common.DefaultCmdWaitTime, "-c", cmd)
+	if err != nil {
+		hwlog.RunLog.Errorf("check k8s label existence failed: %s", err.Error())
+		return err
+	}
+
+	if ret != strconv.Itoa(util.LabelCount) {
+		return nil
+	}
+
+	hwlog.RunLog.Error("the software has already been installed since k8s label exists")
+	return errors.New("the software has already been installed since k8s label exists")
 }
 
 func (sic *SftInstallCtl) prepareMefUser() error {
@@ -180,12 +215,11 @@ func (sic *SftInstallCtl) prepareMefUser() error {
 	return nil
 }
 
-func (sic *SftInstallCtl) prepareK8sLabel() error {
-	hwlog.RunLog.Info("start to set label for master node")
+func (sic *SftInstallCtl) getCurrentNodeName() (string, error) {
 	localIp, err := util.GetLocalIp()
 	if err != nil {
 		hwlog.RunLog.Errorf("get local IP failed: %s", err.Error())
-		return err
+		return "", err
 	}
 
 	ipReg := fmt.Sprintf("\\s*%s\\s*", localIp)
@@ -193,10 +227,24 @@ func (sic *SftInstallCtl) prepareK8sLabel() error {
 	nodeName, err := common.RunCommand("sh", false, common.DefaultCmdWaitTime, "-c", cmd)
 	if err != nil {
 		hwlog.RunLog.Errorf("get current node failed: %s", err.Error())
+		return "", err
+	}
+	return nodeName, nil
+}
+
+func (sic *SftInstallCtl) prepareK8sLabel() error {
+	hwlog.RunLog.Info("start to set label for master node")
+	nodeName, err := sic.getCurrentNodeName()
+	if err != nil {
 		return err
 	}
 
-	cmd = fmt.Sprintf(util.SetLabelCmdPattern, nodeName)
+	if strings.ContainsAny(nodeName, common.IllegalChars) {
+		hwlog.RunLog.Error("the nodeName contains illegal characters")
+		return errors.New("the nodeName contains illegal characters")
+	}
+
+	cmd := fmt.Sprintf(util.SetLabelCmdPattern, nodeName, util.K8sLabel)
 	_, err = common.RunCommand("sh", false, common.DefaultCmdWaitTime, "-c", cmd)
 	if err != nil {
 		hwlog.RunLog.Errorf("set mef label failed: %s", err.Error())
