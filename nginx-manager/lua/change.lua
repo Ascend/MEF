@@ -8,7 +8,7 @@ common.check_locked()
 local session = libaccess.get_session_info()
 if session == nil then
     ngx.log(ngx.NOTICE, "invalid cookie")
-    common.sendResp(ngx.HTTP_UNAUTHORIZED, "application/json", g_not_logged_in, "please login")
+    common.sendResp(ngx.HTTP_UNAUTHORIZED, "application/json", g_not_logged_in, g_not_logged_in_info)
     return ngx.exit(ngx.HTTP_UNAUTHORIZED)
 end
 
