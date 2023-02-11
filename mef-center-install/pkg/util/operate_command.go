@@ -32,7 +32,8 @@ func (cc *CtlComponent) startComponent(yamlPath string) (bool, error) {
 		return true, nil
 	}
 
-	if _, err = common.RunCommand(CommandKubectl, true, "apply", "-f", yamlPath); err != nil {
+	if _, err = common.RunCommand(CommandKubectl, true, common.DefaultCmdWaitTime,
+		"apply", "-f", yamlPath); err != nil {
 		hwlog.RunLog.Errorf("exec kubectl apply failed: %s", err.Error())
 		return false, fmt.Errorf("exec kubectl apply failed: %s", err.Error())
 	}
@@ -73,7 +74,7 @@ func (cc *CtlComponent) getComponentStatus() (string, error) {
 	deploymentReg := fmt.Sprintf("'^%s\\s'", AscendPrefix+cc.Name)
 	checkCmd := fmt.Sprintf("%s get deployment -n %s | grep -w %s",
 		CommandKubectl, MefNamespace, deploymentReg)
-	ret, err := common.RunCommand("sh", false, "-c", checkCmd)
+	ret, err := common.RunCommand("sh", false, common.DefaultCmdWaitTime, "-c", checkCmd)
 
 	if err != nil && err.Error() != "" {
 		hwlog.RunLog.Warnf("check components %s's status failed: %s", cc.Name, err.Error())
@@ -93,7 +94,8 @@ func (cc *CtlComponent) checkIfStatusStopped(status string) bool {
 
 func (cc *CtlComponent) setReplicas(num int) error {
 	deploymentName := AscendPrefix + cc.Name
-	if _, err := common.RunCommand(CommandKubectl, true, "scale", "deployment", deploymentName,
+	if _, err := common.RunCommand(CommandKubectl, true, common.DefaultCmdWaitTime,
+		"scale", "deployment", deploymentName,
 		"-n", MefNamespace, fmt.Sprintf("--replicas=%d", num)); err != nil {
 		hwlog.RunLog.Errorf("exec kubectl delete failed: %s", err.Error())
 		return fmt.Errorf("exec kubectl delete failed: %s", err.Error())

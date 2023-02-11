@@ -190,14 +190,14 @@ func (sic *SftInstallCtl) prepareK8sLabel() error {
 
 	ipReg := fmt.Sprintf("\\s*%s\\s*", localIp)
 	cmd := fmt.Sprintf(util.GetNodeCmdPattern, ipReg)
-	nodeName, err := common.RunCommand("sh", false, "-c", cmd)
+	nodeName, err := common.RunCommand("sh", false, common.DefaultCmdWaitTime, "-c", cmd)
 	if err != nil {
 		hwlog.RunLog.Errorf("get current node failed: %s", err.Error())
 		return err
 	}
 
 	cmd = fmt.Sprintf(util.SetLabelCmdPattern, nodeName)
-	_, err = common.RunCommand("sh", false, "-c", cmd)
+	_, err = common.RunCommand("sh", false, common.DefaultCmdWaitTime, "-c", cmd)
 	if err != nil {
 		hwlog.RunLog.Errorf("set mef label failed: %s", err.Error())
 		return err
