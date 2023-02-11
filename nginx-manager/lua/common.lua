@@ -27,7 +27,6 @@ function _M.parse_session_tag()
 end
 
 function _M.is_locked()
-    ngx.log(ngx.ERR, "check ip locked: " .. ngx.var.remote_addr)
     local ip_json = ngx.shared.ip_failed_cache:get(ngx.var.remote_addr)
     local user_json = ngx.shared.user_failed_cache:get(1)
     if ip_json == nil and user_json == nil then
