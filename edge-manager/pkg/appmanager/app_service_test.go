@@ -162,7 +162,7 @@ func TestParseDaemonsetToDB(t *testing.T) {
 }
 
 func TestGetInstanceOfNodeFromInstances(t *testing.T) {
-	convey.Convey("test getAppInstanceOfNodeRespFromAppInstances", t, testGetInstanceOdNode)
+	convey.Convey("test getAppInstanceOfNodeRespFromAppInstances", t, testGetInstanceOfNode)
 }
 
 func TestListAppInstancesByNode(t *testing.T) {
@@ -223,6 +223,15 @@ func testCreateApp() {
 			"memRequest": 1024,
             "cpuRequest": 1,
             "env":[],
+			"containerPort": [
+				{
+					"name": "test-port",
+                    "proto": "TCP",
+                    "containerPort": 1234,
+                    "hostIP": "12.23.45.78",
+                    "hostPort": 6666
+				}
+			],
             "groupId":1024,
             "image":"euler_image",
             "imageVersion":"2.0",
@@ -653,7 +662,7 @@ func testGetInstanceFromAppInstances() {
 	convey.So(res, convey.ShouldBeNil)
 }
 
-func testGetInstanceOdNode() {
+func testGetInstanceOfNode() {
 	instance := AppInstance{
 		ID:             1,
 		PodName:        "",
@@ -662,7 +671,7 @@ func testGetInstanceOdNode() {
 		NodeUniqueName: "",
 		NodeGroupID:    1,
 		AppID:          1,
-		AppName:        "face-check",
+		AppName:        "not-exist-app",
 	}
 	input := []AppInstance{instance}
 	_, err := getAppInstanceOfNodeRespFromAppInstances(input)
