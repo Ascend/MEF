@@ -3,7 +3,8 @@ module nginx-manager
 go 1.16
 
 require (
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/gin-gonic/gin v1.8.1
+	gorm.io/gorm v1.24.0
 	huawei.com/mindx/common/hwlog v0.10.2
 	huawei.com/mindx/common/utils v0.1.5
 	huawei.com/mindxedge/base v0.0.1

@@ -55,22 +55,30 @@ func FirstChange(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "", Data: nil}
 	}
 	defer func() {
-		common.ClearSliceByteMemory(req.Password)
-		common.ClearSliceByteMemory(req.RePassword)
+		if req.Password != nil {
+			common.ClearSliceByteMemory(*req.Password)
+		}
+		if req.RePassword != nil {
+			common.ClearSliceByteMemory(*req.RePassword)
+		}
 	}()
-	if !bytes.Equal(req.Password, req.RePassword) {
+	if checkResult := newFirstChangeChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("first change pwd check parameters failed, %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: ""}
+	}
+	if !bytes.Equal(*req.Password, *req.RePassword) {
 		hwlog.RunLog.Error("password and rePassword not equal")
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "", Data: nil}
 	}
-	cachedUser, resp := checkGetUserFirstLogin(req.Username)
+	cachedUser, resp := checkGetUserFirstLogin(*req.Username)
 	if resp.Status != common.Success {
 		return resp
 	}
-	if err := passutils.CheckPassWord(cachedUser.Username, req.Password); err != nil {
+	if err := passutils.CheckPassWord(cachedUser.Username, *req.Password); err != nil {
 		hwlog.RunLog.Errorf("change password err: %s", err.Error())
 		return common.RespMsg{Status: common.ErrorChangePassword, Msg: "", Data: nil}
 	}
-	updateSuccess, encryptPassWord, saltString := updatePwd(req.Username, req.Password)
+	updateSuccess, encryptPassWord, saltString := updatePwd(*req.Username, *req.Password)
 	if !updateSuccess {
 		return common.RespMsg{Status: common.ErrorChangePassword, Msg: "", Data: nil}
 	}
@@ -86,13 +94,19 @@ func Login(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "", Data: nil}
 	}
 	defer func() {
-		common.ClearSliceByteMemory(req.Password)
+		if req.Password != nil {
+			common.ClearSliceByteMemory(*req.Password)
+		}
 	}()
-	user, resp := checkGetUser(req.Username)
+	if checkResult := newLoginChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("login check parameters failed, %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorLogin}
+	}
+	user, resp := checkGetUser(*req.Username)
 	if resp.Status != common.Success {
 		return resp
 	}
-	_, err := UserServiceInstance().getForbiddenIp(req.Ip)
+	_, err := UserServiceInstance().getForbiddenIp(*req.Ip)
 	// ip被禁
 	if err == nil {
 		return common.RespMsg{Status: common.ErrorLockState, Msg: "", Data: nil}
@@ -101,7 +115,7 @@ func Login(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorLogin, Msg: "", Data: nil}
 	}
 	// 密码错误
-	if resp = dealLockAndComparePwd(req.Ip, req.Password, user); resp.Status != common.Success {
+	if resp = dealLockAndComparePwd(*req.Ip, *req.Password, user); resp.Status != common.Success {
 		return resp
 	}
 	if err = updateUserLogin(user); err != nil {
@@ -124,29 +138,39 @@ func Change(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "", Data: nil}
 	}
 	defer func() {
-		common.ClearSliceByteMemory(req.OldPassword)
-		common.ClearSliceByteMemory(req.Password)
-		common.ClearSliceByteMemory(req.RePassword)
+		if req.OldPassword != nil {
+			common.ClearSliceByteMemory(*req.OldPassword)
+		}
+		if req.Password != nil {
+			common.ClearSliceByteMemory(*req.Password)
+		}
+		if req.RePassword != nil {
+			common.ClearSliceByteMemory(*req.RePassword)
+		}
 	}()
-	if !bytes.Equal(req.Password, req.RePassword) {
+	if checkResult := newChangeChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("change pwd check parameters failed, %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: ""}
+	}
+	if !bytes.Equal(*req.Password, *req.RePassword) {
 		hwlog.RunLog.Error("password and rePassword not equal")
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "", Data: nil}
 	}
-	cachedUser, resp := checkGetUser(req.Username)
+	cachedUser, resp := checkGetUser(*req.Username)
 	if resp.Status != common.Success {
 		return resp
 	}
-	if resp = dealLockAndComparePwd(req.Ip, req.OldPassword, cachedUser); resp.Status != common.Success {
+	if resp = dealLockAndComparePwd(*req.Ip, *req.OldPassword, cachedUser); resp.Status != common.Success {
 		return resp
 	}
-	if err := passutils.CheckPassWord(cachedUser.Username, req.Password); err != nil {
+	if err := passutils.CheckPassWord(cachedUser.Username, *req.Password); err != nil {
 		hwlog.RunLog.Errorf("change password err: %s", err.Error())
 		return common.RespMsg{Status: common.ErrorChangePassword, Msg: "", Data: nil}
 	}
-	if resp = checkHistoryPassword(req.Password, cachedUser); resp.Status != common.Success {
+	if resp = checkHistoryPassword(*req.Password, cachedUser); resp.Status != common.Success {
 		return resp
 	}
-	updateSuccess, encryptPassWord, saltString := updatePwd(req.Username, req.Password)
+	updateSuccess, encryptPassWord, saltString := updatePwd(*req.Username, *req.Password)
 	if !updateSuccess {
 		return common.RespMsg{Status: common.ErrorChangePassword, Msg: "", Data: nil}
 	}
