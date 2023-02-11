@@ -154,7 +154,7 @@ func getNodeStatus(nodeUniqueName string) (string, error) {
 		UniqueName: nodeUniqueName,
 	}
 	resp := common.SendSyncMessageByRestful(req, &router)
-	if resp.Status == common.Success {
+	if resp.Status != common.Success {
 		return nodeStatusUnknown, fmt.Errorf("get info from other module error, %v", resp.Msg)
 	}
 	data, err := json.Marshal(resp.Data)

@@ -24,7 +24,7 @@ type NodeGroup struct {
 	GroupName        string `gorm:"size:255;unique;not null"       json:"groupName"`
 	CreatedAt        string `gorm:"not null"                       json:"createdAt"`
 	UpdatedAt        string `gorm:"not null"                       json:"updatedAt"`
-	ResourcesRequest string `gorm:"type:text"                      json:"resourcesRequest"`
+	ResourcesRequest string `gorm:"type:text"                      json:"-"`
 }
 
 // NodeRelation is node relation table
