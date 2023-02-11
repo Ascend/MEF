@@ -27,6 +27,7 @@ function _M.parse_session_tag()
 end
 
 function _M.is_locked()
+    ngx.log(ngx.ERR, "check ip locked: " .. ngx.var.remote_addr)
     local ip_json = ngx.shared.ip_failed_cache:get(ngx.var.remote_addr)
     local user_json = ngx.shared.user_failed_cache:get(1)
     if ip_json == nil and user_json == nil then
@@ -55,6 +56,13 @@ function _M.check_locked()
     if _M.is_locked() then
         _M.sendResp(ngx.HTTP_FORBIDDEN, nil, g_error_lock_state, g_error_lock_state_info)
         return ngx.exit(ngx.HTTP_FORBIDDEN)
+    end
+end
+
+function _M.check_method(mName)
+    if ngx.req.get_method() ~= mName then
+        ngx.log(ngx.ERR, "method " .. ngx.req.get_method() .. " is not allow")
+        return ngx.exit(ngx.HTTP_NOT_ALLOWED)
     end
 end
 

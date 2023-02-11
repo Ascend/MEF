@@ -1,5 +1,6 @@
 local cjson = require("cjson")
 
+common.check_method("PATCH")
 --校验是否被锁定
 common.check_locked()
 

@@ -4,6 +4,7 @@ local cjson = require("cjson")
 local common = require("common")
 local libaccess = require("libaccess")
 
+common.check_method("POST")
 common.check_locked()
 
 -- get user info will check sessionID

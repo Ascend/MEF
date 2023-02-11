@@ -15,6 +15,7 @@ local function create_session(resp)
     return session
 end
 
+common.check_method("POST")
 libdynamic.set_upstream("usermanager")
 
 ngx.req.read_body()
