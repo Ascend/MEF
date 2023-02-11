@@ -28,6 +28,16 @@ type KmcCfg struct {
 	DoMainId       uint
 }
 
+// GetKmcCfg is the func to init a kmc config structure
+func GetKmcCfg(keyPath string, backKeyPath string) *KmcCfg {
+	return &KmcCfg{
+		SdpAlgID:       Aes256gcm,
+		PrimaryKeyPath: keyPath,
+		StandbyKeyPath: backKeyPath,
+		DoMainId:       DoMainId,
+	}
+}
+
 // GetDefKmcCfg get default kmc config
 func GetDefKmcCfg() *KmcCfg {
 	return &KmcCfg{

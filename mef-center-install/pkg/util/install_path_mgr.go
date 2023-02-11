@@ -252,14 +252,19 @@ func (cpm *ConfigPathMgr) GetRootBackKmcPath() string {
 	return path.Join(cpm.GetRootKmcDirPath(), BackUpKeyFile)
 }
 
+// GetComponentKmcDirPath returns the kmc dir path for single component by component's name
+func (cpm *ConfigPathMgr) GetComponentKmcDirPath(component string) string {
+	return path.Join(cpm.GetComponentConfigPath(component), KmcDir)
+}
+
 // GetComponentMasterKmcPath returns the kmc master key file path for single component by component's name
 func (cpm *ConfigPathMgr) GetComponentMasterKmcPath(component string) string {
-	return path.Join(cpm.GetComponentConfigPath(component), KmcDir, MasterKeyFile)
+	return path.Join(cpm.GetComponentKmcDirPath(component), MasterKeyFile)
 }
 
 // GetComponentBackKmcPath returns the kmc backup key file path for single component by component's name
 func (cpm *ConfigPathMgr) GetComponentBackKmcPath(component string) string {
-	return path.Join(cpm.GetComponentConfigPath(component), KmcDir, BackUpKeyFile)
+	return path.Join(cpm.GetComponentKmcDirPath(component), BackUpKeyFile)
 }
 
 // InitInstallDirPathMgr returns the InstallDirPathMgr construct by the root path
