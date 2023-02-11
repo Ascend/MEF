@@ -115,6 +115,12 @@ type NodeInfoExManaged struct {
 // NodeInfoDetail contains static info, dynamic info and group names
 type NodeInfoDetail struct {
 	NodeInfoExManaged
-	NodeResource
-	Npu int64 `json:"npu"`
+	NodeResourceInfo
+}
+
+// NodeResourceInfo [struct] for indicating key resources of node
+type NodeResourceInfo struct {
+	Cpu    int64 `json:"cpu"`
+	Memory int64 `json:"memory"`
+	Npu    int64 `json:"npu"`
 }

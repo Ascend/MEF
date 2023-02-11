@@ -19,11 +19,12 @@ type NodeInfo struct {
 
 // NodeGroup is node group db table
 type NodeGroup struct {
-	ID          uint64 `gorm:"primaryKey;autoIncrement:true"  json:"id"`
-	Description string `gorm:"size:256"                       json:"description"`
-	GroupName   string `gorm:"size:255;unique;not null"       json:"groupName"`
-	CreatedAt   string `gorm:"not null"                       json:"createdAt"`
-	UpdatedAt   string `gorm:"not null"                       json:"updatedAt"`
+	ID               uint64 `gorm:"primaryKey;autoIncrement:true"  json:"id"`
+	Description      string `gorm:"size:256"                       json:"description"`
+	GroupName        string `gorm:"size:255;unique;not null"       json:"groupName"`
+	CreatedAt        string `gorm:"not null"                       json:"createdAt"`
+	UpdatedAt        string `gorm:"not null"                       json:"updatedAt"`
+	ResourcesRequest string `gorm:"type:text"                      json:"resourcesRequest"`
 }
 
 // NodeRelation is node relation table

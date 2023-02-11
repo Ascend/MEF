@@ -30,6 +30,8 @@ const (
 	ErrorGetAppTemplates = "00002008"
 	// ErrorGetAppTemplateDetail failed to get app template detail
 	ErrorGetAppTemplateDetail = "00002009"
+	// ErrorOperate fail to operate
+	ErrorOperate = "00002010"
 
 	// ErrorCreateUser fail to create user
 	ErrorCreateUser = "10001001"
@@ -150,6 +152,8 @@ var ErrorMap = map[string]string{
 	ErrorGetAppTemplates: "failed to get app templates",
 	// ErrorGetAppTemplateDetail failed to get app template detail info
 	ErrorGetAppTemplateDetail: "failed to get app template detail",
+	// ErrorOperate fail to operate
+	ErrorOperate: "failed to operate",
 
 	// ErrorCreateUser fail to create user
 	ErrorCreateUser: "failed to create user",

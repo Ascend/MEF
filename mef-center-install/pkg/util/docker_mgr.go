@@ -48,7 +48,7 @@ func (dd *DockerDealer) LoadImage(buildPath string) error {
 	// tag is read from file or filename, the verification will be added in setVersion.
 	// absPath has been verified
 	cmdStr := "docker build -t " + dd.imageName + ":" + dd.tag + " " + absPath + "/."
-	if _, err = common.RunCommand("sh", false, "-c", cmdStr); err != nil {
+	if _, err = common.RunCommand("sh", false, common.DefaultCmdWaitTime, "-c", cmdStr); err != nil {
 		hwlog.RunLog.Errorf("load docker image [%s] failed:%s", dd.imageName, err.Error())
 		return errors.New("load docker image failed")
 	}
@@ -65,7 +65,7 @@ func (dd *DockerDealer) SaveImage(savePath string) error {
 
 	savePath = path.Join(savePath, imageTarName)
 	cmdStr := fmt.Sprintf("docker save %s:%s > %s", dd.imageName, dd.tag, savePath)
-	if _, err = common.RunCommand("sh", false, "-c", cmdStr); err != nil {
+	if _, err = common.RunCommand("sh", false, common.DefaultCmdWaitTime, "-c", cmdStr); err != nil {
 		hwlog.RunLog.Errorf("save docker image [%s:%s] failed:%s", dd.imageName, dd.tag, err.Error())
 		return errors.New("save docker image failed")
 	}
@@ -86,7 +86,7 @@ func (dd *DockerDealer) getImageTarName() (string, error) {
 
 func (dd *DockerDealer) checkImageExist() (bool, error) {
 	checkCmd := fmt.Sprintf("docker image ls %s | wc -l", dd.imageName+":"+dd.tag)
-	ret, err := common.RunCommand("sh", false, "-c", checkCmd)
+	ret, err := common.RunCommand("sh", false, common.DefaultCmdWaitTime, "-c", checkCmd)
 	if err != nil {
 		hwlog.RunLog.Errorf("check %s's docker image command exec failed: %s", dd.imageName, err.Error())
 		return false, fmt.Errorf("check %s's docker image command exec failed", dd.imageName)
@@ -110,7 +110,8 @@ func (dd *DockerDealer) DeleteImage() error {
 		return nil
 	}
 
-	_, err = common.RunCommand("docker", true, "rmi", dd.imageName+":"+dd.tag)
+	_, err = common.RunCommand("docker", true, common.DefaultCmdWaitTime,
+		"rmi", dd.imageName+":"+dd.tag)
 	if err != nil {
 		hwlog.RunLog.Errorf("delete %s's docker image command exec failed: %s", dd.imageName, err.Error())
 		return fmt.Errorf("delete %s's docker image command exec failed", dd.imageName)

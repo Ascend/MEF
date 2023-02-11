@@ -24,7 +24,6 @@ import (
 	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/kubeclient"
-	"edge-manager/pkg/types"
 )
 
 type appStatusServiceImpl struct {
@@ -238,11 +237,11 @@ func parsePodToInstance(eventPod *corev1.Pod) (*AppInstance, error) {
 	}
 	nodeId, nodeName, err := getNodeInfoByUniqueName(eventPod)
 	if err != nil {
-		return nil, fmt.Errorf("get node name or id error, %v", err)
+		return nil, fmt.Errorf("get node info error, %v", err)
 	}
 	nodeGroupId, err := getNodeGroupId(eventPod)
 	if err != nil {
-		return nil, fmt.Errorf("get group name or id error, %v", err)
+		return nil, fmt.Errorf("get group info error, %v", err)
 	}
 	containerInfos, err := getContainerInfoString(eventPod)
 	if err != nil {
@@ -280,35 +279,6 @@ func getAppNameAndId(eventPod *corev1.Pod) (string, uint64, error) {
 		return "", 0, err
 	}
 	return appName, appId, nil
-}
-
-func getNodeInfoByUniqueName(eventPod *corev1.Pod) (uint64, string, error) {
-	if eventPod.Spec.NodeName == "" {
-		hwlog.RunLog.Warn("app instance node name is empty, pod is in pending phase")
-		return 0, "", nil
-	}
-	router := common.Router{
-		Source:      common.AppManagerName,
-		Destination: common.NodeManagerName,
-		Option:      common.Inner,
-		Resource:    common.Node,
-	}
-	req := types.InnerGetNodeInfoByNameReq{
-		UniqueName: eventPod.Spec.NodeName,
-	}
-	resp := common.SendSyncMessageByRestful(req, &router)
-	if resp.Status != common.Success {
-		return 0, "", errors.New(resp.Msg)
-	}
-	data, err := json.Marshal(resp.Data)
-	if err != nil {
-		return 0, "", errors.New("marshal internal response error")
-	}
-	var nodeInfo types.InnerGetNodeInfoByNameResp
-	if err = json.Unmarshal(data, &nodeInfo); err != nil {
-		return 0, "", errors.New("unmarshal internal response error")
-	}
-	return nodeInfo.NodeID, nodeInfo.NodeName, nil
 }
 
 func getNodeGroupId(eventPod *corev1.Pod) (uint64, error) {
@@ -373,6 +343,10 @@ func (a *appStatusServiceImpl) addDaemonSet(obj interface{}) {
 		hwlog.RunLog.Errorf("recovered add daemon set, generate app daemon set error: %v", err)
 		return
 	}
+	if err = updateAllocatedNodeRes(daemonSet, appDaemonSet.NodeGroupID, false); err != nil {
+		hwlog.RunLog.Errorf("recovered add daemon set, update allocated node resource error: %v", err)
+		return
+	}
 	if err = AppRepositoryInstance().addDaemonSet(appDaemonSet); err != nil {
 		hwlog.RunLog.Error("recovered add object, add daemon set to db error")
 		return
@@ -399,7 +373,16 @@ func (a *appStatusServiceImpl) updateDaemonSet(_, newObj interface{}) {
 func (a *appStatusServiceImpl) deleteDaemonSet(obj interface{}) {
 	daemonSet, err := parseDaemonSet(obj)
 	if err != nil {
-		hwlog.RunLog.Errorf("recovered add object, parse daemon set error: %v", err)
+		hwlog.RunLog.Errorf("recovered delete object, parse daemon set error: %v", err)
+		return
+	}
+	nodeGroupID, err := getNodeGroupIdFromDaemonSet(daemonSet)
+	if err != nil {
+		hwlog.RunLog.Errorf("recovered delete daemon set, get node group id error, %v", err)
+		return
+	}
+	if err = updateAllocatedNodeRes(daemonSet, nodeGroupID, true); err != nil {
+		hwlog.RunLog.Errorf("recovered delete daemon set, update allocated node resource error: %v", err)
 		return
 	}
 	if err = AppRepositoryInstance().deleteDaemonSet(daemonSet.Name); err != nil {
@@ -417,24 +400,13 @@ func parseDaemonSet(obj interface{}) (*appv1.DaemonSet, error) {
 }
 
 func parseDaemonSetToDB(eventSet *appv1.DaemonSet) (*AppDaemonSet, error) {
-	appId, err := getAppId(eventSet)
+	appId, err := getAppIdFromDaemonSet(eventSet)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get app id error, %v", err)
 	}
-	nodeSelector := eventSet.Spec.Template.Spec.NodeSelector
-	if nodeSelector == nil {
-		return nil, errors.New("node selector is nil")
-	}
-	var nodeGroupId uint64
-	for labelKey := range nodeSelector {
-		if !strings.HasPrefix(labelKey, common.NodeGroupLabelPrefix) {
-			continue
-		}
-		nodeGroupId, err = strconv.ParseUint(strings.TrimPrefix(labelKey, common.NodeGroupLabelPrefix),
-			common.BaseHex, common.BitSize64)
-		if err != nil {
-			return nil, err
-		}
+	nodeGroupId, err := getNodeGroupIdFromDaemonSet(eventSet)
+	if err != nil {
+		return nil, fmt.Errorf("get node group id error, %v", err)
 	}
 	nodeGroupInfos, err := getNodeGroupInfos([]uint64{nodeGroupId})
 	if err != nil {
@@ -453,7 +425,30 @@ func parseDaemonSetToDB(eventSet *appv1.DaemonSet) (*AppDaemonSet, error) {
 	return &set, nil
 }
 
-func getAppId(eventSet *appv1.DaemonSet) (uint64, error) {
+func getNodeGroupIdFromDaemonSet(eventSet *appv1.DaemonSet) (uint64, error) {
+	if eventSet == nil {
+		return 0, errors.New("event daemon set is nil")
+	}
+	nodeSelector := eventSet.Spec.Template.Spec.NodeSelector
+	if nodeSelector == nil {
+		return 0, errors.New("node selector is nil")
+	}
+	var nodeGroupId uint64
+	var err error
+	for labelKey := range nodeSelector {
+		if !strings.HasPrefix(labelKey, common.NodeGroupLabelPrefix) {
+			continue
+		}
+		nodeGroupId, err = strconv.ParseUint(strings.TrimPrefix(labelKey, common.NodeGroupLabelPrefix),
+			common.BaseHex, common.BitSize64)
+		if err != nil {
+			return 0, err
+		}
+	}
+	return nodeGroupId, nil
+}
+
+func getAppIdFromDaemonSet(eventSet *appv1.DaemonSet) (uint64, error) {
 	podLabels := eventSet.Spec.Template.Labels
 	value, ok := podLabels[AppId]
 	if !ok {
@@ -464,29 +459,4 @@ func getAppId(eventSet *appv1.DaemonSet) (uint64, error) {
 		return 0, err
 	}
 	return appId, nil
-}
-
-func getNodeGroupInfos(nodeGroupIds []uint64) ([]types.NodeGroupInfo, error) {
-	router := common.Router{
-		Source:      common.AppManagerName,
-		Destination: common.NodeManagerName,
-		Option:      common.Inner,
-		Resource:    common.NodeGroup,
-	}
-	req := types.InnerGetNodeGroupInfosReq{
-		NodeGroupIds: nodeGroupIds,
-	}
-	resp := common.SendSyncMessageByRestful(req, &router)
-	if resp.Status != common.Success {
-		return nil, errors.New(resp.Msg)
-	}
-	data, err := json.Marshal(resp.Data)
-	if err != nil {
-		return nil, errors.New("marshal internal response error")
-	}
-	var nodeGroupInfosResp types.InnerGetNodeGroupInfosResp
-	if err = json.Unmarshal(data, &nodeGroupInfosResp); err != nil {
-		return nil, errors.New("unmarshal internal response error")
-	}
-	return nodeGroupInfosResp.NodeGroupInfos, nil
 }

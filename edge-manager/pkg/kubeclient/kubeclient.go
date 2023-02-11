@@ -14,10 +14,13 @@ import (
 	"huawei.com/mindx/common/k8stool"
 	appv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
+
+	"huawei.com/mindxedge/base/common"
 )
 
 const (
@@ -27,6 +30,7 @@ const (
 	opRemove            = "remove"
 	opAdd               = "add"
 	labelResourcePrefix = "/metadata/labels/"
+	fieldSelectorPrefix = "spec.nodeName="
 
 	systemNamespace = "kubeedge"
 	tokenSecretName = "tokensecret"
@@ -78,6 +82,35 @@ func (ki *Client) ListNode() (*v1.NodeList, error) {
 // GetPod get pod by namespace and name
 func (ki *Client) GetPod(pod *v1.Pod) (*v1.Pod, error) {
 	return ki.kubeClient.CoreV1().Pods(pod.Namespace).Get(context.Background(), pod.Name, metav1.GetOptions{})
+}
+
+// GetNodeAllocatedResource [method] for calculating all allocated resources of one node
+func (ki *Client) GetNodeAllocatedResource(nodeName string) (v1.ResourceList, error) {
+	podInterface := ki.GetClientSet().CoreV1().Pods(defaultNamespace)
+	fieldSelector, err := fields.ParseSelector(fieldSelectorPrefix + nodeName)
+	if err != nil {
+		return nil, errors.New("parse field selector error")
+	}
+	listOptions := metav1.ListOptions{FieldSelector: fieldSelector.String()}
+	podList, err := podInterface.List(context.Background(), listOptions)
+	if err != nil {
+		return nil, errors.New("get pod allocated pod list error")
+	}
+	AllocatedRes := map[v1.ResourceName]resource.Quantity{
+		v1.ResourceCPU:    {},
+		v1.ResourceMemory: {},
+		common.DeviceType: {},
+	}
+	for _, pod := range podList.Items {
+		for _, container := range pod.Spec.Containers {
+			for name, quantity := range container.Resources.Limits {
+				tmp := AllocatedRes[name]
+				tmp.Add(quantity)
+				AllocatedRes[name] = tmp
+			}
+		}
+	}
+	return AllocatedRes, nil
 }
 
 // DeletePodByForce compulsorily delete pod by namespace and name

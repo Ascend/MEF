@@ -162,7 +162,7 @@ func TestParseDaemonsetToDB(t *testing.T) {
 }
 
 func TestGetInstanceOfNodeFromInstances(t *testing.T) {
-	convey.Convey("test getAppInstanceOfNodeRespFromAppInstances", t, testGetInstanceOdNode)
+	convey.Convey("test getAppInstanceOfNodeRespFromAppInstances", t, testGetInstanceOfNode)
 }
 
 func TestListAppInstancesByNode(t *testing.T) {
@@ -223,6 +223,15 @@ func testCreateApp() {
 			"memRequest": 1024,
             "cpuRequest": 1,
             "env":[],
+			"containerPort": [
+				{
+					"name": "test-port",
+                    "proto": "TCP",
+                    "containerPort": 1234,
+                    "hostIP": "12.23.45.78",
+                    "hostPort": 6666
+				}
+			],
             "groupId":1024,
             "image":"euler_image",
             "imageVersion":"2.0",
@@ -435,8 +444,13 @@ func testDeployApInfo() {
 			return []types.NodeGroupInfo{{NodeGroupID: 1, NodeGroupName: "group1"},
 				{NodeGroupID: 2, NodeGroupName: "group2"}}, nil
 		})
+	var p3 = gomonkey.ApplyFunc(checkNodeGroupResources,
+		func(groupID uint64, daemonSet *v1.DaemonSet) error {
+			return nil
+		})
 	defer p1.Reset()
 	defer p2.Reset()
+	defer p3.Reset()
 	resp := deployApp(reqData)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
@@ -625,7 +639,7 @@ func testListAppInstanceInvalid() {
 }
 
 func testGetInstanceFromAppInstances() {
-	patchFunc := gomonkey.ApplyFunc(getAppId, func(_ *v1.DaemonSet) (uint64, error) {
+	patchFunc := gomonkey.ApplyFunc(getAppIdFromDaemonSet, func(_ *v1.DaemonSet) (uint64, error) {
 		return 1, nil
 	})
 	patchFunc2 := gomonkey.ApplyFunc(common.SendSyncMessageByRestful, func(interface{}, *common.Router) common.RespMsg {
@@ -648,7 +662,7 @@ func testGetInstanceFromAppInstances() {
 	convey.So(res, convey.ShouldBeNil)
 }
 
-func testGetInstanceOdNode() {
+func testGetInstanceOfNode() {
 	instance := AppInstance{
 		ID:             1,
 		PodName:        "",
@@ -657,7 +671,7 @@ func testGetInstanceOdNode() {
 		NodeUniqueName: "",
 		NodeGroupID:    1,
 		AppID:          1,
-		AppName:        "face-check",
+		AppName:        "not-exist-app",
 	}
 	input := []AppInstance{instance}
 	_, err := getAppInstanceOfNodeRespFromAppInstances(input)

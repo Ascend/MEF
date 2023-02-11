@@ -5,11 +5,12 @@ package nginxmonitor
 
 import (
 	"context"
-	"huawei.com/mindxedge/base/common"
 	"io/ioutil"
 	"strconv"
 	"strings"
 	"time"
+
+	"huawei.com/mindxedge/base/common"
 
 	"nginx-manager/pkg/msgutil"
 	"nginx-manager/pkg/nginxcom"
@@ -28,7 +29,7 @@ const (
 	monitorInterval         = 5 * time.Second
 	idle            mStatus = 0
 	processing      mStatus = 1
-	int64base               = 10
+	int64base               = 16
 )
 
 var nginxSslPort int
