@@ -128,9 +128,13 @@ func svcLocked(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("query lock convert param error: %s", err.Error())
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "", Data: nil}
 	}
+	if checkResult := newLockChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("svcLocked check parameters failed, %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: ""}
+	}
 	ipLocked := true
-	if len(req.TargetIp) > 0 {
-		_, err := UserServiceInstance().getForbiddenIp(req.TargetIp)
+	if len(*req.TargetIp) > 0 {
+		_, err := UserServiceInstance().getForbiddenIp(*req.TargetIp)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			ipLocked = false
 		} else if err != nil {

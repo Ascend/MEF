@@ -17,33 +17,33 @@ var (
 )
 
 type baseReq struct {
-	Ip string `json:"ip"`
+	Ip *string `json:"ip"`
 }
 
 type firstChangePwdReq struct {
 	baseReq
-	Username   string `json:"username"`
-	Password   []byte `json:"password"`
-	RePassword []byte `json:"rePassword"`
+	Username   *string `json:"username"`
+	Password   *[]byte `json:"password"`
+	RePassword *[]byte `json:"rePassword"`
 }
 
 type changePwdReq struct {
 	baseReq
-	Username    string `json:"username"`
-	Password    []byte `json:"password"`
-	OldPassword []byte `json:"oldPassword"`
-	RePassword  []byte `json:"rePassword"`
+	Username    *string `json:"username"`
+	Password    *[]byte `json:"password"`
+	OldPassword *[]byte `json:"oldPassword"`
+	RePassword  *[]byte `json:"rePassword"`
 }
 
 type loginReq struct {
 	baseReq
-	Username string `json:"username"`
-	Password []byte `json:"password"`
+	Username *string `json:"username"`
+	Password *[]byte `json:"password"`
 }
 
 type queryIpLockReq struct {
 	baseReq
-	TargetIp string `json:"targetIp"`
+	TargetIp *string `json:"targetIp"`
 }
 
 type lockInfoResp struct {
