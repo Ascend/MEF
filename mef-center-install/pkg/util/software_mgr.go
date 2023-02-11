@@ -65,14 +65,15 @@ func (sm *SoftwareMgr) clearNodeLabel() error {
 
 	ipReg := fmt.Sprintf("'\\s%s\\s'", localIp)
 	cmd := fmt.Sprintf(GetNodeCmdPattern, ipReg)
-	nodeName, err := common.RunCommand("sh", false, "-c", cmd)
+	nodeName, err := common.RunCommand("sh", false, common.DefaultCmdWaitTime, "-c", cmd)
 	if err != nil {
 		hwlog.RunLog.Errorf("get current node failed: %s", err.Error())
 		return err
 	}
 
 	// 删除不存在的label会显示执行命令成功
-	_, err = common.RunCommand(CommandKubectl, true, "label", "node", nodeName, "mef-center-node-")
+	_, err = common.RunCommand(CommandKubectl, true, common.DefaultCmdWaitTime,
+		"label", "node", nodeName, "mef-center-node-")
 	if err != nil {
 		hwlog.RunLog.Errorf("clear %s label command exec failed: %s", MefNamespace, err.Error())
 		return errors.New("clear node label command exec failed")

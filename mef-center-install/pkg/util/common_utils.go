@@ -21,7 +21,7 @@ import (
 
 // GetArch is used to get the arch info
 func GetArch() (string, error) {
-	arch, err := common.RunCommand(ArchCommand, true, "-i")
+	arch, err := common.RunCommand(ArchCommand, true, common.DefaultCmdWaitTime, "-i")
 	if err != nil {
 		return "", err
 	}
