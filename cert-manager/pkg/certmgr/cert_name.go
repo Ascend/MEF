@@ -11,16 +11,12 @@ import (
 )
 
 var certImportMap = map[string]bool{
-	common.WsSerName:            false,
-	common.WsCltName:            false,
-	common.SoftwareCertName:     true,
-	common.ImageCertName:        true,
-	common.ResFileCertName:      true,
-	common.NginxCertName:        true,
-	common.EdgeCoreCertName:     true,
-	common.DevicePluginCertName: true,
-	common.AlarmCertName:        true,
-	common.InnerName:            false,
+	common.WsSerName:        false,
+	common.WsCltName:        false,
+	common.SoftwareCertName: true,
+	common.ImageCertName:    true,
+	common.NginxCertName:    true,
+	common.InnerName:        false,
 }
 
 // checkCertName check use id if valid
@@ -42,7 +38,7 @@ func getRootKeyPath(certName string) string {
 }
 
 func getInnerRootCaPath() string {
-	return path.Join(certconstant.InnerRootCaDir, certconstant.RootCaFileName)
+	return path.Join(certconstant.InnerRootCaDir, certconstant.InnerCaFileName)
 }
 
 func getInnerRootKeyPath() string {

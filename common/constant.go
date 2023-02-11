@@ -33,16 +33,8 @@ const (
 	SoftwareCertName = "software"
 	// ImageCertName image manager cert name
 	ImageCertName = "image"
-	// ResFileCertName image manager cert name
-	ResFileCertName = "res_file"
 	// NginxCertName nginx apig cert name
 	NginxCertName = "apig"
-	// EdgeCoreCertName edge core sign cert name
-	EdgeCoreCertName = "edge_core"
-	// DevicePluginCertName device plugin sign cert name
-	DevicePluginCertName = "device_plugin"
-	// AlarmCertName alarm report cert name
-	AlarmCertName = "alarm"
 )
 
 const (
@@ -171,13 +163,13 @@ const (
 	RegImageVersion = `^[a-zA-Z]([-_a-zA-Z0-9]{0,14}[a-zA-Z0-9])?$`
 	// RegEnvKey regex pattern of environment variable key
 	RegEnvKey = `^[a-zA-Z]([_a-zA-Z0-9]{0,2046}[a-zA-Z0-9])?$`
-	// LowercaseCharactersRegex LowercaseCharactersRegex
+	// LowercaseCharactersRegex lowercase
 	LowercaseCharactersRegex = "[a-z]{1,}"
-	// UppercaseCharactersRegex UppercaseCharactersRegex
+	// UppercaseCharactersRegex uppercase
 	UppercaseCharactersRegex = "[A-Z]{1,}"
 	// BaseNumberRegex BaseNumberRegex
 	BaseNumberRegex = "[0-9]{1,}"
-	// SpecialCharactersRegex SpecialCharactersRegex
+	// SpecialCharactersRegex special regex
 	SpecialCharactersRegex = "[!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~]{1,}"
 	// PassWordRegex PassWordRegex
 	PassWordRegex = "^[a-zA-z0-9!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~]{8,20}$"
@@ -236,7 +228,7 @@ const (
 	TemplateEnvValueMin = 1
 	// TemplateEnvValueMax environment variable value max length
 	TemplateEnvValueMax = 2048
-	// MinComplexCount MinComplexCount
+	// MinComplexCount min complex count
 	MinComplexCount = 2
 )
 
