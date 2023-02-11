@@ -269,8 +269,10 @@ func deleteSoftware(id int, notDeleteID *[]int) error {
 	return nil
 }
 
+const readBufSize int = 20
+
 func checkZipType(reader io.Reader) (bool, error) {
-	buf := make([]byte, 20)
+	buf := make([]byte, readBufSize)
 	n, err := reader.Read(buf)
 	if err != nil {
 		return false, err
