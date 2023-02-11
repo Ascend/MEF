@@ -147,6 +147,9 @@ const (
 
 // constant for set k8s label
 const (
-	GetNodeCmdPattern  = "kubectl get nodes -o wide | grep -w %s | awk '{print$1}'"
-	SetLabelCmdPattern = "kubectl label nodes %s --overwrite mef-center-node="
+	K8sLabel             = "mef-center-node="
+	GetNodeCmdPattern    = "kubectl get nodes -o wide | grep -w %s | awk '{print$1}'"
+	SetLabelCmdPattern   = "kubectl label nodes %s --overwrite %s"
+	CheckLabelCmdPattern = "kubectl get nodes -l %s | grep -w %s | wc -l"
+	LabelCount           = 1
 )
