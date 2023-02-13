@@ -34,6 +34,7 @@ var (
 	serverRunConf = &hwlog.LogConfig{LogFileName: runLogFile}
 	serverOpConf  = &hwlog.LogConfig{LogFileName: operateLogFile}
 	restfulPort   = defaultPort
+	ip            string
 )
 
 func main() {
@@ -91,6 +92,12 @@ func initResource() error {
 		hwlog.RunLog.Errorf("init database failed, error: %s", err.Error())
 		return err
 	}
+	podIp, err := common.GetPodIP()
+	if err != nil {
+		hwlog.RunLog.Errorf("get nginx manager pod ip failed: %s", err.Error())
+		return err
+	}
+	ip = podIp
 	return nil
 }
 
@@ -102,8 +109,7 @@ func register(ctx context.Context) error {
 	if err := modulemanager.Registry(nginxmonitor.NewNginxMonitor(true, ctx)); err != nil {
 		return err
 	}
-
-	if err := modulemanager.Registry(usermgr.NewRestfulService(true, restfulPort)); err != nil {
+	if err := modulemanager.Registry(usermgr.NewRestfulService(true, ip, restfulPort)); err != nil {
 		return err
 	}
 	if err := modulemanager.Registry(usermgr.NewUserManager(true, ctx)); err != nil {

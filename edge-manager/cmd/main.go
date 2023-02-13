@@ -64,6 +64,13 @@ func main() {
 		fmt.Printf("initialize hwlog failed, %s.\n", err.Error())
 		return
 	}
+	podIp, err := common.GetPodIP()
+	if err != nil {
+		hwlog.RunLog.Errorf("get edge manager pod ip failed: %s", err.Error())
+		return
+	}
+	ip = podIp
+
 	if err := initResource(); err != nil {
 		hwlog.RunLog.Errorf("initialize resource failed, %s", err.Error())
 		return
@@ -78,16 +85,12 @@ func main() {
 
 func init() {
 	flag.BoolVar(&version, "version", false, "Output the program version")
-
 	flag.StringVar(&dbPath, "dbPath", defaultDbPath, "sqlite database path")
 	flag.StringVar(&kubeConfig, "kubeconfig", "", "The k8s master config file")
-	flag.StringVar(&ip, "ip", "",
-		"The listen ip of the service,0.0.0.0 is not recommended when install on Multi-NIC host")
 	flag.IntVar(&port, "port", defaultPort,
 		"The server port of the http service,range[1025-65535]")
 	flag.IntVar(&wsPort, "wsPort", defaultWsPort,
 		"The server port of the websocket service,range[1025-65535]")
-
 	// hwOpLog configuration
 	flag.IntVar(&serverOpConf.LogLevel, "operateLogLevel", 0,
 		"Operation log level, -1-debug, 0-info, 1-warning, 2-error, 3-fatal (default 0)")
@@ -134,7 +137,7 @@ func initResource() error {
 
 func register(ctx context.Context) error {
 	modulemanager.ModuleInit()
-	if err := modulemanager.Registry(restfulservice.NewRestfulService(true, port)); err != nil {
+	if err := modulemanager.Registry(restfulservice.NewRestfulService(true, ip, port)); err != nil {
 		return err
 	}
 	if err := modulemanager.Registry(nodemanager.NewNodeManager(true, ctx)); err != nil {

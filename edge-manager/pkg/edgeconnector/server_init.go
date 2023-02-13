@@ -5,7 +5,6 @@ package edgeconnector
 
 import (
 	"errors"
-	"os"
 	"path"
 	"time"
 
@@ -44,10 +43,10 @@ func InitServer() error {
 		IgnoreCltCert: true,
 	}
 
-	podIp := os.Getenv("POD_IP")
-	if podIp == "" {
-		hwlog.RunLog.Error("get edge-manager pod ip failed")
-		return errors.New("get edge-manager pod ip failed")
+	podIp, err := common.GetPodIP()
+	if err != nil {
+		hwlog.RunLog.Errorf("get edge manager pod ip failed: %s", err.Error())
+		return errors.New("get edge manager pod ip")
 	}
 
 	proxyConfig, err := websocketmgr.InitProxyConfig(name, podIp, connector.wsPort, certInfo)
