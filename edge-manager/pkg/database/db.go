@@ -6,6 +6,7 @@ package database
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	"gorm.io/gorm"
 
@@ -17,13 +18,21 @@ var (
 	gormDB *gorm.DB
 )
 
+const mode = 600
+
 // InitDB init database client
 func InitDB(dbPath string) error {
-	err := utils.MakeSureDir(dbPath)
-	if err != nil {
-		return err
+	path, err := utils.CheckPath(dbPath)
+	if err != nil && err != os.ErrNotExist || path == "" {
+		return errors.New("check db path error")
 	}
-	gormDB = common.InitDbConnection(dbPath)
+	if err == os.ErrNotExist {
+		if err := os.MkdirAll(dbPath, mode); err != nil {
+			return errors.New("create directory failed")
+		}
+	}
+
+	gormDB = common.InitDbConnection(path)
 	if gormDB == nil {
 		return fmt.Errorf("initialise database failed")
 	}
