@@ -24,15 +24,14 @@ var (
 type Service struct {
 	enable   bool
 	httpsSvr *httpsmgr.HttpsServer
-	ip       string
 }
 
 // NewRestfulService new restful service
 func NewRestfulService(enable bool, ip string, port int) *Service {
 	nm := &Service{
 		enable: enable,
-		ip:     ip,
 		httpsSvr: &httpsmgr.HttpsServer{
+			IP:   ip,
 			Port: port,
 			TlsCertPath: certutils.TlsCertInfo{
 				RootCaPath:    certconstant.RootCaPath,

@@ -4,9 +4,13 @@
 package common
 
 import (
+	"errors"
+	"fmt"
 	"net"
 	"os"
 	"strings"
+
+	"huawei.com/mindxedge/base/common/checker"
 )
 
 const (
@@ -66,4 +70,17 @@ func GetHostIpV4() ([]net.IP, error) {
 		}
 	}
 	return ipv4, nil
+}
+
+// GetPodIP [method] for get pod ip from env
+func GetPodIP() (string, error) {
+	ip := os.Getenv("POD_IP")
+	if ip == "" {
+		return "", errors.New("get pod ip from env failed")
+	}
+
+	if valid, err := checker.IsIpValid(ip); !valid {
+		return "", fmt.Errorf("check pod ip failed: %v", err)
+	}
+	return ip, nil
 }

@@ -16,14 +16,14 @@ import (
 type EdgeMgrService struct {
 	enable   bool
 	httpsSvr *httpsmgr.HttpsServer
-	ip       string
 }
 
 // NewRestfulService new restful service
-func NewRestfulService(enable bool, port int) *EdgeMgrService {
+func NewRestfulService(enable bool, ip string, port int) *EdgeMgrService {
 	nm := &EdgeMgrService{
 		enable: enable,
 		httpsSvr: &httpsmgr.HttpsServer{
+			IP:   ip,
 			Port: port,
 			TlsCertPath: certutils.TlsCertInfo{
 				RootCaPath:    util.RootCaPath,

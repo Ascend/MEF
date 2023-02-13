@@ -3,6 +3,8 @@
 // Package types defines structs which could be used in different package
 package types
 
+import "k8s.io/api/core/v1"
+
 // InnerGetNodeInfoByNameReq is the request struct for internal module to get node info by node name
 type InnerGetNodeInfoByNameReq struct {
 	UniqueName string `json:"uniqueName"`
@@ -16,6 +18,19 @@ type InnerGetNodeGroupInfosReq struct {
 // InnerGetNodeStatusReq is request struct for internal module to get node status
 type InnerGetNodeStatusReq struct {
 	UniqueName string `json:"uniqueName"`
+}
+
+// InnerUpdateNodeResReq [struct] for CheckAndUpdateNodeResReq
+type InnerUpdateNodeResReq struct {
+	NodeGroupID  uint64 `json:"nodeGroupID"`
+	ResourceReqs v1.ResourceList
+	IsUndeploy   bool
+}
+
+// InnerCheckNodeResReq [struct] for UpdateNodeResReq
+type InnerCheckNodeResReq struct {
+	NodeGroupID  uint64 `json:"nodeGroupID"`
+	ResourceReqs v1.ResourceList
 }
 
 // InnerGetNodeInfoByNameResp is the response struct of node info

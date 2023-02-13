@@ -51,4 +51,27 @@ function _M.del_session_by_id(session_id)
     return
 end
 
+function _M.handleLockResp(resp)
+    if resp.data == nil then
+        common.sendRespByBody(ngx.HTTP_BAD_REQUEST, nil, resp)
+        return
+    end
+
+    if resp.data.userLocked == true then
+        ngx.shared.user_failed_cache:set(1, true, 630)
+        ngx.log(ngx.NOTICE, resp.data.userid .. " locked")
+    end
+    if resp.data.ipLocked == true then
+        ngx.shared.ip_failed_cache:set(ngx.var.remote_addr, true, 630)
+        _M.del_session_by_id(resp.data.userid)
+        ngx.log(ngx.NOTICE, resp.data.ip .. " locked")
+    end
+
+    if resp.data.ipLocked == true or resp.data.userLocked == true then
+        common.sendResp(ngx.HTTP_UNAUTHORIZED, nil, g_error_lock_state, g_error_lock_state_info)
+    else
+        common.sendRespByBody(ngx.HTTP_BAD_REQUEST, nil, resp)
+    end
+end
+
 return _M

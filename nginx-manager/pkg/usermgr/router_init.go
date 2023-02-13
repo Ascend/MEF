@@ -17,14 +17,14 @@ import (
 type UserRestfulService struct {
 	enable   bool
 	httpsSvr *httpsmgr.HttpsServer
-	ip       string
 }
 
 // NewRestfulService new restful service
-func NewRestfulService(enable bool, port int) *UserRestfulService {
+func NewRestfulService(enable bool, ip string, port int) *UserRestfulService {
 	nm := &UserRestfulService{
 		enable: enable,
 		httpsSvr: &httpsmgr.HttpsServer{
+			IP:   ip,
 			Port: port,
 			TlsCertPath: certutils.TlsCertInfo{
 				RootCaPath:    nginxcom.RootCaPath,

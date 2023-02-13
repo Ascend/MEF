@@ -16,6 +16,8 @@ const (
 	InnerRootCaDir = "/home/data/inner-root-ca/"
 	// RootCaFileName root ca save file name
 	RootCaFileName = "root.crt"
+	// InnerCaFileName inner root ca file name
+	InnerCaFileName = "RootCA.crt"
 	// RootKeyFileName root key save file name
 	RootKeyFileName = "encrypt_root.key"
 )

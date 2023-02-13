@@ -21,7 +21,7 @@ import (
 
 // GetArch is used to get the arch info
 func GetArch() (string, error) {
-	arch, err := common.RunCommand(ArchCommand, true, "-i")
+	arch, err := common.RunCommand(ArchCommand, true, common.DefaultCmdWaitTime, "-i")
 	if err != nil {
 		return "", err
 	}
@@ -116,4 +116,15 @@ func GetLocalIp() (string, error) {
 		return privateIp, nil
 	}
 	return "", errors.New("get local ip address failed")
+}
+
+// GetCenterUid is used to get the MEFCenter UID
+func GetCenterUid() (string, error) {
+	userInfo, err := user.Lookup(MefCenterName)
+	if err != nil {
+		hwlog.RunLog.Errorf("get %s uid failed: %s", MefCenterName, err.Error())
+		return "", err
+	}
+
+	return userInfo.Uid, nil
 }

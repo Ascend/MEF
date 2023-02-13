@@ -29,7 +29,7 @@ func QueryRootCa(certName string) ([]byte, error) {
 	return certData, nil
 }
 
-// IssueServiceCert issue service certificate with csr file(only support pem type csr)
+// IssueServiceCert issue service certificate with csr file, only support pem type csr
 func IssueServiceCert(certName string, serviceCsr string) ([]byte, error) {
 	if !checkCertName(certName) {
 		hwlog.RunLog.Errorf("issue service cert failed, check cert name [%s] failed", certName)
@@ -65,15 +65,13 @@ func IssueServiceCert(certName string, serviceCsr string) ([]byte, error) {
 
 // CheckAndCreateRootCa [method] for check root ca
 func CheckAndCreateRootCa() error {
-	for certName := range certImportMap {
-		hwlog.RunLog.Infof("start to check cert: %s", certName)
-		err := checkAndCreateCa(certName)
-		if err != nil {
-			hwlog.RunLog.Errorf("check cert [%s] failed: %v", certName, err)
-			return err
-		}
-		hwlog.RunLog.Infof("check cert [%s] success", certName)
+	hwlog.RunLog.Infof("start to check cert: %s", common.WsCltName)
+	err := checkAndCreateCa(common.WsCltName)
+	if err != nil {
+		hwlog.RunLog.Errorf("check cert [%s] failed: %v", common.WsCltName, err)
+		return err
 	}
+	hwlog.RunLog.Infof("check cert [%s] success", common.WsCltName)
 	return nil
 }
 

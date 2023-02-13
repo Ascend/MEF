@@ -9,7 +9,9 @@ import (
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/informers"
@@ -35,14 +37,15 @@ type NodeStatusService interface {
 	ListNodeStatus() map[string]string
 	// GetAllocatableResource gets specific node resource(cpu & resource) by hostname
 	GetAllocatableResource(hostname string) (*NodeResource, error)
-	// GetAllocatableNpu gets specific node npu by hostname
-	GetAllocatableNpu(hostname string) (int64, error)
+	// GetAvailableResource gets available node resource(cpu & resource) by hostname
+	GetAvailableResource(hostname string) (*NodeResource, error)
 }
 
 // NodeResource dynamic node information from k8s
 type NodeResource struct {
-	Cpu    int64 `json:"cpu"`
-	Memory int64 `json:"memory"`
+	Cpu    resource.Quantity `json:"cpu"`
+	Memory resource.Quantity `json:"memory"`
+	Npu    resource.Quantity `json:"npu"`
 }
 
 type nodeStatusServiceImpl struct {
@@ -91,11 +94,18 @@ func (s *nodeStatusServiceImpl) GetAllocatableResource(hostname string) (*NodeRe
 	if err != nil {
 		return nil, err
 	}
-	resource := &NodeResource{
-		Cpu:    node.Status.Allocatable.Cpu().Value(),
-		Memory: node.Status.Allocatable.Memory().Value(),
+	nodeResource := &NodeResource{
+		Cpu:    *node.Status.Allocatable.Cpu(),
+		Memory: *node.Status.Allocatable.Memory(),
+		Npu:    resource.Quantity{},
 	}
-	return resource, nil
+	npu, ok := node.Status.Allocatable[common.DeviceType]
+	if ok {
+		hwlog.RunLog.Warnf("node [%s] do not have available NPU", hostname)
+		nodeResource.Npu = npu
+	}
+
+	return nodeResource, nil
 }
 
 func (s *nodeStatusServiceImpl) GetNodeStatus(hostname string) (string, error) {
@@ -120,8 +130,31 @@ func (s *nodeStatusServiceImpl) ListNodeStatus() map[string]string {
 	return allNodeStatus
 }
 
-func (s *nodeStatusServiceImpl) GetAllocatableNpu(hostname string) (int64, error) {
-	return 0, nil
+func (s *nodeStatusServiceImpl) GetAvailableResource(hostname string) (*NodeResource, error) {
+	AllocatedRes, err := kubeclient.GetKubeClient().GetNodeAllocatedResource(hostname)
+	if err != nil {
+		return nil, fmt.Errorf("get node all allocated resource failed %s", err.Error())
+	}
+	AllocatableRes, err := s.GetAllocatableResource(hostname)
+	if err != nil {
+		return nil, fmt.Errorf("get node all allocatable resource failed: %s", err.Error())
+	}
+	allocatedCpu, ok := AllocatedRes[v1.ResourceCPU]
+	if !ok {
+		return nil, errors.New("get allocated resources cpu failed")
+	}
+	allocatedMemory, ok := AllocatedRes[v1.ResourceMemory]
+	if !ok {
+		return nil, errors.New("get allocated resources memory failed")
+	}
+	allocatedNpu, ok := AllocatedRes[common.DeviceType]
+	if !ok {
+		return nil, errors.New("get allocated resources npu failed")
+	}
+	AllocatableRes.Cpu.Sub(allocatedCpu)
+	AllocatableRes.Memory.Sub(allocatedMemory)
+	AllocatableRes.Npu.Sub(allocatedNpu)
+	return AllocatableRes, nil
 }
 
 func (s *nodeStatusServiceImpl) getNode(hostname string) (*v1.Node, error) {

@@ -31,6 +31,10 @@ var (
 )
 
 func init() {
+	setFlag()
+}
+
+func setFlag() {
 	flag.BoolVar(&version, util.VersionFlag, false, "Output the program version")
 	flag.BoolVar(&installAll, util.AllInstallFlag, false, "loadImage all optional components")
 	flag.BoolVar(&installSoftwareManager, util.SoftwareManagerFlag, false, "loadImage software manager")
@@ -79,11 +83,11 @@ func checkPath() error {
 	var err error
 
 	if logRootPath == "" || !utils.IsExist(logRootPath) {
-		return fmt.Errorf("log dir [%s] dose not exist", logRootPath)
+		return fmt.Errorf("log dir [%s] does not exist", logRootPath)
 	}
 
 	if installPath == "" || !utils.IsExist(installPath) {
-		return fmt.Errorf("install dir [%s] dose not exist", installPath)
+		return fmt.Errorf("install dir [%s] does not exist", installPath)
 	}
 
 	if logRootPath, err = utils.RealDirChecker(logRootPath, true, false); err != nil {

@@ -10,7 +10,7 @@ import (
 	"path"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/smartystreets/goconvey/convey"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 
@@ -95,7 +95,8 @@ func TestCertUtils(t *testing.T) {
 	if err := common.InitHwlogger(logConfig, logConfig); err != nil {
 		hwlog.RunLog.Errorf("init hwlog failed, %v", err)
 	}
-	Convey("test make sign cert", t, func() {
-		So(makeSingCert(), ShouldBeNil)
+	convey.Convey("test make sign cert", t, func() {
+		res := makeSingCert()
+		convey.So(res, convey.ShouldBeNil)
 	})
 }

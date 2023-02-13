@@ -33,16 +33,8 @@ const (
 	SoftwareCertName = "software"
 	// ImageCertName image manager cert name
 	ImageCertName = "image"
-	// ResFileCertName image manager cert name
-	ResFileCertName = "res_file"
 	// NginxCertName nginx apig cert name
 	NginxCertName = "apig"
-	// EdgeCoreCertName edge core sign cert name
-	EdgeCoreCertName = "edge_core"
-	// DevicePluginCertName device plugin sign cert name
-	DevicePluginCertName = "device_plugin"
-	// AlarmCertName alarm report cert name
-	AlarmCertName = "alarm"
 )
 
 const (
@@ -102,30 +94,16 @@ const (
 
 	// Node resource node
 	Node = "node"
-	// NodeUnManaged resource node unmanaged
-	NodeUnManaged = "nodeUnManaged"
-	// App resource app
-	App = "app"
-	// AppInstance resource app instance
-	AppInstance = "appInstance"
-	// AppInstanceByNode resource app instance by node
-	AppInstanceByNode = "appInstanceByNode"
 	// AppInstanceByNodeGroup resource app instance by node group
 	AppInstanceByNodeGroup = "appInstanceByNodeGroup"
 	// NodeGroup resource nodeGroup
 	NodeGroup = "nodeGroup"
 	// NodeStatus resource node status
 	NodeStatus = "nodeStatus"
-	// NodeStatistics node statistics
-	NodeStatistics = "nodeStatistics"
-	// NodeGroupStatistics node group statistics
-	NodeGroupStatistics = "nodeGroupStatistics"
-	// NodeRelation node relation
-	NodeRelation = "nodeRelation"
-	// ServiceCert resource service cert
-	ServiceCert = "service cert"
-	// AppTemplate resource app template
-	AppTemplate = "AppTemplate"
+	// CheckResource resources allocatable node resources in node group
+	CheckResource = "checkResource"
+	// UpdateResource resources allocatable node resources in node group
+	UpdateResource = "updateResource"
 	// ResponseTimeout response timeout time
 	ResponseTimeout = 3 * time.Second
 
@@ -150,6 +128,8 @@ const (
 	BaseHex = 10
 	// BitSize64 Base Parse integer need params
 	BitSize64 = 64
+	// DefaultCmdWaitTime represent the default timeout time to exec cmd
+	DefaultCmdWaitTime = 30
 )
 
 const (
@@ -166,7 +146,9 @@ const (
 	// NodeGroupLabelPrefix k8s label prefix for node group
 	NodeGroupLabelPrefix = "MEF-Node"
 	// DeviceType for Ascend device
-	DeviceType = "huawei.com/davinci-mini"
+	DeviceType = "huawei.com/Ascend310"
+	// DefaultImagePullSecret for image pull
+	DefaultImagePullSecret = "image-pull-secret"
 )
 
 // regex patterns
@@ -183,13 +165,13 @@ const (
 	RegImageVersion = `^[a-zA-Z]([-_a-zA-Z0-9]{0,14}[a-zA-Z0-9])?$`
 	// RegEnvKey regex pattern of environment variable key
 	RegEnvKey = `^[a-zA-Z]([_a-zA-Z0-9]{0,2046}[a-zA-Z0-9])?$`
-	// LowercaseCharactersRegex LowercaseCharactersRegex
+	// LowercaseCharactersRegex lowercase
 	LowercaseCharactersRegex = "[a-z]{1,}"
-	// UppercaseCharactersRegex UppercaseCharactersRegex
+	// UppercaseCharactersRegex uppercase
 	UppercaseCharactersRegex = "[A-Z]{1,}"
 	// BaseNumberRegex BaseNumberRegex
 	BaseNumberRegex = "[0-9]{1,}"
-	// SpecialCharactersRegex SpecialCharactersRegex
+	// SpecialCharactersRegex special regex
 	SpecialCharactersRegex = "[!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~]{1,}"
 	// PassWordRegex PassWordRegex
 	PassWordRegex = "^[a-zA-z0-9!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~]{8,20}$"
@@ -248,7 +230,7 @@ const (
 	TemplateEnvValueMin = 1
 	// TemplateEnvValueMax environment variable value max length
 	TemplateEnvValueMax = 2048
-	// MinComplexCount MinComplexCount
+	// MinComplexCount min complex count
 	MinComplexCount = 2
 )
 

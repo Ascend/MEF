@@ -39,6 +39,10 @@ spec:
               value: "admin"
             - name: installed-module
               value: ${installed_module}
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
             - name: NODE_IP
               valueFrom:
                 fieldRef:
@@ -71,16 +75,13 @@ metadata:
   labels:
     app: ascend-nginx-manager
 spec:
+  externalTrafficPolicy: Local
   ports:
     - name: port8443
       port: 8443
       targetPort: 8443
       protocol: TCP
       nodePort: 30035
-    - name: port8080
-      port: 8080
-      targetPort: 8080
-      protocol: TCP
   selector:
     app: ascend-nginx-manager
   type: NodePort

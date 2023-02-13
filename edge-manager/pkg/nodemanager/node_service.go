@@ -15,6 +15,7 @@ import (
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
 	"k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 
 	"huawei.com/mindxedge/base/common"
 
@@ -26,6 +27,8 @@ import (
 var (
 	nodeNotFoundPattern = regexp.MustCompile(`nodes "([^"]+)" not found`)
 )
+
+const groupLabelLen = 4
 
 // getNodeDetail get node detail
 func getNodeDetail(input interface{}) common.RespMsg {
@@ -52,15 +55,15 @@ func getNodeDetail(input interface{}) common.RespMsg {
 		hwlog.RunLog.Warnf("get node detail query node resource error, %s", err.Error())
 		nodeResource = &NodeResource{}
 	}
-	resp.NodeResource = *nodeResource
+	resp.NodeResourceInfo = NodeResourceInfo{
+		Cpu:    nodeResource.Cpu.Value(),
+		Memory: nodeResource.Memory.Value(),
+		Npu:    nodeResource.Npu.Value(),
+	}
 	resp.Status, err = NodeStatusServiceInstance().GetNodeStatus(nodeInfo.UniqueName)
 	if err != nil {
 		hwlog.RunLog.Warnf("get node detail query node status error, %s", err.Error())
 		resp.Status = statusOffline
-	}
-	resp.Npu, err = NodeStatusServiceInstance().GetAllocatableNpu(nodeInfo.UniqueName)
-	if err != nil {
-		hwlog.RunLog.Warnf("get node detail query node npu error, %s", err.Error())
 	}
 	hwlog.RunLog.Info("node detail db query success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
@@ -348,7 +351,7 @@ func deleteSingleNode(nodeID uint64) error {
 		return errors.New("can't delete unmanaged node")
 	}
 
-	groupLabels := make([]string, 0, 4)
+	groupLabels := make([]string, 0, groupLabelLen)
 	node, err := kubeclient.GetKubeClient().GetNode(nodeInfo.UniqueName)
 	if err != nil && isNodeNotFound(err) {
 		hwlog.RunLog.Warnf("k8s query node failed, err=%v", err)
@@ -512,7 +515,16 @@ func addNode(req AddNodeToGroupReq) (*types.BatchResp, error) {
 	if err != nil {
 		return nil, fmt.Errorf("dont have this node group id(%d)", *req.GroupID)
 	}
+	resReq, err := getNodeGroupResReq(nodeGroup)
+	if err != nil {
+		return nil, fmt.Errorf("parse node group id [%d] resources request error", *req.GroupID)
+	}
 	for i, id := range *req.NodeIDs {
+		if err = checkNodeResource(resReq, id); err != nil {
+			res.FailedIDs = append(res.FailedIDs, id)
+			hwlog.RunLog.Errorf("check node allocatable resource failed: %s", err.Error())
+			continue
+		}
 		nodeDb, err := NodeServiceInstance().getManagedNodeByID(id)
 		if err != nil {
 			res.FailedIDs = append(res.FailedIDs, id)
@@ -644,6 +656,112 @@ func innerGetNodeStatus(input interface{}) common.RespMsg {
 		NodeStatus: status,
 	}
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
+}
+
+func innerCheckNodeGroupResReq(input interface{}) common.RespMsg {
+	req, ok := input.(types.InnerCheckNodeResReq)
+	if !ok {
+		hwlog.RunLog.Error("parse inner message content failed")
+		return common.RespMsg{Status: "", Msg: "parse inner message content failed"}
+	}
+	if err := checkNodeResBeforeDeployApp(req); err != nil {
+		hwlog.RunLog.Errorf("check node allocated resource before deploying app failed: %s", err.Error())
+		return common.RespMsg{Status: "", Msg: err.Error()}
+	}
+	return common.RespMsg{Status: common.Success}
+}
+
+func checkNodeResBeforeDeployApp(req types.InnerCheckNodeResReq) error {
+	nodeRelations, err := NodeServiceInstance().listNodeRelationsByGroupId(req.NodeGroupID)
+	if err != nil {
+		return fmt.Errorf("get node relations by group id [%d] error", req.NodeGroupID)
+	}
+	for _, nodeRelation := range *nodeRelations {
+		if err := checkNodeResource(req.ResourceReqs, nodeRelation.NodeID); err != nil {
+			return fmt.Errorf("in group [%d], %s", req.NodeGroupID, err.Error())
+		}
+	}
+	return nil
+}
+
+func innerUpdateNodeGroupResReq(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start to update node group allocated resources")
+	req, ok := input.(types.InnerUpdateNodeResReq)
+	if !ok {
+		hwlog.RunLog.Error("parse inner message content failed")
+		return common.RespMsg{Status: "", Msg: "parse inner message content failed"}
+	}
+	err := updateNodeGroupResReq(req.ResourceReqs, req.NodeGroupID, req.IsUndeploy)
+	if err != nil {
+		hwlog.RunLog.Errorf("update node group resource request failed: %s", err.Error())
+		return common.RespMsg{Status: "", Msg: err.Error(), Data: false}
+	}
+	return common.RespMsg{Status: common.Success}
+}
+
+func updateNodeGroupResReq(req v1.ResourceList, nodeGroupID uint64, isUndeploy bool) error {
+	nodeGroup, err := NodeServiceInstance().getNodeGroupByID(nodeGroupID)
+	if err != nil {
+		return fmt.Errorf("get node group id [%d] resources request failed, db error", nodeGroupID)
+	}
+	allocatedRes, err := getNodeGroupResReq(nodeGroup)
+	if err != nil {
+		return fmt.Errorf("parse node group id [%d] resources request error", nodeGroupID)
+	}
+	for name, quantity := range req {
+		currentRes := allocatedRes[name]
+		if isUndeploy {
+			currentRes.Sub(quantity)
+		} else {
+			currentRes.Add(quantity)
+		}
+		allocatedRes[name] = currentRes
+	}
+	accumRes, err := json.Marshal(allocatedRes)
+	if err != nil {
+		return fmt.Errorf("marshal node group id [%d] resources request error", nodeGroupID)
+	}
+	updatedColumns := map[string]interface{}{"ResourcesRequest": accumRes}
+	if cnt, err := NodeServiceInstance().updateNodeGroupRes(nodeGroupID, updatedColumns); err != nil || cnt != 1 {
+		return fmt.Errorf("update resources request to node group id [%d] failed, db error", nodeGroupID)
+	}
+	return nil
+}
+
+func getNodeGroupResReq(nodeGroup *NodeGroup) (v1.ResourceList, error) {
+	var allocatedRes v1.ResourceList
+	if nodeGroup.ResourcesRequest == "" {
+		return make(map[v1.ResourceName]resource.Quantity), nil
+	}
+	err := json.Unmarshal([]byte(nodeGroup.ResourcesRequest), &allocatedRes)
+	if err != nil {
+		return nil, errors.New("unmarshal node group resource request error")
+	}
+	return allocatedRes, nil
+}
+
+func checkNodeResource(req v1.ResourceList, nodeId uint64) error {
+	nodeInfo, err := NodeServiceInstance().getNodeByID(nodeId)
+	if err != nil {
+		return fmt.Errorf("get node info by node id [%d] error", nodeId)
+	}
+	availableRes, err := NodeStatusServiceInstance().GetAvailableResource(nodeInfo.UniqueName)
+	if err != nil {
+		return fmt.Errorf("get node allocatable resource by node unique name [%s] error: %s",
+			nodeInfo.UniqueName, err.Error())
+	}
+
+	if availableRes.Cpu.Cmp(*req.Cpu()) < 0 {
+		return fmt.Errorf("node [%d] do not have enough cpu resources", nodeId)
+	}
+	if availableRes.Memory.Cmp(*req.Memory()) < 0 {
+		return fmt.Errorf("node [%d] do not have enough memory resources", nodeId)
+	}
+	npuReq, ok := req[common.DeviceType]
+	if ok && availableRes.Npu.Cmp(npuReq) < 0 {
+		return fmt.Errorf("node [%d] do not have enough npu resources", nodeId)
+	}
+	return nil
 }
 
 func updateNodeSoftwareInfo(input interface{}) common.RespMsg {

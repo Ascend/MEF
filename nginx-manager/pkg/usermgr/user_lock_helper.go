@@ -37,8 +37,8 @@ func comparePwdAndLock(clientIp string, targetPass []byte, user *User) common.Re
 	lockUser(user, exceedMaxCount)
 	lockIp(clientIp, exceedMaxCount)
 	if exceedMaxCount {
-		lockInfo := lockInfoResp{userLocked: true, ipLocked: true, userid: user.ID, ip: clientIp}
-		hwlog.RunLog.Errorf("compare password fail, lock user: %d, lock ip: %s", lockInfo.userid, clientIp)
+		lockInfo := lockInfoResp{UserLocked: true, IpLocked: true, Userid: user.ID, Ip: clientIp}
+		hwlog.RunLog.Errorf("compare password fail, lock user: %d, lock ip: %s", lockInfo.Userid, clientIp)
 		return common.RespMsg{Status: common.ErrorPassOrUser, Msg: "", Data: lockInfo}
 	}
 	hwlog.RunLog.Errorf("compare password fail, user: %s", user.Username)
@@ -122,22 +122,36 @@ func intervalUnlock(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
-func svcIpLocked(input interface{}) common.RespMsg {
+func svcLocked(input interface{}) common.RespMsg {
 	var req queryIpLockReq
 	if err := common.ParamConvert(input, &req); err != nil {
 		hwlog.RunLog.Errorf("query lock convert param error: %s", err.Error())
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "", Data: nil}
 	}
-	if len(req.targetIp) > 0 {
-		_, err := UserServiceInstance().getForbiddenIp(req.targetIp)
+	if checkResult := newLockChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("svcLocked check parameters failed, %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: ""}
+	}
+	ipLocked := true
+	if len(*req.TargetIp) > 0 {
+		_, err := UserServiceInstance().getForbiddenIp(*req.TargetIp)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return common.RespMsg{Status: common.Success, Msg: "", Data: false}
+			ipLocked = false
 		} else if err != nil {
-			hwlog.RunLog.Errorf("query lock error: %s", err.Error())
+			hwlog.RunLog.Errorf("query lock ip error: %s", err.Error())
 			return common.RespMsg{Status: common.ErrorQueryLock, Msg: "", Data: nil}
 		}
 	}
-	return common.RespMsg{Status: common.Success, Msg: "", Data: true}
+	user, err := UserServiceInstance().getUserById(1)
+	if err != nil {
+		hwlog.RunLog.Errorf("query lock user error: %s", err.Error())
+		return common.RespMsg{Status: common.ErrorQueryLock, Msg: "", Data: nil}
+	}
+	lockInfo := lockInfoResp{
+		UserLocked: user.LockState,
+		IpLocked:   ipLocked,
+	}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: lockInfo}
 }
 
 func intervalUnlockUser() {

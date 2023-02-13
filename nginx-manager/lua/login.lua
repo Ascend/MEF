@@ -3,6 +3,7 @@
 local cjson = require("cjson")
 local common = require("common")
 local libdynamic = require("libdynamic")
+local libaccess = require("libaccess")
 
 local function create_session(resp)
     local session = {}
@@ -14,14 +15,11 @@ local function create_session(resp)
     return session
 end
 
-if ngx.req.get_method() ~= "POST" then
-    ngx.log(ngx.ERR, "Login method " .. ngx.req.get_method() .. " is not allow")
-    return ngx.exit(ngx.HTTP_NOT_ALLOWED)
-end
+common.check_method("POST")
+libdynamic.set_upstream("usermanager")
 
 ngx.req.read_body()
 local body = ngx.req.get_body_data()
-libdynamic.set_upstream("usermanager")
 
 local res, err = ngx.location.capture("/internal/login", { method=ngx.HTTP_POST, body=body, ctx=ngx.ctx })
 local ok, resp = pcall(cjson.decode, res.body)
@@ -37,13 +35,11 @@ if res.status == ngx.HTTP_OK and ok and resp.status == g_success then
     ngx.header["Content-Type"] = "application/json"
     ngx.say(cjson.encode(resp))
     ngx.log(ngx.NOTICE, "Auth success: user id = " .. session.UserID)
+elseif resp and resp.status == g_error_pass_or_user then
+    libaccess.handleLockResp(resp)
+elseif resp and resp.status == g_error_need_firstlogin then
+    common.sendRespByBody(ngx.HTTP_OK, nil, resp)
 else
-    resp={}
-    resp["info"] = "failed"
-    ngx.status = ngx.HTTP_UNAUTHORIZED
-    if res and res.body then
-        resp["msg"] = res.body
-    end
-    ngx.say(cjson.encode(resp))
+    common.sendRespByCapture(res)
     ngx.log(ngx.NOTICE, "Auth failed: ip addr =  " .. ngx.var.remote_addr)
 end

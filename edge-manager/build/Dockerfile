@@ -1,5 +1,6 @@
 FROM ubuntu:22.04 as build
-RUN useradd -d /home/MEFCenter -u 8000 -m -s  /usr/sbin/nologin MEFCenter
+ARG UID
+RUN useradd -d /home/MEFCenter -u ${UID} -m -s  /usr/sbin/nologin MEFCenter
 WORKDIR /home/MEFCenter
 COPY edge-manager .
 COPY --chown=MEFCenter:MEFCenter ./lib/* ./lib/

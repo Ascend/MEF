@@ -28,9 +28,13 @@ spec:
           env:
             - name: installed-module
               value: ${installed_module}
+            - name: POD_IP
+              valueFrom:
+                 fieldRef:
+                   fieldPath: status.podIP
           imagePullPolicy: IfNotPresent
           command: [ "/bin/bash", "-c", "--"]
-          args: ["./cert-manager -ip=127.0.0.1 -port=8103"]
+          args: ["./cert-manager -port=8103"]
           volumeMounts:
             - name: cert-manager-config
               mountPath: /home/data/config/
