@@ -795,13 +795,13 @@ func updateNodeUpgradeResult(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "convert request error", Data: nil}
 	}
 
-	upgradeResInfo, err := json.Marshal(req.UpgradeResInfo)
+	upgradeResInfo, err := json.Marshal(req.ProgressInfo)
 	if err != nil {
 		hwlog.RunLog.Error("marshal upgrade result info failed")
 		return common.RespMsg{Status: "", Msg: "marshal upgrade result info failed", Data: nil}
 	}
 
-	err = NodeServiceInstance().updateNodeByUniqueName(req.UniqueName, "upgrade_result", string(upgradeResInfo))
+	err = NodeServiceInstance().updateNodeByUniqueName(req.SerialNumber, "upgrade_result", string(upgradeResInfo))
 	if err != nil {
 		hwlog.RunLog.Error("update node upgrade result info failed")
 		return common.RespMsg{Status: "", Msg: "update node upgrade result info failed", Data: nil}

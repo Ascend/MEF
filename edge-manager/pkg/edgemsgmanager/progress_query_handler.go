@@ -10,11 +10,11 @@ import (
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
-func getNodeUpgradeProgressInfo(nodeName string) (types.UpgradeResInfo, error) {
+func getNodeUpgradeProgressInfo(nodeName string) (types.ProgressInfo, error) {
 	nodeInfo, err := getNodeInfo(nodeName)
 	if err != nil {
 		hwlog.RunLog.Error("get node upgrade progress failed")
-		return types.UpgradeResInfo{}, errors.New("get node upgrade progress failed")
+		return types.ProgressInfo{}, errors.New("get node upgrade progress failed")
 	}
 
 	return nodeInfo.UpgradeResult, nil
@@ -36,10 +36,10 @@ func queryEdgeSoftwareUpgradeProgress(input interface{}) common.RespMsg {
 			" convert error", Data: nil}
 	}
 
-	upgradeResult, err := getNodeUpgradeProgressInfo(uniqueName)
-	if err != nil {
-		return common.RespMsg{Status: common.ErrorGetNodesUpgradeProgress, Msg: "", Data: nil}
+	var processInfo types.ProgressInfo
+	if nodeProgress, ok := nodesProgress[uniqueName]; !ok {
+		processInfo = nodeProgress
 	}
 
-	return common.RespMsg{Status: common.Success, Msg: "", Data: upgradeResult}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: processInfo}
 }

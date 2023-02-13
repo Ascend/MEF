@@ -38,7 +38,7 @@ type InnerGetNodeInfoByNameResp struct {
 	NodeID        uint64                       `json:"nodeID"`
 	NodeName      string                       `json:"nodeName"`
 	UniqueName    string                       `json:"uniqueName"`
-	UpgradeResult UpgradeResInfo               `json:"upgradeResult"`
+	UpgradeResult ProgressInfo                 `json:"upgradeResult"`
 	SoftwareInfo  map[string]map[string]string `json:"softwareInfo"`
 }
 
@@ -58,8 +58,8 @@ type EdgeReportSoftwareInfoReq struct {
 	SoftwareInfo map[string]map[string]string `json:"softwareInfo"`
 }
 
-// UpgradeResInfo [struct] to report edge software upgrade result info
-type UpgradeResInfo struct {
+// ProgressInfo [struct] to report edge software upgrade result info
+type ProgressInfo struct {
 	Progress uint64 `json:"progress"`
 	Res      string `json:"res"`
 	Msg      string `json:"msg"`
@@ -67,6 +67,6 @@ type UpgradeResInfo struct {
 
 // EdgeReportUpgradeResInfoReq [struct] to report edge software upgrade progress
 type EdgeReportUpgradeResInfoReq struct {
-	UniqueName     string         `json:"uniqueName"`
-	UpgradeResInfo UpgradeResInfo `json:"upgradeResInfo"`
+	SerialNumber string       `json:"serialNumber"`
+	ProgressInfo ProgressInfo `json:"upgradeResInfo"`
 }

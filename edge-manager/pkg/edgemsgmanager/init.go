@@ -10,10 +10,13 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 
+	"edge-manager/pkg/types"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
+
+var nodesProgress map[string]types.ProgressInfo
 
 // NodeMsgDealer [struct] to deal node msg
 type NodeMsgDealer struct {
@@ -45,6 +48,7 @@ func NewNodeMsgManager(enable bool) *NodeMsgDealer {
 
 // Start receives and sends message
 func (nm *NodeMsgDealer) Start() {
+	nodesProgress = make(map[string]types.ProgressInfo, 0)
 	for {
 		select {
 		case _, ok := <-nm.ctx.Done():
@@ -111,5 +115,7 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodGet, filepath.Join(edgeSoftwareRootPath, "/version-info")): queryEdgeSoftwareVersion,
 	common.Combine(http.MethodGet, filepath.Join(edgeSoftwareRootPath,
 		"/upgrade-result")): queryEdgeSoftwareUpgradeProgress,
-	common.Combine(common.OptGet, "/edge-core/config"): GetConfigInfo,
+
+	common.Combine(common.OptGet, "/edge-core/config"):             GetConfigInfo,
+	common.Combine(common.OptReport, common.ResSoftwareInfoReport): UpdateEdgeSoftwareUpgradeProgress,
 }
