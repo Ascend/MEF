@@ -12,10 +12,11 @@ import (
 	"nginx-manager/pkg/nginxcom"
 )
 
-// confItemsTemplate nginx.conf需要替换的配置项
+// confItemsTemplate the items needed to replace into nginx.conf
 var confItemsTemplate = []nginxcom.NginxConfItem{
 	{Key: nginxcom.NginxSslPortKey, From: nginxcom.KeyPrefix + nginxcom.NginxSslPortKey},
 	{Key: nginxcom.UserMgrSvcPortKey, From: nginxcom.KeyPrefix + nginxcom.UserMgrSvcPortKey},
+	{Key: nginxcom.PodIpKey, From: nginxcom.KeyPrefix + nginxcom.PodIpKey},
 }
 
 func checkNginxConfig(param interface{}) error {

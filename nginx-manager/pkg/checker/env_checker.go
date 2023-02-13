@@ -7,18 +7,23 @@ import (
 	"fmt"
 	"strconv"
 
-	"huawei.com/mindx/common/hwlog"
-
+	"huawei.com/mindxedge/base/common/checker"
 	"nginx-manager/pkg/nginxcom"
+
+	"huawei.com/mindx/common/hwlog"
 )
 
-// EndpointTemplate nginx.conf需要替换的地址,端口项
-var endpointTemplate = []nginxcom.Endpoint{
-	{PortKey: nginxcom.EdgePortKey},
-	{PortKey: nginxcom.SoftPortKey},
-	{PortKey: nginxcom.CertPortKey},
-	{PortKey: nginxcom.UserMgrSvcPortKey},
-	{PortKey: nginxcom.NginxSslPortKey},
+// EndpointTemplate the ports needed to replace int nginx.conf
+var envPorts = []nginxcom.EnvEntry{
+	{EnvKey: nginxcom.EdgePortKey},
+	{EnvKey: nginxcom.SoftPortKey},
+	{EnvKey: nginxcom.CertPortKey},
+	{EnvKey: nginxcom.UserMgrSvcPortKey},
+	{EnvKey: nginxcom.NginxSslPortKey},
+}
+
+var envIps = []nginxcom.EnvEntry{
+	{EnvKey: nginxcom.PodIpKey},
 }
 
 func checkEnv(envs interface{}) error {
@@ -27,15 +32,39 @@ func checkEnv(envs interface{}) error {
 		hwlog.RunLog.Error("env map type error")
 		return fmt.Errorf("env map type error")
 	}
-	for _, v := range endpointTemplate {
-		port, err := strconv.Atoi(envMap[v.PortKey])
+	err := checkPorts(envMap)
+	if err != nil {
+		return err
+	}
+	return checkIps(envMap)
+}
+
+func checkPorts(envMap map[string]string) error {
+	for _, v := range envPorts {
+		port, err := strconv.Atoi(envMap[v.EnvKey])
 		if err != nil {
 			hwlog.RunLog.Errorf("port %d check fail", port)
 			return fmt.Errorf("port %d check fail", port)
 		}
-		if port < nginxcom.PortMin || port > nginxcom.PortMax {
+		if !checker.IsPortInRange(nginxcom.PortMin, nginxcom.PortMax, port) {
 			hwlog.RunLog.Errorf("port %d check fail", port)
 			return fmt.Errorf("port %d check fail", port)
+		}
+	}
+	return nil
+}
+
+func checkIps(envMap map[string]string) error {
+	for _, v := range envIps {
+		ip, ok := envMap[v.EnvKey]
+		if !ok {
+			hwlog.RunLog.Errorf("env %s not exist", v.EnvKey)
+			return fmt.Errorf("env %s not exist", v.EnvKey)
+		}
+		valid, _ := checker.IsIpValid(ip)
+		if !valid {
+			hwlog.RunLog.Errorf("ip %s check fail", ip)
+			return fmt.Errorf("ip %s check fail", ip)
 		}
 	}
 	return nil

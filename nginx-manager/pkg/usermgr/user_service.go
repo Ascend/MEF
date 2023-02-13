@@ -23,12 +23,11 @@ var defaultUsername = os.Getenv(nginxcom.DefaultUsernameKey)
 
 func createDefaultUser() error {
 	user, err := UserServiceInstance().getUserByName(defaultUsername)
-	// 用户已存在
+	// user already exist
 	if err == nil {
 		hwlog.RunLog.Warn("user exist, no need to create")
 		return nil
 	}
-	// 查询数据库错误
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		hwlog.RunLog.Errorf("createDefaultUser query db error, user: %s", defaultUsername)
 		return err
@@ -47,7 +46,7 @@ func createDefaultUser() error {
 	return nil
 }
 
-// FirstChange 首次登录时修改密码
+// FirstChange change default user password after deployment the mef system
 func FirstChange(input interface{}) common.RespMsg {
 	var req firstChangePwdReq
 	if err := common.ParamConvert(input, &req); err != nil {
@@ -86,7 +85,7 @@ func FirstChange(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
-// Login 登录
+// Login handle user login action
 func Login(input interface{}) common.RespMsg {
 	var req loginReq
 	if err := common.ParamConvert(input, &req); err != nil {
@@ -107,14 +106,14 @@ func Login(input interface{}) common.RespMsg {
 		return resp
 	}
 	_, err := UserServiceInstance().getForbiddenIp(*req.Ip)
-	// ip被禁
+	// ip is frozen
 	if err == nil {
 		return common.RespMsg{Status: common.ErrorLockState, Msg: "", Data: nil}
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		hwlog.RunLog.Infof("user %s login query ip failed, error: %s", user.Username, err)
 		return common.RespMsg{Status: common.ErrorLogin, Msg: "", Data: nil}
 	}
-	// 密码错误
+	// password is wrong
 	if resp = dealLockAndComparePwd(*req.Ip, *req.Password, user); resp.Status != common.Success {
 		return resp
 	}
@@ -125,12 +124,12 @@ func Login(input interface{}) common.RespMsg {
 	if resp.Status != common.Success {
 		return resp
 	}
-	// 登录成功
+	// login success
 	hwlog.RunLog.Infof("user %s login success", user.Username)
 	return common.RespMsg{Status: common.Success, Msg: "", Data: dbUser}
 }
 
-// Change 修改密码
+// Change change user's password
 func Change(input interface{}) common.RespMsg {
 	var req changePwdReq
 	if err := common.ParamConvert(input, &req); err != nil {
@@ -175,6 +174,19 @@ func Change(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorChangePassword, Msg: "", Data: nil}
 	}
 	saveHistoryPassword(encryptPassWord, saltString, cachedUser.ID)
+	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
+}
+
+// Logout handle user logout action
+func Logout(input interface{}) common.RespMsg {
+	var req logoutReq
+	if err := common.ParamConvert(input, &req); err != nil {
+		hwlog.RunLog.Errorf("logout convert param error: %s", err.Error())
+		hwlog.OpLog.Errorf("[%v]user admin logout fail", *req.Ip)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "", Data: nil}
+	}
+	hwlog.RunLog.Info("user admin logout success")
+	hwlog.OpLog.Infof("[%v]user admin logout success", *req.Ip)
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 

@@ -133,6 +133,7 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodPatch, filepath.Join(userMgrPath, "change")):         Change,
 	common.Combine(http.MethodPost, filepath.Join(userMgrPath, "interval-unlock")): intervalUnlock,
 	common.Combine(http.MethodPost, filepath.Join(userMgrPath, "islocked")):        svcLocked,
+	common.Combine(http.MethodPost, filepath.Join(userMgrPath, "logout")):          Logout,
 }
 
 func initTable() error {

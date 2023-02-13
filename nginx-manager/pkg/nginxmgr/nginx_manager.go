@@ -24,7 +24,7 @@ const (
 	restyPrefix   = "/home/MEFCenter/"
 )
 
-// InitResource 初始化nginx需要的资源
+// InitResource initial the resources needed by nginx
 func InitResource() error {
 	err := updateConf()
 
@@ -62,7 +62,7 @@ func loadCerts() error {
 	return err
 }
 
-// CreateConfItems 创建nginx.conf配置文件的替换项
+// CreateConfItems create some items which used to replace into nginx.conf file
 func CreateConfItems(envs map[string]string) []nginxcom.NginxConfItem {
 	var ret []nginxcom.NginxConfItem
 	template := checker.GetConfigItemTemplate()
