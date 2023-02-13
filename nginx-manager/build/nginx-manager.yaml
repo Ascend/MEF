@@ -39,6 +39,10 @@ spec:
               value: "admin"
             - name: installed-module
               value: ${installed_module}
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
             - name: NODE_IP
               valueFrom:
                 fieldRef:

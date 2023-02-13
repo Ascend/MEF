@@ -23,6 +23,7 @@ const (
 
 // HttpsServer [struct] for HttpsServer init parameters
 type HttpsServer struct {
+	IP          string
 	Port        int
 	TlsCertPath certutils.TlsCertInfo
 	server      *http.Server
@@ -61,7 +62,7 @@ func (ghs *HttpsServer) Init() error {
 		return err
 	}
 	server := &http.Server{
-		Addr:           fmt.Sprintf(":%d", ghs.Port),
+		Addr:           fmt.Sprintf("%s:%d", ghs.IP, ghs.Port),
 		Handler:        engine,
 		TLSConfig:      tlsCfg,
 		ReadTimeout:    readTimeout,

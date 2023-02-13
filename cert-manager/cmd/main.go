@@ -11,7 +11,6 @@ import (
 	"huawei.com/mindx/common/hwlog"
 
 	"cert-manager/pkg/restful"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
 	"huawei.com/mindxedge/base/modulemanager"
@@ -47,10 +46,13 @@ func main() {
 		hwlog.RunLog.Errorf("port %d is not in [%d, %d]", port, common.MinPort, common.MaxPort)
 		return
 	}
-	if valid, err := checker.IsIpValid(ip); !valid {
-		hwlog.RunLog.Error(err)
+	podIp, err := common.GetPodIP()
+	if err != nil {
+		hwlog.RunLog.Errorf("get edge manager pod ip failed: %s", err.Error())
 		return
 	}
+	ip = podIp
+
 	if err := initResource(); err != nil {
 		return
 	}
@@ -66,10 +68,7 @@ func main() {
 func init() {
 	flag.IntVar(&port, "port", portConst,
 		"The server port of the http service,range[1025-40000]")
-	flag.StringVar(&ip, "ip", "",
-		"The listen ip of the service,0.0.0.0 is not recommended when install on Multi-NIC host")
 	flag.BoolVar(&version, "version", false, "Output the program version")
-
 	// hwOpLog configuration
 	flag.IntVar(&serverOpConf.LogLevel, "operateLogLevel", 0,
 		"Operation log level, -1-debug, 0-info, 1-warning, 2-error, 3-fatal (default 0)")
