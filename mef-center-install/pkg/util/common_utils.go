@@ -117,3 +117,14 @@ func GetLocalIp() (string, error) {
 	}
 	return "", errors.New("get local ip address failed")
 }
+
+// GetCenterUid is used to get the MEFCenter UID
+func GetCenterUid() (string, error) {
+	userInfo, err := user.Lookup(MefCenterName)
+	if err != nil {
+		hwlog.RunLog.Errorf("get %s uid failed: %s", MefCenterName, err.Error())
+		return "", err
+	}
+
+	return userInfo.Uid, nil
+}

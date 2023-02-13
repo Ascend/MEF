@@ -1,5 +1,6 @@
 FROM openresty/openresty:buster as build
-RUN useradd -d /home/MEFCenter -u 8000 -m -s  /usr/sbin/nologin MEFCenter
+ARG UID
+RUN useradd -d /home/MEFCenter -u ${UID} -m -s  /usr/sbin/nologin MEFCenter
 WORKDIR /home/MEFCenter
 
 COPY nginx .

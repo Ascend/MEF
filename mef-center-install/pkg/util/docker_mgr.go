@@ -44,10 +44,18 @@ func (dd *DockerDealer) LoadImage(buildPath string) error {
 		hwlog.RunLog.Errorf("same docker image [%s] exists,cannot reload it", dd.imageName)
 		return errors.New("load docker image failed")
 	}
+
+	uid, err := GetCenterUid()
+	if err != nil {
+		hwlog.RunLog.Errorf("Get MEFCenter uid failed")
+		return errors.New("get MEFCenter uid failed")
+	}
+
 	// imageName is fixed name.
 	// tag is read from file or filename, the verification will be added in setVersion.
 	// absPath has been verified
-	cmdStr := "docker build -t " + dd.imageName + ":" + dd.tag + " " + absPath + "/."
+	cmdStrPattern := "docker build --build-arg UID=%s -t %s:%s %s/."
+	cmdStr := fmt.Sprintf(cmdStrPattern, uid, dd.imageName, dd.tag, absPath)
 	if _, err = common.RunCommand("sh", false, common.DefaultCmdWaitTime, "-c", cmdStr); err != nil {
 		hwlog.RunLog.Errorf("load docker image [%s] failed:%s", dd.imageName, err.Error())
 		return errors.New("load docker image failed")
