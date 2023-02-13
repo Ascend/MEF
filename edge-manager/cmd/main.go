@@ -45,9 +45,7 @@ var (
 	wsPort        int
 	ip            string
 	version       bool
-	// kubeConfig Kube config path
-	kubeConfig string
-	dbPath     string
+	dbPath        string
 )
 
 func main() {
@@ -86,7 +84,6 @@ func main() {
 func init() {
 	flag.BoolVar(&version, "version", false, "Output the program version")
 	flag.StringVar(&dbPath, "dbPath", defaultDbPath, "sqlite database path")
-	flag.StringVar(&kubeConfig, "kubeconfig", "", "The k8s master config file")
 	flag.IntVar(&port, "port", defaultPort,
 		"The server port of the http service,range[1025-65535]")
 	flag.IntVar(&wsPort, "wsPort", defaultWsPort,
@@ -127,7 +124,7 @@ func initResource() error {
 		hwlog.RunLog.Error("init database failed")
 		return err
 	}
-	if _, err := kubeclient.NewClientK8s(kubeConfig); err != nil {
+	if _, err := kubeclient.NewClientK8s(""); err != nil {
 		hwlog.RunLog.Error("init k8s failed")
 		return err
 	}
