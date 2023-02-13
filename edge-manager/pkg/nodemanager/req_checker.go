@@ -10,7 +10,7 @@ import (
 const (
 	fieldDescription   = "Description"
 	fieldNodeName      = "NodeName"
-	fieldUniqueName    = "SerialNumber"
+	fieldUniqueName    = "UniqueName"
 	fieldSerialNumber  = "SerialNumber"
 	fieldGroupName     = "GroupName"
 	fieldNodeGroupName = "NodeGroupName"

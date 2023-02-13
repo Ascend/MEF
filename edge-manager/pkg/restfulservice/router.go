@@ -202,11 +202,11 @@ var softwareRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 		queryDispatcher{restfulmgr.GenericDispatcher{
 			RelativePath: "/version-info",
 			Method:       http.MethodGet,
-			Destination:  common.NodeMsgManagerName}, "uniqueName", true},
+			Destination:  common.NodeMsgManagerName}, "serialNumber", true},
 		queryDispatcher{restfulmgr.GenericDispatcher{
 			RelativePath: "/upgrade-result",
 			Method:       http.MethodGet,
-			Destination:  common.NodeMsgManagerName}, "uniqueName", true},
+			Destination:  common.NodeMsgManagerName}, "serialNumber", true},
 	},
 }
 

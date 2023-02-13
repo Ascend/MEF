@@ -35,33 +35,33 @@ func sendMessageToEdge(msg *model.Message, content string) error {
 	return nil
 }
 
-func getNodeInfo(UniqueName string) (types.InnerGetNodeInfoByNameResp, error) {
-	var nodeInfo types.InnerGetNodeInfoByNameResp
+func getNodeSoftwareInfo(serialNumber string) (map[string]map[string]string, error) {
+	var nodeSoftwareInfo types.InnerSoftwareInfoResp
 	router := common.Router{
 		Source:      common.NodeMsgManagerName,
 		Destination: common.NodeManagerName,
 		Option:      common.Inner,
 		Resource:    common.Node,
 	}
-	req := types.InnerGetNodeInfoByNameReq{
-		UniqueName: UniqueName,
+	req := types.InnerGetSoftwareInfoBySerialNumberReq{
+		SerialNumber: serialNumber,
 	}
 	resp := common.SendSyncMessageByRestful(req, &router)
 	if resp.Status != common.Success {
 		hwlog.RunLog.Errorf("get node info failed:%s", resp.Msg)
-		return nodeInfo, errors.New(resp.Msg)
+		return nil, errors.New(resp.Msg)
 	}
 
 	data, err := json.Marshal(resp.Data)
 	if err != nil {
 		hwlog.RunLog.Error("marshal internal response error")
-		return nodeInfo, errors.New("marshal internal response error")
+		return nil, errors.New("marshal internal response error")
 	}
 
-	if err = json.Unmarshal(data, &nodeInfo); err != nil {
+	if err = json.Unmarshal(data, &nodeSoftwareInfo); err != nil {
 		hwlog.RunLog.Error("unmarshal internal response error")
-		return nodeInfo, errors.New("unmarshal internal response error")
+		return nil, errors.New("unmarshal internal response error")
 	}
 
-	return nodeInfo, nil
+	return nodeSoftwareInfo.SoftwareInfo, nil
 }

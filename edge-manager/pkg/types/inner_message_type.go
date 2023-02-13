@@ -10,6 +10,11 @@ type InnerGetNodeInfoByNameReq struct {
 	UniqueName string `json:"uniqueName"`
 }
 
+// InnerGetSoftwareInfoBySerialNumberReq is the request struct for internal module to get node info by SerialNumber
+type InnerGetSoftwareInfoBySerialNumberReq struct {
+	SerialNumber string `json:"serialNumber"`
+}
+
 // InnerGetNodeGroupInfosReq is the request struct for internal module to get node group infos by group ids
 type InnerGetNodeGroupInfosReq struct {
 	NodeGroupIds []uint64 `json:"nodeGroupIDs"`
@@ -33,13 +38,15 @@ type InnerCheckNodeResReq struct {
 	ResourceReqs v1.ResourceList
 }
 
+// InnerSoftwareInfoResp is the response struct of node info
+type InnerSoftwareInfoResp struct {
+	SoftwareInfo map[string]map[string]string `json:"softwareInfo"`
+}
+
 // InnerGetNodeInfoByNameResp is the response struct of node info
 type InnerGetNodeInfoByNameResp struct {
-	NodeID        uint64                       `json:"nodeID"`
-	NodeName      string                       `json:"nodeName"`
-	UniqueName    string                       `json:"uniqueName"`
-	UpgradeResult ProgressInfo                 `json:"upgradeResult"`
-	SoftwareInfo  map[string]map[string]string `json:"softwareInfo"`
+	NodeID   uint64 `json:"nodeID"`
+	NodeName string `json:"nodeName"`
 }
 
 // InnerGetNodeGroupInfosResp is the response struct of node group infos by group ids

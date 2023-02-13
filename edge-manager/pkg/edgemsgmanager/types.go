@@ -22,5 +22,5 @@ type DownloadInfo struct {
 // EffectInfoReq effect software
 type EffectInfoReq struct {
 	NodeIDs     []uint64 `json:"nodeIDs"`
-	UniqueNames []string `json:"uniqueNames"`
+	SerialNames []string `json:"SerialNames"`
 }

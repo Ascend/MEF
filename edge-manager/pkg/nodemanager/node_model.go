@@ -34,6 +34,7 @@ type NodeService interface {
 	listAllNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
 	updateNodeByUniqueName(name, column, value string) error
 	getNodeByUniqueName(string) (*NodeInfo, error)
+	getNodeBySerialNumber(string) (*NodeInfo, error)
 	getNodeByID(uint64) (*NodeInfo, error)
 	getManagedNodeByID(uint64) (*NodeInfo, error)
 	countGroupsByNode(uint64) (int64, error)
@@ -151,6 +152,12 @@ func (n *NodeServiceImpl) updateNodeByUniqueName(name, column, value string) err
 func (n *NodeServiceImpl) getNodeByUniqueName(name string) (*NodeInfo, error) {
 	var node NodeInfo
 	return &node, n.db.Model(NodeInfo{}).Where("unique_name=?", name).First(&node).Error
+}
+
+// GetNodeByUniqueName get node info by serial number
+func (n *NodeServiceImpl) getNodeBySerialNumber(name string) (*NodeInfo, error) {
+	var node NodeInfo
+	return &node, n.db.Model(NodeInfo{}).Where("serial_number=?", name).First(&node).Error
 }
 
 func (n *NodeServiceImpl) countNodeByGroup(groupID uint64) (int64, error) {

@@ -619,22 +619,31 @@ func innerGetNodeInfoByUniqueName(input interface{}) common.RespMsg {
 	}
 	nodeInfo, err := NodeServiceInstance().getNodeByUniqueName(req.UniqueName)
 	if err != nil {
-		hwlog.RunLog.Errorf("get node info by unique name [%s] failed:%v", req.UniqueName, err)
+		hwlog.RunLog.Error("get node info by unique name failed")
 		return common.RespMsg{Status: "", Msg: "get node info by unique name failed", Data: nil}
 	}
 	resp := types.InnerGetNodeInfoByNameResp{
-		NodeID:     nodeInfo.ID,
-		NodeName:   nodeInfo.NodeName,
-		UniqueName: nodeInfo.UniqueName,
+		NodeID:   nodeInfo.ID,
+		NodeName: nodeInfo.NodeName,
 	}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
+}
+
+func innerGetNodeSoftwareInfo(input interface{}) common.RespMsg {
+	req, ok := input.(types.InnerGetSoftwareInfoBySerialNumberReq)
+	if !ok {
+		hwlog.RunLog.Error("parse inner message content failed")
+		return common.RespMsg{Status: "", Msg: "parse inner message content failed", Data: nil}
+	}
+	nodeInfo, err := NodeServiceInstance().getNodeBySerialNumber(req.SerialNumber)
+	if err != nil {
+		hwlog.RunLog.Errorf("get node info by unique name [%s] failed:%v", req.SerialNumber, err)
+		return common.RespMsg{Status: "", Msg: "get node info by unique name failed", Data: nil}
+	}
+	resp := types.InnerSoftwareInfoResp{}
 
 	if err = json.Unmarshal([]byte(nodeInfo.SoftwareInfo), &resp.SoftwareInfo); err != nil {
 		hwlog.RunLog.Error("unmarshall node software info failed")
-		return common.RespMsg{Status: "", Msg: "get node info failed because unmarshal failed", Data: nil}
-	}
-
-	if err = json.Unmarshal([]byte(nodeInfo.UpgradeResult), &resp.UpgradeResult); err != nil {
-		hwlog.RunLog.Error("unmarshall node upgrade result failed")
 		return common.RespMsg{Status: "", Msg: "get node info failed because unmarshal failed", Data: nil}
 	}
 

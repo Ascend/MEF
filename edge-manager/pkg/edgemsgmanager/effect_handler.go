@@ -1,3 +1,6 @@
+// Copyright (c)  2023. Huawei Technologies Co., Ltd.  All rights reserved.
+
+// Package edgemsgmanager to manage node msg
 package edgemsgmanager
 
 import (
@@ -33,7 +36,7 @@ func effectEdgeSoftware(input interface{}) common.RespMsg {
 	msg.SetRouter(common.NodeMsgManagerName, common.CloudHubName, common.OptPost, common.ResEdgeEffectInfo)
 	msg.FillContent(input)
 	var batchResp types.BatchResp
-	for _, sn := range req.UniqueNames {
+	for _, sn := range req.SerialNames {
 		msg.SetNodeId(sn)
 
 		err = modulemanager.SendMessage(msg)

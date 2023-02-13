@@ -10,7 +10,7 @@ type NodeInfo struct {
 	NodeType      string `gorm:"size:128"                       json:"nodeType"`
 	NodeName      string `gorm:"size:255;unique;not null"       json:"nodeName"`
 	UniqueName    string `gorm:"size:255;unique;not null"       json:"uniqueName"`
-	SerialNumber string `gorm:"size:255;unique;not null"       json:"serialNumber"`
+	SerialNumber  string `gorm:"size:255;unique;not null"       json:"serialNumber"`
 	IP            string `gorm:"size:256"                       json:"ip"`
 	IsManaged     bool   `gorm:"size:4;not null"                json:"isManaged"`
 	SoftwareInfo  string `gorm:"type:text;not null"             json:"softwareInfo"`
