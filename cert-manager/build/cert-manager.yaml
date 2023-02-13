@@ -21,6 +21,7 @@ spec:
     spec:
       nodeSelector:
         mef-center-node: ""
+      automountServiceAccountToken: false
       serviceAccountName: ascend-cert-manager
       containers:
         - name: ascend-cert-manager

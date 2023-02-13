@@ -23,6 +23,7 @@ spec:
         mef-center-node: ""
       imagePullSecrets:
         - name: image-pull-secret
+      automountServiceAccountToken: false
       serviceAccountName: ascend-software-manager
       containers:
         - name: ascend-software-manager

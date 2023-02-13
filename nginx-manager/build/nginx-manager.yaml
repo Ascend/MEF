@@ -20,6 +20,7 @@ spec:
     spec:
       nodeSelector:
         mef-center-node: ""
+      automountServiceAccountToken: false
       serviceAccountName: ascend-nginx-manager
       containers:
         - name: ascend-nginx-manager
