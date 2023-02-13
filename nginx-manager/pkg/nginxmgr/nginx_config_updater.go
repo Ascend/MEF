@@ -21,7 +21,7 @@ type nginxConfUpdater struct {
 	confPath  string
 }
 
-// NewNginxConfUpdater 创建一个nginx配置文件修改器
+// NewNginxConfUpdater create an updater to modify nginx configuration file
 func NewNginxConfUpdater(confItems []nginxcom.NginxConfItem, confPath string) *nginxConfUpdater {
 	return &nginxConfUpdater{
 		confItems: confItems,
@@ -46,7 +46,7 @@ func (n *nginxConfUpdater) calculatePipeCount() (int, error) {
 	return bytes.Count(content, []byte(nginxcom.ClientPipePrefix)), nil
 }
 
-// Update 修改配置文件
+// Update do the modify nginx configuration file job
 func (n *nginxConfUpdater) Update() error {
 	content, err := loadConf(n.confPath)
 	if err != nil {

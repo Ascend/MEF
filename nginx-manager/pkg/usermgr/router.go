@@ -37,6 +37,10 @@ var routers = map[string][]restfulmgr.DispatcherItf{
 			RelativePath: "/islocked",
 			Method:       http.MethodPost,
 			Destination:  nginxcom.UserManagerName}},
+		userDispatcher{restfulmgr.GenericDispatcher{
+			RelativePath: "/logout",
+			Method:       http.MethodPost,
+			Destination:  nginxcom.UserManagerName}},
 	},
 }
 

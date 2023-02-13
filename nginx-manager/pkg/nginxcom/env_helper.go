@@ -11,10 +11,10 @@ import (
 	"huawei.com/mindx/common/hwlog"
 )
 
-// Envs nginx使用到的环境变量
+// Envs environments used in project
 var Envs map[string]string
 
-// InitEnvs 初始化环境变量
+// InitEnvs initial the environments
 func InitEnvs() {
 	Envs = make(map[string]string)
 	Envs[EdgePortKey] = os.Getenv(EdgePortKey)
@@ -22,9 +22,10 @@ func InitEnvs() {
 	Envs[CertPortKey] = os.Getenv(CertPortKey)
 	Envs[UserMgrSvcPortKey] = os.Getenv(UserMgrSvcPortKey)
 	Envs[NginxSslPortKey] = os.Getenv(NginxSslPortKey)
+	Envs[PodIpKey] = os.Getenv(PodIpKey)
 }
 
-// GetEnvAsInt 获取int类型的环境变量
+// GetEnvAsInt get environment variable as the type int
 func GetEnvAsInt(key string) (int, error) {
 	if _, ok := Envs[key]; !ok {
 		hwlog.RunLog.Errorf("cannot find env: %s", key)

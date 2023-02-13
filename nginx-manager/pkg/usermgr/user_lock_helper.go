@@ -16,12 +16,14 @@ import (
 	"nginx-manager/pkg/nginxcom"
 )
 
-// dealLockAndComparePwd 比较密码并锁定
+const localhost = "127.0.0.1"
+
+// dealLockAndComparePwd compare passwords and deal the lock
 func dealLockAndComparePwd(clientIp string, targetPass []byte, user *User) common.RespMsg {
-	unlockUser(user)
+	unlockUser(user, clientIp)
 	forbiddenIp, err := UserServiceInstance().getForbiddenIp(clientIp)
 	if err == nil {
-		unlockIp(forbiddenIp)
+		unlockIp(forbiddenIp, clientIp)
 	}
 	return comparePwdAndLock(clientIp, targetPass, user)
 }
@@ -34,7 +36,7 @@ func comparePwdAndLock(clientIp string, targetPass []byte, user *User) common.Re
 	if user.PasswordWrongTimes+1 >= nginxcom.MaxPwdWrongTimes {
 		exceedMaxCount = true
 	}
-	lockUser(user, exceedMaxCount)
+	lockUser(user, exceedMaxCount, clientIp)
 	lockIp(clientIp, exceedMaxCount)
 	if exceedMaxCount {
 		lockInfo := lockInfoResp{UserLocked: true, IpLocked: true, Userid: user.ID, Ip: clientIp}
@@ -45,7 +47,7 @@ func comparePwdAndLock(clientIp string, targetPass []byte, user *User) common.Re
 	return common.RespMsg{Status: common.ErrorPassOrUser, Msg: "", Data: nil}
 }
 
-func lockUser(user *User, exceedMaxCount bool) {
+func lockUser(user *User, exceedMaxCount bool, peerIp string) {
 	now := time.Now().Format(common.TimeFormat)
 	updateUser := &User{}
 	updateUser.Username = user.Username
@@ -58,8 +60,14 @@ func lockUser(user *User, exceedMaxCount bool) {
 		updateUser.LockTime = user.LockTime
 		updateUser.LockState = false
 	}
-	if err := UserServiceInstance().updateUserLock(updateUser); err != nil {
-		hwlog.RunLog.Errorf("update User Lock error, user: %s", user.Username)
+	err := UserServiceInstance().updateUserLock(updateUser)
+	if err != nil {
+		hwlog.OpLog.Errorf("[%s]user %s lock fail", peerIp, user.Username)
+		hwlog.RunLog.Errorf("[%s]update User Lock error, user: %s", peerIp, user.Username)
+		return
+	}
+	if exceedMaxCount {
+		hwlog.OpLog.Infof("[%s]user %s lock success", peerIp, user.Username)
 	}
 }
 
@@ -73,11 +81,14 @@ func lockIp(ip string, exceedMaxCount bool) {
 	updateIp.Ip = ip
 	updateIp.LockTime = now
 	if err := UserServiceInstance().createForbiddenIp(updateIp); err != nil {
+		hwlog.OpLog.Errorf("[%s]ip %s lock fail", ip, ip)
 		hwlog.RunLog.Error("update forbiddenIp error")
+		return
 	}
+	hwlog.OpLog.Infof("[%s]ip %s lock success", ip, ip)
 }
 
-func unlockUser(user *User) {
+func unlockUser(user *User, peerIp string) {
 	if !user.LockState {
 		return
 	}
@@ -97,22 +108,28 @@ func unlockUser(user *User) {
 			LockState:          false,
 		}
 		if err := UserServiceInstance().updateUserLock(toUpdateUser); err != nil {
+			hwlog.OpLog.Errorf("[%s]user %s unlock fail", peerIp, user.Username)
 			hwlog.RunLog.Errorf("update unlock user error, user: %s", user.Username)
+			return
 		}
+		hwlog.OpLog.Infof("[%s]user %s unlock success", peerIp, user.Username)
 	}
 }
 
-func unlockIp(forbidden *IpForbidden) {
+func unlockIp(forbidden *IpForbidden, peerIp string) {
 	lockTime, err := time.Parse(common.TimeFormat, forbidden.LockTime)
 	if err != nil {
 		hwlog.RunLog.Errorf("unlock user parse lock time error, %s", err.Error())
 		return
 	}
 	if time.Now().Sub(lockTime) >= nginxcom.IpLockTime {
-		hwlog.RunLog.Infof("unlock ip: %s", forbidden.Ip)
 		if err := UserServiceInstance().deleteForbiddenIp(forbidden.Ip); err != nil {
+			hwlog.OpLog.Errorf("[%s]ip %s unlock fail", peerIp, forbidden.Ip)
 			hwlog.RunLog.Error("delete forbidden ip error")
+			return
 		}
+		hwlog.RunLog.Infof("unlock ip: %s", forbidden.Ip)
+		hwlog.OpLog.Infof("[%s]ip %s unlock success", peerIp, forbidden.Ip)
 	}
 }
 
@@ -162,7 +179,7 @@ func intervalUnlockUser() {
 	}
 	if lockedUsers != nil {
 		for _, user := range *lockedUsers {
-			unlockUser(&user)
+			unlockUser(&user, localhost)
 		}
 	}
 }
@@ -175,7 +192,7 @@ func intervalUnlockIp() {
 	}
 	if lockedIps != nil {
 		for _, ip := range *lockedIps {
-			unlockIp(&ip)
+			unlockIp(&ip, localhost)
 		}
 	}
 }

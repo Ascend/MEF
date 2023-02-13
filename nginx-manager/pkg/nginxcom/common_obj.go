@@ -3,14 +3,13 @@
 // Package nginxcom this file is for common constant or method
 package nginxcom
 
-// Endpoint 路径端口信息
-type Endpoint struct {
-	PortKey string
-
-	PortVal string
+// EnvEntry key-val pair
+type EnvEntry struct {
+	EnvKey string
+	EnvVal string
 }
 
-// NginxConfItem nginx配置替换项
+// NginxConfItem nginx replace item info
 type NginxConfItem struct {
 	Key  string
 	From string
