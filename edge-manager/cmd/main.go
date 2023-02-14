@@ -13,6 +13,7 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
@@ -94,7 +95,8 @@ func init() {
 		"The server port of the http service,range[1025-65535]")
 	flag.IntVar(&wsPort, "wsPort", defaultWsPort,
 		"The server port of the websocket service,range[1025-65535]")
-
+	flag.IntVar(&authPort, "authPort", defaultAuthPort,
+		"The server port of the edge auth service,range[1025-65535]")
 	hwlogconfig.BindFlags(serverOpConf, serverRunConf)
 }
 
