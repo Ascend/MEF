@@ -6,7 +6,7 @@ package httpsmgr
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -16,21 +16,27 @@ import (
 const (
 	jsonContentType = "application/json"
 	timeOut         = 60 * time.Second
+	maxBodySize     = 2 * 1024 * 1024
 )
 
 // GetHttpsReq [method] for get https request
-func GetHttpsReq(url string, tlsCert certutils.TlsCertInfo) *HttpsRequest {
-	return &HttpsRequest{
+func GetHttpsReq(url string, tlsCert certutils.TlsCertInfo, headers ...map[string]interface{}) *HttpsRequest {
+	req := &HttpsRequest{
 		url:     url,
 		tlsCert: tlsCert,
 	}
+	if len(headers) > 0 {
+		req.reqHeader = headers[0]
+	}
+	return req
 }
 
 // HttpsRequest [struct] for Https Request parameters
 type HttpsRequest struct {
-	url     string
-	tlsCert certutils.TlsCertInfo
-	client  *http.Client
+	url       string
+	tlsCert   certutils.TlsCertInfo
+	client    *http.Client
+	reqHeader map[string]interface{}
 }
 
 func (hr *HttpsRequest) initClient() error {
@@ -53,12 +59,17 @@ func (hr *HttpsRequest) initClient() error {
 // Get [method] for http get methods request
 func (hr *HttpsRequest) Get() ([]byte, error) {
 	if hr.client == nil {
-		err := hr.initClient()
-		if err != nil {
+		if err := hr.initClient(); err != nil {
 			return nil, fmt.Errorf("init https client failed: %v", err)
 		}
 	}
-	resp, err := hr.client.Get(hr.url)
+	req, err := http.NewRequest(http.MethodGet, hr.url, nil)
+	if len(hr.reqHeader) > 0 {
+		for k, v := range hr.reqHeader {
+			req.Header.Set(k, fmt.Sprintf("%v", v))
+		}
+	}
+	resp, err := hr.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -69,12 +80,18 @@ func (hr *HttpsRequest) Get() ([]byte, error) {
 // PostJson [method] for http Post request with json body
 func (hr *HttpsRequest) PostJson(jsonBody []byte) ([]byte, error) {
 	if hr.client == nil {
-		err := hr.initClient()
-		if err != nil {
+		if err := hr.initClient(); err != nil {
 			return nil, fmt.Errorf("init https client failed: %v", err)
 		}
 	}
-	resp, err := hr.client.Post(hr.url, jsonContentType, bytes.NewReader(jsonBody))
+	req, err := http.NewRequest(http.MethodPost, hr.url, bytes.NewReader(jsonBody))
+	req.Header.Set("Content-Type", jsonContentType)
+	if len(hr.reqHeader) > 0 {
+		for k, v := range hr.reqHeader {
+			req.Header.Set(k, fmt.Sprintf("%v", v))
+		}
+	}
+	resp, err := hr.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -94,13 +111,15 @@ func (hr *HttpsRequest) handleResp(resp *http.Response) ([]byte, error) {
 			return
 		}
 	}()
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("https return error status code: %d", resp.StatusCode)
 	}
-
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	bodyReader := io.LimitReader(resp.Body, maxBodySize)
+	bodyData := make([]byte, maxBodySize)
+	readBytes, err := bodyReader.Read(bodyData)
 	if err != nil {
 		return nil, err
 	}
-	return bodyBytes, nil
+	return bodyData[:readBytes], nil
 }

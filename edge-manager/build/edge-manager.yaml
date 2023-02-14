@@ -110,6 +110,29 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  name: ascend-edge-manager-external
+  namespace: mef-center
+  labels:
+    app: ascend-edge-manager-external
+spec:
+  externalTrafficPolicy: Local
+  ports:
+    - name: ws-port
+      port: 10000
+      targetPort: 10000
+      nodePort: 30003
+    - name: auth-port
+      port: 10001
+      targetPort: 10001
+      nodePort: 30004
+  selector:
+    app: ascend-edge-manager
+  type: NodePort
+
+---
+apiVersion: v1
+kind: Service
+metadata:
   name: ascend-edge-manager
   namespace: mef-center
   labels:
@@ -120,10 +143,6 @@ spec:
       port: 8101
       targetPort: 8101
       protocol: TCP
-    - name: ws-port
-      port: 10000
-      targetPort: 10000
-      nodePort: 30003
   selector:
     app: ascend-edge-manager
-  type: NodePort
+  type: ClusterIP
