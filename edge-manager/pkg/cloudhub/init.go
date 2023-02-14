@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"huawei.com/mindx/common/hwlog"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
@@ -17,6 +16,7 @@ import (
 // CloudServer wraps the struct WebSocketServer
 type CloudServer struct {
 	wsPort    int
+	authPort  int
 	writeLock sync.RWMutex
 	ctx       context.Context
 	enable    bool
@@ -25,11 +25,12 @@ type CloudServer struct {
 var server CloudServer
 
 // NewCloudServer new cloud server
-func NewCloudServer(enable bool, wsPort int) *CloudServer {
+func NewConnector(enable bool, wsPort, authPort int) *CloudServer {
 	server = CloudServer{
-		wsPort: wsPort,
-		ctx:    context.Background(),
-		enable: enable,
+		wsPort:   wsPort,
+		authPort: authPort,
+		ctx:      context.Background(),
+		enable:   enable,
 	}
 	return &server
 }

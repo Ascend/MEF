@@ -10,12 +10,12 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
-
-	"edge-manager/pkg/util"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/certutils"
 	"huawei.com/mindxedge/base/common/httpsmgr"
 	"huawei.com/mindxedge/base/common/websocketmgr"
+
+	"edge-manager/pkg/util"
 )
 
 const (
@@ -26,6 +26,7 @@ const (
 	keyFileName       = "server.key"
 	retryTime         = 30
 	waitTime          = 5 * time.Second
+	enableClientAuth  = true
 )
 
 var serverSender websocketmgr.WsSvrSender
@@ -40,7 +41,7 @@ func InitServer() error {
 		CertPath:      path.Join(certPathDir, serviceName),
 		KeyPath:       path.Join(certPathDir, keyFileName),
 		SvrFlag:       true,
-		IgnoreCltCert: true,
+		IgnoreCltCert: false,
 	}
 
 	podIp, err := common.GetPodIP()
@@ -48,7 +49,19 @@ func InitServer() error {
 		hwlog.RunLog.Errorf("get edge manager pod ip failed: %s", err.Error())
 		return errors.New("get edge manager pod ip")
 	}
-
+	if enableClientAuth {
+		go func() {
+			authCertInfo := certutils.TlsCertInfo{
+				KmcCfg:        common.GetDefKmcCfg(),
+				RootCaPath:    path.Join(certPathDir, rootNameValidEdge),
+				CertPath:      path.Join(certPathDir, serviceName),
+				KeyPath:       path.Join(certPathDir, keyFileName),
+				SvrFlag:       true,
+				IgnoreCltCert: true,
+			}
+			NewClientAuthService(server.authPort, authCertInfo).Start()
+		}()
+	}
 	proxyConfig, err := websocketmgr.InitProxyConfig(name, podIp, server.wsPort, certInfo)
 	if err != nil {
 		hwlog.RunLog.Errorf("init proxy config failed: %v", err)
