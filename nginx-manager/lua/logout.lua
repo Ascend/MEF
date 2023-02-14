@@ -2,6 +2,7 @@
 
 local cjson = require("cjson")
 local common = require("common")
+local libdynamic = require("libdynamic")
 local libaccess = require("libaccess")
 
 common.check_method("POST")
@@ -15,7 +16,15 @@ if session == nil then
     return ngx.exit(ngx.HTTP_UNAUTHORIZED)
 end
 
+libdynamic.set_upstream("usermanager")
+
 -- delete session info
 libaccess.del_session_by_id(session.UserID)
 ngx.log(ngx.NOTICE, session.UserID .. " logout")
+
+ngx.req.read_body()
+postBody = {}
+postBody["userid"] = 1
+ngx.location.capture("/internal/logout", { method=ngx.HTTP_POST, body=cjson.encode(postBody), ctx=ngx.ctx })
+
 common.sendResp(ngx.HTTP_OK, nil, g_success, g_success_info)

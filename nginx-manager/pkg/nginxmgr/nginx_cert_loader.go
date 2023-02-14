@@ -68,7 +68,7 @@ func getServerCert(keyPath string) (string, error) {
 	return certStr, nil
 }
 
-// Load 加载北向密钥文件并写入pipe
+// Load load the apigw secret key file and write into pipe
 func Load(keyPath, pipePath string) error {
 	var keyContent []byte
 	var err error
@@ -90,7 +90,7 @@ func Load(keyPath, pipePath string) error {
 	return nil
 }
 
-// LoadForClient 加载用于内部转发的密钥文件并写入pipe
+// LoadForClient load the secret key file which used for inner communication and write into pipe
 func LoadForClient(keyPath, pipeDir string, pipeCount int) error {
 	var keyContent []byte
 	var err error

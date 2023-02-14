@@ -41,6 +41,10 @@ type loginReq struct {
 	Password *[]byte `json:"password"`
 }
 
+type logoutReq struct {
+	baseReq
+}
+
 type queryIpLockReq struct {
 	baseReq
 	TargetIp *string `json:"targetIp"`

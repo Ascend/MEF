@@ -78,4 +78,6 @@ const (
 	MaxPwdWrongTimes = 5
 	// HistoryPasswordSaveCount 相同密码缓存次数
 	HistoryPasswordSaveCount = 5
+	// PodIpKey the key of this pod's ip
+	PodIpKey = "POD_IP"
 )

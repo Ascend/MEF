@@ -66,7 +66,7 @@ func RunCommand(name string, ifCheck bool, waitTime int, arg ...string) (string,
 		return "", errors.New("exec command timeout")
 	case err := <-done:
 		if err != nil {
-			return "", errors.New(stderr.String())
+			return strings.Trim(out.String(), "\n"), errors.New(stderr.String())
 		}
 	}
 
