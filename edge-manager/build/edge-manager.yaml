@@ -70,7 +70,7 @@ spec:
           imagePullPolicy: IfNotPresent
           command: [ "/bin/bash", "-c", "--" ]
           # NOTE: HTTPS is enabled by default
-          args: [ "./edge-manager -port=8101 -wsPort=10000" ]
+          args: [ "./edge-manager -port=8101 -wsPort=10000 -authPort=10001" ]
           volumeMounts:
             - name: edge-manager-log
               mountPath: /var/log/mindx-edge/edge-manager
