@@ -30,6 +30,10 @@ spec:
           hostPath:
             path: ${log}
             type: Directory
+        - name: edge-manager-log-backup
+          hostPath:
+            path: ${log-backup}
+            type: Directory
         - name: edge-manager-config
           hostPath:
             path: ${config}
@@ -41,7 +45,7 @@ spec:
 
 func testGetYamlPath() {
 	var yamlDealers = GetYamlDealers([]string{"edge-manager"},
-		util.InitInstallDirPathMgr("./test_path"), "")
+		util.InitInstallDirPathMgr("./test_path"), "", "")
 	yamlPath := yamlDealers[0].getYamlPath()
 	yamlContent := getTestYaml()
 	fmt.Printf(yamlPath)

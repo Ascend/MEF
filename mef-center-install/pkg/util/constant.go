@@ -76,11 +76,12 @@ const (
 
 // log constant
 const (
-	ModuleLogName  = "mef-center-log"
-	MefScriptsDir  = "scripts"
-	RunLogFile     = "mef-center-install.log"
-	OperateLogFile = "mef-center-install-operate.log"
-	InstallLogDir  = "mef-center-install"
+	ModuleLogName       = "mef-center-log"
+	ModuleLogBackupName = "mef-center-log-backup"
+	MefScriptsDir       = "scripts"
+	RunLogFile          = "mef-center-install.log"
+	OperateLogFile      = "mef-center-install-operate.log"
+	InstallLogDir       = "mef-center-install"
 )
 
 // module name constant
@@ -97,6 +98,7 @@ const (
 	SoftwareManagerFlag = SoftwareManagerName
 	AllInstallFlag      = "install_all"
 	LogPathFlag         = "log_path"
+	LogBackupPathFlag   = "log_backup_path"
 	InstallPathFlag     = "install_path"
 	HelpFlag            = "help"
 	HelpShortFlag       = "h"
@@ -114,6 +116,7 @@ const (
 const (
 	RootCaFlag          = "${root-ca}"
 	LogFlag             = "${log}"
+	LogBackupFlag       = "${log-backup}"
 	ConfigFlag          = "${config}"
 	InstalledModuleFlag = "${installed_module}"
 	LineSplitter        = "\n"
@@ -131,6 +134,8 @@ const (
 	RunFlagCount    = 3
 
 	InstallDiskSpace    = 750 * common.MB
+	LogDiskSpace        = 750 * common.MB
+	LogBackupDiskSpace  = 750 * common.MB
 	CheckStatusInterval = 3 * time.Second
 	CheckStatusTimes    = 5
 )

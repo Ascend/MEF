@@ -74,6 +74,8 @@ spec:
           volumeMounts:
             - name: edge-manager-log
               mountPath: /var/log/mindx-edge/edge-manager
+            - name: edge-manager-log-backup
+              mountPath: /var/log_backup/mindx-edge/edge-manager
             - name: localtime
               mountPath: /etc/localtime
             - name: edge-manager-config
@@ -95,6 +97,10 @@ spec:
         - name: edge-manager-log
           hostPath:
             path: ${log}
+            type: Directory
+        - name: edge-manager-log-backup
+          hostPath:
+            path: ${log-backup}
             type: Directory
         - name: localtime
           hostPath:

@@ -15,9 +15,10 @@ import (
 
 // InstallParamJsonTemplate is the struct to deal with install_param.json
 type InstallParamJsonTemplate struct {
-	Components []string `json:"Components"`
-	InstallDir string   `json:"install_dir"`
-	LogDir     string   `json:"log_dir"`
+	Components   []string `json:"Components"`
+	InstallDir   string   `json:"install_dir"`
+	LogDir       string   `json:"log_dir"`
+	LogBackupDir string   `json:"log_backup_dir"`
 }
 
 // GetInstallParamJsonInfo is used to get infos from install_param.json

@@ -42,7 +42,7 @@ func DoInstallMgrTest() {
 }
 
 func DoInstallTest() {
-	ins := GetSftInstallMgrIns([]string{}, "", "")
+	ins := GetSftInstallMgrIns([]string{}, "", "", "")
 	Convey("test doInstall func success", func() {
 		p := ApplyPrivateMethod(ins, "checkInstalled", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "preCheck", func(_ *SftInstallCtl) error { return nil }).
@@ -76,7 +76,7 @@ func DoInstallTest() {
 }
 
 func CheckInstalledTest() {
-	ins := GetSftInstallMgrIns([]string{}, "", "")
+	ins := GetSftInstallMgrIns([]string{}, "", "", "")
 	Convey("checkInstalled func success", func() {
 		So(ins.checkInstalled(), ShouldBeNil)
 	})
@@ -89,7 +89,7 @@ func CheckInstalledTest() {
 }
 
 func PreCheckTest() {
-	ins := GetSftInstallMgrIns([]string{}, "", "")
+	ins := GetSftInstallMgrIns([]string{}, "", "", "")
 	Convey("test preCheck func success", func() {
 		p := ApplyPrivateMethod(ins, "checkUser", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "checkArch", func(_ *SftInstallCtl) error { return nil }).
@@ -107,7 +107,7 @@ func PreCheckTest() {
 }
 
 func CheckUserTest() {
-	ins := GetSftInstallMgrIns([]string{}, "", "")
+	ins := GetSftInstallMgrIns([]string{}, "", "", "")
 	Convey("test CheckUser func check user failed", func() {
 		p := ApplyFuncReturn(user.Current, nil, ErrTest)
 		defer p.Reset()
@@ -134,7 +134,7 @@ func CheckUserTest() {
 }
 
 func CheckArchTest() {
-	ins := GetSftInstallMgrIns([]string{}, "", "")
+	ins := GetSftInstallMgrIns([]string{}, "", "", "")
 	Convey("test Check Arch func get arch failed", func() {
 		p := ApplyFuncReturn(common.RunCommand, "", ErrTest)
 		defer p.Reset()
@@ -161,7 +161,7 @@ func CheckArchTest() {
 }
 
 func CheckDiskSpaceTest() {
-	ins := GetSftInstallMgrIns([]string{}, "", "")
+	ins := GetSftInstallMgrIns([]string{}, "", "", "")
 	Convey("test Check Disk Space func get disk free failed", func() {
 		p := ApplyFunc(syscall.Statfs, func(_ string, _ *syscall.Statfs_t) error {
 			return ErrTest
@@ -192,7 +192,7 @@ func CheckDiskSpaceTest() {
 }
 
 func CheckNecessaryToolsTest() {
-	ins := GetSftInstallMgrIns([]string{}, "", "")
+	ins := GetSftInstallMgrIns([]string{}, "", "", "")
 	Convey("test CheckNecessaryTools func failed", func() {
 		p := ApplyFuncReturn(exec.LookPath, "", ErrTest)
 		defer p.Reset()
@@ -207,7 +207,7 @@ func CheckNecessaryToolsTest() {
 }
 
 func PrepareMefUserSuccessTest() {
-	ins := GetSftInstallMgrIns([]string{}, "", "")
+	ins := GetSftInstallMgrIns([]string{}, "", "", "")
 	Convey("test PrepareMefUser func create user 8000 uid success", func() {
 		p := ApplyFuncReturn(user.Lookup, nil, ErrTest).
 			ApplyFuncReturn(user.LookupGroup, nil, ErrTest).
@@ -241,7 +241,7 @@ func PrepareMefUserSuccessTest() {
 }
 
 func PrepareMefUserCreateUserFailedTest() {
-	ins := GetSftInstallMgrIns([]string{}, "", "")
+	ins := GetSftInstallMgrIns([]string{}, "", "", "")
 	Convey("test PrepareMefUser func create user command exec failed", func() {
 		p := ApplyFuncReturn(user.Lookup, nil, ErrTest).
 			ApplyFuncReturn(user.LookupGroup, nil, ErrTest).
@@ -282,7 +282,7 @@ func PrepareMefUserCreateUserFailedTest() {
 }
 
 func PrePareMefUserUserCheckFailedTest() {
-	ins := GetSftInstallMgrIns([]string{}, "", "")
+	ins := GetSftInstallMgrIns([]string{}, "", "", "")
 	Convey("test PrepareMefUser func get groupIds failed", func() {
 		p := ApplyFuncReturn(user.Lookup, &user.User{}, nil).
 			ApplyFuncReturn(user.LookupGroup, &user.Group{Gid: "8000"}, nil).
@@ -319,7 +319,7 @@ func PrePareMefUserUserCheckFailedTest() {
 }
 
 func PrepareK8sLabelTest() {
-	ins := GetSftInstallMgrIns([]string{}, "", "")
+	ins := GetSftInstallMgrIns([]string{}, "", "", "")
 
 	Convey("test prepareK8sLabel func success", func() {
 		p := ApplyFuncReturn(util.GetLocalIp, "", nil).
@@ -366,7 +366,7 @@ func PrepareComponentLogDirTest() {
 	Convey("test prepareComponentLogDir", func() {
 		currentPath, err := filepath.Abs(filepath.Dir(os.Args[0]))
 		So(err, ShouldBeNil)
-		var ins = GetSftInstallMgrIns([]string{"edge-manager"}, "", currentPath)
+		var ins = GetSftInstallMgrIns([]string{"edge-manager"}, "", currentPath, "")
 		Convey("test prepareComponentLogDir func success", func() {
 			p := ApplyFuncReturn(user.Lookup, &user.User{Uid: "8000"}, nil).
 				ApplyFuncReturn(user.LookupGroup, &user.Group{Gid: "8000"}, nil).
@@ -401,7 +401,7 @@ func PrepareComponentLogDirRightCheckTest() {
 	Convey("test prepareComponentLogDir", func() {
 		currentPath, err := filepath.Abs(filepath.Dir(os.Args[0]))
 		So(err, ShouldBeNil)
-		var ins = GetSftInstallMgrIns([]string{"edge-manager"}, "", currentPath)
+		var ins = GetSftInstallMgrIns([]string{"edge-manager"}, "", currentPath, "")
 		Convey("test prepareComponentLogDir func get mef-center uid failed", func() {
 			p := ApplyFuncReturn(user.Lookup, nil, ErrTest)
 			defer ResetAndClearDir(p, ins.logPathMgr.GetComponentLogPath("edge-manager"))
@@ -431,7 +431,7 @@ func PrepareComponentLogDirRightCheckTest() {
 }
 
 func PrepareCertsTest() {
-	var ins = GetSftInstallMgrIns([]string{"edge-manager"}, "", "")
+	var ins = GetSftInstallMgrIns([]string{"edge-manager"}, "", "", "")
 	var certCtlIns *certPrepareCtl
 	Convey("test prepareCerts func success", func() {
 		p := ApplyPrivateMethod(certCtlIns, "doPrepare", func(_ *certPrepareCtl) error { return nil })
@@ -448,7 +448,7 @@ func PrepareCertsTest() {
 }
 
 func PrepareWorkingDirTest() {
-	var ins = GetSftInstallMgrIns([]string{"edge-manager"}, "", "")
+	var ins = GetSftInstallMgrIns([]string{"edge-manager"}, "", "", "")
 	var workDirMgtCtl *workingDirCtl
 	Convey("test prepareWorkingDir func success", func() {
 		p := ApplyPrivateMethod(workDirMgtCtl, "doPrepare", func(_ *workingDirCtl) error { return nil })
@@ -465,7 +465,7 @@ func PrepareWorkingDirTest() {
 }
 
 func PrepareYamlTest() {
-	var ins = GetSftInstallMgrIns([]string{"edge-manager"}, "", "")
+	var ins = GetSftInstallMgrIns([]string{"edge-manager"}, "", "", "")
 	var yamlMgrCtl *YamlMgr
 	Convey("test prepareYaml func success", func() {
 		p := ApplyMethodReturn(yamlMgrCtl, "EditSingleYaml", nil)
@@ -481,7 +481,7 @@ func PrepareYamlTest() {
 }
 
 func SetInstallJsonTest() {
-	var ins = GetSftInstallMgrIns([]string{"edge-manager"}, "", "")
+	var ins = GetSftInstallMgrIns([]string{"edge-manager"}, "", "", "")
 	var jsonHandlerIns *util.InstallParamJsonTemplate
 	Convey("test setInstallJson func success", func() {
 		p := ApplyMethodReturn(jsonHandlerIns, "SetInstallParamJsonInfo", nil)
@@ -497,7 +497,7 @@ func SetInstallJsonTest() {
 }
 
 func ComponentsInstallTest() {
-	var ins = GetSftInstallMgrIns([]string{"edge-manager"}, "", "")
+	var ins = GetSftInstallMgrIns([]string{"edge-manager"}, "", "", "")
 	var componentMgrIns *util.ComponentMgr
 	Convey("test componentsInstall func success", func() {
 		p := ApplyMethodReturn(componentMgrIns, "LoadAndSaveImage", nil).

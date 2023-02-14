@@ -10,19 +10,21 @@ import (
 	"huawei.com/mindx/common/hwlog"
 )
 
-func newLogConfig(LogFileName string) *hwlog.LogConfig {
+func newLogConfig(LogFileName string, logBackupDir string) *hwlog.LogConfig {
 	return &hwlog.LogConfig{
-		LogFileName: LogFileName,
-		OnlyToFile:  true,
-		MaxBackups:  hwlog.DefaultMaxBackups,
-		MaxAge:      hwlog.DefaultMinSaveAge,
+		LogFileName:   LogFileName,
+		OnlyToFile:    true,
+		MaxBackups:    hwlog.DefaultMaxBackups,
+		MaxAge:        hwlog.DefaultMinSaveAge,
+		IsCompress:    true,
+		BackupDirName: logBackupDir,
 	}
 }
 
 // InitLogPath initialize logger
-func InitLogPath(logPath string) error {
-	runLogConf := newLogConfig(path.Join(logPath, RunLogFile))
-	opLogConf := newLogConfig(path.Join(logPath, OperateLogFile))
+func InitLogPath(logPath string, logBackupPath string) error {
+	runLogConf := newLogConfig(path.Join(logPath, RunLogFile), logBackupPath)
+	opLogConf := newLogConfig(path.Join(logPath, OperateLogFile), logBackupPath)
 
 	if err := initHwLogger(runLogConf, opLogConf); err != nil {
 		return fmt.Errorf("initialize hwlog failed, error: %v", err.Error())
