@@ -21,18 +21,22 @@ import (
 	"huawei.com/mindx/common/hwlog"
 
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
+	"huawei.com/mindxedge/base/common/logmgmt/logrotate"
 	"huawei.com/mindxedge/base/modulemanager"
+	"nginx-manager/pkg/nginxlogrotate"
 )
 
 const (
 	runLogFile     = "/home/MEFCenter/logs/run.log"
 	operateLogFile = "/home/MEFCenter/logs/operate.log"
+	backupDirName  = "/home/MEFCenter/logs_backup"
 	defaultPort    = 8080
 )
 
 var (
-	serverRunConf = &hwlog.LogConfig{LogFileName: runLogFile}
-	serverOpConf  = &hwlog.LogConfig{LogFileName: operateLogFile}
+	serverRunConf = &hwlog.LogConfig{LogFileName: runLogFile, BackupDirName: backupDirName}
+	serverOpConf  = &hwlog.LogConfig{LogFileName: operateLogFile, BackupDirName: backupDirName}
 	restfulPort   = defaultPort
 	ip            string
 )
@@ -57,25 +61,7 @@ func main() {
 }
 
 func init() {
-	// hwOpLog configuration
-	flag.IntVar(&serverOpConf.LogLevel, "operateLogLevel", 0,
-		"Operation log level, -1-debug, 0-info, 1-warning, 2-error, 3-dpanic, 4-panic, 5-fatal (default 0)")
-	flag.IntVar(&serverOpConf.MaxAge, "operateLogMaxAge", hwlog.DefaultMinSaveAge,
-		"Maximum number of days for backup operation log files, must be greater than or equal to 7 days")
-	flag.StringVar(&serverOpConf.LogFileName, "operateLogFile", operateLogFile,
-		"Operation log file path. If the file size exceeds 20MB, will be rotated")
-	flag.IntVar(&serverOpConf.MaxBackups, "operateLogMaxBackups", hwlog.DefaultMaxBackups,
-		"Maximum number of backup operation logs, range (0, 30]")
-
-	// hwRunLog configuration
-	flag.IntVar(&serverRunConf.LogLevel, "runLogLevel", 0,
-		"Run log level, -1-debug, 0-info, 1-warning, 2-error, 3-dpanic, 4-panic, 5-fatal (default 0)")
-	flag.IntVar(&serverRunConf.MaxAge, "runLogMaxAge", hwlog.DefaultMinSaveAge,
-		"Maximum number of days for backup run log files, must be greater than or equal to 7 days")
-	flag.StringVar(&serverRunConf.LogFileName, "runLogFile", runLogFile,
-		"Run log file path. If the file size exceeds 20MB, will be rotated")
-	flag.IntVar(&serverRunConf.MaxBackups, "runLogMaxBackups", hwlog.DefaultMaxBackups,
-		"Maximum number of backup run logs, range (0, 30]")
+	hwlogconfig.BindFlags(serverOpConf, serverRunConf)
 }
 
 func initResource() error {
@@ -115,6 +101,11 @@ func register(ctx context.Context) error {
 	if err := modulemanager.Registry(usermgr.NewUserManager(true, ctx)); err != nil {
 		return err
 	}
+
+	if err := modulemanager.Registry(logrotate.Module("", ctx, nginxlogrotate.Setup)); err != nil {
+		return err
+	}
+
 	modulemanager.Start()
 	return nil
 }

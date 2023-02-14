@@ -23,6 +23,7 @@ func (scm *SftOperateMgr) DoOperate() error {
 	var controlTasks = []func() error{
 		scm.init,
 		scm.prepareComponentLogDir,
+		scm.prepareComponentLogBackupDir,
 		scm.check,
 		scm.deal,
 	}
@@ -73,6 +74,18 @@ func (scm *SftOperateMgr) prepareComponentLogDir() error {
 	return nil
 }
 
+func (scm *SftOperateMgr) prepareComponentLogBackupDir() error {
+	hwlog.RunLog.Info("start to prepare components' log backup dir")
+	for _, component := range scm.installedComponent {
+		componentMgr := util.GetComponentMgr(component)
+		if err := componentMgr.PrepareLogDir(scm.logPathMgr); err != nil {
+			return err
+		}
+	}
+	hwlog.RunLog.Info("prepare components' log backup dir successful")
+	return nil
+}
+
 func (scm *SftOperateMgr) check() error {
 	var checkTasks = []func() error{
 		scm.checkUser,
@@ -108,12 +121,12 @@ func (scm *SftOperateMgr) deal() error {
 
 // InitSftOperateMgr is used to init a SftOperateMgr struct
 func InitSftOperateMgr(component, operate string,
-	installComponents []string, installPath string, logPath string) *SftOperateMgr {
+	installComponents []string, installPathMgr *util.InstallDirPathMgr, logPathMgr *util.LogDirPathMgr) *SftOperateMgr {
 	return &SftOperateMgr{
 		componentFlag:      component,
 		operate:            operate,
 		installedComponent: installComponents,
-		installPathMgr:     util.InitInstallDirPathMgr(installPath),
-		logPathMgr:         util.InitLogDirPathMgr(logPath),
+		installPathMgr:     installPathMgr,
+		logPathMgr:         logPathMgr,
 	}
 }

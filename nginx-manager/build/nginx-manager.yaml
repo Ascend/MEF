@@ -53,6 +53,8 @@ spec:
           volumeMounts:
             - name: nginx-manager-log
               mountPath: /home/MEFCenter/logs/
+            - name: nginx-manager-log-backup
+              mountPath: /home/MEFCenter/logs_backup/
             - name: root-ca
               mountPath: /home/data/inner-root-ca/
             - name: nginx-manager-config
@@ -67,6 +69,9 @@ spec:
         - name: nginx-manager-log
           hostPath:
             path: ${log}
+        - name: nginx-manager-log-backup
+          hostPath:
+            path: ${log-backup}
 ---
 apiVersion: v1
 kind: Service

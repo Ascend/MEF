@@ -15,6 +15,7 @@ import (
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
+	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
 	"huawei.com/mindxedge/base/modulemanager"
 
 	"edge-manager/pkg/appmanager"
@@ -33,19 +34,24 @@ const (
 	defaultAuthPort       = 10001
 	defaultRunLogFile     = "/var/log/mindx-edge/edge-manager/run.log"
 	defaultOperateLogFile = "/var/log/mindx-edge/edge-manager/operate.log"
+	defaultBackupDirName  = "/var/log_backup/mindx-edge/edge-manager"
 	defaultDbPath         = "/home/data/config/edge-manager.db"
+	defaultOpLogMaxSize   = 200
+	defaultRunLogMaxSize  = 400
 	logMaxLineLength      = 512
 )
 
 var (
-	serverRunConf = &hwlog.LogConfig{LogFileName: defaultRunLogFile, MaxLineLength: logMaxLineLength}
-	serverOpConf  = &hwlog.LogConfig{LogFileName: defaultOperateLogFile}
-	port          int
-	wsPort        int
-	authPort      int
-	ip            string
-	version       bool
-	dbPath        string
+	serverRunConf = &hwlog.LogConfig{LogFileName: defaultRunLogFile, FileMaxSize: defaultRunLogMaxSize,
+		BackupDirName: defaultBackupDirName, MaxLineLength: logMaxLineLength}
+	serverOpConf = &hwlog.LogConfig{LogFileName: defaultOperateLogFile, FileMaxSize: defaultOpLogMaxSize,
+		BackupDirName: defaultBackupDirName}
+	port     int
+	wsPort   int
+	authPort int
+	ip       string
+	version  bool
+	dbPath   string
 )
 
 func main() {
@@ -88,27 +94,8 @@ func init() {
 		"The server port of the http service,range[1025-65535]")
 	flag.IntVar(&wsPort, "wsPort", defaultWsPort,
 		"The server port of the websocket service,range[1025-65535]")
-	flag.IntVar(&authPort, "authPort", defaultAuthPort,
-		"The server port of the edge auth service,range[1025-65535]")
-	// hwOpLog configuration
-	flag.IntVar(&serverOpConf.LogLevel, "operateLogLevel", 0,
-		"Operation log level, -1-debug, 0-info, 1-warning, 2-error, 3-fatal (default 0)")
-	flag.IntVar(&serverOpConf.MaxAge, "operateLogMaxAge", hwlog.DefaultMinSaveAge,
-		"Maximum number of days for backup operation log files, must be greater than or equal to 7 days")
-	flag.StringVar(&serverOpConf.LogFileName, "operateLogFile", defaultOperateLogFile,
-		"Operation log file path. If the file size exceeds 20MB, will be rotated")
-	flag.IntVar(&serverOpConf.MaxBackups, "operateLogMaxBackups", hwlog.DefaultMaxBackups,
-		"Maximum number of backup operation logs, range (0, 30]")
 
-	// hwRunLog configuration
-	flag.IntVar(&serverRunConf.LogLevel, "runLogLevel", 0,
-		"Run log level, -1-debug, 0-info, 1-warning, 2-error, 3-fatal (default 0)")
-	flag.IntVar(&serverRunConf.MaxAge, "runLogMaxAge", hwlog.DefaultMinSaveAge,
-		"Maximum number of days for backup run log files, must be greater than or equal to 7 days")
-	flag.StringVar(&serverRunConf.LogFileName, "runLogFile", defaultRunLogFile,
-		"Run log file path. If the file size exceeds 20MB, will be rotated")
-	flag.IntVar(&serverRunConf.MaxBackups, "runLogMaxBackups", hwlog.DefaultMaxBackups,
-		"Maximum number of backup run logs, range (0, 30]")
+	hwlogconfig.BindFlags(serverOpConf, serverRunConf)
 }
 
 func validateFlags() error {

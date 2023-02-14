@@ -26,6 +26,7 @@ var (
 	installAll             bool
 	installSoftwareManager bool
 	logRootPath            string
+	logBackupRootPath      string
 	installPath            string
 	help                   bool
 )
@@ -41,6 +42,7 @@ func setFlag() {
 	flag.BoolVar(&help, util.HelpFlag, false, "print the help information")
 	flag.BoolVar(&help, util.HelpShortFlag, false, "print the help information")
 	flag.StringVar(&logRootPath, util.LogPathFlag, "/var", "The path used to save logs")
+	flag.StringVar(&logBackupRootPath, util.LogBackupPathFlag, "/home/data", "The path used to backup log files")
 	flag.StringVar(&installPath, util.InstallPathFlag, "/usr/local", "The path used to install")
 }
 
@@ -71,7 +73,7 @@ func paramOptionalComponents() []string {
 func doInstall() error {
 	optionalComponents := paramOptionalComponents()
 	fullComponents := append(optionalComponents, util.GetCompulsorySlice()...)
-	installCtlIns := install.GetSftInstallMgrIns(fullComponents, installPath, logRootPath)
+	installCtlIns := install.GetSftInstallMgrIns(fullComponents, installPath, logRootPath, logBackupRootPath)
 
 	if err := installCtlIns.DoInstall(); err != nil {
 		return err
@@ -86,12 +88,20 @@ func checkPath() error {
 		return fmt.Errorf("log dir [%s] does not exist", logRootPath)
 	}
 
+	if logBackupRootPath == "" || !utils.IsExist(logBackupRootPath) {
+		return fmt.Errorf("log backup dir [%s] does not exist", logBackupRootPath)
+	}
+
 	if installPath == "" || !utils.IsExist(installPath) {
 		return fmt.Errorf("install dir [%s] does not exist", installPath)
 	}
 
 	if logRootPath, err = utils.RealDirChecker(logRootPath, true, false); err != nil {
 		return fmt.Errorf("check log dir failed, error: %s", err.Error())
+	}
+
+	if logBackupRootPath, err = utils.RealDirChecker(logBackupRootPath, true, false); err != nil {
+		return fmt.Errorf("check log backup dir failed, error: %s", err.Error())
 	}
 
 	if installPath, err = utils.RealDirChecker(installPath, true, false); err != nil {
@@ -101,8 +111,8 @@ func checkPath() error {
 	return nil
 }
 
-func initLogPath(installLogPath string) error {
-	if err := util.InitLogPath(installLogPath); err != nil {
+func initLogPath(installLogPath string, installLogBackupPath string) error {
+	if err := util.InitLogPath(installLogPath, installLogBackupPath); err != nil {
 		return err
 	}
 	return nil
@@ -127,15 +137,16 @@ func main() {
 	}
 	fmt.Println("check path success")
 
-	logPathMgr := util.InitLogDirPathMgr(logRootPath)
+	logPathMgr := util.InitLogDirPathMgr(logRootPath, logBackupRootPath)
 	installLogPath := logPathMgr.GetInstallLogPath()
+	installLogBackupPath := logPathMgr.GetInstallLogBackupPath()
 	if err := common.MakeSurePath(installLogPath); err != nil {
 		// install log has not initialized yet
 		fmt.Printf("create log path [%s] failed\n", installLogPath)
 		os.Exit(util.ErrorExitCode)
 	}
 
-	if err := initLogPath(installLogPath); err != nil {
+	if err := initLogPath(installLogPath, installLogBackupPath); err != nil {
 		// install log has not initialized yet
 		fmt.Println(err.Error())
 		os.Exit(util.ErrorExitCode)

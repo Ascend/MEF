@@ -1,7 +1,7 @@
 codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/cache v0.0.2 h1:58Y5vqxy2ZV+A49k6jJTZDkhyAuaRZp9V2jqTpdDCDg=
 codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/cache v0.0.2/go.mod h1:a/qzEfXJRRkAxE8zKCdhxUJWY5Tyfynwwg0gv33BatQ=
-codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/hwlog v0.10.2 h1:15aLMuPQAacRs6uDhYaN8Ji1x2jBSrrU2Ae0WuBK4sc=
-codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/hwlog v0.10.2/go.mod h1:gtLYXk/CXBMxk1nzUY3AQPkexl7ZtbUJ/hNwktiBSPc=
+codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/hwlog v0.10.3-0.20230213134501-668f7ebdd348 h1:7LlJrfMA9GXtRXFwchmMZn0caHnb17RYUa7TWYl5Oso=
+codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/hwlog v0.10.3-0.20230213134501-668f7ebdd348/go.mod h1:gtLYXk/CXBMxk1nzUY3AQPkexl7ZtbUJ/hNwktiBSPc=
 codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/kmc v0.1.0 h1:GYQMFIABvt4mZTAW9U2icyy+G8izwP3KPFFHi4vrhdk=
 codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/kmc v0.1.0/go.mod h1:3cMFTWzPwuHmFYYfoRbrr9K4Svb9be3U3koCZrmvtIM=
 codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/rand v0.0.1 h1:MSzqJjknxHLPJ3LegnWrfzTPmnlndncecHrjkPFckx8=
