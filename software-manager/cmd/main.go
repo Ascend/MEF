@@ -15,17 +15,19 @@ import (
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
+	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
 	"huawei.com/mindxedge/base/modulemanager"
 )
 
 const (
 	runLogFile     = "/var/log/mindx-edge/software-manager/run.log"
 	operateLogFile = "/var/log/mindx-edge/software-manager/operate.log"
+	backupDirName  = "/var/log_backup/mindx-edge/software-manager"
 )
 
 var (
-	serverRunConf = &hwlog.LogConfig{}
-	serverOpConf  = &hwlog.LogConfig{}
+	serverRunConf = &hwlog.LogConfig{LogFileName: runLogFile, BackupDirName: backupDirName}
+	serverOpConf  = &hwlog.LogConfig{LogFileName: operateLogFile, BackupDirName: backupDirName}
 	version       bool
 	buildName     string
 	buildVersion  string
@@ -60,25 +62,8 @@ func main() {
 func init() {
 	flag.BoolVar(&version, "version", false,
 		"Output the program version")
-	// hwOpLog configuration
-	flag.IntVar(&serverOpConf.LogLevel, "operateLogLevel", 0,
-		"Operation log level, -1-debug, 0-info, 1-warning, 2-error, 3-fatal (default 0)")
-	flag.IntVar(&serverOpConf.MaxAge, "operateLogMaxAge", hwlog.DefaultMinSaveAge,
-		"Maximum number of days for backup operation log files, must be greater than or equal to 7 days")
-	flag.StringVar(&serverOpConf.LogFileName, "operateLogFile", operateLogFile,
-		"Operation log file path. If the file size exceeds 20MB, will be rotated")
-	flag.IntVar(&serverOpConf.MaxBackups, "operateLogMaxBackups", hwlog.DefaultMaxBackups,
-		"Maximum number of backup operation logs, range (0, 30]")
-	// hwRunLog configuration
-	flag.IntVar(&serverRunConf.LogLevel, "runLogLevel", 0,
-		"Run log level, -1-debug, 0-info, 1-warning, 2-error, 3-fatal (default 0)")
-	flag.IntVar(&serverRunConf.MaxAge, "runLogMaxAge", hwlog.DefaultMinSaveAge,
-		"Maximum number of days for backup run log files, must be greater than or equal to 7 days")
-	flag.StringVar(&serverRunConf.LogFileName, "runLogFile", runLogFile,
-		"Run log file path. If the file size exceeds 20MB, will be rotated")
-	flag.IntVar(&serverRunConf.MaxBackups, "runLogMaxBackups", hwlog.DefaultMaxBackups,
-		"Maximum number of backup run logs, range (0, 30]")
 
+	hwlogconfig.BindFlags(serverOpConf, serverRunConf)
 }
 
 func register() error {

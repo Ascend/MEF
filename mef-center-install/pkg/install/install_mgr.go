@@ -50,6 +50,7 @@ func (sic *SftInstallCtl) DoInstall() error {
 		sic.prepareMefUser,
 		sic.prepareK8sLabel,
 		sic.prepareComponentLogDir,
+		sic.prepareComponentLogBackupDir,
 		sic.prepareInstallPkgDir,
 		sic.prepareCerts,
 		sic.prepareWorkingDir,
@@ -146,9 +147,10 @@ func (sic *SftInstallCtl) checkNecessaryTools() error {
 func (sic *SftInstallCtl) setInstallJson() error {
 	hwlog.RunLog.Info("start to set install json")
 	jsonHandler := util.InstallParamJsonTemplate{
-		Components: sic.Components,
-		InstallDir: sic.InstallPathMgr.GetRootPath(),
-		LogDir:     sic.logPathMgr.GetLogRootPath(),
+		Components:   sic.Components,
+		InstallDir:   sic.InstallPathMgr.GetRootPath(),
+		LogDir:       sic.logPathMgr.GetLogRootPath(),
+		LogBackupDir: sic.logPathMgr.GetLogBackupRootPath(),
 	}
 	jsonPath := sic.InstallPathMgr.WorkPathMgr.GetInstallParamJsonPath()
 	if err := jsonHandler.SetInstallParamJsonInfo(jsonPath); err != nil {
@@ -266,6 +268,18 @@ func (sic *SftInstallCtl) prepareComponentLogDir() error {
 	return nil
 }
 
+func (sic *SftInstallCtl) prepareComponentLogBackupDir() error {
+	hwlog.RunLog.Info("start to prepare components' log backup dir")
+	for _, component := range sic.Components {
+		componentMgr := util.GetComponentMgr(component)
+		if err := componentMgr.PrepareLogBackupDir(sic.logPathMgr); err != nil {
+			return err
+		}
+	}
+	hwlog.RunLog.Info("prepare components' log backup dir successful")
+	return nil
+}
+
 func (sic *SftInstallCtl) prepareInstallPkgDir() error {
 	hwlog.RunLog.Info("start to prepare install_package dir")
 	installPkgDir := sic.InstallPathMgr.GetInstallPkgDir() + "/"
@@ -309,7 +323,7 @@ func (sic *SftInstallCtl) prepareWorkingDir() error {
 func (sic *SftInstallCtl) prepareYaml() error {
 	hwlog.RunLog.Info("start to prepare components' yaml")
 	yamlDealers := GetYamlDealers(
-		sic.Components, sic.InstallPathMgr, sic.logPathMgr.GetLogRootPath())
+		sic.Components, sic.InstallPathMgr, sic.logPathMgr.GetLogRootPath(), sic.logPathMgr.GetLogBackupRootPath())
 	for _, yamlDealer := range yamlDealers {
 		err := yamlDealer.EditSingleYaml(sic.Components)
 		if err != nil {
@@ -365,12 +379,13 @@ func (sic *SftInstallCtl) clearAll() {
 }
 
 // GetSftInstallMgrIns is used to init a SftInstallCtl struct
-func GetSftInstallMgrIns(components []string, installPath string, logRootPath string) *SftInstallCtl {
+func GetSftInstallMgrIns(components []string,
+	installPath string, logRootPath string, logBackupRootPath string) *SftInstallCtl {
 	return &SftInstallCtl{
 		SoftwareMgr: util.SoftwareMgr{
 			Components:     components,
 			InstallPathMgr: util.InitInstallDirPathMgr(installPath),
 		},
-		logPathMgr: util.InitLogDirPathMgr(logRootPath),
+		logPathMgr: util.InitLogDirPathMgr(logRootPath, logBackupRootPath),
 	}
 }

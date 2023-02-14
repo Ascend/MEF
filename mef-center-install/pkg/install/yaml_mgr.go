@@ -17,9 +17,10 @@ import (
 // YamlMgr is a struct to manage a single component's yaml file
 // used on installation procedure to edit the mount path on those yaml file
 type YamlMgr struct {
-	component string
-	pathMgr   *util.InstallDirPathMgr
-	logDir    string
+	component    string
+	pathMgr      *util.InstallDirPathMgr
+	logDir       string
+	logBackupDir string
 }
 
 type modifier struct {
@@ -30,13 +31,15 @@ type modifier struct {
 }
 
 // GetYamlDealers returns a list of YamlMgr for all necessary components
-func GetYamlDealers(components []string, pathMgr *util.InstallDirPathMgr, logDir string) []YamlMgr {
+func GetYamlDealers(components []string,
+	pathMgr *util.InstallDirPathMgr, logDir string, logBackupDir string) []YamlMgr {
 	var ret []YamlMgr
 	for _, component := range components {
 		singleDealer := YamlMgr{
-			component: component,
-			pathMgr:   pathMgr,
-			logDir:    logDir,
+			component:    component,
+			pathMgr:      pathMgr,
+			logDir:       logDir,
+			logBackupDir: logBackupDir,
 		}
 		ret = append(ret, singleDealer)
 	}
@@ -54,6 +57,17 @@ func (yd *YamlMgr) modifyLogDir(content string) (string, error) {
 		content:        content,
 		mark:           util.LogFlag,
 		modifiedString: path.Join(yd.logDir, util.ModuleLogName, yd.component),
+	}
+
+	return modifierIns.modifyMntDir()
+}
+
+func (yd *YamlMgr) modifyLogBackupDir(content string) (string, error) {
+	modifierIns := modifier{
+		component:      yd.component,
+		content:        content,
+		mark:           util.LogBackupFlag,
+		modifiedString: path.Join(yd.logBackupDir, util.ModuleLogBackupName, yd.component),
 	}
 
 	return modifierIns.modifyMntDir()
@@ -109,6 +123,11 @@ func (yd *YamlMgr) modifyContent(content string, installedModule []string) (stri
 	}
 
 	content, err = yd.modifyLogDir(content)
+	if err != nil {
+		return "", err
+	}
+
+	content, err = yd.modifyLogBackupDir(content)
 	if err != nil {
 		return "", err
 	}

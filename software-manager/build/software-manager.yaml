@@ -50,6 +50,8 @@ spec:
           volumeMounts:
             - name: software-manager-log
               mountPath: /var/log/mindx-edge/software-manager
+            - name: software-manager-log-backup
+              mountPath: /var/log_backup/mindx-edge/software-manager
             - name: localtime
               mountPath: /etc/localtime
             - name: software-manager-config
@@ -60,6 +62,10 @@ spec:
         - name: software-manager-log
           hostPath:
             path: ${log}
+            type: Directory
+        - name: software-manager-log-backup
+          hostPath:
+            path: ${log-backup}
             type: Directory
         - name: localtime
           hostPath:

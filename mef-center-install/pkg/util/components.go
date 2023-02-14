@@ -330,6 +330,37 @@ func (c *ComponentMgr) PrepareLogDir(pathMgr *LogDirPathMgr) error {
 	return nil
 }
 
+// PrepareLogBackupDir creates log backup dir for a single component and change owner into MEFCenter:MEFCenter
+func (c *ComponentMgr) PrepareLogBackupDir(pathMgr *LogDirPathMgr) error {
+	if pathMgr == nil {
+		hwlog.RunLog.Error("pointer pathMgr is nil")
+		return errors.New("pointer pathMgr is nil")
+	}
+
+	logDir := pathMgr.GetComponentBackupLogPath(c.name)
+	if err := common.MakeSurePath(logDir); err != nil {
+		hwlog.RunLog.Errorf("prepare component [%s] Log Backup Dir failed: %s", c.name, err.Error())
+		return fmt.Errorf("prepare component [%s] log dir failed", c.name)
+	}
+
+	if _, err := utils.CheckPath(logDir); err != nil {
+		hwlog.RunLog.Errorf("check component [%s] Log Backup Dir failed: %s", c.name, err.Error())
+		return fmt.Errorf("check component [%s] log dir failed", c.name)
+	}
+
+	mefUid, mefGid, err := GetMefId()
+	if err != nil {
+		hwlog.RunLog.Errorf("get mef uid or gid failed: %s", err.Error())
+		return errors.New("get mef uid or gid failed")
+	}
+
+	if err = os.Chown(logDir, mefUid, mefGid); err != nil {
+		hwlog.RunLog.Errorf("set path [%s] owner failed, error: %s", logDir, err.Error())
+		return errors.New("set run script path owner failed")
+	}
+	return nil
+}
+
 // PrepareLibDir creates lib dir for a single component and copy libs into it
 func (c *ComponentMgr) PrepareLibDir(libSrcPath string, pathMgr *WorkPathAMgr) error {
 	if pathMgr == nil {

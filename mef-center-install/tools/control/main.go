@@ -99,7 +99,8 @@ func (oc *operateController) doControl() error {
 	}
 
 	controlMgr := control.InitSftOperateMgr(componentType, oc.operate,
-		installedComponents, oc.installParam.InstallDir, oc.installParam.LogDir)
+		installedComponents, util.InitInstallDirPathMgr(oc.installParam.InstallDir),
+		util.InitLogDirPathMgr(oc.installParam.LogDir, oc.installParam.LogBackupDir))
 	if err := controlMgr.DoOperate(); err != nil {
 		return err
 	}
@@ -134,16 +135,8 @@ func main() {
 		os.Exit(util.ErrorExitCode)
 	}
 
-	logDirPath := installParam.LogDir
-	logPathMgr := util.InitLogDirPathMgr(logDirPath)
-	logPath := logPathMgr.GetInstallLogPath()
-	if logPath, err = utils.CheckPath(logPath); err != nil {
-		fmt.Printf("check log path %s failed:%s\n", logPath, err.Error())
-		os.Exit(util.ErrorExitCode)
-	}
-
-	if err = util.InitLogPath(logPath); err != nil {
-		fmt.Printf("init log path %s failed:%s\n", logPath, err.Error())
+	if err := initLog(installParam); err != nil {
+		fmt.Println(err.Error())
 		os.Exit(util.ErrorExitCode)
 	}
 	fmt.Println("init log success")
@@ -175,4 +168,23 @@ func main() {
 	}
 	hwlog.RunLog.Infof("%s %s component successful", operate, componentType)
 	hwlog.OpLog.Infof("%s: %s, %s %s component successful", ip, user, operate, componentType)
+}
+
+func initLog(installParam *util.InstallParamJsonTemplate) error {
+	logDirPath := installParam.LogDir
+	logBackupDirPath := installParam.LogBackupDir
+	logPathMgr := util.InitLogDirPathMgr(logDirPath, logBackupDirPath)
+	logPath, err := utils.CheckPath(logPathMgr.GetInstallLogPath())
+	if err != nil {
+		return fmt.Errorf("check log path %s failed:%s", logPath, err.Error())
+	}
+	logBackupPath, err := utils.CheckPath(logPathMgr.GetInstallLogBackupPath())
+	if err != nil {
+		return fmt.Errorf("check log backup path %s failed:%s", logBackupPath, err.Error())
+	}
+
+	if err := util.InitLogPath(logPath, logBackupPath); err != nil {
+		return fmt.Errorf("init log path %s failed:%s", logPath, err.Error())
+	}
+	return nil
 }

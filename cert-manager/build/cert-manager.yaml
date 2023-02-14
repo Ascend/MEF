@@ -41,6 +41,8 @@ spec:
               mountPath: /home/data/config/
             - name: cert-manager-log
               mountPath: /var/log/mindx-edge/cert-manager
+            - name: cert-manager-log-backup
+              mountPath: /var/log_backup/mindx-edge/cert-manager
             - name: localtime
               mountPath: /etc/localtime
             - name: root-ca
@@ -53,6 +55,10 @@ spec:
         - name: cert-manager-log
           hostPath:
             path: ${log}
+            type: Directory
+        - name: cert-manager-log-backup
+          hostPath:
+            path: ${log-backup}
             type: Directory
         - name: localtime
           hostPath:
