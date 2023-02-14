@@ -45,7 +45,8 @@ func (wh *WsMsgHandler) handleMsg(msgBytes []byte) {
 		}
 		msg.SetRouter("websocket", moduleName, msgOpt, msgRes)
 	}
-	hwlog.RunLog.Infof("websocket receive msg option:[%s] resource:[%s]", msg.GetOption(), msg.GetResource())
+	hwlog.RunLog.Infof("websocket receive msg option:[%s] resource:[%s] from [%s]", msg.GetOption(),
+		msg.GetResource(), msg.GetNodeId())
 	err = modulemanager.SendMessage(&msg)
 	if err != nil {
 		hwlog.RunLog.Errorf("send module message failed, error: %v", err)

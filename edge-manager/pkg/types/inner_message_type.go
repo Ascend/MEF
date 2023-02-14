@@ -61,7 +61,7 @@ type InnerGetNodeStatusResp struct {
 
 // EdgeReportSoftwareInfoReq [struct] to report edge software info
 type EdgeReportSoftwareInfoReq struct {
-	UniqueName   string                       `json:"uniqueName"`
+	SerialNumber string                       `json:"serialNumber"`
 	SoftwareInfo map[string]map[string]string `json:"softwareInfo"`
 }
 

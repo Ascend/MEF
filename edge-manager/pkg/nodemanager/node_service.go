@@ -787,7 +787,7 @@ func updateNodeSoftwareInfo(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "marshal version info failed", Data: nil}
 	}
 
-	err = NodeServiceInstance().updateNodeByUniqueName(req.UniqueName, "software_info", string(softwareInfo))
+	err = NodeServiceInstance().updateNodeBySerialNumber(req.SerialNumber, "software_info", string(softwareInfo))
 	if err != nil {
 		hwlog.RunLog.Errorf("update node software info failed: %v", err)
 		return common.RespMsg{Status: "", Msg: "update node software info failed", Data: nil}

@@ -41,7 +41,7 @@ func getNodeSoftwareInfo(serialNumber string) (map[string]map[string]string, err
 		Source:      common.NodeMsgManagerName,
 		Destination: common.NodeManagerName,
 		Option:      common.Inner,
-		Resource:    common.Node,
+		Resource:    common.NodeSoftwareInfo,
 	}
 	req := types.InnerGetSoftwareInfoBySerialNumberReq{
 		SerialNumber: serialNumber,
@@ -54,12 +54,12 @@ func getNodeSoftwareInfo(serialNumber string) (map[string]map[string]string, err
 
 	data, err := json.Marshal(resp.Data)
 	if err != nil {
-		hwlog.RunLog.Error("marshal internal response error")
+		hwlog.RunLog.Errorf("marshal internal response error %v", err)
 		return nil, errors.New("marshal internal response error")
 	}
 
 	if err = json.Unmarshal(data, &nodeSoftwareInfo); err != nil {
-		hwlog.RunLog.Error("unmarshal internal response error")
+		hwlog.RunLog.Error("unmarshal internal response error %v", err)
 		return nil, errors.New("unmarshal internal response error")
 	}
 

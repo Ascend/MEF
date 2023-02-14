@@ -79,6 +79,10 @@ func (nm *NodeMsgDealer) dispatch(req *model.Message) {
 		return
 	}
 
+	if !req.GetIsSync() {
+		return
+	}
+
 	resp, err := req.NewResponse()
 	if err != nil {
 		hwlog.RunLog.Errorf("%s new response failed", nm.Name())

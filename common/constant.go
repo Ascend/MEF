@@ -100,6 +100,8 @@ const (
 	NodeGroup = "nodeGroup"
 	// NodeStatus resource node status
 	NodeStatus = "nodeStatus"
+	// NodeSoftwareInfo resource node software version info
+	NodeSoftwareInfo = "nodeSoftwareInfo"
 	// CheckResource resources allocatable node resources in node group
 	CheckResource = "checkResource"
 	// UpdateResource resources allocatable node resources in node group
