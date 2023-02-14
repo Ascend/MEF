@@ -5,14 +5,15 @@ package edgemsgmanager
 
 // SoftwareDownloadInfo content for download software
 type SoftwareDownloadInfo struct {
-	NodeIDs         []uint64    `json:"nodeIDs"`
-	SerialNumbers   []string    `json:"serialNumber"`
-	SoftwareName    string      `json:"softwareName"`
-	SoftwareVersion string      `json:"softwareVersion,omitempty"`
-	HttpsServer     HttpsServer `json:"httpsServer"`
+	NodeIDs         []uint64     `json:"nodeIDs"`
+	SerialNumbers   []string     `json:"serialNumber"`
+	SoftwareName    string       `json:"softwareName"`
+	SoftwareVersion string       `json:"softwareVersion,omitempty"`
+	DownLoadInfo    DownLoadInfo `json:"downLoadInfo"`
 }
 
-type HttpsServer struct {
+// DownLoadInfo [struct] to software download info
+type DownLoadInfo struct {
 	Package  string `json:"package"`
 	SignFile string `json:"signFile"`
 	CrlFile  string `json:"crlFile,omitempty"`
