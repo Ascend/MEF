@@ -11,28 +11,27 @@ import (
 	"os/signal"
 	"syscall"
 
-	"edge-manager/pkg/appmanager"
-	"edge-manager/pkg/nodemanager"
-	"edge-manager/pkg/restfulservice"
-
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
 	"huawei.com/mindxedge/base/modulemanager"
 
+	"edge-manager/pkg/appmanager"
 	"edge-manager/pkg/config"
 	"edge-manager/pkg/database"
 	"edge-manager/pkg/edgeconnector"
 	"edge-manager/pkg/edgeinstaller"
 	"edge-manager/pkg/kubeclient"
+	"edge-manager/pkg/nodemanager"
+	"edge-manager/pkg/restfulservice"
 )
 
 const (
 	defaultPort           = 8101
 	defaultWsPort         = 10000
+	defaultAuthPort       = 10001
 	defaultRunLogFile     = "/var/log/mindx-edge/edge-manager/run.log"
 	defaultOperateLogFile = "/var/log/mindx-edge/edge-manager/operate.log"
 	defaultBackupDirName  = "/var/log_backup/mindx-edge/edge-manager"
@@ -47,11 +46,12 @@ var (
 		BackupDirName: defaultBackupDirName, MaxLineLength: logMaxLineLength}
 	serverOpConf = &hwlog.LogConfig{LogFileName: defaultOperateLogFile, FileMaxSize: defaultOpLogMaxSize,
 		BackupDirName: defaultBackupDirName}
-	port    int
-	wsPort  int
-	ip      string
-	version bool
-	dbPath  string
+	port     int
+	wsPort   int
+	authPort int
+	ip       string
+	version  bool
+	dbPath   string
 )
 
 func main() {
@@ -102,6 +102,15 @@ func validateFlags() error {
 	if !checker.IsPortInRange(common.MinPort, common.MaxPort, port) {
 		return fmt.Errorf("port %d is not in [%d, %d]", port, common.MinPort, common.MaxPort)
 	}
+	if !checker.IsPortInRange(common.MinPort, common.MaxPort, wsPort) {
+		return fmt.Errorf("wsPort %d is not in [%d, %d]", port, common.MinPort, common.MaxPort)
+	}
+	if !checker.IsPortInRange(common.MinPort, common.MaxPort, authPort) {
+		return fmt.Errorf("authPort %d is not in [%d, %d]", port, common.MinPort, common.MaxPort)
+	}
+	if authPort == wsPort {
+		return fmt.Errorf("authPort can not equals to wsPort")
+	}
 	if _, err := utils.CheckPath(dbPath); err != nil {
 		return err
 	}
@@ -132,7 +141,7 @@ func register(ctx context.Context) error {
 	if err := modulemanager.Registry(appmanager.NewAppManager(true)); err != nil {
 		return err
 	}
-	if err := modulemanager.Registry(edgeconnector.NewConnector(true, wsPort)); err != nil {
+	if err := modulemanager.Registry(edgeconnector.NewConnector(true, wsPort, authPort)); err != nil {
 		return err
 	}
 	if err := modulemanager.Registry(edgeinstaller.NewInstaller(true)); err != nil {
