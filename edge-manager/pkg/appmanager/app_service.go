@@ -439,6 +439,7 @@ func getAppInstanceRespFromAppInstances(appInstances []AppInstance) ([]AppInstan
 		}
 		createdAt := instance.CreatedAt.Format(common.TimeFormat)
 		resp := AppInstanceResp{
+			AppID:   instance.AppID,
 			AppName: instance.AppName,
 			NodeGroupInfo: types.NodeGroupInfo{
 				NodeGroupID:   instance.NodeGroupID,
@@ -470,51 +471,13 @@ func listAppInstancesByNode(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("list app instances by node failed, db failed")
 		return common.RespMsg{Status: common.ErrorListAppInstancesByNode, Msg: "list app instances by node db failed"}
 	}
-	appList, err := getAppInstanceOfNodeRespFromAppInstances(appInstances)
+	appList, err := getAppInstanceRespFromAppInstances(appInstances)
 	if err != nil {
 		hwlog.RunLog.Error("get app instance of node response from app instances failed")
 		return common.RespMsg{Status: common.ErrorListAppInstancesByNode,
 			Msg: "get app instance of node response from app instances failed", Data: nil}
 	}
 	return common.RespMsg{Status: common.Success, Msg: "", Data: appList}
-}
-
-func getAppInstanceOfNodeRespFromAppInstances(appInstances []AppInstance) ([]AppInstanceOfNodeResp, error) {
-	var appList []AppInstanceOfNodeResp
-	for _, instance := range appInstances {
-		appInfo, err := AppRepositoryInstance().getAppInfoByName(instance.AppName)
-		if err != nil {
-			hwlog.RunLog.Errorf("get app info by name [%s] db error", instance.AppName)
-			return nil, err
-		}
-		nodeGroupName, err := AppRepositoryInstance().getNodeGroupName(instance.AppID, instance.NodeGroupID)
-		if err != nil {
-			hwlog.RunLog.Warnf("get app id [%d] node group [%d] name failed, db error",
-				instance.AppID, instance.NodeGroupID)
-			continue
-		}
-		nodeStatus, err := getNodeStatus(instance.NodeUniqueName)
-		if err != nil {
-			hwlog.RunLog.Warnf("get node [%s] status error: %v", instance.NodeUniqueName, err)
-			continue
-		}
-		status := appStatusService.getPodStatusFromCache(instance.PodName, nodeStatus)
-		createdAt := instance.CreatedAt.Format(common.TimeFormat)
-		changedAt := instance.UpdatedAt.Format(common.TimeFormat)
-		instanceResp := AppInstanceOfNodeResp{
-			AppName:     instance.AppName,
-			AppStatus:   status,
-			Description: appInfo.Description,
-			CreatedAt:   createdAt,
-			ChangedAt:   changedAt,
-			NodeGroupInfo: types.NodeGroupInfo{
-				NodeGroupID:   instance.NodeGroupID,
-				NodeGroupName: nodeGroupName,
-			},
-		}
-		appList = append(appList, instanceResp)
-	}
-	return appList, nil
 }
 
 func listAppInstances(input interface{}) common.RespMsg {

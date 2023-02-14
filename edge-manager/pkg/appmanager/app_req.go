@@ -42,6 +42,7 @@ type GetAppByAppIdReq struct {
 
 // AppInstanceResp encapsulate app instance information for return
 type AppInstanceResp struct {
+	AppID         uint64              `json:"appID"`
 	AppName       string              `json:"appName"`
 	AppStatus     string              `json:"appStatus"`
 	NodeGroupInfo types.NodeGroupInfo `json:"nodeGroupInfo"`
@@ -54,9 +55,10 @@ type AppInstanceResp struct {
 
 // ContainerInfo encapsulate container details of an app instance
 type ContainerInfo struct {
-	Name   string `json:"name"`
-	Image  string `json:"image"`
-	Status string `json:"status"`
+	Name         string `json:"name"`
+	Image        string `json:"image"`
+	Status       string `json:"status"`
+	RestartCount int32  `json:"restartCount"`
 }
 
 // CreateReturnInfo for create app
@@ -85,16 +87,6 @@ type AppReturnInfo struct {
 	ModifiedAt     string                `json:"modifiedAt"`
 	NodeGroupInfos []types.NodeGroupInfo `json:"nodeGroupInfos"`
 	Containers     []Container           `json:"containers"`
-}
-
-// AppInstanceOfNodeResp encapsulate app instance information of a certain node
-type AppInstanceOfNodeResp struct {
-	AppName       string              `json:"appName"`
-	AppStatus     string              `json:"appStatus"`
-	Description   string              `json:"description"`
-	CreatedAt     string              `json:"createdAt"`
-	ChangedAt     string              `json:"changedAt"`
-	NodeGroupInfo types.NodeGroupInfo `json:"nodeGroupInfo"`
 }
 
 // AppTemplate app template detail
