@@ -3,19 +3,20 @@
 // Package edgemsgmanager to deal node msg
 package edgemsgmanager
 
-// EdgeUpgradeInfoReq software upgrade req
-type EdgeUpgradeInfoReq struct {
-	NodeIDs         []uint64     `json:"nodeIDs"`
-	UniqueNames     []string     `json:"uniqueNames"`
-	SoftWareName    string       `json:"softWareName"`
-	SoftWareVersion string       `json:"softWarVersion"`
-	DownloadInfo    DownloadInfo `json:"downloadInfo"`
+// SoftwareDownloadInfo content for download software
+type SoftwareDownloadInfo struct {
+	NodeIDs         []uint64    `json:"nodeIDs"`
+	SerialNumbers   []string    `json:"serialNumber"`
+	SoftwareName    string      `json:"softwareName"`
+	SoftwareVersion string      `json:"softwareVersion,omitempty"`
+	HttpsServer     HttpsServer `json:"httpsServer"`
 }
 
-// DownloadInfo [struct] for package download info
-type DownloadInfo struct {
-	Url      string `json:"url"`
-	UserName string `json:"userName"`
+type HttpsServer struct {
+	Package  string `json:"package"`
+	SignFile string `json:"signFile"`
+	CrlFile  string `json:"crlFile,omitempty"`
+	UserName string `json:"username"`
 	Password string `json:"password"`
 }
 

@@ -21,7 +21,7 @@ func upgradeSoftware(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "get message failed", Data: nil}
 	}
 
-	var req EdgeUpgradeInfoReq
+	var req SoftwareDownloadInfo
 	var err error
 	if err = common.ParamConvert(message.GetContent(), &req); err != nil {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
@@ -34,9 +34,9 @@ func upgradeSoftware(input interface{}) common.RespMsg {
 	}
 
 	msg.SetRouter(common.NodeMsgManagerName, common.CloudHubName, common.OptPost, common.ResEdgeUpgradeInfo)
-	msg.FillContent(input)
+	msg.FillContent(message.GetContent())
 	var batchResp types.BatchResp
-	for _, sn := range req.UniqueNames {
+	for _, sn := range req.SerialNumbers {
 		msg.SetNodeId(sn)
 
 		err = modulemanager.SendMessage(msg)

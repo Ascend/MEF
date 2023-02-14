@@ -114,12 +114,11 @@ var (
 )
 
 var handlerFuncMap = map[string]handlerFunc{
-	common.Combine(http.MethodPost, filepath.Join(edgeSoftwareRootPath, "/upgrade")):     upgradeSoftware,
-	common.Combine(http.MethodPost, filepath.Join(edgeSoftwareRootPath, "/effect")):      effectEdgeSoftware,
-	common.Combine(http.MethodGet, filepath.Join(edgeSoftwareRootPath, "/version-info")): queryEdgeSoftwareVersion,
-	common.Combine(http.MethodGet, filepath.Join(edgeSoftwareRootPath,
-		"/upgrade-result")): queryEdgeSoftwareUpgradeProgress,
+	common.Combine(http.MethodPost, filepath.Join(edgeSoftwareRootPath, "/upgrade")):       upgradeSoftware,
+	common.Combine(http.MethodPost, filepath.Join(edgeSoftwareRootPath, "/effect")):        effectEdgeSoftware,
+	common.Combine(http.MethodGet, filepath.Join(edgeSoftwareRootPath, "/version-info")):   queryEdgeSoftwareVersion,
+	common.Combine(http.MethodGet, filepath.Join(edgeSoftwareRootPath, "/upgrade-result")): queryEdgeUpgradeProgress,
 
-	common.Combine(common.OptGet, "/edge-core/config"):             GetConfigInfo,
-	common.Combine(common.OptReport, common.ResSoftwareInfoReport): UpdateEdgeSoftwareUpgradeProgress,
+	common.Combine(common.OptGet, common.ResEdgeConfigInfo):         GetConfigInfo,
+	common.Combine(common.OptReport, common.ResUpgradeResultReport): UpdateEdgeSoftwareUpgradeProgress,
 }

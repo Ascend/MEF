@@ -11,8 +11,8 @@ import (
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
-// queryEdgeSoftwareUpgradeProgress [method] query edge software upgrade progress
-func queryEdgeSoftwareUpgradeProgress(input interface{}) common.RespMsg {
+// queryEdgeUpgradeProgress [method] query edge software upgrade progress
+func queryEdgeUpgradeProgress(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start query edge software upgrade progress")
 	message, ok := input.(*model.Message)
 	if !ok {
@@ -28,7 +28,7 @@ func queryEdgeSoftwareUpgradeProgress(input interface{}) common.RespMsg {
 	}
 
 	var processInfo types.ProgressInfo
-	if nodeProgress, ok := nodesProgress[serialNumber]; !ok {
+	if nodeProgress, ok := nodesProgress[serialNumber]; ok {
 		processInfo = nodeProgress
 	}
 
