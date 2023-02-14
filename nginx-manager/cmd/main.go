@@ -74,7 +74,7 @@ func initResource() error {
 		return err
 	}
 	restfulPort = usrMgrPort
-	if err := database.InitDB(nginxcom.DefaultDbPath); err != nil {
+	if err = database.InitDB(nginxcom.DefaultDbPath); err != nil {
 		hwlog.RunLog.Errorf("init database failed, error: %s", err.Error())
 		return err
 	}
