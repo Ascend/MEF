@@ -10,11 +10,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
-
-	"edge-manager/pkg/util"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/certutils"
 	"huawei.com/mindxedge/base/common/httpsmgr"
+
+	"edge-manager/pkg/util"
 )
 
 const (
@@ -77,9 +77,8 @@ func ClientAuth(c *gin.Context) {
 		c.String(http.StatusBadRequest, "user account or password is invalid")
 		return
 	}
-	csrReader := io.LimitReader(c.Request.Body, maxBodyBytes)
-	csrData := make([]byte, maxBodyBytes)
-	readBytes, err := csrReader.Read(csrData)
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxBodyBytes)
+	csrData, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		hwlog.RunLog.Errorf("read crs data from edge error: %v", err)
 		c.String(http.StatusBadRequest, "csr data is required")
@@ -94,7 +93,7 @@ func ClientAuth(c *gin.Context) {
 			IgnoreCltCert: false,
 		},
 	}
-	certStr, err := reqCertParams.ReqIssueSvrCert(common.WsCltName, csrData[:readBytes])
+	certStr, err := reqCertParams.ReqIssueSvrCert(common.WsCltName, csrData)
 	if err != nil {
 		hwlog.RunLog.Errorf("issue cert for edge error: %v", err)
 		c.String(http.StatusBadRequest, "generate edge cert failed")
