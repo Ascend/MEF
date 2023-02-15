@@ -30,7 +30,7 @@ const (
 var hashFunc = sha256.New
 
 // CheckPassWord 校验密码复杂度等
-func CheckPassWord(userName string, passWord []byte) error {
+func CheckPassWord(userName string, passWord *string) error {
 	if err := checkPassWordForPattern(userName, passWord); err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func CheckPassWord(userName string, passWord []byte) error {
 	return checkPassWordComplexity(passWord)
 }
 
-func checkPassWordComplexity(b []byte) error {
+func checkPassWordComplexity(b *string) error {
 	complexCheckRegexArr := []string{
 		common.LowercaseCharactersRegex,
 		common.UppercaseCharactersRegex,
@@ -47,7 +47,7 @@ func checkPassWordComplexity(b []byte) error {
 	}
 	complexCount := 0
 	for _, pattern := range complexCheckRegexArr {
-		if matched, err := regexp.Match(pattern, b); matched && err == nil {
+		if matched, err := regexp.MatchString(pattern, *b); matched && err == nil {
 			complexCount++
 		}
 	}
@@ -58,25 +58,21 @@ func checkPassWordComplexity(b []byte) error {
 	return nil
 }
 
-func checkPassWordForPattern(userName string, passWord []byte) error {
-	if matched, err := regexp.Match(common.PassWordRegex, passWord); err != nil || !matched {
+func checkPassWordForPattern(userName string, passWord *string) error {
+	if matched, err := regexp.MatchString(common.PassWordRegex, *passWord); err != nil || !matched {
 		return errors.New("password not meet requirement")
 	}
-	passWordStr := string(passWord)
-	defer func() {
-		common.ClearStringMemory(passWordStr)
-	}()
-	if userName == passWordStr {
+	if userName == *passWord {
 		return errors.New("password cannot equals username")
 	}
-	if utils.ReverseString(userName) == passWordStr {
+	if utils.ReverseString(userName) == *passWord {
 		return errors.New("password cannot equal reversed username")
 	}
 	return nil
 }
 
 // ComparePassword 比较混淆后的新旧密码
-func ComparePassword(newPassword []byte, hashVal string, salt string) bool {
+func ComparePassword(newPassword *string, hashVal string, salt string) bool {
 	saltByte, err := convertStringToByteArr(salt)
 	if err != nil {
 		hwlog.RunLog.Error(err)
@@ -87,17 +83,17 @@ func ComparePassword(newPassword []byte, hashVal string, salt string) bool {
 }
 
 // GetEncryptPassword 获取混淆后的密码
-func GetEncryptPassword(plainText []byte) (string, string, error) {
+func GetEncryptPassword(plainText *string) (string, string, error) {
 	salt, err := getSafeRandomBytes(SaltLength)
 	if err != nil {
 		return "", "", err
 	}
-	cipherText := pbkdf2.Key(plainText, salt, IterCount, BytesOfEncryptedString, hashFunc)
+	cipherText := pbkdf2.Key([]byte(*plainText), salt, IterCount, BytesOfEncryptedString, hashFunc)
 	return convertByteArrToString(cipherText), convertByteArrToString(salt), nil
 }
 
-func getEncryptedStrBySalt(plainText, salt []byte) string {
-	cipherText := pbkdf2.Key(plainText, salt, IterCount, BytesOfEncryptedString, hashFunc)
+func getEncryptedStrBySalt(plainText *string, salt []byte) string {
+	cipherText := pbkdf2.Key([]byte(*plainText), salt, IterCount, BytesOfEncryptedString, hashFunc)
 	return convertByteArrToString(cipherText)
 }
 
