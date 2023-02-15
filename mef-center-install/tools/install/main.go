@@ -4,6 +4,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -89,7 +90,10 @@ func checkPath() error {
 	}
 
 	if logBackupRootPath == "" || !utils.IsExist(logBackupRootPath) {
-		return fmt.Errorf("log backup dir [%s] does not exist", logBackupRootPath)
+		fmt.Printf("log backup dir [%s] does not exist, creating it\n", logBackupRootPath)
+		if err := utils.MakeSureDir(logBackupRootPath); err != nil {
+			return errors.New("failed to create log backup dir")
+		}
 	}
 
 	if installPath == "" || !utils.IsExist(installPath) {

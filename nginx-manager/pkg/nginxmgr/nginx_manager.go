@@ -5,6 +5,7 @@ package nginxmgr
 
 import (
 	"context"
+	"os"
 	"os/exec"
 	"time"
 
@@ -22,6 +23,9 @@ const (
 	retryInterval = 15 * time.Second
 	restyBinPath  = "/usr/bin/openresty"
 	restyPrefix   = "/home/MEFCenter/"
+	accessLogFile = "/home/MEFCenter/logs/access.log"
+	errorLogFile  = "/home/MEFCenter/logs/error.log"
+	logFileMode   = 0600
 )
 
 // InitResource initial the resources needed by nginx
@@ -162,6 +166,14 @@ func startResty() bool {
 	_, err := cmd.CombinedOutput()
 	if err != nil {
 		hwlog.RunLog.Errorf("run openresty failed: %s", err.Error())
+		return false
+	}
+	if err = os.Chmod(accessLogFile, logFileMode); err != nil {
+		hwlog.RunLog.Errorf("chmod access.log failed, cause by: {%s}", err.Error())
+		return false
+	}
+	if err = os.Chmod(errorLogFile, logFileMode); err != nil {
+		hwlog.RunLog.Errorf("chmod error.log failed, cause by: {%v}", err.Error())
 		return false
 	}
 	hwlog.RunLog.Info("run openresty success")
