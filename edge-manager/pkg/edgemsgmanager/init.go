@@ -114,8 +114,8 @@ var (
 )
 
 var handlerFuncMap = map[string]handlerFunc{
-	common.Combine(http.MethodPost, filepath.Join(edgeSoftwareRootPath, "/upgrade")):       upgradeSoftware,
-	common.Combine(http.MethodPost, filepath.Join(edgeSoftwareRootPath, "/effect")):        effectEdgeSoftware,
+	common.Combine(http.MethodPost, filepath.Join(edgeSoftwareRootPath, "/download")):      downloadSoftware,
+	common.Combine(http.MethodPost, filepath.Join(edgeSoftwareRootPath, "/upgrade")):       upgradeEdgeSoftware,
 	common.Combine(http.MethodGet, filepath.Join(edgeSoftwareRootPath, "/version-info")):   queryEdgeSoftwareVersion,
 	common.Combine(http.MethodGet, filepath.Join(edgeSoftwareRootPath, "/upgrade-result")): queryEdgeUpgradeProgress,
 

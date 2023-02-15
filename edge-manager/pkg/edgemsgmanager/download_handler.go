@@ -12,16 +12,16 @@ import (
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
-// effectEdgeSoftware [method] effect edge software
-func effectEdgeSoftware(input interface{}) common.RespMsg {
-	hwlog.RunLog.Info("start effect edge software")
+// downloadSoftware [method] down edge software
+func downloadSoftware(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start update edge software")
 	message, ok := input.(*model.Message)
 	if !ok {
 		hwlog.RunLog.Errorf("get message failed")
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "get message failed", Data: nil}
 	}
 
-	var req EffectInfoReq
+	var req SoftwareDownloadInfo
 	var err error
 	if err = common.ParamConvert(message.GetContent(), &req); err != nil {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
@@ -33,10 +33,10 @@ func effectEdgeSoftware(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorNewMsg, Msg: "create message failed", Data: nil}
 	}
 
-	msg.SetRouter(common.NodeMsgManagerName, common.CloudHubName, common.OptPost, common.ResEdgeEffectInfo)
-	msg.FillContent(input)
+	msg.SetRouter(common.NodeMsgManagerName, common.CloudHubName, common.OptPost, common.ResEdgeDownloadInfo)
+	msg.FillContent(message.GetContent())
 	var batchResp types.BatchResp
-	for _, sn := range req.SerialNames {
+	for _, sn := range req.SerialNumbers {
 		msg.SetNodeId(sn)
 
 		err = modulemanager.SendMessage(msg)
@@ -48,10 +48,10 @@ func effectEdgeSoftware(input interface{}) common.RespMsg {
 	}
 
 	if len(batchResp.FailedIDs) != 0 {
-		hwlog.RunLog.Info("deal edge software effect info failed")
+		hwlog.RunLog.Info("deal edge software upgrade info failed")
 		return common.RespMsg{Status: common.ErrorSendMsgToNode, Msg: "", Data: batchResp}
 	} else {
-		hwlog.RunLog.Info("deal edge software effect info success")
+		hwlog.RunLog.Info("deal edge software upgrade info success")
 		return common.RespMsg{Status: common.Success, Msg: "", Data: batchResp}
 	}
 }

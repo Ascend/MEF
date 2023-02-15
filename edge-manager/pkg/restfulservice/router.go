@@ -192,11 +192,11 @@ var nodeGroupRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 var softwareRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 	"/edgemanager/v1/software/edge": {
 		restfulmgr.GenericDispatcher{
-			RelativePath: "/upgrade",
+			RelativePath: "/download",
 			Method:       http.MethodPost,
 			Destination:  common.NodeMsgManagerName},
 		restfulmgr.GenericDispatcher{
-			RelativePath: "/effect",
+			RelativePath: "/upgrade",
 			Method:       http.MethodPost,
 			Destination:  common.NodeMsgManagerName},
 		queryDispatcher{restfulmgr.GenericDispatcher{

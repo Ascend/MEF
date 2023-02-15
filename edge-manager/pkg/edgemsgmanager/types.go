@@ -6,7 +6,7 @@ package edgemsgmanager
 // SoftwareDownloadInfo content for download software
 type SoftwareDownloadInfo struct {
 	NodeIDs         []uint64     `json:"nodeIDs"`
-	SerialNumbers   []string     `json:"serialNumber"`
+	SerialNumbers   []string     `json:"serialNumbers"`
 	SoftwareName    string       `json:"softwareName"`
 	SoftwareVersion string       `json:"softwareVersion,omitempty"`
 	DownLoadInfo    DownLoadInfo `json:"downLoadInfo"`
@@ -23,6 +23,7 @@ type DownLoadInfo struct {
 
 // EffectInfoReq effect software
 type EffectInfoReq struct {
-	NodeIDs     []uint64 `json:"nodeIDs"`
-	SerialNames []string `json:"SerialNames"`
+	NodeIDs       []uint64 `json:"nodeIDs"`
+	SerialNumbers []string `json:"serialNumbers"`
+	SoftwareName  string   `json:"softwareName"`
 }

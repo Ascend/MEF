@@ -254,10 +254,10 @@ const (
 	OptPost = "post"
 	// OptReport option for report
 	OptReport = "report"
-	// ResEdgeUpgradeInfo resource for upgrade software
+	// ResEdgeDownloadInfo resource for download software
+	ResEdgeDownloadInfo = "/edge/download"
+	// ResEdgeUpgradeInfo resource for effect software
 	ResEdgeUpgradeInfo = "/edge/upgrade"
-	// ResEdgeEffectInfo resource for effect software
-	ResEdgeEffectInfo = "/edge/effect"
 	// ResEdgeConfigInfo resource for edge config info
 	ResEdgeConfigInfo = "/edge/config"
 	// ResUpgradeResultReport resource progress report

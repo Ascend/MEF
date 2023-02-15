@@ -12,16 +12,16 @@ import (
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
-// upgradeSoftware [method] upgrade edge software
-func upgradeSoftware(input interface{}) common.RespMsg {
-	hwlog.RunLog.Info("start update edge software")
+// upgradeEdgeSoftware [method] effect edge software
+func upgradeEdgeSoftware(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start effect edge software")
 	message, ok := input.(*model.Message)
 	if !ok {
 		hwlog.RunLog.Errorf("get message failed")
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "get message failed", Data: nil}
 	}
 
-	var req SoftwareDownloadInfo
+	var req EffectInfoReq
 	var err error
 	if err = common.ParamConvert(message.GetContent(), &req); err != nil {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
@@ -48,10 +48,10 @@ func upgradeSoftware(input interface{}) common.RespMsg {
 	}
 
 	if len(batchResp.FailedIDs) != 0 {
-		hwlog.RunLog.Info("deal edge software upgrade info failed")
+		hwlog.RunLog.Info("deal edge software effect info failed")
 		return common.RespMsg{Status: common.ErrorSendMsgToNode, Msg: "", Data: batchResp}
 	} else {
-		hwlog.RunLog.Info("deal edge software upgrade info success")
+		hwlog.RunLog.Info("deal edge software effect info success")
 		return common.RespMsg{Status: common.Success, Msg: "", Data: batchResp}
 	}
 }
