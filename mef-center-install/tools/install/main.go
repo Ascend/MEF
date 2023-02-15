@@ -43,7 +43,7 @@ func setFlag() {
 	flag.BoolVar(&help, util.HelpFlag, false, "print the help information")
 	flag.BoolVar(&help, util.HelpShortFlag, false, "print the help information")
 	flag.StringVar(&logRootPath, util.LogPathFlag, "/var", "The path used to save logs")
-	flag.StringVar(&logBackupRootPath, util.LogBackupPathFlag, "/home/data", "The path used to backup log files")
+	flag.StringVar(&logBackupRootPath, util.LogBackupPathFlag, "/home/log", "The path used to backup log files")
 	flag.StringVar(&installPath, util.InstallPathFlag, "/usr/local", "The path used to install")
 }
 
