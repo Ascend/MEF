@@ -124,6 +124,19 @@ const (
 	ErrorListAppInstances = "40022011"
 	// ErrorGetAppInstanceCountByNodeGroup failed to count app instances by node group
 	ErrorGetAppInstanceCountByNodeGroup = "40022012"
+
+	// ErrorGetRootCa failed to get root ca by cert name
+	ErrorGetRootCa = "60001001"
+	// ErrorIssueSrvCert failed to issue service certificate
+	ErrorIssueSrvCert = "60001002"
+	// ErrorInValidCaContent failed to valid ca content
+	ErrorInValidCaContent = "60001003"
+	// ErrorSaveCa failed to  save ca content
+	ErrorSaveCa = "60001004"
+	// ErrorDeleteRootCa  failed to delete cert file
+	ErrorDeleteRootCa = "60001005"
+	// ErrorDistributeRootCa failed to distribute cert file
+	ErrorDistributeRootCa = "60001006"
 )
 
 // ErrorMap error code and error msg map
@@ -248,4 +261,16 @@ var ErrorMap = map[string]string{
 	ErrorListAppInstances: "failed to list app instances",
 	// ErrorGetAppInstanceCountByNodeGroup failed to count app instances by node group
 	ErrorGetAppInstanceCountByNodeGroup: "failed to count app instances by node group",
+	// ErrorGetRootCa failed to get root ca by cert name
+	ErrorGetRootCa: "failed to get root ca by cert name",
+	// ErrorIssueSrvCert failed to issue service certificate
+	ErrorIssueSrvCert: "failed to issue service certificate",
+	// ErrorInValidCaContent failed to valid ca content
+	ErrorInValidCaContent: "failed to valid ca content",
+	// ErrorSaveCa failed to save ca content
+	ErrorSaveCa: "failed to save ca content",
+	// ErrorDeleteRootCa  failed to delete cert file
+	ErrorDeleteRootCa: "failed to delete cert file",
+	// ErrorDistributeRootCa failed to distribute cert file
+	ErrorDistributeRootCa: "failed to distribute cert file",
 }

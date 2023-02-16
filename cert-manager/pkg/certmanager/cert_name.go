@@ -1,13 +1,14 @@
 // Copyright (c) 2021. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package certmgr  cert mgr
-package certmgr
+// Package certmanager cert manager module
+package certmanager
 
 import (
 	"path"
 
-	"cert-manager/pkg/certconstant"
 	"huawei.com/mindxedge/base/common"
+
+	"cert-manager/pkg/certconstant"
 )
 
 var certImportMap = map[string]bool{
@@ -19,8 +20,8 @@ var certImportMap = map[string]bool{
 	common.InnerName:        false,
 }
 
-// checkCertName check use id if valid
-func checkCertName(certName string) bool {
+// CheckCertName check use id if valid
+func CheckCertName(certName string) bool {
 	_, ok := certImportMap[certName]
 	return ok
 }

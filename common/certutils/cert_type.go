@@ -37,3 +37,10 @@ type CertSan struct {
 	DnsName []string
 	IpAddr  []net.IP
 }
+
+// QueryCertRes query cert content res
+type QueryCertRes struct {
+	CertName string `json:"certName"`
+	Cert     string `json:"cert"`
+	Address  string `json:"address"`
+}
