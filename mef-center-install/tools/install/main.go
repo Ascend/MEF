@@ -4,7 +4,6 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -43,7 +42,7 @@ func setFlag() {
 	flag.BoolVar(&help, util.HelpFlag, false, "print the help information")
 	flag.BoolVar(&help, util.HelpShortFlag, false, "print the help information")
 	flag.StringVar(&logRootPath, util.LogPathFlag, "/var", "The path used to save logs")
-	flag.StringVar(&logBackupRootPath, util.LogBackupPathFlag, "/home/log", "The path used to backup log files")
+	flag.StringVar(&logBackupRootPath, util.LogBackupPathFlag, "/var", "The path used to backup log files")
 	flag.StringVar(&installPath, util.InstallPathFlag, "/usr/local", "The path used to install")
 }
 
@@ -90,10 +89,7 @@ func checkPath() error {
 	}
 
 	if logBackupRootPath == "" || !utils.IsExist(logBackupRootPath) {
-		fmt.Printf("log backup dir [%s] does not exist, creating it\n", logBackupRootPath)
-		if err := utils.MakeSureDir(logBackupRootPath); err != nil {
-			return errors.New("failed to create log backup dir")
-		}
+		return fmt.Errorf("log backup dir [%s] does not exist", logBackupRootPath)
 	}
 
 	if installPath == "" || !utils.IsExist(installPath) {

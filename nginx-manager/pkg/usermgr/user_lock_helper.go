@@ -19,7 +19,7 @@ import (
 const localhost = "127.0.0.1"
 
 // dealLockAndComparePwd compare passwords and deal the lock
-func dealLockAndComparePwd(clientIp string, targetPass []byte, user *User) common.RespMsg {
+func dealLockAndComparePwd(clientIp string, targetPass *string, user *User) common.RespMsg {
 	unlockUser(user, clientIp)
 	forbiddenIp, err := UserServiceInstance().getForbiddenIp(clientIp)
 	if err == nil {
@@ -28,7 +28,7 @@ func dealLockAndComparePwd(clientIp string, targetPass []byte, user *User) commo
 	return comparePwdAndLock(clientIp, targetPass, user)
 }
 
-func comparePwdAndLock(clientIp string, targetPass []byte, user *User) common.RespMsg {
+func comparePwdAndLock(clientIp string, targetPass *string, user *User) common.RespMsg {
 	if passutils.ComparePassword(targetPass, user.Password, user.Salt) {
 		return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 	}

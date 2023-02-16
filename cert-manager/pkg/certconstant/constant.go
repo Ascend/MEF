@@ -21,10 +21,3 @@ const (
 	// RootKeyFileName root key save file name
 	RootKeyFileName = "encrypt_root.key"
 )
-
-const (
-	// ErrorGetRootCa query root ca failed
-	ErrorGetRootCa = "00003001"
-	// ErrorIssueSrvCert issue service certificate failed
-	ErrorIssueSrvCert = "00003002"
-)

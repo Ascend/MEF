@@ -9,12 +9,13 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
-
-	"cert-manager/pkg/restful"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
 	"huawei.com/mindxedge/base/modulemanager"
+
+	"cert-manager/pkg/certmanager"
+	"cert-manager/pkg/restful"
 )
 
 const (
@@ -84,6 +85,9 @@ func initResource() error {
 func register() error {
 	modulemanager.ModuleInit()
 	if err := modulemanager.Registry(restful.NewRestfulService(true, ip, port)); err != nil {
+		return err
+	}
+	if err := modulemanager.Registry(certmanager.NewCertManager(true)); err != nil {
 		return err
 	}
 	modulemanager.Start()

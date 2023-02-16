@@ -30,3 +30,14 @@ const (
 	// fileMode Cert file mode
 	fileMode = 0600
 )
+
+// MEF-Center cert constant
+const (
+	DefaultNameSpace          = "default"
+	DefaultSecretName         = "image-pull-secret"
+	DefaultSecretRetryCount   = 10
+	DefaultSecretTimeInterval = 5
+	CertSizeLimited           = 1024 * 1024
+	DefaultCertRetryTime      = 5
+	DefaultCertWaitTime       = 1
+)

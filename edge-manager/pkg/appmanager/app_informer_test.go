@@ -38,7 +38,7 @@ func initInformerTestEnv() {
 
 func initAppStatusService() {
 	appStatusService.podStatusCache = make(map[string]string)
-	appStatusService.containerStatusCache = make(map[string]string)
+	appStatusService.containerStatusCache = make(map[string]containerStatus)
 }
 
 func initTestPod() {

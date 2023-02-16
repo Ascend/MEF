@@ -7,9 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
-	"path"
-	"path/filepath"
 	"strings"
 	"unsafe"
 
@@ -86,35 +83,6 @@ func ParamConvert(input interface{}, reqType interface{}) error {
 		return errors.New("param decode error")
 	}
 	return nil
-}
-
-// GetEdgeMgrWorkPath gets edge-manager work path
-func GetEdgeMgrWorkPath() (string, bool) {
-	currentDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	if err != nil {
-		hwlog.RunLog.Errorf("get edge-manager work absolute path error: %v", err)
-		return "", false
-	}
-
-	currentDir, err = filepath.EvalSymlinks(currentDir)
-	if err != nil {
-		hwlog.RunLog.Errorf("get edge-manager work real path error: %v", err)
-		return "", false
-	}
-
-	return currentDir, true
-}
-
-// GetCertDir gets websocket server cert path
-func GetCertDir() (string, bool) {
-	currentPath, ok := GetEdgeMgrWorkPath()
-	if !ok {
-		hwlog.RunLog.Error("get edge-manager work path failed")
-		return "", false
-	}
-
-	certDir := path.Join(currentPath, ServerCertPathName)
-	return certDir, true
 }
 
 // Combine to combine option and resource to find url method

@@ -5,12 +5,12 @@ package restful
 
 import (
 	"huawei.com/mindx/common/hwlog"
-
-	"cert-manager/pkg/certconstant"
-	"cert-manager/pkg/certmgr"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/certutils"
 	"huawei.com/mindxedge/base/common/httpsmgr"
+
+	"cert-manager/pkg/certconstant"
+	"cert-manager/pkg/certmanager"
 )
 
 var (
@@ -48,13 +48,13 @@ func NewRestfulService(enable bool, ip string, port int) *Service {
 
 // Name for RestfulService name
 func (r *Service) Name() string {
-	return common.CertManagerService
+	return common.RestfulServiceName
 }
 
 // Start for RestfulService start
 func (r *Service) Start() {
 	go func() {
-		err := certmgr.CheckAndCreateRootCa()
+		err := certmanager.CheckAndCreateRootCa()
 		if err != nil {
 			hwlog.RunLog.Errorf("start cert restful at %d failed, check cert failed: %v", r.httpsSvr.Port, err)
 			return

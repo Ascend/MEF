@@ -31,8 +31,13 @@ type appStatusServiceImpl struct {
 	podInformer          cache.SharedIndexInformer
 	daemonSetInformer    cache.SharedIndexInformer
 	podStatusCache       map[string]string
-	containerStatusCache map[string]string
+	containerStatusCache map[string]containerStatus
 	appStatusCacheLock   sync.RWMutex
+}
+
+type containerStatus struct {
+	Status       string
+	RestartCount int32
 }
 
 var appStatusService appStatusServiceImpl
@@ -55,7 +60,7 @@ func (a *appStatusServiceImpl) initAppStatusService() error {
 
 func (a *appStatusServiceImpl) initInformer(client *kubernetes.Clientset, stopCh <-chan struct{}) {
 	a.podStatusCache = make(map[string]string)
-	a.containerStatusCache = make(map[string]string)
+	a.containerStatusCache = make(map[string]containerStatus)
 	LabelSelector := labels.Set(map[string]string{common.AppManagerName: AppLabel}).
 		AsSelector().String()
 	informerFactory := informers.NewSharedInformerFactoryWithOptions(client, informerSyncInterval,
@@ -103,10 +108,12 @@ func (a *appStatusServiceImpl) updateStatusCache(pod *corev1.Pod) {
 	a.appStatusCacheLock.Lock()
 	defer a.appStatusCacheLock.Unlock()
 	a.podStatusCache[pod.Name] = strings.ToLower(string(pod.Status.Phase))
-	for _, containerStatus := range pod.Status.ContainerStatuses {
-		containerStatusKey := pod.Name + "-" + containerStatus.Name
-		status := getContainerStatus(containerStatus)
-		a.containerStatusCache[containerStatusKey] = status
+	for _, cStatus := range pod.Status.ContainerStatuses {
+		containerStatusKey := pod.Name + "-" + cStatus.Name
+		a.containerStatusCache[containerStatusKey] = containerStatus{
+			Status:       getContainerStatus(cStatus),
+			RestartCount: cStatus.RestartCount,
+		}
 	}
 }
 
@@ -114,8 +121,8 @@ func (a *appStatusServiceImpl) deleteStatusCache(pod *corev1.Pod) {
 	a.appStatusCacheLock.Lock()
 	defer a.appStatusCacheLock.Unlock()
 	delete(a.podStatusCache, pod.Name)
-	for _, containerStatus := range pod.Status.ContainerStatuses {
-		containerStatusKey := pod.Name + "-" + containerStatus.Name
+	for _, cStatus := range pod.Status.ContainerStatuses {
+		containerStatusKey := pod.Name + "-" + cStatus.Name
 		delete(a.containerStatusCache, containerStatusKey)
 	}
 }
@@ -204,8 +211,9 @@ func (a *appStatusServiceImpl) getContainerInfos(instance AppInstance, nodeStatu
 	defer a.appStatusCacheLock.Unlock()
 	for i := range containerInfos {
 		containerStatusKey := instance.PodName + "-" + containerInfos[i].Name
-		var ok bool
-		containerInfos[i].Status, ok = appStatusService.containerStatusCache[containerStatusKey]
+		cStatus, ok := appStatusService.containerStatusCache[containerStatusKey]
+		containerInfos[i].Status = cStatus.Status
+		containerInfos[i].RestartCount = cStatus.RestartCount
 		if !ok || nodeStatus != nodeStatusReady {
 			containerInfos[i].Status = containerStateUnknown
 		}

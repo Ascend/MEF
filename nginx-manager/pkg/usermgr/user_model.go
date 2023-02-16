@@ -23,22 +23,22 @@ type baseReq struct {
 type firstChangePwdReq struct {
 	baseReq
 	Username   *string `json:"username"`
-	Password   *[]byte `json:"password"`
-	RePassword *[]byte `json:"rePassword"`
+	Password   *string `json:"password"`
+	RePassword *string `json:"rePassword"`
 }
 
 type changePwdReq struct {
 	baseReq
 	Username    *string `json:"username"`
-	Password    *[]byte `json:"password"`
-	OldPassword *[]byte `json:"oldPassword"`
-	RePassword  *[]byte `json:"rePassword"`
+	Password    *string `json:"password"`
+	OldPassword *string `json:"oldPassword"`
+	RePassword  *string `json:"rePassword"`
 }
 
 type loginReq struct {
 	baseReq
 	Username *string `json:"username"`
-	Password *[]byte `json:"password"`
+	Password *string `json:"password"`
 }
 
 type logoutReq struct {
