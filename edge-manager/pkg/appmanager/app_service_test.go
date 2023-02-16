@@ -161,10 +161,6 @@ func TestParseDaemonsetToDB(t *testing.T) {
 	convey.Convey("list app instance should success", t, testGetInstanceFromAppInstances)
 }
 
-func TestGetInstanceOfNodeFromInstances(t *testing.T) {
-	convey.Convey("test getAppInstanceOfNodeRespFromAppInstances", t, testGetInstanceOfNode)
-}
-
 func TestListAppInstancesByNode(t *testing.T) {
 	convey.Convey("test ListAppInstancesByNode", t, testListAppInstancesByNode)
 	convey.Convey("test ListAppInstancesByNode error input", t, testListAppInstancesByNodeError)
@@ -660,22 +656,6 @@ func testGetInstanceFromAppInstances() {
 	}
 	_, res := parseDaemonSetToDB(&eventSet)
 	convey.So(res, convey.ShouldBeNil)
-}
-
-func testGetInstanceOfNode() {
-	instance := AppInstance{
-		ID:             1,
-		PodName:        "",
-		NodeID:         1,
-		NodeName:       "",
-		NodeUniqueName: "",
-		NodeGroupID:    1,
-		AppID:          1,
-		AppName:        "not-exist-app",
-	}
-	input := []AppInstance{instance}
-	_, err := getAppInstanceOfNodeRespFromAppInstances(input)
-	convey.So(err, convey.ShouldNotBeNil)
 }
 
 func testListAppInstancesByNode() {

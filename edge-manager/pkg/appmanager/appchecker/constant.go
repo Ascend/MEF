@@ -30,7 +30,7 @@ const (
 	maxCpuQuantity         = 1000
 	minMemoryQuantity      = 4           // 4 MB
 	maxMemoryQuantity      = 1000 * 1024 // 1000GB
-	minNpuQuantity         = 1
+	minNpuQuantity         = 0
 	maxNpuQuantity         = 32
 	nameReg                = "^[a-z0-9]([a-z0-9-]{0,30}[a-z0-9]){0,1}$"
 	imageNameReg           = "^[a-z0-9]([a-z0-9_./-]{0,30}[a-z0-9]){0,1}$"
