@@ -62,6 +62,8 @@ const (
 	SoftwareManagerName = "software manager"
 	// CertManagerService CertManager module name
 	CertManagerService = "CertManagerService"
+	// ImageManagerName ImageManagerName
+	ImageManagerName = "ImageManager"
 
 	// Create option create
 	Create = "create"
@@ -256,6 +258,8 @@ const (
 	ResDownLoadSoftware = "/software/download_info"
 	// ResEdgeCoreConfig resource for querying edgecore config
 	ResEdgeCoreConfig = "/edgecore/config"
+	// ResDownLoadCert resource for downloading cert
+	ResDownLoadCert = "/cert/download_info"
 )
 
 // ServerCertPathName websocket server cert path name

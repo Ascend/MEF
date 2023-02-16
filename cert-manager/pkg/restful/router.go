@@ -4,16 +4,50 @@
 package restful
 
 import (
+	"fmt"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/restfulmgr"
 )
 
+var certRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
+	"/certmanager/v1/certificates": {
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/import",
+			Method:       http.MethodPost,
+			Destination:  common.CertManagerName},
+		queryDispatcher{restfulmgr.GenericDispatcher{
+			RelativePath: "/rootca",
+			Method:       http.MethodGet,
+			Destination:  common.CertManagerName}, "certName"},
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/service",
+			Method:       http.MethodPost,
+			Destination:  common.CertManagerName},
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/alert",
+			Method:       http.MethodGet,
+			Destination:  common.CertManagerName},
+	},
+}
+
 func setRouter(engine *gin.Engine) {
-	v1 := engine.Group("certmanager/v1/certificates")
-	{
-		v1.POST("/import", importRootCa)
-		v1.GET("/rootca", queryRootCA)
-		v1.POST("/service", issueServiceCa)
-		v1.GET("/alert", queryAlert)
-	}
 	engine.GET("/certmanager/v1/version", versionQuery)
+	restfulmgr.InitRouter(engine, certRouterDispatchers)
+}
+
+func versionQuery(c *gin.Context) {
+	msg := fmt.Sprintf("%s version: %s", BuildNameStr, BuildVersionStr)
+	common.ConstructResp(c, common.Success, "", msg)
+}
+
+type queryDispatcher struct {
+	restfulmgr.GenericDispatcher
+	name string
+}
+
+func (query queryDispatcher) ParseData(c *gin.Context) (interface{}, error) {
+	return c.Query(query.name), nil
 }
