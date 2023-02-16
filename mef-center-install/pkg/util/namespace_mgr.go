@@ -36,8 +36,7 @@ func (nm *NamespaceMgr) prepareNameSpace() error {
 	}
 
 	if status != "" && status != ActiveFlag {
-		_, err = common.RunCommand(CommandKubectl, true, common.DefaultCmdWaitTime,
-			"delete", CommandNamespace, nm.namespace)
+		_, err = common.RunCommand(CommandKubectl, true, DeleteNameSpaceTime, "delete", CommandNamespace, nm.namespace)
 		if err != nil {
 			hwlog.RunLog.Errorf("the namespace exists but not active, delete it failed: %s", err.Error())
 			return errors.New("the namespace exists but not active, delete it failed")
@@ -84,7 +83,7 @@ func (nm *NamespaceMgr) ClearNamespace() error {
 		return nil
 	}
 
-	_, err = common.RunCommand(CommandKubectl, true, common.DefaultCmdWaitTime,
+	_, err = common.RunCommand(CommandKubectl, true, DeleteNameSpaceTime,
 		"delete", "namespace", nm.namespace)
 	if err != nil {
 		hwlog.RunLog.Errorf("delete %s namespace command exec failed: %s", nm.namespace, err.Error())
