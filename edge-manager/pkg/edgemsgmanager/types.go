@@ -18,7 +18,7 @@ type DownLoadInfo struct {
 	SignFile string `json:"signFile"`
 	CrlFile  string `json:"crlFile,omitempty"`
 	UserName string `json:"username"`
-	Password string `json:"password"`
+	Password []byte `json:"password"`
 }
 
 // EffectInfoReq effect software

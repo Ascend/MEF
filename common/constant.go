@@ -261,7 +261,7 @@ const (
 	// ResEdgeConfigInfo resource for edge config info
 	ResEdgeConfigInfo = "/edge/config"
 	// ResUpgradeResultReport resource progress report
-	ResUpgradeResultReport = "/edge/upgrade-result"
+	ResUpgradeResultReport = "/edge/download-result"
 	// ResSoftwareInfoReport resource software info
 	ResSoftwareInfoReport = "/edge/version-info"
 	// ResDownLoadSoftware resource for downloading software

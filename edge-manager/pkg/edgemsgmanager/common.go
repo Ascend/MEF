@@ -59,7 +59,7 @@ func getNodeSoftwareInfo(serialNumber string) (map[string]map[string]string, err
 	}
 
 	if err = json.Unmarshal(data, &nodeSoftwareInfo); err != nil {
-		hwlog.RunLog.Error("unmarshal internal response error %v", err)
+		hwlog.RunLog.Errorf("unmarshal internal response error %v", err)
 		return nil, errors.New("unmarshal internal response error")
 	}
 
