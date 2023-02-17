@@ -69,19 +69,9 @@ func (ki *Client) GetClientSet() *kubernetes.Clientset {
 	return ki.kubeClient
 }
 
-// GetNode get node
-func (ki *Client) GetNode(nodeName string) (*v1.Node, error) {
-	return ki.kubeClient.CoreV1().Nodes().Get(context.Background(), nodeName, metav1.GetOptions{})
-}
-
 // ListNode list nodes
 func (ki *Client) ListNode() (*v1.NodeList, error) {
 	return ki.kubeClient.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{FieldSelector: ""})
-}
-
-// GetPod get pod by namespace and name
-func (ki *Client) GetPod(pod *v1.Pod) (*v1.Pod, error) {
-	return ki.kubeClient.CoreV1().Pods(pod.Namespace).Get(context.Background(), pod.Name, metav1.GetOptions{})
 }
 
 // GetNodeAllocatedResource [method] for calculating all allocated resources of one node

@@ -49,8 +49,6 @@ spec:
     spec:
       nodeSelector:
         mef-center-node: ""
-      imagePullSecrets:
-        - name: image-pull-secret
       serviceAccountName: ascend-edge-manager
       containers:
         - name: ascend-edge-manager

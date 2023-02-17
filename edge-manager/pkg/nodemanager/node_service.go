@@ -19,7 +19,6 @@ import (
 
 	"huawei.com/mindxedge/base/common"
 
-	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
 	"edge-manager/pkg/util"
 )
@@ -50,7 +49,7 @@ func getNodeDetail(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("get node detail db query error, %s", err.Error())
 		return common.RespMsg{Status: common.ErrorGetNode, Msg: err.Error(), Data: nil}
 	}
-	nodeResource, err := NodeStatusServiceInstance().GetAllocatableResource(nodeInfo.UniqueName)
+	nodeResource, err := NodeSyncInstance().GetAllocatableResource(nodeInfo.UniqueName)
 	if err != nil {
 		hwlog.RunLog.Warnf("get node detail query node resource error, %s", err.Error())
 		nodeResource = &NodeResource{}
@@ -60,7 +59,7 @@ func getNodeDetail(input interface{}) common.RespMsg {
 		Memory: nodeResource.Memory.Value(),
 		Npu:    nodeResource.Npu.Value(),
 	}
-	resp.Status, err = NodeStatusServiceInstance().GetNodeStatus(nodeInfo.UniqueName)
+	resp.Status, err = NodeSyncInstance().GetNodeStatus(nodeInfo.UniqueName)
 	if err != nil {
 		hwlog.RunLog.Warnf("get node detail query node status error, %s", err.Error())
 		resp.Status = statusOffline
@@ -105,7 +104,7 @@ func getNodeStatistics(interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorCountNodeByStatus, Msg: ""}
 	}
 	statusMap := make(map[string]string)
-	allNodeStatus := NodeStatusServiceInstance().ListNodeStatus()
+	allNodeStatus := NodeSyncInstance().ListNodeStatus()
 	for hostname, status := range allNodeStatus {
 		statusMap[hostname] = status
 	}
@@ -155,7 +154,7 @@ func listManagedNode(input interface{}) common.RespMsg {
 			hwlog.RunLog.Errorf("list node db error: %s", err.Error())
 			return common.RespMsg{Status: common.ErrorListNode, Msg: err.Error()}
 		}
-		respItem.Status, err = NodeStatusServiceInstance().GetNodeStatus(nodeInfo.UniqueName)
+		respItem.Status, err = NodeSyncInstance().GetNodeStatus(nodeInfo.UniqueName)
 		if err != nil {
 			respItem.Status = statusOffline
 		}
@@ -171,10 +170,6 @@ func listManagedNode(input interface{}) common.RespMsg {
 
 // ListNode get node list
 func listUnmanagedNode(input interface{}) common.RespMsg {
-	if err := autoAddUnmanagedNode(); err != nil {
-		hwlog.RunLog.Error("auto add unmanaged node filed")
-		return common.RespMsg{Status: common.ErrorListUnManagedNode, Msg: "auto add unmanaged node filed", Data: nil}
-	}
 	hwlog.RunLog.Info("start list node unmanaged")
 	req, ok := input.(types.ListReq)
 	if !ok {
@@ -196,7 +191,7 @@ func listUnmanagedNode(input interface{}) common.RespMsg {
 		for _, node := range *nodes {
 			var respItem NodeInfoEx
 			respItem.NodeInfo = node
-			respItem.Status, err = NodeStatusServiceInstance().GetNodeStatus(node.UniqueName)
+			respItem.Status, err = NodeSyncInstance().GetNodeStatus(node.UniqueName)
 			if err != nil {
 				respItem.Status = statusOffline
 			}
@@ -273,60 +268,6 @@ func getNodesCapability(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
-func autoAddUnmanagedNode() error {
-	realNodes, err := kubeclient.GetKubeClient().ListNode()
-	if err != nil {
-		return err
-	}
-	dbNodeCount, err := GetTableCount(NodeInfo{})
-	if err != nil {
-		hwlog.RunLog.Error("get node table num failed")
-		return err
-	}
-	// assume has one master node
-	if len(realNodes.Items)-1 == dbNodeCount {
-		return nil
-	}
-	for _, node := range realNodes.Items {
-		if _, ok := node.Labels[masterNodeLabelKey]; ok {
-			continue
-		}
-		if _, ok := node.Labels[snNodeLabelKey]; !ok {
-			hwlog.RunLog.Errorf("create node [%s] failed: node serial number is nil", node.Name)
-			continue
-		}
-		if _, err = NodeServiceInstance().getNodeByUniqueName(node.Name); err == nil {
-			continue
-		}
-		if err != gorm.ErrRecordNotFound {
-			return fmt.Errorf("get node by name(%s) failed", node.Name)
-		}
-		nodeInfo := &NodeInfo{
-			NodeName:     node.Name,
-			UniqueName:   node.Name,
-			SerialNumber: node.Labels[snNodeLabelKey],
-			IsManaged:    false,
-			IP:           evalIpAddress(&node),
-			CreatedAt:    time.Now().Format(TimeFormat),
-			UpdatedAt:    time.Now().Format(TimeFormat),
-		}
-		if checkResult := newNodeInfoChecker().Check(*nodeInfo); !checkResult.Result {
-			hwlog.RunLog.Errorf("node info [%s] check failed:%s", checkResult.Reason, node.Name)
-			continue
-		}
-
-		if dbNodeCount >= common.MaxNode {
-			return errors.New("node number is enough, cannot create")
-		}
-		if err := NodeServiceInstance().createNode(nodeInfo); err != nil {
-			return err
-		}
-		dbNodeCount += 1
-		hwlog.RunLog.Debugf("auto create unmanaged node %s", node.Name)
-	}
-	return nil
-}
-
 func listNode(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start list all nodes")
 	req, ok := input.(types.ListReq)
@@ -356,7 +297,7 @@ func listNode(input interface{}) common.RespMsg {
 			hwlog.RunLog.Errorf("list node id [%d] db error: %s", nodeInfo.ID, err.Error())
 			return common.RespMsg{Status: common.ErrorListNode, Msg: err.Error()}
 		}
-		respItem.Status, err = NodeStatusServiceInstance().GetNodeStatus(nodeInfo.UniqueName)
+		respItem.Status, err = NodeSyncInstance().GetNodeStatus(nodeInfo.UniqueName)
 		if err != nil {
 			respItem.Status = statusOffline
 		}
@@ -407,30 +348,8 @@ func deleteSingleNode(nodeID uint64) error {
 		return errors.New("can't delete unmanaged node")
 	}
 
-	groupLabels := make([]string, 0, groupLabelLen)
-	node, err := kubeclient.GetKubeClient().GetNode(nodeInfo.UniqueName)
-	if err != nil && isNodeNotFound(err) {
-		hwlog.RunLog.Warnf("k8s query node failed, err=%v", err)
-	} else if err != nil {
-		return errors.New("k8s query node failed")
-	} else {
-		for _, label := range node.Labels {
-			if strings.HasPrefix(label, common.NodeGroupLabelPrefix) {
-				groupLabels = append(groupLabels, label)
-			}
-		}
-	}
-	err = kubeclient.GetKubeClient().DeleteNode(nodeInfo.UniqueName)
-	if err != nil && isNodeNotFound(err) {
-		hwlog.RunLog.Warnf("k8s delete node failed, err=%v", err)
-	} else if err != nil {
-		return errors.New("k8s delete node failed")
-	}
-	if _, err := NodeServiceInstance().deleteNodeByName(&NodeInfo{NodeName: nodeInfo.NodeName}); err != nil {
-		return errors.New("db delete node failed")
-	}
-	if err = NodeServiceInstance().deleteRelationsToNode(nodeID); err != nil {
-		return errors.New("db delete node relation failed")
+	if err = NodeServiceInstance().deleteNode(nodeInfo); err != nil {
+		return err
 	}
 	return nil
 }
@@ -448,7 +367,7 @@ func deleteNodeFromGroup(input interface{}) common.RespMsg {
 	}
 	var res types.BatchResp
 	for _, nodeID := range *req.NodeIDs {
-		if err := deleteSingleNodeRelation(*req.GroupID, nodeID); err != nil {
+		if err := NodeServiceInstance().deleteSingleNodeRelation(*req.GroupID, nodeID); err != nil {
 			hwlog.RunLog.Warnf("failed to delete node from group, error: err=%v", err)
 			res.FailedIDs = append(res.FailedIDs, nodeID)
 			continue
@@ -475,7 +394,7 @@ func batchDeleteNodeRelation(input interface{}) common.RespMsg {
 	}
 	var res types.BatchResp
 	for _, relation := range req {
-		if err := deleteSingleNodeRelation(*relation.GroupID, *relation.NodeID); err != nil {
+		if err := NodeServiceInstance().deleteSingleNodeRelation(*relation.GroupID, *relation.NodeID); err != nil {
 			hwlog.RunLog.Warnf("failed to delete node relation, error: err=%v", err)
 			res.FailedIDs = append(res.FailedIDs, relation)
 			continue
@@ -487,28 +406,6 @@ func batchDeleteNodeRelation(input interface{}) common.RespMsg {
 	}
 	hwlog.RunLog.Info("delete node relation success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
-}
-
-func deleteSingleNodeRelation(groupID, nodeID uint64) error {
-	nodeInfo, err := NodeServiceInstance().getNodeByID(nodeID)
-	if err != nil {
-		return errors.New("db query failed")
-	}
-	rowsAffected, err := NodeServiceInstance().deleteNodeToGroup(&NodeRelation{NodeID: nodeID, GroupID: groupID})
-	if err != nil {
-		return errors.New("db delete failed")
-	}
-	if rowsAffected < 1 {
-		return errors.New("no such relation")
-	}
-	nodeLabel := fmt.Sprintf("%s%d", common.NodeGroupLabelPrefix, groupID)
-	_, err = kubeclient.GetKubeClient().DeleteNodeLabels(nodeInfo.UniqueName, []string{nodeLabel})
-	if err != nil && isNodeNotFound(err) {
-		hwlog.RunLog.Warnf("k8s delete label failed, err=%v", err)
-	} else if err != nil {
-		return errors.New("k8s delete label failed")
-	}
-	return nil
 }
 
 func isNodeNotFound(err error) bool {
@@ -591,15 +488,9 @@ func addNode(req AddNodeToGroupReq) (*types.BatchResp, error) {
 			NodeID:    (*req.NodeIDs)[i],
 			GroupID:   *req.GroupID,
 			CreatedAt: time.Now().Format(TimeFormat)}
-		if err := nodeServiceInstance.addNodeToGroup(&[]NodeRelation{relation}); err != nil {
+		if err := nodeServiceInstance.addNodeToGroup(&relation, nodeDb.UniqueName); err != nil {
 			res.FailedIDs = append(res.FailedIDs, id)
-			hwlog.RunLog.Errorf("add node(%s) to group(%d) to db error", nodeDb.NodeName, nodeGroup.ID)
-			continue
-		}
-		label := map[string]string{fmt.Sprintf("%s%d", common.NodeGroupLabelPrefix, nodeGroup.ID): ""}
-		if _, err := kubeclient.GetKubeClient().AddNodeLabels(nodeDb.UniqueName, label); err != nil {
-			res.FailedIDs = append(res.FailedIDs, id)
-			hwlog.RunLog.Errorf("node(%s) patch label(%d) error", nodeDb.NodeName, nodeGroup.ID)
+			hwlog.RunLog.Errorf("add node(%s) to group(%d) error", nodeDb.NodeName, nodeGroup.ID)
 			continue
 		}
 		res.SuccessIDs = append(res.SuccessIDs, id)
@@ -684,7 +575,7 @@ func checkNodeResource(req v1.ResourceList, nodeId uint64) error {
 	if err != nil {
 		return fmt.Errorf("get node info by node id [%d] error", nodeId)
 	}
-	availableRes, err := NodeStatusServiceInstance().GetAvailableResource(nodeInfo.UniqueName)
+	availableRes, err := NodeSyncInstance().GetAvailableResource(nodeInfo.UniqueName)
 	if err != nil {
 		return fmt.Errorf("get node allocatable resource by node unique name [%s] error: %s",
 			nodeInfo.UniqueName, err.Error())
