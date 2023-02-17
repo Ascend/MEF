@@ -40,7 +40,7 @@ type InnerCheckNodeResReq struct {
 
 // InnerSoftwareInfoResp is the response struct of node info
 type InnerSoftwareInfoResp struct {
-	SoftwareInfo map[string]map[string]string `json:"softwareInfo"`
+	SoftwareInfo []SoftwareInfo `json:"SoftwareInfo"`
 }
 
 // InnerGetNodeInfoByNameResp is the response struct of node info
@@ -59,10 +59,16 @@ type InnerGetNodeStatusResp struct {
 	NodeStatus string `json:"nodeStatus"`
 }
 
+type SoftwareInfo struct {
+	Name            string
+	Version         string
+	InactiveVersion string
+}
+
 // EdgeReportSoftwareInfoReq [struct] to report edge software info
 type EdgeReportSoftwareInfoReq struct {
-	SerialNumber string                       `json:"serialNumber"`
-	SoftwareInfo map[string]map[string]string `json:"softwareInfo"`
+	SerialNumber string         `json:"serialNumber"`
+	SoftwareInfo []SoftwareInfo `json:"SoftwareInfo"`
 }
 
 // ProgressInfo [struct] to report edge software upgrade result info

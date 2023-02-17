@@ -35,7 +35,7 @@ func sendMessageToEdge(msg *model.Message, content string) error {
 	return nil
 }
 
-func getNodeSoftwareInfo(serialNumber string) (map[string]map[string]string, error) {
+func getNodeSoftwareInfo(serialNumber string) ([]types.SoftwareInfo, error) {
 	var nodeSoftwareInfo types.InnerSoftwareInfoResp
 	router := common.Router{
 		Source:      common.NodeMsgManagerName,
