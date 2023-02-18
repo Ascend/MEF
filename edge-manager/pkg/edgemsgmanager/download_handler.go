@@ -39,12 +39,12 @@ func downloadSoftware(input interface{}) common.RespMsg {
 	for _, sn := range req.SerialNumbers {
 		msg.SetNodeId(sn)
 
-		err = modulemanager.SendMessage(msg)
-		if err != nil {
+		if err = modulemanager.SendMessage(msg); err != nil {
 			batchResp.FailedIDs = append(batchResp.FailedIDs, sn)
 		} else {
 			batchResp.SuccessIDs = append(batchResp.SuccessIDs, sn)
 		}
+		nodesProgress[sn] = types.ProgressInfo{}
 	}
 
 	if len(batchResp.FailedIDs) != 0 {

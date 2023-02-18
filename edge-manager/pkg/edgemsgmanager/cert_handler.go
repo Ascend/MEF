@@ -21,7 +21,7 @@ const (
 	waitTime  = 5 * time.Second
 )
 
-// GetCertInfo [method]
+// GetCertInfo [method] get root cert
 func GetCertInfo(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("----------downloading cert content begin----------")
 	message, ok := input.(*model.Message)

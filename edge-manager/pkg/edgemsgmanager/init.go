@@ -39,11 +39,11 @@ func (nm *NodeMsgDealer) Enable() bool {
 
 // NewNodeMsgManager new NodeMsgDealer
 func NewNodeMsgManager(enable bool) *NodeMsgDealer {
-	i := &NodeMsgDealer{
+	nodeMsgDealer := &NodeMsgDealer{
 		enable: enable,
 		ctx:    context.Background(),
 	}
-	return i
+	return nodeMsgDealer
 }
 
 // Start receives and sends message

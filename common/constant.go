@@ -253,11 +253,11 @@ const (
 
 const (
 	// OptGet option for get
-	OptGet = "get"
+	OptGet = "GET"
 	// OptPost option for post
-	OptPost = "post"
+	OptPost = "POST"
 	// OptReport option for report
-	OptReport = "report"
+	OptReport = "REPORT"
 	// ResEdgeDownloadInfo resource for download software
 	ResEdgeDownloadInfo = "/edge/download"
 	// ResEdgeUpgradeInfo resource for effect software

@@ -285,7 +285,7 @@ func getCapReq(c *gin.Context) (types.CapReq, error) {
 		return input, nil
 	}
 	var err error
-	input.NodeID, err = getIntReq(c, "nodeID")
+	input.NodeID, err = getIntReqPara(c, "nodeID")
 	if err != nil {
 		hwlog.RunLog.Errorf("get nodeID failed, error:%s", err)
 		return input, err

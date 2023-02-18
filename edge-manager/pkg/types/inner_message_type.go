@@ -59,6 +59,7 @@ type InnerGetNodeStatusResp struct {
 	NodeStatus string `json:"nodeStatus"`
 }
 
+// SoftwareInfo [struct] to record software info
 type SoftwareInfo struct {
 	Name            string
 	Version         string
