@@ -1,0 +1,166 @@
+// Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
+
+// Package configmanager to init config manager service
+package configmanager
+
+import (
+	"bytes"
+	"encoding/base64"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"strconv"
+
+	"huawei.com/mindx/common/hwlog"
+	apiv1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"edge-manager/pkg/configmanager/configchecker"
+	"edge-manager/pkg/kubeclient"
+	"edge-manager/pkg/util"
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/certutils"
+	"huawei.com/mindxedge/base/modulemanager"
+	"huawei.com/mindxedge/base/modulemanager/model"
+)
+
+// downloadConfig download image config
+func downloadConfig(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start to generate configuration of image registry")
+	var req ImageConfig
+	if err := common.ParamConvert(input, &req); err != nil {
+		hwlog.RunLog.Errorf("parse parameter failed, error: %v", err)
+		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	}
+	defer func() {
+		common.ClearSliceByteMemory(req.Password)
+	}()
+	if checkResult := configchecker.NewConfigChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("image config para check failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: "", Msg: checkResult.Reason, Data: nil}
+	}
+
+	if err := createSecret(req); err != nil {
+		hwlog.RunLog.Errorf("create k8s secret failed, %v", err)
+		return common.RespMsg{Status: "", Msg: "create k8s secret failed", Data: nil}
+	}
+	hwlog.RunLog.Info("create image config success")
+	return common.RespMsg{Status: common.Success, Msg: "create image config success", Data: nil}
+}
+
+func createSecret(config ImageConfig) error {
+	auth := []byte(config.Account + ":" + string(config.Password))
+	base64Auth := make([]byte, base64.StdEncoding.EncodedLen(len(auth)))
+	base64.StdEncoding.Encode(base64Auth, auth)
+	registryPath := config.IP + ":" + strconv.Itoa(int(config.Port))
+	if config.Domain != "" {
+		registryPath = config.Domain + ":" + strconv.Itoa(int(config.Port))
+	}
+	data := assembleSecretData(registryPath, base64Auth, &config)
+	defer func() {
+		common.ClearSliceByteMemory(auth)
+		common.ClearSliceByteMemory(data)
+	}()
+	userSecret := &apiv1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      certutils.DefaultSecretName,
+			Namespace: certutils.DefaultNameSpace,
+		},
+		Type: apiv1.SecretTypeDockerConfigJson,
+		Data: map[string][]byte{apiv1.DockerConfigJsonKey: data},
+	}
+	if _, err := kubeclient.GetKubeClient().CreateOrUpdateSecret(userSecret); err != nil {
+		hwlog.RunLog.Errorf("create or update secret failed, error: %#v", err)
+		return err
+	}
+	certRes, err := util.GetCertContent(common.ImageCertName)
+	if err != nil {
+		hwlog.RunLog.Errorf("get cert content failed, error: %v", err)
+		return errors.New("get cert content failed")
+	}
+	certRes.Address = registryPath
+	// send message connector
+	if err := reportCertToClient(certRes); err != nil {
+		return errors.New("update cert content failed")
+	}
+	return nil
+}
+
+func assembleSecretData(registryPath string, base64Auth []byte, config *ImageConfig) []byte {
+	var data bytes.Buffer
+	data.WriteString(`{"auths":{"` + registryPath + `":{"auth":"`)
+	data.Write(base64Auth)
+	data.WriteString(`","docker-password":"`)
+	data.Write(config.Password)
+	data.WriteString(`","docker-username":"` + config.Account + `"}}}`)
+	defer func() {
+		common.ClearSliceByteMemory(config.Password)
+		common.ClearSliceByteMemory(base64Auth)
+	}()
+	defer data.Reset()
+	return data.Bytes()
+}
+
+// updateConfig update image config
+func updateConfig(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("update cert content start")
+	var updateCert certutils.UpdateClientCert
+	if err := common.ParamConvert(input, &updateCert); err != nil {
+		hwlog.RunLog.Error("update cert info failed: para type not valid")
+		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "update cert info request convert error", Data: nil}
+	}
+	certRes := certutils.QueryCertRes{
+		CertName: updateCert.CertName,
+		Cert:     string(updateCert.CertContent),
+	}
+	if updateCert.CertName == common.ImageCertName {
+		address, err := util.GetImageAddress()
+		if err != nil {
+			hwlog.RunLog.Errorf("get image registry address failed, %v", err)
+			return common.RespMsg{Status: "", Msg: err.Error()}
+		}
+		certRes.Address = address
+	}
+	// send message to connector
+	if err := reportCertToClient(certRes); err != nil {
+		hwlog.RunLog.Errorf("update cert content failed, %v", err)
+		return common.RespMsg{Status: "", Msg: "update cert content failed"}
+	}
+	hwlog.RunLog.Info("update cert content success")
+	return common.RespMsg{Status: common.Success, Msg: "update cert content success"}
+}
+
+func reportCertToClient(req certutils.QueryCertRes) error {
+	content, err := json.Marshal(req)
+	if err != nil {
+		return fmt.Errorf("marshal info failed, error: %v", err)
+	}
+	nodes, err := getAllNodeInfo()
+	if err != nil {
+		return fmt.Errorf("get all node info failed, error: %v", err)
+	}
+	hwlog.RunLog.Errorf("nodes info:%v", nodes)
+	for _, node := range nodes {
+		hwlog.RunLog.Errorf("node info:%v", node)
+		if err := sendMessageToNode(node.SerialNumber, string(content)); err != nil {
+			hwlog.RunLog.Warnf("send message to node [%s], error: %v", node.SerialNumber, err)
+			continue
+		}
+	}
+	return nil
+}
+
+func sendMessageToNode(serialNumber string, content string) error {
+	sendMsg, err := model.NewMessage()
+	if err != nil {
+		return fmt.Errorf("create new message failed, error: %v", err)
+	}
+	sendMsg.SetNodeId(serialNumber)
+	sendMsg.SetRouter(common.ConfigManagerName, common.EdgeConnectorName, common.OptPost, common.ResDownLoadCert)
+	sendMsg.FillContent(content)
+	if err = modulemanager.SendMessage(sendMsg); err != nil {
+		return fmt.Errorf("%s sends message to %s failed, error: %v",
+			common.ConfigManagerName, common.EdgeConnectorName, err)
+	}
+	return nil
+}

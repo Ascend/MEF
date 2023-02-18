@@ -33,11 +33,9 @@ const (
 
 // MEF-Center cert constant
 const (
-	DefaultNameSpace          = "default"
-	DefaultSecretName         = "image-pull-secret"
-	DefaultSecretRetryCount   = 10
-	DefaultSecretTimeInterval = 5
-	CertSizeLimited           = 1024 * 1024
-	DefaultCertRetryTime      = 5
-	DefaultCertWaitTime       = 1
+	DefaultNameSpace     = "default"
+	DefaultSecretName    = "image-pull-secret"
+	CertSizeLimited      = 1024 * 1024
+	DefaultCertRetryTime = 5
+	DefaultCertWaitTime  = 1
 )

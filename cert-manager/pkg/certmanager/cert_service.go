@@ -5,6 +5,7 @@ package certmanager
 
 import (
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -51,16 +52,36 @@ func importRootCa(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "valid ca content failed", Data: nil}
 	}
 	// save the certificate to the local file
-	if err := ca2File(req.CertName, caBase64); err != nil {
+	if err := saveCaContent(req.CertName, caBase64); err != nil {
 		hwlog.OpLog.Error("save ca content to file failed, error:%v", err)
 		return common.RespMsg{Status: common.ErrorSaveCa, Msg: "save ca content to file failed", Data: nil}
+	}
+	if err := updateClientCert(req.CertName, caBase64); err != nil {
+		hwlog.RunLog.Error("send update client cert message to edge-manager failed")
+		return common.RespMsg{Status: common.ErrorDistributeRootCa,
+			Msg: "send update client cert message to edge-manager failed", Data: nil}
 	}
 	hwlog.OpLog.Infof("import %s certificate success", req.CertName)
 	return common.RespMsg{Status: common.Success, Msg: "import certificate success", Data: nil}
 }
 
-func queryAlert(input interface{}) common.RespMsg {
-	// todo 待实现
-	var alertList = [...]string{"alert 1"}
-	return common.RespMsg{Status: common.Success, Msg: "query alert success", Data: alertList}
+func deleteRootCa(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("import the cert item start")
+	var req deleteCaReq
+	if err := common.ParamConvert(input, &req); err != nil {
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
+	}
+
+	// verifying the certificate usage type
+	if !CheckCertName(req.Type) {
+		hwlog.RunLog.Error("valid parameter failed")
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "valid parameter failed", Data: nil}
+	}
+	// delete root certificate content
+	if err := removeCaFile(req.Type); err != nil {
+		hwlog.RunLog.Errorf("delete ca file failed, error:%v", err)
+		return common.RespMsg{Status: common.ErrorDeleteRootCa, Msg: "delete ca file failed", Data: nil}
+	}
+	hwlog.RunLog.Infof("delete %s certificate success", req.Type)
+	return common.RespMsg{Status: common.Success, Msg: "delete ca file success", Data: nil}
 }

@@ -13,7 +13,6 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
@@ -21,6 +20,7 @@ import (
 
 	"edge-manager/pkg/appmanager"
 	"edge-manager/pkg/config"
+	"edge-manager/pkg/configmanager"
 	"edge-manager/pkg/database"
 	"edge-manager/pkg/edgeconnector"
 	"edge-manager/pkg/edgeinstaller"
@@ -147,6 +147,9 @@ func register(ctx context.Context) error {
 		return err
 	}
 	if err := modulemanager.Registry(edgeinstaller.NewInstaller(true)); err != nil {
+		return err
+	}
+	if err := modulemanager.Registry(configmanager.NewConfigManager(true)); err != nil {
 		return err
 	}
 

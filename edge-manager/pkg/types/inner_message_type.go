@@ -48,3 +48,8 @@ type InnerGetNodeGroupInfosResp struct {
 type InnerGetNodeStatusResp struct {
 	NodeStatus string `json:"nodeStatus"`
 }
+
+// InnerGetNodeInfoResReq the response struct of node info
+type InnerGetNodeInfoResReq struct {
+	ModuleName string `json:"moduleName"`
+}

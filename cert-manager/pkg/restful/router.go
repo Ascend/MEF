@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/restfulmgr"
 )
@@ -27,8 +28,8 @@ var certRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			Method:       http.MethodPost,
 			Destination:  common.CertManagerName},
 		restfulmgr.GenericDispatcher{
-			RelativePath: "/alert",
-			Method:       http.MethodGet,
+			RelativePath: "/cert",
+			Method:       http.MethodPost,
 			Destination:  common.CertManagerName},
 	},
 }

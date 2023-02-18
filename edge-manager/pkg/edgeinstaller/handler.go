@@ -20,6 +20,7 @@ var registerInfoList = []handlerbase.RegisterInfo{
 	{MsgOpt: common.OptGet, MsgRes: common.ResEdgeCoreConfig, Handler: new(configHandler)},
 	{MsgOpt: common.OptGet, MsgRes: common.ResDownLoadSoftware, Handler: new(downloadHandler)},
 	{MsgOpt: common.OptPost, MsgRes: common.ResDownLoadSoftware, Handler: new(upgradeHandler)},
+	{MsgOpt: common.OptGet, MsgRes: common.ResDownLoadCert, Handler: new(certHandler)},
 }
 
 // GetHandlerMgr get handler manager

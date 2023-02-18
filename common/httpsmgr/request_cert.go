@@ -12,10 +12,9 @@ import (
 )
 
 const (
-	reqSvrUrl         = "certmanager/v1/certificates/service"
-	getRootCaUrl      = "certmanager/v1/certificates/rootca"
-	getCertContentUrl = "certmanager/v1/certificates/cert"
-	updateCertUrl     = "edgemanager/v1/image/update"
+	reqSvrUrl     = "certmanager/v1/certificates/service"
+	getRootCaUrl  = "certmanager/v1/certificates/rootca"
+	updateCertUrl = "edgemanager/v1/image/update"
 )
 
 type reqIssueCertBody struct {
@@ -46,23 +45,11 @@ func (rcp *ReqCertParams) GetRootCa(certName string) (string, error) {
 	return rcp.parseResp(resp)
 }
 
-// GetCertFile [method] for get cert content with certName
-func (rcp *ReqCertParams) GetCertFile(certName string) (string, error) {
-	url := fmt.Sprintf("https://%s:%d/%s/?certName=%s", common.CertMgrDns, common.CertMgrPort,
-		getCertContentUrl, certName)
-	httpsReq := GetHttpsReq(url, rcp.ClientTlsCert)
-	resp, err := httpsReq.Get()
-	if err != nil {
-		return "", err
-	}
-	return rcp.parseMsg(resp)
-}
-
 // UpdateCertFile [method] for update cert content
-func (rcp *ReqCertParams) UpdateCertFile(certName string) (string, error) {
+func (rcp *ReqCertParams) UpdateCertFile(cert certutils.UpdateClientCert) (string, error) {
 	url := fmt.Sprintf("https://%s:%d/%s", common.EdgeMgrDns, common.EdgeMgrPort, updateCertUrl)
 	httpsReq := GetHttpsReq(url, rcp.ClientTlsCert)
-	jsonBody, err := json.Marshal(certName)
+	jsonBody, err := json.Marshal(&cert)
 	if err != nil {
 		return "", err
 	}
@@ -70,7 +57,7 @@ func (rcp *ReqCertParams) UpdateCertFile(certName string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return rcp.parseMsg(respBytes)
+	return rcp.parseResp(respBytes)
 }
 
 // ReqIssueSvrCert [method] for issue server cert
@@ -90,20 +77,6 @@ func (rcp *ReqCertParams) ReqIssueSvrCert(certName string, csr []byte) (string, 
 }
 
 func (rcp *ReqCertParams) parseResp(respBytes []byte) (string, error) {
-	var resp respBody
-	err := json.Unmarshal(respBytes, &resp)
-	if err != nil {
-		return "", err
-	}
-
-	status := resp.Status
-	if status != common.Success {
-		return "", fmt.Errorf("parse cert response failed: status=%s, msg=%s", status, resp.Msg)
-	}
-	return resp.Data, nil
-}
-
-func (rcp *ReqCertParams) parseMsg(respBytes []byte) (string, error) {
 	var resp common.RespMsg
 	err := json.Unmarshal(respBytes, &resp)
 	if err != nil {

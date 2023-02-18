@@ -1,7 +1,7 @@
 // Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
 
-// Package certmanager cert manager module
-package certmanager
+// Package configmanager to init config manager
+package configmanager
 
 import (
 	"context"
@@ -17,41 +17,29 @@ import (
 
 type handlerFunc func(req interface{}) common.RespMsg
 
-type certManager struct {
+type configManager struct {
 	enable bool
 	ctx    context.Context
 }
 
-// NewCertManager create cert manager
-func NewCertManager(enable bool) model.Module {
-	cm := &certManager{
+// NewConfigManager create config manager
+func NewConfigManager(enable bool) model.Module {
+	im := &configManager{
 		enable: enable,
 		ctx:    context.Background(),
 	}
-	return cm
+	return im
 }
 
-func (cm *certManager) Name() string {
-	return common.CertManagerName
+func (cm *configManager) Name() string {
+	return common.ConfigManagerName
 }
 
-func (cm *certManager) Enable() bool {
+func (cm *configManager) Enable() bool {
 	return cm.enable
 }
 
-func methodSelect(req *model.Message) *common.RespMsg {
-	var res common.RespMsg
-	method, exit := handlerFuncMap[common.Combine(req.GetOption(), req.GetResource())]
-	if !exit {
-		hwlog.RunLog.Errorf("handler func is not exist, option: %s, resource: %s", req.GetOption(),
-			req.GetResource())
-		return nil
-	}
-	res = method(req.GetContent())
-	return &res
-}
-
-func (cm *certManager) Start() {
+func (cm *configManager) Start() {
 	for {
 		select {
 		case _, ok := <-cm.ctx.Done():
@@ -64,7 +52,6 @@ func (cm *certManager) Start() {
 		}
 
 		req, err := modulemanager.ReceiveMessage(cm.Name())
-		hwlog.RunLog.Infof("%s receive request from restful service", cm.Name())
 		if err != nil {
 			hwlog.RunLog.Errorf("%s receive request from restful service failed", cm.Name())
 			continue
@@ -88,13 +75,23 @@ func (cm *certManager) Start() {
 	}
 }
 
+func methodSelect(req *model.Message) *common.RespMsg {
+	var res common.RespMsg
+	method, exit := handlerFuncMap[common.Combine(req.GetOption(), req.GetResource())]
+	if !exit {
+		hwlog.RunLog.Errorf("handler func is not exist, option: %s, resource: %s", req.GetOption(),
+			req.GetResource())
+		return nil
+	}
+	res = method(req.GetContent())
+	return &res
+}
+
 var (
-	certUrlRootPath = "/certmanager/v1/certificates"
+	configUrlRootPath = "/edgemanager/v1/image"
 )
 
 var handlerFuncMap = map[string]handlerFunc{
-	common.Combine(http.MethodPost, filepath.Join(certUrlRootPath, "import")):  importRootCa,
-	common.Combine(http.MethodGet, filepath.Join(certUrlRootPath, "rootca")):   queryRootCa,
-	common.Combine(http.MethodPost, filepath.Join(certUrlRootPath, "service")): issueServiceCa,
-	common.Combine(http.MethodPost, filepath.Join(certUrlRootPath, "cert")):    deleteRootCa,
+	common.Combine(http.MethodPost, filepath.Join(configUrlRootPath, "config")): downloadConfig,
+	common.Combine(http.MethodPost, filepath.Join(configUrlRootPath, "update")): updateConfig,
 }

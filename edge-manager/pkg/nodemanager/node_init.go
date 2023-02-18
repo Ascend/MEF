@@ -142,4 +142,5 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(common.Inner, common.NodeStatus):     innerGetNodeStatus,
 	common.Combine(common.Inner, common.CheckResource):  innerCheckNodeGroupResReq,
 	common.Combine(common.Inner, common.UpdateResource): innerUpdateNodeGroupResReq,
+	common.Combine(common.Inner, common.NodeList):       innerAllNodeInfos,
 }
