@@ -133,6 +133,7 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodGet, filepath.Join(nodeUrlRootPath, "list/unmanaged")): listUnmanagedNode,
 	common.Combine(http.MethodGet, filepath.Join(nodeUrlRootPath, "list")):           listNode,
 	common.Combine(http.MethodPost, filepath.Join(nodeUrlRootPath, "add")):           addUnManagedNode,
+	common.Combine(http.MethodGet, filepath.Join(nodeUrlRootPath, "capability")):     getNodesCapability,
 
 	common.Combine(http.MethodPost, nodeGroupRootPath):                                     createGroup,
 	common.Combine(http.MethodGet, filepath.Join(nodeGroupRootPath, "stats")):              getGroupNodeStatistics,
