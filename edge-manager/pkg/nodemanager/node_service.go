@@ -217,6 +217,52 @@ func listUnmanagedNode(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.ErrorListUnManagedNode, Msg: "", Data: nil}
 }
 
+// get nodes capability
+func getNodesCapability(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start get nodes capability")
+	req, ok := input.(types.CapReq)
+	if ok && req.NodeID > 0 {
+		hwlog.RunLog.Infof("get [%d] node capability", req.NodeID)
+		var respItem NodeInfoCap
+		respItem.ID = req.NodeID
+		_, err := NodeServiceInstance().getManagedNodeByID(req.NodeID)
+		if err != nil {
+			hwlog.RunLog.Errorf("not found node id %d or node is unmanaged", req.NodeID)
+			respItem.Capability = []string{}
+		} else {
+			respItem.Capability = []string{"software_install", "info_collect", "pod_config", "support_udp_container_port"}
+		}
+		resp := ListNodesCapResp{
+			Nodes: []NodeInfoCap{respItem},
+		}
+		return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
+	}
+	hwlog.RunLog.Info("nodeID is an invalid value, will get all managed nodes capability")
+	nodes, err := NodeServiceInstance().listManagedNodes()
+	if err != nil {
+		hwlog.RunLog.Error("list managed nodes failed")
+		return common.RespMsg{Status: common.ErrorListNode, Msg: "list managed nodes failed", Data: nil}
+	}
+	var nodesList []NodeInfoCap
+	for _, nodeInfo := range *nodes {
+		var respItem NodeInfoCap
+		respItem.ID = nodeInfo.ID
+		Capability, err := NodeServiceInstance().getNodeCapByID(nodeInfo.ID)
+		if err != nil {
+			hwlog.RunLog.Error("get node capability by id failed")
+			respItem.Capability = []string{}
+		} else {
+			respItem.Capability = *Capability
+		}
+		nodesList = append(nodesList, respItem)
+	}
+	resp := ListNodesCapResp{
+		Nodes: nodesList,
+	}
+	hwlog.RunLog.Info("get nodes capability success")
+	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
+}
+
 func autoAddUnmanagedNode() error {
 	realNodes, err := kubeclient.GetKubeClient().ListNode()
 	if err != nil {

@@ -140,6 +140,10 @@ var nodeRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			RelativePath: "/list/unmanaged",
 			Method:       http.MethodGet,
 			Destination:  common.NodeManagerName}},
+		capDispatcher{restfulmgr.GenericDispatcher{
+			RelativePath: "/capability",
+			Method:       http.MethodGet,
+			Destination:  common.NodeManagerName}},
 		listDispatcher{restfulmgr.GenericDispatcher{
 			RelativePath: "/list",
 			Method:       http.MethodGet,
@@ -228,6 +232,20 @@ func getIntReq(c *gin.Context, idName string) (uint64, error) {
 	return value, nil
 }
 
+func getCapReq(c *gin.Context) (types.CapReq, error) {
+	input := types.CapReq{}
+	if c.Query("nodeID") == "" {
+		hwlog.RunLog.Info("the nodeID parameter of get capability is empty")
+		return input, nil
+	}
+	var err error
+	input.NodeID, err = getIntReq(c, "nodeID")
+	if err != nil {
+		hwlog.RunLog.Errorf("get nodeID failed, error:%s", err)
+	}
+	return input, err
+}
+
 type queryDispatcher struct {
 	restfulmgr.GenericDispatcher
 	name string
@@ -243,4 +261,12 @@ type listDispatcher struct {
 
 func (list listDispatcher) ParseData(c *gin.Context) (interface{}, error) {
 	return pageUtil(c)
+}
+
+type capDispatcher struct {
+	restfulmgr.GenericDispatcher
+}
+
+func (node capDispatcher) ParseData(c *gin.Context) (interface{}, error) {
+	return getCapReq(c)
 }
