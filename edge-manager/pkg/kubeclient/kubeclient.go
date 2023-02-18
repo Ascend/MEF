@@ -233,3 +233,16 @@ func (ki *Client) GetConfigMap(name string) (*v1.ConfigMap, error) {
 func (ki *Client) ListConfigMapList() (*v1.ConfigMapList, error) {
 	return ki.kubeClient.CoreV1().ConfigMaps(defaultNamespace).List(context.Background(), metav1.ListOptions{})
 }
+
+// GetSecret [method] for creating secret
+func (ki *Client) GetSecret(secret string) (*v1.Secret, error) {
+	return ki.GetClientSet().CoreV1().Secrets(defaultNamespace).Get(context.Background(), secret, metav1.GetOptions{})
+}
+
+// CreateOrUpdateSecret [method] for updating  secret or creating secret if it is not exist
+func (ki *Client) CreateOrUpdateSecret(secret *v1.Secret) (*v1.Secret, error) {
+	if _, err := ki.GetSecret(secret.Name); err != nil {
+		return ki.kubeClient.CoreV1().Secrets(defaultNamespace).Create(context.Background(), secret, metav1.CreateOptions{})
+	}
+	return ki.kubeClient.CoreV1().Secrets(defaultNamespace).Update(context.Background(), secret, metav1.UpdateOptions{})
+}

@@ -1,7 +1,7 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package cloudhub defines register info
-package cloudhub
+// Package edgeconnector defines register info
+package edgeconnector
 
 import (
 	"huawei.com/mindxedge/base/common"
@@ -12,6 +12,7 @@ var regInfoList = []websocketmgr.RegisterModuleInfo{
 	{MsgOpt: common.OptGet, MsgRes: common.ResEdgeCoreConfig, ModuleName: common.NodeMsgManagerName},
 	{MsgOpt: common.OptReport, MsgRes: common.ResDownloadProgressReport, ModuleName: common.NodeMsgManagerName},
 	{MsgOpt: common.OptReport, MsgRes: common.ResSoftwareInfoReport, ModuleName: common.NodeManagerName},
+	{MsgOpt: common.OptGet, MsgRes: common.ResDownLoadCert, ModuleName: common.NodeManagerName},
 }
 
 func getRegModuleInfoList() []websocketmgr.RegisterModuleInfo {

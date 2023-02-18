@@ -46,6 +46,11 @@ func DeleteAllFile(filePath string) error {
 	return os.RemoveAll(filePath)
 }
 
+// DeleteFile is used to delete one file into a path
+func DeleteFile(filePath string) error {
+	return os.Remove(filePath)
+}
+
 // MakeSurePath is used to make sure a path exists by creating it if not
 func MakeSurePath(tgtPath string) error {
 	if utils.IsExist(tgtPath) {

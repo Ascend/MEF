@@ -6,19 +6,23 @@ package certmanager
 import (
 	"bufio"
 	"bytes"
-	"cert-manager/pkg/certconstant"
 	"encoding/base64"
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/utils"
-	"huawei.com/mindx/common/x509"
-	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/certutils"
 	"io"
 	"os"
 	"path"
+	"time"
+
+	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/utils"
+	"huawei.com/mindx/common/x509"
+
+	"cert-manager/pkg/certconstant"
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/certutils"
+	"huawei.com/mindxedge/base/common/httpsmgr"
 )
 
 // getCertByCertName query root ca with use id
@@ -112,16 +116,13 @@ func checkAndCreateCa(certName string) error {
 	return nil
 }
 
-// ca2File export ca content to File
-func ca2File(certName string, caContent []byte) error {
-	caDir := path.Join(certconstant.RootCaMgrDir, certName)
-	if !utils.IsExist(caDir) {
-		if err := os.MkdirAll(caDir, common.Mode700); err != nil {
-			hwlog.RunLog.Errorf("create %s ca folder failed, error: %v", caDir, err)
-			return fmt.Errorf("create %s ca folder failed, error: %v", caDir, err)
-		}
+// saveCaContent save ca content to File
+func saveCaContent(certName string, caContent []byte) error {
+	caFilePath := path.Join(certconstant.RootCaMgrDir, certName, certconstant.RootCaFileName)
+	if err := utils.MakeSureDir(caFilePath); err != nil {
+		hwlog.RunLog.Errorf("create %s ca folder failed, error: %v", path.Base(caFilePath), err)
+		return fmt.Errorf("create %s ca folder failed, error: %v", path.Base(caFilePath), err)
 	}
-	caFilePath := path.Join(caDir, certconstant.RootCaFileName)
 	caFile, err := os.OpenFile(caFilePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, common.Mode600)
 	if err != nil {
 		hwlog.RunLog.Errorf("create %s ca file failed", path.Base(caFilePath))
@@ -169,4 +170,59 @@ func checkCert(req importCertReq) ([]byte, error) {
 	}
 	hwlog.RunLog.Info("valid cert success")
 	return caBase64, nil
+}
+
+// getCertContent query cert content with cert name
+func getCertContent(certName string) (string, error) {
+	if !CheckCertName(certName) {
+		hwlog.RunLog.Error("the cert name not support")
+		return "", errors.New("the cert name not support")
+	}
+	caFilePath := getRootCaPath(certName)
+	certData, err := utils.LoadFile(caFilePath)
+	if certData == nil {
+		hwlog.RunLog.Errorf("load root cert failed: %v", err)
+		return "", errors.New("load root cert failed")
+	}
+	return string(certData), nil
+}
+
+// removeCaFile delete ca File
+func removeCaFile(certName string) error {
+	caFilePath := getRootCaPath(certName)
+	if utils.IsExist(caFilePath) {
+		// remove the ca file
+		if err := common.DeleteFile(caFilePath); err != nil {
+			hwlog.RunLog.Errorf("remove %s ca file failed, error: %v", path.Base(caFilePath), err)
+			return fmt.Errorf("remove %s ca file failed, error: %v", path.Base(caFilePath), err)
+		}
+	}
+	hwlog.RunLog.Infof("delete %s ca file success", caFilePath)
+	return nil
+}
+
+func updateClientCert(certName string, certContent []byte) error {
+	hwlog.RunLog.Info("start update cert file")
+	reqCertParams := httpsmgr.ReqCertParams{
+		ClientTlsCert: certutils.TlsCertInfo{
+			RootCaPath:    certconstant.RootCaPath,
+			CertPath:      certconstant.ServerCertPath,
+			KeyPath:       certconstant.ServerKeyPath,
+			SvrFlag:       false,
+			IgnoreCltCert: false,
+			KmcCfg:        nil,
+		},
+	}
+	cert := certutils.UpdateClientCert{
+		CertName:    certName,
+		CertContent: certContent,
+	}
+	for i := 0; i < certutils.DefaultCertRetryTime; i++ {
+		_, err := reqCertParams.UpdateCertFile(cert)
+		if err == nil {
+			break
+		}
+		time.Sleep(certutils.DefaultCertWaitTime)
+	}
+	return nil
 }

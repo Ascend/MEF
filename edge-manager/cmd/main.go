@@ -13,7 +13,6 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
@@ -22,6 +21,7 @@ import (
 	"edge-manager/pkg/appmanager"
 	"edge-manager/pkg/cloudhub"
 	"edge-manager/pkg/config"
+	"edge-manager/pkg/configmanager"
 	"edge-manager/pkg/database"
 	"edge-manager/pkg/edgemsgmanager"
 	"edge-manager/pkg/kubeclient"
@@ -147,6 +147,9 @@ func register(ctx context.Context) error {
 		return err
 	}
 	if err := modulemanager.Registry(edgemsgmanager.NewNodeMsgManager(true)); err != nil {
+		return err
+	}
+	if err := modulemanager.Registry(configmanager.NewConfigManager(true)); err != nil {
 		return err
 	}
 

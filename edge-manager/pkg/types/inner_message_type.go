@@ -83,3 +83,8 @@ type EdgeReportUpgradeResInfoReq struct {
 	SerialNumber string       `json:"serialNumber"`
 	ProgressInfo ProgressInfo `json:"upgradeResInfo"`
 }
+
+// InnerGetNodeInfoResReq the response struct of node info
+type InnerGetNodeInfoResReq struct {
+	ModuleName string `json:"moduleName"`
+}

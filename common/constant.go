@@ -64,8 +64,8 @@ const (
 	SoftwareManagerName = "software manager"
 	// CertManagerService CertManager module name
 	CertManagerService = "CertManagerService"
-	// ImageManagerName ImageManagerName
-	ImageManagerName = "ImageManager"
+	// ConfigManagerName ConfigManagerName
+	ConfigManagerName = "ConfigManager"
 
 	// Create option create
 	Create = "create"
@@ -108,6 +108,8 @@ const (
 	CheckResource = "checkResource"
 	// UpdateResource resources allocatable node resources in node group
 	UpdateResource = "updateResource"
+	// NodeList resource node list
+	NodeList = "nodeList"
 	// ResponseTimeout response timeout time
 	ResponseTimeout = 3 * time.Second
 
