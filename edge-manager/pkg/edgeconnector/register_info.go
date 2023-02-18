@@ -12,6 +12,7 @@ var regInfoList = []websocketmgr.RegisterModuleInfo{
 	{MsgOpt: common.OptGet, MsgRes: common.ResEdgeCoreConfig, ModuleName: common.EdgeInstallerName},
 	{MsgOpt: common.OptGet, MsgRes: common.ResDownLoadSoftware, ModuleName: common.EdgeInstallerName},
 	{MsgOpt: common.OptReport, MsgRes: common.ResProgressReport, ModuleName: common.EdgeInstallerName},
+	{MsgOpt: common.OptGet, MsgRes: common.ResDownLoadCert, ModuleName: common.EdgeInstallerName},
 }
 
 func getRegModuleInfoList() []websocketmgr.RegisterModuleInfo {

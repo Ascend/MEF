@@ -79,6 +79,19 @@ var appRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 	},
 }
 
+var configRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
+	"/edgemanager/v1/image": {
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/config",
+			Method:       http.MethodPost,
+			Destination:  common.ConfigManagerName},
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/update",
+			Method:       http.MethodPost,
+			Destination:  common.ConfigManagerName},
+	},
+}
+
 var templateRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 	"/edgemanager/v1/apptemplate": {
 		restfulmgr.GenericDispatcher{
@@ -107,8 +120,10 @@ func setRouter(engine *gin.Engine) {
 	restfulmgr.InitRouter(engine, nodeGroupRouterDispatchers)
 	restfulmgr.InitRouter(engine, appRouterDispatchers)
 	restfulmgr.InitRouter(engine, templateRouterDispatchers)
+	restfulmgr.InitRouter(engine, configRouterDispatchers)
 	softwareRouter(engine)
 	connInfoRouter(engine)
+	connCertRouter(engine)
 }
 func versionQuery(c *gin.Context) {
 	msg := fmt.Sprintf("%s version: %s", config.BuildName, config.BuildVersion)
@@ -200,6 +215,13 @@ func connInfoRouter(engine *gin.Engine) {
 	v1 := engine.Group("/edgemanager/v1/conninfo")
 	{
 		v1.POST("/update", updateConnInfo)
+	}
+}
+
+func connCertRouter(engine *gin.Engine) {
+	v1 := engine.Group("/edgemanager/v1/cert")
+	{
+		v1.POST("/download", downloadCert)
 	}
 }
 

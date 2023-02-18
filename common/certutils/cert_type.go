@@ -44,3 +44,9 @@ type QueryCertRes struct {
 	Cert     string `json:"cert"`
 	Address  string `json:"address"`
 }
+
+// UpdateClientCert update cert struct
+type UpdateClientCert struct {
+	CertName    string `json:"certName"`
+	CertContent []byte `json:"certContent"`
+}
