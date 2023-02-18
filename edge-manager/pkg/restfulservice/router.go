@@ -4,6 +4,7 @@
 package restfulservice
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -234,6 +235,7 @@ func getIntReq(c *gin.Context, idName string) (uint64, error) {
 
 func getCapReq(c *gin.Context) (types.CapReq, error) {
 	input := types.CapReq{}
+	// nodeID is an optional parameter
 	if c.Query("nodeID") == "" {
 		hwlog.RunLog.Info("the nodeID parameter of get capability is empty")
 		return input, nil
@@ -242,8 +244,13 @@ func getCapReq(c *gin.Context) (types.CapReq, error) {
 	input.NodeID, err = getIntReq(c, "nodeID")
 	if err != nil {
 		hwlog.RunLog.Errorf("get nodeID failed, error:%s", err)
+		return input, err
 	}
-	return input, err
+	if input.NodeID <= 0 {
+		hwlog.RunLog.Error("nodeID is an invalid value")
+		return input, errors.New("nodeID is an invalid value")
+	}
+	return input, nil
 }
 
 type queryDispatcher struct {
