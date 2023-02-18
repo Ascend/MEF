@@ -46,7 +46,7 @@ func sendMessage(msg *model.Message, resp string) error {
 
 	respMsg.SetNodeId(msg.GetNodeId())
 	respMsg.FillContent(resp)
-	respMsg.SetRouter(common.EdgeInstallerName, common.NodeMsgManagerName, common.OptPost, msg.GetResource())
+	respMsg.SetRouter(common.NodeMsgManagerName, common.NodeMsgManagerName, common.OptPost, msg.GetResource())
 
 	if err = modulemanager.SendMessage(respMsg); err != nil {
 		hwlog.RunLog.Errorf("edge-installer send message failed, error: %v", err)

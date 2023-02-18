@@ -1,7 +1,7 @@
-// Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
+// Copyright (c) 2023. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package edgeconnector defines register info
-package edgeconnector
+// Package cloudhub server init
+package cloudhub
 
 import (
 	"huawei.com/mindxedge/base/common"

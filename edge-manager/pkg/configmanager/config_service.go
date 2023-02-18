@@ -156,11 +156,11 @@ func sendMessageToNode(serialNumber string, content string) error {
 		return fmt.Errorf("create new message failed, error: %v", err)
 	}
 	sendMsg.SetNodeId(serialNumber)
-	sendMsg.SetRouter(common.ConfigManagerName, common.EdgeConnectorName, common.OptPost, common.ResDownLoadCert)
+	sendMsg.SetRouter(common.ConfigManagerName, common.CloudHubName, common.OptPost, common.ResDownLoadCert)
 	sendMsg.FillContent(content)
 	if err = modulemanager.SendMessage(sendMsg); err != nil {
 		return fmt.Errorf("%s sends message to %s failed, error: %v",
-			common.ConfigManagerName, common.EdgeConnectorName, err)
+			common.ConfigManagerName, common.CloudHubName, err)
 	}
 	return nil
 }

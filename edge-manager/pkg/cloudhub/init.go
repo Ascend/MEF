@@ -1,4 +1,4 @@
-// Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
+// Copyright (c) 2023. Huawei Technologies Co., Ltd. All rights reserved.
 
 // Package cloudhub module edge-connector init
 package cloudhub
