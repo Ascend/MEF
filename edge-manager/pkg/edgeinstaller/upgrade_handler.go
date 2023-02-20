@@ -28,7 +28,7 @@ type UpgradeSfwReq struct {
 
 // Handle configHandler handle entry
 func (uh *upgradeHandler) Handle(message *model.Message) error {
-	hwlog.RunLog.Info("edge-installer received message from restful module success")
+	hwlog.RunLog.Info("edge-installer received message success for upgrading software from restful module")
 
 	var upgradeSfwReq *UpgradeSfwReq
 	var err error

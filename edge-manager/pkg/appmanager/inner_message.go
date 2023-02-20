@@ -36,7 +36,7 @@ func getAppInstanceCountByNodeGroup(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Data: appInstanceCount}
 }
 
-func checkNodeGroupResources(groupID uint64, daemonSet *appv1.DaemonSet) error {
+func checkNodeGroupResWithDuplicatedNode(groupID uint64, daemonSet *appv1.DaemonSet, duplicatedCount int) error {
 	router := common.Router{
 		Source:      common.AppManagerName,
 		Destination: common.NodeManagerName,
@@ -45,13 +45,26 @@ func checkNodeGroupResources(groupID uint64, daemonSet *appv1.DaemonSet) error {
 	}
 	req := types.InnerCheckNodeResReq{
 		NodeGroupID:  groupID,
-		ResourceReqs: getAppResReqs(daemonSet),
+		ResourceReqs: getTotalAppResReqs(daemonSet, duplicatedCount),
 	}
 	resp := common.SendSyncMessageByRestful(req, &router)
 	if resp.Status != common.Success {
 		return errors.New(resp.Msg)
 	}
 	return nil
+}
+
+func getTotalAppResReqs(daemonSet *appv1.DaemonSet, duplicatedCount int) corev1.ResourceList {
+	appResReqs := getAppResReqs(daemonSet)
+	totalResReqs := make(map[corev1.ResourceName]resource.Quantity)
+	for i := 0; i < duplicatedCount; i++ {
+		for resName, quantity := range appResReqs {
+			totalResReq := totalResReqs[resName]
+			totalResReq.Add(quantity)
+			totalResReqs[resName] = totalResReq
+		}
+	}
+	return totalResReqs
 }
 
 func updateAllocatedNodeRes(daemonSet *appv1.DaemonSet, nodeGroupID uint64, isUndeploy bool) error {
@@ -74,7 +87,10 @@ func updateAllocatedNodeRes(daemonSet *appv1.DaemonSet, nodeGroupID uint64, isUn
 }
 
 func getAppResReqs(daemonSet *appv1.DaemonSet) corev1.ResourceList {
-	var appResReqs = make(map[corev1.ResourceName]resource.Quantity)
+	appResReqs := make(map[corev1.ResourceName]resource.Quantity)
+	if daemonSet == nil {
+		return appResReqs
+	}
 	for _, container := range daemonSet.Spec.Template.Spec.Containers {
 		for resName, quantity := range container.Resources.Limits {
 			totalResReq := appResReqs[resName]
@@ -83,6 +99,31 @@ func getAppResReqs(daemonSet *appv1.DaemonSet) corev1.ResourceList {
 		}
 	}
 	return appResReqs
+}
+
+func getNodesByNodeGroup(nodeGroupID uint64) ([]uint64, error) {
+	router := common.Router{
+		Source:      common.AppManagerName,
+		Destination: common.NodeManagerName,
+		Option:      common.Inner,
+		Resource:    common.NodeID,
+	}
+	req := types.InnerGetNodesReq{
+		NodeGroupID: nodeGroupID,
+	}
+	resp := common.SendSyncMessageByRestful(req, &router)
+	if resp.Status != common.Success {
+		return nil, errors.New(resp.Msg)
+	}
+	data, err := json.Marshal(resp.Data)
+	if err != nil {
+		return nil, errors.New("marshal internal response error")
+	}
+	var nodeGroupInfosResp types.InnerGetNodesResp
+	if err = json.Unmarshal(data, &nodeGroupInfosResp); err != nil {
+		return nil, errors.New("unmarshal internal response error")
+	}
+	return nodeGroupInfosResp.NodeIDs, nil
 }
 
 func getNodeGroupInfos(nodeGroupIds []uint64) ([]types.NodeGroupInfo, error) {

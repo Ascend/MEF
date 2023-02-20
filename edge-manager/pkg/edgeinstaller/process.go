@@ -13,11 +13,10 @@ import (
 	"net/http"
 	"strings"
 
-	"edge-manager/pkg/database"
-	"edge-manager/pkg/nodemanager"
-
 	"huawei.com/mindx/common/hwlog"
 
+	"edge-manager/pkg/database"
+	"edge-manager/pkg/nodemanager"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"

@@ -110,6 +110,9 @@ const (
 	UpdateResource = "updateResource"
 	// NodeList resource node list
 	NodeList = "nodeList"
+	// NodeID resource get node id by group id
+	NodeID = "nodeID"
+
 	// ResponseTimeout response timeout time
 	ResponseTimeout = 3 * time.Second
 
@@ -272,6 +275,8 @@ const (
 	ResDownLoadSoftware = "/software/download_info"
 	// ResEdgeCoreConfig resource for querying edgecore config
 	ResEdgeCoreConfig = "/edgecore/config"
+	// ResSetEdgeAccount resource for setting edge account
+	ResSetEdgeAccount = "/edgemanager/v1/edgeAccount"
 	// ResDownLoadCert resource for downloading cert
 	ResDownLoadCert = "/cert/download_info"
 )

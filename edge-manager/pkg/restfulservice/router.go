@@ -122,10 +122,11 @@ func setRouter(engine *gin.Engine) {
 	restfulmgr.InitRouter(engine, appRouterDispatchers)
 	restfulmgr.InitRouter(engine, templateRouterDispatchers)
 	restfulmgr.InitRouter(engine, configRouterDispatchers)
+	restfulmgr.InitRouter(engine, edgeAccountRouterDispatchers)
 	restfulmgr.InitRouter(engine, softwareRouterDispatchers)
-	connInfoRouter(engine)
 	connCertRouter(engine)
 }
+
 func versionQuery(c *gin.Context) {
 	msg := fmt.Sprintf("%s version: %s", config.BuildName, config.BuildVersion)
 	hwlog.RunLog.Infof("query edge manager version: %s successfully", msg)
@@ -209,6 +210,14 @@ var nodeGroupRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 	},
 }
 
+var edgeAccountRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
+	"/edgemanager/v1/edge-account": {
+		restfulmgr.GenericDispatcher{
+			Method:      http.MethodPost,
+			Destination: common.EdgeInstallerName},
+	},
+}
+
 var softwareRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 	"/edgemanager/v1/software/edge": {
 		restfulmgr.GenericDispatcher{
@@ -228,13 +237,6 @@ var softwareRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			Method:       http.MethodGet,
 			Destination:  common.NodeMsgManagerName}, "serialNumber", true},
 	},
-}
-
-func connInfoRouter(engine *gin.Engine) {
-	v1 := engine.Group("/edgemanager/v1/conninfo")
-	{
-		v1.POST("/update", updateConnInfo)
-	}
 }
 
 func connCertRouter(engine *gin.Engine) {

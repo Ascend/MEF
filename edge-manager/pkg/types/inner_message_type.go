@@ -25,14 +25,19 @@ type InnerGetNodeStatusReq struct {
 	UniqueName string `json:"uniqueName"`
 }
 
-// InnerUpdateNodeResReq [struct] for CheckAndUpdateNodeResReq
+// InnerGetNodesReq [struct] for getting nodes id request
+type InnerGetNodesReq struct {
+	NodeGroupID uint64 `json:"nodeGroupID"`
+}
+
+// InnerUpdateNodeResReq [struct] for updating node resource request
 type InnerUpdateNodeResReq struct {
 	NodeGroupID  uint64 `json:"nodeGroupID"`
 	ResourceReqs v1.ResourceList
 	IsUndeploy   bool
 }
 
-// InnerCheckNodeResReq [struct] for UpdateNodeResReq
+// InnerCheckNodeResReq [struct] for checking node resource request
 type InnerCheckNodeResReq struct {
 	NodeGroupID  uint64 `json:"nodeGroupID"`
 	ResourceReqs v1.ResourceList
@@ -83,6 +88,11 @@ type ProgressInfo struct {
 type EdgeReportUpgradeResInfoReq struct {
 	SerialNumber string       `json:"serialNumber"`
 	ProgressInfo ProgressInfo `json:"upgradeResInfo"`
+}
+
+// InnerGetNodesResp [struct] for getting nodes id response
+type InnerGetNodesResp struct {
+	NodeIDs []uint64 `json:"nodeIDs"`
 }
 
 // InnerGetNodeInfoResReq the response struct of node info

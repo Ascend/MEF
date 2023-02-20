@@ -11,11 +11,10 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 
+	"edge-manager/pkg/database"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
-
-	"edge-manager/pkg/database"
 )
 
 type handlerFunc func(req interface{}) common.RespMsg
@@ -154,4 +153,5 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(common.OptReport, common.ResSoftwareInfoReport):     updateNodeSoftwareInfo,
 	common.Combine(common.OptReport, common.ResDownloadProgressReport): updateNodeUpgradeResult,
 	common.Combine(common.Inner, common.NodeList):                      innerAllNodeInfos,
+	common.Combine(common.Inner, common.NodeID):                        innerGetNodesByNodeGroupID,
 }

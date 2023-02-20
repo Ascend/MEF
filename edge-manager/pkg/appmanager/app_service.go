@@ -11,12 +11,13 @@ import (
 
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
+	"k8s.io/api/apps/v1"
 
 	"edge-manager/pkg/appmanager/appchecker"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
 	"edge-manager/pkg/util"
+	"huawei.com/mindxedge/base/common"
 )
 
 // createApp Create application
@@ -202,6 +203,7 @@ func deployApp(input interface{}) common.RespMsg {
 
 func deployAppToNodeGroups(appInfo *AppInfo, NodeGroupIds []uint64) types.BatchResp {
 	var deployRes types.BatchResp
+	deployedNode := make(map[uint64]int)
 	for _, nodeGroupId := range NodeGroupIds {
 		_, err := getNodeGroupInfos([]uint64{nodeGroupId})
 		if err != nil {
@@ -217,7 +219,7 @@ func deployAppToNodeGroups(appInfo *AppInfo, NodeGroupIds []uint64) types.BatchR
 			deployRes.FailedIDs = append(deployRes.FailedIDs, nodeGroupId)
 			continue
 		}
-		if err := checkNodeGroupResources(nodeGroupId, daemonSet); err != nil {
+		if err := checkNodeGroupRes(nodeGroupId, daemonSet, deployedNode); err != nil {
 			hwlog.RunLog.Errorf("check app [%s] resources on node group id [%d] failed: %s",
 				appInfo.AppName, nodeGroupId, err.Error())
 			deployRes.FailedIDs = append(deployRes.FailedIDs, nodeGroupId)
@@ -232,6 +234,26 @@ func deployAppToNodeGroups(appInfo *AppInfo, NodeGroupIds []uint64) types.BatchR
 		deployRes.SuccessIDs = append(deployRes.SuccessIDs, nodeGroupId)
 	}
 	return deployRes
+}
+
+func checkNodeGroupRes(nodeGroupId uint64, daemonSet *v1.DaemonSet, deployedNode map[uint64]int) error {
+	if deployedNode == nil {
+		return errors.New("nil map error")
+	}
+	var duplicatedCount int
+	nodeIDs, err := getNodesByNodeGroup(nodeGroupId)
+	if err != nil {
+		return fmt.Errorf("get nodes by group id [%d] failed", nodeGroupId)
+	}
+	for _, nodeID := range nodeIDs {
+		count := deployedNode[nodeID]
+		count++
+		deployedNode[nodeID] = count
+		if count > duplicatedCount {
+			duplicatedCount = count
+		}
+	}
+	return checkNodeGroupResWithDuplicatedNode(nodeGroupId, daemonSet, duplicatedCount)
 }
 
 // unDeployApp deploy application on node group

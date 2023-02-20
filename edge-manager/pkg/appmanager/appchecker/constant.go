@@ -33,7 +33,7 @@ const (
 	minNpuQuantity         = 0
 	maxNpuQuantity         = 32
 	nameReg                = "^[a-z0-9]([a-z0-9-]{0,30}[a-z0-9]){0,1}$"
-	imageNameReg           = "^[a-z0-9]([a-z0-9_./-]{0,30}[a-z0-9]){0,1}$"
+	imageNameReg           = "^[a-zA-Z0-9:_/.-]{1,256}$"
 	imageVerReg            = "^[a-zA-Z0-9_.-]{1,32}$"
 	cmdAndArgsReg          = "^[a-zA-Z0-9 _./-]{0,255}[a-zA-Z0-9]$"
 	descriptionReg         = "^[\\S ]{0,512}$"

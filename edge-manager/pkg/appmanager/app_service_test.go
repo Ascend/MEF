@@ -440,8 +440,8 @@ func testDeployApInfo() {
 			return []types.NodeGroupInfo{{NodeGroupID: 1, NodeGroupName: "group1"},
 				{NodeGroupID: 2, NodeGroupName: "group2"}}, nil
 		})
-	var p3 = gomonkey.ApplyFunc(checkNodeGroupResources,
-		func(groupID uint64, daemonSet *v1.DaemonSet) error {
+	var p3 = gomonkey.ApplyFunc(checkNodeGroupRes,
+		func(nodeGroupId uint64, daemonSet *v1.DaemonSet, deployedNode map[uint64]int) error {
 			return nil
 		})
 	defer p1.Reset()
