@@ -5,6 +5,7 @@ package usermgr
 
 import (
 	"fmt"
+
 	"huawei.com/mindxedge/base/common/checker/checker"
 )
 

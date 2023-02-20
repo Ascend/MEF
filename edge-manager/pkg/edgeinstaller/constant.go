@@ -5,9 +5,6 @@ package edgeinstaller
 
 import "time"
 
-// WaitSfwSyncTime waiting for a response from the software manager
-const WaitSfwSyncTime = 10 * time.Second
-
 // HttpTimeout timeout in http
 const HttpTimeout = 60 * time.Second
 
@@ -26,4 +23,12 @@ const (
 	SoftwarePort = "8102"
 	SoftRoute    = "softwaremanager/v1"
 	HttpsMethod  = "GET"
+)
+
+// set edge account checker
+const (
+	accountReg         = "^[a-zA-Z0-9-_]{1,256}$"
+	passwordMinLen     = 8
+	passwordMaxLen     = 256
+	DefaultAccountName = "EdgeAccount"
 )

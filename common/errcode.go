@@ -125,6 +125,13 @@ const (
 	// ErrorGetAppInstanceCountByNodeGroup failed to count app instances by node group
 	ErrorGetAppInstanceCountByNodeGroup = "40022012"
 
+	// ErrorAccountOrPassword incorrect account or password
+	ErrorAccountOrPassword = "40031000"
+	// ErrorSetEdgeAccountPassword failed to set edge account password
+	ErrorSetEdgeAccountPassword = "40031001"
+	// ErrorSetEdgeAccount failed to set edge account
+	ErrorSetEdgeAccount = "40031002"
+
 	// ErrorGetRootCa failed to get root ca by cert name
 	ErrorGetRootCa = "60001001"
 	// ErrorIssueSrvCert failed to issue service certificate
@@ -273,4 +280,11 @@ var ErrorMap = map[string]string{
 	ErrorDeleteRootCa: "failed to delete cert file",
 	// ErrorDistributeRootCa failed to distribute cert file
 	ErrorDistributeRootCa: "failed to distribute cert file",
+
+	// ErrorAccountOrPassword incorrect account or password
+	ErrorAccountOrPassword: "incorrect account or password",
+	// ErrorSetEdgeAccountPassword failed to set edge account password
+	ErrorSetEdgeAccountPassword: "failed to set edge account password",
+	// ErrorSetEdgeAccount failed to set edge account
+	ErrorSetEdgeAccount: "failed to set edge account",
 }

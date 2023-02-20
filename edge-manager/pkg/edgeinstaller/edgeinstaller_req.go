@@ -45,3 +45,10 @@ type SoftwareManagerInfo struct {
 	SoftwarePort string
 	SoftRoute    string
 }
+
+// SetEdgeAccountReq struct for setting edge account
+type SetEdgeAccountReq struct {
+	Account         string  `json:"account"`
+	Password        *string `json:"password"`
+	ConfirmPassword *string `json:"confirmPassword"`
+}
