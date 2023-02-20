@@ -10,6 +10,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 
 	"edge-manager/pkg/util"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/certutils"
 	"huawei.com/mindxedge/base/common/httpsmgr"
@@ -72,8 +73,8 @@ func GetCertInfo(input interface{}) common.RespMsg {
 	}
 
 	if err = sendMessageToEdge(message, string(data)); err != nil {
-		hwlog.RunLog.Errorf("edge msg manager send message to edge hub for config failed, error: %v", err)
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "message content type invalid", Data: nil}
+		hwlog.RunLog.Errorf("edge msg manager send message to edge hub with cert info failed, error: %v", err)
+		return common.RespMsg{Status: common.ErrorSendMsgToNode, Msg: "send msg to edge failed", Data: nil}
 	}
 
 	hwlog.RunLog.Info("edge msg manager send message to edge hub success with cert info")

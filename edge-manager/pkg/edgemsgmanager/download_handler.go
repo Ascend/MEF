@@ -7,6 +7,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 
 	"edge-manager/pkg/types"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
@@ -48,7 +49,7 @@ func downloadSoftware(input interface{}) common.RespMsg {
 	}
 
 	if len(batchResp.FailedIDs) != 0 {
-		hwlog.RunLog.Info("deal edge software upgrade info failed")
+		hwlog.RunLog.Error("deal edge software upgrade info failed")
 		return common.RespMsg{Status: common.ErrorSendMsgToNode, Msg: "", Data: batchResp}
 	} else {
 		hwlog.RunLog.Info("deal edge software upgrade info success")

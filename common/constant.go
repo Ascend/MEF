@@ -55,7 +55,7 @@ const (
 	// CloudHubName edge-connector
 	CloudHubName = "CloudHub"
 	// NodeMsgManagerName node msg manager
-	NodeMsgManagerName = "NodeMsgManagerName"
+	NodeMsgManagerName = "NodeMsgManager"
 	// EdgeInstallerName edge-installer
 	EdgeInstallerName = "edge-installer"
 	// CertManagerName CertManager
@@ -267,10 +267,10 @@ const (
 	ResEdgeUpgradeInfo = "/edge/upgrade"
 	// ResEdgeConfigInfo resource for edge config info
 	ResEdgeConfigInfo = "/edge/config"
-	// ResDownloadProgressReport resource progress report
-	ResDownloadProgressReport = "/edge/download-progress"
-	// ResSoftwareInfoReport resource software info
-	ResSoftwareInfoReport = "/edge/version-info"
+	// ResDownloadProgress resource progress report
+	ResDownloadProgress = "/edge/download-progress"
+	// ResSoftwareInfo resource software info
+	ResSoftwareInfo = "/edge/version-info"
 	// ResDownLoadSoftware resource for downloading software
 	ResDownLoadSoftware = "/software/download_info"
 	// ResEdgeCoreConfig resource for querying edgecore config

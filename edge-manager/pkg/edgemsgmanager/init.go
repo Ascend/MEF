@@ -11,6 +11,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 
 	"edge-manager/pkg/types"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
@@ -31,9 +32,6 @@ func (nm *NodeMsgDealer) Name() string {
 
 // Enable indicates whether this module is enabled
 func (nm *NodeMsgDealer) Enable() bool {
-	if !nm.enable {
-		return !nm.enable
-	}
 	return nm.enable
 }
 
@@ -117,9 +115,9 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodPost, filepath.Join(edgeSoftwareRootPath, "/download")):         downloadSoftware,
 	common.Combine(http.MethodPost, filepath.Join(edgeSoftwareRootPath, "/upgrade")):          upgradeEdgeSoftware,
 	common.Combine(http.MethodGet, filepath.Join(edgeSoftwareRootPath, "/version-info")):      queryEdgeSoftwareVersion,
-	common.Combine(http.MethodGet, filepath.Join(edgeSoftwareRootPath, "/download-progress")): queryEdgeUpgradeProgress,
+	common.Combine(http.MethodGet, filepath.Join(edgeSoftwareRootPath, "/download-progress")): queryEdgeDownloadProgress,
 
-	common.Combine(common.OptGet, common.ResEdgeCoreConfig):            GetConfigInfo,
-	common.Combine(common.OptGet, common.ResDownLoadCert):              GetCertInfo,
-	common.Combine(common.OptReport, common.ResDownloadProgressReport): UpdateEdgeSoftwareUpgradeProgress,
+	common.Combine(common.OptGet, common.ResEdgeCoreConfig):      GetConfigInfo,
+	common.Combine(common.OptGet, common.ResDownLoadCert):        GetCertInfo,
+	common.Combine(common.OptReport, common.ResDownloadProgress): UpdateEdgeDownloadProgress,
 }
