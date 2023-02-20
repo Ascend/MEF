@@ -4,13 +4,10 @@
 package nodemanager
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
 
-	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
 
@@ -221,60 +218,4 @@ func deleteSingleGroup(groupID uint64) error {
 		return fmt.Errorf("delete node group by group id %d failed", groupID)
 	}
 	return nil
-}
-
-func getAppInstanceCountByGroupId(groupId uint64) (int64, error) {
-	router := common.Router{
-		Source:      common.NodeManagerName,
-		Destination: common.AppManagerName,
-		Option:      common.Get,
-		Resource:    common.AppInstanceByNodeGroup,
-	}
-	resp := common.SendSyncMessageByRestful([]uint64{groupId}, &router)
-	if resp.Status != common.Success {
-		return 0, errors.New(resp.Msg)
-	}
-	data, err := json.Marshal(resp.Data)
-	if err != nil {
-		return 0, errors.New("convert result failed")
-	}
-	counts := make(map[uint64]int64)
-	if err = json.Unmarshal(data, &counts); err != nil {
-		return 0, errors.New("convert result failed")
-	}
-	count, ok := counts[groupId]
-	if !ok {
-		return 0, errors.New("can't find corresponding groupId")
-	}
-	return count, nil
-}
-
-func innerGetNodeGroupInfosByIds(input interface{}) common.RespMsg {
-	req, ok := input.(types.InnerGetNodeGroupInfosReq)
-	if !ok {
-		hwlog.RunLog.Error("parse inner message content failed")
-		return common.RespMsg{Status: "", Msg: "parse inner message content failed", Data: nil}
-	}
-	var nodeGroupInfos []types.NodeGroupInfo
-	for _, id := range req.NodeGroupIds {
-		nodeGroupInfo, err := NodeServiceInstance().getNodeGroupByID(id)
-		if err == gorm.ErrRecordNotFound {
-			hwlog.RunLog.Errorf("get node group info, id %v do no exist", id)
-			return common.RespMsg{Status: "",
-				Msg: fmt.Sprintf("get node group info, id %v do no exist", id), Data: nil}
-		}
-		if err != nil {
-			hwlog.RunLog.Errorf("get node group info id %v, db failed", id)
-			return common.RespMsg{Status: "",
-				Msg: fmt.Sprintf("get node group info id %v, db failed", id), Data: nil}
-		}
-		nodeGroupInfos = append(nodeGroupInfos, types.NodeGroupInfo{
-			NodeGroupID:   nodeGroupInfo.ID,
-			NodeGroupName: nodeGroupInfo.GroupName,
-		})
-	}
-	resp := types.InnerGetNodeGroupInfosResp{
-		NodeGroupInfos: nodeGroupInfos,
-	}
-	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }

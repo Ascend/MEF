@@ -106,6 +106,9 @@ const (
 	UpdateResource = "updateResource"
 	// NodeList resource node list
 	NodeList = "nodeList"
+	// NodeID resource get node id by group id
+	NodeID = "nodeID"
+
 	// ResponseTimeout response timeout time
 	ResponseTimeout = 3 * time.Second
 
