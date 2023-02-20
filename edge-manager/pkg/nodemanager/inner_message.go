@@ -33,6 +33,27 @@ func innerGetNodeInfoByUniqueName(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
+func innerGetNodeSoftwareInfo(input interface{}) common.RespMsg {
+	req, ok := input.(types.InnerGetSoftwareInfoBySerialNumberReq)
+	if !ok {
+		hwlog.RunLog.Error("parse inner message content failed")
+		return common.RespMsg{Status: "", Msg: "parse inner message content failed", Data: nil}
+	}
+	nodeInfo, err := NodeServiceInstance().getNodeBySerialNumber(req.SerialNumber)
+	if err != nil {
+		hwlog.RunLog.Errorf("get node info by unique name [%s] failed:%v", req.SerialNumber, err)
+		return common.RespMsg{Status: "", Msg: "get node info by unique name failed", Data: nil}
+	}
+	resp := types.InnerSoftwareInfoResp{}
+
+	if err = json.Unmarshal([]byte(nodeInfo.SoftwareInfo), &resp.SoftwareInfo); err != nil {
+		hwlog.RunLog.Error("unmarshall node software info failed")
+		return common.RespMsg{Status: "", Msg: "get node info failed because unmarshal failed", Data: nil}
+	}
+
+	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
+}
+
 func innerGetNodeStatus(input interface{}) common.RespMsg {
 	req, ok := input.(types.InnerGetNodeStatusReq)
 	if !ok {
@@ -69,21 +90,6 @@ func innerGetNodesByNodeGroupID(input interface{}) common.RespMsg {
 		NodeIDs: nodeIDs,
 	}
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
-}
-
-func innerAllNodeInfos(input interface{}) common.RespMsg {
-	_, ok := input.(types.InnerGetNodeInfoResReq)
-	if !ok {
-		hwlog.RunLog.Error("parse inner message content failed")
-		return common.RespMsg{Status: "", Msg: "parse inner message content failed"}
-	}
-	nodeInfos, err := NodeServiceInstance().listNodes()
-	if err != nil {
-		hwlog.RunLog.Error("inner message get all node info failed")
-		return common.RespMsg{Status: "", Msg: "internal get all node info failed", Data: nil}
-	}
-	hwlog.RunLog.Info("inner message get all node info success")
-	return common.RespMsg{Status: common.Success, Msg: "internal get all node info success", Data: nodeInfos}
 }
 
 func innerCheckNodeGroupResReq(input interface{}) common.RespMsg {
