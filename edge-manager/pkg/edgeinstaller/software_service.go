@@ -9,7 +9,6 @@ import (
 	"edge-manager/pkg/database"
 
 	"huawei.com/mindx/common/hwlog"
-
 	"huawei.com/mindxedge/base/common"
 )
 

@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"huawei.com/mindx/common/hwlog"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/handlerbase"
 	"huawei.com/mindxedge/base/modulemanager"

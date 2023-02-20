@@ -21,7 +21,6 @@ import (
 	"k8s.io/client-go/tools/cache"
 
 	"huawei.com/mindx/common/hwlog"
-
 	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/kubeclient"
