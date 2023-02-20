@@ -249,17 +249,19 @@ const (
 
 const (
 	// OptGet option for get
-	OptGet = "get"
+	OptGet = "GET"
 	// OptPost option for post
-	OptPost = "post"
+	OptPost = "POST"
 	// OptReport option for report
-	OptReport = "report"
+	OptReport = "REPORT"
 	// ResProgressReport resource progress report
 	ResProgressReport = "/progress"
 	// ResDownLoadSoftware resource for downloading software
 	ResDownLoadSoftware = "/software/download_info"
 	// ResEdgeCoreConfig resource for querying edgecore config
 	ResEdgeCoreConfig = "/edgecore/config"
+	// ResSetEdgeAccount resource for setting edge account
+	ResSetEdgeAccount = "/edgemanager/v1/edgeAccount"
 	// ResDownLoadCert resource for downloading cert
 	ResDownLoadCert = "/cert/download_info"
 )

@@ -35,10 +35,11 @@ func CheckPassWord(userName string, passWord *string) error {
 		return err
 	}
 
-	return checkPassWordComplexity(passWord)
+	return CheckPassWordComplexity(passWord)
 }
 
-func checkPassWordComplexity(b *string) error {
+// CheckPassWordComplexity check password complexity
+func CheckPassWordComplexity(b *string) error {
 	complexCheckRegexArr := []string{
 		common.LowercaseCharactersRegex,
 		common.UppercaseCharactersRegex,

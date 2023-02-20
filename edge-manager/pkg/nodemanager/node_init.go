@@ -10,11 +10,11 @@ import (
 	"path/filepath"
 
 	"huawei.com/mindx/common/hwlog"
+
+	"edge-manager/pkg/database"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
-
-	"edge-manager/pkg/database"
 )
 
 type handlerFunc func(req interface{}) common.RespMsg

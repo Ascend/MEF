@@ -8,11 +8,10 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 
+	"edge-manager/pkg/database"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
-
-	"edge-manager/pkg/database"
 )
 
 // Installer edge-installer struct
@@ -78,8 +77,13 @@ func (i *Installer) dispatchMsg(msg *model.Message) {
 }
 
 func initSoftwareMgrInfoTable() error {
+	if err := database.CreateTableIfNotExists(EdgeAccountInfo{}); err != nil {
+		hwlog.RunLog.Error("table edge_account_infos create failed")
+		return err
+	}
+
 	if err := database.CreateTableIfNotExists(SoftwareMgrInfo{}); err != nil {
-		hwlog.RunLog.Error("table software manager info create failed")
+		hwlog.RunLog.Error("table software_mgr_infos create failed")
 		return err
 	}
 
