@@ -12,6 +12,7 @@ import (
 	"k8s.io/api/core/v1"
 
 	"edge-manager/pkg/types"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -90,6 +91,21 @@ func innerGetNodesByNodeGroupID(input interface{}) common.RespMsg {
 		NodeIDs: nodeIDs,
 	}
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
+}
+
+func innerAllNodeInfos(input interface{}) common.RespMsg {
+	_, ok := input.(types.InnerGetNodeInfoResReq)
+	if !ok {
+		hwlog.RunLog.Error("parse inner message content failed")
+		return common.RespMsg{Status: "", Msg: "parse inner message content failed"}
+	}
+	nodeInfos, err := NodeServiceInstance().listNodes()
+	if err != nil {
+		hwlog.RunLog.Error("inner message get all node info failed")
+		return common.RespMsg{Status: "", Msg: "internal get all node info failed", Data: nil}
+	}
+	hwlog.RunLog.Info("inner message get all node info success")
+	return common.RespMsg{Status: common.Success, Msg: "internal get all node info success", Data: nodeInfos}
 }
 
 func innerCheckNodeGroupResReq(input interface{}) common.RespMsg {

@@ -34,7 +34,6 @@ type NodeService interface {
 	getNodeCapByID(nodeID uint64) (*[]string, error)
 	countAllNodesByName(string) (int64, error)
 	listAllNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
-	updateNodeByUniqueName(name, column, value string) error
 	updateNodeBySerialNumber(key, column, value string) error
 	getNodeByUniqueName(string) (*NodeInfo, error)
 	getNodeBySerialNumber(string) (*NodeInfo, error)
@@ -156,11 +155,6 @@ func (n *NodeServiceImpl) deleteNodeToGroup(relation *NodeRelation) (int64, erro
 	stmt := n.db.Model(NodeRelation{}).Where("group_id = ? and node_id=?",
 		relation.GroupID, relation.NodeID).Delete(relation)
 	return stmt.RowsAffected, stmt.Error
-}
-
-// GetNodeByUniqueName get node info by unique name in k8s
-func (n *NodeServiceImpl) updateNodeByUniqueName(name, column, value string) error {
-	return n.db.Model(NodeInfo{}).Where("unique_name = ?", name).Update(column, value).Error
 }
 
 // GetNodeByUniqueName get node info by Serial Number in k8s

@@ -7,12 +7,12 @@ import (
 	"huawei.com/mindx/common/hwlog"
 
 	"edge-manager/pkg/types"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
-// queryEdgeUpgradeProgress [method] query edge software upgrade progress
-func queryEdgeUpgradeProgress(input interface{}) common.RespMsg {
+func queryEdgeDownloadProgress(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start query edge software upgrade progress")
 	message, ok := input.(*model.Message)
 	if !ok {

@@ -12,6 +12,7 @@ import (
 	"huawei.com/mindx/common/utils"
 
 	"edge-manager/pkg/edgeconnector"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/certutils"
 	"huawei.com/mindxedge/base/common/httpsmgr"
@@ -127,8 +128,8 @@ func getWsCert(keyPath string) (string, string, error) {
 			RootCaPath:    util.RootCaPath,
 			CertPath:      util.ServerCertPath,
 			KeyPath:       util.ServerKeyPath,
-			SvrFlag:       true,
-			IgnoreCltCert: true,
+			SvrFlag:       false,
+			IgnoreCltCert: false,
 		},
 	}
 	var certStr, rootCaStr string

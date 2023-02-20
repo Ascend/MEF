@@ -7,6 +7,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 
 	"edge-manager/pkg/util"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/certutils"
 	"huawei.com/mindxedge/base/common/httpsmgr"
@@ -30,7 +31,7 @@ func NewRestfulService(enable bool, ip string, port int) *EdgeMgrService {
 				CertPath:      util.ServerCertPath,
 				KeyPath:       util.ServerKeyPath,
 				SvrFlag:       true,
-				IgnoreCltCert: true,
+				IgnoreCltCert: false,
 				KmcCfg:        nil,
 			},
 		},

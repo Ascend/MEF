@@ -7,12 +7,12 @@ import (
 	"huawei.com/mindx/common/hwlog"
 
 	"edge-manager/pkg/types"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
-// upgradeEdgeSoftware [method] effect edge software
 func upgradeEdgeSoftware(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start effect edge software")
 	message, ok := input.(*model.Message)
