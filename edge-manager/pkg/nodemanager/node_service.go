@@ -725,18 +725,3 @@ func updateNodeSoftwareInfo(input interface{}) common.RespMsg {
 
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
-
-func innerAllNodeInfos(input interface{}) common.RespMsg {
-	_, ok := input.(types.InnerGetNodeInfoResReq)
-	if !ok {
-		hwlog.RunLog.Error("parse inner message content failed")
-		return common.RespMsg{Status: "", Msg: "parse inner message content failed"}
-	}
-	nodeInfos, err := NodeServiceInstance().listNodes()
-	if err != nil {
-		hwlog.RunLog.Error("inner message get all node info failed")
-		return common.RespMsg{Status: "", Msg: "internal get all node info failed", Data: nil}
-	}
-	hwlog.RunLog.Info("inner message get all node info success")
-	return common.RespMsg{Status: common.Success, Msg: "internal get all node info success", Data: nodeInfos}
-}

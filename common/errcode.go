@@ -95,7 +95,7 @@ const (
 	// ErrorDeleteNodeFromGroup failed to delete node from group
 	ErrorDeleteNodeFromGroup = "40012015"
 
-	// ErrorSendMsgToNode failed to delete node groups
+	// ErrorSendMsgToNode failed to send msg to node
 	ErrorSendMsgToNode = "40012016"
 	// ErrorGetToken failed to get token
 	ErrorGetToken = "40012017"

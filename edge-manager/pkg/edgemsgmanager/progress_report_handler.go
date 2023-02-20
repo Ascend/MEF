@@ -7,12 +7,13 @@ import (
 	"huawei.com/mindx/common/hwlog"
 
 	"edge-manager/pkg/types"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
-// UpdateEdgeSoftwareUpgradeProgress [method] update edge software upgrade progress
-func UpdateEdgeSoftwareUpgradeProgress(input interface{}) common.RespMsg {
+// UpdateEdgeDownloadProgress [method] update edge software download progress
+func UpdateEdgeDownloadProgress(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start to update node upgrade progress info")
 	message, ok := input.(*model.Message)
 	if !ok {

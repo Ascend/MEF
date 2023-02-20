@@ -10,7 +10,6 @@ import (
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
-// queryEdgeSoftwareVersion [method] query edge software version
 func queryEdgeSoftwareVersion(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start query edge software version")
 	message, ok := input.(*model.Message)
