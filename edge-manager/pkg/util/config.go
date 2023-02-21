@@ -7,8 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
+	"huawei.com/mindx/common/hwlog"
 	"k8s.io/api/core/v1"
 
 	"edge-manager/pkg/kubeclient"
@@ -27,11 +27,13 @@ const (
 // GetImageAddress get image address
 func GetImageAddress() (string, error) {
 	secret, err := kubeclient.GetKubeClient().GetSecret(certutils.DefaultSecretName)
-	if err != nil || len(secret.Data) == 0 {
-		return "", errors.New("get image pull secret from k8s failed")
+	if err != nil {
+		hwlog.RunLog.Errorf("get image pull secret failed, error:%v", err)
+		return "", err
 	}
 	secretByte, ok := secret.Data[v1.DockerConfigJsonKey]
 	if !ok {
+		hwlog.RunLog.Error("get data of image pull secret failed")
 		return "", errors.New("get data of image pull secret failed")
 	}
 	defer func() {
@@ -39,9 +41,18 @@ func GetImageAddress() (string, error) {
 	}()
 	authSli := strings.Split(string(secretByte), secretSplit)
 	if len(authSli) != secretLen {
+		hwlog.RunLog.Error("parse secret content failed")
 		return "", errors.New("parse secret content failed")
 	}
 	return strings.Trim(authSli[authPosition], secretTrim), nil
+}
+
+// SecretNotFound secret not found
+func SecretNotFound(err error) bool {
+	if err == nil {
+		return false
+	}
+	return strings.Contains(err.Error(), certutils.SecretNotFound)
 }
 
 // GetCertContent get cert content
@@ -55,17 +66,10 @@ func GetCertContent(certName string) (certutils.QueryCertRes, error) {
 			IgnoreCltCert: false,
 		},
 	}
-	var rootCaRes string
-	var err error
-	for i := 0; i < certutils.DefaultCertRetryTime; i++ {
-		rootCaRes, err = reqCertParams.GetRootCa(certName)
-		if err == nil {
-			break
-		}
-		time.Sleep(certutils.DefaultCertWaitTime)
-	}
-	if rootCaRes == "" {
-		return certutils.QueryCertRes{}, fmt.Errorf("get %s cert content failed, error: %v", certName, err)
+	rootCaRes, err := reqCertParams.GetRootCa(certName)
+	if err != nil {
+		hwlog.RunLog.Errorf("query cert content from cert-manager failed, error: %v", err)
+		return certutils.QueryCertRes{}, fmt.Errorf("query cert content from cert-manager failed, error: %v", err)
 	}
 	queryCertRes := certutils.QueryCertRes{
 		CertName: certName,

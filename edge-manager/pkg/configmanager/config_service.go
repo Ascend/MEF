@@ -115,19 +115,24 @@ func updateConfig(input interface{}) common.RespMsg {
 	}
 	if updateCert.CertName == common.ImageCertName {
 		address, err := util.GetImageAddress()
+		if util.SecretNotFound(err) {
+			hwlog.RunLog.Warn("image registry address should be configured")
+			return common.RespMsg{Status: common.ErrorGetSecret, Msg: "image registry address should be configured",
+				Data: nil}
+		}
 		if err != nil {
-			hwlog.RunLog.Errorf("get image registry address failed, %v", err)
-			return common.RespMsg{Status: "", Msg: err.Error()}
+			hwlog.RunLog.Errorf("get image registry address failed, error:%v", err)
+			return common.RespMsg{Status: common.ErrorGetSecret, Msg: err.Error(), Data: nil}
 		}
 		certRes.Address = address
 	}
 	// send message to connector
 	if err := reportCertToClient(certRes); err != nil {
 		hwlog.RunLog.Errorf("update cert content failed, %v", err)
-		return common.RespMsg{Status: "", Msg: "update cert content failed"}
+		return common.RespMsg{Status: common.ErrorDistributeRootCa, Msg: "update cert content failed", Data: nil}
 	}
 	hwlog.RunLog.Info("update cert content success")
-	return common.RespMsg{Status: common.Success, Msg: "update cert content success"}
+	return common.RespMsg{Status: common.Success, Msg: "update cert content success", Data: certRes.CertName}
 }
 
 func reportCertToClient(req certutils.QueryCertRes) error {
@@ -139,9 +144,7 @@ func reportCertToClient(req certutils.QueryCertRes) error {
 	if err != nil {
 		return fmt.Errorf("get all node info failed, error: %v", err)
 	}
-	hwlog.RunLog.Errorf("nodes info:%v", nodes)
 	for _, node := range nodes {
-		hwlog.RunLog.Errorf("node info:%v", node)
 		if err := sendMessageToNode(node.SerialNumber, string(content)); err != nil {
 			hwlog.RunLog.Warnf("send message to node [%s], error: %v", node.SerialNumber, err)
 			continue
