@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"time"
 
+	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common/certutils"
 )
 
@@ -120,4 +121,49 @@ func (hr *HttpsRequest) handleResp(resp *http.Response) ([]byte, error) {
 		return nil, err
 	}
 	return readBytes, nil
+}
+
+// GetToFileByLimit [method] for http get resp to file
+func (hr *HttpsRequest) GetToFileByLimit(writer io.Writer, limit int64) error {
+	if hr.client == nil {
+		if err := hr.initClient(); err != nil {
+			return fmt.Errorf("init https client failed: %v", err)
+		}
+	}
+	req, err := http.NewRequest(http.MethodGet, hr.url, nil)
+	if len(hr.reqHeader) > 0 {
+		for k, v := range hr.reqHeader {
+			req.Header.Set(k, fmt.Sprintf("%v", v))
+		}
+	}
+	resp, err := hr.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer hr.client.CloseIdleConnections()
+	return hr.handleRespToWriter(resp, writer, limit)
+}
+
+func (hr *HttpsRequest) handleRespToWriter(resp *http.Response, writer io.Writer, limit int64) error {
+	if resp == nil {
+		return fmt.Errorf("http response is nil")
+	}
+
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			return
+		}
+	}()
+
+	if resp.ContentLength > limit {
+		return fmt.Errorf("response contentlength up to limit")
+	}
+
+	if _, err := io.Copy(writer, io.LimitReader(resp.Body, limit)); err != nil {
+		hwlog.RunLog.Errorf("write htt resp to writer failed, error: %v", err)
+		return err
+	}
+
+	return nil
 }
