@@ -38,4 +38,5 @@ const (
 	CertSizeLimited      = 1024 * 1024
 	DefaultCertRetryTime = 5
 	DefaultCertWaitTime  = 1
+	SecretNotFound       = "not found"
 )

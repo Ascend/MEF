@@ -144,6 +144,8 @@ const (
 	ErrorDeleteRootCa = "60001005"
 	// ErrorDistributeRootCa failed to distribute cert file
 	ErrorDistributeRootCa = "60001006"
+	// ErrorGetSecret failed to get secret
+	ErrorGetSecret = "60001007"
 )
 
 // ErrorMap error code and error msg map
@@ -280,6 +282,8 @@ var ErrorMap = map[string]string{
 	ErrorDeleteRootCa: "failed to delete cert file",
 	// ErrorDistributeRootCa failed to distribute cert file
 	ErrorDistributeRootCa: "failed to distribute cert file",
+	// ErrorGetSecret failed to get secret
+	ErrorGetSecret: "failed to get secret",
 
 	// ErrorAccountOrPassword incorrect account or password
 	ErrorAccountOrPassword: "incorrect account or password",
