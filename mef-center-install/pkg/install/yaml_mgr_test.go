@@ -44,9 +44,8 @@ spec:
 }
 
 func testGetYamlPath() {
-	var yamlDealers = GetYamlDealers([]string{"edge-manager"},
-		util.InitInstallDirPathMgr("./test_path"), "", "")
-	yamlPath := yamlDealers[0].getYamlPath()
+	yamlPath := "./test.yaml"
+	var yamlDealer = GetYamlDealer(util.InitInstallDirPathMgr("./test_path"), "edge-manager", "", "", yamlPath)
 	yamlContent := getTestYaml()
 	fmt.Printf(yamlPath)
 	err := os.MkdirAll(filepath.Dir(yamlPath), common.Mode700)
@@ -63,11 +62,9 @@ func testGetYamlPath() {
 	}()
 	_, err = writer.Write([]byte(yamlContent))
 	So(err, ShouldBeNil)
-	for _, dealers := range yamlDealers {
-		err = dealers.EditSingleYaml([]string{"edge-manager"})
-		So(err, ShouldBeNil)
-	}
 
+	err = yamlDealer.EditSingleYaml([]string{"edge-manager"})
+	So(err, ShouldBeNil)
 }
 
 func YamlEditTest() {

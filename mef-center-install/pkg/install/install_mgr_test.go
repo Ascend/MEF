@@ -167,7 +167,7 @@ func CheckDiskSpaceTest() {
 			return ErrTest
 		})
 		defer p.Reset()
-		So(ins.checkDiskSpace(), ShouldResemble, errors.New("get disk free space failed"))
+		So(ins.checkDiskSpace(), ShouldResemble, errors.New("get disk available space failed"))
 	})
 
 	Convey("test Check Disk Space func Disk Free enough", func() {
@@ -449,16 +449,16 @@ func PrepareCertsTest() {
 
 func PrepareWorkingDirTest() {
 	var ins = GetSftInstallMgrIns([]string{"edge-manager"}, "", "", "")
-	var workDirMgtCtl *workingDirCtl
+	var workDirMgtCtl *WorkingDirCtl
 	Convey("test prepareWorkingDir func success", func() {
-		p := ApplyPrivateMethod(workDirMgtCtl, "doPrepare", func(_ *workingDirCtl) error { return nil })
+		p := ApplyPrivateMethod(workDirMgtCtl, "DoInstallPrepare", func(_ *WorkingDirCtl) error { return nil })
 		defer p.Reset()
 		So(ins.prepareWorkingDir(), ShouldBeNil)
 	})
 
 	Convey("test prepareWorkingDir func failed", func() {
-		p := ApplyPrivateMethod(workDirMgtCtl, "doPrepare",
-			func(_ *workingDirCtl) error { return ErrTest })
+		p := ApplyPrivateMethod(workDirMgtCtl, "DoInstallPrepare",
+			func(_ *WorkingDirCtl) error { return ErrTest })
 		defer p.Reset()
 		So(ins.prepareWorkingDir(), ShouldResemble, ErrTest)
 	})
