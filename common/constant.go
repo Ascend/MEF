@@ -300,3 +300,16 @@ const (
 	UserGrepCommandPattern = "grep ^%s: /etc/passwd | grep nologin | wc -l"
 	NoLoginCount           = 1
 )
+
+// const for unpack zip file
+const (
+	MaxPkgSizeTimes      = 100
+	MaxExtractFileCount  = 100
+	MaxSingleExtractSize = 200 * MB
+	MaxTotalExtractSize  = 200 * MB
+
+	ZipSuffix   = ".zip"
+	TarGzSuffix = ".tar.gz"
+	CrlSuffix   = ".tar.gz.crl"
+	CmsSuffix   = ".tar.gz.cms"
+)
