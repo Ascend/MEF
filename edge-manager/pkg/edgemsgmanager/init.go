@@ -32,9 +32,6 @@ func (nm *NodeMsgDealer) Name() string {
 
 // Enable indicates whether this module is enabled
 func (nm *NodeMsgDealer) Enable() bool {
-	if !nm.enable {
-		return !nm.enable
-	}
 	return nm.enable
 }
 
