@@ -54,7 +54,7 @@ func downloadSoftware(input interface{}) common.RespMsg {
 	}
 
 	if len(batchResp.FailedIDs) != 0 {
-		hwlog.RunLog.Errorf("deal edge software download info failed")
+		hwlog.RunLog.Error("deal edge software upgrade info failed")
 		return common.RespMsg{Status: common.ErrorSendMsgToNode, Msg: "", Data: batchResp}
 	} else {
 		hwlog.RunLog.Info("deal edge software download info success")
