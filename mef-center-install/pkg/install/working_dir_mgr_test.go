@@ -15,7 +15,7 @@ import (
 )
 
 func WorkingDirMgrTest() {
-	Convey("WorkingDirMgr doPrepare func", WorkingDirMgrDoPrepareTest)
+	Convey("WorkingDirMgr DoInstallPrepare func", WorkingDirMgrDoPrepareTest)
 	Convey("prepareRootWorkDir func", PrepareRootWorkDirTest)
 	Convey("prepareLibDir func", PrepareLibDirTest)
 	Convey("prepareRunSh func", PrepareRunShTest)
@@ -26,34 +26,34 @@ func WorkingDirMgrTest() {
 }
 
 func WorkingDirMgrDoPrepareTest() {
-	var ins = &workingDirCtl{
+	var ins = &WorkingDirCtl{
 		pathMgr:     &util.WorkPathAMgr{},
 		mefLinkPath: "",
 		components:  nil,
 	}
 
-	Convey("test workingDirCtl struct doPrepare func success", func() {
-		p := ApplyPrivateMethod(ins, "prepareRootWorkDir", func(_ *workingDirCtl) error { return nil }).
-			ApplyPrivateMethod(ins, "prepareLibDir", func(_ *workingDirCtl) error { return nil }).
-			ApplyPrivateMethod(ins, "prepareRunSh", func(_ *workingDirCtl) error { return nil }).
-			ApplyPrivateMethod(ins, "prepareBinDir", func(_ *workingDirCtl) error { return nil }).
-			ApplyPrivateMethod(ins, "prepareVersionXml", func(_ *workingDirCtl) error { return nil }).
-			ApplyPrivateMethod(ins, "prepareComponentWorkDir", func(_ *workingDirCtl) error { return nil }).
-			ApplyPrivateMethod(ins, "prepareSymlinks", func(_ *workingDirCtl) error { return nil })
+	Convey("test workingDirCtl struct DoInstallPrepare func success", func() {
+		p := ApplyPrivateMethod(ins, "prepareRootWorkDir", func(_ *WorkingDirCtl) error { return nil }).
+			ApplyPrivateMethod(ins, "prepareLibDir", func(_ *WorkingDirCtl) error { return nil }).
+			ApplyPrivateMethod(ins, "prepareRunSh", func(_ *WorkingDirCtl) error { return nil }).
+			ApplyPrivateMethod(ins, "prepareBinDir", func(_ *WorkingDirCtl) error { return nil }).
+			ApplyPrivateMethod(ins, "prepareVersionXml", func(_ *WorkingDirCtl) error { return nil }).
+			ApplyPrivateMethod(ins, "prepareComponentWorkDir", func(_ *WorkingDirCtl) error { return nil }).
+			ApplyPrivateMethod(ins, "prepareSymlinks", func(_ *WorkingDirCtl) error { return nil })
 		defer p.Reset()
-		So(ins.doPrepare(), ShouldBeNil)
+		So(ins.DoInstallPrepare(), ShouldBeNil)
 	})
 
-	Convey("test workingDirCtl struct doPrepare func failed", func() {
+	Convey("test workingDirCtl struct DoInstallPrepare func failed", func() {
 		p := ApplyPrivateMethod(ins, "prepareRootWorkDir",
-			func(_ *workingDirCtl) error { return ErrTest })
+			func(_ *WorkingDirCtl) error { return ErrTest })
 		defer p.Reset()
-		So(ins.doPrepare(), ShouldResemble, ErrTest)
+		So(ins.DoInstallPrepare(), ShouldResemble, ErrTest)
 	})
 }
 
 func PrepareRootWorkDirTest() {
-	var ins = &workingDirCtl{
+	var ins = &WorkingDirCtl{
 		pathMgr:     &util.WorkPathAMgr{},
 		mefLinkPath: "",
 		components:  nil,
@@ -73,7 +73,7 @@ func PrepareRootWorkDirTest() {
 }
 
 func PrepareLibDirTest() {
-	var ins = &workingDirCtl{
+	var ins = &WorkingDirCtl{
 		pathMgr:     &util.WorkPathAMgr{},
 		mefLinkPath: "",
 		components:  []string{"edge-manager"},
@@ -117,7 +117,7 @@ func PrepareLibDirTest() {
 }
 
 func PrepareRunShTest() {
-	var ins = &workingDirCtl{
+	var ins = &WorkingDirCtl{
 		pathMgr:     &util.WorkPathAMgr{},
 		mefLinkPath: "",
 		components:  nil,
@@ -149,7 +149,7 @@ func PrepareRunShTest() {
 }
 
 func PrepareBinDirTest() {
-	var ins = &workingDirCtl{
+	var ins = &WorkingDirCtl{
 		pathMgr:     &util.WorkPathAMgr{},
 		mefLinkPath: "",
 		components:  nil,
@@ -189,7 +189,7 @@ func PrepareBinDirTest() {
 }
 
 func PrepareVersionXmlTest() {
-	var ins = &workingDirCtl{
+	var ins = &WorkingDirCtl{
 		pathMgr:     &util.WorkPathAMgr{},
 		mefLinkPath: "",
 		components:  nil,
@@ -221,7 +221,7 @@ func PrepareVersionXmlTest() {
 }
 
 func PrepareComponentWorkDirTest() {
-	var ins = &workingDirCtl{
+	var ins = &WorkingDirCtl{
 		pathMgr:     &util.WorkPathAMgr{},
 		mefLinkPath: "",
 		components:  []string{"edge-manager"},
@@ -250,7 +250,7 @@ func PrepareComponentWorkDirTest() {
 }
 
 func PrepareSymlinksTest() {
-	var ins = &workingDirCtl{
+	var ins = &WorkingDirCtl{
 		pathMgr:     &util.WorkPathAMgr{},
 		mefLinkPath: "",
 		components:  []string{"edge-manager"},

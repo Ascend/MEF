@@ -31,6 +31,7 @@ const (
 	MefSoftLink       = "mef-center"
 	MefWorkA          = "mef-center-A"
 	MefWorkB          = "mef-center-B"
+	TempUpgradeDir    = "temp-upgrade"
 	MefConfigDir      = "mef-config"
 	InstallPackageDir = "install-package"
 )
@@ -46,6 +47,7 @@ const (
 // single WorkDir constant
 const (
 	MefLibDir           = "lib"
+	MefVarDir           = "var"
 	ComponentLibDir     = "lib"
 	MefKmcLibDir        = "kmc-lib"
 	ImageConfigDir      = "image-config"
@@ -60,19 +62,18 @@ const (
 
 // MEF-Config constant
 const (
-	KmcDir            = "kmc"
-	RootCaDir         = "root-ca"
-	RootCaFileDir     = "cert"
-	RootCaKeyDir      = "key"
-	RootCaFile        = "RootCA.crt"
-	RootKeyFile       = "RootCA.key"
-	MasterKeyFile     = "master.ks"
-	BackUpKeyFile     = "backup.ks"
-	CertsDir          = "mef-certs"
-	CertSuffix        = ".crt"
-	KeySuffix         = ".key"
-	CaCommonName      = "MindX MEF"
-	NginxServerSuffix = "-server"
+	KmcDir        = "kmc"
+	RootCaDir     = "root-ca"
+	RootCaFileDir = "cert"
+	RootCaKeyDir  = "key"
+	RootCaFile    = "RootCA.crt"
+	RootKeyFile   = "RootCA.key"
+	MasterKeyFile = "master.ks"
+	BackUpKeyFile = "backup.ks"
+	CertsDir      = "mef-certs"
+	CertSuffix    = ".crt"
+	KeySuffix     = ".key"
+	CaCommonName  = "MindX MEF"
 )
 
 // log constant
@@ -135,8 +136,6 @@ const (
 	RunFlagCount    = 3
 
 	InstallDiskSpace    = 750 * common.MB
-	LogDiskSpace        = 750 * common.MB
-	LogBackupDiskSpace  = 750 * common.MB
 	CheckStatusInterval = 3 * time.Second
 	CheckStatusTimes    = 5
 )
@@ -145,6 +144,7 @@ const (
 const (
 	OperateFlag   = "operate"
 	UninstallFlag = "uninstall"
+	UpgradeFlag   = "upgrade"
 
 	StartOperateFlag   = "start"
 	StopOperateFlag    = "stop"
@@ -158,4 +158,14 @@ const (
 	SetLabelCmdPattern   = "kubectl label nodes %s --overwrite %s"
 	CheckLabelCmdPattern = "kubectl get nodes -l %s | grep -w %s | wc -l"
 	LabelCount           = 1
+)
+
+// constant for upgrade
+const (
+	UpgradeDiskSpace = 700 * common.MB
+	InstallDirName   = "installer"
+
+	ScriptsDirName  = "scripts"
+	UpgradeShName   = "upgrade.sh"
+	UpgradeWaitTime = 60
 )
