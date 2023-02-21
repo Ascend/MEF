@@ -5,7 +5,7 @@ declare -i ret_ok=0  # success
 
 CURRENT_PATH=$(dirname "$(readlink -f "$0")")
 cd "${CURRENT_PATH}" || exit 1
-export LD_LIBRARY_PATH=${CURRENT_PATH}/lib
+export LD_LIBRARY_PATH=${CURRENT_PATH}/lib/kmc-lib:$LD_LIBRARY_PATH
 INSTALL_PROGRAM_PATH="${CURRENT_PATH}/bin"
 INSTALL_BIN="MEF-center-installer"
 

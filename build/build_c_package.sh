@@ -1,13 +1,14 @@
 #!/bin/bash
 
-# Copyright (c) Huawei Technologies Co., Ltd. 2019-2025. All rights reserved.
-# Description: AtlasEdge 相关c库打包脚本
+# Copyright (c) Huawei Technologies Co., Ltd. 2023-2025. All rights reserved.
+# Description: Mef  相关c库打包脚本
 
 CUR_DIR=$(dirname $(readlink -f "$0"))
 TOP_DIR=$(readlink -f "$CUR_DIR"/../)
 PLATFORM_DIR=$TOP_DIR/platform
 OPENSOURCE_DIR=$TOP_DIR/opensource
 CMS_VERIFY_DIR=$TOP_DIR/MEF_Utils/cmsverifytool
+CMS_VERIFY_GO_DIR=$TOP_DIR/MEF_Utils/cmsverify
 
 function process()
 {
@@ -28,6 +29,10 @@ function process()
     fi
     cp "$CMS_VERIFY_DIR"/build/libcms_verify.so "$TOP_DIR"/output/lib
     cp "$CMS_VERIFY_DIR"/include/* "$TOP_DIR"/output/include
+
+    cp -rf "$TOP_DIR"/output/lib "$CMS_VERIFY_GO_DIR"/
+    cp -rf "$TOP_DIR"/output/include "$CMS_VERIFY_GO_DIR"/
+
     return 0
 }
 
