@@ -1,7 +1,7 @@
 FROM ubuntu:22.04 as build
 ARG UID
 RUN useradd -d /home/MEFCenter -u ${UID} -m -s  /usr/sbin/nologin MEFCenter
-COPY --chown=MEFCenter:MEFCenter ./lib /home/cert_mgr_lib
+COPY --chown=MEFCenter:MEFCenter ./kmc-lib /home/cert_mgr_lib
 WORKDIR /home/MEFCenter
 COPY cert-manager .
 
