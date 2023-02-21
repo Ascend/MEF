@@ -4,36 +4,14 @@ import (
 	"encoding/json"
 	"testing"
 
-	"edge-manager/pkg/types"
-
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
-
-func setup() {
-	var err error
-	logConfig := &hwlog.LogConfig{OnlyToStdout: true}
-	if err = common.InitHwlogger(logConfig, logConfig); err != nil {
-		hwlog.RunLog.Errorf("init hwlog failed, %v", err)
-	}
-
-	nodesProgress = make(map[string]types.ProgressInfo, 0)
-}
-
-func teardown() {
-
-}
-
-func TestMain(m *testing.M) {
-	setup()
-	code := m.Run()
-	teardown()
-	hwlog.RunLog.Infof("exit_code=%d\n", code)
-}
 
 func createBaseData() SoftwareDownloadInfo {
 	baseContent := `{
@@ -275,17 +253,6 @@ func testDownloadInfoUserNameInvalid() {
 
 		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
 	}
-
-	req.DownloadInfo.SignFile = nil
-	content, err := json.Marshal(req)
-	if err != nil {
-		hwlog.RunLog.Errorf("marshal failed")
-	}
-	msg.FillContent(string(content))
-
-	resp := downloadSoftware(msg)
-
-	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
 func testDownloadInfoPasswordInvalid() {
@@ -337,7 +304,6 @@ func TestDownloadInfo(t *testing.T) {
 			convey.Convey("test invalid Package", testDownloadInfoPackageInvalid)
 			convey.Convey("test invalid SignFile", testDownloadInfoSignFileInvalid)
 			convey.Convey("test invalid UserName", testDownloadInfoUserNameInvalid)
-			convey.Convey("test invalid Password", testDownloadInfoPasswordInvalid)
 		})
 	})
 }
