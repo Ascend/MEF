@@ -22,7 +22,7 @@ func (sac *setEdgeAccountChecker) init() {
 	sac.modelChecker.Required = true
 	sac.modelChecker.Checker = checker.GetAndChecker(
 		checker.GetRegChecker("Account", accountReg, true),
-		checker.GetPwdChecker("Password", passwordMinLen, passwordMaxLen, true),
+		checker.GetPwdChecker("Account", "Password", passwordMinLen, passwordMaxLen, true),
 		checker.GetStringEqualChecker("Password", "ConfirmPassword"),
 	)
 }
