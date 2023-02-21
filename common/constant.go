@@ -312,3 +312,11 @@ const (
 	UserGrepCommandPattern = "grep ^%s: /etc/passwd | grep nologin | wc -l"
 	NoLoginCount           = 1
 )
+
+// node specification
+const (
+	MaxNode         = 1024
+	MaxNodeGroup    = 1024
+	MaxNodePerGroup = 1024
+	MaxGroupPerNode = 10
+)

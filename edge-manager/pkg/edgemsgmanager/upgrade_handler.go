@@ -21,10 +21,15 @@ func upgradeEdgeSoftware(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "get message failed", Data: nil}
 	}
 
-	var req EffectInfoReq
+	var req upgradeInfoReq
 	var err error
 	if err = common.ParamConvert(message.GetContent(), &req); err != nil {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
+	}
+
+	if checkResult := newUpgradeChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("check software upgrade para failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
 	}
 
 	msg, err := model.NewMessage()

@@ -9,20 +9,20 @@ type SoftwareDownloadInfo struct {
 	SerialNumbers   []string     `json:"serialNumbers"`
 	SoftwareName    string       `json:"softwareName"`
 	SoftwareVersion string       `json:"softwareVersion,omitempty"`
-	DownLoadInfo    DownLoadInfo `json:"downLoadInfo"`
+	DownloadInfo    DownloadInfo `json:"downloadInfo"`
 }
 
-// DownLoadInfo [struct] to software download info
-type DownLoadInfo struct {
-	Package  string `json:"package"`
-	SignFile string `json:"signFile"`
-	CrlFile  string `json:"crlFile,omitempty"`
-	UserName string `json:"username"`
-	Password []byte `json:"password"`
+// DownloadInfo [struct] to software download info
+type DownloadInfo struct {
+	Package  string  `json:"package"`
+	SignFile *string `json:"signFile,omitempty"`
+	CrlFile  *string `json:"crlFile,omitempty"`
+	UserName string  `json:"username"`
+	Password []byte  `json:"password"`
 }
 
-// EffectInfoReq effect software
-type EffectInfoReq struct {
+// upgradeInfoReq effect software
+type upgradeInfoReq struct {
 	NodeIDs       []uint64 `json:"nodeIDs"`
 	SerialNumbers []string `json:"serialNumbers"`
 	SoftwareName  string   `json:"softwareName"`

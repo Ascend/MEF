@@ -5,6 +5,7 @@ package edgemsgmanager
 
 import (
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common/checker/checker"
 
 	"edge-manager/pkg/types"
 
@@ -25,6 +26,12 @@ func queryEdgeDownloadProgress(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("query edge software upgrade progress failed: para type not valid")
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "query edge software upgrade progress" +
 			" convert error", Data: nil}
+	}
+
+	if res := checker.GetRegChecker("",
+		`^[a-zA-Z0-9]([-_a-zA-Z0-9]{0,62}[a-zA-Z0-9])?$`, true).Check(serialNumber); !res.Result {
+		hwlog.RunLog.Errorf("check download progress para failed: %s", res.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: res.Reason, Data: nil}
 	}
 
 	var processInfo types.ProgressInfo
