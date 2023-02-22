@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/terminal"
@@ -29,6 +30,11 @@ type uninstallController struct {
 	installParam *util.InstallParamJsonTemplate
 }
 
+type upgradeController struct {
+	zipPath      string
+	installParam *util.InstallParamJsonTemplate
+}
+
 var (
 	// BuildName the program name
 	BuildName string
@@ -38,6 +44,7 @@ var (
 	componentType string
 	version       bool
 	operateType   string
+	zipPath       string
 )
 
 const (
@@ -45,14 +52,15 @@ const (
 	stopFlag    = "stop"
 	restartFlag = "restart"
 	operateFlag = "operate"
+	pathFlag    = "zipPath"
 )
 
 func init() {
 	flag.StringVar(&componentType, startFlag, "all", "start a component, default all components")
 	flag.StringVar(&componentType, stopFlag, "all", "stop a component, default all components")
 	flag.StringVar(&componentType, restartFlag, "all", "restart a component, default all components")
-	flag.StringVar(&operateType, operateFlag, "other",
-		"to illustrate the operate type: control, uninstall or upgrade")
+	flag.StringVar(&operateType, operateFlag, "other", "to illustrate the operate type: control, uninstall or upgrade")
+	flag.StringVar(&zipPath, pathFlag, "", "the path of the zip file to upgrade MEF Center")
 	flag.BoolVar(&version, util.VersionFlag, false, "Output the program version")
 }
 
@@ -109,12 +117,33 @@ func (oc *operateController) doControl() error {
 
 func (oc *uninstallController) doControl() error {
 	installedComponents := oc.installParam.Components
-	if err := checkComponent(installedComponents); err != nil {
-		return err
-	}
 
 	controlMgr := control.GetSftUninstallMgrIns(installedComponents, oc.installParam.InstallDir)
 	if err := controlMgr.DoUninstall(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (uc *upgradeController) doControl() error {
+	installedComponents := uc.installParam.Components
+	var zipSizeMul int64 = 100
+
+	pathMgr := util.InitInstallDirPathMgr(uc.installParam.InstallDir)
+	unpackPath := pathMgr.WorkPathMgr.GetRelativeVarDirPath()
+	if filepath.Dir(uc.zipPath) == unpackPath {
+		hwlog.RunLog.Errorf("zipDir cannot be the unpack dir:%s", unpackPath)
+		return errors.New("zipDir cannot be the unpack dir")
+	}
+
+	if _, err := utils.RealFileChecker(uc.zipPath, true, false, zipSizeMul); err != nil {
+		hwlog.RunLog.Errorf("zipPath check failed: %s", err)
+		return errors.New("zipPath check failed")
+	}
+
+	controlMgr := control.GetUpgradePreMgr(uc.zipPath, installedComponents, uc.installParam.InstallDir)
+
+	if err := controlMgr.DoUpgrade(); err != nil {
 		return err
 	}
 	return nil
@@ -135,12 +164,11 @@ func main() {
 		os.Exit(util.ErrorExitCode)
 	}
 
-	if err := initLog(installParam); err != nil {
+	if err = initLog(installParam); err != nil {
 		fmt.Println(err.Error())
 		os.Exit(util.ErrorExitCode)
 	}
 	fmt.Println("init log success")
-
 	user, ip, err := terminal.GetLoginUserAndIP()
 	if err != nil {
 		hwlog.RunLog.Errorf("get current user or ip info failed: %s", err.Error())
@@ -148,10 +176,7 @@ func main() {
 		os.Exit(util.ErrorExitCode)
 	}
 
-	operateMap := map[string]controller{
-		util.OperateFlag:   &operateController{operate: operate, installParam: installParam},
-		util.UninstallFlag: &uninstallController{installParam: installParam},
-	}
+	operateMap := getOperateMap(installParam, operate)
 	controllerIns := operateMap[operateType]
 	if controllerIns == nil {
 		hwlog.RunLog.Error("get controller failed")
@@ -159,14 +184,14 @@ func main() {
 		os.Exit(util.ErrorExitCode)
 	}
 
-	hwlog.RunLog.Infof("start to %s %s component", operate, componentType)
+	hwlog.RunLog.Infof("-------------------start to %s %s component-------------------", operate, componentType)
 	hwlog.OpLog.Infof("%s: %s, start to %s %s component", ip, user, operate, componentType)
 	if err = controllerIns.doControl(); err != nil {
-		hwlog.RunLog.Errorf("%s %s component failed", operate, componentType)
+		hwlog.RunLog.Errorf("-------------------%s %s component failed-------------------", operate, componentType)
 		hwlog.OpLog.Errorf("%s: %s, %s %s component failed", ip, user, operate, componentType)
-		os.Exit(1)
+		os.Exit(util.ErrorExitCode)
 	}
-	hwlog.RunLog.Infof("%s %s component successful", operate, componentType)
+	hwlog.RunLog.Infof("-------------------%s %s component successful-------------------", operate, componentType)
 	hwlog.OpLog.Infof("%s: %s, %s %s component successful", ip, user, operate, componentType)
 }
 
@@ -187,4 +212,15 @@ func initLog(installParam *util.InstallParamJsonTemplate) error {
 		return fmt.Errorf("init log path %s failed:%s", logPath, err.Error())
 	}
 	return nil
+}
+
+func getOperateMap(installParam *util.InstallParamJsonTemplate, operate string) map[string]controller {
+	return map[string]controller{
+		util.OperateFlag:   &operateController{operate: operate, installParam: installParam},
+		util.UninstallFlag: &uninstallController{installParam: installParam},
+		util.UpgradeFlag: &upgradeController{
+			installParam: installParam,
+			zipPath:      zipPath,
+		},
+	}
 }

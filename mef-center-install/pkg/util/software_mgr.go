@@ -11,7 +11,7 @@ import (
 	"huawei.com/mindxedge/base/common"
 )
 
-// SoftwareMgr is the father struct of install/uninstall struct that manages functions to clear environment
+// SoftwareMgr is the father struct of install/uninstall/upgrade struct that manages public functions
 type SoftwareMgr struct {
 	Components     []string
 	InstallPathMgr *InstallDirPathMgr
