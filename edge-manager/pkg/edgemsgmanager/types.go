@@ -15,14 +15,14 @@ type SoftwareDownloadInfo struct {
 // DownLoadInfo [struct] to software download info
 type DownLoadInfo struct {
 	Package  string `json:"package"`
-	SignFile string `json:"signFile"`
+	SignFile string `json:"signFile,omitempty"`
 	CrlFile  string `json:"crlFile,omitempty"`
 	UserName string `json:"username"`
 	Password []byte `json:"password"`
 }
 
-// EffectInfoReq effect software
-type EffectInfoReq struct {
+// UpdateInfoReq update software
+type UpdateInfoReq struct {
 	NodeIDs       []uint64 `json:"nodeIDs"`
 	SerialNumbers []string `json:"serialNumbers"`
 	SoftwareName  string   `json:"softwareName"`

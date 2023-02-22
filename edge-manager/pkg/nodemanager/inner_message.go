@@ -35,7 +35,7 @@ func innerGetNodeInfoByUniqueName(input interface{}) common.RespMsg {
 }
 
 func innerGetNodeSoftwareInfo(input interface{}) common.RespMsg {
-	req, ok := input.(types.InnerGetSoftwareInfoBySerialNumberReq)
+	req, ok := input.(types.InnerGetSfwInfoBySNReq)
 	if !ok {
 		hwlog.RunLog.Error("parse inner message content failed")
 		return common.RespMsg{Status: "", Msg: "parse inner message content failed", Data: nil}

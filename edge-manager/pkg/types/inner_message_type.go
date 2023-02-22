@@ -10,8 +10,8 @@ type InnerGetNodeInfoByNameReq struct {
 	UniqueName string `json:"uniqueName"`
 }
 
-// InnerGetSoftwareInfoBySerialNumberReq is the request struct for internal module to get node info by SerialNumber
-type InnerGetSoftwareInfoBySerialNumberReq struct {
+// InnerGetSfwInfoBySNReq is the request struct for internal module to get node info by SerialNumber
+type InnerGetSfwInfoBySNReq struct {
 	SerialNumber string `json:"serialNumber"`
 }
 

@@ -18,7 +18,7 @@ func downloadSoftware(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start update edge software")
 	message, ok := input.(*model.Message)
 	if !ok {
-		hwlog.RunLog.Errorf("get message failed")
+		hwlog.RunLog.Error("get message failed")
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "get message failed", Data: nil}
 	}
 
@@ -30,7 +30,7 @@ func downloadSoftware(input interface{}) common.RespMsg {
 
 	msg, err := model.NewMessage()
 	if err != nil {
-		hwlog.RunLog.Errorf("create message failed")
+		hwlog.RunLog.Error("create message failed")
 		return common.RespMsg{Status: common.ErrorNewMsg, Msg: "create message failed", Data: nil}
 	}
 

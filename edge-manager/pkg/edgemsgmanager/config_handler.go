@@ -25,7 +25,7 @@ func GetConfigInfo(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("edge msg manager received message from edge hub success to get token")
 	message, ok := input.(*model.Message)
 	if !ok {
-		hwlog.RunLog.Errorf("get message failed")
+		hwlog.RunLog.Error("get message failed")
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "get message failed", Data: nil}
 	}
 
