@@ -44,12 +44,20 @@ func upgradeEdgeSoftware(input interface{}) common.RespMsg {
 	for _, sn := range req.SerialNumbers {
 		msg.SetNodeId(sn)
 
-		err = modulemanager.SendMessage(msg)
+		rsp, err := modulemanager.SendSyncMessage(msg, common.ResponseTimeout)
 		if err != nil {
+			hwlog.RunLog.Errorf("send software upgrade info to %s failed", sn)
 			batchResp.FailedIDs = append(batchResp.FailedIDs, sn)
-		} else {
-			batchResp.SuccessIDs = append(batchResp.SuccessIDs, sn)
+			continue
 		}
+
+		if content, ok := rsp.GetContent().(string); !ok || content != common.OK {
+			batchResp.FailedIDs = append(batchResp.FailedIDs, sn)
+			continue
+		}
+
+		batchResp.SuccessIDs = append(batchResp.SuccessIDs, sn)
+		nodesProgress[sn] = types.ProgressInfo{}
 	}
 
 	if len(batchResp.FailedIDs) != 0 {

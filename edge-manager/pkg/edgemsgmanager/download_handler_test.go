@@ -6,6 +6,7 @@ package edgemsgmanager
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
@@ -51,8 +52,15 @@ func testDownloadInfo() {
 	}
 
 	msg.FillContent(string(content))
-	var p2 = gomonkey.ApplyFunc(modulemanager.SendMessage, func(m *model.Message) error {
-		return nil
+
+	var p2 = gomonkey.ApplyFunc(modulemanager.SendSyncMessage, func(m *model.Message,
+		duration time.Duration) (*model.Message, error) {
+		rspMsg, err := model.NewMessage()
+		if err != nil {
+			hwlog.RunLog.Error("create message failed")
+		}
+		rspMsg.FillContent(common.OK)
+		return rspMsg, nil
 	})
 	defer p2.Reset()
 
@@ -67,8 +75,14 @@ func testDownloadInfoSerialNumbersInvalid() {
 		hwlog.RunLog.Errorf("create message failed")
 	}
 
-	var p2 = gomonkey.ApplyFunc(modulemanager.SendMessage, func(m *model.Message) error {
-		return nil
+	var p2 = gomonkey.ApplyFunc(modulemanager.SendSyncMessage, func(m *model.Message,
+		duration time.Duration) (*model.Message, error) {
+		rspMsg, err := model.NewMessage()
+		if err != nil {
+			hwlog.RunLog.Error("create message failed")
+		}
+		rspMsg.FillContent(common.OK)
+		return rspMsg, nil
 	})
 	defer p2.Reset()
 
@@ -105,11 +119,16 @@ func testDownloadInfoSoftWareNameInvalid() {
 		hwlog.RunLog.Errorf("create message failed")
 	}
 
-	var p2 = gomonkey.ApplyFunc(modulemanager.SendMessage, func(m *model.Message) error {
-		return nil
+	var p2 = gomonkey.ApplyFunc(modulemanager.SendSyncMessage, func(m *model.Message,
+		duration time.Duration) (*model.Message, error) {
+		rspMsg, err := model.NewMessage()
+		if err != nil {
+			hwlog.RunLog.Error("create message failed")
+		}
+		rspMsg.FillContent(common.OK)
+		return rspMsg, nil
 	})
 	defer p2.Reset()
-
 	req := createBaseData()
 
 	dataCases := []string{
@@ -137,8 +156,14 @@ func testDownloadInfoPackageInvalid() {
 		hwlog.RunLog.Errorf("create message failed")
 	}
 
-	var p2 = gomonkey.ApplyFunc(modulemanager.SendMessage, func(m *model.Message) error {
-		return nil
+	var p2 = gomonkey.ApplyFunc(modulemanager.SendSyncMessage, func(m *model.Message,
+		duration time.Duration) (*model.Message, error) {
+		rspMsg, err := model.NewMessage()
+		if err != nil {
+			hwlog.RunLog.Error("create message failed")
+		}
+		rspMsg.FillContent(common.OK)
+		return rspMsg, nil
 	})
 	defer p2.Reset()
 
@@ -179,11 +204,16 @@ func testDownloadInfoSignFileInvalid() {
 		hwlog.RunLog.Errorf("create message failed")
 	}
 
-	var p2 = gomonkey.ApplyFunc(modulemanager.SendMessage, func(m *model.Message) error {
-		return nil
+	var p2 = gomonkey.ApplyFunc(modulemanager.SendSyncMessage, func(m *model.Message,
+		duration time.Duration) (*model.Message, error) {
+		rspMsg, err := model.NewMessage()
+		if err != nil {
+			hwlog.RunLog.Error("create message failed")
+		}
+		rspMsg.FillContent(common.OK)
+		return rspMsg, nil
 	})
 	defer p2.Reset()
-
 	req := createBaseData()
 
 	failDataCases := []string{
@@ -219,8 +249,14 @@ func testDownloadInfoUserNameInvalid() {
 		hwlog.RunLog.Errorf("create message failed")
 	}
 
-	var p2 = gomonkey.ApplyFunc(modulemanager.SendMessage, func(m *model.Message) error {
-		return nil
+	var p2 = gomonkey.ApplyFunc(modulemanager.SendSyncMessage, func(m *model.Message,
+		duration time.Duration) (*model.Message, error) {
+		rspMsg, err := model.NewMessage()
+		if err != nil {
+			hwlog.RunLog.Error("create message failed")
+		}
+		rspMsg.FillContent(common.OK)
+		return rspMsg, nil
 	})
 	defer p2.Reset()
 

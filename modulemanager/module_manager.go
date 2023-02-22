@@ -107,5 +107,6 @@ func SendAsyncMessage(m *model.Message) error {
 
 // SendSyncMessage send sync message
 func SendSyncMessage(m *model.Message, duration time.Duration) (*model.Message, error) {
+	m.SetIsSync(true)
 	return moduleContext.SendSync(m, duration)
 }

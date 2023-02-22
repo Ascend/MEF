@@ -10,8 +10,6 @@ import (
 	"net/http"
 	"time"
 
-	"huawei.com/mindx/common/hwlog"
-
 	"huawei.com/mindxedge/base/common/certutils"
 )
 

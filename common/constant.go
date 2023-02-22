@@ -245,6 +245,12 @@ const (
 	MinComplexCount = 2
 )
 
+// field status
+const (
+	OK   = "OK"
+	FAIL = "FAIL"
+)
+
 // used to check ip
 const (
 	ZeroAddr      = "0.0.0.0"
