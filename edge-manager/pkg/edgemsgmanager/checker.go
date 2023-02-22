@@ -22,7 +22,7 @@ func (d *downloadChecker) init() {
 	d.modelChecker.Checker = checker.GetAndChecker(
 		checker.GetUniqueListChecker("SerialNumbers",
 			checker.GetRegChecker("", `^[a-zA-Z0-9]([-_a-zA-Z0-9]{0,62}[a-zA-Z0-9])?$`, true),
-			1, 1024, true),
+			1, common.MaxNode, true),
 		checker.GetStringChoiceChecker("SoftwareName",
 			[]string{common.MEFEdge, common.EdgeCore, common.DevicePlugin}, true),
 		GetDownloadInfoChecker("DownloadInfo", true),
@@ -66,6 +66,7 @@ func (d *downloadInfoChecker) Check(data interface{}) checker.CheckResult {
 	return checker.NewSuccessResult()
 }
 
+// GetDownloadInfoChecker [method] software download info checker
 func GetDownloadInfoChecker(field string, required bool) *downloadInfoChecker {
 	return &downloadInfoChecker{
 		modelChecker: checker.ModelChecker{Field: field, Required: required},
@@ -86,7 +87,7 @@ func (u *upgradeChecker) init() {
 			checker.GetRegChecker("", `^[a-zA-Z0-9]([-_a-zA-Z0-9]{0,62}[a-zA-Z0-9])?$`, true),
 			1, common.MaxNode, true),
 		checker.GetStringChoiceChecker("SoftwareName",
-			[]string{common.EdgeInstaller, common.EdgeCore, common.DevicePlugin}, true),
+			[]string{common.MEFEdge, common.EdgeCore, common.DevicePlugin}, true),
 	)
 }
 

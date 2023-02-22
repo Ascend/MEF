@@ -1,3 +1,6 @@
+// Copyright (c)  2023. Huawei Technologies Co., Ltd.  All rights reserved.
+
+// Package edgemsgmanager for test software query
 package edgemsgmanager
 
 import (
@@ -39,9 +42,14 @@ func testSoftwareQueryValid() {
 
 	for _, dataCase := range dataCases {
 		msg.FillContent(dataCase)
-		resp := queryEdgeSoftwareVersion(msg)
+		rsp := queryEdgeSoftwareVersion(msg)
 
-		convey.So(resp.Status, convey.ShouldEqual, common.Success)
+		convey.So(rsp.Status, convey.ShouldEqual, common.Success)
+		softwareInfo, ok := rsp.Data.([]types.SoftwareInfo)
+		convey.So(ok, convey.ShouldEqual, true)
+		convey.So(softwareInfo[0].Name, convey.ShouldEqual, "edgecore")
+		convey.So(softwareInfo[0].Version, convey.ShouldEqual, "v1.12")
+		convey.So(softwareInfo[0].InactiveVersion, convey.ShouldEqual, "v1.12")
 	}
 
 }

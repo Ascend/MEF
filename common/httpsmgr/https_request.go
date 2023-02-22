@@ -124,8 +124,8 @@ func (hr *HttpsRequest) handleResp(resp *http.Response) ([]byte, error) {
 	return readBytes, nil
 }
 
-// GetRespToFileByLimit [method] for http get resp to file
-func (hr *HttpsRequest) GetRespToFileByLimit(writer io.Writer, limit int64) error {
+// GetRespToFileWithLimit [method] for http get resp to file
+func (hr *HttpsRequest) GetRespToFileWithLimit(writer io.Writer, limit int64) error {
 	if hr.client == nil {
 		if err := hr.initClient(); err != nil {
 			return fmt.Errorf("init https client failed: %v", err)
