@@ -167,7 +167,7 @@ func CheckDiskSpaceTest() {
 			return ErrTest
 		})
 		defer p.Reset()
-		So(ins.checkDiskSpace(), ShouldResemble, errors.New("get disk available space failed"))
+		So(ins.checkDiskSpace(), ShouldResemble, errors.New("check install disk space failed"))
 	})
 
 	Convey("test Check Disk Space func Disk Free enough", func() {
@@ -187,7 +187,7 @@ func CheckDiskSpaceTest() {
 			return nil
 		})
 		defer p.Reset()
-		So(ins.checkDiskSpace(), ShouldResemble, errors.New("no enough space to install mef-center"))
+		So(ins.checkDiskSpace(), ShouldResemble, errors.New("check install disk space failed"))
 	})
 }
 
