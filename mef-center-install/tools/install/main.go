@@ -4,6 +4,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -84,30 +85,47 @@ func doInstall() error {
 func checkPath() error {
 	var err error
 
-	if logRootPath == "" || !utils.IsExist(logRootPath) {
-		return fmt.Errorf("log dir [%s] does not exist", logRootPath)
+	if logRootPath, err = checkSinglePath(logRootPath); err != nil {
+		return fmt.Errorf("check log root path failed: %s", logRootPath)
 	}
 
-	if logBackupRootPath == "" || !utils.IsExist(logBackupRootPath) {
-		return fmt.Errorf("log backup dir [%s] does not exist", logBackupRootPath)
+	if logBackupRootPath, err = checkSinglePath(logBackupRootPath); err != nil {
+		return fmt.Errorf("check log back path failed: %s", logRootPath)
 	}
 
-	if installPath == "" || !utils.IsExist(installPath) {
-		return fmt.Errorf("install dir [%s] does not exist", installPath)
+	if installPath, err = checkSinglePath(installPath); err != nil {
+		return fmt.Errorf("check install path failed: %s", logRootPath)
 	}
 
-	if logRootPath, err = utils.RealDirChecker(logRootPath, true, false); err != nil {
-		return fmt.Errorf("check log dir failed, error: %s", err.Error())
+	return nil
+}
+
+func checkSinglePath(path string) (string, error) {
+	if path == "" || !utils.IsExist(path) {
+		return "", fmt.Errorf("path [%s] does not exist", path)
 	}
 
-	if logBackupRootPath, err = utils.RealDirChecker(logBackupRootPath, true, false); err != nil {
-		return fmt.Errorf("check log backup dir failed, error: %s", err.Error())
+	absPath, err := utils.RealDirChecker(path, true, false)
+	if err != nil {
+		return "", err
 	}
 
-	if installPath, err = utils.RealDirChecker(installPath, true, false); err != nil {
-		return fmt.Errorf("check install dir failed, error: %s", err.Error())
+	if err = checkTmpfs(absPath); err != nil {
+		return "", err
 	}
 
+	return absPath, nil
+}
+
+func checkTmpfs(path string) error {
+	dev, err := common.GetDevInfo(path)
+	if err != nil {
+		return err
+	}
+
+	if dev == common.TmpfsDevNum {
+		return errors.New("path [%s]'s is in tmpfs filesystem")
+	}
 	return nil
 }
 

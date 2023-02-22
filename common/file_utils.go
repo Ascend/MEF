@@ -106,6 +106,18 @@ func GetDiskFree(path string) (uint64, error) {
 	return diskFree, nil
 }
 
+// GetDevInfo is used to get the dev_number of a path
+// ret equals the dev_t definition in linux stat struct
+func GetDevInfo(path string) (uint64, error) {
+	fs := syscall.Stat_t{}
+	err := syscall.Stat(path, &fs)
+	if err != nil {
+		return 0, fmt.Errorf("get [%s]'s dev info failed: %s", path, err.Error())
+	}
+
+	return fs.Dev, nil
+}
+
 // ExtraUpgradeZipFile extract zip file
 func ExtraUpgradeZipFile(zipFile, extractPath string) error {
 	reader, err := prepareExtraZip(zipFile, extractPath)

@@ -313,3 +313,6 @@ const (
 	CrlSuffix   = ".tar.gz.crl"
 	CmsSuffix   = ".tar.gz.cms"
 )
+
+// TmpfsDevNum represents the dev number of tmpfs filesystem in linux stat struct
+const TmpfsDevNum = 0x01021994
