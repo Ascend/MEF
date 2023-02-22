@@ -6,7 +6,7 @@ declare -i ret_failed=1  # failed
 CURRENT_PATH=$(dirname "$(readlink -f "$0")")
 cd "${CURRENT_PATH}" || exit 1
 TOOL_BINARY_PATH="${CURRENT_PATH}/bin"
-export LD_LIBRARY_PATH=${CURRENT_PATH}/lib/kmc-lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=${CURRENT_PATH}/lib/kmc-lib:${CURRENT_PATH}/lib/lib:$LD_LIBRARY_PATH
 
 print_helps()
 {
