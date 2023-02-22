@@ -5,6 +5,7 @@ systemEnv:
   - processor
   - version
 TOP_DIR: "{{systemEnv.workspace}}/{{component}}"
+CMS_VERIFY_DIR: "{{TOP_DIR}}/MEF_Utils/cmsverifytool"
 EDGE_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/edge-manager"
 SOFTWARE_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/software-manager"
 CERT_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/cert-manager"
@@ -72,6 +73,9 @@ compile:
             - command: "fakeroot cp -rf {{NGINX_MANAGER_DIR}}/output/* {{TOP_DIR}}/savedir/nginx-manager/"
         - commands:
             - command: "fakeroot cp -rf {{CERT_MANAGER_DIR}}/output/* {{TOP_DIR}}/savedir/cert-manager/"
+        - copy:
+            src: [ '{{ CMS_VERIFY_DIR }}/build/libcms_verify.so' ]
+            des: "{{TOP_DIR}}/savedir/installer/lib/lib"
         - mode:
             src:
               - "{{TOP_DIR}}/savedir/*"
@@ -89,7 +93,8 @@ compile:
         - commands:
             - command: "bash {{ systemEnv.workspace }}/../CI/CleanCode/script/signature.sh MEF_Center"
         - commands:
-            - command: "mv {{TOP_DIR}}/output/crldata.crl {{TOP_DIR}}/output/Ascend-mindxedge-mefcenter_{{version}}_linux-{{systemEnv.processor}}.crl"
+            - command: "mv {{TOP_DIR}}/output/crldata.crl 
+            {{TOP_DIR}}/output/Ascend-mindxedge-mefcenter_{{version}}_linux-{{systemEnv.processor}}.tar.gz.crl"
         - move:
             src: ["{{TOP_DIR}}/savedir/Ascend-mindxedge-mefcenter_{{version}}_linux-{{systemEnv.processor}}.tar.gz"]
             des: "{{TOP_DIR}}/output"

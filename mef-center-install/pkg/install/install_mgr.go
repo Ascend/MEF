@@ -7,27 +7,12 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strconv"
-	"strings"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
-)
-
-var (
-	necessaryTools = [...]string{
-		"sh",
-		"kubectl",
-		"docker",
-		"uname",
-		"cp",
-		"grep",
-		"useradd",
-		"wc",
-	}
 )
 
 // SftInstallCtl is the main struct to install mef-center
@@ -119,10 +104,10 @@ func (sic *SftInstallCtl) checkArch() error {
 
 func (sic *SftInstallCtl) checkDiskSpace() error {
 	rootPath := sic.InstallPathMgr.GetRootPath()
-	availSpace, err := util.GetDiskFree(rootPath)
+	availSpace, err := common.GetDiskFree(rootPath)
 	if err != nil {
-		hwlog.RunLog.Errorf("get disk free space failed: %s", err.Error())
-		return errors.New("get disk free space failed")
+		hwlog.RunLog.Errorf("get disk available space failed: %s", err.Error())
+		return errors.New("get disk available space failed")
 	}
 
 	if availSpace < util.InstallDiskSpace {
@@ -135,7 +120,7 @@ func (sic *SftInstallCtl) checkDiskSpace() error {
 
 func (sic *SftInstallCtl) checkNecessaryTools() error {
 	hwlog.RunLog.Info("start to check necessary tools")
-	for _, tool := range necessaryTools {
+	for _, tool := range util.GetNecessaryTools() {
 		if _, err := exec.LookPath(tool); err != nil {
 			return fmt.Errorf("look path of [%s] failed, error: %s", tool, err.Error())
 		}
@@ -169,39 +154,17 @@ func (sic *SftInstallCtl) checkInstalled() error {
 		return errors.New("the software has already been installed")
 	}
 
-	err = sic.checkK8sLabel()
+	k8sMgr := util.K8sLabelMgr{}
+	exists, err := k8sMgr.CheckK8sLabel()
 	if err != nil {
 		return err
+	}
+	if exists {
+		hwlog.RunLog.Error("the software has already been installed since k8s label exists")
+		return errors.New("the software has already been installed since k8s label exists")
 	}
 	hwlog.RunLog.Info("check if the software has been installed successful")
 	return nil
-}
-
-func (sic *SftInstallCtl) checkK8sLabel() error {
-	nodeName, err := sic.getCurrentNodeName()
-	if err != nil {
-		return nil
-	}
-
-	if strings.ContainsAny(nodeName, common.IllegalChars) {
-		hwlog.RunLog.Error("the nodeName contains illegal characters")
-		return errors.New("the nodeName contains illegal characters")
-	}
-
-	nodeNameReg := fmt.Sprintf("'^%s\\s'", nodeName)
-	cmd := fmt.Sprintf(util.CheckLabelCmdPattern, util.K8sLabel, nodeNameReg)
-	ret, err := common.RunCommand("sh", false, common.DefaultCmdWaitTime, "-c", cmd)
-	if err != nil {
-		hwlog.RunLog.Errorf("check k8s label existence failed: %s", err.Error())
-		return err
-	}
-
-	if ret != strconv.Itoa(util.LabelCount) {
-		return nil
-	}
-
-	hwlog.RunLog.Error("the software has already been installed since k8s label exists")
-	return errors.New("the software has already been installed since k8s label exists")
 }
 
 func (sic *SftInstallCtl) prepareMefUser() error {
@@ -217,39 +180,10 @@ func (sic *SftInstallCtl) prepareMefUser() error {
 	return nil
 }
 
-func (sic *SftInstallCtl) getCurrentNodeName() (string, error) {
-	localIp, err := util.GetLocalIp()
-	if err != nil {
-		hwlog.RunLog.Errorf("get local IP failed: %s", err.Error())
-		return "", err
-	}
-
-	ipReg := fmt.Sprintf("\\s*%s\\s*", localIp)
-	cmd := fmt.Sprintf(util.GetNodeCmdPattern, ipReg)
-	nodeName, err := common.RunCommand("sh", false, common.DefaultCmdWaitTime, "-c", cmd)
-	if err != nil {
-		hwlog.RunLog.Errorf("get current node failed: %s", err.Error())
-		return "", err
-	}
-	return nodeName, nil
-}
-
 func (sic *SftInstallCtl) prepareK8sLabel() error {
 	hwlog.RunLog.Info("start to set label for master node")
-	nodeName, err := sic.getCurrentNodeName()
-	if err != nil {
-		return err
-	}
-
-	if strings.ContainsAny(nodeName, common.IllegalChars) {
-		hwlog.RunLog.Error("the nodeName contains illegal characters")
-		return errors.New("the nodeName contains illegal characters")
-	}
-
-	cmd := fmt.Sprintf(util.SetLabelCmdPattern, nodeName, util.K8sLabel)
-	_, err = common.RunCommand("sh", false, common.DefaultCmdWaitTime, "-c", cmd)
-	if err != nil {
-		hwlog.RunLog.Errorf("set mef label failed: %s", err.Error())
+	k8sMgr := util.K8sLabelMgr{}
+	if err := k8sMgr.PrepareK8sLabel(); err != nil {
 		return err
 	}
 	hwlog.RunLog.Info("start to set label for master node")
@@ -307,13 +241,12 @@ func (sic *SftInstallCtl) prepareCerts() error {
 }
 
 func (sic *SftInstallCtl) prepareWorkingDir() error {
-	workingDirHandleCtl := workingDirCtl{
-		pathMgr:     sic.InstallPathMgr.WorkPathAMgr,
-		mefLinkPath: sic.InstallPathMgr.GetWorkPath(),
-		components:  sic.Components,
-	}
+	workingDirHandleCtl := GetWorkingDirMgr(
+		sic.InstallPathMgr.WorkPathAMgr,
+		sic.InstallPathMgr.GetWorkPath(),
+		sic.Components)
 
-	if err := workingDirHandleCtl.doPrepare(); err != nil {
+	if err := workingDirHandleCtl.DoInstallPrepare(); err != nil {
 		hwlog.RunLog.Errorf("prepare working dir failed: %v", err.Error())
 		return err
 	}
@@ -322,9 +255,11 @@ func (sic *SftInstallCtl) prepareWorkingDir() error {
 
 func (sic *SftInstallCtl) prepareYaml() error {
 	hwlog.RunLog.Info("start to prepare components' yaml")
-	yamlDealers := GetYamlDealers(
-		sic.Components, sic.InstallPathMgr, sic.logPathMgr.GetLogRootPath(), sic.logPathMgr.GetLogBackupRootPath())
-	for _, yamlDealer := range yamlDealers {
+	for _, component := range sic.Components {
+		yamlPath := sic.InstallPathMgr.WorkPathAMgr.GetComponentYamlPath(component)
+		yamlDealer := GetYamlDealer(sic.InstallPathMgr, component, sic.logPathMgr.GetLogRootPath(),
+			sic.logPathMgr.GetLogBackupRootPath(), yamlPath)
+
 		err := yamlDealer.EditSingleYaml(sic.Components)
 		if err != nil {
 			return err
@@ -373,7 +308,7 @@ func (sic *SftInstallCtl) clearAll() {
 		hwlog.RunLog.Info("-----End to clear environment-----")
 		return
 	}
-	fmt.Println("clear manually success")
+	fmt.Println("clear environment success")
 	hwlog.RunLog.Info("-----End to clear environment-----")
 	return
 }

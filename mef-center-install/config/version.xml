@@ -2,7 +2,7 @@
 <SoftwarePackage version="V1">
     <Package>
         <FileName>Ascend-mindxedge-mef_center_{version}_linux-{arch}.tar.gz</FileName>
-        <OutterName>MefCenter</OutterName>
+        <OuterName>MefCenter</OuterName>
         <Version>{version}</Version>
         <InnerVersion>1.0</InnerVersion>
         <FileType>Software</FileType>

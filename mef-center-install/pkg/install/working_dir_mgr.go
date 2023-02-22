@@ -16,13 +16,49 @@ import (
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
-type workingDirCtl struct {
-	pathMgr     *util.WorkPathAMgr
+// WorkingDirCtl is a struct that used to manager the working dir prepare actions in installation and upgrading
+type WorkingDirCtl struct {
+	pathMgr     util.WorkPathItf
 	mefLinkPath string
 	components  []string
 }
 
-func (wdc *workingDirCtl) doPrepare() error {
+// GetWorkingDirMgr is the func to init a WorkingDirCtl struct
+func GetWorkingDirMgr(pathMgr util.WorkPathItf, mefLinkPath string, components []string) *WorkingDirCtl {
+	return &WorkingDirCtl{
+		pathMgr:     pathMgr,
+		mefLinkPath: mefLinkPath,
+		components:  components,
+	}
+}
+
+// DoUpgradePrepare is the main flow-control func to prepare a working dir in upgrading flow
+func (wdc *WorkingDirCtl) DoUpgradePrepare() error {
+	var prepareWorkingDirTasks = []func() error{
+		wdc.prepareRootWorkDir,
+		wdc.prepareLibDir,
+		wdc.prepareRunSh,
+		wdc.prepareBinDir,
+		wdc.prepareVersionXml,
+		wdc.prepareComponentWorkDir,
+		wdc.prepareInstallParamJson,
+	}
+
+	fmt.Println("start to prepare working dir")
+	hwlog.RunLog.Info("-----Start to prepare working dir-----")
+	for _, function := range prepareWorkingDirTasks {
+		if err := function(); err != nil {
+			return err
+		}
+	}
+	fmt.Println("prepare working dir success")
+	hwlog.RunLog.Info("-----Prepare working dir successful-----")
+	return nil
+
+}
+
+// DoInstallPrepare is the main flow-control func to prepare a working dir in installation flow
+func (wdc *WorkingDirCtl) DoInstallPrepare() error {
 	var prepareWorkingDirTasks = []func() error{
 		wdc.prepareRootWorkDir,
 		wdc.prepareLibDir,
@@ -45,10 +81,10 @@ func (wdc *workingDirCtl) doPrepare() error {
 	return nil
 }
 
-func (wdc *workingDirCtl) prepareRootWorkDir() error {
+func (wdc *WorkingDirCtl) prepareRootWorkDir() error {
 	hwlog.RunLog.Info("start to prepare root work directories")
 
-	mefWorkPath := wdc.pathMgr.GetWorkAPath()
+	mefWorkPath := wdc.pathMgr.GetWorkPath()
 	if err := common.MakeSurePath(mefWorkPath); err != nil {
 		hwlog.RunLog.Errorf("create mef root work path failed: %v", err.Error())
 		return errors.New("create mef root work path failed")
@@ -58,14 +94,14 @@ func (wdc *workingDirCtl) prepareRootWorkDir() error {
 	return nil
 }
 
-func (wdc *workingDirCtl) prepareLibDir() error {
+func (wdc *WorkingDirCtl) prepareLibDir() error {
 	hwlog.RunLog.Info("start to prepare lib dir")
 	currentPath, err := wdc.getCurrentPath()
 	if err != nil {
 		return err
 	}
 
-	libDst := wdc.pathMgr.GetWorkAKmcLibDirPath()
+	libDst := wdc.pathMgr.GetWorkLibDirPath()
 	if err = common.MakeSurePath(libDst); err != nil {
 		hwlog.RunLog.Errorf("create lib path failed: %v", err.Error())
 		return errors.New("create lib path failed")
@@ -88,7 +124,7 @@ func (wdc *workingDirCtl) prepareLibDir() error {
 	return nil
 }
 
-func (wdc *workingDirCtl) prepareRunSh() error {
+func (wdc *WorkingDirCtl) prepareRunSh() error {
 	hwlog.RunLog.Info("start to copy run.sh")
 	currentPath, err := wdc.getCurrentPath()
 	if err != nil {
@@ -111,7 +147,7 @@ func (wdc *workingDirCtl) prepareRunSh() error {
 	return nil
 }
 
-func (wdc *workingDirCtl) prepareBinDir() error {
+func (wdc *WorkingDirCtl) prepareBinDir() error {
 	hwlog.RunLog.Info("start to prepare bin dir")
 	currentPath, err := wdc.getCurrentPath()
 	if err != nil {
@@ -140,7 +176,7 @@ func (wdc *workingDirCtl) prepareBinDir() error {
 	return nil
 }
 
-func (wdc *workingDirCtl) prepareVersionXml() error {
+func (wdc *WorkingDirCtl) prepareVersionXml() error {
 	hwlog.RunLog.Info("start to copy version.xml")
 	currentPath, err := wdc.getCurrentPath()
 	if err != nil {
@@ -163,7 +199,7 @@ func (wdc *workingDirCtl) prepareVersionXml() error {
 	return nil
 }
 
-func (wdc *workingDirCtl) getCurrentPath() (string, error) {
+func (wdc *WorkingDirCtl) getCurrentPath() (string, error) {
 	currentDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
 		hwlog.RunLog.Error("get current path failed")
@@ -174,7 +210,7 @@ func (wdc *workingDirCtl) getCurrentPath() (string, error) {
 	return currentPath, nil
 }
 
-func (wdc *workingDirCtl) prepareComponentWorkDir() error {
+func (wdc *WorkingDirCtl) prepareComponentWorkDir() error {
 	hwlog.RunLog.Info("start to prepare component work directories")
 	workPath := wdc.pathMgr.GetImagesDirPath()
 	if err := common.MakeSurePath(workPath); err != nil {
@@ -194,15 +230,33 @@ func (wdc *workingDirCtl) prepareComponentWorkDir() error {
 	return nil
 }
 
-func (wdc *workingDirCtl) prepareSymlinks() error {
+func (wdc *WorkingDirCtl) prepareSymlinks() error {
 	hwlog.RunLog.Info("start to prepare softlinks")
 
-	configSrc := wdc.pathMgr.GetWorkAPath()
+	configSrc := wdc.pathMgr.GetWorkPath()
 	configDst := wdc.mefLinkPath
 	if err := os.Symlink(configSrc, configDst); err != nil {
 		hwlog.RunLog.Errorf("create work dir symlink failed, error: %v", err.Error())
 		return errors.New("create work dir symlink failed")
 	}
+
 	hwlog.RunLog.Info("prepare softlinks successful")
+	return nil
+}
+
+func (wdc *WorkingDirCtl) prepareInstallParamJson() error {
+	curDirPath, err := filepath.Abs(filepath.Dir(filepath.Dir(os.Args[0])))
+	if err != nil {
+		hwlog.RunLog.Errorf("get current dir abs path failed: %s", err.Error())
+		return errors.New("get current dir abs path failed")
+	}
+
+	srcPath := path.Join(curDirPath, util.InstallParamJson)
+	dstPath := wdc.pathMgr.GetInstallParamJsonPath()
+	if err = utils.CopyFile(srcPath, dstPath); err != nil {
+		hwlog.RunLog.Errorf("prepare install-param.json failed: %s", err.Error())
+		return errors.New("prepare install-param.json failed")
+	}
+
 	return nil
 }

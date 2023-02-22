@@ -19,6 +19,7 @@ import (
 type YamlMgr struct {
 	component    string
 	pathMgr      *util.InstallDirPathMgr
+	yamlPath     string
 	logDir       string
 	logBackupDir string
 }
@@ -30,25 +31,15 @@ type modifier struct {
 	modifiedString string
 }
 
-// GetYamlDealers returns a list of YamlMgr for all necessary components
-func GetYamlDealers(components []string,
-	pathMgr *util.InstallDirPathMgr, logDir string, logBackupDir string) []YamlMgr {
-	var ret []YamlMgr
-	for _, component := range components {
-		singleDealer := YamlMgr{
-			component:    component,
-			pathMgr:      pathMgr,
-			logDir:       logDir,
-			logBackupDir: logBackupDir,
-		}
-		ret = append(ret, singleDealer)
+// GetYamlDealer returns a YamlMgr for a components
+func GetYamlDealer(pathMgr *util.InstallDirPathMgr, component, logDir, logBackupDir, yamlPath string) *YamlMgr {
+	return &YamlMgr{
+		component:    component,
+		pathMgr:      pathMgr,
+		logDir:       logDir,
+		logBackupDir: logBackupDir,
+		yamlPath:     yamlPath,
 	}
-	return ret
-}
-
-func (yd *YamlMgr) getYamlPath() string {
-	return path.Join(yd.pathMgr.WorkPathAMgr.GetImageConfigPath(yd.component),
-		fmt.Sprintf("%s.yaml", yd.component))
 }
 
 func (yd *YamlMgr) modifyLogDir(content string) (string, error) {
@@ -148,10 +139,9 @@ func (yd *YamlMgr) modifyContent(content string, installedModule []string) (stri
 // EditSingleYaml is used to edit a single yaml file on installation
 func (yd *YamlMgr) EditSingleYaml(installedModule []string) error {
 	hwlog.RunLog.Infof("start to modify %s's yaml", yd.component)
-	yamlPath := yd.getYamlPath()
-	ret, err := utils.LoadFile(yamlPath)
+	ret, err := utils.LoadFile(yd.yamlPath)
 	if err != nil {
-		hwlog.RunLog.Errorf("reading yaml [%s] meets error: %v", yamlPath, err)
+		hwlog.RunLog.Errorf("reading yaml [%s] meets error: %v", yd.yamlPath, err)
 		return err
 	}
 
@@ -161,9 +151,9 @@ func (yd *YamlMgr) EditSingleYaml(installedModule []string) error {
 		return err
 	}
 
-	err = common.WriteData(yamlPath, []byte(content))
+	err = common.WriteData(yd.yamlPath, []byte(content))
 	if err != nil {
-		hwlog.RunLog.Errorf("write yaml [%s] meets error: %v", yamlPath, err)
+		hwlog.RunLog.Errorf("write yaml [%s] meets error: %v", yd.yamlPath, err)
 		return err
 	}
 	return nil

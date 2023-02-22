@@ -62,9 +62,13 @@ compile:
         - move:
             src: ["{{TOP_DIR}}/scripts"]
             des: "{{TOP_DIR}}/output"
+        - makedir:
+            path: "{{TOP_DIR}}/output/lib/kmc-lib"
+        - makedir:
+            path: "{{TOP_DIR}}/output/lib/lib"
         - copy:
-            src: [ '{{ systemEnv.workspace }}/lib' ]
-            des: "{{TOP_DIR}}/output/"
+            src: [ '{{ systemEnv.workspace }}/lib/*' ]
+            des: "{{TOP_DIR}}/output/lib/kmc-lib"
         - mode:
             src: [ "{{TOP_DIR}}/output/lib" ]
             mode: "500"

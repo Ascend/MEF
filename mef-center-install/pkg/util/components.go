@@ -46,7 +46,7 @@ func getComponentDns(component string) string {
 }
 
 // LoadAndSaveImage is used to build a docker image and save it to component's image dir
-func (c *ComponentMgr) LoadAndSaveImage(pathMgr *WorkPathAMgr) error {
+func (c *ComponentMgr) LoadAndSaveImage(pathMgr WorkPathItf) error {
 	if pathMgr == nil {
 		hwlog.RunLog.Error("pointer pathMgr is nil")
 		return errors.New("pointer pathMgr is nil")
@@ -108,7 +108,7 @@ func (c *ComponentMgr) saveImage(dealer *DockerDealer, savePath string) error {
 }
 
 // ClearDockerFile is used to clear Dockerfile and its binary file after the docker has been build
-func (c *ComponentMgr) ClearDockerFile(pathMgr *WorkPathAMgr) error {
+func (c *ComponentMgr) ClearDockerFile(pathMgr WorkPathItf) error {
 	if pathMgr == nil {
 		hwlog.RunLog.Error("pointer pathMgr is nil")
 		return errors.New("pointer pathMgr is nil")
@@ -154,7 +154,7 @@ func (c *ComponentMgr) PrepareComponentCertDir(rootPath string) error {
 }
 
 // PrepareSingleComponentDir is used to create a single component's dir and copy its files into it
-func (c *ComponentMgr) PrepareSingleComponentDir(pathMgr *WorkPathAMgr) error {
+func (c *ComponentMgr) PrepareSingleComponentDir(pathMgr WorkPathItf) error {
 	if pathMgr == nil {
 		hwlog.RunLog.Error("pointer pathMgr is nil")
 		return errors.New("pointer pathMgr is nil")
@@ -172,7 +172,7 @@ func (c *ComponentMgr) PrepareSingleComponentDir(pathMgr *WorkPathAMgr) error {
 	return nil
 }
 
-func (c *ComponentMgr) prepareComponentDir(pathMgr *WorkPathAMgr) error {
+func (c *ComponentMgr) prepareComponentDir(pathMgr WorkPathItf) error {
 	if pathMgr == nil {
 		hwlog.RunLog.Error("pointer pathMgr is nil")
 		return errors.New("pointer pathMgr is nil")
@@ -195,7 +195,7 @@ func (c *ComponentMgr) prepareComponentDir(pathMgr *WorkPathAMgr) error {
 	return nil
 }
 
-func (c *ComponentMgr) copyComponentFiles(pathMgr *WorkPathAMgr) error {
+func (c *ComponentMgr) copyComponentFiles(pathMgr WorkPathItf) error {
 	if pathMgr == nil {
 		hwlog.RunLog.Error("pointer pathMgr is nil")
 		return errors.New("pointer pathMgr is nil")
@@ -362,7 +362,7 @@ func (c *ComponentMgr) PrepareLogBackupDir(pathMgr *LogDirPathMgr) error {
 }
 
 // PrepareLibDir creates lib dir for a single component and copy libs into it
-func (c *ComponentMgr) PrepareLibDir(libSrcPath string, pathMgr *WorkPathAMgr) error {
+func (c *ComponentMgr) PrepareLibDir(libSrcPath string, pathMgr WorkPathItf) error {
 	if pathMgr == nil {
 		hwlog.RunLog.Error("pointer pathMgr is nil")
 		return errors.New("pointer pathMgr is nil")
@@ -394,7 +394,7 @@ func (c *ComponentMgr) PrepareLibDir(libSrcPath string, pathMgr *WorkPathAMgr) e
 }
 
 // ClearLibDir deleted the lib dir for single component, which is used after docker has been build
-func (c *ComponentMgr) ClearLibDir(pathMgr *WorkPathAMgr) error {
+func (c *ComponentMgr) ClearLibDir(pathMgr WorkPathItf) error {
 	if pathMgr == nil {
 		hwlog.RunLog.Error("pointer pathMgr is nil")
 		return errors.New("pointer pathMgr is nil")

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -71,17 +72,33 @@ func (cc *CtlComponent) stopComponent() error {
 }
 
 func (cc *CtlComponent) getComponentStatus() (string, error) {
-	deploymentReg := fmt.Sprintf("'^%s\\s'", AscendPrefix+cc.Name)
-	checkCmd := fmt.Sprintf("%s get deployment -n %s | grep -w %s",
-		CommandKubectl, MefNamespace, deploymentReg)
+	checkCmd := fmt.Sprintf("%s get deployment -n %s",
+		CommandKubectl, MefNamespace)
 	ret, err := common.RunCommand("sh", false, common.DefaultCmdWaitTime, "-c", checkCmd)
 
-	if err != nil && err.Error() != "" {
+	NoNamespaceErr := fmt.Sprintf("No resources found in %s namespace.", MefNamespace)
+	if err != nil && strings.Contains(err.Error(), NoNamespaceErr) {
+		return ret, err
+	}
+	if err != nil {
 		hwlog.RunLog.Warnf("check components %s's status failed: %s", cc.Name, err.Error())
 		return "", errors.New("check components status failed")
 	}
 
-	return ret, nil
+	deploymentReg := fmt.Sprintf("^%s\\s", AscendPrefix+cc.Name)
+	lines := strings.Split(ret, "\n")
+	for _, line := range lines {
+		found, err := regexp.MatchString(deploymentReg, line)
+		if err != nil {
+			hwlog.RunLog.Errorf("check components %s's status on reg match failed: %s", cc.Name, err.Error())
+			return "", errors.New("check components status failed")
+		}
+		if found {
+			return line, nil
+		}
+	}
+
+	return "", nil
 }
 
 func (cc *CtlComponent) checkIfStatusStopped(status string) bool {
@@ -106,7 +123,6 @@ func (cc *CtlComponent) setReplicas(num int) error {
 
 func (cc *CtlComponent) checkIfStatusReady(status string) bool {
 	if !strings.Contains(status, ReadyFlag) {
-		hwlog.RunLog.Warn("the component pod is not active yet")
 		return false
 	}
 	return true
@@ -121,6 +137,7 @@ func (cc *CtlComponent) checkIfComponentReady() error {
 		}
 		if cc.checkIfStatusStopped(status) {
 			if err = cc.setReplicas(StartReplicasNum); err != nil {
+				hwlog.RunLog.Warn("the component pod is stop, start it now")
 				time.Sleep(CheckStatusInterval)
 				continue
 			}
@@ -132,6 +149,19 @@ func (cc *CtlComponent) checkIfComponentReady() error {
 	}
 	hwlog.RunLog.Errorf("componentFlag [%s] is not running", cc.Name)
 	return fmt.Errorf("componentFlag [%s] is not running", cc.Name)
+}
+
+// CheckStarted is used to check if a single component starts
+func (cc *CtlComponent) CheckStarted() (bool, error) {
+	status, err := cc.getComponentStatus()
+	if err != nil {
+		hwlog.RunLog.Errorf("get component %s's status failed: %s", cc.Name, err.Error())
+		return false, fmt.Errorf("get component %s's status failed", cc.Name)
+	}
+	if cc.checkIfStatusReady(status) {
+		return true, nil
+	}
+	return false, nil
 }
 
 // Operate is used to start an operate to a single component
