@@ -103,16 +103,9 @@ func (sic *SftInstallCtl) checkArch() error {
 }
 
 func (sic *SftInstallCtl) checkDiskSpace() error {
-	rootPath := sic.InstallPathMgr.GetRootPath()
-	availSpace, err := common.GetDiskFree(rootPath)
-	if err != nil {
-		hwlog.RunLog.Errorf("get disk available space failed: %s", err.Error())
-		return errors.New("get disk available space failed")
-	}
-
-	if availSpace < util.InstallDiskSpace {
-		hwlog.RunLog.Error("no enough space to install mef-center")
-		return errors.New("no enough space to install mef-center")
+	if err := util.CheckDiskSpace(sic.InstallPathMgr.GetRootPath(), util.InstallDiskSpace); err != nil {
+		hwlog.RunLog.Errorf("check install disk space failed: %s", err.Error())
+		return errors.New("check install disk space failed")
 	}
 
 	return nil

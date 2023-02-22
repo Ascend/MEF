@@ -142,10 +142,10 @@ func (hr *HttpsRequest) GetRespToFileWithLimit(writer io.Writer, limit int64) er
 		return err
 	}
 	defer hr.client.CloseIdleConnections()
-	return hr.handleRespToWriter(resp, writer, limit)
+	return hr.handleRespToFile(resp, writer, limit)
 }
 
-func (hr *HttpsRequest) handleRespToWriter(resp *http.Response, writer io.Writer, limit int64) error {
+func (hr *HttpsRequest) handleRespToFile(resp *http.Response, writer io.Writer, limit int64) error {
 	if resp == nil {
 		return fmt.Errorf("http response is nil")
 	}
@@ -162,7 +162,6 @@ func (hr *HttpsRequest) handleRespToWriter(resp *http.Response, writer io.Writer
 	}
 
 	if _, err := io.Copy(writer, io.LimitReader(resp.Body, limit)); err != nil {
-		hwlog.RunLog.Errorf("write https resp to writer failed, error: %v", err)
 		return err
 	}
 

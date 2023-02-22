@@ -40,6 +40,20 @@ func CheckUser() error {
 	return nil
 }
 
+// CheckDiskSpace is used to check if the disk space on a path is enough to a limit
+func CheckDiskSpace(path string, limit uint64) error {
+	availUpgradeSpace, err := common.GetDiskFree(path)
+	if err != nil {
+		return fmt.Errorf("get path [%s]'s disk available space failed: %s", path, err.Error())
+	}
+
+	if availUpgradeSpace < limit {
+		return errors.New("no enough space")
+	}
+
+	return nil
+}
+
 // GetInstallInfo is used to get the information from install-param.json
 func GetInstallInfo() (*InstallParamJsonTemplate, error) {
 	currentDir, err := filepath.Abs(filepath.Dir(filepath.Dir(os.Args[0])))
