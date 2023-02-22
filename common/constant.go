@@ -42,6 +42,8 @@ const (
 	MEF = "MEF"
 	// EdgeCore software edgecore name
 	EdgeCore = "edgecore"
+	// MEFEdge software mef edge name
+	MEFEdge = "MEFEdge"
 	// EdgeInstaller software edge-installer name
 	EdgeInstaller = "edge-installer"
 	// DevicePlugin software device-plugin name
@@ -333,4 +335,3 @@ const (
 	MaxNodePerGroup = 1024
 	MaxGroupPerNode = 10
 )
-
