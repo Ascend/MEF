@@ -45,7 +45,7 @@ type InnerCheckNodeResReq struct {
 
 // InnerSoftwareInfoResp is the response struct of node info
 type InnerSoftwareInfoResp struct {
-	SoftwareInfo []SoftwareInfo `json:"SoftwareInfo"`
+	SoftwareInfo []SoftwareInfo `json:"softwareInfo"`
 }
 
 // InnerGetNodeInfoByNameResp is the response struct of node info

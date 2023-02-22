@@ -1,3 +1,6 @@
+// Copyright (c)  2023. Huawei Technologies Co., Ltd.  All rights reserved.
+
+// Package edgemsgmanager handler
 package edgemsgmanager
 
 import (
@@ -51,6 +54,7 @@ func (d *downloadInfoChecker) init() {
 	)
 }
 
+// Check [method] check main function
 func (d *downloadInfoChecker) Check(data interface{}) checker.CheckResult {
 	d.init()
 

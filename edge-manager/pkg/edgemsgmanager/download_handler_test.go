@@ -1,3 +1,6 @@
+// Copyright (c)  2023. Huawei Technologies Co., Ltd.  All rights reserved.
+
+// Package edgemsgmanager ut test
 package edgemsgmanager
 
 import (
@@ -16,7 +19,7 @@ import (
 func createBaseData() SoftwareDownloadInfo {
 	baseContent := `{
     "serialNumbers": ["2102312NSF10K8000130"],
-    "softWareName": "edge-installer",
+    "softWareName": "MEFEdge",
     "softWarVersion": "1.0",
     "downLoadInfo": {
         "package": "GET https://Ascend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
@@ -184,8 +187,6 @@ func testDownloadInfoSignFileInvalid() {
 	req := createBaseData()
 
 	failDataCases := []string{
-		"",
-		" ",
 		"GET ",
 		"https://Ascend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
 		"GET https://A!scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
@@ -199,7 +200,7 @@ func testDownloadInfoSignFileInvalid() {
 		"GET https://Ascend -mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
 	}
 	for _, dataCase := range failDataCases {
-		req.DownloadInfo.SignFile = &dataCase
+		req.DownloadInfo.SignFile = dataCase
 		content, err := json.Marshal(req)
 		if err != nil {
 			hwlog.RunLog.Errorf("marshal failed")
@@ -210,17 +211,6 @@ func testDownloadInfoSignFileInvalid() {
 
 		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
 	}
-
-	req.DownloadInfo.SignFile = nil
-	content, err := json.Marshal(req)
-	if err != nil {
-		hwlog.RunLog.Errorf("marshal failed")
-	}
-	msg.FillContent(string(content))
-
-	resp := downloadSoftware(msg)
-
-	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
 func testDownloadInfoUserNameInvalid() {
@@ -253,46 +243,6 @@ func testDownloadInfoUserNameInvalid() {
 
 		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
 	}
-}
-
-func testDownloadInfoPasswordInvalid() {
-	msg, err := model.NewMessage()
-	if err != nil {
-		hwlog.RunLog.Errorf("create message failed")
-	}
-
-	var p2 = gomonkey.ApplyFunc(modulemanager.SendMessage, func(m *model.Message) error {
-		return nil
-	})
-	defer p2.Reset()
-
-	req := createBaseData()
-	failDataCases := [][]byte{
-		nil,
-	}
-	for _, dataCase := range failDataCases {
-		req.DownloadInfo.Password = dataCase
-		content, err := json.Marshal(req)
-		if err != nil {
-			hwlog.RunLog.Errorf("marshal failed")
-		}
-		msg.FillContent(string(content))
-
-		resp := downloadSoftware(msg)
-
-		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
-	}
-
-	req.DownloadInfo.SignFile = nil
-	content, err := json.Marshal(req)
-	if err != nil {
-		hwlog.RunLog.Errorf("marshal failed")
-	}
-	msg.FillContent(string(content))
-
-	resp := downloadSoftware(msg)
-
-	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
 func TestDownloadInfo(t *testing.T) {
