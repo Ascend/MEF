@@ -41,6 +41,11 @@ func (hc *httpsUrlChecker) Check(data interface{}) CheckResult {
 
 		return NewFailedResult(fmt.Sprintf("https url checker get field [%s] value failed:%v", hc.field, err))
 	}
+
+	if value == "" && !hc.required {
+		return NewSuccessResult()
+	}
+
 	segments := strings.Split(value, " ")
 	if len(segments) != urlSegmentCount {
 		return NewFailedResult(fmt.Sprintf("https url checker Check [%s] failed: the value segment in not 2",

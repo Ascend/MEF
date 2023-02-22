@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common/certutils"
 )
 
@@ -123,8 +124,8 @@ func (hr *HttpsRequest) handleResp(resp *http.Response) ([]byte, error) {
 	return readBytes, nil
 }
 
-// GetToFileByLimit [method] for http get resp to file
-func (hr *HttpsRequest) GetToFileByLimit(writer io.Writer, limit int64) error {
+// GetRespToFileByLimit [method] for http get resp to file
+func (hr *HttpsRequest) GetRespToFileByLimit(writer io.Writer, limit int64) error {
 	if hr.client == nil {
 		if err := hr.initClient(); err != nil {
 			return fmt.Errorf("init https client failed: %v", err)
@@ -157,11 +158,11 @@ func (hr *HttpsRequest) handleRespToWriter(resp *http.Response, writer io.Writer
 	}()
 
 	if resp.ContentLength > limit {
-		return fmt.Errorf("response contentlength up to limit")
+		return fmt.Errorf("response content length up to limit")
 	}
 
 	if _, err := io.Copy(writer, io.LimitReader(resp.Body, limit)); err != nil {
-		hwlog.RunLog.Errorf("write htt resp to writer failed, error: %v", err)
+		hwlog.RunLog.Errorf("write https resp to writer failed, error: %v", err)
 		return err
 	}
 
