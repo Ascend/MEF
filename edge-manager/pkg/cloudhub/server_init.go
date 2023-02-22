@@ -11,13 +11,12 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 
-	"edge-manager/pkg/edgeconnector"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/certutils"
 	"huawei.com/mindxedge/base/common/httpsmgr"
 	"huawei.com/mindxedge/base/common/websocketmgr"
 
+	"edge-manager/pkg/edgeconnector"
 	"edge-manager/pkg/util"
 )
 

@@ -1,0 +1,44 @@
+component: mef-center-upgrade
+tool: MEF-center-upgrade
+product: MEF_Center
+systemEnv:
+  - workspace
+  - processor
+  - version
+TOP_DIR: "{{systemEnv.workspace}}/{{product}}/mef-center-install"
+DST_MEF_CENTER_SBIN_DIR: "{{TOP_DIR}}/output/bin"
+compile:
+  input:
+    dependency:
+      - name: huawei_secure_c
+        version: 1.0
+        type: opensource
+      - name: KMC
+        version: 1.0
+        type: opensource
+    envVariables:
+      GO111MODULE: "on"
+      GONOSUMDB: "*"
+      GOPROXY: "http://mirrors.tools.huawei.com/goproxy,direct"
+      CGO_ENABLED: "1"
+      CGO_CFLAGS: "-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
+      CGO_CPPFLAGS: "-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
+    files:
+
+  process:
+    language: go
+    compilePath: "{{TOP_DIR}}/tools/upgrade"
+    parameters: [['buildmode', "pie"],
+                 ["mod", "mod"],
+                 ['ldflags', '-X "main.BuildName={{tool}}" -X "main.BuildVersion={{version}}_linux-{{systemEnv.processor}}" -s -linkmode=external -extldflags=-Wl,-z,now'],
+                 ["o", "{{tool}}"],
+                 ['trimpath',""],]
+
+  output:
+    files:
+      include:
+        - makedir:
+            path: "{{DST_MEF_CENTER_SBIN_DIR}}"
+        - move:
+            src: ["{{TOP_DIR}}/tools/upgrade/{{tool}}"]
+            des: "{{DST_MEF_CENTER_SBIN_DIR}}"

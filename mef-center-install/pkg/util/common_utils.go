@@ -13,7 +13,6 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
-	"syscall"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
@@ -39,17 +38,6 @@ func CheckUser() error {
 	}
 
 	return nil
-}
-
-// GetDiskFree is used to get the free disk space of a path
-func GetDiskFree(path string) (uint64, error) {
-	fs := syscall.Statfs_t{}
-	err := syscall.Statfs(path, &fs)
-	if err != nil {
-		return 0, err
-	}
-	diskFree := fs.Bavail * uint64(fs.Bsize)
-	return diskFree, nil
 }
 
 // GetInstallInfo is used to get the information from install-param.json
@@ -127,4 +115,18 @@ func GetCenterUid() (string, error) {
 	}
 
 	return userInfo.Uid, nil
+}
+
+// GetNecessaryTools is used to get the necessary tools of MEF-Center
+func GetNecessaryTools() []string {
+	return []string{
+		"sh",
+		"kubectl",
+		"docker",
+		"uname",
+		"cp",
+		"grep",
+		"useradd",
+		"wc",
+	}
 }

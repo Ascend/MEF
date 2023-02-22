@@ -78,7 +78,7 @@ func (g GenericDispatcher) getRelativePath() string {
 func (g GenericDispatcher) dispatch(c *gin.Context) {
 	var res common.RespMsg
 	defer func() {
-		hwlog.RunLog.Infof("deal %s result is %v, msg:%s", c.FullPath(), res.Status == common.Success, res.Msg)
+		hwlog.RunLog.Infof("deal %s result is %t, msg:%s", c.FullPath(), res.Status == common.Success, res.Msg)
 
 		if g.getMethod() == http.MethodGet {
 			return

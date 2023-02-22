@@ -143,6 +143,9 @@ const (
 	// ErrorSetEdgeAccount failed to set edge account
 	ErrorSetEdgeAccount = "40031002"
 
+	// ErrorQueryCrt failed to get crt from cert manager
+	ErrorQueryCrt = "40042002"
+
 	// ErrorGetRootCa failed to get root ca by cert name
 	ErrorGetRootCa = "60001001"
 	// ErrorIssueSrvCert failed to issue service certificate
@@ -155,6 +158,8 @@ const (
 	ErrorDeleteRootCa = "60001005"
 	// ErrorDistributeRootCa failed to distribute cert file
 	ErrorDistributeRootCa = "60001006"
+	// ErrorGetSecret failed to get secret
+	ErrorGetSecret = "60001007"
 )
 
 // ErrorMap error code and error msg map
@@ -297,6 +302,8 @@ var ErrorMap = map[string]string{
 	ErrorDeleteRootCa: "failed to delete cert file",
 	// ErrorDistributeRootCa failed to distribute cert file
 	ErrorDistributeRootCa: "failed to distribute cert file",
+	// ErrorGetSecret failed to get secret
+	ErrorGetSecret: "failed to get secret",
 
 	// ErrorAccountOrPassword incorrect account or password
 	ErrorAccountOrPassword: "incorrect account or password",
@@ -304,4 +311,7 @@ var ErrorMap = map[string]string{
 	ErrorSetEdgeAccountPassword: "failed to set edge account password",
 	// ErrorSetEdgeAccount failed to set edge account
 	ErrorSetEdgeAccount: "failed to set edge account",
+
+	// ErrorQueryCrt failed to get crt from cert manager
+	ErrorQueryCrt: "failed to get crt from cert manager",
 }

@@ -44,7 +44,7 @@ func getNodeSoftwareInfo(serialNumber string) ([]types.SoftwareInfo, error) {
 		Option:      common.Inner,
 		Resource:    common.NodeSoftwareInfo,
 	}
-	req := types.InnerGetSoftwareInfoBySerialNumberReq{
+	req := types.InnerGetSfwInfoBySNReq{
 		SerialNumber: serialNumber,
 	}
 	resp := common.SendSyncMessageByRestful(req, &router)

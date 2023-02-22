@@ -17,11 +17,11 @@ func upgradeEdgeSoftware(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start effect edge software")
 	message, ok := input.(*model.Message)
 	if !ok {
-		hwlog.RunLog.Errorf("get message failed")
+		hwlog.RunLog.Error("get message failed")
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "get message failed", Data: nil}
 	}
 
-	var req upgradeInfoReq
+	var req UpdateInfoReq
 	var err error
 	if err = common.ParamConvert(message.GetContent(), &req); err != nil {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
@@ -34,7 +34,7 @@ func upgradeEdgeSoftware(input interface{}) common.RespMsg {
 
 	msg, err := model.NewMessage()
 	if err != nil {
-		hwlog.RunLog.Errorf("create message failed")
+		hwlog.RunLog.Error("create message failed")
 		return common.RespMsg{Status: common.ErrorNewMsg, Msg: "create message failed", Data: nil}
 	}
 
@@ -53,10 +53,10 @@ func upgradeEdgeSoftware(input interface{}) common.RespMsg {
 	}
 
 	if len(batchResp.FailedIDs) != 0 {
-		hwlog.RunLog.Info("deal edge software effect info failed")
+		hwlog.RunLog.Error("deal edge software upgrade info failed")
 		return common.RespMsg{Status: common.ErrorSendMsgToNode, Msg: "", Data: batchResp}
 	} else {
-		hwlog.RunLog.Info("deal edge software effect info success")
+		hwlog.RunLog.Info("deal edge software upgrade info success")
 		return common.RespMsg{Status: common.Success, Msg: "", Data: batchResp}
 	}
 }

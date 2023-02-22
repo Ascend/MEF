@@ -313,6 +313,19 @@ const (
 	NoLoginCount           = 1
 )
 
+// const for unpack zip file
+const (
+	MaxPkgSizeTimes      = 100
+	MaxExtractFileCount  = 100
+	MaxSingleExtractSize = 200 * MB
+	MaxTotalExtractSize  = 200 * MB
+
+	ZipSuffix   = ".zip"
+	TarGzSuffix = ".tar.gz"
+	CrlSuffix   = ".tar.gz.crl"
+	CmsSuffix   = ".tar.gz.cms"
+)
+
 // node specification
 const (
 	MaxNode         = 1024
@@ -320,3 +333,4 @@ const (
 	MaxNodePerGroup = 1024
 	MaxGroupPerNode = 10
 )
+

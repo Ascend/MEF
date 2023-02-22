@@ -21,8 +21,8 @@ type DownloadInfo struct {
 	Password []byte `json:"password"`
 }
 
-// upgradeInfoReq effect software
-type upgradeInfoReq struct {
+// UpdateInfoReq update software
+type UpdateInfoReq struct {
 	NodeIDs       []uint64 `json:"nodeIDs"`
 	SerialNumbers []string `json:"serialNumbers"`
 	SoftwareName  string   `json:"softwareName"`
