@@ -5,7 +5,6 @@ package edgemsgmanager
 
 import (
 	"encoding/json"
-	"time"
 
 	"huawei.com/mindx/common/hwlog"
 
@@ -15,11 +14,6 @@ import (
 	"huawei.com/mindxedge/base/common/certutils"
 	"huawei.com/mindxedge/base/common/httpsmgr"
 	"huawei.com/mindxedge/base/modulemanager/model"
-)
-
-const (
-	retryTime = 30
-	waitTime  = 5 * time.Second
 )
 
 // GetCertInfo [method] get root cert
@@ -46,26 +40,30 @@ func GetCertInfo(input interface{}) common.RespMsg {
 			IgnoreCltCert: false,
 		},
 	}
-	var rootCaRes string
-	var err error
-	for i := 0; i < retryTime; i++ {
-		rootCaRes, err = reqCertParams.GetRootCa(certName)
-		if err == nil {
-			break
-		}
-		time.Sleep(waitTime)
-	}
-	address, err := util.GetImageAddress()
+	rootCaRes, err := reqCertParams.GetRootCa(certName)
 	if err != nil {
-		hwlog.RunLog.Errorf("get image registry address failed, %v", err)
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "message content type invalid", Data: nil}
+		hwlog.RunLog.Errorf("query cert content from cert-manager failed, error: %v", err)
+		return common.RespMsg{Status: common.ErrorGetCrt, Msg: "query cert content from cert-manager failed", Data: nil}
 	}
 	res := certutils.QueryCertRes{
 		CertName: certName,
 		Cert:     rootCaRes,
-		Address:  address,
 	}
+	if certName == common.ImageCertName {
+		address, err := util.GetImageAddress()
+		if util.SecretNotFound(err) {
+			hwlog.RunLog.Warn("image registry address should be configured")
+			return common.RespMsg{Status: common.ErrorGetImageRegistryAddress,
+				Msg: "query image registry address failed", Data: nil}
 
+		}
+		if err != nil {
+			hwlog.RunLog.Errorf("get image registry address failed, error:%v", err)
+			return common.RespMsg{Status: common.ErrorGetImageRegistryAddress,
+				Msg: "query image registry address failed", Data: nil}
+		}
+		res.Address = address
+	}
 	data, err := json.Marshal(res)
 	if err != nil {
 		hwlog.RunLog.Errorf("marshal cert response failed, error: %v", err)

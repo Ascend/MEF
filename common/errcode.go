@@ -143,6 +143,13 @@ const (
 	// ErrorSetEdgeAccount failed to set edge account
 	ErrorSetEdgeAccount = "40031002"
 
+	// ErrorGetCrt failed to get crt from cert manager
+	ErrorGetCrt = "40042002"
+	// ErrorGetImageRegistryAddress failed to get image registry addr
+	ErrorGetImageRegistryAddress = "40042003"
+	// ErrorGetImageRegistrySecret failed to get image registry secret
+	ErrorGetImageRegistrySecret = "40042004"
+
 	// ErrorGetRootCa failed to get root ca by cert name
 	ErrorGetRootCa = "60001001"
 	// ErrorIssueSrvCert failed to issue service certificate
@@ -308,4 +315,12 @@ var ErrorMap = map[string]string{
 	ErrorSetEdgeAccountPassword: "failed to set edge account password",
 	// ErrorSetEdgeAccount failed to set edge account
 	ErrorSetEdgeAccount: "failed to set edge account",
+
+	// ErrorGetCrt failed to get crt from cert manager
+	ErrorGetCrt: "failed to get crt from cert manager",
+	// ErrorGetImageRegistryAddress failed to get image registry addr
+	ErrorGetImageRegistryAddress: "failed to get image registry addr",
+
+	// ErrorGetImageRegistrySecret failed to get image registry secret
+	ErrorGetImageRegistrySecret: "failed to get image registry secret",
 }
