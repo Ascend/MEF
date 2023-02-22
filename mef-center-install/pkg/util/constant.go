@@ -12,6 +12,7 @@ import (
 const (
 	CommandKubectl      = "kubectl"
 	CommandNamespace    = "namespace"
+	Haveged             = "haveged"
 	ArchCommand         = "uname"
 	Arch64              = "aarch64"
 	X86                 = "x86_64"
