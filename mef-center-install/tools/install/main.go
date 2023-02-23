@@ -123,7 +123,7 @@ func checkTmpfs(path string) error {
 	}
 
 	if dev == common.TmpfsDevNum {
-		return fmt.Errorf("path [%s]'s is in tmpfs filesystem", path)
+		return fmt.Errorf("path [%s] is in tmpfs filesystem", path)
 	}
 	return nil
 }
