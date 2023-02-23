@@ -14,11 +14,11 @@ type SoftwareDownloadInfo struct {
 
 // DownloadInfo [struct] to software download info
 type DownloadInfo struct {
-	Package  string `json:"package"`
-	SignFile string `json:"signFile,omitempty"`
-	CrlFile  string `json:"crlFile,omitempty"`
-	UserName string `json:"username"`
-	Password []byte `json:"password"`
+	Package  string  `json:"package"`
+	SignFile string  `json:"signFile,omitempty"`
+	CrlFile  string  `json:"crlFile,omitempty"`
+	UserName string  `json:"username"`
+	Password *[]byte `json:"password"`
 }
 
 // UpdateInfoReq update software

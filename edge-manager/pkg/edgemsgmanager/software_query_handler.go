@@ -5,6 +5,7 @@ package edgemsgmanager
 
 import (
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common/checker/checker"
 
 	"huawei.com/mindxedge/base/common"
@@ -28,7 +29,7 @@ func queryEdgeSoftwareVersion(input interface{}) common.RespMsg {
 
 	if res := checker.GetRegChecker("",
 		`^[a-zA-Z0-9]([-_a-zA-Z0-9]{0,62}[a-zA-Z0-9])?$`, true).Check(serialNumber); !res.Result {
-		hwlog.RunLog.Errorf("check download progress para failed: %s", res.Reason)
+		hwlog.RunLog.Errorf("check query software version para failed: %s", res.Reason)
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: res.Reason, Data: nil}
 	}
 

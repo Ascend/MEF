@@ -66,7 +66,7 @@ func (nm *NodeMsgDealer) Start() {
 		hwlog.RunLog.Infof("module [%s] receive message option:%s, resource:%s", nm.Name(),
 			msg.GetOption(), msg.GetResource())
 
-		nm.dispatch(msg)
+		go nm.dispatch(msg)
 	}
 }
 

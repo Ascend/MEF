@@ -11,14 +11,14 @@ import (
 	"huawei.com/mindxedge/base/common/checker/valuer"
 )
 
-// httpsUrlChecker [struct] for int checker
+// httpsUrlChecker [struct] for url checker
 type httpsUrlChecker struct {
 	field    string
 	required bool
 	valuer   valuer.StringValuer
 }
 
-// GetHttpsUrlChecker [method] for get integer checker
+// GetHttpsUrlChecker [method] for get url checker
 func GetHttpsUrlChecker(filed string, required bool) *httpsUrlChecker {
 	return &httpsUrlChecker{
 		field:    filed,
@@ -27,7 +27,7 @@ func GetHttpsUrlChecker(filed string, required bool) *httpsUrlChecker {
 	}
 }
 
-// Check [method] for do int check
+// Check [method] for do url check
 func (hc *httpsUrlChecker) Check(data interface{}) CheckResult {
 	const (
 		urlSegmentCount = 2
