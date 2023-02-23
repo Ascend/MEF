@@ -13,7 +13,6 @@ import (
 	"io"
 	"os"
 	"path"
-	"time"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
@@ -206,12 +205,10 @@ func updateClientCert(certName string, certContent []byte) error {
 		CertName:    certName,
 		CertContent: certContent,
 	}
-	for i := 0; i < certutils.DefaultCertRetryTime; i++ {
-		_, err := reqCertParams.UpdateCertFile(cert)
-		if err == nil {
-			break
-		}
-		time.Sleep(certutils.DefaultCertWaitTime)
+	certName, err := reqCertParams.UpdateCertFile(cert)
+	if err != nil {
+		hwlog.RunLog.Errorf("update %s ca file failed, error:%v", certName, err)
+		return fmt.Errorf("update %s ca file failed", certName)
 	}
 	return nil
 }
