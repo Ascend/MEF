@@ -58,12 +58,12 @@ function _M.handleLockResp(resp)
     end
 
     if resp.data.userLocked == true then
-        ngx.shared.user_failed_cache:set(resp.data.userid, true, 630)
+        ngx.shared.user_failed_cache:set(resp.data.userid, true, g_lock_time)
         _M.del_session_by_id(resp.data.userid)
         ngx.log(ngx.NOTICE, resp.data.userid .. " locked")
     end
     if resp.data.ipLocked == true then
-        ngx.shared.ip_failed_cache:set(ngx.var.remote_addr, true, 630)
+        ngx.shared.ip_failed_cache:set(ngx.var.remote_addr, true, g_lock_time)
         _M.del_session_by_id(resp.data.userid)
         ngx.log(ngx.NOTICE, resp.data.ip .. " locked")
     end

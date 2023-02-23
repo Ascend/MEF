@@ -11,7 +11,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"nginx-manager/pkg/checker"
 	"nginx-manager/pkg/database"
 	"nginx-manager/pkg/nginxcom"
 	"nginx-manager/pkg/nginxmgr"
@@ -43,7 +42,6 @@ var (
 
 func main() {
 	flag.Parse()
-
 	if err := common.InitHwlogger(serverRunConf, serverOpConf); err != nil {
 		fmt.Printf("initialize hwlog failed, %s.\n", err.Error())
 		return
@@ -65,11 +63,10 @@ func init() {
 }
 
 func initResource() error {
-	nginxcom.InitEnvs()
-	if err := checker.Check(checker.Env, nginxcom.Envs); err != nil {
+	if err := nginxcom.GetEnvManager().Load(); err != nil {
 		return err
 	}
-	usrMgrPort, err := nginxcom.GetEnvAsInt(nginxcom.UserMgrSvcPortKey)
+	usrMgrPort, err := nginxcom.GetEnvManager().GetInt(nginxcom.UserMgrSvcPortKey)
 	if err != nil {
 		return err
 	}

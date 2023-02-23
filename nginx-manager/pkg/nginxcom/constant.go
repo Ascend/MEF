@@ -3,8 +3,6 @@
 // Package nginxcom this file is for common constant or method
 package nginxcom
 
-import "time"
-
 const (
 	// KeyPrefix 前缀
 	KeyPrefix = "$"
@@ -16,10 +14,6 @@ const (
 	SoftPortKey = "SoftwareMgrSvcPort"
 	// CertPortKey 证书服务port对应的key
 	CertPortKey = "CertMgrSvcPort"
-	// PortMin 端口最小值
-	PortMin = 1024
-	// PortMax 端口最大值
-	PortMax = 65535
 	// NginxDefaultConfigPath nginx配置文件模板
 	NginxDefaultConfigPath = "/home/MEFCenter/conf/nginx_default.conf"
 	// NginxConfigPath nginx配置文件
@@ -70,14 +64,14 @@ const (
 	UserMgrSvcPortKey = "UserMgrSvcPort"
 	// NginxSslPortKey nginx使用ssl的端口
 	NginxSslPortKey = "NginxSslPort"
-	// UserLockTime 用户锁定时长
-	UserLockTime = time.Second * 600
-	// IpLockTime Ip锁定时长
-	IpLockTime = time.Second * 600
 	// MaxPwdWrongTimes 密码最大错误次数
 	MaxPwdWrongTimes = 5
 	// HistoryPasswordSaveCount 相同密码缓存次数
 	HistoryPasswordSaveCount = 5
 	// PodIpKey the key of this pod's ip
 	PodIpKey = "POD_IP"
+	// LockTimeKey lock time key for user and ip
+	LockTimeKey = "LockTime"
+	// TokenExpireTimeKey token expire time
+	TokenExpireTimeKey = "TokenExpireTime"
 )
