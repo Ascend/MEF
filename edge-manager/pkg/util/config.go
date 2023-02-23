@@ -27,7 +27,7 @@ const (
 // GetImageAddress get image address
 func GetImageAddress() (string, error) {
 	secret, err := kubeclient.GetKubeClient().GetSecret(certutils.DefaultSecretName)
-	if secretNotFound(err) {
+	if SecretNotFound(err) {
 		hwlog.RunLog.Warnf("secrets %s not found", certutils.DefaultSecretName)
 		return "", nil
 	}
@@ -51,7 +51,8 @@ func GetImageAddress() (string, error) {
 	return strings.Trim(authSli[authPosition], secretTrim), nil
 }
 
-func secretNotFound(err error) bool {
+// SecretNotFound secret not found
+func SecretNotFound(err error) bool {
 	if err == nil {
 		return false
 	}
