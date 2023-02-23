@@ -137,6 +137,11 @@ func (upf *UpgradePostFlowMgr) checkNecessaryTools() error {
 			return errors.New("necessary tools does not exists")
 		}
 	}
+
+	if _, err := exec.LookPath(util.Haveged); err != nil {
+		fmt.Printf("warning: [%s] not found, system may be slow to read random numbers without it\n", util.Haveged)
+		hwlog.RunLog.Warnf("[%s] not found, system may be slow to read random numbers without it", util.Haveged)
+	}
 	hwlog.RunLog.Info("check necessary tools succeeds")
 	return nil
 }

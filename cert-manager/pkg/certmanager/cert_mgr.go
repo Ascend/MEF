@@ -13,7 +13,6 @@ import (
 	"io"
 	"os"
 	"path"
-	"time"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
@@ -32,6 +31,10 @@ func getCertByCertName(certName string) ([]byte, error) {
 		return nil, errors.New("the cert name not support")
 	}
 	caFilePath := getRootCaPath(certName)
+	if (certName == common.ImageCertName || certName == common.SoftwareCertName) && !utils.IsExist(caFilePath) {
+		hwlog.RunLog.Warnf("%s cert content should be imported", certName)
+		return nil, nil
+	}
 	certData, err := utils.LoadFile(caFilePath)
 	if certData == nil {
 		hwlog.RunLog.Errorf("load root cert failed: %v", err)
@@ -118,7 +121,7 @@ func checkAndCreateCa(certName string) error {
 
 // saveCaContent save ca content to File
 func saveCaContent(certName string, caContent []byte) error {
-	caFilePath := path.Join(certconstant.RootCaMgrDir, certName, certconstant.RootCaFileName)
+	caFilePath := getRootCaPath(certName)
 	if err := utils.MakeSureDir(caFilePath); err != nil {
 		hwlog.RunLog.Errorf("create %s ca folder failed, error: %v", path.Base(caFilePath), err)
 		return fmt.Errorf("create %s ca folder failed, error: %v", path.Base(caFilePath), err)
@@ -172,21 +175,6 @@ func checkCert(req importCertReq) ([]byte, error) {
 	return caBase64, nil
 }
 
-// getCertContent query cert content with cert name
-func getCertContent(certName string) (string, error) {
-	if !CheckCertName(certName) {
-		hwlog.RunLog.Error("the cert name not support")
-		return "", errors.New("the cert name not support")
-	}
-	caFilePath := getRootCaPath(certName)
-	certData, err := utils.LoadFile(caFilePath)
-	if certData == nil {
-		hwlog.RunLog.Errorf("load root cert failed: %v", err)
-		return "", errors.New("load root cert failed")
-	}
-	return string(certData), nil
-}
-
 // removeCaFile delete ca File
 func removeCaFile(certName string) error {
 	caFilePath := getRootCaPath(certName)
@@ -217,12 +205,10 @@ func updateClientCert(certName string, certContent []byte) error {
 		CertName:    certName,
 		CertContent: certContent,
 	}
-	for i := 0; i < certutils.DefaultCertRetryTime; i++ {
-		_, err := reqCertParams.UpdateCertFile(cert)
-		if err == nil {
-			break
-		}
-		time.Sleep(certutils.DefaultCertWaitTime)
+	certName, err := reqCertParams.UpdateCertFile(cert)
+	if err != nil {
+		hwlog.RunLog.Errorf("update %s ca file failed, error:%v", certName, err)
+		return fmt.Errorf("update %s ca file failed", certName)
 	}
 	return nil
 }
