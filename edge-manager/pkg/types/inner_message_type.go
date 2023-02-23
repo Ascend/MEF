@@ -10,6 +10,11 @@ type InnerGetNodeInfoByNameReq struct {
 	UniqueName string `json:"uniqueName"`
 }
 
+// InnerGetSfwInfoBySNReq is the request struct for internal module to get node info by SerialNumber
+type InnerGetSfwInfoBySNReq struct {
+	SerialNumber string `json:"serialNumber"`
+}
+
 // InnerGetNodeGroupInfosReq is the request struct for internal module to get node group infos by group ids
 type InnerGetNodeGroupInfosReq struct {
 	NodeGroupIds []uint64 `json:"nodeGroupIDs"`
@@ -38,6 +43,11 @@ type InnerCheckNodeResReq struct {
 	ResourceReqs v1.ResourceList
 }
 
+// InnerSoftwareInfoResp is the response struct of node info
+type InnerSoftwareInfoResp struct {
+	SoftwareInfo []SoftwareInfo `json:"SoftwareInfo"`
+}
+
 // InnerGetNodeInfoByNameResp is the response struct of node info
 type InnerGetNodeInfoByNameResp struct {
 	NodeID   uint64 `json:"nodeID"`
@@ -52,6 +62,32 @@ type InnerGetNodeGroupInfosResp struct {
 // InnerGetNodeStatusResp is the response struct of node status
 type InnerGetNodeStatusResp struct {
 	NodeStatus string `json:"nodeStatus"`
+}
+
+// SoftwareInfo [struct] to record software info
+type SoftwareInfo struct {
+	Name            string
+	Version         string
+	InactiveVersion string
+}
+
+// EdgeReportSoftwareInfoReq [struct] to report edge software info
+type EdgeReportSoftwareInfoReq struct {
+	SerialNumber string         `json:"serialNumber"`
+	SoftwareInfo []SoftwareInfo `json:"SoftwareInfo"`
+}
+
+// ProgressInfo [struct] to report edge software upgrade result info
+type ProgressInfo struct {
+	Progress uint64 `json:"progress"`
+	Res      string `json:"res"`
+	Msg      string `json:"msg"`
+}
+
+// EdgeReportUpgradeResInfoReq [struct] to report edge software upgrade progress
+type EdgeReportUpgradeResInfoReq struct {
+	SerialNumber string       `json:"serialNumber"`
+	ProgressInfo ProgressInfo `json:"upgradeResInfo"`
 }
 
 // InnerGetNodesResp [struct] for getting nodes id response

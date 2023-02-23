@@ -52,8 +52,10 @@ const (
 	NodeManagerName = "NodeManager"
 	// AppManagerName AppManagerName
 	AppManagerName = "AppManager"
-	// EdgeConnectorName edge-connector
-	EdgeConnectorName = "edge-connector"
+	// CloudHubName edge-connector
+	CloudHubName = "CloudHub"
+	// NodeMsgManagerName node msg manager
+	NodeMsgManagerName = "NodeMsgManager"
 	// EdgeInstallerName edge-installer
 	EdgeInstallerName = "edge-installer"
 	// CertManagerName CertManager
@@ -100,6 +102,8 @@ const (
 	NodeGroup = "nodeGroup"
 	// NodeStatus resource node status
 	NodeStatus = "nodeStatus"
+	// NodeSoftwareInfo resource node software version info
+	NodeSoftwareInfo = "nodeSoftwareInfo"
 	// CheckResource resources allocatable node resources in node group
 	CheckResource = "checkResource"
 	// UpdateResource resources allocatable node resources in node group
@@ -257,8 +261,16 @@ const (
 	OptPost = "POST"
 	// OptReport option for report
 	OptReport = "REPORT"
-	// ResProgressReport resource progress report
-	ResProgressReport = "/progress"
+	// ResEdgeDownloadInfo resource for download software
+	ResEdgeDownloadInfo = "/edge/download"
+	// ResEdgeUpgradeInfo resource for effect software
+	ResEdgeUpgradeInfo = "/edge/upgrade"
+	// ResEdgeConfigInfo resource for edge config info
+	ResEdgeConfigInfo = "/edge/config"
+	// ResDownloadProgress resource progress report
+	ResDownloadProgress = "/edge/download-progress"
+	// ResSoftwareInfo resource software info
+	ResSoftwareInfo = "/edge/version-info"
 	// ResDownLoadSoftware resource for downloading software
 	ResDownLoadSoftware = "/software/download_info"
 	// ResEdgeCoreConfig resource for querying edgecore config

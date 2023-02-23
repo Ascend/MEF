@@ -95,6 +95,8 @@ func (wsp *WsServerProxy) closeOneClient(name, conn interface{}) bool {
 	if err != nil {
 		hwlog.RunLog.Errorf("close client [%v] failed, error: %v", name, err)
 	}
+	hwlog.RunLog.Infof("client [name=%v] disconnect", name)
+
 	return true
 }
 

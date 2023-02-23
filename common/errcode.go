@@ -20,6 +20,9 @@ const (
 	ErrorParamConvert = "00001006"
 	// ErrorTypeAssert parameter type assert error
 	ErrorTypeAssert = "00001007"
+	// ErrorNewMsg new msg error
+	ErrorNewMsg = "00001008"
+
 	// ErrorCreateAppTemplate failed to create app template
 	ErrorCreateAppTemplate = "00002005"
 	// ErrorDeleteAppTemplate failed to delete app template
@@ -92,6 +95,14 @@ const (
 	// ErrorDeleteNodeFromGroup failed to delete node from group
 	ErrorDeleteNodeFromGroup = "40012015"
 
+	// ErrorSendMsgToNode failed to send msg to node
+	ErrorSendMsgToNode = "40012016"
+	// ErrorGetToken failed to get token
+	ErrorGetToken = "40012017"
+
+	// ErrorGetNodeSoftwareVersion failed to delete node groups
+	ErrorGetNodeSoftwareVersion = "40012018"
+
 	// ErrorCheckAppMrgSize failed to check data size while creating
 	ErrorCheckAppMrgSize = "40021000"
 	// ErrorAppParamConvertDb failed to convert request param to db
@@ -131,6 +142,9 @@ const (
 	ErrorSetEdgeAccountPassword = "40031001"
 	// ErrorSetEdgeAccount failed to set edge account
 	ErrorSetEdgeAccount = "40031002"
+
+	// ErrorQueryCrt failed to get crt from cert manager
+	ErrorQueryCrt = "40042002"
 
 	// ErrorGetRootCa failed to get root ca by cert name
 	ErrorGetRootCa = "60001001"
@@ -220,6 +234,12 @@ var ErrorMap = map[string]string{
 	ErrorCountNodeGroup: "failed to count node groups",
 	// ErrorDeleteNodeGroup failed to delete node groups
 	ErrorDeleteNodeGroup: "failed to delete node groups",
+	// ErrorSendMsgToNode failed to send msg to node
+	ErrorSendMsgToNode: "failed to send msg to node",
+	// ErrorDeleteNodeFromGroup failed to send msg to node
+	ErrorGetNodeSoftwareVersion: "failed to get node version",
+	// ErrorGetToken failed to get token
+	ErrorGetToken: "failed to get token",
 
 	// ErrorGetNode failed to get node detail
 	ErrorGetNode: "failed to get node detail",
@@ -295,4 +315,7 @@ var ErrorMap = map[string]string{
 	ErrorSetEdgeAccountPassword: "failed to set edge account password",
 	// ErrorSetEdgeAccount failed to set edge account
 	ErrorSetEdgeAccount: "failed to set edge account",
+
+	// ErrorQueryCrt failed to get crt from cert manager
+	ErrorQueryCrt: "failed to get crt from cert manager",
 }
