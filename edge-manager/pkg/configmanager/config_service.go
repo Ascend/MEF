@@ -30,19 +30,19 @@ func downloadConfig(input interface{}) common.RespMsg {
 	var req ImageConfig
 	if err := common.ParamConvert(input, &req); err != nil {
 		hwlog.RunLog.Errorf("parse parameter failed, error: %v", err)
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}
 	defer func() {
 		common.ClearSliceByteMemory(req.Password)
 	}()
 	if checkResult := configchecker.NewConfigChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("image config para check failed: %s", checkResult.Reason)
-		return common.RespMsg{Status: "", Msg: checkResult.Reason, Data: nil}
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
 	}
 
 	if err := createSecret(req); err != nil {
 		hwlog.RunLog.Errorf("create k8s secret failed, %v", err)
-		return common.RespMsg{Status: "", Msg: "create k8s secret failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorCreateSecret, Msg: "create k8s secret failed", Data: nil}
 	}
 	hwlog.RunLog.Info("create image config success")
 	return common.RespMsg{Status: common.Success, Msg: "create image config success", Data: nil}

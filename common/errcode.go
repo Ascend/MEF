@@ -160,6 +160,8 @@ const (
 	ErrorDistributeRootCa = "60001006"
 	// ErrorGetSecret failed to get secret
 	ErrorGetSecret = "60001007"
+	// ErrorCreateSecret failed to create secret
+	ErrorCreateSecret = "60001008"
 )
 
 // ErrorMap error code and error msg map
@@ -304,6 +306,8 @@ var ErrorMap = map[string]string{
 	ErrorDistributeRootCa: "failed to distribute cert file",
 	// ErrorGetSecret failed to get secret
 	ErrorGetSecret: "failed to get secret",
+	// ErrorCreateSecret failed to create secret
+	ErrorCreateSecret: "failed to create secret",
 
 	// ErrorAccountOrPassword incorrect account or password
 	ErrorAccountOrPassword: "incorrect account or password",

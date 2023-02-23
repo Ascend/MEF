@@ -9,7 +9,6 @@ import (
 	"os/exec"
 	"time"
 
-	"nginx-manager/pkg/checker"
 	"nginx-manager/pkg/msgutil"
 	"nginx-manager/pkg/nginxcom"
 
@@ -47,7 +46,10 @@ func InitResource() error {
 }
 
 func updateConf() error {
-	items := CreateConfItems(nginxcom.Envs)
+	items, err := CreateConfItems()
+	if err != nil {
+		return err
+	}
 	updater := NewNginxConfUpdater(items, nginxcom.NginxDefaultConfigPath)
 	return updater.Update()
 }
@@ -67,18 +69,22 @@ func loadCerts() error {
 }
 
 // CreateConfItems create some items which used to replace into nginx.conf file
-func CreateConfItems(envs map[string]string) []nginxcom.NginxConfItem {
+func CreateConfItems() ([]nginxcom.NginxConfItem, error) {
 	var ret []nginxcom.NginxConfItem
-	template := checker.GetConfigItemTemplate()
+	template := nginxcom.GetConfigItemTemplate()
 	for _, item := range template {
+		toVal, err := nginxcom.GetEnvManager().Get(item.Key)
+		if err != nil {
+			return nil, err
+		}
 		createdItem := nginxcom.NginxConfItem{
 			Key:  item.Key,
 			From: item.From,
-			To:   envs[item.Key],
+			To:   toVal,
 		}
 		ret = append(ret, createdItem)
 	}
-	return ret
+	return ret, nil
 }
 
 // NewNginxManager create NewNginxManager module

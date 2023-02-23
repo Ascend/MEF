@@ -98,7 +98,7 @@ func unlockUser(user *User, peerIp string) {
 		hwlog.RunLog.Errorf("unlock user parse lock time error, %s", err.Error())
 		return
 	}
-	if time.Now().Sub(lockTime) >= nginxcom.UserLockTime {
+	if time.Now().Sub(lockTime) >= time.Duration(ConfigLockTime)*time.Second {
 		hwlog.RunLog.Infof("unlock user: %s", user.Username)
 		toUpdateUser := &User{
 			Username:           user.Username,
@@ -122,7 +122,7 @@ func unlockIp(forbidden *IpForbidden, peerIp string) {
 		hwlog.RunLog.Errorf("unlock user parse lock time error, %s", err.Error())
 		return
 	}
-	if time.Now().Sub(lockTime) >= nginxcom.IpLockTime {
+	if time.Now().Sub(lockTime) >= time.Duration(ConfigLockTime)*time.Second {
 		if err := UserServiceInstance().deleteForbiddenIp(forbidden.Ip); err != nil {
 			hwlog.OpLog.Errorf("[%s]ip %s unlock fail", peerIp, forbidden.Ip)
 			hwlog.RunLog.Error("delete forbidden ip error")

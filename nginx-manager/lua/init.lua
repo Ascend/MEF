@@ -2,12 +2,18 @@
 -- init const
 
 require "resty.core"
+-- user or ip lock duration, default 600 seconds
+local default_lock_time = 600
+-- unlock user or ip every 30s automatic
+local default_lock_offset = 30
 local lrucache = require("resty.lrucache")
 local libdns = require("libdns")
-
+local common = require("common")
 g_dns_cache = lrucache.new(100)
 g_dns_servers = table.new(5, 0)
-g_session_timeout = 600
+g_default_session_timeout = 600
+g_session_timeout = common.getEnvWithDefault("TokenExpireTime", g_default_session_timeout)
+g_lock_time = common.getEnvWithDefault("LockTime", default_lock_time) + default_lock_offset
 g_success = "00000000"
 g_error_operate = "00002010"
 g_error_need_firstlogin = "10001005"

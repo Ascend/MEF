@@ -12,7 +12,6 @@ import (
 
 	"huawei.com/mindxedge/base/common"
 
-	"nginx-manager/pkg/checker"
 	"nginx-manager/pkg/nginxcom"
 )
 
@@ -52,11 +51,6 @@ func (n *nginxConfUpdater) Update() error {
 	if err != nil {
 		return err
 	}
-	err = checker.Check(checker.NginxConfig, content)
-	if err != nil {
-		return err
-	}
-
 	return n.updateUrl(content)
 }
 
