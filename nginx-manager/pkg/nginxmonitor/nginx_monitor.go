@@ -61,7 +61,7 @@ func (n *nginxMonitor) Name() string {
 
 // Enable module enable
 func (n *nginxMonitor) Enable() bool {
-	sslPort, err := nginxcom.GetEnvAsInt(nginxcom.NginxSslPortKey)
+	sslPort, err := nginxcom.GetEnvManager().GetInt(nginxcom.NginxSslPortKey)
 	if err != nil {
 		return false
 	}
