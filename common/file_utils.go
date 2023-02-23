@@ -106,16 +106,16 @@ func GetDiskFree(path string) (uint64, error) {
 	return diskFree, nil
 }
 
-// GetDevInfo is used to get the dev_number of a path
-// ret equals the dev_t definition in linux stat struct
-func GetDevInfo(path string) (uint64, error) {
-	fs := syscall.Stat_t{}
-	err := syscall.Stat(path, &fs)
+// GetFileSystem is used to get the file system of a path
+// ret equals the type_t definition in linux statfs struct
+func GetFileSystem(path string) (int64, error) {
+	fs := syscall.Statfs_t{}
+	err := syscall.Statfs(path, &fs)
 	if err != nil {
-		return 0, fmt.Errorf("get [%s]'s dev info failed: %s", path, err.Error())
+		return 0, fmt.Errorf("get [%s]'s file system failed: %s", path, err.Error())
 	}
 
-	return fs.Dev, nil
+	return fs.Type, nil
 }
 
 // ExtraUpgradeZipFile extract zip file

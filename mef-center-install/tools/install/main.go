@@ -90,11 +90,11 @@ func checkPath() error {
 	}
 
 	if logBackupRootPath, err = checkSinglePath(logBackupRootPath); err != nil {
-		return fmt.Errorf("check log back path failed: %s", logRootPath)
+		return fmt.Errorf("check log back path failed: %s", logBackupRootPath)
 	}
 
 	if installPath, err = checkSinglePath(installPath); err != nil {
-		return fmt.Errorf("check install path failed: %s", logRootPath)
+		return fmt.Errorf("check install path failed: %s", installPath)
 	}
 
 	return nil
@@ -118,7 +118,7 @@ func checkSinglePath(path string) (string, error) {
 }
 
 func checkTmpfs(path string) error {
-	dev, err := common.GetDevInfo(path)
+	dev, err := common.GetFileSystem(path)
 	if err != nil {
 		return err
 	}
