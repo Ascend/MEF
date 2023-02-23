@@ -48,19 +48,19 @@ func importRootCa(input interface{}) common.RespMsg {
 	}
 	caBase64, err := checkCert(req)
 	if err != nil {
-		hwlog.OpLog.Error("valid ca content failed, error:%v", err)
+		hwlog.RunLog.Errorf("valid ca content failed, error:%v", err)
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "valid ca content failed", Data: nil}
 	}
 	// save the certificate to the local file
 	if err := saveCaContent(req.CertName, caBase64); err != nil {
-		hwlog.OpLog.Error("save ca content to file failed, error:%v", err)
+		hwlog.RunLog.Errorf("save ca content to file failed, error:%v", err)
 		return common.RespMsg{Status: common.ErrorSaveCa, Msg: "save ca content to file failed", Data: nil}
 	}
-	if err := updateClientCert(req.CertName, caBase64); err != nil {
-		hwlog.RunLog.Error("send update client cert message to edge-manager failed")
-		return common.RespMsg{Status: common.ErrorDistributeRootCa,
-			Msg: "send update client cert message to edge-manager failed", Data: nil}
-	}
+	go func() {
+		if err := updateClientCert(req.CertName, caBase64); err != nil {
+			hwlog.RunLog.Errorf("distribute cert file to client failed, error:%v", err)
+		}
+	}()
 	hwlog.OpLog.Infof("import %s certificate success", req.CertName)
 	return common.RespMsg{Status: common.Success, Msg: "import certificate success", Data: nil}
 }
@@ -71,7 +71,6 @@ func deleteRootCa(input interface{}) common.RespMsg {
 	if err := common.ParamConvert(input, &req); err != nil {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}
-
 	// verifying the certificate usage type
 	if !CheckCertName(req.Type) {
 		hwlog.RunLog.Error("valid parameter failed")
