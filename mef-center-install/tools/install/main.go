@@ -4,7 +4,6 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -86,15 +85,15 @@ func checkPath() error {
 	var err error
 
 	if logRootPath, err = checkSinglePath(logRootPath); err != nil {
-		return fmt.Errorf("check log root path failed: %s", logRootPath)
+		return fmt.Errorf("check log root path failed: %s", err.Error())
 	}
 
 	if logBackupRootPath, err = checkSinglePath(logBackupRootPath); err != nil {
-		return fmt.Errorf("check log back path failed: %s", logBackupRootPath)
+		return fmt.Errorf("check log back path failed: %s", err.Error())
 	}
 
 	if installPath, err = checkSinglePath(installPath); err != nil {
-		return fmt.Errorf("check install path failed: %s", installPath)
+		return fmt.Errorf("check install path failed: %s", err.Error())
 	}
 
 	return nil
@@ -124,7 +123,7 @@ func checkTmpfs(path string) error {
 	}
 
 	if dev == common.TmpfsDevNum {
-		return errors.New("path [%s]'s is in tmpfs filesystem")
+		return fmt.Errorf("path [%s]'s is in tmpfs filesystem", path)
 	}
 	return nil
 }
