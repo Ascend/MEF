@@ -1,7 +1,7 @@
-// Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
+// Copyright (c) 2023. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package edgeconnector server init
-package edgeconnector
+// Package cloudhub server init
+package cloudhub
 
 import (
 	"errors"
@@ -16,6 +16,7 @@ import (
 	"huawei.com/mindxedge/base/common/httpsmgr"
 	"huawei.com/mindxedge/base/common/websocketmgr"
 
+	"edge-manager/pkg/edgeconnector"
 	"edge-manager/pkg/util"
 )
 
@@ -60,10 +61,10 @@ func InitServer() error {
 				SvrFlag:       true,
 				IgnoreCltCert: true,
 			}
-			NewClientAuthService(connector.authPort, authCertInfo).Start()
+			edgeconnector.NewClientAuthService(server.authPort, authCertInfo).Start()
 		}()
 	}
-	proxyConfig, err := websocketmgr.InitProxyConfig(name, podIp, connector.wsPort, certInfo)
+	proxyConfig, err := websocketmgr.InitProxyConfig(name, podIp, server.wsPort, certInfo)
 	if err != nil {
 		hwlog.RunLog.Errorf("init proxy config failed: %v", err)
 		return errors.New("init proxy config failed")

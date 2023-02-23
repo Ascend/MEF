@@ -19,7 +19,7 @@ func downloadCert(c *gin.Context) {
 	}
 	router := common.Router{
 		Source:      common.RestfulServiceName,
-		Destination: common.EdgeInstallerName,
+		Destination: common.NodeMsgManagerName,
 		Option:      common.OptGet,
 		Resource:    common.ResDownLoadCert,
 	}

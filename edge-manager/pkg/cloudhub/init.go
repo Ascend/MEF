@@ -1,7 +1,7 @@
-// Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
+// Copyright (c) 2023. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package edgeconnector module edge-connector init
-package edgeconnector
+// Package cloudhub module edge-connector init
+package cloudhub
 
 import (
 	"context"
@@ -13,8 +13,8 @@ import (
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
-// Connector wraps the struct WebSocketServer
-type Connector struct {
+// CloudServer wraps the struct WebSocketServer
+type CloudServer struct {
 	wsPort    int
 	authPort  int
 	writeLock sync.RWMutex
@@ -22,33 +22,32 @@ type Connector struct {
 	enable    bool
 }
 
-var connector Connector
+var server CloudServer
 
-// NewConnector new connector
-func NewConnector(enable bool, wsPort, authPort int) *Connector {
-	connector = Connector{
+// NewCloudServer new cloud server
+func NewCloudServer(enable bool, wsPort, authPort int) *CloudServer {
+	server = CloudServer{
 		wsPort:   wsPort,
 		authPort: authPort,
 		ctx:      context.Background(),
 		enable:   enable,
 	}
-	return &connector
+	return &server
 }
 
 // Name returns the name of websocket connection module
-func (c *Connector) Name() string {
-	return common.EdgeConnectorName
+func (c *CloudServer) Name() string {
+	return common.CloudHubName
 }
 
 // Enable indicates whether this module is enabled
-func (c *Connector) Enable() bool {
+func (c *CloudServer) Enable() bool {
 	return c.enable
 }
 
 // Start initializes the websocket server
-func (c *Connector) Start() {
-	hwlog.RunLog.Info("----------------edge connector start----------------")
-
+func (c *CloudServer) Start() {
+	hwlog.RunLog.Info("----------------cloud hub start----------------")
 	if err := InitServer(); err != nil {
 		hwlog.RunLog.Errorf("init websocket server failed: %v", err)
 		return
@@ -75,20 +74,18 @@ func (c *Connector) Start() {
 	}
 }
 
-func (c *Connector) sendToClient(msg *model.Message) {
+func (c *CloudServer) sendToClient(msg *model.Message) {
 	sender, err := GetSvrSender()
 	if err != nil {
-		hwlog.RunLog.Errorf("edge-connector get server sender failed, error: %v", err)
+		hwlog.RunLog.Errorf("send to client [%s] failed", msg.GetNodeId())
 		return
 	}
-
 	if err = sender.Send(msg.GetNodeId(), msg); err != nil {
-		hwlog.RunLog.Errorf("edge-connector send msg to edge node error: %v, operation is [%s], resource is [%s]",
+		hwlog.RunLog.Errorf("cloud hub send msg to edge node error: %v, operation is [%s], resource is [%s]",
 			err, msg.GetOption(), msg.GetResource())
 		return
 	}
 
-	hwlog.RunLog.Infof("edge-connector send msg to edge node success, operation is [%s], resource is [%s]",
+	hwlog.RunLog.Infof("cloud hub send msg to edge node success, operation is [%s], resource is [%s]",
 		msg.GetOption(), msg.GetResource())
-	return
 }

@@ -19,11 +19,11 @@ import (
 	"huawei.com/mindxedge/base/modulemanager"
 
 	"edge-manager/pkg/appmanager"
+	"edge-manager/pkg/cloudhub"
 	"edge-manager/pkg/config"
 	"edge-manager/pkg/configmanager"
 	"edge-manager/pkg/database"
-	"edge-manager/pkg/edgeconnector"
-	"edge-manager/pkg/edgeinstaller"
+	"edge-manager/pkg/edgemsgmanager"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/nodemanager"
 	"edge-manager/pkg/restfulservice"
@@ -143,10 +143,10 @@ func register(ctx context.Context) error {
 	if err := modulemanager.Registry(appmanager.NewAppManager(true)); err != nil {
 		return err
 	}
-	if err := modulemanager.Registry(edgeconnector.NewConnector(true, wsPort, authPort)); err != nil {
+	if err := modulemanager.Registry(cloudhub.NewCloudServer(true, wsPort, authPort)); err != nil {
 		return err
 	}
-	if err := modulemanager.Registry(edgeinstaller.NewInstaller(true)); err != nil {
+	if err := modulemanager.Registry(edgemsgmanager.NewNodeMsgManager(true)); err != nil {
 		return err
 	}
 	if err := modulemanager.Registry(configmanager.NewConfigManager(true)); err != nil {
