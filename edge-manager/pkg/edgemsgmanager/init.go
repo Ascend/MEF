@@ -89,7 +89,7 @@ func (nm *NodeMsgDealer) dispatch(req *model.Message) {
 
 	resp.FillContent(msg)
 	if err = modulemanager.SendMessage(resp); err != nil {
-		hwlog.RunLog.Errorf("%s send response failed", nm.Name())
+		hwlog.RunLog.Errorf("%s send response failed: %v", nm.Name(), err)
 	}
 }
 

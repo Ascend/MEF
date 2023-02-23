@@ -5,9 +5,11 @@ package cloudhub
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
@@ -70,22 +72,46 @@ func (c *CloudServer) Start() {
 			hwlog.RunLog.Errorf("module [%s] receive message from channel failed, error: %v", c.Name(), err)
 			continue
 		}
-		c.sendToClient(message)
+
+		if c.sendToClient(message) != nil {
+			c.response(message, common.FAIL)
+		} else {
+			c.response(message, common.OK)
+		}
 	}
 }
 
-func (c *CloudServer) sendToClient(msg *model.Message) {
+func (c *CloudServer) response(message *model.Message, content string) {
+	if !message.GetIsSync() {
+		return
+	}
+
+	resp, err := message.NewResponse()
+	if err != nil {
+		hwlog.RunLog.Errorf("%s new response failed", c.Name())
+		return
+	}
+
+	resp.FillContent(content)
+	if err = modulemanager.SendMessage(resp); err != nil {
+		hwlog.RunLog.Errorf("%s send response failed", c.Name())
+	}
+}
+
+func (c *CloudServer) sendToClient(msg *model.Message) error {
 	sender, err := GetSvrSender()
 	if err != nil {
 		hwlog.RunLog.Errorf("send to client [%s] failed", msg.GetNodeId())
-		return
+		return fmt.Errorf("send to client [%s] failed", msg.GetNodeId())
 	}
 	if err = sender.Send(msg.GetNodeId(), msg); err != nil {
 		hwlog.RunLog.Errorf("cloud hub send msg to edge node error: %v, operation is [%s], resource is [%s]",
 			err, msg.GetOption(), msg.GetResource())
-		return
+		return fmt.Errorf("send to client [%s] failed", msg.GetNodeId())
 	}
 
 	hwlog.RunLog.Infof("cloud hub send msg to edge node success, operation is [%s], resource is [%s]",
 		msg.GetOption(), msg.GetResource())
+
+	return nil
 }

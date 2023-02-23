@@ -281,6 +281,38 @@ func testDownloadInfoUserNameInvalid() {
 	}
 }
 
+func testDownloadInfoPasswdInvalid() {
+	msg, err := model.NewMessage()
+	if err != nil {
+		hwlog.RunLog.Errorf("create message failed")
+	}
+
+	var p2 = gomonkey.ApplyFunc(modulemanager.SendSyncMessage, func(m *model.Message,
+		duration time.Duration) (*model.Message, error) {
+		rspMsg, err := model.NewMessage()
+		if err != nil {
+			hwlog.RunLog.Error("create message failed")
+		}
+		rspMsg.FillContent(common.OK)
+		return rspMsg, nil
+	})
+	defer p2.Reset()
+
+	req := createBaseData()
+
+	req.DownloadInfo.Password = nil
+	content, err := json.Marshal(req)
+	if err != nil {
+		hwlog.RunLog.Errorf("marshal failed")
+	}
+	msg.FillContent(string(content))
+
+	resp := downloadSoftware(msg)
+
+	convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
+
+}
+
 func TestDownloadInfo(t *testing.T) {
 	convey.Convey("test download info", t, func() {
 		convey.Convey("test download info serialNumbers", func() {
@@ -290,6 +322,7 @@ func TestDownloadInfo(t *testing.T) {
 			convey.Convey("test invalid Package", testDownloadInfoPackageInvalid)
 			convey.Convey("test invalid SignFile", testDownloadInfoSignFileInvalid)
 			convey.Convey("test invalid UserName", testDownloadInfoUserNameInvalid)
+			convey.Convey("test invalid Password", testDownloadInfoPasswdInvalid)
 		})
 	})
 }
