@@ -23,10 +23,6 @@ compile:
         version: "1.0"
         type: opensource
         buildFile: "{{EDGE_MANAGER_DIR}}/build/conf"
-      - name: software-manager
-        version: "1.0"
-        type: opensource
-        buildFile: "{{SOFTWARE_MANAGER_DIR}}/build/conf"
       - name: cert-manager
         version: "1.0"
         type: opensource
@@ -60,8 +56,6 @@ compile:
         - makedir:
             path: "{{TOP_DIR}}/savedir/edge-manager"
         - makedir:
-            path: "{{TOP_DIR}}/savedir/software-manager"
-        - makedir:
             path: "{{TOP_DIR}}/savedir/cert-manager"
         - makedir:
             path: "{{TOP_DIR}}/savedir/installer"
@@ -69,8 +63,6 @@ compile:
             path: "{{TOP_DIR}}/savedir/nginx-manager"
         - commands:
             - command: "fakeroot cp -rf {{EDGE_MANAGER_DIR}}/output/* {{TOP_DIR}}/savedir/edge-manager/"
-        - commands:
-            - command: "fakeroot cp -rf {{SOFTWARE_MANAGER_DIR}}/output/* {{TOP_DIR}}/savedir/software-manager/"
         - commands:
             - command: "fakeroot cp -rf {{MEF_CENTER_INSTALL_DIR}}/output/* {{TOP_DIR}}/savedir/installer/"
         - commands:

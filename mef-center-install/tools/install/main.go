@@ -37,8 +37,6 @@ func init() {
 
 func setFlag() {
 	flag.BoolVar(&version, util.VersionFlag, false, "Output the program version")
-	flag.BoolVar(&installAll, util.AllInstallFlag, false, "loadImage all optional components")
-	flag.BoolVar(&installSoftwareManager, util.SoftwareManagerFlag, false, "loadImage software manager")
 	flag.BoolVar(&help, util.HelpFlag, false, "print the help information")
 	flag.BoolVar(&help, util.HelpShortFlag, false, "print the help information")
 	flag.StringVar(&logRootPath, util.LogPathFlag, "/var", "The path used to save logs")

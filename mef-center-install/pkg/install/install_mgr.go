@@ -36,7 +36,6 @@ func (sic *SftInstallCtl) DoInstall() error {
 		sic.prepareK8sLabel,
 		sic.prepareComponentLogDir,
 		sic.prepareComponentLogBackupDir,
-		sic.prepareInstallPkgDir,
 		sic.prepareCerts,
 		sic.prepareWorkingDir,
 		sic.prepareYaml,
