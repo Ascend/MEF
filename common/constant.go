@@ -341,3 +341,6 @@ const (
 	MaxNodePerGroup = 1024
 	MaxGroupPerNode = 10
 )
+
+// TmpfsDevNum represents the dev number of tmpfs filesystem in linux stat struct
+const TmpfsDevNum = 0x01021994

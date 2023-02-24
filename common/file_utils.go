@@ -106,6 +106,18 @@ func GetDiskFree(path string) (uint64, error) {
 	return diskFree, nil
 }
 
+// GetFileSystem is used to get the file system of a path
+// ret equals the type_t definition in linux statfs struct
+func GetFileSystem(path string) (int64, error) {
+	fs := syscall.Statfs_t{}
+	err := syscall.Statfs(path, &fs)
+	if err != nil {
+		return 0, fmt.Errorf("get [%s]'s file system failed: %s", path, err.Error())
+	}
+
+	return fs.Type, nil
+}
+
 // ExtraUpgradeZipFile extract zip file
 func ExtraUpgradeZipFile(zipFile, extractPath string) error {
 	reader, err := prepareExtraZip(zipFile, extractPath)
