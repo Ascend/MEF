@@ -315,7 +315,7 @@ func autoAddUnmanagedNode() error {
 			continue
 		}
 
-		if dbNodeCount >= maxNode {
+		if dbNodeCount >= common.MaxNode {
 			return errors.New("node number is enough, cannot create")
 		}
 		if err := NodeServiceInstance().createNode(nodeInfo); err != nil {

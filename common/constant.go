@@ -42,6 +42,8 @@ const (
 	MEF = "MEF"
 	// EdgeCore software edgecore name
 	EdgeCore = "edgecore"
+	// MEFEdge software mef edge name
+	MEFEdge = "MEFEdge"
 	// EdgeInstaller software edge-installer name
 	EdgeInstaller = "edge-installer"
 	// DevicePlugin software device-plugin name
@@ -243,6 +245,12 @@ const (
 	MinComplexCount = 2
 )
 
+// field status
+const (
+	OK   = "OK"
+	FAIL = "FAIL"
+)
+
 // used to check ip
 const (
 	ZeroAddr      = "0.0.0.0"
@@ -324,4 +332,12 @@ const (
 	TarGzSuffix = ".tar.gz"
 	CrlSuffix   = ".tar.gz.crl"
 	CmsSuffix   = ".tar.gz.cms"
+)
+
+// node specification
+const (
+	MaxNode         = 1024
+	MaxNodeGroup    = 1024
+	MaxNodePerGroup = 1024
+	MaxGroupPerNode = 10
 )

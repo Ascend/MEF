@@ -15,7 +15,7 @@ import (
 
 // downloadSoftware [method] down edge software
 func downloadSoftware(input interface{}) common.RespMsg {
-	hwlog.RunLog.Info("start update edge software")
+	hwlog.RunLog.Info("start deal edge software download info")
 	message, ok := input.(*model.Message)
 	if !ok {
 		hwlog.RunLog.Error("get message failed")
@@ -26,6 +26,11 @@ func downloadSoftware(input interface{}) common.RespMsg {
 	var err error
 	if err = common.ParamConvert(message.GetContent(), &req); err != nil {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
+	}
+
+	if checkResult := newDownloadChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("check software download para failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
 	}
 
 	msg, err := model.NewMessage()
@@ -40,11 +45,19 @@ func downloadSoftware(input interface{}) common.RespMsg {
 	for _, sn := range req.SerialNumbers {
 		msg.SetNodeId(sn)
 
-		if err = modulemanager.SendMessage(msg); err != nil {
+		rsp, err := modulemanager.SendSyncMessage(msg, common.ResponseTimeout)
+		if err != nil {
+			hwlog.RunLog.Errorf("send software download info to %s failed", sn)
 			batchResp.FailedIDs = append(batchResp.FailedIDs, sn)
-		} else {
-			batchResp.SuccessIDs = append(batchResp.SuccessIDs, sn)
+			continue
 		}
+
+		if content, ok := rsp.GetContent().(string); !ok || content != common.OK {
+			batchResp.FailedIDs = append(batchResp.FailedIDs, sn)
+			continue
+		}
+
+		batchResp.SuccessIDs = append(batchResp.SuccessIDs, sn)
 		nodesProgress[sn] = types.ProgressInfo{}
 	}
 
@@ -52,7 +65,7 @@ func downloadSoftware(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("deal edge software upgrade info failed")
 		return common.RespMsg{Status: common.ErrorSendMsgToNode, Msg: "", Data: batchResp}
 	} else {
-		hwlog.RunLog.Info("deal edge software upgrade info success")
+		hwlog.RunLog.Info("deal edge software download info success")
 		return common.RespMsg{Status: common.Success, Msg: "", Data: batchResp}
 	}
 }
