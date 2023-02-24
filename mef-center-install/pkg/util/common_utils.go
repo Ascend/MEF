@@ -144,3 +144,26 @@ func GetNecessaryTools() []string {
 		"wc",
 	}
 }
+
+func CheckCurrentPath(linkPath string) error {
+	curPath, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		return fmt.Errorf("get current path failed: %s", err.Error())
+	}
+
+	curAbsPath, err := filepath.EvalSymlinks(curPath)
+	if err != nil {
+		return fmt.Errorf("get current abs path failed: %s", err.Error())
+	}
+
+	workingAbsPath, err := filepath.EvalSymlinks(linkPath)
+	if err != nil {
+		return fmt.Errorf("get working abs path failed: %s", err.Error())
+	}
+
+	if filepath.Dir(curAbsPath) != workingAbsPath {
+		return fmt.Errorf("current sh path is not in the working path")
+	}
+
+	return nil
+}
