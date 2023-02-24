@@ -4,6 +4,7 @@ package util
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 
@@ -25,7 +26,7 @@ type InstallParamJsonTemplate struct {
 func GetInstallParamJsonInfo(jsonPath string) (*InstallParamJsonTemplate, error) {
 	var componentsIns InstallParamJsonTemplate
 	if !utils.IsExist(jsonPath) {
-		return nil, fmt.Errorf("install_param.json not exist")
+		return nil, errors.New("install_param.json not exist")
 	}
 	file, err := utils.LoadFile(jsonPath)
 	if err != nil {

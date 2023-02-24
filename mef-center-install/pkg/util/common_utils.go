@@ -58,16 +58,14 @@ func CheckDiskSpace(path string, limit uint64) error {
 func GetInstallInfo() (*InstallParamJsonTemplate, error) {
 	currentDir, err := filepath.Abs(filepath.Dir(filepath.Dir(os.Args[0])))
 	if err != nil {
-		fmt.Printf("get current absolute path error: %s", err)
-		hwlog.RunLog.Errorf("get current absolute path error: %s", err)
+		fmt.Printf("get current absolute path error: %s\n", err.Error())
 		return nil, err
 	}
 
 	paramJsonPath := path.Join(currentDir, InstallParamJson)
 	paramJsonMgr, err := GetInstallParamJsonInfo(paramJsonPath)
 	if err != nil {
-		fmt.Printf("get current absolute path error: %s", err)
-		hwlog.RunLog.Errorf("get current absolute path error: %s", err)
+		fmt.Printf("get current absolute path error: %s\n", err.Error())
 		return nil, err
 	}
 
