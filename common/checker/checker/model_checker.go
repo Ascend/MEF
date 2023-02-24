@@ -30,7 +30,7 @@ func (mc *ModelChecker) Check(data interface{}) CheckResult {
 		if valuer.CheckIsFieldNotExistErr(err) && !mc.Required {
 			return NewSuccessResult()
 		}
-		return NewFailedResult(fmt.Sprintf("field [%s] not fount", mc.Field))
+		return NewFailedResult(fmt.Sprintf("field [%s] not find", mc.Field))
 	}
 	return mc.Checker.Check(value)
 }

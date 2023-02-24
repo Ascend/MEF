@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"gorm.io/gorm"
+
 	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/database"
@@ -33,7 +34,9 @@ type NodeService interface {
 	getNodeCapByID(nodeID uint64) (*[]string, error)
 	countAllNodesByName(string) (int64, error)
 	listAllNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
+	updateNodeBySerialNumber(key, column, value string) error
 	getNodeByUniqueName(string) (*NodeInfo, error)
+	getNodeBySerialNumber(string) (*NodeInfo, error)
 	getNodeByID(uint64) (*NodeInfo, error)
 	getManagedNodeByID(uint64) (*NodeInfo, error)
 	countGroupsByNode(uint64) (int64, error)
@@ -154,10 +157,21 @@ func (n *NodeServiceImpl) deleteNodeToGroup(relation *NodeRelation) (int64, erro
 	return stmt.RowsAffected, stmt.Error
 }
 
+// GetNodeByUniqueName get node info by Serial Number in k8s
+func (n *NodeServiceImpl) updateNodeBySerialNumber(key, column, value string) error {
+	return n.db.Model(NodeInfo{}).Where("serial_number = ?", key).Update(column, value).Error
+}
+
 // GetNodeByUniqueName get node info by unique name in k8s
 func (n *NodeServiceImpl) getNodeByUniqueName(name string) (*NodeInfo, error) {
 	var node NodeInfo
 	return &node, n.db.Model(NodeInfo{}).Where("unique_name=?", name).First(&node).Error
+}
+
+// GetNodeByUniqueName get node info by serial number
+func (n *NodeServiceImpl) getNodeBySerialNumber(name string) (*NodeInfo, error) {
+	var node NodeInfo
+	return &node, n.db.Model(NodeInfo{}).Where("serial_number=?", name).First(&node).Error
 }
 
 func (n *NodeServiceImpl) countNodeByGroup(groupID uint64) (int64, error) {

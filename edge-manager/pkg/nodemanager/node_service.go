@@ -292,7 +292,7 @@ func autoAddUnmanagedNode() error {
 			continue
 		}
 		if _, ok := node.Labels[snNodeLabelKey]; !ok {
-			hwlog.RunLog.Errorf("create node failed: node serial number is nil")
+			hwlog.RunLog.Errorf("create node [%s] failed: node serial number is nil", node.Name)
 			continue
 		}
 		if _, err = NodeServiceInstance().getNodeByUniqueName(node.Name); err == nil {
@@ -311,11 +311,11 @@ func autoAddUnmanagedNode() error {
 			UpdatedAt:    time.Now().Format(TimeFormat),
 		}
 		if checkResult := newNodeInfoChecker().Check(*nodeInfo); !checkResult.Result {
-			hwlog.RunLog.Errorf("node info check failed:%s", checkResult.Reason)
+			hwlog.RunLog.Errorf("node info [%s] check failed:%s", checkResult.Reason, node.Name)
 			continue
 		}
 
-		if dbNodeCount >= maxNode {
+		if dbNodeCount >= common.MaxNode {
 			return errors.New("node number is enough, cannot create")
 		}
 		if err := NodeServiceInstance().createNode(nodeInfo); err != nil {
@@ -701,4 +701,27 @@ func checkNodeResource(req v1.ResourceList, nodeId uint64) error {
 		return fmt.Errorf("node [%d] do not have enough npu resources", nodeId)
 	}
 	return nil
+}
+
+func updateNodeSoftwareInfo(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start to update node software info")
+	var req types.EdgeReportSoftwareInfoReq
+	if err := common.ParamConvert(input, &req); err != nil {
+		hwlog.RunLog.Errorf("update node software info error, %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "convert request error", Data: nil}
+	}
+
+	softwareInfo, err := json.Marshal(req.SoftwareInfo)
+	if err != nil {
+		hwlog.RunLog.Error("marshal version info failed")
+		return common.RespMsg{Status: "", Msg: "marshal version info failed", Data: nil}
+	}
+
+	err = NodeServiceInstance().updateNodeBySerialNumber(req.SerialNumber, "software_info", string(softwareInfo))
+	if err != nil {
+		hwlog.RunLog.Errorf("update node software info failed: %v", err)
+		return common.RespMsg{Status: "", Msg: "update node software info failed", Data: nil}
+	}
+
+	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }

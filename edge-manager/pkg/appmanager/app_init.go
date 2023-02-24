@@ -110,8 +110,8 @@ func (app *appManager) housekeeper() {
 
 func methodSelect(req *model.Message) *common.RespMsg {
 	var res common.RespMsg
-	method, exit := handlerFuncMap[common.Combine(req.GetOption(), req.GetResource())]
-	if !exit {
+	method, ok := handlerFuncMap[common.Combine(req.GetOption(), req.GetResource())]
+	if !ok {
 		hwlog.RunLog.Errorf("handler func is not exist, option: %s, resource: %s", req.GetOption(),
 			req.GetResource())
 		return nil

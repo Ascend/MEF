@@ -38,6 +38,10 @@ spec:
               value: "8080"
             - name: DefaultUsername
               value: "admin"
+            - name: LockTime
+              value: "600"
+            - name: TokenExpireTime
+              value: "600"
             - name: installed-module
               value: ${installed_module}
             - name: POD_IP

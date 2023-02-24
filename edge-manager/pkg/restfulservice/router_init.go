@@ -7,6 +7,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 
 	"edge-manager/pkg/util"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/certutils"
 	"huawei.com/mindxedge/base/common/httpsmgr"

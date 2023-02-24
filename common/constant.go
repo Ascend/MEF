@@ -42,6 +42,8 @@ const (
 	MEF = "MEF"
 	// EdgeCore software edgecore name
 	EdgeCore = "edgecore"
+	// MEFEdge software mef edge name
+	MEFEdge = "MEFEdge"
 	// EdgeInstaller software edge-installer name
 	EdgeInstaller = "edge-installer"
 	// DevicePlugin software device-plugin name
@@ -52,8 +54,10 @@ const (
 	NodeManagerName = "NodeManager"
 	// AppManagerName AppManagerName
 	AppManagerName = "AppManager"
-	// EdgeConnectorName edge-connector
-	EdgeConnectorName = "edge-connector"
+	// CloudHubName edge-connector
+	CloudHubName = "CloudHub"
+	// NodeMsgManagerName node msg manager
+	NodeMsgManagerName = "NodeMsgManager"
 	// EdgeInstallerName edge-installer
 	EdgeInstallerName = "edge-installer"
 	// CertManagerName CertManager
@@ -100,6 +104,8 @@ const (
 	NodeGroup = "nodeGroup"
 	// NodeStatus resource node status
 	NodeStatus = "nodeStatus"
+	// NodeSoftwareInfo resource node software version info
+	NodeSoftwareInfo = "nodeSoftwareInfo"
 	// CheckResource resources allocatable node resources in node group
 	CheckResource = "checkResource"
 	// UpdateResource resources allocatable node resources in node group
@@ -239,6 +245,12 @@ const (
 	MinComplexCount = 2
 )
 
+// field status
+const (
+	OK   = "OK"
+	FAIL = "FAIL"
+)
+
 // used to check ip
 const (
 	ZeroAddr      = "0.0.0.0"
@@ -257,8 +269,16 @@ const (
 	OptPost = "POST"
 	// OptReport option for report
 	OptReport = "REPORT"
-	// ResProgressReport resource progress report
-	ResProgressReport = "/progress"
+	// ResEdgeDownloadInfo resource for download software
+	ResEdgeDownloadInfo = "/edge/download"
+	// ResEdgeUpgradeInfo resource for effect software
+	ResEdgeUpgradeInfo = "/edge/upgrade"
+	// ResEdgeConfigInfo resource for edge config info
+	ResEdgeConfigInfo = "/edge/config"
+	// ResDownloadProgress resource progress report
+	ResDownloadProgress = "/edge/download-progress"
+	// ResSoftwareInfo resource software info
+	ResSoftwareInfo = "/edge/version-info"
 	// ResDownLoadSoftware resource for downloading software
 	ResDownLoadSoftware = "/software/download_info"
 	// ResEdgeCoreConfig resource for querying edgecore config
@@ -312,6 +332,14 @@ const (
 	TarGzSuffix = ".tar.gz"
 	CrlSuffix   = ".tar.gz.crl"
 	CmsSuffix   = ".tar.gz.cms"
+)
+
+// node specification
+const (
+	MaxNode         = 1024
+	MaxNodeGroup    = 1024
+	MaxNodePerGroup = 1024
+	MaxGroupPerNode = 10
 )
 
 // TmpfsDevNum represents the dev number of tmpfs filesystem in linux stat struct

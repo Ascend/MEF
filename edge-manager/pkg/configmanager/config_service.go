@@ -30,25 +30,31 @@ func downloadConfig(input interface{}) common.RespMsg {
 	var req ImageConfig
 	if err := common.ParamConvert(input, &req); err != nil {
 		hwlog.RunLog.Errorf("parse parameter failed, error: %v", err)
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}
 	defer func() {
 		common.ClearSliceByteMemory(req.Password)
 	}()
 	if checkResult := configchecker.NewConfigChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("image config para check failed: %s", checkResult.Reason)
-		return common.RespMsg{Status: "", Msg: checkResult.Reason, Data: nil}
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
 	}
 
-	if err := createSecret(req); err != nil {
+	imageAddress, err := createSecret(req)
+	if err != nil {
 		hwlog.RunLog.Errorf("create k8s secret failed, %v", err)
-		return common.RespMsg{Status: "", Msg: "create k8s secret failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorCreateSecret, Msg: "create k8s secret failed", Data: nil}
 	}
+	go func() {
+		if err := fetchCertToClient(imageAddress); err != nil {
+			hwlog.RunLog.Errorf("distribute cert file to client failed, error:%v", err)
+		}
+	}()
 	hwlog.RunLog.Info("create image config success")
 	return common.RespMsg{Status: common.Success, Msg: "create image config success", Data: nil}
 }
 
-func createSecret(config ImageConfig) error {
+func createSecret(config ImageConfig) (string, error) {
 	auth := []byte(config.Account + ":" + string(config.Password))
 	base64Auth := make([]byte, base64.StdEncoding.EncodedLen(len(auth)))
 	base64.StdEncoding.Encode(base64Auth, auth)
@@ -71,12 +77,20 @@ func createSecret(config ImageConfig) error {
 	}
 	if _, err := kubeclient.GetKubeClient().CreateOrUpdateSecret(userSecret); err != nil {
 		hwlog.RunLog.Errorf("create or update secret failed, error: %#v", err)
-		return err
+		return "", err
 	}
+	return registryPath, nil
+}
+
+func fetchCertToClient(registryPath string) error {
 	certRes, err := util.GetCertContent(common.ImageCertName)
 	if err != nil {
 		hwlog.RunLog.Errorf("get cert content failed, error: %v", err)
 		return errors.New("get cert content failed")
+	}
+	if certRes.Cert == "" {
+		hwlog.RunLog.Warnf(" %s cert content should be imported", certRes.CertName)
+		return nil
 	}
 	certRes.Address = registryPath
 	// send message connector
@@ -115,14 +129,13 @@ func updateConfig(input interface{}) common.RespMsg {
 	}
 	if updateCert.CertName == common.ImageCertName {
 		address, err := util.GetImageAddress()
-		if util.SecretNotFound(err) {
-			hwlog.RunLog.Warn("image registry address should be configured")
-			return common.RespMsg{Status: common.ErrorGetSecret, Msg: "image registry address should be configured",
-				Data: nil}
-		}
 		if err != nil {
 			hwlog.RunLog.Errorf("get image registry address failed, error:%v", err)
 			return common.RespMsg{Status: common.ErrorGetSecret, Msg: err.Error(), Data: nil}
+		}
+		if address == "" {
+			hwlog.RunLog.Warn("image registry address should be configured")
+			return common.RespMsg{Status: common.Success, Msg: "update cert content success", Data: certRes.CertName}
 		}
 		certRes.Address = address
 	}
@@ -159,11 +172,11 @@ func sendMessageToNode(serialNumber string, content string) error {
 		return fmt.Errorf("create new message failed, error: %v", err)
 	}
 	sendMsg.SetNodeId(serialNumber)
-	sendMsg.SetRouter(common.ConfigManagerName, common.EdgeConnectorName, common.OptPost, common.ResDownLoadCert)
+	sendMsg.SetRouter(common.ConfigManagerName, common.CloudHubName, common.OptPost, common.ResDownLoadCert)
 	sendMsg.FillContent(content)
 	if err = modulemanager.SendMessage(sendMsg); err != nil {
 		return fmt.Errorf("%s sends message to %s failed, error: %v",
-			common.ConfigManagerName, common.EdgeConnectorName, err)
+			common.ConfigManagerName, common.CloudHubName, err)
 	}
 	return nil
 }

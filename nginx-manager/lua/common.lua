@@ -96,4 +96,12 @@ function _M.sendRespByCapture(res)
     _M.sendResp(ngx.HTTP_BAD_REQUEST, nil, g_error_operate, g_error_operate_info)
 end
 
+function _M.getEnvWithDefault(key, defaultVal)
+    envVal = os.getenv(key)
+    if envVal and envVal ~= nil then
+        return tonumber(envVal)
+    end
+    return tonumber(defaultVal)
+end
+
 return  _M

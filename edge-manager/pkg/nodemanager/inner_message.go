@@ -12,6 +12,7 @@ import (
 	"k8s.io/api/core/v1"
 
 	"edge-manager/pkg/types"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -30,6 +31,27 @@ func innerGetNodeInfoByUniqueName(input interface{}) common.RespMsg {
 		NodeID:   nodeInfo.ID,
 		NodeName: nodeInfo.NodeName,
 	}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
+}
+
+func innerGetNodeSoftwareInfo(input interface{}) common.RespMsg {
+	req, ok := input.(types.InnerGetSfwInfoBySNReq)
+	if !ok {
+		hwlog.RunLog.Error("parse inner message content failed")
+		return common.RespMsg{Status: "", Msg: "parse inner message content failed", Data: nil}
+	}
+	nodeInfo, err := NodeServiceInstance().getNodeBySerialNumber(req.SerialNumber)
+	if err != nil {
+		hwlog.RunLog.Errorf("get node info by unique name [%s] failed:%v", req.SerialNumber, err)
+		return common.RespMsg{Status: "", Msg: "get node info by unique name failed", Data: nil}
+	}
+	resp := types.InnerSoftwareInfoResp{}
+
+	if err = json.Unmarshal([]byte(nodeInfo.SoftwareInfo), &resp.SoftwareInfo); err != nil {
+		hwlog.RunLog.Error("unmarshall node software info failed")
+		return common.RespMsg{Status: "", Msg: "get node info failed because unmarshal failed", Data: nil}
+	}
+
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 

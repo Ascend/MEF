@@ -47,13 +47,13 @@ func (ch *certHandler) Handle(message *model.Message) error {
 	}
 	if certName == common.ImageCertName {
 		address, err := util.GetImageAddress()
-		if util.SecretNotFound(err) {
-			hwlog.RunLog.Warn("image registry address should be configured")
-			return err
-		}
 		if err != nil {
 			hwlog.RunLog.Errorf("get image registry address failed, error:%v", err)
 			return err
+		}
+		if address == "" {
+			hwlog.RunLog.Warn("image registry address should be configured")
+			return nil
 		}
 		res.Address = address
 	}

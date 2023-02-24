@@ -23,6 +23,9 @@ const (
 	unlockInterval = time.Second * 30
 )
 
+// ConfigLockTime user and ip lock time which configured from environment
+var ConfigLockTime int
+
 type handlerFunc func(req interface{}) common.RespMsg
 
 type userManager struct {
@@ -45,6 +48,10 @@ func (u *userManager) Name() string {
 
 func (u *userManager) Enable() bool {
 	if u.enable {
+		if err := loadConfig(); err != nil {
+			hwlog.RunLog.Errorf("module (%s) load config failed, cannot enable", u.Name())
+			return !u.enable
+		}
 		if err := initTable(); err != nil {
 			hwlog.RunLog.Errorf("module (%s) init database table failed, cannot enable", u.Name())
 			return !u.enable
@@ -149,5 +156,14 @@ func initTable() error {
 		hwlog.RunLog.Error("create database table history_password failed")
 		return err
 	}
+	return nil
+}
+
+func loadConfig() error {
+	lockTime, err := nginxcom.GetEnvManager().GetInt(nginxcom.LockTimeKey)
+	if err != nil {
+		return err
+	}
+	ConfigLockTime = lockTime
 	return nil
 }
