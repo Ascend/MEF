@@ -13,7 +13,9 @@ import (
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
-const defaultMsgTimeout = 30 * time.Second
+const (
+	defaultMsgTimeout = 30 * time.Second
+)
 
 type channelContext struct {
 	channels sync.Map

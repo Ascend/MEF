@@ -4,12 +4,14 @@ package websocketmgr
 
 import (
 	"fmt"
+
 	"net/http"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
 )
 
 type wsSvrMessage struct {
@@ -19,11 +21,13 @@ type wsSvrMessage struct {
 
 // WsServerProxy websocket server proxy
 type WsServerProxy struct {
-	ProxyCfg   *ProxyConfig
-	httpServer *http.Server
-	clientMap  sync.Map
-	upgrade    *websocket.Upgrader
-	connMgr    *wsConnectMgr
+	ProxyCfg    *ProxyConfig
+	httpServer  *http.Server
+	clientMap   sync.Map
+	upgrade     *websocket.Upgrader
+	connMgr     *wsConnectMgr
+	ClientNum   int
+	CounterLock sync.Mutex
 }
 
 // GetName get websocket server name
@@ -105,9 +109,17 @@ func (wsp *WsServerProxy) serveHTTP(w http.ResponseWriter, r *http.Request) {
 		hwlog.RunLog.Errorf("it is not a websocket request: %v", r.RemoteAddr)
 		return
 	}
+	if ok := CheckAndAddClientNum(wsp); !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		if _, err := w.Write([]byte(common.ErrorMap[common.ErrorMaxEdgeClientsReached])); err != nil {
+			hwlog.RunLog.Errorf("write response to mef edge error: %v", err)
+		}
+		return
+	}
 	clientName := r.Header.Get(clientNameKey)
 	conn, err := wsp.upgrade.Upgrade(w, r, nil)
 	if err != nil {
+		RemoveClientNum(wsp)
 		hwlog.RunLog.Errorf("websocket start server http failed, error: %v", err)
 		return
 	}
@@ -115,6 +127,10 @@ func (wsp *WsServerProxy) serveHTTP(w http.ResponseWriter, r *http.Request) {
 	connMgr.start(conn, clientName, &wsp.ProxyCfg.handlerMgr)
 	wsp.clientMap.Store(clientName, connMgr)
 	hwlog.RunLog.Infof("client [name=%v, addr=%v] connect", clientName, r.RemoteAddr)
+	select {
+	case <-connMgr.ctx.Done():
+		RemoveClientNum(wsp)
+	}
 }
 
 func (wsp *WsServerProxy) listen() error {

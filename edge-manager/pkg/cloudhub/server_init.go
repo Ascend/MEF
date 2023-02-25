@@ -143,8 +143,14 @@ func getWsCert(keyPath string) (string, string, error) {
 		hwlog.RunLog.Errorf("get valid root ca for websocket service failed: %v", err)
 		return "", "", err
 	}
-	certStr, err = reqCertParams.ReqIssueSvrCert(common.WsSerName, csr)
-	if err != nil {
+	for i := 0; i < retryTime; i++ {
+		certStr, err = reqCertParams.ReqIssueSvrCert(common.WsSerName, csr)
+		if err == nil {
+			break
+		}
+		time.Sleep(waitTime)
+	}
+	if certStr == "" {
 		hwlog.RunLog.Errorf("issue certStr for websocket service cert failed: %v", err)
 		return "", "", err
 	}

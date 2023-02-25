@@ -142,6 +142,11 @@ const (
 	ErrorSetEdgeAccountPassword = "40031001"
 	// ErrorSetEdgeAccount failed to set edge account
 	ErrorSetEdgeAccount = "40031002"
+	// ErrorAccountOrPasswordEmpty both account and password are required
+	ErrorAccountOrPasswordEmpty = "40031003"
+
+	// ErrorMaxEdgeClientsReached max mef-edge clients connection reached
+	ErrorMaxEdgeClientsReached = "40041000"
 
 	// ErrorQueryCrt failed to get crt from cert manager
 	ErrorQueryCrt = "40042002"
@@ -318,4 +323,8 @@ var ErrorMap = map[string]string{
 
 	// ErrorQueryCrt failed to get crt from cert manager
 	ErrorQueryCrt: "failed to get crt from cert manager",
+	// ErrorAccountOrPasswordEmpty both account and password are required
+	ErrorAccountOrPasswordEmpty: "account or password is empty",
+	// ErrorMaxEdgeClientsReached max mef-edge clients connection reached
+	ErrorMaxEdgeClientsReached: "max edge client connection reached, please try again later",
 }
