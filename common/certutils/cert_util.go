@@ -10,15 +10,22 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+
 	"huawei.com/mindx/common/rand"
 	"huawei.com/mindx/common/utils"
 	hwCertMgr "huawei.com/mindx/common/x509"
+
 	"huawei.com/mindxedge/base/common"
 )
 
 func getCsr(priv *rsa.PrivateKey, commonName string, certSan CertSan) ([]byte, error) {
 	template := x509.CertificateRequest{
-		Subject:     pkix.Name{CommonName: commonName},
+		Subject: pkix.Name{
+			Country:            []string{caCountry},
+			Organization:       []string{caOrganization},
+			OrganizationalUnit: []string{caOrganizationalUnit},
+			CommonName:         commonName,
+		},
 		DNSNames:    certSan.DnsName,
 		IPAddresses: certSan.IpAddr,
 	}
@@ -92,6 +99,14 @@ func GetCertPairForPem(certPath, keyPath string, kmcCfg *common.KmcCfg) (*CaPair
 func PemWrapCert(der []byte) []byte {
 	return pem.EncodeToMemory(&pem.Block{
 		Type:  pubCertType,
+		Bytes: der,
+	})
+}
+
+// PemWrapCsr code csr to pem type
+func PemWrapCsr(der []byte) []byte {
+	return pem.EncodeToMemory(&pem.Block{
+		Type:  pubCsrType,
 		Bytes: der,
 	})
 }
