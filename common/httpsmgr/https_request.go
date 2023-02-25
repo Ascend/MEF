@@ -115,7 +115,7 @@ func (hr *HttpsRequest) handleResp(resp *http.Response) ([]byte, error) {
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("https return error status code: %d", resp.StatusCode)
 	}
-	readBytes, err := io.ReadAll(resp.Body)
+	readBytes, err := io.ReadAll(io.LimitReader(resp.Body, maxBodySize))
 	if err != nil {
 		return nil, err
 	}

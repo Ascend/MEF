@@ -65,12 +65,12 @@ spec:
               memory: 500Mi
               cpu: 500m
             limits:
-              memory: 500Mi
-              cpu: 500m
+              memory: 5000Mi
+              cpu: 6000m
           imagePullPolicy: IfNotPresent
           command: [ "/bin/bash", "-c", "--" ]
           # NOTE: HTTPS is enabled by default
-          args: [ "./edge-manager -port=8101 -wsPort=10000 -authPort=10001" ]
+          args: [ "./edge-manager -port=8101 -wsPort=10000 -authPort=10001 -maxClientNum=1024" ]
           volumeMounts:
             - name: edge-manager-log
               mountPath: /var/log/mindx-edge/edge-manager

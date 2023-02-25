@@ -9,30 +9,32 @@ import (
 	"sync"
 
 	"huawei.com/mindx/common/hwlog"
-
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/websocketmgr"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 // CloudServer wraps the struct WebSocketServer
 type CloudServer struct {
-	wsPort    int
-	authPort  int
-	writeLock sync.RWMutex
-	ctx       context.Context
-	enable    bool
+	wsPort       int
+	authPort     int
+	maxClientNum int
+	writeLock    sync.RWMutex
+	ctx          context.Context
+	enable       bool
 }
 
 var server CloudServer
 
 // NewCloudServer new cloud server
-func NewCloudServer(enable bool, wsPort, authPort int) *CloudServer {
+func NewCloudServer(enable bool, wsPort, authPort, maxClientNum int) *CloudServer {
 	server = CloudServer{
-		wsPort:   wsPort,
-		authPort: authPort,
-		ctx:      context.Background(),
-		enable:   enable,
+		wsPort:       wsPort,
+		authPort:     authPort,
+		maxClientNum: maxClientNum,
+		ctx:          context.Background(),
+		enable:       enable,
 	}
 	return &server
 }
@@ -50,6 +52,11 @@ func (c *CloudServer) Enable() bool {
 // Start initializes the websocket server
 func (c *CloudServer) Start() {
 	hwlog.RunLog.Info("----------------cloud hub start----------------")
+	if err := websocketmgr.InitConnLimiter(c.maxClientNum); err != nil {
+		hwlog.RunLog.Errorf("init mef edge max client num failed: %v", err)
+		return
+	}
+
 	if err := InitServer(); err != nil {
 		hwlog.RunLog.Errorf("init websocket server failed: %v", err)
 		return

@@ -4,7 +4,7 @@ package certutils
 
 const (
 	// priKeyLength private key length
-	priKeyLength = 4096
+	priKeyLength = 3072
 	// validationYearCA root ca validate year
 	validationYearCA = 10
 	// validationYearCert service Cert validate year
@@ -30,6 +30,8 @@ const (
 	privKeyType = "RSA PRIVATE KEY"
 	// fileMode Cert file mode
 	fileMode = 0600
+	// OneDayAgo for compatible with different time zone when issue cert
+	OneDayAgo = "-24h"
 )
 
 // MEF-Center cert constant

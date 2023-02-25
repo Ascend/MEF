@@ -33,6 +33,7 @@ const (
 	defaultPort           = 8101
 	defaultWsPort         = 10000
 	defaultAuthPort       = 10001
+	defaultMaxClientNum   = 1024
 	defaultRunLogFile     = "/var/log/mindx-edge/edge-manager/run.log"
 	defaultOperateLogFile = "/var/log/mindx-edge/edge-manager/operate.log"
 	defaultBackupDirName  = "/var/log_backup/mindx-edge/edge-manager"
@@ -47,12 +48,13 @@ var (
 		BackupDirName: defaultBackupDirName, MaxLineLength: logMaxLineLength}
 	serverOpConf = &hwlog.LogConfig{LogFileName: defaultOperateLogFile, FileMaxSize: defaultOpLogMaxSize,
 		BackupDirName: defaultBackupDirName}
-	port     int
-	wsPort   int
-	authPort int
-	ip       string
-	version  bool
-	dbPath   string
+	port         int
+	wsPort       int
+	authPort     int
+	ip           string
+	version      bool
+	dbPath       string
+	maxClientNum int
 )
 
 func main() {
@@ -97,6 +99,8 @@ func init() {
 		"The server port of the websocket service,range[1025-65535]")
 	flag.IntVar(&authPort, "authPort", defaultAuthPort,
 		"The server port of the edge auth service,range[1025-65535]")
+	flag.IntVar(&maxClientNum, "maxClientNum", defaultMaxClientNum,
+		"The max number of connected edge client")
 	hwlogconfig.BindFlags(serverOpConf, serverRunConf)
 }
 
@@ -105,10 +109,10 @@ func validateFlags() error {
 		return fmt.Errorf("port %d is not in [%d, %d]", port, common.MinPort, common.MaxPort)
 	}
 	if !checker.IsPortInRange(common.MinPort, common.MaxPort, wsPort) {
-		return fmt.Errorf("wsPort %d is not in [%d, %d]", port, common.MinPort, common.MaxPort)
+		return fmt.Errorf("wsPort %d is not in [%d, %d]", wsPort, common.MinPort, common.MaxPort)
 	}
 	if !checker.IsPortInRange(common.MinPort, common.MaxPort, authPort) {
-		return fmt.Errorf("authPort %d is not in [%d, %d]", port, common.MinPort, common.MaxPort)
+		return fmt.Errorf("authPort %d is not in [%d, %d]", authPort, common.MinPort, common.MaxPort)
 	}
 	if authPort == wsPort {
 		return fmt.Errorf("authPort can not equals to wsPort")
@@ -143,7 +147,7 @@ func register(ctx context.Context) error {
 	if err := modulemanager.Registry(appmanager.NewAppManager(true)); err != nil {
 		return err
 	}
-	if err := modulemanager.Registry(cloudhub.NewCloudServer(true, wsPort, authPort)); err != nil {
+	if err := modulemanager.Registry(cloudhub.NewCloudServer(true, wsPort, authPort, maxClientNum)); err != nil {
 		return err
 	}
 	if err := modulemanager.Registry(edgemsgmanager.NewNodeMsgManager(true)); err != nil {

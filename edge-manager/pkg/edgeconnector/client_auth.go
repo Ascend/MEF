@@ -108,21 +108,21 @@ func EdgeConnTest(c *gin.Context) {
 	passed, err := checkEdgeAuth(c)
 	if err != nil {
 		hwlog.RunLog.Errorf("checkEdgeAuth error: %v", err)
-		c.String(http.StatusBadRequest, "check account failed")
+		c.String(http.StatusBadRequest, common.ErrorMap[common.ErrorAccountOrPassword])
 		return
 	}
 	if !passed {
-		c.String(http.StatusBadRequest, "user account or password is invalid")
+		c.String(http.StatusBadRequest, common.ErrorMap[common.ErrorAccountOrPassword])
 		return
 	}
-	c.String(http.StatusOK, "check account passed!")
+	c.String(http.StatusOK, common.ErrorMap[common.Success])
 }
 
 func checkEdgeAuth(c *gin.Context) (bool, error) {
 	account := c.GetHeader(edgeUserAccountKey)
 	pwd := c.GetHeader(edgeUserPwdKey)
 	if account == "" || pwd == "" {
-		return false, fmt.Errorf("account and password are required")
+		return false, fmt.Errorf(common.ErrorMap[common.ErrorAccountOrPasswordEmpty])
 	}
 	defer common.ClearStringMemory(pwd)
 	return checkDBAccount(account, []byte(pwd))

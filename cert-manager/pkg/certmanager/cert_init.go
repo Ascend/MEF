@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 
 	"huawei.com/mindx/common/hwlog"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
@@ -69,7 +68,6 @@ func (cm *certManager) Start() {
 			hwlog.RunLog.Errorf("%s receive request from restful service failed", cm.Name())
 			continue
 		}
-
 		msg := methodSelect(req)
 		if msg == nil {
 			hwlog.RunLog.Errorf("%s get method by option and resource failed", cm.Name())

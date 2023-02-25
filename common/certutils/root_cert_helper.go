@@ -96,7 +96,10 @@ func (rcm *RootCertMgr) IssueServiceCert(csr []byte) ([]byte, error) {
 }
 
 func (rcm *RootCertMgr) makeServiceCertificate(csr *x509.CertificateRequest) *x509.Certificate {
-	now := time.Now()
+	now := time.Now().UTC()
+	if oneDayAgo, err := time.ParseDuration(OneDayAgo); err == nil {
+		now = now.Add(oneDayAgo)
+	}
 	return &x509.Certificate{
 		SerialNumber: big.NewInt(bigIntSize),
 		Subject:      csr.Subject,
