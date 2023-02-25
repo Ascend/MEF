@@ -86,8 +86,8 @@ func (sm *SoftwareMgr) clearNodeLabel() error {
 // ClearAndLabel is the func that used to recover the environment that effected by installation
 func (sm *SoftwareMgr) ClearAndLabel() error {
 	var installTasks = []func() error{
-		sm.clearInstallPkg,
 		sm.clearNodeLabel,
+		sm.clearInstallPkg,
 	}
 
 	for _, function := range installTasks {
