@@ -25,6 +25,7 @@ const (
 	caCommonName = "MEF"
 	// pubCertType Cert type
 	pubCertType = "CERTIFICATE"
+	pubCsrType  = "CERTIFICATE REQUEST"
 	// privKeyType Cert key type
 	privKeyType = "RSA PRIVATE KEY"
 	// fileMode Cert file mode
