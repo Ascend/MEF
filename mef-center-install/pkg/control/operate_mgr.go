@@ -4,6 +4,8 @@
 package control
 
 import (
+	"errors"
+
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
@@ -22,6 +24,7 @@ type SftOperateMgr struct {
 func (scm *SftOperateMgr) DoOperate() error {
 	var controlTasks = []func() error{
 		scm.init,
+		scm.checkCurrentPath,
 		scm.prepareComponentLogDir,
 		scm.prepareComponentLogBackupDir,
 		scm.check,
@@ -59,6 +62,14 @@ func (scm *SftOperateMgr) init() error {
 	}
 
 	hwlog.RunLog.Info("init componentFlag list successful")
+	return nil
+}
+
+func (scm *SftOperateMgr) checkCurrentPath() error {
+	if err := util.CheckCurrentPath(scm.installPathMgr.GetWorkPath()); err != nil {
+		hwlog.RunLog.Error(err)
+		return errors.New("check current path failed")
+	}
 	return nil
 }
 

@@ -3,6 +3,7 @@
 package control
 
 import (
+	"errors"
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
@@ -18,6 +19,7 @@ type SftUninstallMgr struct {
 func (sum *SftUninstallMgr) DoUninstall() error {
 	var installTasks = []func() error{
 		sum.checkUser,
+		sum.checkCurrentPath,
 		sum.clearNamespace,
 		sum.ClearAllDockerImages,
 		sum.ClearAndLabel,
@@ -39,6 +41,14 @@ func (sum *SftUninstallMgr) checkUser() error {
 		return err
 	}
 	hwlog.RunLog.Info("check user successful")
+	return nil
+}
+
+func (sum *SftUninstallMgr) checkCurrentPath() error {
+	if err := util.CheckCurrentPath(sum.InstallPathMgr.GetWorkPath()); err != nil {
+		hwlog.RunLog.Error(err)
+		return errors.New("check current path failed")
+	}
 	return nil
 }
 

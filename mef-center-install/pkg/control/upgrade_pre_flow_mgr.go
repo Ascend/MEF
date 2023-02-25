@@ -5,7 +5,6 @@ package control
 import (
 	"errors"
 	"fmt"
-	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -99,29 +98,10 @@ func (upf *UpgradePreFlowMgr) checkUser() error {
 }
 
 func (upf *UpgradePreFlowMgr) checkCurrentPath() error {
-	curPath, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	if err != nil {
-		hwlog.RunLog.Errorf("get current path failed: %s", err.Error())
-		return errors.New("get current path failed")
+	if err := util.CheckCurrentPath(upf.InstallPathMgr.GetWorkPath()); err != nil {
+		hwlog.RunLog.Error(err)
+		return errors.New("check current path failed")
 	}
-
-	curAbsPath, err := filepath.EvalSymlinks(curPath)
-	if err != nil {
-		hwlog.RunLog.Errorf("get current abs path failed: %s", err.Error())
-		return errors.New("get current abs path failed")
-	}
-
-	workingAbsPath, err := filepath.EvalSymlinks(upf.InstallPathMgr.GetWorkPath())
-	if err != nil {
-		hwlog.RunLog.Errorf("get working abs path failed: %s", err.Error())
-		return errors.New("get working abs path failed")
-	}
-
-	if filepath.Dir(curAbsPath) != workingAbsPath {
-		hwlog.RunLog.Error("current sh path is not in the working path, cannot upgrade")
-		return errors.New("current sh path is not in the working path")
-	}
-
 	return nil
 }
 
