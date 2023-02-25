@@ -145,6 +145,8 @@ func GetNecessaryTools() []string {
 	}
 }
 
+// CheckCurrentPath is the public check func for run.sh
+// it checks if the current run.sh is in the mef-center softlink
 func CheckCurrentPath(linkPath string) error {
 	curPath, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
