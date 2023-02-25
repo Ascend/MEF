@@ -45,6 +45,8 @@ var (
 	version       bool
 	operateType   string
 	zipPath       string
+
+	allowedModule = []string{util.EdgeManagerName, util.NginxManagerName, util.CertManagerName}
 )
 
 const (
@@ -86,8 +88,22 @@ func checkFlag() string {
 }
 
 func checkComponent(installedComponents []string) error {
+	var validType bool
 	if componentType == "all" {
 		return nil
+	}
+
+	for _, component := range allowedModule {
+		if component == componentType {
+			validType = true
+			break
+		}
+	}
+
+	if !validType {
+		fmt.Println("unsupported component")
+		hwlog.RunLog.Errorf("unsupported component")
+		return errors.New("unsupported component")
 	}
 
 	for _, component := range installedComponents {
