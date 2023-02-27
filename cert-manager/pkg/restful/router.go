@@ -28,7 +28,7 @@ var certRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			Method:       http.MethodPost,
 			Destination:  common.CertManagerName},
 		restfulmgr.GenericDispatcher{
-			RelativePath: "/cert",
+			RelativePath: "/delete-cert",
 			Method:       http.MethodPost,
 			Destination:  common.CertManagerName},
 	},
