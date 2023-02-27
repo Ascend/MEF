@@ -38,6 +38,5 @@ const (
 const (
 	DefaultNameSpace  = "default"
 	DefaultSecretName = "image-pull-secret"
-	CertSizeLimited   = 1024 * 1024
 	SecretNotFound    = "not found"
 )

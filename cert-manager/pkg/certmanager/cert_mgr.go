@@ -6,7 +6,6 @@ package certmanager
 import (
 	"bufio"
 	"bytes"
-	"encoding/base64"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -16,7 +15,6 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
-	"huawei.com/mindx/common/x509"
 
 	"cert-manager/pkg/certconstant"
 	"huawei.com/mindxedge/base/common"
@@ -26,10 +24,6 @@ import (
 
 // getCertByCertName query root ca with use id
 func getCertByCertName(certName string) ([]byte, error) {
-	if !CheckCertName(certName) {
-		hwlog.RunLog.Error("the cert name not support")
-		return nil, errors.New("the cert name not support")
-	}
 	caFilePath := getRootCaPath(certName)
 	if (certName == common.ImageCertName || certName == common.SoftwareCertName) && !utils.IsExist(caFilePath) {
 		hwlog.RunLog.Warnf("%s cert content should be imported", certName)
@@ -45,11 +39,6 @@ func getCertByCertName(certName string) ([]byte, error) {
 
 // issueServiceCert issue service certificate with csr file, only support pem type csr
 func issueServiceCert(certName string, serviceCsr string) ([]byte, error) {
-	if !CheckCertName(certName) {
-		hwlog.RunLog.Errorf("issue service cert failed, check cert name [%s] failed", certName)
-		return nil, errors.New("check cert name failed, not a support cert name")
-	}
-
 	srvDer, _ := pem.Decode([]byte(serviceCsr))
 	if srvDer == nil {
 		hwlog.RunLog.Error("Decode service csr pem failed")
@@ -147,32 +136,6 @@ func saveCaContent(certName string, caContent []byte) error {
 	}
 	hwlog.RunLog.Infof("finished ca content copy to %s", caFilePath)
 	return nil
-}
-
-// checkCert check cert content
-func checkCert(req importCertReq) ([]byte, error) {
-	// verifying the certificate usage type
-	if !CheckCertName(req.CertName) {
-		hwlog.RunLog.Error("valid cert name parameter failed")
-		return []byte{}, errors.New("valid cert name parameter failed")
-	}
-	// base64 decode root certificate content
-	caBase64, err := base64.StdEncoding.DecodeString(req.Cert)
-	if err != nil {
-		hwlog.RunLog.Errorf("base64 decode %s ca content failed, err:%v", err)
-		return []byte{}, errors.New("base64 decode ca content failed")
-	}
-	if len(caBase64) == 0 || len(caBase64) > certutils.CertSizeLimited {
-		hwlog.RunLog.Errorf("valid ca file size failed")
-		return []byte{}, errors.New("valid ca file size failed")
-	}
-	// verifying root certificate content
-	if err := x509.VerifyCaCert(caBase64, x509.InvalidNum); err != nil {
-		hwlog.RunLog.Errorf("valid ca certification failed, error:%v", err)
-		return []byte{}, errors.New("valid ca certification failed")
-	}
-	hwlog.RunLog.Info("valid cert success")
-	return caBase64, nil
 }
 
 // removeCaFile delete ca File
