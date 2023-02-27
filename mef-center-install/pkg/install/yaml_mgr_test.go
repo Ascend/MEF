@@ -3,9 +3,7 @@
 package install
 
 import (
-	"fmt"
 	"os"
-	"path/filepath"
 
 	. "github.com/smartystreets/goconvey/convey"
 	"huawei.com/mindxedge/base/common"
@@ -45,19 +43,16 @@ spec:
 
 func testGetYamlPath() {
 	yamlPath := "./test.yaml"
-	var yamlDealer = GetYamlDealer(util.InitInstallDirPathMgr("./test_path"), "edge-manager", "", "", yamlPath)
+	var yamlDealer = GetYamlDealer(util.InitInstallDirPathMgr("./test.yaml"), "edge-manager", "", "", yamlPath)
 	yamlContent := getTestYaml()
-	fmt.Printf(yamlPath)
-	err := os.MkdirAll(filepath.Dir(yamlPath), common.Mode700)
-	defer func() {
-		err = os.RemoveAll("./test_path")
-		So(err, ShouldBeNil)
-	}()
-	So(err, ShouldBeNil)
 	writer, err := os.OpenFile(yamlPath, os.O_WRONLY|os.O_CREATE, common.Mode700)
 	So(err, ShouldBeNil)
 	defer func() {
 		err = writer.Close()
+		So(err, ShouldBeNil)
+	}()
+	defer func() {
+		err = os.RemoveAll("./test.yaml")
 		So(err, ShouldBeNil)
 	}()
 	_, err = writer.Write([]byte(yamlContent))
