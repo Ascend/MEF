@@ -139,8 +139,8 @@ const (
 	BaseHex = 10
 	// BitSize64 Base Parse integer need params
 	BitSize64 = 64
-	// DefaultCmdWaitTime represent the default timeout time to exec cmd
-	DefaultCmdWaitTime = 120
+	// DefCmdTimeoutSec represent the default timeout time to exec cmd
+	DefCmdTimeoutSec = 120
 )
 
 const (

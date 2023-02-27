@@ -25,7 +25,7 @@ func (nm *NamespaceMgr) prepareNameSpace() error {
 	hwlog.RunLog.Info("start to prepare namespace")
 	namespaceReg := fmt.Sprintf("'^%s\\s'", nm.namespace)
 	checkCmd := fmt.Sprintf("%s get namespaces | grep -w %s | awk '{print$2}'", CommandKubectl, namespaceReg)
-	status, err := common.RunCommand("sh", false, common.DefaultCmdWaitTime, "-c", checkCmd)
+	status, err := common.RunCommand("sh", false, common.DefCmdTimeoutSec, "-c", checkCmd)
 	if err != nil {
 		hwlog.RunLog.Errorf("check namespace failed: %s", err.Error())
 		return errors.New("get namespace failed")
@@ -36,7 +36,7 @@ func (nm *NamespaceMgr) prepareNameSpace() error {
 	}
 
 	if status != "" && status != ActiveFlag {
-		_, err = common.RunCommand(CommandKubectl, true, DeleteNameSpaceTime, "delete", CommandNamespace, nm.namespace)
+		_, err = common.RunCommand(CommandKubectl, true, DeleteNsTimeoutSec, "delete", CommandNamespace, nm.namespace)
 		if err != nil {
 			hwlog.RunLog.Errorf("the namespace exists but not active, delete it failed: %s", err.Error())
 			return errors.New("the namespace exists but not active, delete it failed")
@@ -45,7 +45,7 @@ func (nm *NamespaceMgr) prepareNameSpace() error {
 
 	// namespace does not exist, then create
 	hwlog.RunLog.Info("start to create namespace")
-	_, err = common.RunCommand(CommandKubectl, true, common.DefaultCmdWaitTime,
+	_, err = common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec,
 		"create", CommandNamespace, nm.namespace)
 	if err != nil {
 		hwlog.RunLog.Errorf("create namespace failed: %s", err.Error())
@@ -59,7 +59,7 @@ func (nm *NamespaceMgr) prepareNameSpace() error {
 func (nm *NamespaceMgr) checkNameSpaceExist() (bool, error) {
 	namespaceReg := fmt.Sprintf("'^%s\\s'", nm.namespace)
 	checkCmd := fmt.Sprintf("%s get namespaces | grep -w %s | wc -l", CommandKubectl, namespaceReg)
-	ret, err := common.RunCommand("sh", false, common.DefaultCmdWaitTime, "-c", checkCmd)
+	ret, err := common.RunCommand("sh", false, common.DefCmdTimeoutSec, "-c", checkCmd)
 	if err != nil {
 		hwlog.RunLog.Errorf("check namespace command exec failed: %s", err.Error())
 		return false, errors.New("check namespace command exec failed")
@@ -83,7 +83,7 @@ func (nm *NamespaceMgr) ClearNamespace() error {
 		return nil
 	}
 
-	_, err = common.RunCommand(CommandKubectl, true, DeleteNameSpaceTime,
+	_, err = common.RunCommand(CommandKubectl, true, DeleteNsTimeoutSec,
 		"delete", "namespace", nm.namespace)
 	if err != nil {
 		hwlog.RunLog.Errorf("delete %s namespace command exec failed: %s", nm.namespace, err.Error())

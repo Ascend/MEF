@@ -216,7 +216,7 @@ func (upf *UpgradePreFlowMgr) getCrlFileName() string {
 
 func (upf *UpgradePreFlowMgr) execNewSh() error {
 	shPath := filepath.Join(upf.unpackTarPath, util.InstallDirName, util.ScriptsDirName, util.UpgradeShName)
-	_, err := common.RunCommand(shPath, true, util.UpgradeWaitTime)
+	_, err := common.RunCommand(shPath, true, util.UpgradeTimeoutSec)
 	if err != nil {
 		hwlog.RunLog.Error("upgrade failed: exec new version upgrade sh meet error")
 		return errors.New("upgrade failed")
