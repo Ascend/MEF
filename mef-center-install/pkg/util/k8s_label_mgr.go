@@ -25,7 +25,7 @@ func (klm *K8sLabelMgr) getCurrentNodeName() (string, error) {
 
 	ipReg := fmt.Sprintf("\\s*%s\\s*", localIp)
 	cmd := fmt.Sprintf(GetNodeCmdPattern, ipReg)
-	nodeName, err := common.RunCommand("sh", false, common.DefaultCmdWaitTime, "-c", cmd)
+	nodeName, err := common.RunCommand("sh", false, common.DefCmdTimeoutSec, "-c", cmd)
 	if err != nil {
 		hwlog.RunLog.Errorf("get current node failed: %s", err.Error())
 		return "", err
@@ -47,7 +47,7 @@ func (klm *K8sLabelMgr) PrepareK8sLabel() error {
 	}
 
 	cmd := fmt.Sprintf(SetLabelCmdPattern, nodeName, K8sLabel)
-	_, err = common.RunCommand("sh", false, common.DefaultCmdWaitTime, "-c", cmd)
+	_, err = common.RunCommand("sh", false, common.DefCmdTimeoutSec, "-c", cmd)
 	if err != nil {
 		hwlog.RunLog.Errorf("set mef label failed: %s", err.Error())
 		return err
@@ -69,7 +69,7 @@ func (klm *K8sLabelMgr) CheckK8sLabel() (bool, error) {
 
 	nodeNameReg := fmt.Sprintf("'^%s\\s'", nodeName)
 	cmd := fmt.Sprintf(CheckLabelCmdPattern, K8sLabel, nodeNameReg)
-	ret, err := common.RunCommand("sh", false, common.DefaultCmdWaitTime, "-c", cmd)
+	ret, err := common.RunCommand("sh", false, common.DefCmdTimeoutSec, "-c", cmd)
 	if err != nil {
 		hwlog.RunLog.Errorf("check k8s label existence failed: %s", err.Error())
 		return false, err

@@ -44,10 +44,10 @@ func (u *UserMgr) createUser() error {
 	}
 
 	if _, err = user.LookupId(strconv.Itoa(u.uid)); err != nil {
-		_, err = RunCommand("useradd", true, DefaultCmdWaitTime,
+		_, err = RunCommand("useradd", true, DefCmdTimeoutSec,
 			u.user, "-u", strconv.Itoa(u.uid), "-s", noLogin, "-M")
 	} else {
-		_, err = RunCommand("useradd", true, DefaultCmdWaitTime, u.user, "-s", noLogin, "-M")
+		_, err = RunCommand("useradd", true, DefCmdTimeoutSec, u.user, "-s", noLogin, "-M")
 	}
 	if err != nil {
 		hwlog.RunLog.Errorf("exec useradd command failed, error: %s", err.Error())
@@ -60,7 +60,7 @@ func (u *UserMgr) createUser() error {
 
 func (u *UserMgr) checkNoLogin() error {
 	cmdStr := fmt.Sprintf(UserGrepCommandPattern, u.user)
-	lines, err := RunCommand("sh", false, DefaultCmdWaitTime, "-c", cmdStr)
+	lines, err := RunCommand("sh", false, DefCmdTimeoutSec, "-c", cmdStr)
 	if err != nil {
 		hwlog.RunLog.Errorf("exec check nologin command failed, error: %s", err.Error())
 		return errors.New("exec check nologin command failed")

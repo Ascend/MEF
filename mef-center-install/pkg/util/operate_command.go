@@ -33,7 +33,7 @@ func (cc *CtlComponent) startComponent(yamlPath string) (bool, error) {
 		return true, nil
 	}
 
-	if _, err = common.RunCommand(CommandKubectl, true, common.DefaultCmdWaitTime,
+	if _, err = common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec,
 		"apply", "-f", yamlPath); err != nil {
 		hwlog.RunLog.Errorf("exec kubectl apply failed: %s", err.Error())
 		return false, fmt.Errorf("exec kubectl apply failed: %s", err.Error())
@@ -74,7 +74,7 @@ func (cc *CtlComponent) stopComponent() error {
 func (cc *CtlComponent) getComponentStatus() (string, error) {
 	checkCmd := fmt.Sprintf("%s get deployment -n %s",
 		CommandKubectl, MefNamespace)
-	ret, err := common.RunCommand("sh", false, common.DefaultCmdWaitTime, "-c", checkCmd)
+	ret, err := common.RunCommand("sh", false, common.DefCmdTimeoutSec, "-c", checkCmd)
 
 	NoNamespaceErr := fmt.Sprintf("No resources found in %s namespace.", MefNamespace)
 	if err != nil && strings.Contains(err.Error(), NoNamespaceErr) {
@@ -111,7 +111,7 @@ func (cc *CtlComponent) checkIfStatusStopped(status string) bool {
 
 func (cc *CtlComponent) setReplicas(num int) error {
 	deploymentName := AscendPrefix + cc.Name
-	if _, err := common.RunCommand(CommandKubectl, true, common.DefaultCmdWaitTime,
+	if _, err := common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec,
 		"scale", "deployment", deploymentName,
 		"-n", MefNamespace, fmt.Sprintf("--replicas=%d", num)); err != nil {
 		hwlog.RunLog.Errorf("exec kubectl delete failed: %s", err.Error())

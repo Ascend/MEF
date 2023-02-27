@@ -10,20 +10,20 @@ import (
 
 // Command constant for command
 const (
-	CommandKubectl      = "kubectl"
-	CommandNamespace    = "namespace"
-	Haveged             = "haveged"
-	ArchCommand         = "uname"
-	Arch64              = "aarch64"
-	X86                 = "x86_64"
-	ActiveFlag          = "Active"
-	ReadyFlag           = "1/1"
-	StopFlag            = "0/0"
-	StopReplicasNum     = 0
-	StartReplicasNum    = 1
-	DockerImageExist    = 2
-	NamespaceExist      = 1
-	DeleteNameSpaceTime = 300
+	CommandKubectl     = "kubectl"
+	CommandNamespace   = "namespace"
+	Haveged            = "haveged"
+	ArchCommand        = "uname"
+	Arch64             = "aarch64"
+	X86                = "x86_64"
+	ActiveFlag         = "Active"
+	ReadyFlag          = "1/1"
+	StopFlag           = "0/0"
+	StopReplicasNum    = 0
+	StartReplicasNum   = 1
+	DockerImageExist   = 2
+	NamespaceExist     = 1
+	DeleteNsTimeoutSec = 300
 )
 
 // MEF-Center Dir constant
@@ -168,7 +168,7 @@ const (
 	UpgradeDiskSpace = 700 * common.MB
 	InstallDirName   = "installer"
 
-	ScriptsDirName  = "scripts"
-	UpgradeShName   = "upgrade.sh"
-	UpgradeWaitTime = 60
+	ScriptsDirName    = "scripts"
+	UpgradeShName     = "upgrade.sh"
+	UpgradeTimeoutSec = 420
 )

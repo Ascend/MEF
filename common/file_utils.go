@@ -79,7 +79,7 @@ func CopyDir(srcPath string, dstPath string, includeDir bool) error {
 		srcPath = srcPath + "/."
 	}
 
-	if _, err := RunCommand(CommandCopy, true, DefaultCmdWaitTime, "-r", srcPath, dstPath); err != nil {
+	if _, err := RunCommand(CommandCopy, true, DefCmdTimeoutSec, "-r", srcPath, dstPath); err != nil {
 		return err
 	}
 	return nil
