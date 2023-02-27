@@ -58,7 +58,6 @@ func (cc *deleteCertChecker) init() {
 func (cc *issueCertChecker) init() {
 	cc.certChecker.Checker = checker.GetAndChecker(
 		GetStringChecker("CertName", certNameChecker, true),
-		GetStringChecker("Csr", csrChecker, true),
 	)
 }
 
