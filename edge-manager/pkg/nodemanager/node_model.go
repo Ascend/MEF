@@ -4,13 +4,15 @@
 package nodemanager
 
 import (
+	"fmt"
 	"sync"
 
 	"gorm.io/gorm"
-
+	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/database"
+	"edge-manager/pkg/kubeclient"
 )
 
 var (
@@ -20,13 +22,14 @@ var (
 
 // NodeServiceImpl node service struct
 type NodeServiceImpl struct {
-	db *gorm.DB
+	db         *gorm.DB
+	kubeClient *kubeclient.Client
 }
 
 // NodeService for node method to operate db
 type NodeService interface {
 	createNode(*NodeInfo) error
-	deleteNodeByName(*NodeInfo) (int64, error)
+	deleteNode(*NodeInfo) error
 	countNodesByName(string, int) (int64, error)
 	listManagedNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
 	listUnManagedNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
@@ -47,17 +50,18 @@ type NodeService interface {
 	getNodeGroupByID(uint64) (*NodeGroup, error)
 	updateNodeGroupRes(uint64, map[string]interface{}) (int64, error)
 
+	addNodeToGroup(*NodeRelation, string) error
 	deleteNodeToGroup(*NodeRelation) (int64, error)
 	countNodeByGroup(uint64) (int64, error)
 
 	getRelationsByNodeID(uint64) (*[]NodeRelation, error)
 	updateNode(uint64, int, map[string]interface{}) (int64, error)
 	updateGroup(uint64, map[string]interface{}) (int64, error)
-	deleteRelationsToNode(uint64) error
 	listNodeRelationsByGroupId(uint64) (*[]NodeRelation, error)
-	addNodeToGroup(*[]NodeRelation) error
-	deleteNodeGroup(uint64) (int64, error)
+	deleteNodeGroup(uint64, *[]NodeRelation) error
 	listNodes() (*[]NodeInfo, error)
+	deleteAllUnManagedNodes() error
+	deleteSingleNodeRelation(uint64, uint64) error
 }
 
 // GetTableCount get table count
@@ -73,7 +77,10 @@ func GetTableCount(tb interface{}) (int, error) {
 // NodeServiceInstance returns the singleton instance of user service
 func NodeServiceInstance() NodeService {
 	nodeServiceSingleton.Do(func() {
-		nodeServiceInstance = &NodeServiceImpl{db: database.GetDb()}
+		nodeServiceInstance = &NodeServiceImpl{
+			db:         database.GetDb(),
+			kubeClient: kubeclient.GetKubeClient(),
+		}
 	})
 	return nodeServiceInstance
 }
@@ -86,13 +93,6 @@ func (n *NodeServiceImpl) createNode(nodeInfo *NodeInfo) error {
 // CreateNodeGroup Create Node Db
 func (n *NodeServiceImpl) createNodeGroup(nodeGroup *NodeGroup) error {
 	return n.db.Model(NodeGroup{}).Create(nodeGroup).Error
-}
-
-// DeleteNodeByName delete node
-func (n *NodeServiceImpl) deleteNodeByName(nodeInfo *NodeInfo) (int64, error) {
-	stmt := n.db.Model(&NodeInfo{}).Where("node_name = ?",
-		nodeInfo.NodeName).Delete(nodeInfo)
-	return stmt.RowsAffected, stmt.Error
 }
 
 // GetNodesByName return SQL result
@@ -216,10 +216,6 @@ func (n *NodeServiceImpl) updateGroup(id uint64, columns map[string]interface{})
 	return stmt.RowsAffected, stmt.Error
 }
 
-func (n *NodeServiceImpl) deleteRelationsToNode(id uint64) error {
-	return n.db.Model(&NodeRelation{}).Where(&NodeRelation{NodeID: id}).Delete(&NodeRelation{}).Error
-}
-
 func (n *NodeServiceImpl) listNodeRelationsByGroupId(groupId uint64) (*[]NodeRelation, error) {
 	var relations []NodeRelation
 	return &relations,
@@ -231,19 +227,9 @@ func (n *NodeServiceImpl) getManagedNodeByID(nodeID uint64) (*NodeInfo, error) {
 	return &node, n.db.Model(NodeInfo{}).Where("id = ? and is_managed = ?", nodeID, managed).First(&node).Error
 }
 
-// AddNodeToGroup add Node Db
-func (n *NodeServiceImpl) addNodeToGroup(relation *[]NodeRelation) error {
-	return n.db.Model(NodeRelation{}).Create(relation).Error
-}
-
 func (n *NodeServiceImpl) countGroupsByNode(nodeID uint64) (int64, error) {
 	var num int64
 	return num, n.db.Model(NodeRelation{}).Where("node_id = ?", nodeID).Count(&num).Error
-}
-
-func (n *NodeServiceImpl) deleteNodeGroup(groupID uint64) (int64, error) {
-	stmt := n.db.Model(NodeGroup{}).Where("`id` = ?", groupID).Delete(&NodeGroup{})
-	return stmt.RowsAffected, stmt.Error
 }
 
 func (n *NodeServiceImpl) listNodes() (*[]NodeInfo, error) {
@@ -270,4 +256,83 @@ func (n *NodeServiceImpl) countAllNodesByName(name string) (int64, error) {
 func (n *NodeServiceImpl) updateNodeGroupRes(groupId uint64, columns map[string]interface{}) (int64, error) {
 	stmt := n.db.Model(NodeGroup{}).Where("id = ?", groupId).UpdateColumns(columns)
 	return stmt.RowsAffected, stmt.Error
+}
+
+func (n *NodeServiceImpl) deleteAllUnManagedNodes() error {
+	return n.db.Model(NodeInfo{}).Where("`is_managed` = ?", unmanaged).Delete(&NodeInfo{}).Error
+}
+
+func (n *NodeServiceImpl) addNodeToGroup(relation *NodeRelation, uniqueName string) error {
+	return n.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(NodeRelation{}).Create(relation).Error; err != nil {
+			return fmt.Errorf("db create node relation error, groupID %d, nodeID %d",
+				relation.GroupID, relation.NodeID)
+		}
+		label := map[string]string{fmt.Sprintf("%s%d", common.NodeGroupLabelPrefix, relation.GroupID): ""}
+		if _, err := kubeclient.GetKubeClient().AddNodeLabels(uniqueName, label); err != nil {
+			hwlog.RunLog.Errorf("k8s add label err %v", err)
+			return err
+		}
+		return nil
+	})
+}
+
+// DeleteNodeByName delete node
+func (n *NodeServiceImpl) deleteNode(nodeInfo *NodeInfo) error {
+	return n.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&NodeRelation{}).Where(&NodeRelation{NodeID: nodeInfo.ID}).
+			Delete(&NodeRelation{}).Error; err != nil {
+			return fmt.Errorf("db delete node(%d) relation error", nodeInfo.ID)
+		}
+		if err := tx.Model(&NodeInfo{}).Where("node_name = ?", nodeInfo.NodeName).
+			Delete(nodeInfo).Error; err != nil {
+			return fmt.Errorf("db delete node(%d) error", nodeInfo.ID)
+		}
+		if err := n.kubeClient.DeleteNode(nodeInfo.UniqueName); err != nil && isNodeNotFound(err) {
+			hwlog.RunLog.Warnf("k8s dont have this node(%s), err=%v", nodeInfo.UniqueName, err)
+		} else if err != nil {
+			return fmt.Errorf("k8s delete node(%s) failed", nodeInfo.UniqueName)
+
+		}
+		return nil
+	})
+}
+
+func (n *NodeServiceImpl) deleteSingleNodeRelation(groupID, nodeID uint64) error {
+	nodeInfo, err := n.getNodeByID(nodeID)
+	if err != nil {
+		return fmt.Errorf("db query node(%d) failed", nodeID)
+	}
+	return n.db.Transaction(func(tx *gorm.DB) error {
+		stmt := tx.Model(NodeRelation{}).Where("group_id = ? and node_id=?", groupID, nodeID).Delete(&NodeRelation{})
+		if stmt.Error != nil {
+			return fmt.Errorf("db delete node %d to group %d failed", nodeID, groupID)
+		}
+		if stmt.RowsAffected < 1 {
+			return fmt.Errorf("no such relation(node:%d, group:%d)", nodeID, groupID)
+		}
+		nodeLabel := fmt.Sprintf("%s%d", common.NodeGroupLabelPrefix, groupID)
+		_, err = kubeclient.GetKubeClient().DeleteNodeLabels(nodeInfo.UniqueName, []string{nodeLabel})
+		if err != nil && isNodeNotFound(err) {
+			hwlog.RunLog.Warnf("k8s delete label failed, err=%v", err)
+		} else if err != nil {
+			return fmt.Errorf("k8s delete label(group %d) failed", groupID)
+		}
+		return nil
+	})
+}
+
+func (n *NodeServiceImpl) deleteNodeGroup(groupID uint64, relations *[]NodeRelation) error {
+	return n.db.Transaction(func(tx *gorm.DB) error {
+		for _, relation := range *relations {
+			if err := n.deleteSingleNodeRelation(groupID, relation.NodeID); err != nil {
+				return fmt.Errorf("delete node relation failed, when delete node group:%s", err.Error())
+			}
+		}
+		if stmt := tx.Model(NodeGroup{}).Where("id = ?", groupID).Delete(&NodeGroup{}); stmt.Error != nil ||
+			stmt.RowsAffected != 1 {
+			return fmt.Errorf("delete node group by group id %d failed", groupID)
+		}
+		return nil
+	})
 }

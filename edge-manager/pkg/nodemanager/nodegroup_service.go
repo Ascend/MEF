@@ -116,7 +116,7 @@ func getEdgeNodeGroupDetail(input interface{}) common.RespMsg {
 			return common.RespMsg{Status: common.ErrorGetNodeGroup, Msg: "query node by relations failed", Data: nil}
 		}
 		respItem.NodeInfo = *node
-		respItem.Status, err = NodeStatusServiceInstance().GetNodeStatus(node.UniqueName)
+		respItem.Status, err = NodeSyncInstance().GetNodeStatus(node.UniqueName)
 		if err != nil {
 			respItem.Status = statusOffline
 		}
@@ -194,8 +194,7 @@ func batchDeleteNodeGroup(input interface{}) common.RespMsg {
 }
 
 func deleteSingleGroup(groupID uint64) error {
-	nodeGroup, err := NodeServiceInstance().getNodeGroupByID(groupID)
-	if err != nil {
+	if _, err := NodeServiceInstance().getNodeGroupByID(groupID); err != nil {
 		return fmt.Errorf("get node group by group id %d failed", groupID)
 	}
 	count, err := getAppInstanceCountByGroupId(groupID)
@@ -209,13 +208,8 @@ func deleteSingleGroup(groupID uint64) error {
 	if err != nil {
 		return fmt.Errorf("get relations between node and node group by group id %d failed", groupID)
 	}
-	for _, relation := range *relations {
-		if err := deleteSingleNodeRelation(nodeGroup.ID, relation.NodeID); err != nil {
-			return fmt.Errorf("patch node state failed:%s", err.Error())
-		}
-	}
-	if rowsAffected, err := NodeServiceInstance().deleteNodeGroup(groupID); err != nil || rowsAffected != 1 {
-		return fmt.Errorf("delete node group by group id %d failed", groupID)
+	if err := NodeServiceInstance().deleteNodeGroup(groupID, relations); err != nil {
+		return err
 	}
 	return nil
 }

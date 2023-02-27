@@ -11,11 +11,12 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 
-	"edge-manager/pkg/database"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
+
+	"edge-manager/pkg/database"
+	"edge-manager/pkg/kubeclient"
 )
 
 type handlerFunc func(req interface{}) common.RespMsg
@@ -44,12 +45,27 @@ func (node *nodeManager) Enable() bool {
 			hwlog.RunLog.Errorf("module (%s) init database table failed, cannot enable", node.Name())
 			return !node.enable
 		}
-		if err := initNodeStatusService(); err != nil {
+		if err := initNodeSyncService(); err != nil {
 			hwlog.RunLog.Errorf("module (%s) init node status service failed, cannot enable", node.Name())
 			return !node.enable
 		}
 	}
 	return node.enable
+}
+
+func deleteNodesLabel() {
+	nodes, err := kubeclient.GetKubeClient().ListNode()
+	if err != nil {
+		hwlog.RunLog.Error("get node list error when first install")
+		return
+	}
+	for _, node := range nodes.Items {
+		if label := getLabelAndGroupIDsFromNode(&node); len(label) != 0 {
+			if _, err = kubeclient.GetKubeClient().DeleteNodeLabels(node.Name, label); err != nil {
+				continue
+			}
+		}
+	}
 }
 
 func (node *nodeManager) Start() {

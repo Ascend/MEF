@@ -77,10 +77,10 @@ func (e *environment) setupTables(db *gorm.DB) error {
 }
 
 func (e *environment) setupGoMonkeyPatches(db *gorm.DB) *gomonkey.Patches {
-	service := &nodeStatusServiceImpl{}
+	service := &nodeSyncImpl{}
 	client := &kubeclient.Client{}
 	return gomonkey.ApplyFuncReturn(database.GetDb, db).
-		ApplyFuncReturn(NodeStatusServiceInstance, service).
+		ApplyFuncReturn(NodeSyncInstance, service).
 		ApplyMethodReturn(service, "ListNodeStatus", map[string]string{}).
 		ApplyMethodReturn(service, "GetNodeStatus", statusOffline, nil).
 		ApplyMethodReturn(service, "GetAllocatableResource", &NodeResource{}, nil).
@@ -88,7 +88,6 @@ func (e *environment) setupGoMonkeyPatches(db *gorm.DB) *gomonkey.Patches {
 		ApplyFuncReturn(kubeclient.GetKubeClient, client).
 		ApplyPrivateMethod(client, "patchNode", e.mockPatchNode).
 		ApplyMethodReturn(client, "ListNode", &v1.NodeList{}, nil).
-		ApplyMethodReturn(client, "GetNode", &v1.Node{}, nil).
 		ApplyMethodReturn(client, "DeleteNode", nil).
 		ApplyFuncReturn(getAppInstanceCountByGroupId, int64(0), nil)
 }
@@ -154,7 +153,12 @@ func (e *environment) verifyDbNodeGroup(group *NodeGroup, ignoredFields ...strin
 }
 
 func (e *environment) createRelation(relation *NodeRelation) error {
-	return NodeServiceInstance().addNodeToGroup(&[]NodeRelation{*relation})
+	method := gomonkey.ApplyMethodFunc(kubeclient.GetKubeClient(), "AddNodeLabels",
+		func(string, map[string]string) (*v1.Node, error) {
+			return nil, nil
+		})
+	defer method.Reset()
+	return NodeServiceInstance().addNodeToGroup(relation, "")
 }
 
 func (e *environment) verifyDbNodeRelation(relation *NodeRelation, ignoredFields ...string) error {
