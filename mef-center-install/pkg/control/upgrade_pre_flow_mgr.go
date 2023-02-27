@@ -20,7 +20,8 @@ import (
 type UpgradePreFlowMgr struct {
 	zipPath string
 	util.SoftwareMgr
-	unpackPath string
+	unpackZipPath string
+	unpackTarPath string
 }
 
 // GetUpgradePreMgr is a func to init an UpgradePreFlowMgr
@@ -32,7 +33,8 @@ func GetUpgradePreMgr(zipPath string, components []string, installPath string) *
 		},
 		zipPath: zipPath,
 	}
-	mgr.unpackPath = mgr.InstallPathMgr.WorkPathMgr.GetRelativeVarDirPath()
+	mgr.unpackZipPath = mgr.InstallPathMgr.WorkPathMgr.GetTempZipPath()
+	mgr.unpackTarPath = mgr.InstallPathMgr.WorkPathMgr.GetTempTarPath()
 	return mgr
 }
 
@@ -114,9 +116,14 @@ func (upf *UpgradePreFlowMgr) checkDiskSpace() error {
 }
 
 func (upf *UpgradePreFlowMgr) prepareUnpackDir() error {
-	if err := common.MakeSurePath(upf.unpackPath); err != nil {
-		hwlog.RunLog.Errorf("create unpack dir failed: %s", err.Error())
-		return errors.New("create unpack dir failed")
+	if err := common.MakeSurePath(upf.unpackZipPath); err != nil {
+		hwlog.RunLog.Errorf("create unpack zip dir failed: %s", err.Error())
+		return errors.New("create unpack zip dir failed")
+	}
+
+	if err := common.MakeSurePath(upf.unpackTarPath); err != nil {
+		hwlog.RunLog.Errorf("create unpack tar dir failed: %s", err.Error())
+		return errors.New("create unpack tar dir failed")
 	}
 	return nil
 }
@@ -124,7 +131,7 @@ func (upf *UpgradePreFlowMgr) prepareUnpackDir() error {
 func (upf *UpgradePreFlowMgr) unzipZipFile() error {
 	hwlog.RunLog.Info("start to unzip zip file")
 	fmt.Println("start to unzip zip file")
-	if err := common.ExtraUpgradeZipFile(upf.zipPath, upf.unpackPath); err != nil {
+	if err := common.ExtraUpgradeZipFile(upf.zipPath, upf.unpackZipPath); err != nil {
 		hwlog.RunLog.Errorf("unzip zip file failed: %s", err.Error())
 		return errors.New("unzip zip file failed")
 	}
@@ -136,7 +143,7 @@ func (upf *UpgradePreFlowMgr) unzipZipFile() error {
 func (upf *UpgradePreFlowMgr) verifyPackage() error {
 	hwlog.RunLog.Info("start to verify package")
 	fmt.Println("start to verify package")
-	unpackAbsPath, err := filepath.EvalSymlinks(upf.unpackPath)
+	unpackAbsPath, err := filepath.EvalSymlinks(upf.unpackZipPath)
 	if err != nil {
 		hwlog.RunLog.Errorf("get unpack abs path failed: %s", unpackAbsPath)
 		return errors.New("get unpack abs path failed")
@@ -156,9 +163,9 @@ func (upf *UpgradePreFlowMgr) verifyPackage() error {
 func (upf *UpgradePreFlowMgr) unzipTarFile() error {
 	hwlog.RunLog.Info("start to unzip tar file")
 	fmt.Println("start to unzip tar file")
-	tarName := path.Join(upf.unpackPath, upf.getTarFileName())
+	tarName := path.Join(upf.unpackZipPath, upf.getTarFileName())
 
-	if err := common.ExtraTarGzFile(tarName, upf.unpackPath, true); err != nil {
+	if err := common.ExtraTarGzFile(tarName, upf.unpackTarPath, true); err != nil {
 		hwlog.RunLog.Errorf("unzip tar file failed: %s", err.Error())
 		return errors.New("unzip tar file failed")
 	}
@@ -168,7 +175,7 @@ func (upf *UpgradePreFlowMgr) unzipTarFile() error {
 }
 
 func (upf *UpgradePreFlowMgr) copyInstallJson() error {
-	tgtDir := path.Join(upf.unpackPath, util.InstallDirName)
+	tgtDir := filepath.Join(upf.unpackTarPath, util.InstallDirName)
 	tgtAbsDir, err := filepath.EvalSymlinks(tgtDir)
 	if err != nil {
 		hwlog.RunLog.Errorf("get [%s]'s abs path failed: %s", tgtDir, err.Error())
@@ -208,7 +215,7 @@ func (upf *UpgradePreFlowMgr) getCrlFileName() string {
 }
 
 func (upf *UpgradePreFlowMgr) execNewSh() error {
-	shPath := path.Join(upf.unpackPath, util.InstallDirName, util.ScriptsDirName, util.UpgradeShName)
+	shPath := filepath.Join(upf.unpackTarPath, util.InstallDirName, util.ScriptsDirName, util.UpgradeShName)
 	_, err := common.RunCommand(shPath, true, util.UpgradeWaitTime)
 	if err != nil {
 		hwlog.RunLog.Error("upgrade failed: exec new version upgrade sh meet error")
@@ -220,7 +227,7 @@ func (upf *UpgradePreFlowMgr) execNewSh() error {
 func (upf *UpgradePreFlowMgr) clearEnv() {
 	fmt.Println("install failed, start to clear environment")
 	hwlog.RunLog.Info("-----Start to clear environment-----")
-	if err := common.DeleteAllFile(upf.unpackPath); err != nil {
+	if err := common.DeleteAllFile(upf.InstallPathMgr.WorkPathMgr.GetRelativeVarDirPath()); err != nil {
 		fmt.Println("clear environment failed, please clear manually")
 		hwlog.RunLog.Warnf("clear environment meets err:%s, need to do it manually", err.Error())
 		hwlog.RunLog.Info("-----End to clear environment-----")

@@ -110,6 +110,16 @@ func (wpm *WorkPathMgr) GetRelativeVarDirPath() string {
 	return path.Join(wpm.workPath, MefVarDir)
 }
 
+// GetTempZipPath returns the path to unzip zip file in mef-center softlink
+func (wpm *WorkPathMgr) GetTempZipPath() string {
+	return filepath.Join(wpm.GetRelativeVarDirPath(), MefZipDir)
+}
+
+// GetTempTarPath returns the path to unzip tar file in mef-center softlink
+func (wpm *WorkPathMgr) GetTempTarPath() string {
+	return filepath.Join(wpm.GetRelativeVarDirPath(), MefTarDir)
+}
+
 // GetRelativeKmcLibDirPath returns the kmc-lib dir path in mef-center softlink
 func (wpm *WorkPathMgr) GetRelativeKmcLibDirPath() string {
 	return path.Join(wpm.GetRelativeLibDirPath(), MefKmcLibDir)

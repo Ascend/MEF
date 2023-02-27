@@ -49,6 +49,8 @@ const (
 const (
 	MefLibDir           = "lib"
 	MefVarDir           = "var"
+	MefZipDir           = "zip"
+	MefTarDir           = "tar"
 	ComponentLibDir     = "lib"
 	MefKmcLibDir        = "kmc-lib"
 	ImageConfigDir      = "image-config"
