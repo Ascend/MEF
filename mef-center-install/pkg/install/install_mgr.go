@@ -24,16 +24,14 @@ type SftInstallCtl struct {
 
 // DoInstall is the main function to install mef-center
 func (sic *SftInstallCtl) DoInstall() error {
-	// MEFCenter已安装时不进行环境清理
-	if err := sic.checkInstalled(); err != nil {
-		fmt.Println("MEF-Center has already been installed")
+	// 校验失败时不进行环境清理
+	if err := sic.preCheck(); err != nil {
 		return err
 	}
 
 	var installTasks = []func() error{
-		sic.preCheck,
-		sic.prepareMefUser,
 		sic.prepareK8sLabel,
+		sic.prepareMefUser,
 		sic.prepareComponentLogDir,
 		sic.prepareComponentLogBackupDir,
 		sic.prepareCerts,
@@ -59,9 +57,10 @@ func (sic *SftInstallCtl) DoInstall() error {
 func (sic *SftInstallCtl) preCheck() error {
 	var checkTasks = []func() error{
 		sic.checkUser,
-		sic.checkArch,
-		sic.checkDiskSpace,
 		sic.checkNecessaryTools,
+		sic.checkArch,
+		sic.checkInstalled,
+		sic.checkDiskSpace,
 	}
 
 	for _, function := range checkTasks {
@@ -148,6 +147,7 @@ func (sic *SftInstallCtl) checkInstalled() error {
 	_, err := os.Stat(sic.InstallPathMgr.GetMefPath())
 	if err == nil {
 		hwlog.RunLog.Error("the software has already been installed")
+		fmt.Println("MEF-Center has already been installed")
 		return errors.New("the software has already been installed")
 	}
 
@@ -158,6 +158,7 @@ func (sic *SftInstallCtl) checkInstalled() error {
 	}
 	if exists {
 		hwlog.RunLog.Error("the software has already been installed since k8s label exists")
+		fmt.Println("MEF-Center has already been installed")
 		return errors.New("the software has already been installed since k8s label exists")
 	}
 	hwlog.RunLog.Info("check if the software has been installed successful")

@@ -60,14 +60,26 @@ func DoInstallTest() {
 	})
 
 	Convey("test doInstall func checkInstalled failed", func() {
-		p := ApplyPrivateMethod(ins, "checkInstalled", func(_ *SftInstallCtl) error { return ErrTest })
+		p := ApplyPrivateMethod(ins, "checkUser", func(_ *SftInstallCtl) error { return nil }).
+			ApplyPrivateMethod(ins, "checkNecessaryTools", func(_ *SftInstallCtl) error { return nil }).
+			ApplyPrivateMethod(ins, "checkArch", func(_ *SftInstallCtl) error { return nil }).
+			ApplyFuncReturn(os.Stat, nil, nil)
 		defer p.Reset()
-		So(ins.DoInstall(), ShouldResemble, ErrTest)
+		So(ins.DoInstall(), ShouldResemble, errors.New("the software has already been installed"))
+	})
+
+	k8sMgrIns := &util.K8sLabelMgr{}
+	Convey("test doInstall func k8s label exists failed", func() {
+		p := ApplyPrivateMethod(ins, "checkUser", func(_ *SftInstallCtl) error { return nil }).
+			ApplyPrivateMethod(ins, "checkNecessaryTools", func(_ *SftInstallCtl) error { return nil }).
+			ApplyPrivateMethod(ins, "checkArch", func(_ *SftInstallCtl) error { return nil }).
+			ApplyPrivateMethod(k8sMgrIns, "CheckK8sLabel", func(_ *util.K8sLabelMgr) (bool, error) { return true, nil })
+		defer p.Reset()
+		So(ins.DoInstall(), ShouldResemble, errors.New("the software has already been installed since k8s label exists"))
 	})
 
 	Convey("test doInstall func install failed", func() {
-		p := ApplyPrivateMethod(ins, "checkInstalled", func(_ *SftInstallCtl) error { return nil }).
-			ApplyPrivateMethod(ins, "preCheck", func(_ *SftInstallCtl) error { return ErrTest }).
+		p := ApplyPrivateMethod(ins, "preCheck", func(_ *SftInstallCtl) error { return ErrTest }).
 			ApplyPrivateMethod(ins, "clearAll", func(_ *SftInstallCtl) { return })
 		defer p.Reset()
 		So(ins.DoInstall(), ShouldResemble, ErrTest)
