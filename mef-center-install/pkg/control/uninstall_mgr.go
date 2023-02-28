@@ -4,7 +4,6 @@ package control
 
 import (
 	"errors"
-	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
@@ -20,7 +19,7 @@ func (sum *SftUninstallMgr) DoUninstall() error {
 	var installTasks = []func() error{
 		sum.checkUser,
 		sum.checkCurrentPath,
-		sum.clearNamespace,
+		sum.ClearNamespace,
 		sum.ClearAllDockerImages,
 		sum.ClearAndLabel,
 	}
@@ -49,19 +48,6 @@ func (sum *SftUninstallMgr) checkCurrentPath() error {
 		hwlog.RunLog.Error(err)
 		return errors.New("check current path failed")
 	}
-	return nil
-}
-
-func (sum *SftUninstallMgr) clearNamespace() error {
-	fmt.Println("start to clear Namespace")
-	hwlog.RunLog.Info("start to clear Namespace")
-	nsMgr := util.NewNamespaceMgr(util.MefNamespace)
-	if err := nsMgr.ClearNamespace(); err != nil {
-		fmt.Println("clear Namespace failed")
-		return err
-	}
-	fmt.Println("clear Namespace success")
-	hwlog.RunLog.Info("clear Namespace success")
 	return nil
 }
 

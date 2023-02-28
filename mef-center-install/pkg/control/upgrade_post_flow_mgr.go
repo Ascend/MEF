@@ -24,6 +24,7 @@ type UpgradePostFlowMgr struct {
 	util.SoftwareMgr
 	logPathMgr        *util.LogDirPathMgr
 	startedComponents []string
+	step              int
 }
 
 // GetUpgradePostMgr is a func to init an UpgradePostFlowMgr struct
@@ -35,6 +36,7 @@ func GetUpgradePostMgr(components []string, installPath string,
 			InstallPathMgr: util.InitInstallDirPathMgr(installPath),
 		},
 		logPathMgr: util.InitLogDirPathMgr(logRootPath, logBackupRootPath),
+		step:       util.ClearUnpackPathStep,
 	}
 }
 
@@ -44,6 +46,7 @@ func (upf *UpgradePostFlowMgr) DoUpgrade() error {
 		upf.checkVersion,
 		upf.checkNecessaryTools,
 		upf.prepareK8sLabel,
+		upf.createFlag,
 		upf.prepareWorkCDir,
 		upf.prepareYaml,
 		upf.recordStarted,
@@ -52,6 +55,7 @@ func (upf *UpgradePostFlowMgr) DoUpgrade() error {
 		upf.buildNewImage,
 		upf.startNewPod,
 		upf.resetSoftLink,
+		upf.clearFlag,
 	}
 
 	for _, function := range installTasks {
@@ -165,7 +169,16 @@ func (upf *UpgradePostFlowMgr) prepareK8sLabel() error {
 	return nil
 }
 
+func (upf *UpgradePostFlowMgr) createFlag() error {
+	if err := common.CreateFile(upf.InstallPathMgr.WorkPathMgr.GetUpgradeFlagPath(), common.Mode400); err != nil {
+		hwlog.RunLog.Errorf("create upgrade-flag failed: %s", err.Error())
+		return errors.New("create upgrade-flag failed")
+	}
+	return nil
+}
+
 func (upf *UpgradePostFlowMgr) prepareWorkCDir() error {
+	upf.step = util.ClearTempUpgradePathStep
 	if err := common.MakeSurePath(upf.InstallPathMgr.TmpPathMgr.GetWorkPath()); err != nil {
 		hwlog.RunLog.Errorf("make sure temp upgrade dir failed: %s", err.Error())
 		return errors.New("make sure temp upgrade dir failed")
@@ -226,6 +239,7 @@ func (upf *UpgradePostFlowMgr) recordStarted() error {
 }
 
 func (upf *UpgradePostFlowMgr) deleteNameSpace() error {
+	upf.step = util.RestartPodStep
 	hwlog.RunLog.Info("start to delete mef-center namespace")
 	namespaceMgr := util.NewNamespaceMgr(util.MefNamespace)
 	if err := namespaceMgr.ClearNamespace(); err != nil {
@@ -236,6 +250,7 @@ func (upf *UpgradePostFlowMgr) deleteNameSpace() error {
 }
 
 func (upf *UpgradePostFlowMgr) removeDockerImage() error {
+	upf.step = util.LoadOldDockerStep
 	for _, component := range upf.SoftwareMgr.Components {
 		dockerDealerIns := util.GetDockerDealer(component, util.DockerTag)
 		if err := dockerDealerIns.DeleteImage(); err != nil {
@@ -248,6 +263,7 @@ func (upf *UpgradePostFlowMgr) removeDockerImage() error {
 
 func (upf *UpgradePostFlowMgr) buildNewImage() error {
 	hwlog.RunLog.Info("start to build new docker image")
+	upf.step = util.RemoveDockerStep
 	for _, component := range upf.SoftwareMgr.Components {
 		componentMgr := util.GetComponentMgr(component)
 		if err := componentMgr.LoadAndSaveImage(upf.InstallPathMgr.TmpPathMgr); err != nil {
@@ -270,6 +286,7 @@ func (upf *UpgradePostFlowMgr) buildNewImage() error {
 }
 
 func (upf *UpgradePostFlowMgr) startNewPod() error {
+	upf.step = util.ClearNameSpaceStep
 	for _, c := range upf.startedComponents {
 		dealer := &util.CtlComponent{
 			Name:           c,
@@ -317,6 +334,31 @@ func (upf *UpgradePostFlowMgr) resetSoftLink() error {
 	return nil
 }
 
+func (upf *UpgradePostFlowMgr) clearFlag() error {
+	tgtPath, err := upf.InstallPathMgr.GetTargetWorkPath()
+	if err != nil {
+		hwlog.RunLog.Errorf("get backup work path failed: %s", err.Error())
+		return errors.New("get backup work path failed")
+	}
+
+	flagPath := filepath.Join(tgtPath, util.UpgradeFlagFile)
+	if err = common.DeleteFile(flagPath); err != nil {
+		hwlog.RunLog.Errorf("delete upgrade-flag failed: %s", err.Error())
+		return errors.New("delete upgrade-flag failed")
+	}
+	return nil
+}
+
 func (upf *UpgradePostFlowMgr) clearEnv() {
-	return
+	fmt.Println("upgrade failed, start to restore environment")
+	hwlog.RunLog.Info("----------upgrade failed, start to restore environment-----------")
+	clearMgr := util.GetUpgradeClearMgr(upf.SoftwareMgr, upf.step, upf.startedComponents)
+	if err := clearMgr.ClearUpgrade(); err != nil {
+		hwlog.RunLog.Errorf("clear upgrade environment failed: %s", err.Error())
+		hwlog.RunLog.Error("----------upgrade failed, restore environment failed-----------")
+		fmt.Println("clear environment failed, plz recover it manually")
+		return
+	}
+	fmt.Println("environment has been recovered")
+	hwlog.RunLog.Info("----------upgrade failed, restore environment success-----------")
 }

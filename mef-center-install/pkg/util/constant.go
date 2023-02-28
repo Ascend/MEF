@@ -11,6 +11,7 @@ import (
 // Command constant for command
 const (
 	CommandKubectl     = "kubectl"
+	CommandDocker      = "docker"
 	CommandNamespace   = "namespace"
 	Haveged            = "haveged"
 	ArchCommand        = "uname"
@@ -43,6 +44,7 @@ const (
 	VersionXml       = "version.xml"
 	InstallParamJson = "install-param.json"
 	InstallBin       = "MEF-center-installer"
+	UpgradeFlagFile  = "upgrade-flag"
 )
 
 // single WorkDir constant
@@ -171,4 +173,14 @@ const (
 	ScriptsDirName    = "scripts"
 	UpgradeShName     = "upgrade.sh"
 	UpgradeTimeoutSec = 420
+)
+
+// constant for the step in upgrade to clear environment
+const (
+	ClearUnpackPathStep = iota
+	ClearTempUpgradePathStep
+	RestartPodStep
+	LoadOldDockerStep
+	RemoveDockerStep
+	ClearNameSpaceStep
 )
