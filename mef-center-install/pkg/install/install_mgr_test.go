@@ -332,7 +332,7 @@ func PrePareMefUserUserCheckFailedTest() {
 func PrepareK8sLabelTest() {
 	ins := GetSftInstallMgrIns([]string{}, "", "", "")
 
-	k8sMgr := util.K8sLabelMgr{}
+	k8sMgr := &util.K8sLabelMgr{}
 	Convey("test prepareK8sLabel func success", func() {
 		p := ApplyMethodReturn(k8sMgr, "PrepareK8sLabel", nil)
 		defer p.Reset()
