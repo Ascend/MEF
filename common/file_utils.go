@@ -73,6 +73,21 @@ func MakeSurePath(tgtPath string) error {
 	return nil
 }
 
+// CreateFile creates the named file with mode
+func CreateFile(filePath string, mode os.FileMode) error {
+	file, err := os.OpenFile(filePath, os.O_CREATE, mode)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err = file.Close(); err != nil {
+			hwlog.RunLog.Error("close file failed")
+			return
+		}
+	}()
+	return nil
+}
+
 // CopyDir is used to copy dir and all files into it
 func CopyDir(srcPath string, dstPath string, includeDir bool) error {
 	if !includeDir {

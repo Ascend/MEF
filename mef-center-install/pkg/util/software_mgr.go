@@ -83,6 +83,20 @@ func (sm *SoftwareMgr) clearNodeLabel() error {
 	return nil
 }
 
+// ClearNamespace is used to clear mef-center namespace
+func (sm *SoftwareMgr) ClearNamespace() error {
+	fmt.Println("start to clear Namespace")
+	hwlog.RunLog.Info("start to clear Namespace")
+	nsMgr := NewNamespaceMgr(MefNamespace)
+	if err := nsMgr.ClearNamespace(); err != nil {
+		fmt.Println("clear Namespace failed")
+		return err
+	}
+	fmt.Println("clear Namespace success")
+	hwlog.RunLog.Info("clear Namespace success")
+	return nil
+}
+
 // ClearAndLabel is the func that used to recover the environment that effected by installation
 func (sm *SoftwareMgr) ClearAndLabel() error {
 	var installTasks = []func() error{

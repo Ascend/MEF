@@ -150,6 +150,16 @@ func (wpm *WorkPathMgr) GetRelativeYamlPath(component string) string {
 	return path.Join(wpm.GetRelativeImageConfigPath(component), fmt.Sprintf("%s.yaml", component))
 }
 
+// GetRelativeImageDirPath returns the relative component's image dir in mef-center softlink by single component's name
+func (wpm *WorkPathMgr) GetRelativeImageDirPath(component string) string {
+	return filepath.Join(wpm.GetRelativeImagesDirPath(), component, ImageDir)
+}
+
+// GetUpgradeFlagPath returns the relative upgrade-flag path
+func (wpm *WorkPathMgr) GetUpgradeFlagPath() string {
+	return filepath.Join(wpm.workPath, UpgradeFlagFile)
+}
+
 // WorkPathAMgr is a struct that controls all dir/file path in the mef-center-A dir
 // all dir/file path in the mef-center-A dir should be got by specified func in this struct
 type WorkPathAMgr struct {
@@ -239,47 +249,47 @@ func (wam *WorkPathAMgr) GetComponentYamlPath(component string) string {
 // TmpUpgradeMgr is a struct that controls all dir/file path in the temp-upgrade dir
 // all dir/file path in the temp-upgrade dir should be got by specified func in this struct
 type TmpUpgradeMgr struct {
-	workCPath string
+	tempUpgradePath string
 }
 
 // GetWorkPath returns the temp-upgrade dir path
 func (tum *TmpUpgradeMgr) GetWorkPath() string {
-	return tum.workCPath
+	return tum.tempUpgradePath
 }
 
 // GetWorkLibDirPath returns lib path in temp-upgrade dir
 func (tum *TmpUpgradeMgr) GetWorkLibDirPath() string {
-	return path.Join(tum.workCPath, MefLibDir)
+	return filepath.Join(tum.tempUpgradePath, MefLibDir)
 }
 
 // GetRunShPath returns the run.sh path in temp-upgrade dir
 func (tum *TmpUpgradeMgr) GetRunShPath() string {
-	return path.Join(tum.workCPath, MefRunScript)
+	return filepath.Join(tum.tempUpgradePath, MefRunScript)
 }
 
 // GetBinDirPath returns the bin dir path in temp-upgrade dir
 func (tum *TmpUpgradeMgr) GetBinDirPath() string {
-	return path.Join(tum.workCPath, MefBinDir)
+	return filepath.Join(tum.tempUpgradePath, MefBinDir)
 }
 
 // GetInstallParamJsonPath returns the install-param.json path in temp-upgrade Dir
 func (tum *TmpUpgradeMgr) GetInstallParamJsonPath() string {
-	return path.Join(tum.workCPath, InstallParamJson)
+	return filepath.Join(tum.tempUpgradePath, InstallParamJson)
 }
 
 // GetInstallerBinPath returns the installation binary path in temp-upgrade dir
 func (tum *TmpUpgradeMgr) GetInstallerBinPath() string {
-	return path.Join(tum.GetBinDirPath(), InstallBin)
+	return filepath.Join(tum.GetBinDirPath(), InstallBin)
 }
 
 // GetVersionXmlPath returns the version.xml path in temp-upgrade dir
 func (tum *TmpUpgradeMgr) GetVersionXmlPath() string {
-	return path.Join(tum.workCPath, VersionXml)
+	return filepath.Join(tum.tempUpgradePath, VersionXml)
 }
 
 // GetImagesDirPath returns the images dir path in temp-upgrade dir
 func (tum *TmpUpgradeMgr) GetImagesDirPath() string {
-	return path.Join(tum.workCPath, ImagesDirName)
+	return filepath.Join(tum.tempUpgradePath, ImagesDirName)
 }
 
 // GetImageConfigPath returns the image-config path in temp-upgrade dir
@@ -419,7 +429,7 @@ func InitInstallDirPathMgr(rootPath string) *InstallDirPathMgr {
 	mgrIns := InstallDirPathMgr{rootPath: rootPath}
 	mgrIns.WorkPathMgr = &WorkPathMgr{workPath: mgrIns.GetWorkPath()}
 	mgrIns.WorkPathAMgr = &WorkPathAMgr{workAPath: mgrIns.GetWorkAPath()}
-	mgrIns.TmpPathMgr = &TmpUpgradeMgr{workCPath: mgrIns.GetTmpUpgradePath()}
+	mgrIns.TmpPathMgr = &TmpUpgradeMgr{tempUpgradePath: mgrIns.GetTmpUpgradePath()}
 	mgrIns.ConfigPathMgr = &ConfigPathMgr{configPath: mgrIns.GetConfigPath()}
 	return &mgrIns
 }

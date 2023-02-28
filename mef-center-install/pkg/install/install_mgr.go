@@ -30,14 +30,15 @@ func (sic *SftInstallCtl) DoInstall() error {
 	}
 
 	var installTasks = []func() error{
-		sic.prepareK8sLabel,
+		sic.preCheck,
 		sic.prepareMefUser,
 		sic.prepareComponentLogDir,
 		sic.prepareComponentLogBackupDir,
-		sic.prepareCerts,
 		sic.prepareWorkingDir,
-		sic.prepareYaml,
 		sic.setInstallJson,
+		sic.prepareK8sLabel,
+		sic.prepareCerts,
+		sic.prepareYaml,
 		sic.componentsInstall,
 	}
 

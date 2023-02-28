@@ -5,8 +5,10 @@ package control
 
 import (
 	"errors"
+	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/utils"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
@@ -28,6 +30,7 @@ func (scm *SftOperateMgr) DoOperate() error {
 		scm.prepareComponentLogDir,
 		scm.prepareComponentLogBackupDir,
 		scm.check,
+		scm.dealUpgradeFlag,
 		scm.deal,
 	}
 
@@ -118,6 +121,34 @@ func (scm *SftOperateMgr) checkUser() error {
 		return err
 	}
 	hwlog.RunLog.Info("check user successful")
+	return nil
+}
+
+func (scm *SftOperateMgr) dealUpgradeFlag() error {
+	if !utils.IsExist(scm.installPathMgr.WorkPathMgr.GetUpgradeFlagPath()) {
+		return nil
+	}
+
+	if scm.operate != util.StartOperateFlag {
+		fmt.Println("the last upgrade was terminated unexpectedly, plz use start operate to recovery first")
+		hwlog.RunLog.Error("the last upgrade was terminated unexpectedly, needs to recovery first")
+		return errors.New("needs to recovery environment")
+	}
+
+	fmt.Println("find upgrade flag exist, start to recover environment")
+	hwlog.RunLog.Info("----------find upgrade flag exist, start to recover environment-----------")
+	clearMgr := util.GetUpgradeClearMgr(util.SoftwareMgr{
+		Components:     scm.installedComponent,
+		InstallPathMgr: scm.installPathMgr,
+	}, util.ClearNameSpaceStep, []string{})
+	if err := clearMgr.ClearUpgrade(); err != nil {
+		hwlog.RunLog.Errorf("clear upgrade environment failed: %s", err.Error())
+		hwlog.RunLog.Error("----------restore environment failed-----------")
+		fmt.Println("clear environment failed, plz recover it manually")
+		return err
+	}
+	fmt.Println("environment has been recovered")
+	hwlog.RunLog.Info("----------restore environment success-----------")
 	return nil
 }
 

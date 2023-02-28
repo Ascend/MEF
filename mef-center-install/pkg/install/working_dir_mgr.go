@@ -61,9 +61,9 @@ func (wdc *WorkingDirCtl) DoUpgradePrepare() error {
 func (wdc *WorkingDirCtl) DoInstallPrepare() error {
 	var prepareWorkingDirTasks = []func() error{
 		wdc.prepareRootWorkDir,
-		wdc.prepareLibDir,
 		wdc.prepareRunSh,
 		wdc.prepareBinDir,
+		wdc.prepareLibDir,
 		wdc.prepareVersionXml,
 		wdc.prepareComponentWorkDir,
 		wdc.prepareSymlinks,

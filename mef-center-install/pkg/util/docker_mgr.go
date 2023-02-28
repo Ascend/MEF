@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"path"
+	"path/filepath"
 	"strconv"
 
 	"huawei.com/mindx/common/hwlog"
@@ -118,12 +119,27 @@ func (dd *DockerDealer) DeleteImage() error {
 		return nil
 	}
 
-	_, err = common.RunCommand("docker", true, common.DefCmdTimeoutSec,
+	_, err = common.RunCommand(CommandDocker, true, common.DefCmdTimeoutSec,
 		"rmi", dd.imageName+":"+dd.tag)
 	if err != nil {
 		hwlog.RunLog.Errorf("delete %s's docker image command exec failed: %s", dd.imageName, err.Error())
 		return fmt.Errorf("delete %s's docker image command exec failed", dd.imageName)
 	}
 
+	return nil
+}
+
+// ReloadImage is used to reload docker image from saved file
+func (dd *DockerDealer) ReloadImage(imageDirPath string) error {
+	imageName, err := dd.getImageTarName()
+	if err != nil {
+		return fmt.Errorf("get image tar name failed: %s", err.Error())
+	}
+
+	imagePath := filepath.Join(imageDirPath, imageName)
+	_, err = common.RunCommand(CommandDocker, true, common.DefCmdTimeoutSec, "load", "-i", imagePath)
+	if err != nil {
+		return fmt.Errorf("reload docker image %s failed: %s", imagePath, err.Error())
+	}
 	return nil
 }
