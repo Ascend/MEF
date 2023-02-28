@@ -16,9 +16,14 @@ import (
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
+type zipContent struct {
+	tarName, cmsName, crlName string
+}
+
 // UpgradePreFlowMgr is a struct that uses to do upgrade, it is executed in the old version
 type UpgradePreFlowMgr struct {
 	zipPath string
+	tarPath string
 	util.SoftwareMgr
 	unpackZipPath string
 	unpackTarPath string
@@ -148,10 +153,16 @@ func (upf *UpgradePreFlowMgr) verifyPackage() error {
 		hwlog.RunLog.Errorf("get unpack abs path failed: %s", unpackAbsPath)
 		return errors.New("get unpack abs path failed")
 	}
-	crlPath := path.Join(unpackAbsPath, upf.getCrlFileName())
-	cmsPath := path.Join(unpackAbsPath, upf.getCmsFileName())
-	tarPath := path.Join(unpackAbsPath, upf.getTarFileName())
-	if err = cmsverify.VerifyPackage(crlPath, cmsPath, tarPath); err != nil {
+
+	zipContents, err := upf.getVerifyFileName()
+	if err != nil {
+		return err
+	}
+
+	upf.tarPath = filepath.Join(unpackAbsPath, zipContents.tarName)
+	cmsPath := filepath.Join(unpackAbsPath, zipContents.cmsName)
+	clrPath := filepath.Join(unpackAbsPath, zipContents.crlName)
+	if err = cmsverify.VerifyPackage(clrPath, cmsPath, upf.tarPath); err != nil {
 		hwlog.RunLog.Errorf("verify package failed,error:%v", err)
 		return errors.New("verify package failed")
 	}
@@ -163,9 +174,12 @@ func (upf *UpgradePreFlowMgr) verifyPackage() error {
 func (upf *UpgradePreFlowMgr) unzipTarFile() error {
 	hwlog.RunLog.Info("start to unzip tar file")
 	fmt.Println("start to unzip tar file")
-	tarName := path.Join(upf.unpackZipPath, upf.getTarFileName())
+	if upf.tarPath == "" {
+		hwlog.RunLog.Errorf("tarPath is nil")
+		return errors.New("tarPath is nil")
+	}
 
-	if err := common.ExtraTarGzFile(tarName, upf.unpackTarPath, true); err != nil {
+	if err := common.ExtraTarGzFile(upf.tarPath, upf.unpackTarPath, true); err != nil {
 		hwlog.RunLog.Errorf("unzip tar file failed: %s", err.Error())
 		return errors.New("unzip tar file failed")
 	}
@@ -197,21 +211,49 @@ func (upf *UpgradePreFlowMgr) copyInstallJson() error {
 	return nil
 }
 
-func (upf *UpgradePreFlowMgr) getPureFileName() string {
-	_, zipName := filepath.Split(upf.zipPath)
-	return strings.TrimRight(zipName, common.ZipSuffix)
-}
+func (upf *UpgradePreFlowMgr) getVerifyFileName() (*zipContent, error) {
+	var tarName, cmsName, crlName string
+	dir, err := common.ReadDir(upf.unpackZipPath)
+	if err != nil {
+		hwlog.RunLog.Errorf("traversal unpack path failed: %s", err.Error())
+		return nil, errors.New("traversal unpack path failed")
+	}
 
-func (upf *UpgradePreFlowMgr) getTarFileName() string {
-	return upf.getPureFileName() + common.TarGzSuffix
-}
+	for _, file := range dir {
+		if strings.HasSuffix(file.Name(), common.TarGzSuffix) {
+			if tarName != "" {
+				hwlog.RunLog.Errorf("more than 1 tar.gz file in zip file")
+				return nil, errors.New("more than 1 tar.gz file in zip file")
+			}
+			tarName = file.Name()
+		}
 
-func (upf *UpgradePreFlowMgr) getCmsFileName() string {
-	return upf.getPureFileName() + common.CmsSuffix
-}
+		if strings.HasSuffix(file.Name(), common.CmsSuffix) {
+			if cmsName != "" {
+				hwlog.RunLog.Errorf("more than 1 cms file in zip file")
+				return nil, errors.New("more than 1 cms file in zip file")
+			}
+			cmsName = file.Name()
+		}
 
-func (upf *UpgradePreFlowMgr) getCrlFileName() string {
-	return upf.getPureFileName() + common.CrlSuffix
+		if strings.HasSuffix(file.Name(), common.CrlSuffix) {
+			if crlName != "" {
+				hwlog.RunLog.Errorf("more than 1 crl file in zip file")
+				return nil, errors.New("more than 1 crl file in zip file")
+			}
+			crlName = file.Name()
+		}
+	}
+
+	if tarName == "" || cmsName == "" || crlName == "" {
+		hwlog.RunLog.Errorf("the zip file does not contain all necessary file")
+		return nil, errors.New("the zip file does not contain all necessary file")
+	}
+
+	return &zipContent{
+		tarName: tarName,
+		cmsName: cmsName,
+		crlName: crlName}, nil
 }
 
 func (upf *UpgradePreFlowMgr) execNewSh() error {

@@ -85,6 +85,11 @@ func CopyDir(srcPath string, dstPath string, includeDir bool) error {
 	return nil
 }
 
+// ReadDir func is the func to return the file list in a dir
+func ReadDir(path string) ([]os.DirEntry, error) {
+	return os.ReadDir(path)
+}
+
 // RenameFile renames (moves) old path to new path.
 func RenameFile(oldPath, newPath string) error {
 	return os.Rename(oldPath, newPath)
