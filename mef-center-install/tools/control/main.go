@@ -19,6 +19,11 @@ import (
 
 type controller interface {
 	doControl() error
+	setInstallParam(installParam *util.InstallParamJsonTemplate)
+	bindFlag() bool
+	printExecutingLog(ip, user string)
+	printFailedLog(ip, user string)
+	printSuccessLog(ip, user string)
 }
 
 type operateController struct {
@@ -31,7 +36,6 @@ type uninstallController struct {
 }
 
 type upgradeController struct {
-	zipPath      string
 	installParam *util.InstallParamJsonTemplate
 }
 
@@ -43,49 +47,17 @@ var (
 
 	componentType string
 	version       bool
-	operateType   string
 	zipPath       string
+	help          bool
+	curController controller
 
 	allowedModule = []string{util.EdgeManagerName, util.NginxManagerName, util.CertManagerName}
 )
 
 const (
-	startFlag   = "start"
-	stopFlag    = "stop"
-	restartFlag = "restart"
-	operateFlag = "operate"
-	pathFlag    = "zipPath"
+	componentFlag = "component"
+	pathFlag      = "pkg_path"
 )
-
-func init() {
-	flag.StringVar(&componentType, startFlag, "all", "start a component, default all components")
-	flag.StringVar(&componentType, stopFlag, "all", "stop a component, default all components")
-	flag.StringVar(&componentType, restartFlag, "all", "restart a component, default all components")
-	flag.StringVar(&operateType, operateFlag, "other", "to illustrate the operate type: control, uninstall or upgrade")
-	flag.StringVar(&zipPath, pathFlag, "", "the path of the zip file to upgrade MEF Center")
-	flag.BoolVar(&version, util.VersionFlag, false, "Output the program version")
-}
-
-func isFlagSet(name string) bool {
-	found := false
-	flag.Visit(func(f *flag.Flag) {
-		if f.Name == name {
-			found = true
-		}
-	})
-	return found
-}
-
-func checkFlag() string {
-	// the first operate type will be performed
-	flags := [util.RunFlagCount]string{startFlag, stopFlag, restartFlag}
-	for _, s := range flags {
-		if isFlagSet(s) {
-			return s
-		}
-	}
-	return operateType
-}
 
 func checkComponent(installedComponents []string) error {
 	var validType bool
@@ -131,14 +103,67 @@ func (oc *operateController) doControl() error {
 	return nil
 }
 
-func (oc *uninstallController) doControl() error {
-	installedComponents := oc.installParam.Components
+func (oc *operateController) setInstallParam(installParam *util.InstallParamJsonTemplate) {
+	oc.installParam = installParam
+}
 
-	controlMgr := control.GetSftUninstallMgrIns(installedComponents, oc.installParam.InstallDir)
+func (oc *operateController) bindFlag() bool {
+	flag.StringVar(&componentType, componentFlag, "all", "start/stop/restart a component, default all components")
+	return true
+}
+
+func (oc *operateController) printExecutingLog(ip, user string) {
+	fmt.Printf("start to %s %s component\n", oc.operate, componentType)
+	hwlog.RunLog.Infof("-------------------start to %s %s component-------------------", oc.operate, componentType)
+	hwlog.OpLog.Infof("%s: %s, start to %s %s component", ip, user, oc.operate, componentType)
+}
+
+func (oc *operateController) printFailedLog(ip, user string) {
+	fmt.Printf("%s %s component failed\n", oc.operate, componentType)
+	hwlog.RunLog.Errorf("-------------------%s %s component failed-------------------", oc.operate, componentType)
+	hwlog.OpLog.Errorf("%s: %s, %s %s component failed", ip, user, oc.operate, componentType)
+}
+
+func (oc *operateController) printSuccessLog(ip, user string) {
+	fmt.Printf("%s %s component successful\n", oc.operate, componentType)
+	hwlog.RunLog.Infof("-------------------%s %s component successful-------------------", oc.operate, componentType)
+	hwlog.OpLog.Infof("%s: %s, %s %s component successful", ip, user, oc.operate, componentType)
+}
+
+func (uc *uninstallController) doControl() error {
+	installedComponents := uc.installParam.Components
+
+	controlMgr := control.GetSftUninstallMgrIns(installedComponents, uc.installParam.InstallDir)
 	if err := controlMgr.DoUninstall(); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (uc *uninstallController) setInstallParam(installParam *util.InstallParamJsonTemplate) {
+	uc.installParam = installParam
+}
+
+func (uc *uninstallController) bindFlag() bool {
+	return false
+}
+
+func (uc *uninstallController) printExecutingLog(ip, user string) {
+	hwlog.RunLog.Info("-------------------start to uninstall MEF-Center-------------------")
+	hwlog.OpLog.Infof("%s: %s, start to uninstall MEF-Center", ip, user)
+	fmt.Println("start to uninstall MEF-Center")
+}
+
+func (uc *uninstallController) printFailedLog(ip, user string) {
+	hwlog.RunLog.Error("-------------------uninstall MEF-Center failed-------------------")
+	hwlog.OpLog.Errorf("%s: %s, uninstall MEF-Center failed", ip, user)
+	fmt.Println("uninstall MEF-Center failed")
+}
+
+func (uc *uninstallController) printSuccessLog(ip, user string) {
+	hwlog.RunLog.Info("-------------------uninstall MEF-Center successful-------------------")
+	hwlog.OpLog.Infof("%s: %s, uninstall MEF-Center successful", ip, user)
+	fmt.Println("uninstall MEF-Center successful")
 }
 
 func (uc *upgradeController) doControl() error {
@@ -147,17 +172,17 @@ func (uc *upgradeController) doControl() error {
 
 	pathMgr := util.InitInstallDirPathMgr(uc.installParam.InstallDir)
 	unpackPath := pathMgr.WorkPathMgr.GetRelativeVarDirPath()
-	if filepath.Dir(uc.zipPath) == unpackPath {
+	if filepath.Dir(zipPath) == unpackPath {
 		hwlog.RunLog.Errorf("zipDir cannot be the unpack dir:%s", unpackPath)
 		return errors.New("zipDir cannot be the unpack dir")
 	}
 
-	if _, err := utils.RealFileChecker(uc.zipPath, true, false, zipSizeMul); err != nil {
+	if _, err := utils.RealFileChecker(zipPath, true, false, zipSizeMul); err != nil {
 		hwlog.RunLog.Errorf("zipPath check failed: %s", err)
 		return errors.New("zipPath check failed")
 	}
 
-	controlMgr := control.GetUpgradePreMgr(uc.zipPath, installedComponents, uc.installParam.InstallDir)
+	controlMgr := control.GetUpgradePreMgr(zipPath, installedComponents, uc.installParam.InstallDir)
 
 	if err := controlMgr.DoUpgrade(); err != nil {
 		return err
@@ -165,15 +190,111 @@ func (uc *upgradeController) doControl() error {
 	return nil
 }
 
-func main() {
-	flag.Parse()
+func (uc *upgradeController) setInstallParam(installParam *util.InstallParamJsonTemplate) {
+	uc.installParam = installParam
+}
 
+func (uc *upgradeController) bindFlag() bool {
+	flag.StringVar(&zipPath, pathFlag, "", "the path of the zip file to upgrade MEF Center")
+	return true
+}
+
+func (uc *upgradeController) printExecutingLog(ip, user string) {
+	hwlog.RunLog.Info("-------------------start to upgrade MEF-Center-------------------")
+	hwlog.OpLog.Infof("%s: %s, start to upgrade MEF-Center", ip, user)
+	fmt.Println(" start to upgrade MEF-Center")
+}
+
+func (uc *upgradeController) printFailedLog(ip, user string) {
+	hwlog.RunLog.Error("-------------------upgrade MEF-Center failed-------------------")
+	hwlog.OpLog.Errorf("%s: %s, upgrade MEF-Center failed", ip, user)
+	fmt.Println("upgrade MEF-Center failed")
+}
+
+func (uc *upgradeController) printSuccessLog(ip, user string) {
+	hwlog.RunLog.Info("-------------------upgrade MEF-Center successful-------------------")
+	hwlog.OpLog.Infof("%s: %s, upgrade MEF-Center successful", ip, user)
+	fmt.Println("upgrade MEF-Center successful")
+}
+
+func dealArgs() bool {
+	flag.Usage = printUseHelp
+	if len(os.Args) == util.NoArgCount {
+		printUseHelp()
+		return false
+	}
+	if os.Args[util.CtlArgIndex][0] == '-' {
+		return dealControlFlag()
+	}
+	return dealCmdFlag()
+}
+
+func dealControlFlag() bool {
+	flag.BoolVar(&version, "version", false, "")
+	flag.BoolVar(&help, "h", false, "")
+	flag.BoolVar(&help, "help", false, "")
+	flag.Parse()
+	if help {
+		printUsage()
+		return false
+	}
 	if version {
-		fmt.Printf("%s version: %s\n", BuildName, BuildVersion)
-		os.Exit(util.VersionExitCode)
+		printVersion()
+		return false
+	}
+	printUseHelp()
+	return false
+}
+
+func dealCmdFlag() bool {
+	operate := os.Args[util.CmdIndex]
+	optMap := getOperateMap(operate)
+	operator, ok := optMap[operate]
+	if !ok {
+		fmt.Println("the parameter is invalid")
+		printUseHelp()
+		return false
 	}
 
-	operate := checkFlag()
+	curController = operator
+	if !operator.bindFlag() {
+		return true
+	}
+
+	flag.Usage = flag.PrintDefaults
+	if err := flag.CommandLine.Parse(os.Args[util.CmdArgIndex:]); err != nil {
+		fmt.Printf("parse cmd args failed,error:%v\n", err)
+		return false
+	}
+	return true
+}
+
+func printUseHelp() {
+	fmt.Println("use '-help' for help information")
+}
+
+func printVersion() {
+	fmt.Printf("%s version: %s\n", BuildName, BuildVersion)
+}
+
+func printUsage() {
+	printVersion()
+	fmt.Printf(`Usage: [OPTIONS...] COMMAND
+
+Options:
+	-help		Print help information
+	-version	Print version information
+
+Commands:
+	start     -- start all or a component
+	stop      -- stop all or a component
+	restart   -- restart all or a component
+	uninstall -- uninstall MEF Center
+	upgrade   -- upgrade MEF Center
+`)
+}
+
+func main() {
 	installParam, err := util.GetInstallInfo()
 	if err != nil {
 		fmt.Printf("get info from install-param.json failed:%s\n", err.Error())
@@ -184,6 +305,10 @@ func main() {
 		fmt.Println(err.Error())
 		os.Exit(util.ErrorExitCode)
 	}
+
+	if !dealArgs() {
+		return
+	}
 	fmt.Println("init log success")
 	user, ip, err := terminal.GetLoginUserAndIP()
 	if err != nil {
@@ -192,23 +317,13 @@ func main() {
 		os.Exit(util.ErrorExitCode)
 	}
 
-	operateMap := getOperateMap(installParam, operate)
-	controllerIns := operateMap[operateType]
-	if controllerIns == nil {
-		hwlog.RunLog.Error("get controller failed")
-		hwlog.OpLog.Errorf("%s: %s,  unsupported operate type", ip, user)
+	curController.setInstallParam(installParam)
+	curController.printExecutingLog(ip, user)
+	if err = curController.doControl(); err != nil {
+		curController.printFailedLog(ip, user)
 		os.Exit(util.ErrorExitCode)
 	}
-
-	hwlog.RunLog.Infof("-------------------start to %s %s component-------------------", operate, componentType)
-	hwlog.OpLog.Infof("%s: %s, start to %s %s component", ip, user, operate, componentType)
-	if err = controllerIns.doControl(); err != nil {
-		hwlog.RunLog.Errorf("-------------------%s %s component failed-------------------", operate, componentType)
-		hwlog.OpLog.Errorf("%s: %s, %s %s component failed", ip, user, operate, componentType)
-		os.Exit(util.ErrorExitCode)
-	}
-	hwlog.RunLog.Infof("-------------------%s %s component successful-------------------", operate, componentType)
-	hwlog.OpLog.Infof("%s: %s, %s %s component successful", ip, user, operate, componentType)
+	curController.printSuccessLog(ip, user)
 }
 
 func initLog(installParam *util.InstallParamJsonTemplate) error {
@@ -230,13 +345,12 @@ func initLog(installParam *util.InstallParamJsonTemplate) error {
 	return nil
 }
 
-func getOperateMap(installParam *util.InstallParamJsonTemplate, operate string) map[string]controller {
+func getOperateMap(operate string) map[string]controller {
 	return map[string]controller{
-		util.OperateFlag:   &operateController{operate: operate, installParam: installParam},
-		util.UninstallFlag: &uninstallController{installParam: installParam},
-		util.UpgradeFlag: &upgradeController{
-			installParam: installParam,
-			zipPath:      zipPath,
-		},
+		util.StartOperateFlag:   &operateController{operate: operate},
+		util.StopOperateFlag:    &operateController{operate: operate},
+		util.RestartOperateFlag: &operateController{operate: operate},
+		util.UninstallFlag:      &uninstallController{},
+		util.UpgradeFlag:        &upgradeController{},
 	}
 }
