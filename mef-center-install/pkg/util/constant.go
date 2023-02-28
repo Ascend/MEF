@@ -138,7 +138,6 @@ const (
 	HelpExitCode    = 3
 	VersionExitCode = 3
 	ErrorExitCode   = 1
-	RunFlagCount    = 3
 
 	InstallDiskSpace    = 750 * common.MB
 	CheckStatusInterval = 3 * time.Second
@@ -147,7 +146,6 @@ const (
 
 // constant for mef control bin
 const (
-	OperateFlag   = "operate"
 	UninstallFlag = "uninstall"
 	UpgradeFlag   = "upgrade"
 
@@ -183,4 +181,12 @@ const (
 	LoadOldDockerStep
 	RemoveDockerStep
 	ClearNameSpaceStep
+)
+
+// constant for parse args
+const (
+	NoArgCount  = 1
+	CtlArgIndex = 1
+	CmdIndex    = 1
+	CmdArgIndex = 2
 )
