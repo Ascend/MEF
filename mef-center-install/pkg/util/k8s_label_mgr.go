@@ -17,20 +17,28 @@ type K8sLabelMgr struct {
 }
 
 func (klm *K8sLabelMgr) getCurrentNodeName() (string, error) {
-	localIp, err := GetLocalIp()
+	localIps, err := GetPublicIps()
 	if err != nil {
 		hwlog.RunLog.Errorf("get local IP failed: %s", err.Error())
 		return "", err
 	}
 
-	ipReg := fmt.Sprintf("\\s*%s\\s*", localIp)
-	cmd := fmt.Sprintf(GetNodeCmdPattern, ipReg)
-	nodeName, err := common.RunCommand("sh", false, common.DefCmdTimeoutSec, "-c", cmd)
-	if err != nil {
-		hwlog.RunLog.Errorf("get current node failed: %s", err.Error())
-		return "", err
+	for _, localIp := range localIps {
+		ipReg := fmt.Sprintf("\\s*%s\\s*", localIp)
+		cmd := fmt.Sprintf(GetNodeCmdPattern, ipReg)
+		nodeName, err := common.RunCommand("sh", false, common.DefCmdTimeoutSec, "-c", cmd)
+		if err != nil {
+			hwlog.RunLog.Errorf("get current node failed: %s", err.Error())
+			return "", errors.New("get current node failed")
+		}
+		if nodeName == "" {
+			continue
+		}
+
+		return nodeName, nil
 	}
-	return nodeName, nil
+
+	return "", errors.New("no valid node matches the device ip found")
 }
 
 // PrepareK8sLabel is used to prepare a mef-center-node label on current working node

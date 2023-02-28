@@ -57,30 +57,37 @@ func (sm *SoftwareMgr) clearInstallPkg() error {
 func (sm *SoftwareMgr) clearNodeLabel() error {
 	fmt.Println("start to clear node label")
 	hwlog.RunLog.Info("start to clear node label")
-	localIp, err := GetLocalIp()
+	localIps, err := GetPublicIps()
 	if err != nil {
 		hwlog.RunLog.Errorf("get local IP failed: %s", err.Error())
 		return err
 	}
 
-	ipReg := fmt.Sprintf("'\\s%s\\s'", localIp)
-	cmd := fmt.Sprintf(GetNodeCmdPattern, ipReg)
-	nodeName, err := common.RunCommand("sh", false, common.DefCmdTimeoutSec, "-c", cmd)
-	if err != nil {
-		hwlog.RunLog.Errorf("get current node failed: %s", err.Error())
-		return err
+	for _, localIp := range localIps {
+		ipReg := fmt.Sprintf("'\\s%s\\s'", localIp)
+		cmd := fmt.Sprintf(GetNodeCmdPattern, ipReg)
+		nodeName, err := common.RunCommand("sh", false, common.DefCmdTimeoutSec, "-c", cmd)
+		if err != nil {
+			hwlog.RunLog.Errorf("get current node failed: %s", err.Error())
+			return errors.New("get current node failed")
+		}
+		if nodeName == "" {
+			continue
+		}
+
+		// 删除不存在的label会显示执行命令成功
+		_, err = common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec,
+			"label", "node", nodeName, "mef-center-node-")
+		if err != nil {
+			hwlog.RunLog.Errorf("clear %s label command exec failed: %s", MefNamespace, err.Error())
+			return errors.New("clear node label command exec failed")
+		}
+		fmt.Println("clear node label success")
+		hwlog.RunLog.Info("clear node label success")
+		return nil
 	}
 
-	// 删除不存在的label会显示执行命令成功
-	_, err = common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec,
-		"label", "node", nodeName, "mef-center-node-")
-	if err != nil {
-		hwlog.RunLog.Errorf("clear %s label command exec failed: %s", MefNamespace, err.Error())
-		return errors.New("clear node label command exec failed")
-	}
-	fmt.Println("clear node label success")
-	hwlog.RunLog.Info("clear node label success")
-	return nil
+	return errors.New("no valid node matches the device ip found")
 }
 
 // ClearAndLabel is the func that used to recover the environment that effected by installation

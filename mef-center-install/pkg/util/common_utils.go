@@ -95,27 +95,30 @@ func GetMefId() (int, int, error) {
 	return uid, gid, nil
 }
 
-// GetLocalIp get local ip
-func GetLocalIp() (string, error) {
+// GetPublicIps get local ips
+func GetPublicIps() ([]string, error) {
 	addresses, err := net.InterfaceAddrs()
 	if err != nil {
-		return "", fmt.Errorf("get local ip address failed: %s", err.Error())
+		return nil, fmt.Errorf("get local ip address failed: %s", err.Error())
 	}
-	privateIp := ""
+	var validIps []string
 	for _, address := range addresses {
 		ipNet, ok := address.(*net.IPNet)
 		if !ok || ipNet.IP.IsLoopback() {
 			continue
 		}
-		if !ipNet.IP.IsPrivate() {
-			return ipNet.IP.String(), nil
+		if ipNet.IP.To4() == nil {
+			continue
 		}
-		privateIp = ipNet.IP.String()
+		if ipNet.IP.IsPrivate() {
+			continue
+		}
+		validIps = append(validIps, ipNet.IP.String())
 	}
-	if privateIp != "" {
-		return privateIp, nil
+	if len(validIps) == 0 {
+		return nil, errors.New("no public ip found")
 	}
-	return "", errors.New("get local ip address failed")
+	return validIps, nil
 }
 
 // GetCenterUid is used to get the MEFCenter UID

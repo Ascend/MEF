@@ -334,7 +334,7 @@ func PrepareK8sLabelTest() {
 	ins := GetSftInstallMgrIns([]string{}, "", "", "")
 
 	Convey("test prepareK8sLabel func success", func() {
-		p := ApplyFuncReturn(util.GetLocalIp, "", nil).
+		p := ApplyFuncReturn(util.GetPublicIps, "", nil).
 			ApplyFuncSeq(common.RunCommand,
 				[]OutputCell{
 					{Values: Params{"", nil}},
@@ -358,13 +358,13 @@ func PrepareK8sLabelTest() {
 	})
 
 	Convey("test prepareK8sLabel func get node id failed", func() {
-		p := ApplyFuncReturn(util.GetLocalIp, "", nil).ApplyFuncReturn(common.RunCommand, "", ErrTest)
+		p := ApplyFuncReturn(util.GetPublicIps, "", nil).ApplyFuncReturn(common.RunCommand, "", ErrTest)
 		defer p.Reset()
 		So(ins.prepareK8sLabel(), ShouldResemble, ErrTest)
 	})
 
 	Convey("test prepareK8sLabel func set label failed", func() {
-		p := ApplyFuncReturn(util.GetLocalIp, "", nil).ApplyFuncSeq(common.RunCommand,
+		p := ApplyFuncReturn(util.GetPublicIps, "", nil).ApplyFuncSeq(common.RunCommand,
 			[]OutputCell{
 				{Values: Params{"", nil}},
 				{Values: Params{"", ErrTest}},
