@@ -24,6 +24,10 @@ spec:
       serviceAccountName: ascend-nginx-manager
       containers:
         - name: ascend-nginx-manager
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
           image: ascend-nginx-manager:v1
           env:
             - name: EdgeMgrSvcPort

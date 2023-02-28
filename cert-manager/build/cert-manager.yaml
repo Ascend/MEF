@@ -25,6 +25,11 @@ spec:
       serviceAccountName: ascend-cert-manager
       containers:
         - name: ascend-cert-manager
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
           image: ascend-cert-manager:v1
           env:
             - name: installed-module
