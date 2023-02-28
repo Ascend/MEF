@@ -5,7 +5,6 @@ package install
 import (
 	"errors"
 	"fmt"
-	"net"
 	"os"
 	"os/exec"
 	"os/user"
@@ -333,42 +332,15 @@ func PrePareMefUserUserCheckFailedTest() {
 func PrepareK8sLabelTest() {
 	ins := GetSftInstallMgrIns([]string{}, "", "", "")
 
+	k8sMgr := &util.K8sLabelMgr{}
 	Convey("test prepareK8sLabel func success", func() {
-		p := ApplyFuncReturn(util.GetLocalIp, "", nil).
-			ApplyFuncSeq(common.RunCommand,
-				[]OutputCell{
-					{Values: Params{"", nil}},
-					{Values: Params{"", nil}},
-				})
+		p := ApplyMethodReturn(k8sMgr, "PrepareK8sLabel", nil)
 		defer p.Reset()
 		So(ins.prepareK8sLabel(), ShouldBeNil)
 	})
 
-	Convey("test prepareK8sLabel func get local ip failed", func() {
-		p := ApplyFuncReturn(net.InterfaceAddrs, nil, ErrTest)
-		defer p.Reset()
-		So(ins.prepareK8sLabel(), ShouldResemble,
-			fmt.Errorf("get local ip address failed: %s", ErrTest.Error()))
-	})
-
-	Convey("test prepareK8sLabel func no valid local ip", func() {
-		p := ApplyFuncReturn(net.InterfaceAddrs, []net.Addr{}, nil)
-		defer p.Reset()
-		So(ins.prepareK8sLabel(), ShouldResemble, errors.New("get local ip address failed"))
-	})
-
-	Convey("test prepareK8sLabel func get node id failed", func() {
-		p := ApplyFuncReturn(util.GetLocalIp, "", nil).ApplyFuncReturn(common.RunCommand, "", ErrTest)
-		defer p.Reset()
-		So(ins.prepareK8sLabel(), ShouldResemble, ErrTest)
-	})
-
-	Convey("test prepareK8sLabel func set label failed", func() {
-		p := ApplyFuncReturn(util.GetLocalIp, "", nil).ApplyFuncSeq(common.RunCommand,
-			[]OutputCell{
-				{Values: Params{"", nil}},
-				{Values: Params{"", ErrTest}},
-			})
+	Convey("test prepareK8sLabel func failed", func() {
+		p := ApplyMethodReturn(k8sMgr, "PrepareK8sLabel", ErrTest)
 		defer p.Reset()
 		So(ins.prepareK8sLabel(), ShouldResemble, ErrTest)
 	})
