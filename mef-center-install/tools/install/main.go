@@ -6,7 +6,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/fs"
 	"os"
+	"path/filepath"
+	"strings"
+	"syscall"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
@@ -89,6 +93,10 @@ func checkPath() error {
 		return fmt.Errorf("check log back path failed: %s", err.Error())
 	}
 
+	if err = checkInsideLogPath(logRootPath, logBackupRootPath); err != nil {
+		return err
+	}
+
 	if installPath, err = checkSinglePath(installPath); err != nil {
 		return fmt.Errorf("check install path failed: %s", err.Error())
 	}
@@ -111,6 +119,74 @@ func checkSinglePath(path string) (string, error) {
 	}
 
 	return absPath, nil
+}
+
+func checkInsideLogPath(logPath, logBackUpPath string) error {
+	logPathMgr := util.InitLogDirPathMgr(logPath, logBackUpPath)
+	logModuleDir := logPathMgr.GetModuleLogPath()
+
+	if utils.IsExist(logModuleDir) {
+		if _, err := utils.RealDirChecker(logModuleDir, false, false); err != nil {
+			return fmt.Errorf("check log dir failed: %s", err.Error())
+		}
+		if err := filepath.Walk(logModuleDir, checkLogPath); err != nil {
+			return fmt.Errorf("check log dir failed: %s", err.Error())
+		}
+	}
+
+	logBackModuleDir := logPathMgr.GetModuleLogBackupPath()
+	if utils.IsExist(logBackModuleDir) {
+		if _, err := utils.RealDirChecker(logBackModuleDir, false, false); err != nil {
+			return fmt.Errorf("check log dir failed: %s", err.Error())
+		}
+		if err := filepath.Walk(logBackModuleDir, checkLogPath); err != nil {
+			return fmt.Errorf("check log back up dir failed: %s", err.Error())
+		}
+	}
+
+	return nil
+}
+
+func checkLogPath(path string, info fs.FileInfo, err error) error {
+	if err != nil {
+		return err
+	}
+
+	const (
+		groupWriteIndex = 5
+		otherWriteIndex = 8
+		permLength      = 10
+	)
+	perm := info.Mode().Perm().String()
+	if len(perm) != permLength {
+		return fmt.Errorf("permission not right %v %v", path, perm)
+	}
+	for index, char := range perm {
+		if (index == groupWriteIndex || index == otherWriteIndex) && char == 'w' {
+			return fmt.Errorf("write permission not right %v %v", path, perm)
+		}
+	}
+
+	stat, ok := info.Sys().(*syscall.Stat_t)
+	if !ok {
+		return fmt.Errorf("can not get stat %v", path)
+	}
+	if int(stat.Uid) == util.RootUid && int(stat.Gid) == util.RootGid {
+		return nil
+	}
+
+	mefUid, mefGid, err := util.GetMefId()
+	if err != nil {
+		if strings.Contains(err.Error(), "unknown user") || strings.Contains(err.Error(), "unknown group") {
+			return fmt.Errorf("owner not right %v uid=%v gid=%v", path, int(stat.Uid), int(stat.Gid))
+		}
+
+		return fmt.Errorf("get mef uid failed: %s", err.Error())
+	}
+	if int(stat.Uid) == mefUid && int(stat.Gid) == mefGid {
+		return nil
+	}
+	return fmt.Errorf("owner not right %v uid=%v gid=%v", path, int(stat.Uid), int(stat.Gid))
 }
 
 func checkTmpfs(path string) error {
