@@ -42,12 +42,13 @@ func CheckUser() error {
 
 // CheckDiskSpace is used to check if the disk space on a path is enough to a limit
 func CheckDiskSpace(path string, limit uint64) error {
-	availUpgradeSpace, err := common.GetDiskFree(path)
+	availSpace, err := common.GetDiskFree(path)
 	if err != nil {
 		return fmt.Errorf("get path [%s]'s disk available space failed: %s", path, err.Error())
 	}
 
-	if availUpgradeSpace < limit {
+	if availSpace < limit {
+		fmt.Printf("the disk space is not enough, at least %d MB is required", limit/common.MB)
 		return errors.New("no enough space")
 	}
 
