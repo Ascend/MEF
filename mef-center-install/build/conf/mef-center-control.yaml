@@ -39,6 +39,9 @@ compile:
       include:
         - makedir:
             path: "{{DST_MEF_CENTER_SBIN_DIR}}"
+        - mode:
+            src: [ "{{TOP_DIR}}/tools/control/{{tool}}" ]
+            mode: 500
         - move:
             src: ["{{TOP_DIR}}/tools/control/{{tool}}"]
             des: "{{DST_MEF_CENTER_SBIN_DIR}}"

@@ -53,7 +53,8 @@ func DoInstallTest() {
 			ApplyPrivateMethod(ins, "prepareWorkingDir", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "prepareYaml", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "setInstallJson", func(_ *SftInstallCtl) error { return nil }).
-			ApplyPrivateMethod(ins, "componentsInstall", func(_ *SftInstallCtl) error { return nil })
+			ApplyPrivateMethod(ins, "componentsInstall", func(_ *SftInstallCtl) error { return nil }).
+			ApplyPrivateMethod(ins, "setCenterMode", func(_ *SftInstallCtl) error { return nil })
 		defer p.Reset()
 		So(ins.DoInstall(), ShouldBeNil)
 	})

@@ -55,6 +55,7 @@ func (upf *UpgradePostFlowMgr) DoUpgrade() error {
 		upf.buildNewImage,
 		upf.startNewPod,
 		upf.resetSoftLink,
+		upf.setCenterMode,
 		upf.clearFlag,
 	}
 
@@ -331,6 +332,18 @@ func (upf *UpgradePostFlowMgr) resetSoftLink() error {
 		return errors.New("create software dir symlink failed")
 	}
 
+	return nil
+}
+
+func (upf *UpgradePostFlowMgr) setCenterMode() error {
+	hwlog.RunLog.Info("-----Start to set mef-center mode-----")
+	modeMgr := util.GetCenterModeMgr(upf.InstallPathMgr)
+	if err := modeMgr.SetWorkDirMode(); err != nil {
+		fmt.Println("set config dir mode failed")
+		hwlog.RunLog.Errorf("set config dir mode failed: %s", err.Error())
+		return errors.New("set config dir mode failed")
+	}
+	hwlog.RunLog.Info("-----set mef-center mode success-----")
 	return nil
 }
 

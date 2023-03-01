@@ -99,6 +99,11 @@ type WorkPathMgr struct {
 	workPath string
 }
 
+// GetWorkDir returns the work dir path in mef-center softlink
+func (wpm *WorkPathMgr) GetWorkDir() string {
+	return wpm.workPath
+}
+
 // GetRelativeLibDirPath returns the lib dir path in mef-center softlink
 func (wpm *WorkPathMgr) GetRelativeLibDirPath() string {
 	return path.Join(wpm.workPath, MefLibDir)
@@ -120,9 +125,24 @@ func (wpm *WorkPathMgr) GetTempTarPath() string {
 	return filepath.Join(wpm.GetRelativeVarDirPath(), MefTarDir)
 }
 
+// GetRelativeBinDirPath returns the bin dir path in mef-center softlink
+func (wpm *WorkPathMgr) GetRelativeBinDirPath() string {
+	return filepath.Join(wpm.workPath, MefBinDir)
+}
+
+// GetRelativeRunShPath returns the run.sh path in mef-center softlink
+func (wpm *WorkPathMgr) GetRelativeRunShPath() string {
+	return filepath.Join(wpm.workPath, MefRunScript)
+}
+
 // GetRelativeKmcLibDirPath returns the kmc-lib dir path in mef-center softlink
 func (wpm *WorkPathMgr) GetRelativeKmcLibDirPath() string {
 	return path.Join(wpm.GetRelativeLibDirPath(), MefKmcLibDir)
+}
+
+// GetRelativeOtherLibDirPath returns the other lib dir path in mef-center softlink
+func (wpm *WorkPathMgr) GetRelativeOtherLibDirPath() string {
+	return path.Join(wpm.GetRelativeLibDirPath(), OtherLibDir)
 }
 
 // GetInstallParamJsonPath returns the imstall_param json path in mef-center softlink

@@ -50,6 +50,7 @@ const (
 // single WorkDir constant
 const (
 	MefLibDir           = "lib"
+	OtherLibDir         = "lib"
 	MefVarDir           = "var"
 	MefZipDir           = "zip"
 	MefTarDir           = "tar"
@@ -189,4 +190,10 @@ const (
 	CtlArgIndex = 1
 	CmdIndex    = 1
 	CmdArgIndex = 2
+)
+
+// const for permission_mgr
+const (
+	DirType  = "dir"
+	FileType = "file"
 )
