@@ -5,6 +5,7 @@ package cloudhub
 
 import (
 	"errors"
+	"math"
 	"path"
 	"time"
 
@@ -27,6 +28,7 @@ const (
 	serviceName       = "server.crt"
 	keyFileName       = "server.key"
 	retryTime         = 30
+	maxRetry          = math.MaxInt
 	waitTime          = 5 * time.Second
 	enableClientAuth  = true
 )
@@ -36,10 +38,14 @@ var initFlag bool
 
 // InitServer init server
 func InitServer() error {
-	checkAndGetWsCert()
+	checkAndSetWsSvcCert()
+	rootCaBytes, err := getWsRootCert()
+	if err != nil {
+		return err
+	}
 	certInfo := certutils.TlsCertInfo{
 		KmcCfg:        common.GetDefKmcCfg(),
-		RootCaPath:    path.Join(certPathDir, rootNameValidEdge),
+		RootCaContent: rootCaBytes,
 		CertPath:      path.Join(certPathDir, serviceName),
 		KeyPath:       path.Join(certPathDir, keyFileName),
 		SvrFlag:       true,
@@ -55,7 +61,7 @@ func InitServer() error {
 		go func() {
 			authCertInfo := certutils.TlsCertInfo{
 				KmcCfg:        common.GetDefKmcCfg(),
-				RootCaPath:    path.Join(certPathDir, rootNameValidEdge),
+				RootCaContent: rootCaBytes,
 				CertPath:      path.Join(certPathDir, serviceName),
 				KeyPath:       path.Join(certPathDir, keyFileName),
 				SvrFlag:       true,
@@ -84,44 +90,28 @@ func InitServer() error {
 	return nil
 }
 
-func checkAndGetWsCert() {
+func checkAndSetWsSvcCert() {
 	keyPath := path.Join(certPathDir, keyFileName)
 	certPath := path.Join(certPathDir, serviceName)
-	rootCaPath := path.Join(certPathDir, rootNameValidEdge)
-	if utils.IsExist(keyPath) && utils.IsExist(certPath) && utils.IsExist(rootCaPath) {
+	if utils.IsExist(keyPath) && utils.IsExist(certPath) {
 		hwlog.RunLog.Info("check websocket server certs success")
 		return
 	}
 	hwlog.RunLog.Warn("check websocket server certs failed, start to create")
-	certStr, rootCaStr, err := getWsCert(keyPath)
+	svcCertStr, err := getWsSvcCert(keyPath)
 	if err != nil {
 		return
 	}
-	err = common.WriteData(certPath, []byte(certStr))
+	err = common.WriteData(certPath, []byte(svcCertStr))
 	if err != nil {
 		hwlog.RunLog.Errorf("save cert for websocket service cert failed: %v", err)
 		return
 	}
 
-	if err = common.WriteData(rootCaPath, []byte(rootCaStr)); err != nil {
-		hwlog.RunLog.Errorf("save cert for websocket service cert failed: %v", err)
-		return
-	}
 	hwlog.RunLog.Info("create cert for websocket service success")
 }
 
-func getWsCert(keyPath string) (string, string, error) {
-	san := certutils.CertSan{DnsName: []string{common.EdgeMgrDns}}
-	ips, err := common.GetHostIpV4()
-	if err != nil {
-		return "", "", err
-	}
-	san.IpAddr = ips
-	csr, err := certutils.CreateCsr(keyPath, common.WsSerName, nil, san)
-	if err != nil {
-		hwlog.RunLog.Errorf("create websocket service cert csr failed: %v", err)
-		return "", "", err
-	}
+func getWsSvcCert(keyPath string) (string, error) {
 	reqCertParams := httpsmgr.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
 			RootCaPath:    util.RootCaPath,
@@ -131,8 +121,46 @@ func getWsCert(keyPath string) (string, string, error) {
 			IgnoreCltCert: false,
 		},
 	}
-	var certStr, rootCaStr string
-	for i := 0; i < retryTime; i++ {
+	var svcCertStr string
+	var err error
+	san := certutils.CertSan{DnsName: []string{common.EdgeMgrDns}}
+	ips, err := common.GetHostIpV4()
+	if err != nil {
+		return "", err
+	}
+	san.IpAddr = ips
+	csr, err := certutils.CreateCsr(keyPath, common.WsSerName, nil, san)
+	if err != nil {
+		hwlog.RunLog.Errorf("create websocket service cert csr failed: %v", err)
+		return "", err
+	}
+	for i := 0; i < maxRetry; i++ {
+		svcCertStr, err = reqCertParams.ReqIssueSvrCert(common.WsSerName, csr)
+		if err == nil {
+			break
+		}
+		time.Sleep(waitTime)
+	}
+	if svcCertStr == "" {
+		hwlog.RunLog.Errorf("issue svcCertStr for websocket service cert failed: %v", err)
+		return "", err
+	}
+	return svcCertStr, nil
+}
+
+func getWsRootCert() ([]byte, error) {
+	reqCertParams := httpsmgr.ReqCertParams{
+		ClientTlsCert: certutils.TlsCertInfo{
+			RootCaPath:    util.RootCaPath,
+			CertPath:      util.ServerCertPath,
+			KeyPath:       util.ServerKeyPath,
+			SvrFlag:       false,
+			IgnoreCltCert: false,
+		},
+	}
+	var rootCaStr string
+	var err error
+	for i := 0; i < maxRetry; i++ {
 		rootCaStr, err = reqCertParams.GetRootCa(common.WsCltName)
 		if err == nil {
 			break
@@ -141,21 +169,10 @@ func getWsCert(keyPath string) (string, string, error) {
 	}
 	if rootCaStr == "" {
 		hwlog.RunLog.Errorf("get valid root ca for websocket service failed: %v", err)
-		return "", "", err
-	}
-	for i := 0; i < retryTime; i++ {
-		certStr, err = reqCertParams.ReqIssueSvrCert(common.WsSerName, csr)
-		if err == nil {
-			break
-		}
-		time.Sleep(waitTime)
-	}
-	if certStr == "" {
-		hwlog.RunLog.Errorf("issue certStr for websocket service cert failed: %v", err)
-		return "", "", err
+		return nil, err
 	}
 
-	return certStr, rootCaStr, nil
+	return []byte(rootCaStr), nil
 }
 
 // GetSvrSender get server sender
