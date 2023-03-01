@@ -348,3 +348,39 @@ func copyTarFile(extractPath string, header *tar.Header, tarReader *tar.Reader, 
 	}
 	return nil
 }
+
+// SetPathPermission set permission for path or file
+func SetPathPermission(path string, mode os.FileMode, recursive, ignoreFile bool) error {
+	if err := setOneMode(path, mode); err != nil {
+		return err
+	}
+
+	if !recursive || utils.IsFile(path) {
+		return nil
+	}
+
+	return setWalkPathMode(path, mode, ignoreFile)
+}
+
+func setOneMode(path string, mode os.FileMode) error {
+	if _, err := utils.CheckPath(path); err != nil {
+		return fmt.Errorf("check path [%s] failed, error: %s", path, err.Error())
+	}
+
+	if err := os.Chmod(path, mode); err != nil {
+		return fmt.Errorf("set path [%s] mode failed, error: %s", path, err.Error())
+	}
+	return nil
+}
+
+func setWalkPathMode(path string, mode os.FileMode, ignoreFile bool) error {
+	return filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return fmt.Errorf("walk path [%s] failed, error: %s", path, err.Error())
+		}
+		if ignoreFile && !info.IsDir() {
+			return nil
+		}
+		return setOneMode(path, mode)
+	})
+}

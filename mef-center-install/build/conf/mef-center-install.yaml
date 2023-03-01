@@ -71,7 +71,7 @@ compile:
             des: "{{TOP_DIR}}/output/lib/kmc-lib"
         - mode:
             src: [ "{{TOP_DIR}}/output/lib" ]
-            mode: "500"
+            mode: "700"
         - mode:
             src: [ "{{TOP_DIR}}/output/lib/*" ]
             mode: "500"
@@ -79,9 +79,17 @@ compile:
             src: [ "{{TOP_DIR}}/output/install.sh" ]
             mode: "500"
         - mode:
-            src:
-              - "{{DST_MEF_CENTER_SBIN_DIR}}/{{tool}}"
+            src: [ "{{TOP_DIR}}/output/bin" ]
+            mode: "700"
+        - mode:
+            src: [ "{{DST_MEF_CENTER_SBIN_DIR}}/{{tool}}" ]
             mode: "500"
         - mode:
             src: [ "{{TOP_DIR}}/output/version.xml" ]
             mode: "400"
+        - mode:
+            src: [ "{{TOP_DIR}}/output/scripts" ]
+            mode: "700"
+        - mode:
+            src: [ "{{TOP_DIR}}/output/scripts/*" ]
+            mode: "500"

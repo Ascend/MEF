@@ -58,3 +58,7 @@ compile:
             src:
               - "{{TOP_DIR}}/output/{{component}}"
             mode: "500"
+        - mode:
+            src:
+              - "{{TOP_DIR}}/output/{{component}}.yaml"
+            mode: "600"

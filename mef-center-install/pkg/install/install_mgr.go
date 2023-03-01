@@ -39,6 +39,7 @@ func (sic *SftInstallCtl) DoInstall() error {
 		sic.prepareCerts,
 		sic.prepareYaml,
 		sic.componentsInstall,
+		sic.setCenterMode,
 	}
 
 	for _, function := range installTasks {
@@ -290,6 +291,24 @@ func (sic *SftInstallCtl) componentsInstall() error {
 	}
 	fmt.Println("prepare docker image success")
 	hwlog.RunLog.Info("-----Install components successful-----")
+	return nil
+}
+
+func (sic *SftInstallCtl) setCenterMode() error {
+	hwlog.RunLog.Info("-----Start to set mef-center mode-----")
+	modeMgr := util.GetCenterModeMgr(sic.InstallPathMgr)
+	if err := modeMgr.SetWorkDirMode(); err != nil {
+		fmt.Println("set work dir mode failed")
+		hwlog.RunLog.Errorf("set work dir mode failed: %s", err.Error())
+		return errors.New("set work dir mode failed")
+	}
+
+	if err := modeMgr.SetConfigDirMode(); err != nil {
+		fmt.Println("set config dir mode failed")
+		hwlog.RunLog.Errorf("set config dir mode failed: %s", err.Error())
+		return errors.New("set config dir mode failed")
+	}
+	hwlog.RunLog.Info("-----set mef-center mode success-----")
 	return nil
 }
 
