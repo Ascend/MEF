@@ -15,9 +15,13 @@ import (
 
 // GetTlsCfgWithPath [method] for get tls config
 func GetTlsCfgWithPath(tlsCertInfo TlsCertInfo) (*tls.Config, error) {
-	rootCaPemBytes, _ := utils.LoadFile(tlsCertInfo.RootCaPath)
+	rootCaPemBytes := tlsCertInfo.RootCaContent
 	if rootCaPemBytes == nil {
-		return nil, fmt.Errorf("get tls failed, load root ca path [%s] file failed", tlsCertInfo.RootCaPath)
+		certBytes, err := utils.LoadFile(tlsCertInfo.RootCaPath)
+		if err != nil || certBytes == nil {
+			return nil, fmt.Errorf("get tls failed, load root ca path [%s] file failed", tlsCertInfo.RootCaPath)
+		}
+		rootCaPemBytes = certBytes
 	}
 	if tlsCertInfo.SvrFlag {
 		pemPair, err := GetCertPairForPem(tlsCertInfo.CertPath, tlsCertInfo.KeyPath, tlsCertInfo.KmcCfg)

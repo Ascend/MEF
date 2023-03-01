@@ -28,6 +28,7 @@ type TlsCertInfo struct {
 	KeyPath       string
 	CertPath      string
 	RootCaPath    string
+	RootCaContent []byte
 	SvrFlag       bool
 	IgnoreCltCert bool
 }

@@ -71,6 +71,10 @@ func importRootCa(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorSaveCa, Msg: "save ca content to file failed", Data: nil}
 	}
 	go func() {
+		// edge-manager does not save root ca, so no need to update.
+		if req.CertName == common.WsCltName {
+			return
+		}
 		if err := updateClientCert(req.CertName, caBase64); err != nil {
 			hwlog.RunLog.Errorf("distribute cert file to client failed, error:%v", err)
 		}
