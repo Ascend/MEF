@@ -4,6 +4,7 @@ package control
 
 import (
 	"errors"
+	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
@@ -36,6 +37,7 @@ func (sum *SftUninstallMgr) DoUninstall() error {
 func (sum *SftUninstallMgr) checkUser() error {
 	hwlog.RunLog.Info("start to check user")
 	if err := util.CheckUser(); err != nil {
+		fmt.Println("current user is not root, cannot uninstall")
 		hwlog.RunLog.Errorf("check user failed: %s", err.Error())
 		return err
 	}
@@ -45,6 +47,7 @@ func (sum *SftUninstallMgr) checkUser() error {
 
 func (sum *SftUninstallMgr) checkCurrentPath() error {
 	if err := util.CheckCurrentPath(sum.InstallPathMgr.GetWorkPath()); err != nil {
+		fmt.Println("the existing dir is not the MEF working dir")
 		hwlog.RunLog.Error(err)
 		return errors.New("check current path failed")
 	}

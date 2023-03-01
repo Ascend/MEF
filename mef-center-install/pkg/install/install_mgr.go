@@ -30,7 +30,6 @@ func (sic *SftInstallCtl) DoInstall() error {
 	}
 
 	var installTasks = []func() error{
-		sic.preCheck,
 		sic.prepareMefUser,
 		sic.prepareComponentLogDir,
 		sic.prepareComponentLogBackupDir,
@@ -77,6 +76,7 @@ func (sic *SftInstallCtl) preCheck() error {
 func (sic *SftInstallCtl) checkUser() error {
 	hwlog.RunLog.Info("start to check user")
 	if err := util.CheckUser(); err != nil {
+		fmt.Println("current user is not root, cannot install")
 		hwlog.RunLog.Errorf("check user failed: %s", err.Error())
 		return err
 	}
@@ -93,6 +93,7 @@ func (sic *SftInstallCtl) checkArch() error {
 	}
 
 	if arch != util.Arch64 && arch != util.X86 {
+		fmt.Println("does not support the current CPU arch, cannot install")
 		hwlog.RunLog.Error("unsupported arch")
 		return errors.New("unsupported arch")
 	}
@@ -114,6 +115,7 @@ func (sic *SftInstallCtl) checkNecessaryTools() error {
 	hwlog.RunLog.Info("start to check necessary tools")
 	for _, tool := range util.GetNecessaryTools() {
 		if _, err := exec.LookPath(tool); err != nil {
+			fmt.Printf("necessary tool %s does not exist, cannot install\n", tool)
 			return fmt.Errorf("look path of [%s] failed, error: %s", tool, err.Error())
 		}
 	}
@@ -159,7 +161,7 @@ func (sic *SftInstallCtl) checkInstalled() error {
 	}
 	if exists {
 		hwlog.RunLog.Error("the software has already been installed since k8s label exists")
-		fmt.Println("MEF-Center has already been installed")
+		fmt.Println("mef-center-node label exists, that MEF-Center might have already been installed")
 		return errors.New("the software has already been installed since k8s label exists")
 	}
 	hwlog.RunLog.Info("check if the software has been installed successful")

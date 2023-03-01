@@ -97,6 +97,7 @@ func (upf *UpgradePreFlowMgr) preCheck() error {
 
 func (upf *UpgradePreFlowMgr) checkUser() error {
 	if err := util.CheckUser(); err != nil {
+		fmt.Println("the current user is not root, cannot upgrade")
 		hwlog.RunLog.Errorf("check user failed: %s", err.Error())
 		return err
 	}
@@ -106,6 +107,7 @@ func (upf *UpgradePreFlowMgr) checkUser() error {
 
 func (upf *UpgradePreFlowMgr) checkCurrentPath() error {
 	if err := util.CheckCurrentPath(upf.InstallPathMgr.GetWorkPath()); err != nil {
+		fmt.Println("the existing dir is not the MEF working dir")
 		hwlog.RunLog.Error(err)
 		return errors.New("check current path failed")
 	}
@@ -163,6 +165,7 @@ func (upf *UpgradePreFlowMgr) verifyPackage() error {
 	cmsPath := filepath.Join(unpackAbsPath, zipContents.cmsName)
 	clrPath := filepath.Join(unpackAbsPath, zipContents.crlName)
 	if err = cmsverify.VerifyPackage(clrPath, cmsPath, upf.tarPath); err != nil {
+		fmt.Println("verify package failed, the zip file might be tampered")
 		hwlog.RunLog.Errorf("verify package failed,error:%v", err)
 		return errors.New("verify package failed")
 	}

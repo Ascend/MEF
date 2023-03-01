@@ -70,6 +70,7 @@ func (scm *SftOperateMgr) init() error {
 
 func (scm *SftOperateMgr) checkCurrentPath() error {
 	if err := util.CheckCurrentPath(scm.installPathMgr.GetWorkPath()); err != nil {
+		fmt.Println("the existing dir is not the MEF working dir")
 		hwlog.RunLog.Error(err)
 		return errors.New("check current path failed")
 	}
@@ -117,6 +118,7 @@ func (scm *SftOperateMgr) check() error {
 func (scm *SftOperateMgr) checkUser() error {
 	hwlog.RunLog.Info("start to check user")
 	if err := util.CheckUser(); err != nil {
+		fmt.Println("the current user is not root, cannot operate MEF-Center")
 		hwlog.RunLog.Errorf("check user failed: %s", err.Error())
 		return err
 	}

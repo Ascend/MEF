@@ -173,11 +173,13 @@ func (uc *upgradeController) doControl() error {
 	pathMgr := util.InitInstallDirPathMgr(uc.installParam.InstallDir)
 	unpackPath := pathMgr.WorkPathMgr.GetRelativeVarDirPath()
 	if filepath.Dir(zipPath) == unpackPath {
+		fmt.Println("zip path cannot be inside the unpack dir")
 		hwlog.RunLog.Errorf("zipDir cannot be the unpack dir:%s", unpackPath)
 		return errors.New("zipDir cannot be the unpack dir")
 	}
 
 	if _, err := utils.RealFileChecker(zipPath, true, false, zipSizeMul); err != nil {
+		fmt.Println("check upgrade path failed")
 		hwlog.RunLog.Errorf("zipPath check failed: %s", err)
 		return errors.New("zipPath check failed")
 	}
