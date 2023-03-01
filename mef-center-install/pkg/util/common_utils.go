@@ -9,12 +9,12 @@ import (
 	"net"
 	"os"
 	"os/user"
-
 	"path"
 	"path/filepath"
 	"strconv"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/terminal"
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -145,6 +145,23 @@ func GetNecessaryTools() []string {
 		"useradd",
 		"wc",
 	}
+}
+
+// GetLoginUserAndIP get login user and ip
+func GetLoginUserAndIP() (string, string, error) {
+	loginUser, sshIp, err := terminal.GetLoginUserAndIP()
+	if err == nil {
+		return loginUser, sshIp, nil
+	}
+
+	hwlog.RunLog.Warnf("get ssh user or ip info failed, error: %v", err)
+	curUser, err := user.Current()
+	if err != nil {
+		hwlog.RunLog.Errorf("get current user failed, error: %v", err)
+		return "", "", errors.New("get current user failed")
+	}
+
+	return curUser.Name, "localhost", nil
 }
 
 // CheckCurrentPath is the public check func for run.sh

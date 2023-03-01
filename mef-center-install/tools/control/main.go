@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/terminal"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/control"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
@@ -312,10 +311,9 @@ func main() {
 		return
 	}
 	fmt.Println("init log success")
-	user, ip, err := terminal.GetLoginUserAndIP()
+	user, ip, err := util.GetLoginUserAndIP()
 	if err != nil {
 		hwlog.RunLog.Errorf("get current user or ip info failed: %s", err.Error())
-		hwlog.OpLog.Error("install MEF Center failed: cannot get local user or ip")
 		os.Exit(util.ErrorExitCode)
 	}
 
