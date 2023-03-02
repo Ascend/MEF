@@ -344,3 +344,12 @@ const (
 
 // TmpfsDevNum represents the dev number of tmpfs filesystem in linux stat struct
 const TmpfsDevNum = 0x01021994
+
+const (
+	// EdgeMgrClearFlag is the flag created on installation
+	// it used by edge-manager that instructs to clear the environment when it starts at the first time
+	EdgeMgrClearFlag = "clear-flag"
+
+	// MefUserNs represents the namespace that used by edge-manager to manager applications deployed by customer
+	MefUserNs = "mef-user"
+)

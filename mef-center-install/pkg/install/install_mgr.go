@@ -36,6 +36,7 @@ func (sic *SftInstallCtl) DoInstall() error {
 		sic.prepareWorkingDir,
 		sic.setInstallJson,
 		sic.prepareK8sLabel,
+		sic.prepareConfigDir,
 		sic.prepareCerts,
 		sic.prepareYaml,
 		sic.componentsInstall,
@@ -227,6 +228,15 @@ func (sic *SftInstallCtl) prepareInstallPkgDir() error {
 	return nil
 }
 
+func (sic *SftInstallCtl) prepareConfigDir() error {
+	configMgr := util.GetConfigMgr(sic.InstallPathMgr.ConfigPathMgr)
+	if err := configMgr.DoPrepare(); err != nil {
+		hwlog.RunLog.Errorf("prepare config dir failed: %s", err.Error())
+		return errors.New("prepare config dir failed")
+	}
+	return nil
+}
+
 func (sic *SftInstallCtl) prepareCerts() error {
 	certHandleCtl := certPrepareCtl{
 		certPathMgr: sic.InstallPathMgr.ConfigPathMgr,
@@ -236,7 +246,7 @@ func (sic *SftInstallCtl) prepareCerts() error {
 	hwlog.RunLog.Info("-----Start to prepare certs-----")
 	if err := certHandleCtl.doPrepare(); err != nil {
 		hwlog.RunLog.Errorf("prepare certs failed: %v", err.Error())
-		return err
+		return errors.New("prepare certs failed")
 	}
 	hwlog.RunLog.Info("-----Prepare certs successful-----")
 	return nil

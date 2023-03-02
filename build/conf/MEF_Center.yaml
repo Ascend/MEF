@@ -82,6 +82,10 @@ compile:
             src:
               - "{{TOP_DIR}}/savedir/installer/version.xml"
             mode: "400"
+        - mode:
+            src:
+              - "{{TOP_DIR}}/savedir/installer/config/*"
+            mode: "600"
         - commands:
             - command: "bash -x {{TOP_DIR}}/build/chmod_prepare.sh {{TOP_DIR}}/savedir"
             - command: "cd {{TOP_DIR}}/savedir && fakeroot tar -zcf Ascend-mindxedge-mefcenter_{{version}}_linux-{{systemEnv.processor}}.tar.gz ./*"

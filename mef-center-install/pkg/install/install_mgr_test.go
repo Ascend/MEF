@@ -51,6 +51,7 @@ func DoInstallTest() {
 			ApplyPrivateMethod(ins, "prepareInstallPkgDir", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "prepareCerts", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "prepareWorkingDir", func(_ *SftInstallCtl) error { return nil }).
+			ApplyPrivateMethod(ins, "prepareConfigDir", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "prepareYaml", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "setInstallJson", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "componentsInstall", func(_ *SftInstallCtl) error { return nil }).
@@ -428,7 +429,7 @@ func PrepareCertsTest() {
 		p := ApplyPrivateMethod(certCtlIns, "doPrepare",
 			func(_ *certPrepareCtl) error { return ErrTest })
 		defer p.Reset()
-		So(ins.prepareCerts(), ShouldResemble, ErrTest)
+		So(ins.prepareCerts(), ShouldResemble, errors.New("prepare certs failed"))
 	})
 }
 

@@ -47,17 +47,20 @@ compile:
             src: ["{{TOP_DIR}}/scripts/install.sh"]
             des: "{{TOP_DIR}}/output"
         - commands:
-            - command: "commit_id=$(git --git-dir {{systemEnv.workspace}}/{{product}}/.git rev-parse HEAD) && sed -i s/{commit_id}/${commit_id}/g {{TOP_DIR}}/config/version.xml"
+            - command: "commit_id=$(git --git-dir {{systemEnv.workspace}}/{{product}}/.git rev-parse HEAD) && sed -i s/{commit_id}/${commit_id}/g {{TOP_DIR}}/build/version.xml"
         - sed:
             option: "-i"
             srcstr: "s/{version}/{{version}}/g"
-            curfile: "{{TOP_DIR}}/config/version.xml"
+            curfile: "{{TOP_DIR}}/build/version.xml"
         - sed:
             option: "-i"
             srcstr: "s/{arch}/{{systemEnv.processor}}/g"
-            curfile: "{{TOP_DIR}}/config/version.xml"
+            curfile: "{{TOP_DIR}}/build/version.xml"
         - move:
-            src: [ "{{TOP_DIR}}/config/version.xml" ]
+            src: [ "{{TOP_DIR}}/build/version.xml" ]
+            des: "{{TOP_DIR}}/output"
+        - move:
+            src: [ "{{TOP_DIR}}/config" ]
             des: "{{TOP_DIR}}/output"
         - move:
             src: ["{{TOP_DIR}}/scripts"]
@@ -93,3 +96,9 @@ compile:
         - mode:
             src: [ "{{TOP_DIR}}/output/scripts/*" ]
             mode: "500"
+        - mode:
+            src: [ "{{TOP_DIR}}/output/config" ]
+            mode: "700"
+        - mode:
+            src: [ "{{TOP_DIR}}/output/config/*" ]
+            mode: "600"

@@ -39,6 +39,14 @@ func (mi *modeMgr) setMode() error {
 
 func (mi *modeMgr) setDirMode(dirList []string, mode os.FileMode, isRecursive, ignoreFile bool) error {
 	for _, tempDir := range dirList {
+		if strings.Contains(tempDir, "**") {
+			if err := mi.handleTypeFileMode(tempDir, mode); err != nil {
+				return err
+			}
+
+			continue
+		}
+
 		dirAbsPath, err := filepath.EvalSymlinks(tempDir)
 		if err != nil {
 			hwlog.RunLog.Errorf("get %s's abspath failed: %s", tempDir, err.Error())
@@ -125,6 +133,7 @@ func (cmm *CenterModeMgr) getWorkMode700Dir() modeMgr {
 }
 
 func (cmm *CenterModeMgr) getWorkMode500Dir() modeMgr {
+	imageDirPattern := fmt.Sprintf("**/**/%s", ImageDir)
 	return modeMgr{
 		mode:        0500,
 		fileType:    DirType,
@@ -135,6 +144,7 @@ func (cmm *CenterModeMgr) getWorkMode500Dir() modeMgr {
 			cmm.pathMgr.WorkPathMgr.GetRelativeLibDirPath(),
 			cmm.pathMgr.WorkPathMgr.GetRelativeKmcLibDirPath(),
 			cmm.pathMgr.WorkPathMgr.GetRelativeLibDirPath(),
+			filepath.Join(cmm.pathMgr.WorkPathMgr.GetWorkDir(), imageDirPattern),
 		},
 	}
 }
@@ -199,8 +209,8 @@ func (cmm *CenterModeMgr) getConfigMode600File() modeMgr {
 		ignoreFile:  false,
 		fileList: []string{
 			filepath.Join(cmm.pathMgr.GetConfigPath(), "**/**/*.ks"),
-			filepath.Join(cmm.pathMgr.GetConfigPath(), "**/**/*.key"),
-			filepath.Join(cmm.pathMgr.GetConfigPath(), "**/**/*.crt"),
+			filepath.Join(cmm.pathMgr.GetConfigPath(), "**/*flag"),
+			filepath.Join(cmm.pathMgr.GetConfigPath(), "**/*.json"),
 		},
 	}
 }
@@ -212,7 +222,8 @@ func (cmm *CenterModeMgr) getConfigMode400File() modeMgr {
 		isRecursive: false,
 		ignoreFile:  false,
 		fileList: []string{
-			filepath.Join(cmm.pathMgr.GetConfigPath(), "**/**/*.json"),
+			filepath.Join(cmm.pathMgr.GetConfigPath(), "**/**/*.crt"),
+			filepath.Join(cmm.pathMgr.GetConfigPath(), "**/**/*.key"),
 		},
 	}
 }

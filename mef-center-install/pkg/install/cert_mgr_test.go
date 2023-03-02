@@ -55,22 +55,15 @@ func PrepareCertsDirTest() {
 			So(ins.prepareCertsDir(), ShouldBeNil)
 		})
 
-		Convey("test prepareCertDir func makesure cert path failed", func() {
+		Convey("test prepareCertDir func makesure root cert path failed", func() {
 			p := ApplyFuncReturn(common.MakeSurePath, ErrTest)
-			defer ResetAndClearDir(p, InstallDirPathMgrIns.GetMefPath())
-			So(ins.prepareCertsDir(), ShouldResemble, errors.New("create cert path failed"))
-		})
-
-		Convey("test prepareCertDir func makesure root ca path failed", func() {
-			p := ApplyFuncSeq(common.MakeSurePath,
-				[]OutputCell{{Values: Params{nil}}, {Values: Params{ErrTest}}})
 			defer ResetAndClearDir(p, InstallDirPathMgrIns.GetMefPath())
 			So(ins.prepareCertsDir(), ShouldResemble, errors.New("create root certs path failed"))
 		})
 
-		Convey("test prepareCertDir func makesure root ca key path failed", func() {
+		Convey("test prepareCertDir func makesure root key path failed", func() {
 			p := ApplyFuncSeq(common.MakeSurePath,
-				[]OutputCell{{Values: Params{nil}}, {Values: Params{nil}}, {Values: Params{ErrTest}}})
+				[]OutputCell{{Values: Params{nil}}, {Values: Params{ErrTest}}})
 			defer ResetAndClearDir(p, InstallDirPathMgrIns.GetMefPath())
 			So(ins.prepareCertsDir(), ShouldResemble, errors.New("create root key path failed"))
 		})
@@ -78,7 +71,6 @@ func PrepareCertsDirTest() {
 		Convey("test prepareCertDir func makesure component's cert path failed", func() {
 			p := ApplyFuncSeq(common.MakeSurePath,
 				[]OutputCell{
-					{Values: Params{nil}},
 					{Values: Params{nil}},
 					{Values: Params{nil}},
 					{Values: Params{ErrTest}},
