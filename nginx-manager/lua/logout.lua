@@ -2,7 +2,6 @@
 
 local cjson = require("cjson")
 local common = require("common")
-local libdynamic = require("libdynamic")
 local libaccess = require("libaccess")
 
 common.check_method("POST")
@@ -15,8 +14,6 @@ if session == nil then
     common.sendResp(ngx.HTTP_UNAUTHORIZED, "application/json", g_not_logged_in, g_not_logged_in_info)
     return ngx.exit(ngx.HTTP_UNAUTHORIZED)
 end
-
-libdynamic.set_upstream("usermanager")
 
 -- delete session info
 libaccess.del_session_by_id(session.UserID)

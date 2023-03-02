@@ -2,7 +2,6 @@
 
 local cjson = require("cjson")
 local common = require("common")
-local libdynamic = require("libdynamic")
 local libaccess = require("libaccess")
 
 local function create_session(resp)
@@ -16,7 +15,6 @@ local function create_session(resp)
 end
 
 common.check_method("POST")
-libdynamic.set_upstream("usermanager")
 
 ngx.req.read_body()
 local body = ngx.req.get_body_data()
