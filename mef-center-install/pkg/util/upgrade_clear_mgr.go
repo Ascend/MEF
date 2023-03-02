@@ -90,7 +90,7 @@ func (ucm *UpgradeClearMgr) clearUnpackPath() error {
 	fmt.Println("start to clear unpack path")
 	hwlog.RunLog.Info("start to clear unpack path")
 	unpackPath := ucm.InstallPathMgr.WorkPathMgr.GetRelativeVarDirPath()
-	if !utils.IsExist(unpackPath) {
+	if utils.IsExist(unpackPath) {
 		if err := common.DeleteAllFile(unpackPath); err != nil {
 			fmt.Println("clear unpack path failed")
 			hwlog.RunLog.Errorf("clear unpack path failed: %s", err.Error())
