@@ -328,10 +328,10 @@ const (
 	MaxSingleExtractSize = 200 * MB
 	MaxTotalExtractSize  = 200 * MB
 
-	ZipSuffix   = ".zip"
-	TarGzSuffix = ".tar.gz"
-	CrlSuffix   = ".tar.gz.crl"
-	CmsSuffix   = ".tar.gz.cms"
+	MefCenterFlag = "mefcenter"
+	TarGzSuffix   = ".tar.gz"
+	CrlSuffix     = ".tar.gz.crl"
+	CmsSuffix     = ".tar.gz.cms"
 )
 
 // node specification
