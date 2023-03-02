@@ -223,6 +223,10 @@ func (upf *UpgradePreFlowMgr) getVerifyFileName() (*zipContent, error) {
 	}
 
 	for _, file := range dir {
+		if !strings.Contains(file.Name(), common.MefCenterFlag) {
+			continue
+		}
+
 		if strings.HasSuffix(file.Name(), common.TarGzSuffix) {
 			if tarName != "" {
 				hwlog.RunLog.Errorf("more than 1 tar.gz file in zip file")
