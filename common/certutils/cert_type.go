@@ -39,15 +39,17 @@ type CertSan struct {
 	IpAddr  []net.IP
 }
 
-// QueryCertRes query cert content res
-type QueryCertRes struct {
-	CertName string `json:"certName"`
-	Cert     string `json:"cert"`
-	Address  string `json:"address"`
+// ClientCertResp cert resp for client
+type ClientCertResp struct {
+	CertName     string `json:"certName"`
+	CertContent  string `json:"certContent"`
+	CertOpt      string `json:"certOpt" default:"update"`
+	ImageAddress string `json:"imageAddress"`
 }
 
 // UpdateClientCert update cert struct
 type UpdateClientCert struct {
 	CertName    string `json:"certName"`
 	CertContent []byte `json:"certContent"`
+	CertOpt     string `json:"certOpt" default:"update"`
 }

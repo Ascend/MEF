@@ -17,8 +17,8 @@ import (
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
-func queryCertInfo(certName string) (certutils.QueryCertRes, error) {
-	res := certutils.QueryCertRes{}
+func queryCertInfo(certName string) (certutils.ClientCertResp, error) {
+	res := certutils.ClientCertResp{}
 	reqCertParams := httpsmgr.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
 			RootCaPath:    util.RootCaPath,
@@ -35,7 +35,7 @@ func queryCertInfo(certName string) (certutils.QueryCertRes, error) {
 	}
 
 	res.CertName = certName
-	res.Cert = rootCaRes
+	res.CertContent = rootCaRes
 
 	if certName == common.ImageCertName {
 		address, err := util.GetImageAddress()
@@ -48,7 +48,7 @@ func queryCertInfo(certName string) (certutils.QueryCertRes, error) {
 			hwlog.RunLog.Errorf("get image registry address failed, error:%v", err)
 			return res, errors.New("get image registry address failed")
 		}
-		res.Address = address
+		res.ImageAddress = address
 	}
 
 	return res, nil

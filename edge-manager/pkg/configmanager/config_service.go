@@ -88,11 +88,11 @@ func fetchCertToClient(registryPath string) error {
 		hwlog.RunLog.Errorf("get cert content failed, error: %v", err)
 		return errors.New("get cert content failed")
 	}
-	if certRes.Cert == "" {
+	if certRes.CertContent == "" {
 		hwlog.RunLog.Warnf(" %s cert content should be imported", certRes.CertName)
 		return nil
 	}
-	certRes.Address = registryPath
+	certRes.ImageAddress = registryPath
 	// send message connector
 	if err := reportCertToClient(certRes); err != nil {
 		return errors.New("update cert content failed")
@@ -123,9 +123,10 @@ func updateConfig(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("update cert info failed: para type not valid")
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "update cert info request convert error", Data: nil}
 	}
-	certRes := certutils.QueryCertRes{
-		CertName: updateCert.CertName,
-		Cert:     string(updateCert.CertContent),
+	certRes := certutils.ClientCertResp{
+		CertName:    updateCert.CertName,
+		CertContent: string(updateCert.CertContent),
+		CertOpt:     updateCert.CertOpt,
 	}
 	if updateCert.CertName == common.ImageCertName {
 		address, err := util.GetImageAddress()
@@ -137,7 +138,7 @@ func updateConfig(input interface{}) common.RespMsg {
 			hwlog.RunLog.Warn("image registry address should be configured")
 			return common.RespMsg{Status: common.Success, Msg: "update cert content success", Data: certRes.CertName}
 		}
-		certRes.Address = address
+		certRes.ImageAddress = address
 	}
 	// send message to connector
 	if err := reportCertToClient(certRes); err != nil {
@@ -148,7 +149,7 @@ func updateConfig(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "update cert content success", Data: certRes.CertName}
 }
 
-func reportCertToClient(req certutils.QueryCertRes) error {
+func reportCertToClient(req certutils.ClientCertResp) error {
 	content, err := json.Marshal(req)
 	if err != nil {
 		return fmt.Errorf("marshal info failed, error: %v", err)

@@ -75,7 +75,7 @@ func importRootCa(input interface{}) common.RespMsg {
 		if req.CertName == common.WsCltName {
 			return
 		}
-		if err := updateClientCert(req.CertName, caBase64); err != nil {
+		if err := updateClientCert(req.CertName, common.Update, caBase64); err != nil {
 			hwlog.RunLog.Errorf("distribute cert file to client failed, error:%v", err)
 		}
 	}()
@@ -98,6 +98,11 @@ func deleteRootCa(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("delete ca file failed, error:%v", err)
 		return common.RespMsg{Status: common.ErrorDeleteRootCa, Msg: "delete ca file failed", Data: nil}
 	}
+	go func() {
+		if err := updateClientCert(req.Type, common.Delete, nil); err != nil {
+			hwlog.RunLog.Errorf("delete cert file for client failed, error:%v", err)
+		}
+	}()
 	hwlog.RunLog.Infof("delete %s certificate success", req.Type)
 	return common.RespMsg{Status: common.Success, Msg: "delete ca file success", Data: nil}
 }

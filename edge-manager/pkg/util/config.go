@@ -60,7 +60,7 @@ func SecretNotFound(err error) bool {
 }
 
 // GetCertContent get cert content
-func GetCertContent(certName string) (certutils.QueryCertRes, error) {
+func GetCertContent(certName string) (certutils.ClientCertResp, error) {
 	reqCertParams := httpsmgr.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
 			RootCaPath:    RootCaPath,
@@ -73,11 +73,11 @@ func GetCertContent(certName string) (certutils.QueryCertRes, error) {
 	rootCaRes, err := reqCertParams.GetRootCa(certName)
 	if err != nil {
 		hwlog.RunLog.Errorf("query cert content from cert-manager failed, error: %v", err)
-		return certutils.QueryCertRes{}, fmt.Errorf("query cert content from cert-manager failed, error: %v", err)
+		return certutils.ClientCertResp{}, fmt.Errorf("query cert content from cert-manager failed, error: %v", err)
 	}
-	queryCertRes := certutils.QueryCertRes{
-		CertName: certName,
-		Cert:     rootCaRes,
+	queryCertRes := certutils.ClientCertResp{
+		CertName:    certName,
+		CertContent: rootCaRes,
 	}
 	return queryCertRes, nil
 }

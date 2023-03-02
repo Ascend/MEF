@@ -41,9 +41,9 @@ func (ch *certHandler) Handle(message *model.Message) error {
 		hwlog.RunLog.Errorf("query cert content from cert-manager failed, error: %v", err)
 		return err
 	}
-	res := certutils.QueryCertRes{
-		CertName: certName,
-		Cert:     rootCaRes,
+	res := certutils.ClientCertResp{
+		CertName:    certName,
+		CertContent: rootCaRes,
 	}
 	if certName == common.ImageCertName {
 		address, err := util.GetImageAddress()
@@ -55,7 +55,7 @@ func (ch *certHandler) Handle(message *model.Message) error {
 			hwlog.RunLog.Warn("image registry address should be configured")
 			return nil
 		}
-		res.Address = address
+		res.ImageAddress = address
 	}
 	data, err := json.Marshal(res)
 	if err != nil {
