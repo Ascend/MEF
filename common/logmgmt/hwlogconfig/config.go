@@ -11,24 +11,35 @@ import (
 	"huawei.com/mindx/common/hwlog"
 )
 
+const (
+	defaultMaxAge           = 30
+	defaultFileMaxSize      = 100
+	opLogDefaultMaxBackups  = 10
+	runLogDefaultMaxBackups = 30
+	defaultMaxLineLength    = 256
+	defaultExpiredTime      = 1
+	defaultCacheSize        = 10240
+	defaultIsCompress       = true
+)
+
 var defaultOpConf = hwlog.LogConfig{
-	MaxAge:        30,
-	FileMaxSize:   100,
-	MaxBackups:    10,
-	MaxLineLength: 256,
-	ExpiredTime:   1,
-	CacheSize:     10240,
-	IsCompress:    true,
+	MaxAge:        defaultMaxAge,
+	FileMaxSize:   defaultFileMaxSize,
+	MaxBackups:    opLogDefaultMaxBackups,
+	MaxLineLength: defaultMaxLineLength,
+	ExpiredTime:   defaultExpiredTime,
+	CacheSize:     defaultCacheSize,
+	IsCompress:    defaultIsCompress,
 }
 
 var defaultRunConf = hwlog.LogConfig{
-	MaxAge:        30,
-	FileMaxSize:   100,
-	MaxBackups:    30,
-	MaxLineLength: 256,
-	ExpiredTime:   1,
-	CacheSize:     10240,
-	IsCompress:    true,
+	MaxAge:        defaultMaxAge,
+	FileMaxSize:   defaultFileMaxSize,
+	MaxBackups:    runLogDefaultMaxBackups,
+	MaxLineLength: defaultMaxLineLength,
+	ExpiredTime:   defaultExpiredTime,
+	CacheSize:     defaultCacheSize,
+	IsCompress:    defaultIsCompress,
 }
 
 // BindFlags is wrapper of command flags
