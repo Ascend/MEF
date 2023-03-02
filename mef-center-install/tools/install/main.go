@@ -109,6 +109,14 @@ func checkSinglePath(path string) (string, error) {
 		return "", fmt.Errorf("path [%s] does not exist", path)
 	}
 
+	ret, err := common.IfAbsPath(path)
+	if err != nil {
+		return "", fmt.Errorf("get path [%s]'s abs path failed: %s", path, err.Error())
+	}
+	if !ret {
+		return "", fmt.Errorf("path [%s] is not abs path", path)
+	}
+
 	absPath, err := utils.RealDirChecker(path, true, false)
 	if err != nil {
 		return "", err
