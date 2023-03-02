@@ -4,6 +4,8 @@
 package common
 
 import (
+	"sync"
+
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/x509"
@@ -28,6 +30,8 @@ type KmcCfg struct {
 	DoMainId       uint
 }
 
+var lock sync.Mutex
+
 // GetKmcCfg is the func to init a kmc config structure
 func GetKmcCfg(keyPath string, backKeyPath string) *KmcCfg {
 	return &KmcCfg{
@@ -50,6 +54,8 @@ func GetDefKmcCfg() *KmcCfg {
 
 // EncryptContent encrypt content with kmc
 func EncryptContent(content []byte, kmcCfg *KmcCfg) ([]byte, error) {
+	lock.Lock()
+	defer lock.Unlock()
 	if kmcCfg == nil {
 		kmcCfg = GetDefKmcCfg()
 	}
@@ -72,6 +78,8 @@ func EncryptContent(content []byte, kmcCfg *KmcCfg) ([]byte, error) {
 
 // DecryptContent decrypt content with kmc
 func DecryptContent(encryptByte []byte, kmcCfg *KmcCfg) ([]byte, error) {
+	lock.Lock()
+	defer lock.Unlock()
 	if kmcCfg == nil {
 		kmcCfg = GetDefKmcCfg()
 	}

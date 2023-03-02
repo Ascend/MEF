@@ -23,12 +23,6 @@ type reqIssueCertBody struct {
 	Csr      string `json:"csr"`
 }
 
-type respBody struct {
-	Status string `json:"Status"`
-	Msg    string `json:"Msg"`
-	Data   string `json:"Data"`
-}
-
 // ReqCertParams [struct] for req cert params
 type ReqCertParams struct {
 	ClientTlsCert certutils.TlsCertInfo
