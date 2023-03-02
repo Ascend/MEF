@@ -4,13 +4,9 @@
 package certmanager
 
 import (
-	"bufio"
-	"bytes"
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"io"
-	"os"
 	"path"
 
 	"huawei.com/mindx/common/hwlog"
@@ -115,26 +111,11 @@ func saveCaContent(certName string, caContent []byte) error {
 		hwlog.RunLog.Errorf("create %s ca folder failed, error: %v", path.Base(caFilePath), err)
 		return fmt.Errorf("create %s ca folder failed, error: %v", path.Base(caFilePath), err)
 	}
-	caFile, err := os.OpenFile(caFilePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, common.Mode600)
-	if err != nil {
-		hwlog.RunLog.Errorf("create %s ca file failed", path.Base(caFilePath))
-		return fmt.Errorf("create %s ca file failed", path.Base(caFilePath))
+	if err := common.WriteData(caFilePath, caContent); err != nil {
+		hwlog.RunLog.Errorf("save %s cert file failed, error:%s", certName, err)
+		return fmt.Errorf("save %s ca file failed", certName)
 	}
-	defer func(caFile *os.File) {
-		if err := caFile.Close(); err != nil {
-			hwlog.RunLog.Errorf("caFile close failed, error: %v", err)
-		}
-	}(caFile)
-	caWriter := bufio.NewWriter(caFile)
-	if _, err := io.Copy(caWriter, bytes.NewReader(caContent)); err != nil {
-		hwlog.RunLog.Errorf("write ca file failed, path: %s, error: %v", path.Base(caFilePath), err)
-		return fmt.Errorf("write ca file failed, path: %s, error: %v", path.Base(caFilePath), err)
-	}
-	if err := caWriter.Flush(); err != nil {
-		hwlog.RunLog.Errorf("flush %s ca file failed, error: %v", path.Base(caFilePath), err)
-		return fmt.Errorf("flush %s ca file failed, error: %v", path.Base(caFilePath), err)
-	}
-	hwlog.RunLog.Infof("finished ca content copy to %s", caFilePath)
+	hwlog.RunLog.Infof("save %s ca file success", certName)
 	return nil
 }
 
@@ -152,7 +133,7 @@ func removeCaFile(certName string) error {
 	return nil
 }
 
-func updateClientCert(certName string, certContent []byte) error {
+func updateClientCert(certName, certOpt string, certContent []byte) error {
 	hwlog.RunLog.Info("start update cert file")
 	reqCertParams := httpsmgr.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
@@ -167,6 +148,7 @@ func updateClientCert(certName string, certContent []byte) error {
 	cert := certutils.UpdateClientCert{
 		CertName:    certName,
 		CertContent: certContent,
+		CertOpt:     certOpt,
 	}
 	certName, err := reqCertParams.UpdateCertFile(cert)
 	if err != nil {

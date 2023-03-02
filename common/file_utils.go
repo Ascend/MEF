@@ -33,7 +33,7 @@ func WriteData(filePath string, fileData []byte) error {
 		return err
 	}
 
-	writer, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE, fileMode)
+	writer, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileMode)
 	if err != nil {
 		return err
 	}
