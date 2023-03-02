@@ -1052,3 +1052,79 @@ func TestInnerGetNodeGroupInfosByIds(t *testing.T) {
 		})
 	})
 }
+
+func TestInnerGetNodeSoftwareInfo(t *testing.T) {
+	convey.Convey("InnerGetNodeSoftwareInfo functional test", t, func() {
+		convey.Convey("InnerGetNodeSoftwareInfo failed", func() {
+			node := &NodeInfo{
+				NodeName:     "test-inner-node-software",
+				UniqueName:   "test-inner-node-unique-software",
+				SerialNumber: "test-inner-node-serial-number-software",
+				IP:           "0.0.0.0",
+				IsManaged:    true,
+				CreatedAt:    time.Now().Format(TimeFormat),
+				UpdatedAt:    time.Now().Format(TimeFormat),
+				SoftwareInfo: "",
+			}
+			resNode := env.createNode(node)
+			convey.So(resNode, convey.ShouldBeNil)
+			input := types.InnerGetSfwInfoBySNReq{SerialNumber: "test-inner-node-serial-number-software"}
+			res := innerGetNodeSoftwareInfo(input)
+			convey.So(res.Status, convey.ShouldEqual, "")
+		})
+	})
+}
+
+func TestInnerGetNodesByNodeGroupID(t *testing.T) {
+	convey.Convey("InnerGetNodesByNodeGroupID functional test", t, func() {
+		convey.Convey("InnerGetNodesByNodeGroupID success", func() {
+			input := types.InnerGetNodesReq{NodeGroupID: 1}
+			res := innerGetNodesByNodeGroupID(input)
+			convey.So(res.Status, convey.ShouldEqual, common.Success)
+		})
+	})
+}
+
+func TestInnerAllNodeInfos(t *testing.T) {
+	convey.Convey("innerAllNodeInfos functional test", t, func() {
+		convey.Convey("innerAllNodeInfos success", func() {
+			res := innerAllNodeInfos("")
+			convey.So(res.Status, convey.ShouldEqual, common.Success)
+		})
+	})
+}
+
+func TestInnerCheckNodeGroupResReq(t *testing.T) {
+	convey.Convey("innerAllNodeInfos functional test", t, func() {
+		convey.Convey("innerAllNodeInfos success", func() {
+			input := types.InnerCheckNodeResReq{NodeGroupID: 1}
+			res := innerCheckNodeGroupResReq(input)
+			convey.So(res.Status, convey.ShouldEqual, common.Success)
+		})
+	})
+}
+
+func TestGetAppInstanceCountByGroupId(t *testing.T) {
+	convey.Convey("getAppInstanceCountByGroupId functional test", t, func() {
+		convey.Convey("getAppInstanceCountByGroupId success", func() {
+			counts := map[uint64]int64{1: 1}
+			gomonkey.ApplyFuncReturn(common.SendSyncMessageByRestful,
+				common.RespMsg{Status: common.Success, Data: counts})
+			_, err := getAppInstanceCountByGroupId(1)
+			convey.So(err, convey.ShouldBeNil)
+		})
+	})
+}
+
+func TestGetNodesCapability(t *testing.T) {
+	convey.Convey("GetNodesCapability functional test", t, func() {
+		convey.Convey("GetNodesCapability node exit success", func() {
+			res := getNodesCapability(types.CapReq{NodeID: uint64(1)})
+			convey.So(res.Status, convey.ShouldEqual, common.Success)
+		})
+		convey.Convey("GetNodesCapability node not exit", func() {
+			res := getNodesCapability("")
+			convey.So(res.Status, convey.ShouldEqual, common.Success)
+		})
+	})
+}
