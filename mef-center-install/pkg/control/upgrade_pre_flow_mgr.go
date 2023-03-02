@@ -263,6 +263,12 @@ func (upf *UpgradePreFlowMgr) execNewSh() error {
 	shPath := filepath.Join(upf.unpackTarPath, util.InstallDirName, util.ScriptsDirName, util.UpgradeShName)
 	_, err := common.RunCommand(shPath, true, util.UpgradeTimeoutSec)
 	if err != nil {
+		if strings.Contains(err.Error(), "invalid arch") {
+			fmt.Println("the upgrading zip if for another CPU architecture")
+			hwlog.RunLog.Error("upgrade failed: the upgrading zip if for another CPU architecture")
+			upf.clearEnv()
+			return errors.New("upgrade failed")
+		}
 		hwlog.RunLog.Error("upgrade failed: exec new version upgrade sh meet error")
 		return errors.New("upgrade failed")
 	}
@@ -279,5 +285,6 @@ func (upf *UpgradePreFlowMgr) clearEnv() {
 		return
 	}
 	fmt.Println("clear environment success")
+	hwlog.RunLog.Info("clear environment success")
 	hwlog.RunLog.Info("-----End to clear environment-----")
 }
