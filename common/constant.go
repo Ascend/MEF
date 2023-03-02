@@ -269,6 +269,8 @@ const (
 	OptPost = "POST"
 	// OptReport option for report
 	OptReport = "REPORT"
+	// OptCollect option for collect
+	OptCollect = "COLLECT"
 	// ResEdgeDownloadInfo resource for download software
 	ResEdgeDownloadInfo = "/edge/download"
 	// ResEdgeUpgradeInfo resource for effect software
@@ -287,6 +289,18 @@ const (
 	ResSetEdgeAccount = "/edgemanager/v1/edgeAccount"
 	// ResDownLoadCert resource for downloading cert
 	ResDownLoadCert = "/cert/download_info"
+	// ResLogEdge resource for log of edge node
+	ResLogEdge = "/logcollect/log/edge"
+	// ResLogTaskProgressEdge resource for progress of edge node log collection
+	ResLogTaskProgressEdge = "/logcollect/task/progress/edge"
+	// LogCollectPathPrefix prefix for request url of log collection
+	LogCollectPathPrefix = "/edgemanager/v1/logcollect"
+	// ResRelLogTask resource for collection task
+	ResRelLogTask = "/task"
+	// ResRelLogTaskProgress resource for progress of collection task
+	ResRelLogTaskProgress = "/task/progress"
+	// ResRelLogTaskPath resource for output path of collection task
+	ResRelLogTaskPath = "/task/path"
 )
 
 // ServerCertPathName websocket server cert path name

@@ -8,15 +8,22 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"time"
 
+	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/utils"
+
+	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/certutils"
 )
 
 const (
-	jsonContentType = "application/json"
-	timeOut         = 60 * time.Second
-	maxBodySize     = 2 * 1024 * 1024
+	jsonContentType   = "application/json"
+	binaryContentType = "binary/octet-stream"
+	timeOut           = 60 * time.Second
+	maxBodySize       = 2 * 1024 * 1024
+	maxAllowedSize    = 10 * 1024
 )
 
 // GetHttpsReq [method] for get https request
@@ -86,6 +93,41 @@ func (hr *HttpsRequest) PostJson(jsonBody []byte) ([]byte, error) {
 	}
 	req, err := http.NewRequest(http.MethodPost, hr.url, bytes.NewReader(jsonBody))
 	req.Header.Set("Content-Type", jsonContentType)
+	if len(hr.reqHeader) > 0 {
+		for k, v := range hr.reqHeader {
+			req.Header.Set(k, fmt.Sprintf("%v", v))
+		}
+	}
+	resp, err := hr.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer hr.client.CloseIdleConnections()
+	return hr.handleResp(resp)
+}
+
+// PostFile [method] for http Post file
+func (hr *HttpsRequest) PostFile(filePath string) ([]byte, error) {
+	if hr.client == nil {
+		if err := hr.initClient(); err != nil {
+			return nil, fmt.Errorf("init https client failed: %v", err)
+		}
+	}
+	if _, err := utils.RealFileChecker(filePath, false, false, maxAllowedSize); err != nil {
+		return nil, err
+	}
+	file, err := os.OpenFile(filePath, os.O_RDONLY, common.Mode400)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err := file.Close(); err != nil && err != os.ErrClosed {
+			hwlog.RunLog.Errorf("failed to close the uploaded file, %v", err)
+		}
+	}()
+	req, err := http.NewRequest(http.MethodPost, hr.url, file)
+	req.Header.Set("Content-Type", binaryContentType)
 	if len(hr.reqHeader) > 0 {
 		for k, v := range hr.reqHeader {
 			req.Header.Set(k, fmt.Sprintf("%v", v))

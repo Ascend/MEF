@@ -151,6 +151,13 @@ const (
 	// ErrorQueryCrt failed to get crt from cert manager
 	ErrorQueryCrt = "40042002"
 
+	// ErrorLogCollectEdgeBusy edge is busy
+	ErrorLogCollectEdgeBusy = "40052001"
+	// ErrorLogCollectEdgeBusiness business error
+	ErrorLogCollectEdgeBusiness = "40052002"
+	// ErrorLogCollectEdgeParamInvalid parameter error
+	ErrorLogCollectEdgeParamInvalid = "40051002"
+
 	// ErrorGetRootCa failed to get root ca by cert name
 	ErrorGetRootCa = "60001001"
 	// ErrorIssueSrvCert failed to issue service certificate
@@ -327,4 +334,11 @@ var ErrorMap = map[string]string{
 	ErrorAccountOrPasswordEmpty: "account or password is empty",
 	// ErrorMaxEdgeClientsReached max mef-edge clients connection reached
 	ErrorMaxEdgeClientsReached: "max edge client connection reached, please try again later",
+
+	// ErrorLogCollectEdgeBusy edge is busy
+	ErrorLogCollectEdgeBusy: "edge node is busy",
+	// ErrorLogCollectEdgeBusiness business error
+	ErrorLogCollectEdgeBusiness: "failed to collect log due to business error",
+	// ErrorLogCollectEdgeParamInvalid parameter error
+	ErrorLogCollectEdgeParamInvalid: "failed to collect log due to parameter invalid",
 }
