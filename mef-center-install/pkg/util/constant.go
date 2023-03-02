@@ -45,6 +45,7 @@ const (
 	InstallParamJson = "install-param.json"
 	InstallBin       = "MEF-center-installer"
 	UpgradeFlagFile  = "upgrade-flag"
+	ConfigInPkg      = "config"
 )
 
 // single WorkDir constant
@@ -80,6 +81,7 @@ const (
 	CertSuffix    = ".crt"
 	KeySuffix     = ".key"
 	CaCommonName  = "MindX MEF"
+	PubConfigDir  = "public-config"
 )
 
 // log constant

@@ -96,7 +96,14 @@ func (sm *SoftwareMgr) ClearNamespace() error {
 	hwlog.RunLog.Info("start to clear Namespace")
 	nsMgr := NewNamespaceMgr(MefNamespace)
 	if err := nsMgr.ClearNamespace(); err != nil {
-		fmt.Println("clear Namespace failed")
+		fmt.Printf("clear %s namespace failed", MefNamespace)
+		return err
+	}
+
+	// mef-users namespace creates by edge-manager
+	nsMgr = NewNamespaceMgr(common.MefUserNs)
+	if err := nsMgr.ClearNamespace(); err != nil {
+		fmt.Printf("clear %s namespace failed", common.MefUserNs)
 		return err
 	}
 	fmt.Println("clear Namespace success")

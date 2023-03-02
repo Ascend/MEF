@@ -44,20 +44,15 @@ func (cpc *certPrepareCtl) prepareCertsDir() error {
 	}
 
 	certPath := cpc.certPathMgr.GetConfigPath()
-	if err := common.MakeSurePath(certPath); err != nil {
-		hwlog.RunLog.Errorf("create cert path [%s] failed: %v", certPath, err.Error())
-		return errors.New("create cert path failed")
-	}
-
 	rootCertPath := cpc.certPathMgr.GetRootCaCertDirPath()
 	if err := common.MakeSurePath(rootCertPath); err != nil {
-		hwlog.RunLog.Errorf("create root certs path [%s] failed: %v", certPath, err.Error())
+		hwlog.RunLog.Errorf("create root certs path [%s] failed: %v", rootCertPath, err.Error())
 		return errors.New("create root certs path failed")
 	}
 
 	rootKeyPath := cpc.certPathMgr.GetRootCaKeyDirPath()
 	if err := common.MakeSurePath(rootKeyPath); err != nil {
-		hwlog.RunLog.Errorf("create root key path [%s] failed: %v", certPath, err.Error())
+		hwlog.RunLog.Errorf("create root key path [%s] failed: %v", rootKeyPath, err.Error())
 		return errors.New("create root key path failed")
 	}
 
