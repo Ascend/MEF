@@ -9,6 +9,7 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
+
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
@@ -93,7 +94,7 @@ func (scm *SftOperateMgr) prepareComponentLogBackupDir() error {
 	hwlog.RunLog.Info("start to prepare components' log backup dir")
 	for _, component := range scm.installedComponent {
 		componentMgr := util.GetComponentMgr(component)
-		if err := componentMgr.PrepareLogDir(scm.logPathMgr); err != nil {
+		if err := componentMgr.PrepareLogBackupDir(scm.logPathMgr); err != nil {
 			return err
 		}
 	}
