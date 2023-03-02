@@ -18,7 +18,7 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/smartystreets/goconvey/convey"
 	"huawei.com/mindx/common/hwlog"
 
 	"huawei.com/mindxedge/base/common"
@@ -56,7 +56,7 @@ func TestMain(m *testing.M) {
 
 // TestPackFile functional test for log collection
 func TestPackFile(t *testing.T) {
-	Convey("pack logs functional test", t, func() {
+	convey.Convey("pack logs functional test", t, func() {
 		testDir := "testPackFile"
 		dst := filepath.Join(testDir, "pack.tar.gz")
 		groups := []LogGroup{
@@ -69,14 +69,18 @@ func TestPackFile(t *testing.T) {
 				BaseDir: "bb",
 			},
 		}
-		So(fillData(filepath.Join(testDir, "a/a.log")), ShouldBeNil)
-		So(fillData(filepath.Join(testDir, "a/b.log")), ShouldBeNil)
-		So(fillData(filepath.Join(testDir, "b/a.log")), ShouldBeNil)
+		err := fillData(filepath.Join(testDir, "a/a.log"))
+		convey.So(err, convey.ShouldBeNil)
+		err = fillData(filepath.Join(testDir, "a/b.log"))
+		convey.So(err, convey.ShouldBeNil)
+		err = fillData(filepath.Join(testDir, "b/a.log"))
+		convey.So(err, convey.ShouldBeNil)
 
 		collector := NewCollector(dst, groups, common.MB*ten)
 		packed, err := collector.Collect()
-		So(err, ShouldBeNil)
-		So(checkPack(packed, groups), ShouldBeNil)
+		convey.So(err, convey.ShouldBeNil)
+		err = checkPack(packed, groups)
+		convey.So(err, convey.ShouldBeNil)
 	})
 }
 
