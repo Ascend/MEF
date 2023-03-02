@@ -4,10 +4,10 @@
 package certmanager
 
 import (
+	"encoding/base64"
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"path"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
@@ -35,7 +35,12 @@ func getCertByCertName(certName string) ([]byte, error) {
 
 // issueServiceCert issue service certificate with csr file, only support pem type csr
 func issueServiceCert(certName string, serviceCsr string) ([]byte, error) {
-	srvDer, _ := pem.Decode([]byte(serviceCsr))
+	csrByte, err := base64.StdEncoding.DecodeString(serviceCsr)
+	if err != nil {
+		hwlog.RunLog.Error("base64 decode service csr failed")
+		return nil, errors.New("base64 decode service csr failed")
+	}
+	srvDer, _ := pem.Decode(csrByte)
 	if srvDer == nil {
 		hwlog.RunLog.Error("Decode service csr pem failed")
 		return nil, errors.New("decode service csr pem failed")
@@ -108,8 +113,8 @@ func checkAndCreateCa(certName string) error {
 func saveCaContent(certName string, caContent []byte) error {
 	caFilePath := getRootCaPath(certName)
 	if err := utils.MakeSureDir(caFilePath); err != nil {
-		hwlog.RunLog.Errorf("create %s ca folder failed, error: %v", path.Base(caFilePath), err)
-		return fmt.Errorf("create %s ca folder failed, error: %v", path.Base(caFilePath), err)
+		hwlog.RunLog.Errorf("create %s ca folder failed, error: %v", certName, err)
+		return fmt.Errorf("create %s ca folder failed, error: %v", certName, err)
 	}
 	if err := common.WriteData(caFilePath, caContent); err != nil {
 		hwlog.RunLog.Errorf("save %s cert file failed, error:%s", certName, err)
@@ -125,8 +130,8 @@ func removeCaFile(certName string) error {
 	if utils.IsExist(caFilePath) {
 		// remove the ca file
 		if err := common.DeleteFile(caFilePath); err != nil {
-			hwlog.RunLog.Errorf("remove %s ca file failed, error: %v", path.Base(caFilePath), err)
-			return fmt.Errorf("remove %s ca file failed, error: %v", path.Base(caFilePath), err)
+			hwlog.RunLog.Errorf("remove %s ca file failed, error: %v", certName, err)
+			return fmt.Errorf("remove %s ca file failed, error: %v", certName, err)
 		}
 	}
 	hwlog.RunLog.Infof("delete %s ca file success", caFilePath)

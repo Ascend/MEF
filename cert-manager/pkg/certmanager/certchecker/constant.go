@@ -4,7 +4,7 @@
 package certchecker
 
 const (
-	csrReg      = "^[a-zA-Z0-9=+/]$"
+	csrReg      = "^[a-zA-Z0-9=+/]{1,}$"
 	maxCertSize = 1024 * 1024
 	minCsrLen   = 1
 	maxCsrLen   = 4096
