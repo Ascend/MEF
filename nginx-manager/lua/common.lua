@@ -3,7 +3,6 @@
 local _M = {}   -- 局部变量，模块名称
 local b64 = require("ngx.base64")
 local cjson = require("cjson")
-local libdynamic = require("libdynamic")
 
 -- 获取经过base64编码的随机字符串
 function _M.get_random_string(length)
@@ -34,7 +33,6 @@ function _M.is_locked()
     end
     postBody = {}
     postBody["targetIp"] = ngx.var.remote_addr
-    libdynamic.set_upstream("usermanager")
     local res, err = ngx.location.capture("/internal/islocked", {method=ngx.HTTP_POST, body=cjson.encode(postBody), ctx=ngx.ctx})
     local ok, resp = pcall(cjson.decode, res.body)
     if res.status == ngx.HTTP_OK and ok and resp.status == g_success then

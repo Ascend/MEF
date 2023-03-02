@@ -24,6 +24,9 @@ type NginxConfItem struct {
 
 // confItemsTemplate the items needed to replace into nginx.conf
 var confItemsTemplate = []NginxConfItem{
+	{Key: EdgePortKey, From: KeyPrefix + EdgePortKey},
+	{Key: CertPortKey, From: KeyPrefix + CertPortKey},
+	{Key: SoftPortKey, From: KeyPrefix + SoftPortKey},
 	{Key: NginxSslPortKey, From: KeyPrefix + NginxSslPortKey},
 	{Key: UserMgrSvcPortKey, From: KeyPrefix + UserMgrSvcPortKey},
 	{Key: PodIpKey, From: KeyPrefix + PodIpKey},

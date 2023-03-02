@@ -1,7 +1,6 @@
 local cjson = require("cjson")
 local common = require("common")
 local libaccess = require("libaccess")
-local libdynamic = require("libdynamic")
 
 common.check_method("PATCH")
 --校验是否被锁定
@@ -15,7 +14,6 @@ if session == nil then
     return ngx.exit(ngx.HTTP_UNAUTHORIZED)
 end
 
-libdynamic.set_upstream("usermanager")
 ngx.req.read_body()
 local body = ngx.req.get_body_data()
 local res, err = ngx.location.capture("/internal/change", { method=ngx.HTTP_PATCH, body=body, ctx=ngx.ctx })
