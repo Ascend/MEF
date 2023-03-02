@@ -34,71 +34,74 @@ type importCertChecker struct {
 	certChecker checker.ModelChecker
 }
 
+func (icc *importCertChecker) init() {
+	icc.certChecker.Checker = checker.GetAndChecker(
+		GetStringChecker("CertName", checkIfCanImport, true),
+		GetStringChecker("Cert", certContentChecker, true),
+	)
+}
+
+func (icc *importCertChecker) Check(data interface{}) checker.CheckResult {
+	icc.init()
+	checkResult := icc.certChecker.Check(data)
+	if !checkResult.Result {
+		return checker.NewFailedResult(fmt.Sprintf("cert checker check failed: %s", checkResult.Reason))
+	}
+	return checker.NewSuccessResult()
+}
+
 type deleteCertChecker struct {
 	certChecker checker.ModelChecker
+}
+
+func (dcc *deleteCertChecker) init() {
+	dcc.certChecker.Checker = checker.GetAndChecker(
+		GetStringChecker("Type", CheckCertName, true),
+	)
+}
+
+func (dcc *deleteCertChecker) Check(data interface{}) checker.CheckResult {
+	dcc.init()
+	checkResult := dcc.certChecker.Check(data)
+	if !checkResult.Result {
+		return checker.NewFailedResult(fmt.Sprintf("cert checker check failed: %s", checkResult.Reason))
+	}
+	return checker.NewSuccessResult()
 }
 
 type issueCertChecker struct {
 	certChecker checker.ModelChecker
 }
 
-func (cc *importCertChecker) init() {
-	cc.certChecker.Checker = checker.GetAndChecker(
-		GetStringChecker("CertName", certNameChecker, true),
-		GetStringChecker("Cert", certContentChecker, true),
+func (icc *issueCertChecker) init() {
+	icc.certChecker.Checker = checker.GetAndChecker(
+		GetStringChecker("CertName", CheckCertName, true),
+		GetStringChecker("Csr", csrChecker, true),
 	)
 }
 
-func (cc *deleteCertChecker) init() {
-	cc.certChecker.Checker = checker.GetAndChecker(
-		GetStringChecker("Type", certNameChecker, true),
-	)
-}
-
-func (cc *issueCertChecker) init() {
-	cc.certChecker.Checker = checker.GetAndChecker(
-		GetStringChecker("CertName", certNameChecker, true),
-	)
-}
-
-func (cc *importCertChecker) Check(data interface{}) checker.CheckResult {
-	cc.init()
-	checkResult := cc.certChecker.Check(data)
+func (icc *issueCertChecker) Check(data interface{}) checker.CheckResult {
+	icc.init()
+	checkResult := icc.certChecker.Check(data)
 	if !checkResult.Result {
 		return checker.NewFailedResult(fmt.Sprintf("cert checker check failed: %s", checkResult.Reason))
 	}
 	return checker.NewSuccessResult()
-}
-
-func (cc *deleteCertChecker) Check(data interface{}) checker.CheckResult {
-	cc.init()
-	checkResult := cc.certChecker.Check(data)
-	if !checkResult.Result {
-		return checker.NewFailedResult(fmt.Sprintf("cert checker check failed: %s", checkResult.Reason))
-	}
-	return checker.NewSuccessResult()
-}
-
-func (cc *issueCertChecker) Check(data interface{}) checker.CheckResult {
-	cc.init()
-	checkResult := cc.certChecker.Check(data)
-	if !checkResult.Result {
-		return checker.NewFailedResult(fmt.Sprintf("cert checker check failed: %s", checkResult.Reason))
-	}
-	return checker.NewSuccessResult()
-}
-
-func certNameChecker(certName string) bool {
-	return CheckCertName(certName)
 }
 
 func csrChecker(csr string) bool {
 	csrLen := len(csr)
 	if csrLen < minCsrLen || csrLen > maxCsrLen {
+		hwlog.RunLog.Errorf("csr checker check failed: the length is not in range [%d, %d]", minCsrLen, maxCsrLen)
 		return false
 	}
 	pattern := regexp.MustCompile(csrReg)
 	if match := pattern.MatchString(csr); !match {
+		hwlog.RunLog.Error("csr checker check failed: not meet regex")
+		return false
+	}
+	if _, err := base64.StdEncoding.DecodeString(csr); err != nil {
+		hwlog.RunLog.Errorf("base64 decode csr failed, error:%v", err)
 		return false
 	}
 	return true
@@ -124,7 +127,7 @@ func certContentChecker(certContent string) bool {
 }
 
 var certImportMap = map[string]bool{
-	common.WsSerName:        true,
+	common.WsSerName:        false,
 	common.WsCltName:        false,
 	common.SoftwareCertName: true,
 	common.ImageCertName:    true,
@@ -136,4 +139,12 @@ var certImportMap = map[string]bool{
 func CheckCertName(certName string) bool {
 	_, ok := certImportMap[certName]
 	return ok
+}
+
+func checkIfCanImport(certName string) bool {
+	v, ok := certImportMap[certName]
+	if !ok {
+		return false
+	}
+	return v
 }

@@ -4,6 +4,7 @@
 package httpsmgr
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 
@@ -64,7 +65,10 @@ func (rcp *ReqCertParams) UpdateCertFile(cert certutils.UpdateClientCert) (strin
 func (rcp *ReqCertParams) ReqIssueSvrCert(certName string, csr []byte) (string, error) {
 	url := fmt.Sprintf("https://%s:%d/%s", common.CertMgrDns, common.CertMgrPort, reqSvrUrl)
 	httpsReq := GetHttpsReq(url, rcp.ClientTlsCert)
-	issueCertBody := &reqIssueCertBody{CertName: certName, Csr: string(certutils.PemWrapCert(csr))}
+	issueCertBody := &reqIssueCertBody{
+		CertName: certName,
+		Csr:      base64.StdEncoding.EncodeToString(certutils.PemWrapCert(csr)),
+	}
 	jsonBody, err := json.Marshal(issueCertBody)
 	if err != nil {
 		return "", err
