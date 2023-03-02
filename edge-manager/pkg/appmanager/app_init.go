@@ -146,8 +146,7 @@ func initAppTable() error {
 }
 
 var (
-	appUrlRootPath      = "/edgemanager/v1/app"
-	appTemplateRootPath = "/edgemanager/v1/apptemplate"
+	appUrlRootPath = "/edgemanager/v1/app"
 )
 
 var handlerFuncMap = map[string]handlerFunc{
@@ -162,17 +161,5 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodGet, filepath.Join(appUrlRootPath, "node")):                     listAppInstancesByNode,
 	common.Combine(http.MethodGet, filepath.Join(appUrlRootPath, "deployment/list")):          listAppInstances,
 
-	common.Combine(http.MethodPost, appTemplateRootPath):                                createTemplate,
-	common.Combine(http.MethodPatch, appTemplateRootPath):                               updateTemplate,
-	common.Combine(http.MethodPost, filepath.Join(appTemplateRootPath, "batch-delete")): deleteTemplate,
-	common.Combine(http.MethodGet, appTemplateRootPath):                                 getTemplate,
-	common.Combine(http.MethodGet, filepath.Join(appTemplateRootPath, "list")):          getTemplates,
-
 	common.Combine(common.Get, common.AppInstanceByNodeGroup): getAppInstanceCountByNodeGroup,
-
-	common.Combine(http.MethodPost, filepath.Join(appUrlRootPath, configmap)):                 createConfigmap,
-	common.Combine(http.MethodPost, filepath.Join(appUrlRootPath, configmap, "batch-delete")): deleteConfigmap,
-	common.Combine(http.MethodPatch, filepath.Join(appUrlRootPath, configmap)):                updateConfigmap,
-	common.Combine(http.MethodGet, filepath.Join(appUrlRootPath, configmap)):                  queryConfigmap,
-	common.Combine(http.MethodGet, filepath.Join(appUrlRootPath, configmap, "list")):          listConfigmap,
 }
