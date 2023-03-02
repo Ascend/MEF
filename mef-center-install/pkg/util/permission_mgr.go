@@ -122,7 +122,7 @@ func GetCenterModeMgr(pathMgr *InstallDirPathMgr) *CenterModeMgr {
 
 func (cmm *CenterModeMgr) getWorkMode700Dir() modeMgr {
 	return modeMgr{
-		mode:        0700,
+		mode:        common.Mode700,
 		fileType:    DirType,
 		isRecursive: true,
 		ignoreFile:  true,
@@ -135,7 +135,7 @@ func (cmm *CenterModeMgr) getWorkMode700Dir() modeMgr {
 func (cmm *CenterModeMgr) getWorkMode500Dir() modeMgr {
 	imageDirPattern := fmt.Sprintf("**/**/%s", ImageDir)
 	return modeMgr{
-		mode:        0500,
+		mode:        common.Mode500,
 		fileType:    DirType,
 		isRecursive: false,
 		ignoreFile:  true,
@@ -151,7 +151,7 @@ func (cmm *CenterModeMgr) getWorkMode500Dir() modeMgr {
 
 func (cmm *CenterModeMgr) getWorkMode600File() modeMgr {
 	return modeMgr{
-		mode:        0600,
+		mode:        common.Mode600,
 		fileType:    FileType,
 		isRecursive: false,
 		ignoreFile:  false,
@@ -163,7 +163,7 @@ func (cmm *CenterModeMgr) getWorkMode600File() modeMgr {
 
 func (cmm *CenterModeMgr) getWorkMode500File() modeMgr {
 	return modeMgr{
-		mode:        0500,
+		mode:        common.Mode500,
 		fileType:    FileType,
 		isRecursive: false,
 		ignoreFile:  false,
@@ -177,7 +177,7 @@ func (cmm *CenterModeMgr) getWorkMode500File() modeMgr {
 
 func (cmm *CenterModeMgr) getWorkMode400File() modeMgr {
 	return modeMgr{
-		mode:        0400,
+		mode:        common.Mode400,
 		fileType:    FileType,
 		isRecursive: false,
 		ignoreFile:  false,
@@ -191,7 +191,7 @@ func (cmm *CenterModeMgr) getWorkMode400File() modeMgr {
 
 func (cmm *CenterModeMgr) getConfigMode700Dir() modeMgr {
 	return modeMgr{
-		mode:        0700,
+		mode:        common.Mode700,
 		fileType:    DirType,
 		isRecursive: true,
 		ignoreFile:  true,
@@ -203,7 +203,7 @@ func (cmm *CenterModeMgr) getConfigMode700Dir() modeMgr {
 
 func (cmm *CenterModeMgr) getConfigMode600File() modeMgr {
 	return modeMgr{
-		mode:        0600,
+		mode:        common.Mode600,
 		fileType:    FileType,
 		isRecursive: false,
 		ignoreFile:  false,
@@ -217,7 +217,7 @@ func (cmm *CenterModeMgr) getConfigMode600File() modeMgr {
 
 func (cmm *CenterModeMgr) getConfigMode400File() modeMgr {
 	return modeMgr{
-		mode:        0400,
+		mode:        common.Mode400,
 		fileType:    FileType,
 		isRecursive: false,
 		ignoreFile:  false,
