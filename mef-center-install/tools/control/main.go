@@ -108,7 +108,7 @@ func (oc *operateController) setInstallParam(installParam *util.InstallParamJson
 }
 
 func (oc *operateController) bindFlag() bool {
-	flag.StringVar(&componentType, componentFlag, "all", "start/stop/restart a component, default all components")
+	flag.StringVar(&componentType, componentFlag, "all", "start、stop、restart a component, default all components")
 	return true
 }
 
@@ -182,7 +182,7 @@ func (uc *upgradeController) doControl() error {
 }
 
 func (uc *upgradeController) checkZipPath() error {
-	var zipSizeMul int64 = 100
+	const zipSizeMul int64 = 100
 
 	pathMgr := util.InitInstallDirPathMgr(uc.installParam.InstallDir)
 	unpackPath := pathMgr.WorkPathMgr.GetRelativeVarDirPath()
