@@ -195,6 +195,11 @@ func zipFileCheck(reader *zip.ReadCloser) error {
 	)
 
 	for _, file := range reader.File {
+		ret := FileNameCheck(file.Name)
+		if !ret.Result {
+			return fmt.Errorf("check zip file name failed: %s", ret.Reason)
+		}
+
 		if file.UncompressedSize64 > MaxSingleExtractSize || totalWrote > MaxTotalExtractSize {
 			return errors.New("too big file will be unzip")
 		}

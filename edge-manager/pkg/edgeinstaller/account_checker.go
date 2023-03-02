@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"huawei.com/mindxedge/base/common/checker/checker"
+	"huawei.com/mindxedge/base/common/passutils"
 )
 
 // NewSetEdgeAccountChecker [method] for getting set edge account checker struct
@@ -22,7 +23,7 @@ func (sac *setEdgeAccountChecker) init() {
 	sac.modelChecker.Required = true
 	sac.modelChecker.Checker = checker.GetAndChecker(
 		checker.GetRegChecker("Account", accountReg, true),
-		checker.GetPwdChecker("Account", "Password", passwordMinLen, passwordMaxLen, true),
+		passutils.GetPwdChecker("Account", "Password", passwordMinLen, passwordMaxLen, true),
 		checker.GetStringEqualChecker("Password", "ConfirmPassword"),
 	)
 }

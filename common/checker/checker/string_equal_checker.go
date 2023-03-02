@@ -1,6 +1,6 @@
 // Copyright (c) 2023. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package basicchecker for equal
+// Package checker for equal
 package checker
 
 import (

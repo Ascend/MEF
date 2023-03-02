@@ -7,20 +7,20 @@ import (
 	"net/http"
 	"strings"
 
-	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker/valuer"
+	"huawei.com/mindxedge/base/common/constant"
 )
 
-// httpsUrlChecker [struct] for url checker
-type httpsUrlChecker struct {
+// HttpsUrlChecker [struct] for url checker
+type HttpsUrlChecker struct {
 	field    string
 	required bool
 	valuer   valuer.StringValuer
 }
 
 // GetHttpsUrlChecker [method] for get url checker
-func GetHttpsUrlChecker(filed string, required bool) *httpsUrlChecker {
-	return &httpsUrlChecker{
+func GetHttpsUrlChecker(filed string, required bool) *HttpsUrlChecker {
+	return &HttpsUrlChecker{
 		field:    filed,
 		required: required,
 		valuer:   valuer.StringValuer{},
@@ -28,7 +28,7 @@ func GetHttpsUrlChecker(filed string, required bool) *httpsUrlChecker {
 }
 
 // Check [method] for do url check
-func (hc *httpsUrlChecker) Check(data interface{}) CheckResult {
+func (hc *HttpsUrlChecker) Check(data interface{}) CheckResult {
 	const (
 		urlSegmentCount = 2
 		urlMaxLength    = 512
@@ -64,7 +64,7 @@ func (hc *httpsUrlChecker) Check(data interface{}) CheckResult {
 		return NewFailedResult(fmt.Sprintf("https url checker Check [%s] failed: in not https url", hc.field))
 	}
 
-	if strings.ContainsAny(segments[1], common.IllegalChars) {
+	if strings.ContainsAny(segments[1], constant.IllegalChars) {
 		return NewFailedResult(fmt.Sprintf("https url checker Check [%s] failed: contain invalide char",
 			hc.field))
 	}
