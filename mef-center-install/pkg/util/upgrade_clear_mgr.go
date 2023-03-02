@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/utils"
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -88,10 +89,13 @@ func (ucm *UpgradeClearMgr) clearTempUpgradePath() error {
 func (ucm *UpgradeClearMgr) clearUnpackPath() error {
 	fmt.Println("start to clear unpack path")
 	hwlog.RunLog.Info("start to clear unpack path")
-	if err := common.DeleteAllFile(ucm.InstallPathMgr.WorkPathMgr.GetRelativeVarDirPath()); err != nil {
-		fmt.Println("clear unpack path failed")
-		hwlog.RunLog.Errorf("clear unpack path failed: %s", err.Error())
-		return fmt.Errorf("clear unpack path failed")
+	unpackPath := ucm.InstallPathMgr.WorkPathMgr.GetRelativeVarDirPath()
+	if !utils.IsExist(unpackPath) {
+		if err := common.DeleteAllFile(unpackPath); err != nil {
+			fmt.Println("clear unpack path failed")
+			hwlog.RunLog.Errorf("clear unpack path failed: %s", err.Error())
+			return fmt.Errorf("clear unpack path failed")
+		}
 	}
 	fmt.Println("clear unpack path success")
 	hwlog.RunLog.Info("clear unpack path success")
@@ -136,7 +140,11 @@ func (ucm *UpgradeClearMgr) ClearUpgrade() error {
 		return err
 	}
 
-	if err := common.DeleteFile(ucm.InstallPathMgr.WorkPathMgr.GetUpgradeFlagPath()); err != nil {
+	flagPath := ucm.InstallPathMgr.WorkPathMgr.GetUpgradeFlagPath()
+	if !utils.IsExist(flagPath) {
+		return nil
+	}
+	if err := common.DeleteFile(flagPath); err != nil {
 		hwlog.RunLog.Errorf("delete upgrade-flag failed: %s", err.Error())
 		return errors.New("delete upgrade-flag failed")
 	}
