@@ -349,6 +349,20 @@ func copyTarFile(extractPath string, header *tar.Header, tarReader *tar.Reader, 
 	return nil
 }
 
+// IfAbsPath is the func to check if a path is absolute path
+func IfAbsPath(path string) (bool, error) {
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return false, err
+	}
+
+	if absPath != path {
+		return false, nil
+	}
+
+	return true, nil
+}
+
 // SetPathPermission set permission for path or file
 func SetPathPermission(path string, mode os.FileMode, recursive, ignoreFile bool) error {
 	if err := setOneMode(path, mode); err != nil {

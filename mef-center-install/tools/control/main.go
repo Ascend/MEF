@@ -12,6 +12,7 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
+	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/control"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
@@ -167,27 +168,50 @@ func (uc *uninstallController) printSuccessLog(ip, user string) {
 
 func (uc *upgradeController) doControl() error {
 	installedComponents := uc.installParam.Components
-	var zipSizeMul int64 = 100
 
-	pathMgr := util.InitInstallDirPathMgr(uc.installParam.InstallDir)
-	unpackPath := pathMgr.WorkPathMgr.GetRelativeVarDirPath()
-	if filepath.Dir(zipPath) == unpackPath {
-		fmt.Println("zip path cannot be inside the unpack dir")
-		hwlog.RunLog.Errorf("zipDir cannot be the unpack dir:%s", unpackPath)
-		return errors.New("zipDir cannot be the unpack dir")
+	if err := uc.checkZipPath(); err != nil {
+		hwlog.RunLog.Errorf("check zip path failed: %s", err.Error())
+		return err
 	}
-
-	if _, err := utils.RealFileChecker(zipPath, true, false, zipSizeMul); err != nil {
-		fmt.Println("check upgrade path failed")
-		hwlog.RunLog.Errorf("zipPath check failed: %s", err)
-		return errors.New("zipPath check failed")
-	}
-
 	controlMgr := control.GetUpgradePreMgr(zipPath, installedComponents, uc.installParam.InstallDir)
 
 	if err := controlMgr.DoUpgrade(); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (uc *upgradeController) checkZipPath() error {
+	var zipSizeMul int64 = 100
+
+	pathMgr := util.InitInstallDirPathMgr(uc.installParam.InstallDir)
+	unpackPath := pathMgr.WorkPathMgr.GetRelativeVarDirPath()
+	if filepath.Dir(zipPath) == unpackPath {
+		fmt.Println("zip path cannot be inside the unpack path")
+		hwlog.RunLog.Errorf("zip path cannot be the unpack dir:%s", unpackPath)
+		return errors.New("zip path cannot be the unpack dir")
+	}
+
+	if zipPath == "" || !utils.IsExist(zipPath) {
+		fmt.Println("zip path does not exist")
+		return errors.New("zip path does not exist")
+	}
+
+	ret, err := common.IfAbsPath(zipPath)
+	if err != nil {
+		fmt.Println("get zip path's abs path failed")
+		return fmt.Errorf("get path [%s]'s abs path failed: %s", zipPath, err.Error())
+	}
+	if !ret {
+		fmt.Println("zip path is not an absolute path")
+		return fmt.Errorf("zip path is not abs path")
+	}
+
+	if _, err = utils.RealFileChecker(zipPath, true, false, zipSizeMul); err != nil {
+		fmt.Printf("check zip path failed: %s\n", err.Error())
+		return fmt.Errorf("zip path check failed: %s", err.Error())
+	}
+
 	return nil
 }
 
