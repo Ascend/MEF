@@ -33,7 +33,7 @@ func makeSingCert() error {
 	rootCaFilePath := path.Join(testDir, "test_root.ca")
 	rootPrivFilePath := path.Join(testDir, "test_root.key")
 	kmcCfg := &common.KmcCfg{
-		SdpAlgID:       common.Aes256gcm,
+		SdpAlgID:       common.Aes256gcmId,
 		PrimaryKeyPath: path.Join(testDir, "master.ks"),
 		StandbyKeyPath: path.Join(testDir, "backup.ks"),
 		DoMainId:       common.DoMainId,
@@ -52,7 +52,7 @@ func makeSingCert() error {
 		CommonName:  "MEF Test",
 		San:         CertSan{DnsName: []string{"MEF TEST DNS"}, IpAddr: []net.IP{net.ParseIP("127.0.0.1")}},
 		KmcCfg: &common.KmcCfg{
-			SdpAlgID:       common.Aes256gcm,
+			SdpAlgID:       common.Aes256gcmId,
 			PrimaryKeyPath: path.Join(testDir, "master.ks"),
 			StandbyKeyPath: path.Join(testDir, "backup.ks"),
 			DoMainId:       common.DoMainId,
@@ -76,7 +76,7 @@ func getTlsCfgWithPath(rootCaFilePath, svrCertPath, svcKeyPath, testDir string) 
 		KeyPath:    svcKeyPath,
 		SvrFlag:    true,
 		KmcCfg: &common.KmcCfg{
-			SdpAlgID:       common.Aes256gcm,
+			SdpAlgID:       common.Aes256gcmId,
 			PrimaryKeyPath: path.Join(testDir, "master.ks"),
 			StandbyKeyPath: path.Join(testDir, "backup.ks"),
 			DoMainId:       common.DoMainId,

@@ -39,6 +39,7 @@ const (
 	defaultOperateLogFile = "/var/log/mindx-edge/edge-manager/operate.log"
 	defaultBackupDirName  = "/var/log_backup/mindx-edge/edge-manager"
 	defaultDbPath         = "/home/data/config/edge-manager.db"
+	defaultKmcPath        = "/home/data/public-config/kmc-config.json"
 	defaultOpLogMaxSize   = 200
 	defaultRunLogMaxSize  = 400
 	logMaxLineLength      = 512
@@ -123,6 +124,10 @@ func initResource() error {
 	if _, err := kubeclient.NewClientK8s(""); err != nil {
 		hwlog.RunLog.Error("init k8s failed")
 		return err
+	}
+	err := common.InitKmcCfg(defaultKmcPath)
+	if err != nil {
+		hwlog.RunLog.Warnf("init kmc config from json failed: %v, use default kmc config", err)
 	}
 	return nil
 

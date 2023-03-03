@@ -70,6 +70,7 @@ const (
 // MEF-Config constant
 const (
 	KmcDir        = "kmc"
+	PubCfgDir     = "public-config"
 	RootCaDir     = "root-ca"
 	RootCaFileDir = "cert"
 	RootCaKeyDir  = "key"
@@ -125,6 +126,7 @@ const (
 // yaml editor constant
 const (
 	RootCaFlag          = "${root-ca}"
+	PubCfgFlag          = "${public-config}"
 	LogFlag             = "${log}"
 	LogBackupFlag       = "${log-backup}"
 	ConfigFlag          = "${config}"

@@ -52,6 +52,8 @@ spec:
               mountPath: /etc/localtime
             - name: root-ca
               mountPath: /home/data/inner-root-ca/
+            - name: public-config
+              mountPath: /home/data/public-config/
       volumes:
         - name: cert-manager-config
           hostPath:
@@ -71,6 +73,9 @@ spec:
         - name: root-ca
           hostPath:
             path: ${root-ca}
+        - name: public-config
+          hostPath:
+            path: ${public-config}
 
 ---
 apiVersion: v1

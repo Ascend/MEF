@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
@@ -23,6 +24,7 @@ const (
 	runLogFile     = "/var/log/mindx-edge/cert-manager/run.log"
 	operateLogFile = "/var/log/mindx-edge/cert-manager/operate.log"
 	backupDirName  = "/var/log_backup/mindx-edge/cert-manager"
+	defaultKmcPath = "/home/data/public-config/kmc-config.json"
 )
 
 var (
@@ -79,6 +81,10 @@ func init() {
 func initResource() error {
 	restful.BuildNameStr = buildName
 	restful.BuildVersionStr = buildVersion
+	err := common.InitKmcCfg(defaultKmcPath)
+	if err != nil {
+		hwlog.RunLog.Warnf("init kmc config from json failed: %v, use default kmc config", err)
+	}
 	return nil
 }
 

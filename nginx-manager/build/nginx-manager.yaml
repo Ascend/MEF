@@ -67,6 +67,8 @@ spec:
               mountPath: /home/data/inner-root-ca/
             - name: nginx-manager-config
               mountPath: /home/data/config
+            - name: public-config
+              mountPath: /home/data/public-config/
       volumes:
         - name: nginx-manager-config
           hostPath:
@@ -80,6 +82,9 @@ spec:
         - name: nginx-manager-log-backup
           hostPath:
             path: ${log-backup}
+        - name: public-config
+          hostPath:
+            path: ${public-config}
 ---
 apiVersion: v1
 kind: Service

@@ -6,6 +6,7 @@ import (
 	"os"
 
 	. "github.com/smartystreets/goconvey/convey"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
@@ -38,6 +39,9 @@ spec:
         - name: root-ca
           hostPath:
             path: ${root-ca}
+        - name: public-config
+          hostPath:
+            path: ${public-config}
 `
 }
 

@@ -30,6 +30,7 @@ const (
 	runLogFile     = "/home/MEFCenter/logs/run.log"
 	operateLogFile = "/home/MEFCenter/logs/operate.log"
 	backupDirName  = "/home/MEFCenter/logs_backup"
+	defaultKmcPath = "/home/data/public-config/kmc-config.json"
 	defaultPort    = 8080
 )
 
@@ -81,6 +82,10 @@ func initResource() error {
 		return err
 	}
 	ip = podIp
+	err = common.InitKmcCfg(defaultKmcPath)
+	if err != nil {
+		hwlog.RunLog.Warnf("init kmc config from json failed: %v, use default kmc config", err)
+	}
 	return nil
 }
 
