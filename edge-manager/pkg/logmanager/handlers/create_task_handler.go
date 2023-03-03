@@ -80,7 +80,7 @@ func (h *createTaskHandler) Handle(msg *model.Message) error {
 
 func (h *createTaskHandler) prepareUpload(nodeSn string) logcollect.UploadConfig {
 	fileName := logcollect.GetLogPackFileName(logcollect.ModuleEdge, nodeSn)
-	url := fmt.Sprintf("https://%s:%d%s/%s", h.ip, &h, constants.UploadUrlPathPrefix, fileName)
+	url := fmt.Sprintf("https://%s:%d%s/%s", h.ip, h.port, constants.UploadUrlPathPrefix, fileName)
 	return logcollect.UploadConfig{
 		MethodAndUrl: logcollect.MethodAndUrl{
 			Method: http.MethodPost,
