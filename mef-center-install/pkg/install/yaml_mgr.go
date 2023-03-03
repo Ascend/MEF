@@ -84,6 +84,16 @@ func (yd *YamlMgr) modifyModuleDir(content string) (string, error) {
 	return modifierIns.modifyMntDir()
 }
 
+func (yd *YamlMgr) modifyPubCfgDir(content string) (string, error) {
+	modifierIns := modifier{
+		component:      yd.component,
+		content:        content,
+		mark:           util.PubCfgFlag,
+		modifiedString: yd.pathMgr.ConfigPathMgr.GetCompPubConfigPath(),
+	}
+	return modifierIns.modifyMntDir()
+}
+
 func (yd *YamlMgr) modifyInstalledModule(content string, installedModule []string) (string, error) {
 	modifierIns := modifier{
 		component:      yd.component,
@@ -124,6 +134,11 @@ func (yd *YamlMgr) modifyContent(content string, installedModule []string) (stri
 	}
 
 	content, err = yd.modifyRootCaDir(content)
+	if err != nil {
+		return "", err
+	}
+
+	content, err = yd.modifyPubCfgDir(content)
 	if err != nil {
 		return "", err
 	}
