@@ -125,10 +125,6 @@ spec:
       port: 10000
       targetPort: 10000
       nodePort: 30003
-    - name: auth-port
-      port: 10001
-      targetPort: 10001
-      nodePort: 30004
   selector:
     app: ascend-edge-manager
   type: NodePort
