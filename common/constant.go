@@ -294,7 +294,7 @@ const (
 	// ResLogTaskProgressEdge resource for progress of edge node log collection
 	ResLogTaskProgressEdge = "/logcollect/task/progress/edge"
 	// LogCollectPathPrefix prefix for request url of log collection
-	LogCollectPathPrefix = "/edgemanager/v1/logcollect"
+	LogCollectPathPrefix = "/inner/v1/logcollect"
 	// ResRelLogTask resource for collection task
 	ResRelLogTask = "/task"
 	// ResRelLogTaskProgress resource for progress of collection task

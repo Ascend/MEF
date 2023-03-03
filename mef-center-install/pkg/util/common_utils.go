@@ -15,6 +15,7 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/terminal"
+
 	"huawei.com/mindxedge/base/common"
 )
 
