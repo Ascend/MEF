@@ -5,8 +5,6 @@ package util
 import (
 	"fmt"
 	"path/filepath"
-
-	"huawei.com/mindxedge/base/common"
 )
 
 // WorkPathItf is an interface contains the path on mef-center-X dir
@@ -452,11 +450,6 @@ func (cpm *ConfigPathMgr) GetComponentMasterKmcPath(component string) string {
 // GetComponentBackKmcPath returns the kmc backup key file path for single component by component's name
 func (cpm *ConfigPathMgr) GetComponentBackKmcPath(component string) string {
 	return filepath.Join(cpm.GetComponentKmcDirPath(component), BackUpKeyFile)
-}
-
-// GetEdgeMgrFlagPath returns the clear-flag path for edge-manager
-func (cpm *ConfigPathMgr) GetEdgeMgrFlagPath() string {
-	return filepath.Join(cpm.GetConfigPath(), EdgeManagerName, common.EdgeMgrClearFlag)
 }
 
 // InitInstallDirPathMgr returns the InstallDirPathMgr construct by the root path
