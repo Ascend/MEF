@@ -67,48 +67,6 @@ func issueServiceCert(certName string, serviceCsr string) ([]byte, error) {
 	return certPem, nil
 }
 
-// CheckAndCreateRootCa [method] for check root ca
-func CheckAndCreateRootCa() error {
-	hwlog.RunLog.Infof("start to check cert: %s", common.WsCltName)
-	err := checkAndCreateCa(common.WsCltName)
-	if err != nil {
-		hwlog.RunLog.Errorf("check cert [%s] failed: %v", common.WsCltName, err)
-		return err
-	}
-	hwlog.RunLog.Infof("check cert [%s] success", common.WsCltName)
-	return nil
-}
-
-func checkAndCreateCa(certName string) error {
-	var certPath, keyPath string
-	if certName == common.InnerName {
-		certPath = getInnerRootCaPath()
-	} else {
-		certPath = getRootCaPath(certName)
-	}
-	_, err := utils.CheckPath(certPath)
-	if err != nil {
-		return err
-	}
-	innerCert, err := utils.LoadFile(certPath)
-	if innerCert != nil {
-		// todo 增加备份恢复的校验
-		return nil
-	}
-	//  证书不存在，生成根证书
-	if certName == common.InnerName {
-		keyPath = getInnerRootKeyPath()
-	} else {
-		keyPath = getRootKeyPath(certName)
-	}
-	initCertMgr := certutils.InitRootCertMgr(certPath, keyPath, certName, nil)
-	_, err = initCertMgr.NewRootCa()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 // saveCaContent save ca content to File
 func saveCaContent(certName string, caContent []byte) error {
 	caFilePath := getRootCaPath(certName)
