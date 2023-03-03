@@ -9,17 +9,18 @@ import (
 	"reflect"
 	"testing"
 
-	"edge-manager/pkg/database"
-	"edge-manager/pkg/kubeclient"
-	"edge-manager/pkg/types"
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
 	"k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+
+	"edge-manager/pkg/database"
+	"edge-manager/pkg/kubeclient"
+	"edge-manager/pkg/types"
+	"huawei.com/mindxedge/base/common"
 )
 
 var (
@@ -319,9 +320,9 @@ func testUpdateApp() {
             "name":"afafda",
             "userId":1024
 }]}`
-	var p1 = gomonkey.ApplyPrivateMethod(AppRepositoryInstance(), "queryNodeGroup",
-		func(uint64) ([]types.NodeGroupInfo, error) {
-			return []types.NodeGroupInfo{}, nil
+	var p1 = gomonkey.ApplyPrivateMethod(AppRepositoryInstance(), "updateApp",
+		func(*AppInfo) error {
+			return nil
 		})
 	defer p1.Reset()
 	var p2 = gomonkey.ApplyFunc(updateNodeGroupDaemonSet, func(appInfo *AppInfo, nodeGroups []types.NodeGroupInfo) error {
@@ -351,9 +352,9 @@ func testUpdateAppDuplicate() {
             "name":"afafda",
             "userId":1024
 }]}`
-	var p1 = gomonkey.ApplyPrivateMethod(AppRepositoryInstance(), "queryNodeGroup",
-		func(uint64) ([]types.NodeGroupInfo, error) {
-			return []types.NodeGroupInfo{}, nil
+	var p1 = gomonkey.ApplyPrivateMethod(AppRepositoryInstance(), "updateApp",
+		func(*AppInfo) error {
+			return nil
 		})
 	defer p1.Reset()
 	var p2 = gomonkey.ApplyFunc(updateNodeGroupDaemonSet, func(appInfo *AppInfo, nodeGroups []types.NodeGroupInfo) error {
