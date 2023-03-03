@@ -4,6 +4,7 @@
 package restfulservice
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -15,6 +16,7 @@ import (
 	"edge-manager/pkg/config"
 	"edge-manager/pkg/types"
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/logmgmt/logcollect"
 	"huawei.com/mindxedge/base/common/restfulmgr"
 )
 
@@ -81,6 +83,7 @@ func setRouter(engine *gin.Engine) {
 	restfulmgr.InitRouter(engine, configRouterDispatchers)
 	restfulmgr.InitRouter(engine, edgeAccountRouterDispatchers)
 	restfulmgr.InitRouter(engine, softwareRouterDispatchers)
+	restfulmgr.InitRouter(engine, logCollectRouterDispatchers)
 	connCertRouter(engine)
 }
 
@@ -196,6 +199,26 @@ var softwareRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 	},
 }
 
+var logCollectRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
+	"/edgemanager/v1/logcollect": {
+		restfulmgr.GenericDispatcher{
+			RelativePath: common.ResRelLogTask,
+			Method:       http.MethodPost,
+			Destination:  common.LogManagerName,
+		},
+		batchQueryTaskDispatcher{restfulmgr.GenericDispatcher{
+			RelativePath: common.ResRelLogTaskProgress,
+			Method:       http.MethodGet,
+			Destination:  common.LogManagerName,
+		}},
+		batchQueryTaskDispatcher{restfulmgr.GenericDispatcher{
+			RelativePath: common.ResRelLogTaskPath,
+			Method:       http.MethodGet,
+			Destination:  common.LogManagerName,
+		}},
+	},
+}
+
 func connCertRouter(engine *gin.Engine) {
 	v1 := engine.Group("/edgemanager/v1/cert")
 	{
@@ -284,4 +307,21 @@ type capDispatcher struct {
 
 func (node capDispatcher) ParseData(c *gin.Context) (interface{}, error) {
 	return getCapReq(c)
+}
+
+type batchQueryTaskDispatcher struct {
+	restfulmgr.GenericDispatcher
+}
+
+func (list batchQueryTaskDispatcher) ParseData(c *gin.Context) (interface{}, error) {
+	var (
+		req logcollect.BatchQueryTaskReq
+		err error
+	)
+	if req.Module, err = getStringReqPara(c, "module"); err != nil {
+		return nil, err
+	}
+	req.EdgeNodes = c.QueryArray("node")
+	reqBytes, err := json.Marshal(req)
+	return string(reqBytes), err
 }

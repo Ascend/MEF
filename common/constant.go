@@ -68,6 +68,8 @@ const (
 	CertManagerService = "CertManagerService"
 	// ConfigManagerName ConfigManagerName
 	ConfigManagerName = "ConfigManager"
+	// LogManagerName LogManagerName
+	LogManagerName = "LogManager"
 
 	// Create option create
 	Create = "create"
@@ -269,8 +271,6 @@ const (
 	OptPost = "POST"
 	// OptReport option for report
 	OptReport = "REPORT"
-	// OptCollect option for collect
-	OptCollect = "COLLECT"
 	// ResEdgeDownloadInfo resource for download software
 	ResEdgeDownloadInfo = "/edge/download"
 	// ResEdgeUpgradeInfo resource for effect software
