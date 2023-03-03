@@ -43,8 +43,8 @@ var (
 )
 
 type batchResp struct {
-	SuccessIDs []interface{}
-	FailIDs    []interface{}
+	SuccessIDs []interface{} `json:"successIDs"`
+	FailIDs    []interface{} `json:"failIDs"`
 }
 
 func main() {
@@ -90,6 +90,10 @@ func exportEdgeLogs(edgeNodes []string) error {
 			return err
 		}
 		successNodes = append(successNodes, s...)
+		if len(s) == 0 {
+			time.Sleep(time.Second)
+			continue
+		}
 		paths, err := queryTaskPath(baseUrl, s)
 		if err != nil {
 			return err
@@ -150,7 +154,7 @@ func createTasks(baseUrl string, edgeNodes []string) ([]string, error) {
 	for _, s := range br.SuccessIDs {
 		node, ok := s.(string)
 		if !ok {
-			return nil, errors.New("failed to parse response, bad data type")
+			return nil, errors.New("failed to parse response, bad node name type")
 		}
 		result = append(result, node)
 	}
@@ -175,7 +179,7 @@ func queryTaskProgress(baseUrl string, edgeNodes []string) ([]string, []string, 
 		return nil, nil, fmt.Errorf("failed to parse response, %v", err)
 	}
 	if br == nil {
-		return nil, nil, errors.New("failed to parse response, bad data type")
+		return nil, nil, errors.New("failed to parse response, bad batch response type")
 	}
 	if len(br.FailIDs) > 0 {
 		return nil, nil, errors.New("get progress failed")
@@ -186,6 +190,7 @@ func queryTaskProgress(baseUrl string, edgeNodes []string) ([]string, []string, 
 	}
 	var result []string
 	for _, s := range successIDs {
+		fmt.Printf("%v\n", s)
 		dataBytes, err := json.Marshal(s.Data)
 		if err != nil {
 			return nil, nil, errors.New("failed to parse response")
@@ -253,13 +258,13 @@ func parseBatchResp(respBytes []byte) (*batchResp, error) {
 		return nil, errors.New("failed to unmarshal response")
 	}
 
-	if resp.Status == common.Success {
-		return nil, nil
-	}
-
 	if resp.Data == nil {
+		if resp.Status == common.Success {
+			return nil, nil
+		}
 		return nil, errors.New(resp.Msg)
 	}
+
 	dataBytes, err := json.Marshal(resp.Data)
 	if err != nil {
 		return nil, errors.New("failed to parse response")
