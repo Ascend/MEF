@@ -142,12 +142,11 @@ func updateClientCert(certName, certOpt string, certContent []byte) error {
 	hwlog.RunLog.Info("start update cert file")
 	reqCertParams := httpsmgr.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
-			RootCaPath:    certconstant.RootCaPath,
-			CertPath:      certconstant.ServerCertPath,
-			KeyPath:       certconstant.ServerKeyPath,
-			SvrFlag:       false,
-			IgnoreCltCert: false,
-			KmcCfg:        nil,
+			RootCaPath: certconstant.RootCaPath,
+			CertPath:   certconstant.ServerCertPath,
+			KeyPath:    certconstant.ServerKeyPath,
+			SvrFlag:    false,
+			KmcCfg:     nil,
 		},
 	}
 	cert := certutils.UpdateClientCert{

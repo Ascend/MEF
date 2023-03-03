@@ -21,11 +21,10 @@ func queryCertInfo(certName string) (certutils.ClientCertResp, error) {
 	res := certutils.ClientCertResp{}
 	reqCertParams := httpsmgr.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
-			RootCaPath:    util.RootCaPath,
-			CertPath:      util.ServerCertPath,
-			KeyPath:       util.ServerKeyPath,
-			SvrFlag:       false,
-			IgnoreCltCert: false,
+			RootCaPath: util.RootCaPath,
+			CertPath:   util.ServerCertPath,
+			KeyPath:    util.ServerKeyPath,
+			SvrFlag:    false,
 		},
 	}
 	rootCaRes, err := reqCertParams.GetRootCa(certName)

@@ -63,11 +63,10 @@ func SecretNotFound(err error) bool {
 func GetCertContent(certName string) (certutils.ClientCertResp, error) {
 	reqCertParams := httpsmgr.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
-			RootCaPath:    RootCaPath,
-			CertPath:      ServerCertPath,
-			KeyPath:       ServerKeyPath,
-			SvrFlag:       false,
-			IgnoreCltCert: false,
+			RootCaPath: RootCaPath,
+			CertPath:   ServerCertPath,
+			KeyPath:    ServerKeyPath,
+			SvrFlag:    false,
 		},
 	}
 	rootCaRes, err := reqCertParams.GetRootCa(certName)

@@ -27,12 +27,11 @@ func NewRestfulService(enable bool, ip string, port int) *EdgeMgrService {
 			IP:   ip,
 			Port: port,
 			TlsCertPath: certutils.TlsCertInfo{
-				RootCaPath:    util.RootCaPath,
-				CertPath:      util.ServerCertPath,
-				KeyPath:       util.ServerKeyPath,
-				SvrFlag:       true,
-				IgnoreCltCert: false,
-				KmcCfg:        nil,
+				RootCaPath: util.RootCaPath,
+				CertPath:   util.ServerCertPath,
+				KeyPath:    util.ServerKeyPath,
+				SvrFlag:    true,
+				KmcCfg:     nil,
 			},
 		},
 	}

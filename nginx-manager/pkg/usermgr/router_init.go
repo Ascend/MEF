@@ -27,12 +27,11 @@ func NewRestfulService(enable bool, ip string, port int) *UserRestfulService {
 			IP:   ip,
 			Port: port,
 			TlsCertPath: certutils.TlsCertInfo{
-				RootCaPath:    nginxcom.RootCaPath,
-				CertPath:      nginxcom.UserCertFile,
-				KeyPath:       nginxcom.UserCertKeyFile,
-				SvrFlag:       true,
-				IgnoreCltCert: false,
-				KmcCfg:        nil,
+				RootCaPath: nginxcom.RootCaPath,
+				CertPath:   nginxcom.UserCertFile,
+				KeyPath:    nginxcom.UserCertKeyFile,
+				SvrFlag:    true,
+				KmcCfg:     nil,
 			},
 		},
 	}
