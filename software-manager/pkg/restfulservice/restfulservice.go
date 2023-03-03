@@ -75,12 +75,11 @@ func NewRestfulService(enable bool, ip string, port int) model.Module {
 		httpsSvr: &httpsmgr.HttpsServer{
 			Port: port,
 			TlsCertPath: certutils.TlsCertInfo{
-				RootCaPath:    rootCaPath,
-				CertPath:      serverCertPath,
-				KeyPath:       serverKeyPath,
-				SvrFlag:       true,
-				IgnoreCltCert: false,
-				KmcCfg:        nil,
+				RootCaPath: rootCaPath,
+				CertPath:   serverCertPath,
+				KeyPath:    serverKeyPath,
+				SvrFlag:    true,
+				KmcCfg:     nil,
 			},
 		},
 	}
