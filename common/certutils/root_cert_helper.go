@@ -113,7 +113,10 @@ func (rcm *RootCertMgr) makeServiceCertificate(csr *x509.CertificateRequest) *x5
 }
 
 func (rcm *RootCertMgr) getRootCaCsr() *x509.Certificate {
-	now := time.Now()
+	now := time.Now().UTC()
+	if oneDayAgo, err := time.ParseDuration(OneDayAgo); err == nil {
+		now = now.Add(oneDayAgo)
+	}
 	csr := &x509.Certificate{
 		SerialNumber: big.NewInt(bigIntSize),
 		Subject: pkix.Name{
