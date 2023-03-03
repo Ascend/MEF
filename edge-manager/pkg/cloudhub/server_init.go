@@ -17,7 +17,6 @@ import (
 	"huawei.com/mindxedge/base/common/httpsmgr"
 	"huawei.com/mindxedge/base/common/websocketmgr"
 
-	"edge-manager/pkg/edgeconnector"
 	"edge-manager/pkg/util"
 )
 
@@ -30,7 +29,6 @@ const (
 	retryTime         = 30
 	maxRetry          = math.MaxInt
 	waitTime          = 5 * time.Second
-	enableClientAuth  = true
 )
 
 var serverSender websocketmgr.WsSvrSender
@@ -49,7 +47,6 @@ func InitServer() error {
 		CertPath:      path.Join(certPathDir, serviceName),
 		KeyPath:       path.Join(certPathDir, keyFileName),
 		SvrFlag:       true,
-		IgnoreCltCert: false,
 	}
 
 	podIp, err := common.GetPodIP()
@@ -57,25 +54,11 @@ func InitServer() error {
 		hwlog.RunLog.Errorf("get edge manager pod ip failed: %s", err.Error())
 		return errors.New("get edge manager pod ip")
 	}
-	if enableClientAuth {
-		go func() {
-			authCertInfo := certutils.TlsCertInfo{
-				KmcCfg:        common.GetDefKmcCfg(),
-				RootCaContent: rootCaBytes,
-				CertPath:      path.Join(certPathDir, serviceName),
-				KeyPath:       path.Join(certPathDir, keyFileName),
-				SvrFlag:       true,
-				IgnoreCltCert: true,
-			}
-			edgeconnector.NewClientAuthService(server.authPort, authCertInfo).Start()
-		}()
-	}
 	proxyConfig, err := websocketmgr.InitProxyConfig(name, podIp, server.wsPort, certInfo)
 	if err != nil {
 		hwlog.RunLog.Errorf("init proxy config failed: %v", err)
 		return errors.New("init proxy config failed")
 	}
-
 	proxyConfig.RegModInfos(getRegModuleInfoList())
 	proxy := &websocketmgr.WsServerProxy{
 		ProxyCfg: proxyConfig,
@@ -114,11 +97,10 @@ func checkAndSetWsSvcCert() {
 func getWsSvcCert(keyPath string) (string, error) {
 	reqCertParams := httpsmgr.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
-			RootCaPath:    util.RootCaPath,
-			CertPath:      util.ServerCertPath,
-			KeyPath:       util.ServerKeyPath,
-			SvrFlag:       false,
-			IgnoreCltCert: false,
+			RootCaPath: util.RootCaPath,
+			CertPath:   util.ServerCertPath,
+			KeyPath:    util.ServerKeyPath,
+			SvrFlag:    false,
 		},
 	}
 	var svcCertStr string
@@ -151,11 +133,10 @@ func getWsSvcCert(keyPath string) (string, error) {
 func getWsRootCert() ([]byte, error) {
 	reqCertParams := httpsmgr.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
-			RootCaPath:    util.RootCaPath,
-			CertPath:      util.ServerCertPath,
-			KeyPath:       util.ServerKeyPath,
-			SvrFlag:       false,
-			IgnoreCltCert: false,
+			RootCaPath: util.RootCaPath,
+			CertPath:   util.ServerCertPath,
+			KeyPath:    util.ServerKeyPath,
+			SvrFlag:    false,
 		},
 	}
 	var rootCaStr string

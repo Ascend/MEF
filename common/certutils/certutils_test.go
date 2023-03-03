@@ -71,11 +71,10 @@ func makeSingCert() error {
 
 func getTlsCfgWithPath(rootCaFilePath, svrCertPath, svcKeyPath, testDir string) error {
 	tlsCertPath := TlsCertInfo{
-		RootCaPath:    rootCaFilePath,
-		CertPath:      svrCertPath,
-		KeyPath:       svcKeyPath,
-		SvrFlag:       true,
-		IgnoreCltCert: false,
+		RootCaPath: rootCaFilePath,
+		CertPath:   svrCertPath,
+		KeyPath:    svcKeyPath,
+		SvrFlag:    true,
 		KmcCfg: &common.KmcCfg{
 			SdpAlgID:       common.Aes256gcm,
 			PrimaryKeyPath: path.Join(testDir, "master.ks"),

@@ -29,11 +29,10 @@ func (ch *certHandler) Handle(message *model.Message) error {
 	}
 	reqCertParams := httpsmgr.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
-			RootCaPath:    util.RootCaPath,
-			CertPath:      util.ServerCertPath,
-			KeyPath:       util.ServerKeyPath,
-			SvrFlag:       false,
-			IgnoreCltCert: false,
+			RootCaPath: util.RootCaPath,
+			CertPath:   util.ServerCertPath,
+			KeyPath:    util.ServerKeyPath,
+			SvrFlag:    false,
 		},
 	}
 	rootCaRes, err := reqCertParams.GetRootCa(certName)

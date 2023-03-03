@@ -18,7 +18,6 @@ import (
 // CloudServer wraps the struct WebSocketServer
 type CloudServer struct {
 	wsPort       int
-	authPort     int
 	maxClientNum int
 	writeLock    sync.RWMutex
 	ctx          context.Context
@@ -28,10 +27,9 @@ type CloudServer struct {
 var server CloudServer
 
 // NewCloudServer new cloud server
-func NewCloudServer(enable bool, wsPort, authPort, maxClientNum int) *CloudServer {
+func NewCloudServer(enable bool, wsPort, maxClientNum int) *CloudServer {
 	server = CloudServer{
 		wsPort:       wsPort,
-		authPort:     authPort,
 		maxClientNum: maxClientNum,
 		ctx:          context.Background(),
 		enable:       enable,

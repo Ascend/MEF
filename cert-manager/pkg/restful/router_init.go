@@ -35,12 +35,11 @@ func NewRestfulService(enable bool, ip string, port int) *Service {
 			IP:   ip,
 			Port: port,
 			TlsCertPath: certutils.TlsCertInfo{
-				RootCaPath:    certconstant.RootCaPath,
-				CertPath:      certconstant.ServerCertPath,
-				KeyPath:       certconstant.ServerKeyPath,
-				SvrFlag:       true,
-				IgnoreCltCert: false,
-				KmcCfg:        nil,
+				RootCaPath: certconstant.RootCaPath,
+				CertPath:   certconstant.ServerCertPath,
+				KeyPath:    certconstant.ServerKeyPath,
+				SvrFlag:    true,
+				KmcCfg:     nil,
 			},
 		},
 	}

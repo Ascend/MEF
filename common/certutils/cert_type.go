@@ -28,9 +28,10 @@ type TlsCertInfo struct {
 	KeyPath       string
 	CertPath      string
 	RootCaPath    string
+	KeyContent    []byte // plain key bytes, make sure clear it after use
+	CertContent   []byte
 	RootCaContent []byte
 	SvrFlag       bool
-	IgnoreCltCert bool
 }
 
 // CertSan [struct] for server cert san fields

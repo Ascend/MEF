@@ -52,11 +52,10 @@ func getServerCert(keyPath string) (string, error) {
 	}
 	reqCertParams := httpsmgr.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
-			RootCaPath:    nginxcom.RootCaPath,
-			CertPath:      nginxcom.ClientCertFile,
-			KeyPath:       nginxcom.ClientCertKeyFile,
-			SvrFlag:       false,
-			IgnoreCltCert: false,
+			RootCaPath: nginxcom.RootCaPath,
+			CertPath:   nginxcom.ClientCertFile,
+			KeyPath:    nginxcom.ClientCertKeyFile,
+			SvrFlag:    false,
 		},
 	}
 	var certStr string

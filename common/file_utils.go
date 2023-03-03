@@ -182,7 +182,6 @@ func prepareExtraZip(zipFile, extractPath string) (*zip.ReadCloser, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open zip reader failed, error: %v", err)
 	}
-
 	return reader, nil
 }
 
