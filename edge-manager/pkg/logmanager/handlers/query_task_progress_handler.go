@@ -4,6 +4,8 @@
 package handlers
 
 import (
+	"fmt"
+
 	"github.com/pkg/errors"
 	"huawei.com/mindx/common/hwlog"
 
@@ -36,6 +38,8 @@ func (h *queryTaskProgressHandler) Handle(msg *model.Message) error {
 		return sendResponse(common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}, msg)
 	}
 	var batchResp types.BatchResp
+	failedMap := make(map[string]string)
+	batchResp.FailedInfos = failedMap
 	for _, node := range req.EdgeNodes {
 		resp := logcollect.QueryTaskResp{
 			Module:   req.Module,
@@ -43,15 +47,15 @@ func (h *queryTaskProgressHandler) Handle(msg *model.Message) error {
 		}
 		progress, err := h.taskMgr.GetTaskProgress(node)
 		if err != nil {
-			hwlog.RunLog.Warnf("failed to get progress, %v", err)
-			resp.Data = err.Error()
-			batchResp.FailedIDs = append(batchResp.FailedIDs, resp)
+			errInfo := fmt.Sprintf("failed to get progress, %v", err)
+			hwlog.RunLog.Error(errInfo)
+			failedMap[node] = errInfo
 			continue
 		}
 		resp.Data = progress
 		batchResp.SuccessIDs = append(batchResp.SuccessIDs, resp)
 	}
-	if len(batchResp.FailedIDs) > 0 {
+	if len(batchResp.FailedInfos) > 0 {
 		hwlog.RunLog.Error("failed to handle progress query")
 		return sendResponse(common.RespMsg{Status: common.ErrorLogCollectEdgeBusiness, Data: batchResp}, msg)
 	}

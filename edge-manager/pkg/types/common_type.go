@@ -17,8 +17,8 @@ type ListReq struct {
 
 // BatchResp batch request deal result
 type BatchResp struct {
-	SuccessIDs []interface{} `json:"successIDs"`
-	FailedIDs  []interface{} `json:"failedIDs"`
+	SuccessIDs  []interface{}     `json:"successIDs"`
+	FailedInfos map[string]string `json:"failedInfos"`
 }
 
 // CapReq NodeID for query node details

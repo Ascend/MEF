@@ -4,10 +4,11 @@
 package edgemsgmanager
 
 import (
+	"fmt"
+
 	"huawei.com/mindx/common/hwlog"
 
 	"edge-manager/pkg/types"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
@@ -42,18 +43,23 @@ func downloadSoftware(input interface{}) common.RespMsg {
 	msg.SetRouter(common.NodeMsgManagerName, common.CloudHubName, common.OptPost, common.ResEdgeDownloadInfo)
 	msg.FillContent(message.GetContent())
 	var batchResp types.BatchResp
+	failedMap := make(map[string]string)
+	batchResp.FailedInfos = failedMap
 	for _, sn := range req.SerialNumbers {
 		msg.SetNodeId(sn)
 
 		rsp, err := modulemanager.SendSyncMessage(msg, common.ResponseTimeout)
 		if err != nil {
-			hwlog.RunLog.Errorf("send software download info to %s failed", sn)
-			batchResp.FailedIDs = append(batchResp.FailedIDs, sn)
+			errInfo := fmt.Sprintf("send software download info to %s failed", sn)
+			hwlog.RunLog.Error(errInfo)
+			failedMap[sn] = errInfo
 			continue
 		}
 
 		if content, ok := rsp.GetContent().(string); !ok || content != common.OK {
-			batchResp.FailedIDs = append(batchResp.FailedIDs, sn)
+			errInfo := fmt.Sprintf("mef edge process software download info in %s failed", sn)
+			hwlog.RunLog.Error(errInfo)
+			failedMap[sn] = errInfo
 			continue
 		}
 
@@ -61,7 +67,7 @@ func downloadSoftware(input interface{}) common.RespMsg {
 		nodesProgress[sn] = types.ProgressInfo{}
 	}
 
-	if len(batchResp.FailedIDs) != 0 {
+	if len(batchResp.FailedInfos) != 0 {
 		hwlog.RunLog.Error("deal edge software upgrade info failed")
 		return common.RespMsg{Status: common.ErrorSendMsgToNode, Msg: "", Data: batchResp}
 	} else {

@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,10 +18,9 @@ import (
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 
-	"huawei.com/mindxedge/base/common"
-
 	"edge-manager/pkg/types"
 	"edge-manager/pkg/util"
+	"huawei.com/mindxedge/base/common"
 )
 
 var (
@@ -324,15 +324,18 @@ func batchDeleteNode(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
 	}
 	var res types.BatchResp
+	failedMap := make(map[string]string)
+	res.FailedInfos = failedMap
 	for _, nodeID := range req.NodeIDs {
 		if err := deleteSingleNode(nodeID); err != nil {
-			hwlog.RunLog.Warnf("failed to delete node, error: err=%v", err)
-			res.FailedIDs = append(res.FailedIDs, nodeID)
+			errInfo := fmt.Sprintf("failed to delete node, error: err=%v", err)
+			hwlog.RunLog.Error(errInfo)
+			failedMap[strconv.Itoa(int(nodeID))] = errInfo
 			continue
 		}
 		res.SuccessIDs = append(res.SuccessIDs, nodeID)
 	}
-	if len(res.FailedIDs) != 0 {
+	if len(res.FailedInfos) != 0 {
 		return common.RespMsg{Status: common.ErrorDeleteNode, Data: res}
 	}
 	hwlog.RunLog.Info("delete node success")
@@ -366,15 +369,18 @@ func deleteNodeFromGroup(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
 	}
 	var res types.BatchResp
+	failedMap := make(map[string]string)
+	res.FailedInfos = failedMap
 	for _, nodeID := range *req.NodeIDs {
 		if err := NodeServiceInstance().deleteSingleNodeRelation(*req.GroupID, nodeID); err != nil {
-			hwlog.RunLog.Warnf("failed to delete node from group, error: err=%v", err)
-			res.FailedIDs = append(res.FailedIDs, nodeID)
+			errInfo := fmt.Sprintf("failed to delete node from group, error: err=%v", err)
+			hwlog.RunLog.Error(errInfo)
+			failedMap[strconv.Itoa(int(nodeID))] = errInfo
 			continue
 		}
 		res.SuccessIDs = append(res.SuccessIDs, nodeID)
 	}
-	if len(res.FailedIDs) != 0 {
+	if len(res.FailedInfos) != 0 {
 		return common.RespMsg{Status: common.ErrorDeleteNodeFromGroup, Msg: "", Data: res}
 	}
 	hwlog.RunLog.Info("delete node relation success")
@@ -393,15 +399,19 @@ func batchDeleteNodeRelation(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
 	}
 	var res types.BatchResp
+	failedMap := make(map[string]string)
+	res.FailedInfos = failedMap
 	for _, relation := range req {
 		if err := NodeServiceInstance().deleteSingleNodeRelation(*relation.GroupID, *relation.NodeID); err != nil {
-			hwlog.RunLog.Warnf("failed to delete node relation, error: err=%v", err)
-			res.FailedIDs = append(res.FailedIDs, relation)
+			errInfo := fmt.Sprintf("failed to delete node relation, error: %v", err)
+			relationStr := fmt.Sprintf("groupID: %d, nodeID: %d", *relation.GroupID, *relation.NodeID)
+			hwlog.RunLog.Error(errInfo)
+			failedMap[relationStr] = errInfo
 			continue
 		}
 		res.SuccessIDs = append(res.SuccessIDs, relation)
 	}
-	if len(res.FailedIDs) != 0 {
+	if len(res.FailedInfos) != 0 {
 		return common.RespMsg{Status: common.ErrorDeleteNodeFromGroup, Msg: "", Data: res}
 	}
 	hwlog.RunLog.Info("delete node relation success")
@@ -464,6 +474,9 @@ func addNodeRelation(input interface{}) common.RespMsg {
 
 func addNode(req AddNodeToGroupReq) (*types.BatchResp, error) {
 	var res types.BatchResp
+	failedMap := make(map[string]string)
+	res.FailedInfos = failedMap
+
 	nodeGroup, err := NodeServiceInstance().getNodeGroupByID(*req.GroupID)
 	if err != nil {
 		return nil, fmt.Errorf("dont have this node group id(%d)", *req.GroupID)
@@ -474,14 +487,16 @@ func addNode(req AddNodeToGroupReq) (*types.BatchResp, error) {
 	}
 	for i, id := range *req.NodeIDs {
 		if err = checkNodeResource(resReq, id); err != nil {
-			res.FailedIDs = append(res.FailedIDs, id)
-			hwlog.RunLog.Errorf("check node allocatable resource failed: %s", err.Error())
+			errInfo := fmt.Sprintf("check node allocatable resource failed: %s", err.Error())
+			hwlog.RunLog.Error(errInfo)
+			failedMap[strconv.Itoa(int(id))] = errInfo
 			continue
 		}
 		nodeDb, err := NodeServiceInstance().getManagedNodeByID(id)
 		if err != nil {
-			res.FailedIDs = append(res.FailedIDs, id)
-			hwlog.RunLog.Errorf("no found node id %d", id)
+			errInfo := fmt.Sprintf("no found node id %d", id)
+			hwlog.RunLog.Error(errInfo)
+			failedMap[strconv.Itoa(int(id))] = errInfo
 			continue
 		}
 		relation := NodeRelation{
@@ -489,13 +504,14 @@ func addNode(req AddNodeToGroupReq) (*types.BatchResp, error) {
 			GroupID:   *req.GroupID,
 			CreatedAt: time.Now().Format(TimeFormat)}
 		if err := nodeServiceInstance.addNodeToGroup(&relation, nodeDb.UniqueName); err != nil {
-			res.FailedIDs = append(res.FailedIDs, id)
-			hwlog.RunLog.Errorf("add node(%s) to group(%d) error", nodeDb.NodeName, nodeGroup.ID)
+			errInfo := fmt.Sprintf("add node(%s) to group(%d) error", nodeDb.NodeName, nodeGroup.ID)
+			hwlog.RunLog.Error(errInfo)
+			failedMap[strconv.Itoa(int(id))] = errInfo
 			continue
 		}
 		res.SuccessIDs = append(res.SuccessIDs, id)
 	}
-	if len(res.FailedIDs) != 0 {
+	if len(res.FailedInfos) != 0 {
 		return &res, errors.New("add some nodes to group failed")
 	}
 	return &res, nil
@@ -529,17 +545,18 @@ func addUnManagedNode(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorAddUnManagedNode, Msg: "add node to mef system error", Data: nil}
 	}
 	var addNodeRes types.BatchResp
+	failedMap := make(map[string]string)
+	addNodeRes.FailedInfos = failedMap
 	for _, id := range req.GroupIDs {
 		addReq := AddNodeToGroupReq{NodeIDs: &[]uint64{*req.NodeID}, GroupID: &id}
 		_, err := addNode(addReq)
 		if err != nil {
-			addNodeRes.FailedIDs = append(addNodeRes.FailedIDs, id)
-			hwlog.RunLog.Error(err)
+			failedMap[strconv.Itoa(int(id))] = err.Error()
 			continue
 		}
 		addNodeRes.SuccessIDs = append(addNodeRes.SuccessIDs, id)
 	}
-	if len(addNodeRes.FailedIDs) != 0 {
+	if len(addNodeRes.FailedInfos) != 0 {
 		return common.RespMsg{Status: common.ErrorAddUnManagedNode,
 			Msg: "add node to mef success, but node cannot join some group", Data: addNodeRes}
 	}

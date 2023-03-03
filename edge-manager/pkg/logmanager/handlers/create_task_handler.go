@@ -14,14 +14,13 @@ import (
 
 	"edge-manager/pkg/logmanager/constants"
 	"edge-manager/pkg/logmanager/modules"
+	"edge-manager/pkg/types"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker/checker"
 	"huawei.com/mindxedge/base/common/handlerbase"
 	"huawei.com/mindxedge/base/common/logmgmt/logcollect"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
-
-	"edge-manager/pkg/types"
 )
 
 const sendMessageTimeout = 5 * time.Second
@@ -50,11 +49,15 @@ func (h *createTaskHandler) Handle(msg *model.Message) error {
 		return sendResponse(common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}, msg)
 	}
 	var resp types.BatchResp
+	failedMap := make(map[string]string)
+	resp.FailedInfos = failedMap
+
 	for _, node := range req.EdgeNodes {
 		uploadConfig := h.prepareUpload(node)
 		if err := h.progressMgr.AddTask(node, filepath.Base(uploadConfig.MethodAndUrl.Url)); err != nil {
-			hwlog.RunLog.Warnf("failed to add task: %v", err)
-			resp.FailedIDs = append(resp.FailedIDs, node)
+			errInfo := fmt.Sprintf("failed to add task: %v", err)
+			hwlog.RunLog.Error(errInfo)
+			failedMap[node] = errInfo
 			continue
 		}
 		if err := h.sendReqToEdge(node, uploadConfig); err != nil {
@@ -62,13 +65,14 @@ func (h *createTaskHandler) Handle(msg *model.Message) error {
 				Status:  common.ErrorLogCollectEdgeBusiness,
 				Message: "failed to send message to edge",
 			}, node)
-			hwlog.RunLog.Warnf("failed to send message to edge: %v, %v", err, sendErr)
-			resp.FailedIDs = append(resp.FailedIDs, node)
+			errInfo := fmt.Sprintf("failed to send message to edge: %v, %v", err, sendErr)
+			hwlog.RunLog.Error(errInfo)
+			failedMap[node] = errInfo
 			continue
 		}
 		resp.SuccessIDs = append(resp.SuccessIDs, node)
 	}
-	if len(resp.FailedIDs) > 0 {
+	if len(resp.FailedInfos) > 0 {
 		hwlog.RunLog.Error("failed to handle task creation")
 		return sendResponse(
 			common.RespMsg{Status: common.ErrorLogCollectEdgeBusiness, Msg: "handle adding task failed", Data: resp},
