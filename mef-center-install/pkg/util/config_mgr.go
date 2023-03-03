@@ -4,7 +4,6 @@ package util
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -29,7 +28,6 @@ func (cm *ConfigMgr) DoPrepare() error {
 	var prepareConfigTasks = []func() error{
 		cm.prepareConfigDir,
 		cm.preparePubConfigDir,
-		cm.prepareEdgeMgrFlag,
 	}
 
 	for _, function := range prepareConfigTasks {
@@ -66,20 +64,5 @@ func (cm *ConfigMgr) preparePubConfigDir() error {
 		return errors.New("prepare public-config dir failed")
 	}
 
-	return nil
-}
-
-func (cm *ConfigMgr) prepareEdgeMgrFlag() error {
-	edgeMgrDirPath := cm.cfgPathMgr.GetComponentConfigPath(EdgeManagerName)
-	if err := common.MakeSurePath(edgeMgrDirPath); err != nil {
-		hwlog.RunLog.Errorf("prepare %s config dir failed: %v", EdgeManagerName, err.Error())
-		return fmt.Errorf("prepare %s config dir failed", EdgeManagerName)
-	}
-
-	flagPath := cm.cfgPathMgr.GetEdgeMgrFlagPath()
-	if err := common.CreateFile(flagPath, common.Mode600); err != nil {
-		hwlog.RunLog.Errorf("create clear-flag path [%s] failed: %v", flagPath, err.Error())
-		return errors.New("create clear-flag path failed")
-	}
 	return nil
 }
