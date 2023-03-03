@@ -5,6 +5,7 @@ package appmanager
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 
 	"gorm.io/gorm"
@@ -29,7 +30,7 @@ type AppRepositoryImpl struct {
 // AppRepository for app method to operate db
 type AppRepository interface {
 	createApp(*AppInfo) error
-	updateApp(appId uint64, column string, value interface{}) error
+	updateApp(*AppInfo) error
 	listAppsInfo(page, pageSize uint64, name string) ([]AppInfo, error)
 	countListAppsInfo(string) (int64, error)
 	countDeployedApp() (int64, int64, error)
@@ -37,7 +38,6 @@ type AppRepository interface {
 	getAppInfoById(appId uint64) (*AppInfo, error)
 	getAppInfoByName(string) (*AppInfo, error)
 	deleteAppById(uint64) (int64, error)
-	queryNodeGroup(uint64) ([]types.NodeGroupInfo, error)
 	listAppInstancesById(uint64) ([]AppInstance, error)
 	listAppInstancesByNode(uint64) ([]AppInstance, error)
 	listAppInstances(page, pageSize uint64, name string) ([]AppInstance, error)
@@ -76,23 +76,30 @@ func (a *AppRepositoryImpl) createApp(appInfo *AppInfo) error {
 	return a.db.Model(AppInfo{}).Create(appInfo).Error
 }
 
-func (a *AppRepositoryImpl) updateApp(appId uint64, column string, value interface{}) error {
-	return a.db.Model(AppInfo{}).Where("id = ?", appId).Update(column, value).Error
-}
+func (a *AppRepositoryImpl) updateApp(appInfo *AppInfo) error {
+	return a.db.Transaction(func(tx *gorm.DB) error {
+		if stmt := tx.Model(AppInfo{}).Where("id = ?", appInfo.ID).
+			Update("containers", appInfo.Containers); stmt.Error != nil {
+			return errors.New("update app to db failed")
+		}
 
-func (a *AppRepositoryImpl) queryNodeGroup(appId uint64) ([]types.NodeGroupInfo, error) {
-	var daemonSets []AppDaemonSet
-	if err := a.db.Model(AppDaemonSet{}).Where("app_id = ?", appId).Find(&daemonSets).Error; err != nil {
-		return nil, err
-	}
-	var nodeGroups []types.NodeGroupInfo
-	for _, daemonSet := range daemonSets {
-		nodeGroups = append(nodeGroups, types.NodeGroupInfo{
-			NodeGroupID:   daemonSet.NodeGroupID,
-			NodeGroupName: daemonSet.NodeGroupName,
-		})
-	}
-	return nodeGroups, nil
+		var daemonSets []AppDaemonSet
+		if stmt := tx.Model(AppDaemonSet{}).Where("app_id = ?", appInfo.ID).Find(&daemonSets); stmt.Error != nil {
+			return errors.New("get node group failed ")
+		}
+		var nodeGroups []types.NodeGroupInfo
+		for _, daemonSet := range daemonSets {
+			nodeGroups = append(nodeGroups, types.NodeGroupInfo{
+				NodeGroupID:   daemonSet.NodeGroupID,
+				NodeGroupName: daemonSet.NodeGroupName,
+			})
+		}
+
+		if err := updateNodeGroupDaemonSet(appInfo, nodeGroups); err != nil {
+			return fmt.Errorf("update node group daemon set failed: %s", err.Error())
+		}
+		return nil
+	})
 }
 
 func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) ([]AppInfo, error) {

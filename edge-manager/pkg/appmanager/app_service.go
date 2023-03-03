@@ -363,25 +363,9 @@ func updateApp(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("modify app info failed: %s", err.Error())
 		return common.RespMsg{Status: common.ErrorUpdateApp, Msg: "update app info failed", Data: nil}
 	}
-
-	if err = AppRepositoryInstance().updateApp(appInfo.ID, "containers", appInfo.Containers); err != nil {
-		if strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
-			hwlog.RunLog.Error("update app to db failed")
-			return common.RespMsg{Status: common.ErrorAppMrgDuplicate, Msg: "update app to db failed", Data: nil}
-		}
-		hwlog.RunLog.Error("update app to db failed")
-		return common.RespMsg{Status: common.ErrorUpdateApp, Msg: "update app to db failed", Data: nil}
-	}
-
-	nodeGroups, err := AppRepositoryInstance().queryNodeGroup(req.AppID)
-	if err != nil {
-		hwlog.RunLog.Error("get node group failed ")
-		return common.RespMsg{Status: common.ErrorUpdateApp, Msg: "get node group failed", Data: nil}
-	}
-
-	if err = updateNodeGroupDaemonSet(appInfo, nodeGroups); err != nil {
-		hwlog.RunLog.Errorf("update node group daemon set failed: %s", err.Error())
-		return common.RespMsg{Status: common.ErrorUpdateApp, Msg: "update node group daemon set failed", Data: nil}
+	if err = AppRepositoryInstance().updateApp(appInfo); err != nil {
+		hwlog.RunLog.Errorf("update app to db failed, %v", err.Error())
+		return common.RespMsg{Status: common.ErrorUpdateApp, Msg: err.Error(), Data: nil}
 	}
 
 	hwlog.RunLog.Info("app daemonSet update success")
