@@ -115,7 +115,7 @@ spec:
             path: ${root-ca}
         - name: log-export
           hostPath:
-            path: /home/MEFCenter/log_exports
+            path: /var/log_exports
 
 ---
 apiVersion: v1

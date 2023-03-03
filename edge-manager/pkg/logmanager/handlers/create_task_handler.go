@@ -15,6 +15,7 @@ import (
 	"edge-manager/pkg/logmanager/constants"
 	"edge-manager/pkg/logmanager/modules"
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/checker/checker"
 	"huawei.com/mindxedge/base/common/handlerbase"
 	"huawei.com/mindxedge/base/common/logmgmt/logcollect"
 	"huawei.com/mindxedge/base/modulemanager"
@@ -106,9 +107,20 @@ func (h *createTaskHandler) parse(content interface{}) (logcollect.CreateTaskReq
 }
 
 func (h *createTaskHandler) check(req logcollect.CreateTaskReq) error {
-	checkResult := getCreateTaskChecker().Check(req)
+	checkResult := getBatchQueryChecker().Check(req)
 	if !checkResult.Result {
 		return errors.New(checkResult.Reason)
+	}
+	var emptyServer logcollect.UploadConfig
+	if req.HttpsServer == emptyServer {
+		return nil
+	}
+	if req.HttpsServer.MethodAndUrl.Method != http.MethodPost {
+		return errors.New("method not allowed")
+	}
+	checkResult = checker.GetRegChecker("Url", `^https://`, true).Check(req.HttpsServer.MethodAndUrl)
+	if !checkResult.Result {
+		return errors.New("schema is not supported")
 	}
 	return nil
 }

@@ -1,0 +1,70 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ascend-mef-center-log-export-job
+  namespace: mef-center
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 1800
+  template:
+    metadata:
+      name: ascend-mef-center-log-export-pod
+    spec:
+      nodeSelector:
+        mef-center-node: ""
+      restartPolicy: Never
+      containers:
+        - name: ascend-mef-center-log-export-container
+          securityContext:
+            runAsUser: ${mef_center_uid}
+            runAsGroup: ${mef_center_gid}
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ "ALL" ]
+          image: ubuntu:22.04
+          workingDir: /work
+          command: [ "./MEF-center-log-export-tool" ]
+          args: [ "-nodes=${param_nodes}" ]
+          volumeMounts:
+            - name: edge-manager-log
+              mountPath: /var/log/mindx-edge/edge-manager
+            - name: edge-manager-log-backup
+              mountPath: /var/log_backup/mindx-edge/edge-manager
+            - name: localtime
+              mountPath: /etc/localtime
+            - name: edge-manager-config
+              mountPath: /home/data/config/
+            - name: root-ca
+              mountPath: /home/data/inner-root-ca/
+            - name: work-dir
+              mountPath: /work
+            - name: kmc-lib
+              mountPath: /home/data/kmc-lib
+          env:
+            - name: LD_LIBRARY_PATH
+              value: /home/data/kmc-lib
+      volumes:
+        - name: edge-manager-log
+          hostPath:
+            path: ${log_dir}
+            type: Directory
+        - name: edge-manager-log-backup
+          hostPath:
+            path: ${log_backup_dir}
+            type: Directory
+        - name: localtime
+          hostPath:
+            path: /etc/localtime
+        - name: edge-manager-config
+          hostPath:
+            path: ${config_dir}
+        - name: root-ca
+          hostPath:
+            path: ${root_ca_dir}
+        - name: work-dir
+          hostPath:
+            path: ${work_dir}
+        - name: kmc-lib
+          hostPath:
+            path: ${kmc_lib_dir}

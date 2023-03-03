@@ -108,7 +108,7 @@ func (u *uploadMgr) handleUpload(c *gin.Context) {
 		return
 	}
 
-	exportPath := filepath.Join(logcollect.CenterLogExportDir, filename)
+	exportPath := filepath.Join("/home/MEFCenter/log_exports", filename)
 	file, err := os.OpenFile(exportPath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, common.Mode600)
 	if err != nil {
 		u.abort(c, http.StatusInternalServerError, "can't open upload file")

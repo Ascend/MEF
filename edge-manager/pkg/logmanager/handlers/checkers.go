@@ -12,8 +12,7 @@ const (
 	minList = 1
 	maxList = 16
 
-	regexpNodeSn       = `^[a-zA-Z0-9]([-_a-zA-Z0-9]{0,62}[a-zA-Z0-9])?$`
-	regexpMethodAndUrl = `POST https://`
+	regexpNodeSn = `^[a-zA-Z0-9]([-_a-zA-Z0-9]{0,62}[a-zA-Z0-9])?$`
 )
 
 var (
@@ -25,12 +24,5 @@ func getBatchQueryChecker() *checker.AndChecker {
 		checker.GetUniqueListChecker(
 			"EdgeNodes", checker.GetRegChecker("", regexpNodeSn, true), minList, maxList, true),
 		checker.GetStringChoiceChecker("Module", validModuleList, true),
-	)
-}
-
-func getCreateTaskChecker() *checker.AndChecker {
-	return checker.GetAndChecker(
-		getBatchQueryChecker(),
-		checker.GetRegChecker("", regexpMethodAndUrl, true),
 	)
 }

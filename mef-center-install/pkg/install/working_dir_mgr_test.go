@@ -10,6 +10,7 @@ import (
 	. "github.com/agiledragon/gomonkey/v2"
 	. "github.com/smartystreets/goconvey/convey"
 	"huawei.com/mindx/common/utils"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
@@ -39,7 +40,9 @@ func WorkingDirMgrDoPrepareTest() {
 			ApplyPrivateMethod(ins, "prepareBinDir", func(_ *WorkingDirCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "prepareVersionXml", func(_ *WorkingDirCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "prepareComponentWorkDir", func(_ *WorkingDirCtl) error { return nil }).
-			ApplyPrivateMethod(ins, "prepareSymlinks", func(_ *WorkingDirCtl) error { return nil })
+			ApplyPrivateMethod(ins, "prepareSymlinks", func(_ *WorkingDirCtl) error { return nil }).
+			ApplyPrivateMethod(ins, "prepareLogExportTool", func(_ *WorkingDirCtl) error { return nil })
+
 		defer p.Reset()
 		So(ins.DoInstallPrepare(), ShouldBeNil)
 	})

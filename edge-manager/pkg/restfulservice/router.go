@@ -200,7 +200,7 @@ var softwareRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 }
 
 var logCollectRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
-	"/edgemanager/v1/logcollect": {
+	common.LogCollectPathPrefix: {
 		restfulmgr.GenericDispatcher{
 			RelativePath: common.ResRelLogTask,
 			Method:       http.MethodPost,
