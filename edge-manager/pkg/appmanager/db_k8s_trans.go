@@ -14,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"edge-manager/pkg/kubeclient"
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -35,7 +36,7 @@ func initDaemonSet(appInfo *AppInfo, nodeGroupId uint64) (*appv1.DaemonSet, erro
 		return nil, err
 	}
 	cmVolumes := getCmVolumes(containerInfos)
-	reference := v1.LocalObjectReference{Name: common.DefaultImagePullSecret}
+	reference := v1.LocalObjectReference{Name: kubeclient.DefaultImagePullSecretKey}
 
 	tmpSpec := v1.PodSpec{}
 	tmpSpec.Containers = containers
