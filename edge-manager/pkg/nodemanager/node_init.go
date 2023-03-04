@@ -64,32 +64,37 @@ func (node *nodeManager) Start() {
 			return
 		default:
 		}
+
 		req, err := modulemanager.ReceiveMessage(node.Name())
 		hwlog.RunLog.Debugf("%s receive request from restful service", node.Name())
 		if err != nil {
 			hwlog.RunLog.Errorf("%s receive request from restful service failed", node.Name())
 			continue
 		}
-		msg, err := dispatchMsg(req)
-		if err != nil {
-			hwlog.RunLog.Errorf("%s get method by option and resource failed", node.Name())
-			continue
-		}
 
-		if !req.GetIsSync() {
-			continue
-		}
+		go node.dispatch(req)
+	}
+}
 
-		resp, err := req.NewResponse()
-		if err != nil {
-			hwlog.RunLog.Errorf("%s new response failed: %v", node.Name(), err)
-			continue
-		}
-		resp.FillContent(msg)
-		if err = modulemanager.SendMessage(resp); err != nil {
-			hwlog.RunLog.Errorf("%s send response failed: %v", node.Name(), err)
-			continue
-		}
+func (node *nodeManager) dispatch(req *model.Message) {
+	msg, err := selectMethod(req)
+	if err != nil {
+		hwlog.RunLog.Errorf("%s get method by option and resource failed", node.Name())
+		return
+	}
+	if !req.GetIsSync() {
+		return
+	}
+
+	resp, err := req.NewResponse()
+	if err != nil {
+		hwlog.RunLog.Errorf("%s new response failed: %v", node.Name(), err)
+		return
+	}
+	resp.FillContent(msg)
+	if err = modulemanager.SendMessage(resp); err != nil {
+		hwlog.RunLog.Errorf("%s send response failed: %v", node.Name(), err)
+		return
 	}
 }
 
@@ -109,7 +114,7 @@ func initNodeTable() error {
 	return nil
 }
 
-func dispatchMsg(req *model.Message) (*common.RespMsg, error) {
+func selectMethod(req *model.Message) (*common.RespMsg, error) {
 	var res common.RespMsg
 	method, exit := handlerFuncMap[common.Combine(req.GetOption(), req.GetResource())]
 	if !exit {
