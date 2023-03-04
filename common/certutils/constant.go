@@ -33,10 +33,3 @@ const (
 	// OneDayAgo for compatible with different time zone when issue cert
 	OneDayAgo = "-24h"
 )
-
-// MEF-Center cert constant
-const (
-	DefaultNameSpace  = "default"
-	DefaultSecretName = "image-pull-secret"
-	SecretNotFound    = "not found"
-)

@@ -36,8 +36,6 @@ const (
 	tokenSecretName = "tokensecret"
 	tokenDataName   = "tokendata"
 
-	defaultNamespace = "default"
-
 	// K8sNotFoundErrorFragment for check if the error is found type
 	K8sNotFoundErrorFragment = "not found"
 	// DefaultImagePullSecretKey for getting image pull secret
@@ -183,17 +181,17 @@ func (ki *Client) makeLabelPath(name string) string {
 
 // CreateDaemonSet create daemonSet
 func (ki *Client) CreateDaemonSet(dm *appv1.DaemonSet) (*appv1.DaemonSet, error) {
-	return ki.kubeClient.AppsV1().DaemonSets(defaultNamespace).Create(context.Background(), dm, metav1.CreateOptions{})
+	return ki.kubeClient.AppsV1().DaemonSets(common.MefUserNs).Create(context.Background(), dm, metav1.CreateOptions{})
 }
 
 // UpdateDaemonSet Update daemonSet
 func (ki *Client) UpdateDaemonSet(dm *appv1.DaemonSet) (*appv1.DaemonSet, error) {
-	return ki.kubeClient.AppsV1().DaemonSets(defaultNamespace).Update(context.Background(), dm, metav1.UpdateOptions{})
+	return ki.kubeClient.AppsV1().DaemonSets(common.MefUserNs).Update(context.Background(), dm, metav1.UpdateOptions{})
 }
 
 // DeleteDaemonSet Delete daemonSet
 func (ki *Client) DeleteDaemonSet(name string) error {
-	return ki.kubeClient.AppsV1().DaemonSets(defaultNamespace).Delete(context.Background(), name, metav1.DeleteOptions{})
+	return ki.kubeClient.AppsV1().DaemonSets(common.MefUserNs).Delete(context.Background(), name, metav1.DeleteOptions{})
 }
 
 // GetToken get token
@@ -208,42 +206,42 @@ func (ki *Client) GetToken() ([]byte, error) {
 
 // CreateConfigMap create configmap
 func (ki *Client) CreateConfigMap(cm *v1.ConfigMap) (*v1.ConfigMap, error) {
-	return ki.kubeClient.CoreV1().ConfigMaps(defaultNamespace).Create(context.Background(), cm, metav1.CreateOptions{})
+	return ki.kubeClient.CoreV1().ConfigMaps(common.MefUserNs).Create(context.Background(), cm, metav1.CreateOptions{})
 }
 
 // DeleteConfigMap delete configmap
 func (ki *Client) DeleteConfigMap(name string) error {
-	return ki.kubeClient.CoreV1().ConfigMaps(defaultNamespace).Delete(context.Background(), name, metav1.DeleteOptions{})
+	return ki.kubeClient.CoreV1().ConfigMaps(common.MefUserNs).Delete(context.Background(), name, metav1.DeleteOptions{})
 }
 
 // UpdateConfigMap update configmap
 func (ki *Client) UpdateConfigMap(cm *v1.ConfigMap) (*v1.ConfigMap, error) {
-	return ki.kubeClient.CoreV1().ConfigMaps(defaultNamespace).Update(context.Background(), cm, metav1.UpdateOptions{})
+	return ki.kubeClient.CoreV1().ConfigMaps(common.MefUserNs).Update(context.Background(), cm, metav1.UpdateOptions{})
 }
 
 // GetConfigMap get configmap
 func (ki *Client) GetConfigMap(name string) (*v1.ConfigMap, error) {
-	return ki.kubeClient.CoreV1().ConfigMaps(defaultNamespace).Get(context.Background(), name, metav1.GetOptions{})
+	return ki.kubeClient.CoreV1().ConfigMaps(common.MefUserNs).Get(context.Background(), name, metav1.GetOptions{})
 }
 
 // ListConfigMapList list configmap list
 func (ki *Client) ListConfigMapList() (*v1.ConfigMapList, error) {
-	return ki.kubeClient.CoreV1().ConfigMaps(defaultNamespace).List(context.Background(), metav1.ListOptions{})
+	return ki.kubeClient.CoreV1().ConfigMaps(common.MefUserNs).List(context.Background(), metav1.ListOptions{})
 }
 
 // GetSecret [method] for creating secret
 func (ki *Client) GetSecret(name string) (*v1.Secret, error) {
-	return ki.GetClientSet().CoreV1().Secrets(defaultNamespace).Get(context.Background(), name, metav1.GetOptions{})
+	return ki.GetClientSet().CoreV1().Secrets(common.MefUserNs).Get(context.Background(), name, metav1.GetOptions{})
 }
 
 // CreateOrUpdateSecret [method] for updating  secret or creating secret if it is not exist
 func (ki *Client) CreateOrUpdateSecret(secret *v1.Secret) (*v1.Secret, error) {
 	_, err := ki.GetSecret(secret.Name)
 	if err == nil {
-		return ki.kubeClient.CoreV1().Secrets(defaultNamespace).Update(context.Background(), secret, metav1.UpdateOptions{})
+		return ki.kubeClient.CoreV1().Secrets(common.MefUserNs).Update(context.Background(), secret, metav1.UpdateOptions{})
 	}
 	if strings.Contains(err.Error(), K8sNotFoundErrorFragment) {
-		return ki.kubeClient.CoreV1().Secrets(defaultNamespace).Create(context.Background(), secret, metav1.CreateOptions{})
+		return ki.kubeClient.CoreV1().Secrets(common.MefUserNs).Create(context.Background(), secret, metav1.CreateOptions{})
 	}
 	return nil, err
 }

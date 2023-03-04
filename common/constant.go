@@ -156,8 +156,6 @@ const (
 	NodeGroupLabelPrefix = "MEF-Node"
 	// DeviceType for Ascend device
 	DeviceType = "huawei.com/Ascend310"
-	// DefaultImagePullSecret for image pull
-	DefaultImagePullSecret = "image-pull-secret"
 )
 
 // regex patterns
