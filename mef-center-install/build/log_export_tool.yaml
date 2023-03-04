@@ -18,6 +18,7 @@ spec:
           securityContext:
             runAsUser: ${mef_center_uid}
             runAsGroup: ${mef_center_gid}
+            runAsNonRoot: true
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             capabilities:

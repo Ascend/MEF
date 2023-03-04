@@ -204,17 +204,9 @@ func (lem *LogExportMgr) exportEdgeLogs() error {
 		return err
 	}
 	hwlog.RunLog.Info("create job success")
-	completeCh := make(chan struct{})
-	failedCh := make(chan struct{})
-	ctx, cancelFunc := context.WithCancel(context.Background())
-	go lem.waitCondition("complete", completeCh)
-	go lem.waitCondition("failed", failedCh)
-	go lem.redirectStdout(ctx)
-	select {
-	case <-completeCh:
-	case <-failedCh:
-	}
-	cancelFunc()
+
+	lem.waitForJob()
+
 	exitCode, err := lem.getExitCode()
 	if err != nil {
 		hwlog.RunLog.Errorf("get exit code failed: %s", err.Error())
@@ -228,6 +220,26 @@ func (lem *LogExportMgr) exportEdgeLogs() error {
 	}
 	hwlog.RunLog.Info("execute job success")
 	return nil
+}
+
+func (lem *LogExportMgr) waitForJob() {
+	completeCh := make(chan struct{})
+	failedCh := make(chan struct{})
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	go lem.waitCondition("complete", completeCh)
+	go lem.waitCondition("failed", failedCh)
+	go lem.redirectStdout(ctx)
+	select {
+	case _, ok := <-completeCh:
+		if !ok {
+			hwlog.RunLog.Error("channel closed")
+		}
+	case _, ok := <-failedCh:
+		if !ok {
+			hwlog.RunLog.Error("channel closed")
+		}
+	}
+	cancelFunc()
 }
 
 func (lem *LogExportMgr) redirectStdout(ctx context.Context) {
@@ -276,7 +288,9 @@ func (lem *LogExportMgr) waitCondition(condition string, ch chan<- struct{}) {
 		hwlog.RunLog.Errorf("wait job failed: %s", err.Error())
 		fmt.Println(output)
 	}
-	ch <- struct{}{}
+	if ch != nil {
+		ch <- struct{}{}
+	}
 }
 
 func (lem *LogExportMgr) getYamlReplacements() (map[string]string, error) {
