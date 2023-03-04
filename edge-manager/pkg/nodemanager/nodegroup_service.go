@@ -199,6 +199,7 @@ func deleteSingleGroup(groupID uint64) error {
 	}
 	count, err := getAppInstanceCountByGroupId(groupID)
 	if err != nil {
+		hwlog.RunLog.Errorf("get from app error: %v", err)
 		return err
 	}
 	if count != 0 {
