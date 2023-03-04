@@ -262,6 +262,7 @@ func testDownloadInfoUserNameInvalid() {
 
 	req := createBaseData()
 	failDataCases := []string{
+		"",
 		"_FileTransferAccount",
 		"-FileTransferAccount",
 		"0FileTransferAccount",

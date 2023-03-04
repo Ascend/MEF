@@ -608,7 +608,14 @@ func updateNodeSoftwareInfo(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "marshal version info failed", Data: nil}
 	}
 
-	err = NodeServiceInstance().updateNodeBySerialNumber(req.SerialNumber, "software_info", string(softwareInfo))
+	nodeInfo, err := NodeServiceInstance().getNodeInfoBySerialNumber(req.SerialNumber)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		hwlog.RunLog.Errorf("get node info [%s] failed:%v", req.SerialNumber, err)
+		return common.RespMsg{Status: "", Msg: "get node info failed", Data: nil}
+	}
+
+	nodeInfo.SoftwareInfo = string(softwareInfo)
+	err = NodeServiceInstance().updateNodeInfoBySerialNumber(req.SerialNumber, nodeInfo)
 	if err != nil {
 		hwlog.RunLog.Errorf("update node software info failed: %v", err)
 		return common.RespMsg{Status: "", Msg: "update node software info failed", Data: nil}

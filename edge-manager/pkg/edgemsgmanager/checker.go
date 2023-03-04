@@ -49,7 +49,7 @@ func (d *downloadInfoChecker) init() {
 		checker.GetHttpsUrlChecker("Package", true),
 		checker.GetHttpsUrlChecker("SignFile", false),
 		checker.GetHttpsUrlChecker("CrlFile", false),
-		checker.GetRegChecker("UserName", "^[a-zA-Z][a-zA-Z0-9-_]{1,64}[a-zA-Z0-9]$", false),
+		checker.GetRegChecker("UserName", "^[a-zA-Z][a-zA-Z0-9-_]{1,64}[a-zA-Z0-9]$", true),
 		checker.GetExistChecker("Password"),
 	)
 }
