@@ -54,6 +54,25 @@ func (a *appStatusServiceImpl) initAppStatusService() error {
 		hwlog.RunLog.Error("sync app status service cache failed")
 		return err
 	}
+	if err := initDefaultImagePullSecret(); err != nil {
+		hwlog.RunLog.Errorf("create default image pull secret failed: %s", err.Error())
+		return err
+	}
+	return nil
+}
+
+func initDefaultImagePullSecret() error {
+	defaultImagePullSecret := &corev1.Secret{
+		TypeMeta: metav1.TypeMeta{},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: kubeclient.DefaultImagePullSecretKey,
+		},
+		Type: corev1.SecretTypeDockerConfigJson,
+		Data: map[string][]byte{corev1.DockerConfigJsonKey: []byte(kubeclient.DefaultImagePullSecretValue)},
+	}
+	if _, err := kubeclient.GetKubeClient().CreateOrUpdateSecret(defaultImagePullSecret); err != nil {
+		return err
+	}
 	return nil
 }
 

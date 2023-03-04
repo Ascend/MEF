@@ -38,14 +38,14 @@ func queryCertInfo(certName string) (certutils.ClientCertResp, error) {
 
 	if certName == common.ImageCertName {
 		address, err := util.GetImageAddress()
-		if util.SecretNotFound(err) {
-			hwlog.RunLog.Warn("image registry address should be configured")
-			return res, errors.New("image registry address should be configured")
-
-		}
 		if err != nil {
 			hwlog.RunLog.Errorf("get image registry address failed, error:%v", err)
 			return res, errors.New("get image registry address failed")
+		}
+		if address == "" {
+			hwlog.RunLog.Warn("image registry address should be configured")
+			return res, errors.New("image registry address should be configured")
+
 		}
 		res.ImageAddress = address
 	}

@@ -69,8 +69,7 @@ func createSecret(config ImageConfig) (string, error) {
 	}()
 	userSecret := &apiv1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      certutils.DefaultSecretName,
-			Namespace: certutils.DefaultNameSpace,
+			Name: kubeclient.DefaultImagePullSecretKey,
 		},
 		Type: apiv1.SecretTypeDockerConfigJson,
 		Data: map[string][]byte{apiv1.DockerConfigJsonKey: data},
