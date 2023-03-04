@@ -302,33 +302,37 @@ func (n *NodeServiceImpl) deleteNode(nodeInfo *NodeInfo) error {
 }
 
 func (n *NodeServiceImpl) deleteSingleNodeRelation(groupID, nodeID uint64) error {
-	nodeInfo, err := n.getNodeByID(nodeID)
-	if err != nil {
-		return fmt.Errorf("db query node(%d) failed", nodeID)
-	}
 	return n.db.Transaction(func(tx *gorm.DB) error {
-		stmt := tx.Model(NodeRelation{}).Where("group_id = ? and node_id=?", groupID, nodeID).Delete(&NodeRelation{})
-		if stmt.Error != nil {
-			return fmt.Errorf("db delete node %d to group %d failed", nodeID, groupID)
-		}
-		if stmt.RowsAffected < 1 {
-			return fmt.Errorf("no such relation(node:%d, group:%d)", nodeID, groupID)
-		}
-		nodeLabel := fmt.Sprintf("%s%d", common.NodeGroupLabelPrefix, groupID)
-		_, err = kubeclient.GetKubeClient().DeleteNodeLabels(nodeInfo.UniqueName, []string{nodeLabel})
-		if err != nil && isNodeNotFound(err) {
-			hwlog.RunLog.Warnf("k8s delete label failed, err=%v", err)
-		} else if err != nil {
-			return fmt.Errorf("k8s delete label(group %d) failed", groupID)
-		}
-		return nil
+		return deleteRelation(tx, groupID, nodeID)
 	})
+}
+
+func deleteRelation(tx *gorm.DB, groupID, nodeID uint64) error {
+	var nodeInfo NodeInfo
+	if err := tx.Model(NodeInfo{}).Where("id = ?", nodeID).First(&nodeInfo).Error; err != nil {
+		return fmt.Errorf("db get node %d failed", nodeID)
+	}
+	stmt := tx.Model(NodeRelation{}).Where("group_id = ? and node_id=?", groupID, nodeID).Delete(&NodeRelation{})
+	if stmt.Error != nil {
+		return fmt.Errorf("db delete node %d to group %d failed", nodeID, groupID)
+	}
+	if stmt.RowsAffected < 1 {
+		return fmt.Errorf("no such relation(node:%d, group:%d)", nodeID, groupID)
+	}
+	nodeLabel := fmt.Sprintf("%s%d", common.NodeGroupLabelPrefix, groupID)
+	_, err := kubeclient.GetKubeClient().DeleteNodeLabels(nodeInfo.UniqueName, []string{nodeLabel})
+	if err != nil && isNodeNotFound(err) {
+		hwlog.RunLog.Warnf("k8s delete label failed, err=%v", err)
+	} else if err != nil {
+		return fmt.Errorf("k8s delete label(group %d) failed", groupID)
+	}
+	return nil
 }
 
 func (n *NodeServiceImpl) deleteNodeGroup(groupID uint64, relations *[]NodeRelation) error {
 	return n.db.Transaction(func(tx *gorm.DB) error {
 		for _, relation := range *relations {
-			if err := n.deleteSingleNodeRelation(groupID, relation.NodeID); err != nil {
+			if err := deleteRelation(tx, groupID, relation.NodeID); err != nil {
 				return fmt.Errorf("delete node relation failed, when delete node group:%s", err.Error())
 			}
 		}
