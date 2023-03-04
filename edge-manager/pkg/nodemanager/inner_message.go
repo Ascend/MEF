@@ -40,7 +40,7 @@ func innerGetNodeSoftwareInfo(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("parse inner message content failed")
 		return common.RespMsg{Status: "", Msg: "parse inner message content failed", Data: nil}
 	}
-	nodeInfo, err := NodeServiceInstance().getNodeBySerialNumber(req.SerialNumber)
+	nodeInfo, err := NodeServiceInstance().getNodeInfoBySerialNumber(req.SerialNumber)
 	if err != nil {
 		hwlog.RunLog.Errorf("get node info by unique name [%s] failed:%v", req.SerialNumber, err)
 		return common.RespMsg{Status: "", Msg: "get node info by unique name failed", Data: nil}

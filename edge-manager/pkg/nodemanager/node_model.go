@@ -9,6 +9,7 @@ import (
 
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/database"
@@ -37,9 +38,9 @@ type NodeService interface {
 	getNodeCapByID(nodeID uint64) (*[]string, error)
 	countAllNodesByName(string) (int64, error)
 	listAllNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
-	updateNodeBySerialNumber(key, column, value string) error
+	updateNodeInfoBySerialNumber(string, *NodeInfo) error
 	getNodeByUniqueName(string) (*NodeInfo, error)
-	getNodeBySerialNumber(string) (*NodeInfo, error)
+	getNodeInfoBySerialNumber(string) (*NodeInfo, error)
 	getNodeByID(uint64) (*NodeInfo, error)
 	getManagedNodeByID(uint64) (*NodeInfo, error)
 	countGroupsByNode(uint64) (int64, error)
@@ -87,7 +88,8 @@ func NodeServiceInstance() NodeService {
 
 // CreateNode Create Node Db
 func (n *NodeServiceImpl) createNode(nodeInfo *NodeInfo) error {
-	return n.db.Model(NodeInfo{}).Create(nodeInfo).Error
+	return n.db.Model(NodeInfo{}).Where(NodeInfo{SerialNumber: nodeInfo.SerialNumber}).Assign(
+		*nodeInfo).FirstOrCreate(nodeInfo).Error
 }
 
 // CreateNodeGroup Create Node Db
@@ -158,8 +160,9 @@ func (n *NodeServiceImpl) deleteNodeToGroup(relation *NodeRelation) (int64, erro
 }
 
 // GetNodeByUniqueName get node info by Serial Number in k8s
-func (n *NodeServiceImpl) updateNodeBySerialNumber(key, column, value string) error {
-	return n.db.Model(NodeInfo{}).Where("serial_number = ?", key).Update(column, value).Error
+func (n *NodeServiceImpl) updateNodeInfoBySerialNumber(sn string, nodeInfo *NodeInfo) error {
+	return n.db.Model(NodeInfo{}).Where(NodeInfo{SerialNumber: sn}).Assign(
+		*nodeInfo).FirstOrCreate(nodeInfo).Error
 }
 
 // GetNodeByUniqueName get node info by unique name in k8s
@@ -169,7 +172,7 @@ func (n *NodeServiceImpl) getNodeByUniqueName(name string) (*NodeInfo, error) {
 }
 
 // GetNodeByUniqueName get node info by serial number
-func (n *NodeServiceImpl) getNodeBySerialNumber(name string) (*NodeInfo, error) {
+func (n *NodeServiceImpl) getNodeInfoBySerialNumber(name string) (*NodeInfo, error) {
 	var node NodeInfo
 	return &node, n.db.Model(NodeInfo{}).Where("serial_number=?", name).First(&node).Error
 }
