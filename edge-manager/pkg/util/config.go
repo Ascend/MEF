@@ -71,6 +71,7 @@ func GetCertContent(certName string) (certutils.ClientCertResp, error) {
 	queryCertRes := certutils.ClientCertResp{
 		CertName:    certName,
 		CertContent: rootCaRes,
+		CertOpt:     common.Update,
 	}
 	return queryCertRes, nil
 }
