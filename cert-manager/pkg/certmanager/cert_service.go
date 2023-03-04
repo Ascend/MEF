@@ -72,7 +72,7 @@ func importRootCa(input interface{}) common.RespMsg {
 	}
 	go func() {
 		// edge-manager does not save root ca, so no need to update.
-		if req.CertName == common.WsCltName {
+		if req.CertName == common.WsCltName || req.CertName == common.NginxCertName {
 			return
 		}
 		if err := updateClientCert(req.CertName, common.Update, caBase64); err != nil {

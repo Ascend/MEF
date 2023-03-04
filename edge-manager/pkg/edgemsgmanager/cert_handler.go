@@ -35,6 +35,7 @@ func queryCertInfo(certName string) (certutils.ClientCertResp, error) {
 
 	res.CertName = certName
 	res.CertContent = rootCaRes
+	res.CertOpt = common.Update
 
 	if certName == common.ImageCertName {
 		address, err := util.GetImageAddress()

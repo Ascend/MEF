@@ -43,6 +43,7 @@ func (ch *certHandler) Handle(message *model.Message) error {
 	res := certutils.ClientCertResp{
 		CertName:    certName,
 		CertContent: rootCaRes,
+		CertOpt:     common.Update,
 	}
 	if certName == common.ImageCertName {
 		address, err := util.GetImageAddress()

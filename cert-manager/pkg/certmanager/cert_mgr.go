@@ -21,7 +21,8 @@ import (
 // getCertByCertName query root ca with use id
 func getCertByCertName(certName string) ([]byte, error) {
 	caFilePath := getRootCaPath(certName)
-	if (certName == common.ImageCertName || certName == common.SoftwareCertName) && !utils.IsExist(caFilePath) {
+	if (certName == common.ImageCertName || certName == common.SoftwareCertName || certName == common.WsCltName) &&
+		!utils.IsExist(caFilePath) {
 		hwlog.RunLog.Warnf("%s cert content should be imported", certName)
 		return nil, nil
 	}
