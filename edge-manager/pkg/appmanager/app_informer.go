@@ -62,6 +62,13 @@ func (a *appStatusServiceImpl) initAppStatusService() error {
 }
 
 func initDefaultImagePullSecret() error {
+	_, err := kubeclient.GetKubeClient().GetSecret(kubeclient.DefaultImagePullSecretKey)
+	if err == nil {
+		return nil
+	}
+	if !strings.Contains(err.Error(), kubeclient.K8sNotFoundErrorFragment) {
+		return fmt.Errorf("check image pull secret fialed: %s", err.Error())
+	}
 	defaultImagePullSecret := &corev1.Secret{
 		TypeMeta: metav1.TypeMeta{},
 		ObjectMeta: metav1.ObjectMeta{
@@ -71,7 +78,7 @@ func initDefaultImagePullSecret() error {
 		Data: map[string][]byte{corev1.DockerConfigJsonKey: []byte(kubeclient.DefaultImagePullSecretValue)},
 	}
 	if _, err := kubeclient.GetKubeClient().CreateOrUpdateSecret(defaultImagePullSecret); err != nil {
-		return err
+		return fmt.Errorf("create default image pull secret fialed: %s", err.Error())
 	}
 	return nil
 }

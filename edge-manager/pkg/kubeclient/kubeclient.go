@@ -38,7 +38,8 @@ const (
 
 	defaultNamespace = "default"
 
-	k8sNotFoundErrorFragment = "not found"
+	// K8sNotFoundErrorFragment for check if the error is found type
+	K8sNotFoundErrorFragment = "not found"
 	// DefaultImagePullSecretKey for getting image pull secret
 	DefaultImagePullSecretKey = "image-pull-secret"
 	// DefaultImagePullSecretValue for initialization of app manager to create a default image pull secret value
@@ -241,7 +242,7 @@ func (ki *Client) CreateOrUpdateSecret(secret *v1.Secret) (*v1.Secret, error) {
 	if err == nil {
 		return ki.kubeClient.CoreV1().Secrets(defaultNamespace).Update(context.Background(), secret, metav1.UpdateOptions{})
 	}
-	if strings.Contains(err.Error(), k8sNotFoundErrorFragment) {
+	if strings.Contains(err.Error(), K8sNotFoundErrorFragment) {
 		return ki.kubeClient.CoreV1().Secrets(defaultNamespace).Create(context.Background(), secret, metav1.CreateOptions{})
 	}
 	return nil, err

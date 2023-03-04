@@ -43,7 +43,6 @@ func GetImageAddress() (string, error) {
 	}
 
 	defer func() {
-		common.ClearStringMemory(secretStr)
 		common.ClearSliceByteMemory(secretByte)
 	}()
 	authSli := strings.Split(secretStr, secretSplit)
