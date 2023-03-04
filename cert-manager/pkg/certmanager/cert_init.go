@@ -69,21 +69,26 @@ func (cm *certManager) Start() {
 			hwlog.RunLog.Errorf("%s receive request from restful service failed", cm.Name())
 			continue
 		}
-		msg := methodSelect(req)
-		if msg == nil {
-			hwlog.RunLog.Errorf("%s get method by option and resource failed", cm.Name())
-			continue
-		}
-		resp, err := req.NewResponse()
-		if err != nil {
-			hwlog.RunLog.Errorf("%s new response failed", cm.Name())
-			continue
-		}
-		resp.FillContent(msg)
-		if err = modulemanager.SendMessage(resp); err != nil {
-			hwlog.RunLog.Errorf("%s send response failed", cm.Name())
-			continue
-		}
+
+		go cm.dispatch(req)
+	}
+}
+
+func (cm *certManager) dispatch(req *model.Message) {
+	msg := methodSelect(req)
+	if msg == nil {
+		hwlog.RunLog.Errorf("%s get method by option and resource failed", cm.Name())
+		return
+	}
+	resp, err := req.NewResponse()
+	if err != nil {
+		hwlog.RunLog.Errorf("%s new response failed", cm.Name())
+		return
+	}
+	resp.FillContent(msg)
+	if err = modulemanager.SendMessage(resp); err != nil {
+		hwlog.RunLog.Errorf("%s send response failed", cm.Name())
+		return
 	}
 }
 

@@ -71,21 +71,7 @@ func (app *appManager) Start() {
 			continue
 		}
 
-		msg := methodSelect(req)
-		if msg == nil {
-			hwlog.RunLog.Errorf("%s get method by option and resource failed", common.AppManagerName)
-			continue
-		}
-		resp, err := req.NewResponse()
-		if err != nil {
-			hwlog.RunLog.Errorf("%s new response failed", common.AppManagerName)
-			continue
-		}
-		resp.FillContent(msg)
-		if err = modulemanager.SendMessage(resp); err != nil {
-			hwlog.RunLog.Errorf("%s send response failed", common.AppManagerName)
-			continue
-		}
+		go app.dispatch(req)
 	}
 }
 
@@ -105,6 +91,24 @@ func (app *appManager) housekeeper() {
 		case <-delay.C:
 			appStatusService.deleteTerminatingPod()
 		}
+	}
+}
+
+func (app *appManager) dispatch(req *model.Message) {
+	msg := methodSelect(req)
+	if msg == nil {
+		hwlog.RunLog.Errorf("%s get method by option and resource failed", common.AppManagerName)
+		return
+	}
+	resp, err := req.NewResponse()
+	if err != nil {
+		hwlog.RunLog.Errorf("%s new response failed", common.AppManagerName)
+		return
+	}
+	resp.FillContent(msg)
+	if err = modulemanager.SendMessage(resp); err != nil {
+		hwlog.RunLog.Errorf("%s send response failed", common.AppManagerName)
+		return
 	}
 }
 
