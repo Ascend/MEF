@@ -27,6 +27,10 @@ func queryRootCa(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("query cert [%s] root ca failed: %v", certName, err)
 		return common.RespMsg{Status: common.ErrorGetRootCa, Msg: "Query root ca failed", Data: nil}
 	}
+	if ca == nil {
+		hwlog.RunLog.Errorf("cert [%s] root ca not exist", certName)
+		return common.RespMsg{Status: common.ErrorGetRootCa, Msg: "Query root ca file not exist", Data: nil}
+	}
 	hwlog.RunLog.Infof("query [%s] root ca success", certName)
 	return common.RespMsg{Status: common.Success, Msg: "query ca success", Data: string(ca)}
 }
