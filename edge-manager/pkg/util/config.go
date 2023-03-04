@@ -26,11 +26,7 @@ const (
 
 // GetImageAddress get image address
 func GetImageAddress() (string, error) {
-	secret, err := kubeclient.GetKubeClient().GetSecret(certutils.DefaultSecretName)
-	if SecretNotFound(err) {
-		hwlog.RunLog.Warnf("secrets %s not found", certutils.DefaultSecretName)
-		return "", nil
-	}
+	secret, err := kubeclient.GetKubeClient().GetSecret(kubeclient.DefaultImagePullSecretKey)
 	if err != nil {
 		hwlog.RunLog.Errorf("get image pull secret failed, error:%v", err)
 		return "", err
@@ -40,23 +36,22 @@ func GetImageAddress() (string, error) {
 		hwlog.RunLog.Error("get data of image pull secret failed")
 		return "", errors.New("get data of image pull secret failed")
 	}
+	secretStr := string(secretByte)
+	if secretStr == kubeclient.DefaultImagePullSecretValue {
+		hwlog.RunLog.Warnf("secret %s is not configured yet", kubeclient.DefaultImagePullSecretKey)
+		return "", nil
+	}
+
 	defer func() {
+		common.ClearStringMemory(secretStr)
 		common.ClearSliceByteMemory(secretByte)
 	}()
-	authSli := strings.Split(string(secretByte), secretSplit)
+	authSli := strings.Split(secretStr, secretSplit)
 	if len(authSli) < secretLen {
 		hwlog.RunLog.Error("parse secret content failed")
 		return "", errors.New("parse secret content failed")
 	}
 	return strings.Trim(authSli[authPosition], secretTrim), nil
-}
-
-// SecretNotFound secret not found
-func SecretNotFound(err error) bool {
-	if err == nil {
-		return false
-	}
-	return strings.Contains(err.Error(), certutils.SecretNotFound)
 }
 
 // GetCertContent get cert content

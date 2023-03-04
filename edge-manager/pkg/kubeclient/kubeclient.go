@@ -37,6 +37,12 @@ const (
 	tokenDataName   = "tokendata"
 
 	defaultNamespace = "default"
+
+	k8sNotFoundErrorFragment = "not found"
+	// DefaultImagePullSecretKey for getting image pull secret
+	DefaultImagePullSecretKey = "image-pull-secret"
+	// DefaultImagePullSecretValue for initialization of app manager to create a default image pull secret value
+	DefaultImagePullSecretValue = "{}"
 )
 
 var k8sClient *Client
@@ -76,7 +82,7 @@ func (ki *Client) ListNode() (*v1.NodeList, error) {
 
 // GetNodeAllocatedResource [method] for calculating all allocated resources of one node
 func (ki *Client) GetNodeAllocatedResource(nodeName string) (v1.ResourceList, error) {
-	podInterface := ki.GetClientSet().CoreV1().Pods(defaultNamespace)
+	podInterface := ki.GetClientSet().CoreV1().Pods(v1.NamespaceAll)
 	fieldSelector, err := fields.ParseSelector(fieldSelectorPrefix + nodeName)
 	if err != nil {
 		return nil, errors.New("parse field selector error")
@@ -231,8 +237,12 @@ func (ki *Client) GetSecret(name string) (*v1.Secret, error) {
 
 // CreateOrUpdateSecret [method] for updating  secret or creating secret if it is not exist
 func (ki *Client) CreateOrUpdateSecret(secret *v1.Secret) (*v1.Secret, error) {
-	if _, err := ki.GetSecret(secret.Name); err != nil {
+	_, err := ki.GetSecret(secret.Name)
+	if err == nil {
+		return ki.kubeClient.CoreV1().Secrets(defaultNamespace).Update(context.Background(), secret, metav1.UpdateOptions{})
+	}
+	if strings.Contains(err.Error(), k8sNotFoundErrorFragment) {
 		return ki.kubeClient.CoreV1().Secrets(defaultNamespace).Create(context.Background(), secret, metav1.CreateOptions{})
 	}
-	return ki.kubeClient.CoreV1().Secrets(defaultNamespace).Update(context.Background(), secret, metav1.UpdateOptions{})
+	return nil, err
 }
