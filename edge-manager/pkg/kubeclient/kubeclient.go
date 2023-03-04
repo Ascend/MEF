@@ -245,3 +245,15 @@ func (ki *Client) CreateOrUpdateSecret(secret *v1.Secret) (*v1.Secret, error) {
 	}
 	return nil, err
 }
+
+// CreateNamespace [method] for creating secret
+func (ki *Client) CreateNamespace(ns *v1.Namespace) (*v1.Namespace, error) {
+	_, err := ki.GetClientSet().CoreV1().Namespaces().Get(context.Background(), ns.Namespace, metav1.GetOptions{})
+	if err == nil {
+		return nil, nil
+	}
+	if strings.Contains(err.Error(), K8sNotFoundErrorFragment) {
+		return ki.GetClientSet().CoreV1().Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
+	}
+	return nil, err
+}

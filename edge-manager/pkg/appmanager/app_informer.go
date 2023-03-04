@@ -49,6 +49,10 @@ func (a *appStatusServiceImpl) initAppStatusService() error {
 		hwlog.RunLog.Error("init app status service failed, get k8s client failed")
 		return errors.New("get k8s client set failed")
 	}
+	if err := initNamespace(); err != nil {
+		hwlog.RunLog.Errorf("init user namespace failed: %s", err.Error())
+		return err
+	}
 	a.initInformer(clientSet, stopCh)
 	if err := a.run(stopCh); err != nil {
 		hwlog.RunLog.Error("sync app status service cache failed")
@@ -57,6 +61,20 @@ func (a *appStatusServiceImpl) initAppStatusService() error {
 	if err := initDefaultImagePullSecret(); err != nil {
 		hwlog.RunLog.Errorf("create default image pull secret failed: %s", err.Error())
 		return err
+	}
+	return nil
+}
+
+func initNamespace() error {
+	userNs := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      common.MefUserNs,
+			Namespace: common.MefUserNs,
+		},
+	}
+	_, err := kubeclient.GetKubeClient().CreateNamespace(userNs)
+	if err != nil {
+		return fmt.Errorf("create default user namespace failed: %s", err.Error())
 	}
 	return nil
 }
