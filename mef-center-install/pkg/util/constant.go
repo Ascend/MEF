@@ -145,6 +145,8 @@ const (
 	ErrorExitCode   = 1
 
 	InstallDiskSpace    = 750 * common.MB
+	LogDiskSpace        = 1800 * common.MB
+	LogBackupDiskSpace  = 3500 * common.MB
 	CheckStatusInterval = 3 * time.Second
 	CheckStatusTimes    = 5
 )

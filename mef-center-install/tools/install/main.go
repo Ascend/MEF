@@ -14,6 +14,7 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/install"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
@@ -95,6 +96,14 @@ func checkPath() error {
 
 	if err = checkInsideLogPath(logRootPath, logBackupRootPath); err != nil {
 		return err
+	}
+
+	if err = util.CheckDiskSpace(logRootPath, util.LogDiskSpace); err != nil {
+		fmt.Println(" log disk space not enough")
+	}
+
+	if err = util.CheckDiskSpace(logBackupRootPath, util.LogBackupDiskSpace); err != nil {
+		fmt.Println(" log backup disk space not enough")
 	}
 
 	if installPath, err = checkSinglePath(installPath); err != nil {
