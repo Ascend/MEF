@@ -80,9 +80,9 @@ function build_log_export_tool() {
   go build -mod=mod -buildmode=pie -ldflags "-s -linkmode=external -extldflags=-Wl,-z,now \
           -X main.BuildName=${OUTPUT_LOG_EXPORT_TOOL_NAME} \
           -X main.BuildVersion=${build_version}_linux-${arch}" \
-          -o ${OUTPUT_LOG_EXPORT_TOOL_NAME} \
+          -o "${OUTPUT_LOG_EXPORT_TOOL_NAME}" \
           -trimpath
-  ls ${OUTPUT_LOG_EXPORT_TOOL_NAME}
+  ls "${OUTPUT_LOG_EXPORT_TOOL_NAME}"
   if [ $? -ne 0 ]; then
     echo "fail to find ${OUTPUT_LOG_EXPORT_TOOL_NAME}"
     exit 1
