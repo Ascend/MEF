@@ -147,7 +147,6 @@ func getWsRootCert() ([]byte, error) {
 			RootCaPath: util.RootCaPath,
 			CertPath:   util.ServerCertPath,
 			KeyPath:    util.ServerKeyPath,
-			SvrFlag:    false,
 		},
 	}
 	var rootCaStr string
