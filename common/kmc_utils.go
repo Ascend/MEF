@@ -69,6 +69,7 @@ func EncryptContent(content []byte, kmcCfg *KmcCfg) ([]byte, error) {
 		kmcCfg = GetDefKmcCfg()
 	}
 	config := kmc.NewKmcInitConfig()
+	config.LogLevel = kmc.Error
 	config.PrimaryKeyStoreFile = kmcCfg.PrimaryKeyPath
 	config.StandbyKeyStoreFile = kmcCfg.StandbyKeyPath
 	config.SdpAlgId = kmcCfg.SdpAlgID
@@ -95,6 +96,7 @@ func DecryptContent(encryptByte []byte, kmcCfg *KmcCfg) ([]byte, error) {
 		kmcCfg = GetDefKmcCfg()
 	}
 	config := kmc.NewKmcInitConfig()
+	config.LogLevel = kmc.Error
 	config.PrimaryKeyStoreFile = kmcCfg.PrimaryKeyPath
 	config.StandbyKeyStoreFile = kmcCfg.StandbyKeyPath
 	config.SdpAlgId = kmcCfg.SdpAlgID
