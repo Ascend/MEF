@@ -103,30 +103,29 @@ func (lem *LogExportMgr) deal() error {
 }
 
 func (lem *LogExportMgr) clean() error {
-	if err := common.DeleteAllFile(logcollect.CenterLogExportDir); err != nil && !errors.Is(err, os.ErrNotExist) {
-		hwlog.RunLog.Error("failed to delete center log export dir")
-		return err
+	var logExportDir string
+	switch lem.module {
+	case logcollect.ModuleEdge:
+		logExportDir = logcollect.EdgeLogExportDir
+	case logcollect.ModuleCenter:
+		logExportDir = logcollect.CenterLogExportDir
+	default:
+		return errors.New("unknown module")
 	}
-	if err := common.DeleteAllFile(logcollect.EdgeLogExportDir); err != nil && !errors.Is(err, os.ErrNotExist) {
-		hwlog.RunLog.Error("failed to delete edge log export dir")
-		return err
-	}
-	if err := common.MakeSurePath(logcollect.CenterLogExportDir); err != nil {
-		hwlog.RunLog.Error("failed to create center log export dir")
-		return err
-	}
-	if err := common.MakeSurePath(logcollect.EdgeLogExportDir); err != nil {
-		hwlog.RunLog.Error("failed to create edge log export dir")
-		return err
-	}
-	uid, gid, err := util.GetMefId()
+	entries, err := os.ReadDir(logExportDir)
 	if err != nil {
-		hwlog.RunLog.Error("failed to get mef-center user id")
 		return err
 	}
-	if err := os.Chown(logcollect.EdgeLogExportDir, uid, gid); err != nil {
-		hwlog.RunLog.Error("failed to change ownership of edge log export dir")
-		return err
+	for _, e := range entries {
+		fileName := filepath.Join(logExportDir, e.Name())
+		stat, err := os.Lstat(fileName)
+		if err != nil {
+			return err
+		}
+		if stat.IsDir() {
+			return common.DeleteAllFile(fileName)
+		}
+		return common.DeleteFile(fileName)
 	}
 	return nil
 }
