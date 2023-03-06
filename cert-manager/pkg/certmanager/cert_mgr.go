@@ -8,6 +8,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"sync"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
@@ -17,6 +18,8 @@ import (
 	"huawei.com/mindxedge/base/common/certutils"
 	"huawei.com/mindxedge/base/common/httpsmgr"
 )
+
+var lock sync.Mutex
 
 // getCertByCertName query root ca with use id
 func getCertByCertName(certName string) ([]byte, error) {
@@ -98,6 +101,8 @@ func removeCaFile(certName string) error {
 }
 
 func updateClientCert(certName, certOpt string, certContent []byte) error {
+	lock.Lock()
+	defer lock.Unlock()
 	hwlog.RunLog.Info("start update cert file")
 	reqCertParams := httpsmgr.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{

@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"sync"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
@@ -44,8 +43,6 @@ type KmcCfg struct {
 	DoMainId       uint
 }
 
-var lock sync.Mutex
-
 // GetKmcCfg is the func to init a kmc config structure
 func GetKmcCfg(keyPath string, backKeyPath string) *KmcCfg {
 	return &KmcCfg{
@@ -68,22 +65,24 @@ func GetDefKmcCfg() *KmcCfg {
 
 // EncryptContent encrypt content with kmc
 func EncryptContent(content []byte, kmcCfg *KmcCfg) ([]byte, error) {
-	lock.Lock()
-	defer lock.Unlock()
 	if kmcCfg == nil {
 		kmcCfg = GetDefKmcCfg()
 	}
-	defer x509.PaddingAndCleanSlice(content)
-
-	if err := kmc.Initialize(kmcCfg.SdpAlgID, kmcCfg.PrimaryKeyPath, kmcCfg.StandbyKeyPath); err != nil {
-		return nil, err
+	config := kmc.NewKmcInitConfig()
+	config.PrimaryKeyStoreFile = kmcCfg.PrimaryKeyPath
+	config.StandbyKeyStoreFile = kmcCfg.StandbyKeyPath
+	config.SdpAlgId = kmcCfg.SdpAlgID
+	c, err := kmc.KeInitializeEx(config)
+	if err != nil {
+		return nil, errors.New("initialize kmc failed")
 	}
 	defer func() {
-		if err := kmc.Finalize(); err != nil {
+		if err := c.KeFinalizeEx(); err != nil {
 			hwlog.RunLog.Errorf("%s", err.Error())
 		}
 	}()
-	encryptByte, err := kmc.Encrypt(kmcCfg.DoMainId, content)
+	defer x509.PaddingAndCleanSlice(content)
+	encryptByte, err := c.KeEncryptByDomainEx(kmcCfg.DoMainId, content)
 	if err != nil {
 		return nil, err
 	}
@@ -92,20 +91,23 @@ func EncryptContent(content []byte, kmcCfg *KmcCfg) ([]byte, error) {
 
 // DecryptContent decrypt content with kmc
 func DecryptContent(encryptByte []byte, kmcCfg *KmcCfg) ([]byte, error) {
-	lock.Lock()
-	defer lock.Unlock()
 	if kmcCfg == nil {
 		kmcCfg = GetDefKmcCfg()
 	}
-	if err := kmc.Initialize(kmcCfg.SdpAlgID, kmcCfg.PrimaryKeyPath, kmcCfg.StandbyKeyPath); err != nil {
-		return nil, err
+	config := kmc.NewKmcInitConfig()
+	config.PrimaryKeyStoreFile = kmcCfg.PrimaryKeyPath
+	config.StandbyKeyStoreFile = kmcCfg.StandbyKeyPath
+	config.SdpAlgId = kmcCfg.SdpAlgID
+	c, err := kmc.KeInitializeEx(config)
+	if err != nil {
+		return nil, errors.New("initialize kmc failed")
 	}
 	defer func() {
-		if err := kmc.Finalize(); err != nil {
-			hwlog.RunLog.Errorf("kmc finalize failed: %s", err.Error())
+		if err := c.KeFinalizeEx(); err != nil {
+			hwlog.RunLog.Errorf("%s", err.Error())
 		}
 	}()
-	decryptByte, err := kmc.Decrypt(kmcCfg.DoMainId, encryptByte)
+	decryptByte, err := c.KeDecryptByDomainEx(kmcCfg.DoMainId, encryptByte)
 	if err != nil {
 		return nil, err
 	}
