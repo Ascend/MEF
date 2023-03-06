@@ -23,6 +23,9 @@ func GetTlsCfgWithPath(tlsCertInfo TlsCertInfo) (*tls.Config, error) {
 			return nil, fmt.Errorf("get tls failed, load root ca path [%s] file failed", tlsCertInfo.RootCaPath)
 		}
 	}
+	if tlsCertInfo.RootCaOnly {
+		return getTlsCfgRootCaOnly(rootCaPemBytes)
+	}
 	pemPair := &CaPairInfoWithPem{
 		CertPem: tlsCertInfo.CertContent,
 		KeyPem:  tlsCertInfo.KeyContent,
@@ -68,4 +71,25 @@ func getTlsConfig(rootPem, certPem, keyPem []byte, svrFlag bool) (*tls.Config, e
 		tlsCfg.RootCAs = rootCaPool
 	}
 	return tlsCfg, nil
+}
+
+func getTlsCfgRootCaOnly(rootPem []byte) (*tls.Config, error) {
+	rootCaPool := x509.NewCertPool()
+	if ok := rootCaPool.AppendCertsFromPEM(rootPem); !ok {
+		return nil, errors.New("append root ca to cert pool failed")
+	}
+	return &tls.Config{
+		Rand:               rand.Reader,
+		InsecureSkipVerify: false,
+		CipherSuites: []uint16{
+			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
+		},
+		MinVersion: tls.VersionTLS13,
+		RootCAs:    rootCaPool,
+	}, nil
 }
