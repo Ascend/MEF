@@ -234,7 +234,7 @@ func (ki *Client) GetSecret(name string) (*v1.Secret, error) {
 	return ki.GetClientSet().CoreV1().Secrets(common.MefUserNs).Get(context.Background(), name, metav1.GetOptions{})
 }
 
-// CreateOrUpdateSecret [method] for updating  secret or creating secret if it is not exist
+// CreateOrUpdateSecret [method] for updating secret or creating secret if it is not exist
 func (ki *Client) CreateOrUpdateSecret(secret *v1.Secret) (*v1.Secret, error) {
 	_, err := ki.GetSecret(secret.Name)
 	if err == nil {
@@ -246,7 +246,7 @@ func (ki *Client) CreateOrUpdateSecret(secret *v1.Secret) (*v1.Secret, error) {
 	return nil, err
 }
 
-// CreateNamespace [method] for creating secret
+// CreateNamespace [method] for creating namespace if it is node exist
 func (ki *Client) CreateNamespace(ns *v1.Namespace) (*v1.Namespace, error) {
 	_, err := ki.GetClientSet().CoreV1().Namespaces().Get(context.Background(), ns.Namespace, metav1.GetOptions{})
 	if err == nil {
