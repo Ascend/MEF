@@ -175,7 +175,7 @@ func (lem *LogExportMgr) getLogCollector() logcollect.Collector {
 		CheckFunc: lem.checkLogFile,
 	}
 	packFileName := logcollect.GetLogPackFileName(logcollect.ModuleCenter, "")
-	packFilePath := filepath.Join(logcollect.EdgeLogExportDir, packFileName)
+	packFilePath := filepath.Join(logcollect.CenterLogExportDir, packFileName)
 	return logcollect.NewCollector(
 		packFilePath, []logcollect.LogGroup{logFiles, logBackupFiles}, logcollect.CenterMaxPackSize)
 }

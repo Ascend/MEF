@@ -366,7 +366,7 @@ Commands:
 	restart    -- restart all or a component
 	uninstall  -- uninstall MEF Center
 	upgrade    -- upgrade MEF Center
-    export_log -- export MEF logs
+	exportlog  -- export MEF logs
 `)
 }
 
