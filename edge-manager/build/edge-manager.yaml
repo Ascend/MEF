@@ -120,7 +120,7 @@ spec:
             path: ${public-config}
         - name: log-export
           hostPath:
-            path: /var/log_exports
+            path: /var/log_exports/edge
 
 ---
 apiVersion: v1
