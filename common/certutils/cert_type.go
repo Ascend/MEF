@@ -32,6 +32,7 @@ type TlsCertInfo struct {
 	CertContent   []byte
 	RootCaContent []byte
 	SvrFlag       bool
+	RootCaOnly    bool // use root ca cert only, skip svc cert
 }
 
 // CertSan [struct] for server cert san fields
