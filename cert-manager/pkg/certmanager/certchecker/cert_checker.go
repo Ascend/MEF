@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"regexp"
+	"sync"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/x509"
@@ -14,6 +15,8 @@ import (
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker/checker"
 )
+
+var lock sync.Mutex
 
 // NewImportCertChecker [method] for getting import cert checker struct
 func NewImportCertChecker() *importCertChecker {
@@ -56,7 +59,7 @@ type deleteCertChecker struct {
 
 func (dcc *deleteCertChecker) init() {
 	dcc.certChecker.Checker = checker.GetAndChecker(
-		GetStringChecker("Type", CheckCertName, true),
+		GetStringChecker("Type", checkIfCanDelete, true),
 	)
 }
 
@@ -108,6 +111,8 @@ func csrChecker(csr string) bool {
 }
 
 func certContentChecker(certContent string) bool {
+	lock.Lock()
+	defer lock.Unlock()
 	// base64 decode root certificate content
 	caBase64, err := base64.StdEncoding.DecodeString(certContent)
 	if err != nil {
@@ -135,6 +140,11 @@ var certImportMap = map[string]bool{
 	common.InnerName:        false,
 }
 
+var certDeleteMap = map[string]bool{
+	common.SoftwareCertName: true,
+	common.ImageCertName:    true,
+}
+
 // CheckCertName check use id if valid
 func CheckCertName(certName string) bool {
 	_, ok := certImportMap[certName]
@@ -147,4 +157,8 @@ func checkIfCanImport(certName string) bool {
 		return false
 	}
 	return v
+}
+
+func checkIfCanDelete(certName string) bool {
+	return certDeleteMap[certName]
 }
