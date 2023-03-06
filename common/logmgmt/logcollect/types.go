@@ -28,9 +28,9 @@ const (
 	// CenterMaxFileSize max size of file size
 	CenterMaxFileSize = 1 * 1024 * common.MB
 	// CenterLogExportDir center log exports dir
-	CenterLogExportDir = "/var/log_exports"
+	CenterLogExportDir = "/var/log_exports/center"
 	// EdgeLogExportDir edge log exports dir
-	EdgeLogExportDir = "/var/log_exports"
+	EdgeLogExportDir = "/var/log_exports/edge"
 
 	urlSplitCount = 2
 )
