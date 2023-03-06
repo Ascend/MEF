@@ -11,7 +11,6 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/certutils"
 	"huawei.com/mindxedge/base/common/httpsmgr"
@@ -100,11 +99,9 @@ func getWsSvcCert(keyPath string) (string, error) {
 			RootCaPath: util.RootCaPath,
 			CertPath:   util.ServerCertPath,
 			KeyPath:    util.ServerKeyPath,
-			SvrFlag:    false,
 		},
 	}
 	var svcCertStr string
-	var err error
 	san := certutils.CertSan{DnsName: []string{common.EdgeMgrDns}}
 	ips, err := common.GetHostIpV4()
 	if err != nil {
@@ -136,7 +133,6 @@ func getWsRootCert() ([]byte, error) {
 			RootCaPath: util.RootCaPath,
 			CertPath:   util.ServerCertPath,
 			KeyPath:    util.ServerKeyPath,
-			SvrFlag:    false,
 		},
 	}
 	var rootCaStr string

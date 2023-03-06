@@ -14,7 +14,6 @@ import (
 	"huawei.com/mindx/common/rand"
 	"huawei.com/mindx/common/utils"
 	hwCertMgr "huawei.com/mindx/common/x509"
-
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -158,7 +157,13 @@ func saveKeyWithPem(keyPath string, keyDerBytes *rsa.PrivateKey, kmcCfg *common.
 	if err != nil {
 		return err
 	}
-	err = hwCertMgr.OverridePassWdFile(keyPath, encryptKeyPem, fileMode)
+	if utils.IsExist(keyPath) {
+		if err = common.SetPathPermission(keyPath, common.Mode600, false, false); err != nil {
+			return err
+		}
+	}
+	defer common.SetPathPermission(keyPath, common.Mode400, false, false)
+	err = hwCertMgr.OverridePassWdFile(keyPath, encryptKeyPem, common.Mode600)
 	if err != nil {
 		return err
 	}

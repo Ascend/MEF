@@ -42,7 +42,8 @@ func (wsp *WsServerProxy) Start() error {
 		TLSConfig: wsp.ProxyCfg.tlsConfig,
 	}
 	wsp.httpServer = httpServer
-	http.HandleFunc(serverPattern, wsp.serveHTTP)
+	http.HandleFunc(svcUrl, wsp.serveHTTP)
+	http.HandleFunc(connCheckUrl, wsp.checkConn)
 	wsp.upgrade = &websocket.Upgrader{
 		ReadBufferSize:  readBufferSize,
 		WriteBufferSize: writeBufferSize,
@@ -131,6 +132,11 @@ func (wsp *WsServerProxy) serveHTTP(w http.ResponseWriter, r *http.Request) {
 	case <-connMgr.ctx.Done():
 		RemoveClientNum(wsp)
 	}
+}
+
+func (wsp *WsServerProxy) checkConn(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	hwlog.RunLog.Info("successfully receive connection test req from mef edge")
 }
 
 func (wsp *WsServerProxy) listen() error {

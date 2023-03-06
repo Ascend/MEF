@@ -28,8 +28,6 @@ const (
 	pubCsrType  = "CERTIFICATE REQUEST"
 	// privKeyType Cert key type
 	privKeyType = "RSA PRIVATE KEY"
-	// fileMode Cert file mode
-	fileMode = 0600
 	// OneDayAgo for compatible with different time zone when issue cert
 	OneDayAgo = "-24h"
 )
