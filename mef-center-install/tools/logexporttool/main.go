@@ -22,8 +22,8 @@ import (
 )
 
 const (
-	defaultRunLogFile     = "/var/log/mindx-edge/edge-manager/run.log"
-	defaultOperateLogFile = "/var/log/mindx-edge/edge-manager/operate.log"
+	defaultRunLogFile     = "/var/log/mindx-edge/edge-manager/log_export_tool_run.log"
+	defaultOperateLogFile = "/var/log/mindx-edge/edge-manager/log_export_tool_operate.log"
 	defaultBackupDirName  = "/var/log_backup/mindx-edge/edge-manager"
 	defaultOpLogMaxSize   = 100
 	defaultRunLogMaxSize  = 100
