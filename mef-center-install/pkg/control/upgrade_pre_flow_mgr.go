@@ -276,8 +276,8 @@ func (upf *UpgradePreFlowMgr) execNewSh() error {
 
 func (upf *UpgradePreFlowMgr) newShErrDeal(returnErr error) {
 	if strings.Contains(returnErr.Error(), "invalid arch") {
-		fmt.Println("the upgrading zip if for another CPU architecture")
-		hwlog.RunLog.Error("upgrade failed: the upgrading zip if for another CPU architecture")
+		fmt.Println("the upgrading zip is for another CPU architecture")
+		hwlog.RunLog.Error("upgrade failed: the upgrading zip is for another CPU architecture")
 		upf.clearEnv()
 		return
 	}
