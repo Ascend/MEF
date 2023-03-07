@@ -196,7 +196,7 @@ func (uc *upgradeController) checkZipPath() error {
 	const zipSizeMul int64 = 100
 
 	pathMgr := util.InitInstallDirPathMgr(uc.installParam.InstallDir)
-	unpackPath := pathMgr.WorkPathMgr.GetRelativeVarDirPath()
+	unpackPath := pathMgr.WorkPathMgr.GetVarDirPath()
 	if filepath.Dir(zipPath) == unpackPath {
 		fmt.Println("zip path cannot be inside the unpack path")
 		hwlog.RunLog.Errorf("zip path cannot be the unpack dir:%s", unpackPath)

@@ -32,7 +32,7 @@ func (ucm *UpgradeClearMgr) reloadDockerImage() error {
 	hwlog.RunLog.Info("start to reload docker image")
 	for _, component := range ucm.Components {
 		dockerDealerIns := GetDockerDealer(component, DockerTag)
-		imagePath := ucm.InstallPathMgr.WorkPathMgr.GetRelativeImageDirPath(component)
+		imagePath := ucm.InstallPathMgr.WorkPathMgr.GetImageDirPath(component)
 		if err := dockerDealerIns.ReloadImage(imagePath); err != nil {
 			fmt.Println("reload docker image failed")
 			hwlog.RunLog.Errorf("reload component %s's docker failed:%s", component, err.Error())
@@ -59,7 +59,7 @@ func (ucm *UpgradeClearMgr) restartPods() error {
 		componentMgr := &CtlComponent{
 			Name:           component,
 			Operation:      StartOperateFlag,
-			InstallPathMgr: ucm.InstallPathMgr,
+			InstallPathMgr: ucm.InstallPathMgr.WorkPathMgr,
 		}
 
 		if err := componentMgr.Operate(); err != nil {
@@ -89,7 +89,7 @@ func (ucm *UpgradeClearMgr) clearTempUpgradePath() error {
 func (ucm *UpgradeClearMgr) clearUnpackPath() error {
 	fmt.Println("start to clear unpack path")
 	hwlog.RunLog.Info("start to clear unpack path")
-	unpackPath := ucm.InstallPathMgr.WorkPathMgr.GetRelativeVarDirPath()
+	unpackPath := ucm.InstallPathMgr.WorkPathMgr.GetVarDirPath()
 	if utils.IsExist(unpackPath) {
 		if err := common.DeleteAllFile(unpackPath); err != nil {
 			fmt.Println("clear unpack path failed")

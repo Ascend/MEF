@@ -140,11 +140,11 @@ func (cmm *CenterModeMgr) getWorkMode500Dir() modeMgr {
 		isRecursive: false,
 		ignoreFile:  true,
 		fileList: []string{
-			cmm.pathMgr.WorkPathMgr.GetRelativeBinDirPath(),
-			cmm.pathMgr.WorkPathMgr.GetRelativeLibDirPath(),
-			cmm.pathMgr.WorkPathMgr.GetRelativeKmcLibDirPath(),
-			cmm.pathMgr.WorkPathMgr.GetRelativeLibDirPath(),
-			filepath.Join(cmm.pathMgr.WorkPathMgr.GetWorkDir(), imageDirPattern),
+			cmm.pathMgr.WorkPathMgr.GetBinDirPath(),
+			cmm.pathMgr.WorkPathMgr.GetWorkLibDirPath(),
+			cmm.pathMgr.WorkPathMgr.GetKmcLibDirPath(),
+			cmm.pathMgr.WorkPathMgr.GetWorkLibDirPath(),
+			filepath.Join(cmm.pathMgr.WorkPathMgr.GetWorkPath(), imageDirPattern),
 		},
 	}
 }
@@ -156,7 +156,7 @@ func (cmm *CenterModeMgr) getWorkMode600File() modeMgr {
 		isRecursive: false,
 		ignoreFile:  false,
 		fileList: []string{
-			filepath.Join(cmm.pathMgr.WorkPathMgr.GetRelativeImagesDirPath(), "**/**/*.yaml"),
+			filepath.Join(cmm.pathMgr.WorkPathMgr.GetImagesDirPath(), "**/**/*.yaml"),
 		},
 	}
 }
@@ -168,9 +168,9 @@ func (cmm *CenterModeMgr) getWorkMode500File() modeMgr {
 		isRecursive: false,
 		ignoreFile:  false,
 		fileList: []string{
-			cmm.pathMgr.WorkPathMgr.GetRelativeRunShPath(),
-			filepath.Join(cmm.pathMgr.WorkPathMgr.GetRelativeLibDirPath(), "**/*.so"),
-			filepath.Join(cmm.pathMgr.WorkPathMgr.GetRelativeBinDirPath(), "**"),
+			cmm.pathMgr.WorkPathMgr.GetRunShPath(),
+			filepath.Join(cmm.pathMgr.WorkPathMgr.GetWorkLibDirPath(), "**/*.so"),
+			filepath.Join(cmm.pathMgr.WorkPathMgr.GetBinDirPath(), "**"),
 		},
 	}
 }
@@ -184,7 +184,7 @@ func (cmm *CenterModeMgr) getWorkMode400File() modeMgr {
 		fileList: []string{
 			cmm.pathMgr.WorkPathMgr.GetVersionXmlPath(),
 			cmm.pathMgr.WorkPathMgr.GetInstallParamJsonPath(),
-			filepath.Join(cmm.pathMgr.WorkPathMgr.GetRelativeImagesDirPath(), "**/**/*.tar.gz"),
+			filepath.Join(cmm.pathMgr.WorkPathMgr.GetImagesDirPath(), "**/**/*.tar.gz"),
 		},
 	}
 }

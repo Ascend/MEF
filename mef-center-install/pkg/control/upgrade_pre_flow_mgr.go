@@ -282,9 +282,9 @@ func (upf *UpgradePreFlowMgr) newShErrDeal(returnErr error) {
 		return
 	}
 
-	tempVarDir := upf.InstallPathMgr.WorkPathMgr.GetRelativeVarDirPath()
+	tempVarDir := upf.InstallPathMgr.WorkPathMgr.GetVarDirPath()
 	if utils.IsExist(tempVarDir) {
-		if err := common.DeleteAllFile(upf.InstallPathMgr.WorkPathMgr.GetRelativeVarDirPath()); err != nil {
+		if err := common.DeleteAllFile(upf.InstallPathMgr.WorkPathMgr.GetVarDirPath()); err != nil {
 			hwlog.RunLog.Warnf("delete temp dir %s failed, need to clear it manually", err.Error())
 			return
 		}
@@ -295,7 +295,7 @@ func (upf *UpgradePreFlowMgr) newShErrDeal(returnErr error) {
 func (upf *UpgradePreFlowMgr) clearEnv() {
 	fmt.Println("install failed, start to clear environment")
 	hwlog.RunLog.Info("-----Start to clear environment-----")
-	if err := common.DeleteAllFile(upf.InstallPathMgr.WorkPathMgr.GetRelativeVarDirPath()); err != nil {
+	if err := common.DeleteAllFile(upf.InstallPathMgr.WorkPathMgr.GetVarDirPath()); err != nil {
 		fmt.Println("clear environment failed, please clear manually")
 		hwlog.RunLog.Warnf("clear environment meets err:%s, need to do it manually", err.Error())
 		hwlog.RunLog.Info("-----End to clear environment-----")

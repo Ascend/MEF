@@ -193,7 +193,7 @@ func (upf *UpgradePostFlowMgr) prepareWorkCDir() error {
 		return errors.New("prepare working dir failed")
 	}
 
-	if err := common.DeleteAllFile(upf.InstallPathMgr.WorkPathMgr.GetRelativeVarDirPath()); err != nil {
+	if err := common.DeleteAllFile(upf.InstallPathMgr.WorkPathMgr.GetVarDirPath()); err != nil {
 		hwlog.RunLog.Errorf("delete unpack dir failed: %s", err.Error())
 		return errors.New("delete unpack dir failed")
 	}
@@ -221,7 +221,7 @@ func (upf *UpgradePostFlowMgr) recordStarted() error {
 	for _, c := range upf.SoftwareMgr.Components {
 		dealer := &util.CtlComponent{
 			Name:           c,
-			InstallPathMgr: upf.SoftwareMgr.InstallPathMgr,
+			InstallPathMgr: upf.SoftwareMgr.InstallPathMgr.WorkPathMgr,
 		}
 		started, err := dealer.CheckStarted()
 		if err != nil {
@@ -292,7 +292,7 @@ func (upf *UpgradePostFlowMgr) startNewPod() error {
 		dealer := &util.CtlComponent{
 			Name:           c,
 			Operation:      util.StartOperateFlag,
-			InstallPathMgr: upf.SoftwareMgr.InstallPathMgr,
+			InstallPathMgr: upf.SoftwareMgr.InstallPathMgr.TmpPathMgr,
 		}
 		err := dealer.Operate()
 		if err != nil {

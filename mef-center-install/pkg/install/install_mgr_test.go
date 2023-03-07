@@ -89,9 +89,19 @@ func DoInstallTest() {
 }
 
 func CheckInstalledTest() {
+	k8sMgr := &util.K8sLabelMgr{}
 	ins := GetSftInstallMgrIns([]string{}, "", "", "")
 	Convey("checkInstalled func success", func() {
+		p := ApplyMethodReturn(k8sMgr, "CheckK8sLabel", false, nil)
+		defer p.Reset()
 		So(ins.checkInstalled(), ShouldBeNil)
+	})
+
+	Convey("checkInstalled func failed by installed", func() {
+		p := ApplyMethodReturn(k8sMgr, "CheckK8sLabel", true, nil)
+		defer p.Reset()
+		So(ins.checkInstalled(), ShouldResemble,
+			errors.New("the software has already been installed since k8s label exists"))
 	})
 
 	Convey("checkInstalled func failed", func() {
@@ -107,6 +117,7 @@ func PreCheckTest() {
 		p := ApplyPrivateMethod(ins, "checkUser", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "checkArch", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "checkDiskSpace", func(_ *SftInstallCtl) error { return nil }).
+			ApplyPrivateMethod(ins, "checkInstalled", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "checkNecessaryTools", func(_ *SftInstallCtl) error { return nil })
 		defer p.Reset()
 		So(ins.preCheck(), ShouldBeNil)
