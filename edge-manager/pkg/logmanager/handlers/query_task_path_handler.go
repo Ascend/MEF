@@ -4,9 +4,9 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 
-	"github.com/pkg/errors"
 	"huawei.com/mindx/common/hwlog"
 
 	"edge-manager/pkg/logmanager/modules"
