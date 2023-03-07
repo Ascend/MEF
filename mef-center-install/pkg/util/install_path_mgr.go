@@ -23,6 +23,7 @@ type WorkPathItf interface {
 	GetComponentBinaryPath(string) string
 	GetComponentLibPath(string) string
 	GetInstallParamJsonPath() string
+	GetComponentYamlPath(string) string
 }
 
 // InstallDirPathMgr is a struct that controls all dir/file path in installed pkg dir
@@ -98,50 +99,50 @@ type WorkPathMgr struct {
 	workPath string
 }
 
-// GetWorkDir returns the work dir path in mef-center softlink
-func (wpm *WorkPathMgr) GetWorkDir() string {
+// GetWorkPath returns the work dir path in mef-center softlink
+func (wpm *WorkPathMgr) GetWorkPath() string {
 	return wpm.workPath
 }
 
-// GetRelativeLibDirPath returns the lib dir path in mef-center softlink
-func (wpm *WorkPathMgr) GetRelativeLibDirPath() string {
+// GetWorkLibDirPath returns the lib dir path in mef-center softlink
+func (wpm *WorkPathMgr) GetWorkLibDirPath() string {
 	return filepath.Join(wpm.workPath, MefLibDir)
 }
 
-// GetRelativeVarDirPath returns the var dir path in mef-center softlink
+// GetVarDirPath returns the var dir path in mef-center softlink
 // the var dir is a temporary path that used to storage temp files
-func (wpm *WorkPathMgr) GetRelativeVarDirPath() string {
+func (wpm *WorkPathMgr) GetVarDirPath() string {
 	return filepath.Join(wpm.workPath, MefVarDir)
 }
 
 // GetTempZipPath returns the path to unzip zip file in mef-center softlink
 func (wpm *WorkPathMgr) GetTempZipPath() string {
-	return filepath.Join(wpm.GetRelativeVarDirPath(), MefZipDir)
+	return filepath.Join(wpm.GetVarDirPath(), MefZipDir)
 }
 
 // GetTempTarPath returns the path to unzip tar file in mef-center softlink
 func (wpm *WorkPathMgr) GetTempTarPath() string {
-	return filepath.Join(wpm.GetRelativeVarDirPath(), MefTarDir)
+	return filepath.Join(wpm.GetVarDirPath(), MefTarDir)
 }
 
-// GetRelativeBinDirPath returns the bin dir path in mef-center softlink
-func (wpm *WorkPathMgr) GetRelativeBinDirPath() string {
+// GetBinDirPath returns the bin dir path in mef-center softlink
+func (wpm *WorkPathMgr) GetBinDirPath() string {
 	return filepath.Join(wpm.workPath, MefBinDir)
 }
 
-// GetRelativeRunShPath returns the run.sh path in mef-center softlink
-func (wpm *WorkPathMgr) GetRelativeRunShPath() string {
+// GetRunShPath returns the run.sh path in mef-center softlink
+func (wpm *WorkPathMgr) GetRunShPath() string {
 	return filepath.Join(wpm.workPath, MefRunScript)
 }
 
-// GetRelativeKmcLibDirPath returns the kmc-lib dir path in mef-center softlink
-func (wpm *WorkPathMgr) GetRelativeKmcLibDirPath() string {
-	return filepath.Join(wpm.GetRelativeLibDirPath(), MefKmcLibDir)
+// GetKmcLibDirPath returns the kmc-lib dir path in mef-center softlink
+func (wpm *WorkPathMgr) GetKmcLibDirPath() string {
+	return filepath.Join(wpm.GetWorkLibDirPath(), MefKmcLibDir)
 }
 
-// GetRelativeOtherLibDirPath returns the other lib dir path in mef-center softlink
-func (wpm *WorkPathMgr) GetRelativeOtherLibDirPath() string {
-	return filepath.Join(wpm.GetRelativeLibDirPath(), OtherLibDir)
+// GetOtherLibDirPath returns the other lib dir path in mef-center softlink
+func (wpm *WorkPathMgr) GetOtherLibDirPath() string {
+	return filepath.Join(wpm.GetWorkLibDirPath(), OtherLibDir)
 }
 
 // GetInstallParamJsonPath returns the imstall_param json path in mef-center softlink
@@ -149,29 +150,59 @@ func (wpm *WorkPathMgr) GetInstallParamJsonPath() string {
 	return filepath.Join(wpm.workPath, InstallParamJson)
 }
 
+// GetInstallerBinPath returns the installation binary path in mef-center softlink
+func (wpm *WorkPathMgr) GetInstallerBinPath() string {
+	return filepath.Join(wpm.GetBinDirPath(), InstallBin)
+}
+
 // GetVersionXmlPath returns the version.xml path in mef-center softlink
 func (wpm *WorkPathMgr) GetVersionXmlPath() string {
 	return filepath.Join(wpm.workPath, VersionXml)
 }
 
-// GetRelativeImagesDirPath returns the image dir path in mef-center softlink
-func (wpm *WorkPathMgr) GetRelativeImagesDirPath() string {
+// GetImagesDirPath returns the image dir path in mef-center softlink
+func (wpm *WorkPathMgr) GetImagesDirPath() string {
 	return filepath.Join(wpm.workPath, ImagesDirName)
 }
 
-// GetRelativeImageConfigPath returns the image config dir path in mef-center softlink
-func (wpm *WorkPathMgr) GetRelativeImageConfigPath(component string) string {
-	return filepath.Join(wpm.GetRelativeImagesDirPath(), component, ImageConfigDir)
+// GetImageConfigPath returns the image config dir path in mef-center softlink
+func (wpm *WorkPathMgr) GetImageConfigPath(component string) string {
+	return filepath.Join(wpm.GetImagesDirPath(), component, ImageConfigDir)
 }
 
-// GetRelativeYamlPath returns the relative component's yaml path in mef-center softlink
-func (wpm *WorkPathMgr) GetRelativeYamlPath(component string) string {
-	return filepath.Join(wpm.GetRelativeImageConfigPath(component), fmt.Sprintf("%s.yaml", component))
+// GetImagePath returns single component's image dir path by component's name in mef-center softlink
+func (wpm *WorkPathMgr) GetImagePath(component string) string {
+	return filepath.Join(wpm.GetImagesDirPath(), component, ImageDir)
 }
 
-// GetRelativeImageDirPath returns the relative component's image dir in mef-center softlink by single component's name
-func (wpm *WorkPathMgr) GetRelativeImageDirPath(component string) string {
-	return filepath.Join(wpm.GetRelativeImagesDirPath(), component, ImageDir)
+// GetDockerFilePath returns single component's Dockerfile path by component's name in mef-center softlink
+func (wpm *WorkPathMgr) GetDockerFilePath(component string) string {
+	return filepath.Join(wpm.GetImageConfigPath(component), DockerFileName)
+}
+
+// GetNginxDirPath returns the nginx dir path in nginx module in mef-center softlink
+func (wpm *WorkPathMgr) GetNginxDirPath() string {
+	return filepath.Join(wpm.GetImageConfigPath(NginxManagerName), NginxDirName)
+}
+
+// GetComponentBinaryPath returns single component's binary path by component's name in mef-center softlink
+func (wpm *WorkPathMgr) GetComponentBinaryPath(component string) string {
+	return filepath.Join(wpm.GetImageConfigPath(component), component)
+}
+
+// GetComponentLibPath returns component's lib dir that would be deleted after docker build
+func (wpm *WorkPathMgr) GetComponentLibPath(component string) string {
+	return filepath.Join(wpm.GetImageConfigPath(component), ComponentLibDir)
+}
+
+// GetComponentYamlPath returns the relative component's yaml path in mef-center softlink
+func (wpm *WorkPathMgr) GetComponentYamlPath(component string) string {
+	return filepath.Join(wpm.GetImageConfigPath(component), fmt.Sprintf("%s.yaml", component))
+}
+
+// GetImageDirPath returns the relative component's image dir in mef-center softlink by single component's name
+func (wpm *WorkPathMgr) GetImageDirPath(component string) string {
+	return filepath.Join(wpm.GetImagesDirPath(), component, ImageDir)
 }
 
 // GetUpgradeFlagPath returns the relative upgrade-flag path

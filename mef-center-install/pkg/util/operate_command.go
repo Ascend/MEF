@@ -19,7 +19,7 @@ import (
 type CtlComponent struct {
 	Name           string
 	Operation      string
-	InstallPathMgr *InstallDirPathMgr
+	InstallPathMgr WorkPathItf
 }
 
 func (cc *CtlComponent) startComponent(yamlPath string) (bool, error) {
@@ -168,12 +168,12 @@ func (cc *CtlComponent) CheckStarted() (bool, error) {
 func (cc *CtlComponent) Operate() error {
 	hwlog.RunLog.Infof("start to %s module %s", cc.Operation, cc.Name)
 	fmt.Printf("start to %s module %s\n", cc.Operation, cc.Name)
-	if cc.InstallPathMgr == nil && cc.InstallPathMgr.WorkPathAMgr == nil {
-		hwlog.RunLog.Error("pointer InstallPathMgr is nil or invalid")
-		return errors.New("pointer InstallPathMgr is nil or invalid")
+	if cc.InstallPathMgr == nil {
+		hwlog.RunLog.Error("pointer WorkPathItf is nil or invalid")
+		return errors.New("pointer WorkPathItf is nil or invalid")
 	}
 
-	yamlPath := cc.InstallPathMgr.WorkPathMgr.GetRelativeYamlPath(cc.Name)
+	yamlPath := cc.InstallPathMgr.GetComponentYamlPath(cc.Name)
 	yamlRealPath, err := filepath.EvalSymlinks(yamlPath)
 	if err != nil {
 		hwlog.RunLog.Errorf("get real path of component [%s]'s yaml failed: %s", cc.Name, err.Error())

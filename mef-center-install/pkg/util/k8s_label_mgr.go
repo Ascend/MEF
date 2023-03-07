@@ -38,6 +38,7 @@ func (klm *K8sLabelMgr) getCurrentNodeName() (string, error) {
 		return nodeName, nil
 	}
 
+	hwlog.RunLog.Error("no valid node matches the device ip found")
 	return "", errors.New("no valid node matches the device ip found")
 }
 
@@ -67,7 +68,7 @@ func (klm *K8sLabelMgr) PrepareK8sLabel() error {
 func (klm *K8sLabelMgr) CheckK8sLabel() (bool, error) {
 	nodeName, err := klm.getCurrentNodeName()
 	if err != nil {
-		return false, nil
+		return false, err
 	}
 
 	if strings.ContainsAny(nodeName, common.IllegalChars) {

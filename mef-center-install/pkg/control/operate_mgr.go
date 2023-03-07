@@ -51,7 +51,7 @@ func (scm *SftOperateMgr) init() error {
 			component := &util.CtlComponent{
 				Name:           c,
 				Operation:      scm.operate,
-				InstallPathMgr: scm.installPathMgr,
+				InstallPathMgr: scm.installPathMgr.WorkPathMgr,
 			}
 			scm.componentList = append(scm.componentList, component)
 		}
@@ -60,7 +60,7 @@ func (scm *SftOperateMgr) init() error {
 		component := &util.CtlComponent{
 			Name:           scm.componentFlag,
 			Operation:      scm.operate,
-			InstallPathMgr: scm.installPathMgr,
+			InstallPathMgr: scm.installPathMgr.WorkPathMgr,
 		}
 		scm.componentList = append(scm.componentList, component)
 	}
