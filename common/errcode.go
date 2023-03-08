@@ -22,6 +22,12 @@ const (
 	ErrorTypeAssert = "00001007"
 	// ErrorNewMsg new msg error
 	ErrorNewMsg = "00001008"
+	// ErrorMarshalFailed marshal data failed
+	ErrorMarshalFailed = "00001009"
+	// ErrorUnmarshalFailed unmarshal data failed
+	ErrorUnmarshalFailed = "000010010"
+	// ErrorInnerGetData failed to get inner data
+	ErrorInnerGetData = "000010011"
 
 	// ErrorCreateAppTemplate failed to create app template
 	ErrorCreateAppTemplate = "00002005"
@@ -174,6 +180,15 @@ const (
 	ErrorGetSecret = "60001007"
 	// ErrorCreateSecret failed to create secret
 	ErrorCreateSecret = "60001008"
+
+	// ErrorUpdateUrlInfo failed to update software url info
+	ErrorUpdateUrlInfo = "70002000"
+	// ErrorUpdateAuthInfo failed to update software auth info
+	ErrorUpdateAuthInfo = "70002001"
+	// ErrorEncryptAuthInfo failed to encrypt auth info
+	ErrorEncryptAuthInfo = "70002002"
+	// ErrorDecryptAuthInfo failed to decrypt auth info
+	ErrorDecryptAuthInfo = "70002003"
 )
 
 // ErrorMap error code and error msg map
@@ -192,6 +207,13 @@ var ErrorMap = map[string]string{
 	ErrorParamInvalid: "parameter invalid",
 	// ErrorTypeAssert parameter type assert error
 	ErrorTypeAssert: "parameter type assert error",
+	// ErrorMarshalFailed marshal data failed
+	ErrorMarshalFailed: "marshal data failed",
+	// ErrorUnmarshalFailed marshal data failed
+	ErrorUnmarshalFailed: "unmarshal data failed",
+	// ErrorInnerGetData failed to get inner data
+	ErrorInnerGetData: "failed to get inner data",
+
 	// ErrorCreateAppTemplate failed to create app template info
 	ErrorCreateAppTemplate: "failed to create app template",
 	// ErrorDeleteAppTemplate failed to delete app template info
@@ -341,4 +363,13 @@ var ErrorMap = map[string]string{
 	ErrorLogCollectEdgeBusiness: "failed to collect log due to business error",
 	// ErrorLogCollectEdgeParamInvalid parameter error
 	ErrorLogCollectEdgeParamInvalid: "failed to collect log due to parameter invalid",
+
+	// ErrorUpdateUrlInfo failed to update url info
+	ErrorUpdateUrlInfo: "failed to update url info",
+	// ErrorUpdateAuthInfo failed to update software auth info
+	ErrorUpdateAuthInfo: "failed to update software auth info",
+	// ErrorUpdateAuthInfo failed to encrypt auth info failed
+	ErrorEncryptAuthInfo: "failed to encrypt auth info",
+	// ErrorDecryptAuthInfo failed to decrypt auth info failed
+	ErrorDecryptAuthInfo: "failed to decrypt auth info",
 }

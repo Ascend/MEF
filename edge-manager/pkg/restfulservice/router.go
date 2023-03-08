@@ -202,6 +202,16 @@ var softwareRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			Method:       http.MethodGet,
 			Destination:  common.NodeMsgManagerName}, "serialNumber", true},
 	},
+	"/edgemanager/v1/software": {
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/auth-info",
+			Method:       http.MethodPost,
+			Destination:  common.SoftwareManagerName},
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/url-info",
+			Method:       http.MethodPost,
+			Destination:  common.SoftwareManagerName},
+	},
 }
 
 var logCollectRouterDispatchers = map[string][]restfulmgr.DispatcherItf{

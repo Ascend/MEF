@@ -48,7 +48,7 @@ func innerGetNodeSoftwareInfo(input interface{}) common.RespMsg {
 	resp := types.InnerSoftwareInfoResp{}
 
 	if err = json.Unmarshal([]byte(nodeInfo.SoftwareInfo), &resp.SoftwareInfo); err != nil {
-		hwlog.RunLog.Error("unmarshall node software info failed")
+		hwlog.RunLog.Error("unmarshal node software info failed")
 		return common.RespMsg{Status: "", Msg: "get node info failed because unmarshal failed", Data: nil}
 	}
 

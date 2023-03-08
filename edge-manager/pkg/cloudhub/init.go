@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/websocketmgr"
 	"huawei.com/mindxedge/base/modulemanager"
@@ -78,11 +79,15 @@ func (c *CloudServer) Start() {
 			continue
 		}
 
-		if c.sendToClient(message) != nil {
-			c.response(message, common.FAIL)
-		} else {
-			c.response(message, common.OK)
-		}
+		go c.dispatch(message)
+	}
+}
+
+func (c *CloudServer) dispatch(message *model.Message) {
+	if c.sendToClient(message) != nil {
+		c.response(message, common.FAIL)
+	} else {
+		c.response(message, common.OK)
 	}
 }
 
