@@ -92,10 +92,11 @@ func methodSelect(req *model.Message) *common.RespMsg {
 }
 
 var (
-	configUrlRootPath = "/edgemanager/v1/image"
+	configUrlRootPath      = "/edgemanager/v1/image"
+	innerConfigUrlRootPath = "/inner/v1/image"
 )
 
 var handlerFuncMap = map[string]handlerFunc{
-	common.Combine(http.MethodPost, filepath.Join(configUrlRootPath, "config")): downloadConfig,
-	common.Combine(http.MethodPost, filepath.Join(configUrlRootPath, "update")): updateConfig,
+	common.Combine(http.MethodPost, filepath.Join(configUrlRootPath, "config")):      downloadConfig,
+	common.Combine(http.MethodPost, filepath.Join(innerConfigUrlRootPath, "update")): updateConfig,
 }

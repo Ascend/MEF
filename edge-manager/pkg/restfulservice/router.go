@@ -68,6 +68,11 @@ var configRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			RelativePath: "/config",
 			Method:       http.MethodPost,
 			Destination:  common.ConfigManagerName},
+	},
+}
+
+var innerConfigRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
+	"/inner/v1/image": {
 		restfulmgr.GenericDispatcher{
 			RelativePath: "/update",
 			Method:       http.MethodPost,
@@ -81,6 +86,7 @@ func setRouter(engine *gin.Engine) {
 	restfulmgr.InitRouter(engine, nodeGroupRouterDispatchers)
 	restfulmgr.InitRouter(engine, appRouterDispatchers)
 	restfulmgr.InitRouter(engine, configRouterDispatchers)
+	restfulmgr.InitRouter(engine, innerConfigRouterDispatchers)
 	restfulmgr.InitRouter(engine, edgeAccountRouterDispatchers)
 	restfulmgr.InitRouter(engine, softwareRouterDispatchers)
 	restfulmgr.InitRouter(engine, logCollectRouterDispatchers)

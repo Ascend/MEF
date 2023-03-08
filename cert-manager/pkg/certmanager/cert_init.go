@@ -93,12 +93,13 @@ func (cm *certManager) dispatch(req *model.Message) {
 }
 
 var (
-	certUrlRootPath = "/certmanager/v1/certificates"
+	certUrlRootPath      = "/certmanager/v1/certificates"
+	innerCertUrlRootPath = "/inner/v1/certificates"
 )
 
 var handlerFuncMap = map[string]handlerFunc{
-	common.Combine(http.MethodPost, filepath.Join(certUrlRootPath, "import")):      importRootCa,
-	common.Combine(http.MethodGet, filepath.Join(certUrlRootPath, "rootca")):       queryRootCa,
-	common.Combine(http.MethodPost, filepath.Join(certUrlRootPath, "service")):     issueServiceCa,
-	common.Combine(http.MethodPost, filepath.Join(certUrlRootPath, "delete-cert")): deleteRootCa,
+	common.Combine(http.MethodPost, filepath.Join(certUrlRootPath, "import")):       importRootCa,
+	common.Combine(http.MethodGet, filepath.Join(certUrlRootPath, "rootca")):        queryRootCa,
+	common.Combine(http.MethodPost, filepath.Join(certUrlRootPath, "delete-cert")):  deleteRootCa,
+	common.Combine(http.MethodPost, filepath.Join(innerCertUrlRootPath, "service")): issueServiceCa,
 }

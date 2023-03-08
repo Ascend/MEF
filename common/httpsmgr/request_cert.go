@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	reqSvrUrl     = "certmanager/v1/certificates/service"
+	reqSvrUrl     = "inner/v1/certificates/service"
 	getRootCaUrl  = "certmanager/v1/certificates/rootca"
-	updateCertUrl = "edgemanager/v1/image/update"
+	updateCertUrl = "inner/v1/image/update"
 )
 
 type reqIssueCertBody struct {

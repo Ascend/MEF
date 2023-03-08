@@ -24,11 +24,16 @@ var certRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			Method:       http.MethodGet,
 			Destination:  common.CertManagerName}, "certName"},
 		restfulmgr.GenericDispatcher{
-			RelativePath: "/service",
+			RelativePath: "/delete-cert",
 			Method:       http.MethodPost,
 			Destination:  common.CertManagerName},
+	},
+}
+
+var innerCertRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
+	"/inner/v1/certificates": {
 		restfulmgr.GenericDispatcher{
-			RelativePath: "/delete-cert",
+			RelativePath: "/service",
 			Method:       http.MethodPost,
 			Destination:  common.CertManagerName},
 	},
@@ -37,6 +42,7 @@ var certRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 func setRouter(engine *gin.Engine) {
 	engine.GET("/certmanager/v1/version", versionQuery)
 	restfulmgr.InitRouter(engine, certRouterDispatchers)
+	restfulmgr.InitRouter(engine, innerCertRouterDispatchers)
 }
 
 func versionQuery(c *gin.Context) {

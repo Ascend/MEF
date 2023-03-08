@@ -53,7 +53,7 @@ func TestMethodSelect(t *testing.T) {
 		})
 		convey.Convey("config manager method select success with update url", func() {
 			input, _ := model.NewMessage()
-			input.SetRouter("", "", http.MethodPost, filepath.Join(configUrlRootPath, "update"))
+			input.SetRouter("", "", http.MethodPost, filepath.Join(innerConfigUrlRootPath, "update"))
 			msg := methodSelect(input)
 			convey.So(msg, convey.ShouldNotBeNil)
 		})
