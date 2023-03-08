@@ -3,11 +3,15 @@
 package control
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
@@ -265,12 +269,34 @@ func (upf *UpgradePreFlowMgr) getVerifyFileName() (*zipContent, error) {
 
 func (upf *UpgradePreFlowMgr) execNewSh() error {
 	shPath := filepath.Join(upf.unpackTarPath, util.InstallDirName, util.ScriptsDirName, util.UpgradeShName)
-	_, err := common.RunCommand(shPath, true, util.UpgradeTimeoutSec)
-	if err != nil {
-		upf.newShErrDeal(err)
-		hwlog.RunLog.Errorf("upgrade failed: exec new version upgrade sh meet error: %s", err.Error())
-		return errors.New("upgrade failed")
+	cmd := exec.Command(shPath)
+	var stderr bytes.Buffer
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = &stderr
+
+	done := make(chan error)
+	go func() { done <- cmd.Run() }()
+	timeout := time.After(time.Duration(util.UpgradeTimeoutSec) * time.Second)
+	if timeout == nil {
+		return errors.New("init timeout channel failed")
 	}
+
+	select {
+	case <-timeout:
+		err := cmd.Process.Kill()
+		if err != nil {
+			hwlog.RunLog.Warn("upgrade in new sh timeout and stop it failed!")
+		}
+		upf.newShErrDeal(err)
+		return errors.New("exec new sh command timeout")
+	case err := <-done:
+		if err != nil {
+			upf.newShErrDeal(err)
+			hwlog.RunLog.Errorf("upgrade failed: exec new version upgrade sh meet error: %s", stderr.String())
+			return errors.New("upgrade failed")
+		}
+	}
+
 	return nil
 }
 
