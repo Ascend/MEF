@@ -32,6 +32,7 @@ func main() {
 		os.Exit(util.ErrorExitCode)
 	}
 
+	fmt.Println("starting to upgrade")
 	controller := &upgradeController{
 		installParam: installParam,
 		logPath:      installParam.LogDir,
