@@ -80,7 +80,6 @@ func (upf *UpgradePreFlowMgr) DoUpgrade() error {
 
 func (upf *UpgradePreFlowMgr) preCheck() error {
 	hwlog.RunLog.Info("start to exec environment check")
-	fmt.Println("start to exec environment check")
 	var checkTasks = []func() error{
 		upf.checkUser,
 		upf.checkCurrentPath,
@@ -95,7 +94,6 @@ func (upf *UpgradePreFlowMgr) preCheck() error {
 		return err
 	}
 	hwlog.RunLog.Info("environment check succeeds")
-	fmt.Println("environment check succeeds")
 	return nil
 }
 
@@ -152,7 +150,6 @@ func (upf *UpgradePreFlowMgr) unzipZipFile() error {
 }
 
 func (upf *UpgradePreFlowMgr) verifyPackage() error {
-	hwlog.RunLog.Info("start to verify package")
 	fmt.Println("start to verify package")
 	unpackAbsPath, err := filepath.EvalSymlinks(upf.unpackZipPath)
 	if err != nil {
@@ -173,7 +170,6 @@ func (upf *UpgradePreFlowMgr) verifyPackage() error {
 		hwlog.RunLog.Errorf("verify package failed,error:%v", err)
 		return errors.New("verify package failed")
 	}
-	fmt.Println("verify package succeeds")
 	hwlog.RunLog.Info("verify package succeeds")
 	return nil
 }
@@ -268,8 +264,7 @@ func (upf *UpgradePreFlowMgr) getVerifyFileName() (*zipContent, error) {
 }
 
 func (upf *UpgradePreFlowMgr) execNewSh() error {
-	shPath := filepath.Join(upf.unpackTarPath, util.InstallDirName, util.ScriptsDirName, util.UpgradeShName)
-	cmd := exec.Command(shPath)
+	cmd := exec.Command(filepath.Join(upf.unpackTarPath, util.InstallDirName, util.ScriptsDirName, util.UpgradeShName))
 	var stderr bytes.Buffer
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = &stderr
