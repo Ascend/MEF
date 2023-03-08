@@ -204,6 +204,7 @@ func (msg *Message) NewResponse() (*Message, error) {
 	}
 	respMsg.Header.ParentId = msg.Header.Id
 	respMsg.Header.IsSync = msg.Header.IsSync
+	respMsg.Header.NodeId = msg.Header.NodeId
 
 	respMsg.Router.Source = msg.Router.Destination
 	respMsg.Router.Destination = msg.Router.Source

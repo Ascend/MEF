@@ -63,7 +63,7 @@ const (
 	// CertManagerName CertManager
 	CertManagerName = "CertManager"
 	// SoftwareManagerName software manager
-	SoftwareManagerName = "software manager"
+	SoftwareManagerName = "SoftwareManager"
 	// CertManagerService CertManager module name
 	CertManagerService = "CertManagerService"
 	// ConfigManagerName ConfigManagerName
@@ -222,6 +222,8 @@ const (
 	ResSetEdgeAccount = "/edgemanager/v1/edgeAccount"
 	// ResDownLoadCert resource for downloading cert
 	ResDownLoadCert = "/cert/download_info"
+	// ResSfwDownloadInfo resource for download software
+	ResSfwDownloadInfo = "/software/download-info"
 	// ResLogEdge resource for log of edge node
 	ResLogEdge = "/logcollect/log/edge"
 	// ResLogTaskProgressEdge resource for progress of edge node log collection

@@ -15,6 +15,7 @@ import (
 	"huawei.com/mindx/common/utils"
 
 	"edge-manager/pkg/logmanager"
+	"edge-manager/pkg/softwaremanager"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
@@ -151,6 +152,9 @@ func register(ctx context.Context) error {
 		return err
 	}
 	if err := modulemanager.Registry(configmanager.NewConfigManager(true)); err != nil {
+		return err
+	}
+	if err := modulemanager.Registry(softwaremanager.NewSftManager(true)); err != nil {
 		return err
 	}
 	if err := modulemanager.Registry(logmanager.NewLogManager(ctx, true)); err != nil {

@@ -119,5 +119,6 @@ var handlerFuncMap = map[string]handlerFunc{
 
 	common.Combine(common.OptGet, common.ResEdgeCoreConfig):      GetConfigInfo,
 	common.Combine(common.OptGet, common.ResDownLoadCert):        GetCertInfo,
+	common.Combine(common.OptGet, common.ResSfwDownloadInfo):     getSftDownloadInfo,
 	common.Combine(common.OptReport, common.ResDownloadProgress): UpdateEdgeDownloadProgress,
 }
