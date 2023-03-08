@@ -74,15 +74,13 @@ func importRootCa(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("save ca content to file failed, error:%v", err)
 		return common.RespMsg{Status: common.ErrorSaveCa, Msg: "save ca content to file failed", Data: nil}
 	}
-	go func() {
-		// edge-manager does not save root ca, so no need to update.
-		if req.CertName == common.WsCltName || req.CertName == common.NginxCertName {
-			return
-		}
+	if req.CertName == common.SoftwareCertName || req.CertName == common.ImageCertName {
 		if err := updateClientCert(req.CertName, common.Update, caBase64); err != nil {
 			hwlog.RunLog.Errorf("distribute cert file to client failed, error:%v", err)
+			return common.RespMsg{Status: common.Success, Msg: "import certificate success, " +
+				"but distribute cert file to client failed", Data: nil}
 		}
-	}()
+	}
 	hwlog.OpLog.Infof("import %s certificate success", req.CertName)
 	return common.RespMsg{Status: common.Success, Msg: "import certificate success", Data: nil}
 }
@@ -102,11 +100,11 @@ func deleteRootCa(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("delete ca file failed, error:%v", err)
 		return common.RespMsg{Status: common.ErrorDeleteRootCa, Msg: "delete ca file failed", Data: nil}
 	}
-	go func() {
-		if err := updateClientCert(req.Type, common.Delete, nil); err != nil {
-			hwlog.RunLog.Errorf("delete cert file for client failed, error:%v", err)
-		}
-	}()
+	if err := updateClientCert(req.Type, common.Delete, nil); err != nil {
+		hwlog.RunLog.Errorf("delete cert file for client failed, error:%v", err)
+		return common.RespMsg{Status: common.Success, Msg: "delete ca file success, " +
+			"but delete cert file for client failed", Data: nil}
+	}
 	hwlog.RunLog.Infof("delete %s certificate success", req.Type)
 	return common.RespMsg{Status: common.Success, Msg: "delete ca file success", Data: nil}
 }

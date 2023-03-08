@@ -84,7 +84,6 @@ func setRouter(engine *gin.Engine) {
 	restfulmgr.InitRouter(engine, edgeAccountRouterDispatchers)
 	restfulmgr.InitRouter(engine, softwareRouterDispatchers)
 	restfulmgr.InitRouter(engine, logCollectRouterDispatchers)
-	connCertRouter(engine)
 }
 
 func versionQuery(c *gin.Context) {
@@ -217,13 +216,6 @@ var logCollectRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			Destination:  common.LogManagerName,
 		}},
 	},
-}
-
-func connCertRouter(engine *gin.Engine) {
-	v1 := engine.Group("/edgemanager/v1/cert")
-	{
-		v1.POST("/download", downloadCert)
-	}
 }
 
 func pageUtil(c *gin.Context) (types.ListReq, error) {
