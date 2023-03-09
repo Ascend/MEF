@@ -161,16 +161,11 @@ func (wdc *WorkingDirCtl) prepareBinDir() error {
 		return errors.New("create sbin work path failed")
 	}
 
-	sbinSrc := path.Join(currentPath, util.MefBinDir)
-	if err = utils.CopyDir(sbinSrc, sbinDst); err != nil {
-		hwlog.RunLog.Errorf("copy mef scripts dir failed, error: %v", err.Error())
-		return errors.New("copy mef scripts dir failed")
-	}
-
-	installBin := wdc.pathMgr.GetInstallerBinPath()
-	if err = common.DeleteAllFile(installBin); err != nil {
-		hwlog.RunLog.Errorf("delete installer bin failed, error: %v", err.Error())
-		return errors.New("delete installer bin failed")
+	sbinSrc := path.Join(currentPath, util.MefBinDir, util.ControllerBin)
+	controllerPath := wdc.pathMgr.GetControllerBinPath()
+	if err = utils.CopyFile(sbinSrc, controllerPath); err != nil {
+		hwlog.RunLog.Errorf("copy mef controller failed, error: %v", err.Error())
+		return errors.New("copy mef controller failed")
 	}
 
 	hwlog.RunLog.Info("prepare bin dir successful")

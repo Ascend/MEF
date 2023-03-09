@@ -43,7 +43,7 @@ const (
 	MefRunScript     = "run.sh"
 	VersionXml       = "version.xml"
 	InstallParamJson = "install-param.json"
-	InstallBin       = "MEF-center-installer"
+	ControllerBin    = "MEF-center-controller"
 	UpgradeFlagFile  = "upgrade-flag"
 	ConfigInPkg      = "config"
 )

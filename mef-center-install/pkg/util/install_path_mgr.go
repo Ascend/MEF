@@ -13,7 +13,7 @@ type WorkPathItf interface {
 	GetWorkLibDirPath() string
 	GetRunShPath() string
 	GetBinDirPath() string
-	GetInstallerBinPath() string
+	GetControllerBinPath() string
 	GetVersionXmlPath() string
 	GetImagesDirPath() string
 	GetImageConfigPath(string) string
@@ -150,9 +150,9 @@ func (wpm *WorkPathMgr) GetInstallParamJsonPath() string {
 	return filepath.Join(wpm.workPath, InstallParamJson)
 }
 
-// GetInstallerBinPath returns the installation binary path in mef-center softlink
-func (wpm *WorkPathMgr) GetInstallerBinPath() string {
-	return filepath.Join(wpm.GetBinDirPath(), InstallBin)
+// GetControllerBinPath returns the controller binary path in mef-center softlink
+func (wpm *WorkPathMgr) GetControllerBinPath() string {
+	return filepath.Join(wpm.GetBinDirPath(), ControllerBin)
 }
 
 // GetVersionXmlPath returns the version.xml path in mef-center softlink
@@ -236,9 +236,9 @@ func (wam *WorkPathAMgr) GetInstallParamJsonPath() string {
 	return filepath.Join(wam.workAPath, InstallParamJson)
 }
 
-// GetInstallerBinPath returns the installation binary path in work-A dir
-func (wam *WorkPathAMgr) GetInstallerBinPath() string {
-	return filepath.Join(wam.GetBinDirPath(), InstallBin)
+// GetControllerBinPath returns the controller binary path in work-A dir
+func (wam *WorkPathAMgr) GetControllerBinPath() string {
+	return filepath.Join(wam.GetBinDirPath(), ControllerBin)
 }
 
 // GetRunShPath returns the run.sh path in work-A dir
@@ -327,9 +327,9 @@ func (tum *TmpUpgradeMgr) GetInstallParamJsonPath() string {
 	return filepath.Join(tum.tempUpgradePath, InstallParamJson)
 }
 
-// GetInstallerBinPath returns the installation binary path in temp-upgrade dir
-func (tum *TmpUpgradeMgr) GetInstallerBinPath() string {
-	return filepath.Join(tum.GetBinDirPath(), InstallBin)
+// GetControllerBinPath returns the controller binary path in temp-upgrade dir
+func (tum *TmpUpgradeMgr) GetControllerBinPath() string {
+	return filepath.Join(tum.GetBinDirPath(), ControllerBin)
 }
 
 // GetVersionXmlPath returns the version.xml path in temp-upgrade dir
