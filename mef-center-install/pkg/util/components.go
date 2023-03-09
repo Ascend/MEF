@@ -56,11 +56,11 @@ func (c *ComponentMgr) LoadAndSaveImage(pathMgr WorkPathItf) error {
 	imageConfigPath := pathMgr.GetImageConfigPath(c.name)
 	imagePath := pathMgr.GetImagePath(c.name)
 	if err := c.loadImage(&dockerDealerIns, imageConfigPath); err != nil {
-		return err
+		return fmt.Errorf("load image failed: %s", err.Error())
 	}
 
 	if err := c.saveImage(&dockerDealerIns, imagePath); err != nil {
-		return err
+		return fmt.Errorf("save image failed: %s", err.Error())
 	}
 
 	return nil
