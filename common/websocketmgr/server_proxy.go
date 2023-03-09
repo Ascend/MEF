@@ -4,13 +4,13 @@ package websocketmgr
 
 import (
 	"fmt"
-
 	"net/http"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -28,6 +28,7 @@ type WsServerProxy struct {
 	connMgr     *wsConnectMgr
 	ClientNum   int
 	CounterLock sync.Mutex
+	handlerMap  sync.Map
 }
 
 // GetName get websocket server name
@@ -43,7 +44,7 @@ func (wsp *WsServerProxy) Start() error {
 	}
 	wsp.httpServer = httpServer
 	http.HandleFunc(svcUrl, wsp.serveHTTP)
-	http.HandleFunc(connCheckUrl, wsp.checkConn)
+	wsp.initHandlers()
 	wsp.upgrade = &websocket.Upgrader{
 		ReadBufferSize:  readBufferSize,
 		WriteBufferSize: writeBufferSize,
@@ -134,11 +135,6 @@ func (wsp *WsServerProxy) serveHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (wsp *WsServerProxy) checkConn(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	hwlog.RunLog.Info("successfully receive connection test req from mef edge")
-}
-
 func (wsp *WsServerProxy) listen() error {
 	if wsp.httpServer == nil {
 		return fmt.Errorf("https server not init, can not listen")
@@ -154,4 +150,33 @@ func (wsp *WsServerProxy) listen() error {
 		}
 		time.Sleep(retryTime)
 	}
+}
+
+// AddHandler set customized url and handler
+func (wsp *WsServerProxy) AddHandler(url string, handler func(http.ResponseWriter, *http.Request)) error {
+	if url == "" || url == "/" || handler == nil {
+		return fmt.Errorf("invalid http url or handler")
+	}
+	if _, existed := wsp.handlerMap.LoadOrStore(url, handler); existed {
+		return fmt.Errorf("the url [%v] is already registered", url)
+	}
+	return nil
+}
+
+// initHandlers must be called after http.Server initialized
+func (wsp *WsServerProxy) initHandlers() {
+	wsp.handlerMap.Range(func(key, value interface{}) bool {
+		urlPath, ok := key.(string)
+		if !ok {
+			hwlog.RunLog.Error("initHandlers url path type error")
+			return false
+		}
+		handlerFunc, ok := value.(func(http.ResponseWriter, *http.Request))
+		if !ok {
+			hwlog.RunLog.Error("initHandlers handler function type error")
+			return false
+		}
+		http.HandleFunc(urlPath, handlerFunc)
+		return true
+	})
 }
