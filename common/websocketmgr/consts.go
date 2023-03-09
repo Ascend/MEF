@@ -16,7 +16,6 @@ const (
 
 	wssProtocol             = "wss://"
 	svcUrl                  = "/"
-	connCheckUrl            = "/check/conn"
 	clientNameKey           = "clientName"
 	retryTime               = 5 * time.Second
 	reconnectWaitTime       = 2 * time.Second
