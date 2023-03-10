@@ -105,12 +105,56 @@ func (sic *SftInstallCtl) checkArch() error {
 }
 
 func (sic *SftInstallCtl) checkDiskSpace() error {
-	if err := util.CheckDiskSpace(sic.InstallPathMgr.GetRootPath(), util.InstallDiskSpace); err != nil {
+	devMap := make(map[uint64]uint64)
+
+	installPath := sic.InstallPathMgr.GetRootPath()
+	installDevInfo, err := common.GetFileDevNum(installPath)
+	if err != nil {
+		hwlog.RunLog.Errorf("get install path dev num failed: %s", err.Error())
+		return errors.New("check install disk space failed")
+	}
+	devMap[installDevInfo] = util.InstallDiskSpace
+	if err = util.CheckDiskSpace(installPath, util.InstallDiskSpace); err != nil {
 		hwlog.RunLog.Errorf("check install disk space failed: %s", err.Error())
 		return errors.New("check install disk space failed")
 	}
 
+	var threshold uint64 = util.LogDiskSpace
+	logPath := sic.logPathMgr.GetModuleLogPath()
+	logDevInfo, err := common.GetFileDevNum(logPath)
+	if err != nil {
+		hwlog.RunLog.Errorf("get log path dev num failed: %s", err.Error())
+		return errors.New("check log disk space failed")
+	}
+	addSpace, existed := devMap[logDevInfo]
+	if existed {
+		threshold = util.LogDiskSpace + addSpace
+	}
+	if err = util.CheckDiskSpace(logPath, threshold); err != nil {
+		fmt.Println(" log disk space not enough")
+	}
+
+	if err := util.CheckDiskSpace(sic.logPathMgr.GetModuleLogBackupPath(), util.LogBackupDiskSpace); err != nil {
+		fmt.Println(" log backup disk space not enough")
+	}
 	return nil
+}
+
+func (sic *SftInstallCtl) checkSingleDiskSpace(path string, threshold uint64, devMap map[uint64]uint64) error {
+	logDevInfo, err := common.GetFileDevNum(path)
+	if err != nil {
+		hwlog.RunLog.Errorf("get path [%s] dev num failed: %s", path, err.Error())
+		return fmt.Errorf("get path [%s] dev num failed", err.Error())
+	}
+	addSpace, existed := devMap[logDevInfo]
+	if existed {
+		threshold = threshold + addSpace
+	}
+	if err = util.CheckDiskSpace(path, threshold); err != nil {
+		fmt.Printf(" path [%s] disk space not enough", path)
+
+	}
+
 }
 
 func (sic *SftInstallCtl) checkNecessaryTools() error {
