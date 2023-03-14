@@ -43,7 +43,6 @@ func (wsp *WsServerProxy) Start() error {
 		TLSConfig: wsp.ProxyCfg.tlsConfig,
 	}
 	wsp.httpServer = httpServer
-	http.HandleFunc(svcUrl, wsp.serveHTTP)
 	wsp.initHandlers()
 	wsp.upgrade = &websocket.Upgrader{
 		ReadBufferSize:  readBufferSize,
@@ -154,8 +153,8 @@ func (wsp *WsServerProxy) listen() error {
 
 // AddHandler set customized url and handler
 func (wsp *WsServerProxy) AddHandler(url string, handler func(http.ResponseWriter, *http.Request)) error {
-	if url == "" || url == "/" || handler == nil {
-		return fmt.Errorf("invalid http url or handler")
+	if handler == nil {
+		return fmt.Errorf("invalid handler")
 	}
 	if _, existed := wsp.handlerMap.LoadOrStore(url, handler); existed {
 		return fmt.Errorf("the url [%v] is already registered", url)

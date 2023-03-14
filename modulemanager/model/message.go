@@ -10,13 +10,18 @@ import (
 	"time"
 )
 
+// Not good, just for compatible with both mef msg and kubeede msg
 type header struct {
-	Id        string `json:"id"`
-	ParentId  string `json:"parentId"`
-	IsSync    bool   `json:"isSync"`
-	Timestamp int64  `json:"timestamp"`
-	Version   string `json:"version"`
-	NodeId    string `json:"nodeId"`
+	Id              string `json:"id"`
+	ID              string `json:"msg_id"` // kubeedge format
+	ParentId        string `json:"parentId"`
+	ParentID        string `json:"parent_msg_id,omitempty"` // kubeedge format
+	IsSync          bool   `json:"isSync"`
+	Sync            bool   `json:"sync,omitempty"` // kubeedge format
+	Timestamp       int64  `json:"timestamp"`
+	Version         string `json:"version"`
+	ResourceVersion string `json:"resourceversion,omitempty"` // kubeedge format
+	NodeId          string `json:"nodeId"`
 }
 
 type router struct {
@@ -26,11 +31,20 @@ type router struct {
 	Resource    string `json:"resource"`
 }
 
+// MessageRoute kubeedge message route
+type MessageRoute struct {
+	Source    string `json:"source,omitempty"`    // kubeedge format
+	Group     string `json:"group,omitempty"`     // kubeedge format
+	Operation string `json:"operation,omitempty"` // kubeedge format
+	Resource  string `json:"resource,omitempty"`  // kubeedge format
+}
+
 // Message struct
 type Message struct {
-	Header  header      `json:"header"`
-	Router  router      `json:"router"`
-	Content interface{} `json:"content"`
+	Header         header       `json:"header"`
+	Router         router       `json:"router"`
+	KubeEdgeRouter MessageRoute `json:"route,omitempty"`
+	Content        interface{}  `json:"content"`
 }
 
 const messageIdSize = 16
