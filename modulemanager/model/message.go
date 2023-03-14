@@ -224,6 +224,7 @@ func (msg *Message) NewResponse() (*Message, error) {
 	respMsg.Router.Destination = msg.Router.Source
 	respMsg.Router.Option = msg.Router.Option
 	respMsg.Router.Resource = msg.Router.Resource
+	respMsg.KubeEdgeRouter.Group = msg.KubeEdgeRouter.Group
 
 	return respMsg, nil
 }
