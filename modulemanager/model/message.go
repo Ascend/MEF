@@ -15,12 +15,12 @@ type header struct {
 	Id              string `json:"id"`
 	ID              string `json:"msg_id"` // kubeedge format
 	ParentId        string `json:"parentId"`
-	ParentID        string `json:"parent_msg_id,omitempty"` // kubeedge format
+	ParentID        string `json:"parent_msg_id"` // kubeedge format
 	IsSync          bool   `json:"isSync"`
-	Sync            bool   `json:"sync,omitempty"` // kubeedge format
+	Sync            bool   `json:"sync"` // kubeedge format
 	Timestamp       int64  `json:"timestamp"`
 	Version         string `json:"version"`
-	ResourceVersion string `json:"resourceversion,omitempty"` // kubeedge format
+	ResourceVersion string `json:"resourceversion"` // kubeedge format
 	NodeId          string `json:"nodeId"`
 }
 
@@ -33,17 +33,17 @@ type router struct {
 
 // MessageRoute kubeedge message route
 type MessageRoute struct {
-	Source    string `json:"source,omitempty"`    // kubeedge format
-	Group     string `json:"group,omitempty"`     // kubeedge format
-	Operation string `json:"operation,omitempty"` // kubeedge format
-	Resource  string `json:"resource,omitempty"`  // kubeedge format
+	Source    string `json:"source"`    // kubeedge format
+	Group     string `json:"group"`     // kubeedge format
+	Operation string `json:"operation"` // kubeedge format
+	Resource  string `json:"resource"`  // kubeedge format
 }
 
 // Message struct
 type Message struct {
 	Header         header       `json:"header"`
 	Router         router       `json:"router"`
-	KubeEdgeRouter MessageRoute `json:"route,omitempty"`
+	KubeEdgeRouter MessageRoute `json:"route"`
 	Content        interface{}  `json:"content"`
 }
 
@@ -196,6 +196,14 @@ func (msg *Message) SetRouter(source, destination, option, resource string) {
 	msg.Router.Destination = destination
 	msg.Router.Option = option
 	msg.Router.Resource = resource
+}
+
+// SetKubeEdgeRouter set kubeedge message router
+func (msg *Message) SetKubeEdgeRouter(source, group, operation, resource string) {
+	msg.KubeEdgeRouter.Source = source
+	msg.KubeEdgeRouter.Group = group
+	msg.KubeEdgeRouter.Operation = operation
+	msg.KubeEdgeRouter.Resource = resource
 }
 
 // GetContent get the message content
