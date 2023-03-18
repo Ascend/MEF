@@ -161,7 +161,7 @@ func (wdc *WorkingDirCtl) prepareBinDir() error {
 		return errors.New("create sbin work path failed")
 	}
 
-	sbinSrc := path.Join(currentPath, util.MefBinDir, util.ControllerBin)
+	sbinSrc := filepath.Join(currentPath, util.MefBinDir, util.ControllerBin)
 	controllerPath := wdc.pathMgr.GetControllerBinPath()
 	if err = utils.CopyFile(sbinSrc, controllerPath); err != nil {
 		hwlog.RunLog.Errorf("copy mef controller failed, error: %v", err.Error())
