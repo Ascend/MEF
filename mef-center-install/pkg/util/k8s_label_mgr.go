@@ -38,14 +38,15 @@ func (klm *K8sLabelMgr) getCurrentNodeName() (string, error) {
 				hwlog.RunLog.Errorf("get current node name on reg match failed: %s", err.Error())
 				return "", errors.New("get current node name failed")
 			}
-			if found {
-				datas := strings.Split(line, " ")
-				if len(datas) < NodeSplitCount {
-					hwlog.RunLog.Errorf("get current node name failed: find invalid data")
-					return "", errors.New("get current node name failed")
-				}
-				return datas[0], nil
+			if !found {
+				continue
 			}
+			datas := strings.Split(line, " ")
+			if len(datas) < NodeSplitCount {
+				hwlog.RunLog.Errorf("get current node name failed: find invalid data")
+				return "", errors.New("get current node name failed")
+			}
+			return datas[0], nil
 		}
 	}
 
