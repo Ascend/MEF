@@ -23,7 +23,7 @@ const (
 	StopReplicasNum    = 0
 	StartReplicasNum   = 1
 	DockerImageExist   = 2
-	NamespaceExist     = 1
+	NamespaceStatusLoc = 1
 	DeleteNsTimeoutSec = 300
 )
 
@@ -164,11 +164,8 @@ const (
 
 // constant for set k8s label
 const (
-	K8sLabel             = "mef-center-node="
-	GetNodeCmdPattern    = "kubectl get nodes -o wide | grep -w %s | awk '{print$1}'"
-	SetLabelCmdPattern   = "kubectl label nodes %s --overwrite %s"
-	CheckLabelCmdPattern = "kubectl get nodes -l %s | grep -w %s | wc -l"
-	LabelCount           = 1
+	K8sLabel       = "mef-center-node="
+	NodeSplitCount = 1
 )
 
 // constant for upgrade

@@ -9,7 +9,6 @@ import (
 	"os/exec"
 	"os/user"
 	"path/filepath"
-	"strconv"
 	"syscall"
 
 	. "github.com/agiledragon/gomonkey/v2"
@@ -258,7 +257,7 @@ func PrepareMefUserSuccessTest() {
 		p := ApplyFuncReturn(user.Lookup, &user.User{}, nil).
 			ApplyFuncReturn(user.LookupGroup, &user.Group{Gid: "8000"}, nil).
 			ApplyMethodReturn(&user.User{}, "GroupIds", []string{"8000"}, nil).
-			ApplyFuncReturn(common.RunCommand, strconv.Itoa(common.NoLoginCount), nil)
+			ApplyFuncReturn(common.RunCommand, "nologin", nil)
 		defer p.Reset()
 		So(ins.prepareMefUser(), ShouldBeNil)
 	})

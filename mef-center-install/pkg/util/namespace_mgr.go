@@ -5,7 +5,8 @@ package util
 import (
 	"errors"
 	"fmt"
-	"strconv"
+	"regexp"
+	"strings"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
@@ -24,11 +25,28 @@ func NewNamespaceMgr(namespace string) *NamespaceMgr {
 func (nm *NamespaceMgr) prepareNameSpace() error {
 	hwlog.RunLog.Info("start to prepare namespace")
 	namespaceReg := fmt.Sprintf("'^%s\\s'", nm.namespace)
-	checkCmd := fmt.Sprintf("%s get namespaces | grep -w %s | awk '{print$2}'", CommandKubectl, namespaceReg)
-	status, err := common.RunCommand("sh", false, common.DefCmdTimeoutSec, "-c", checkCmd)
+	ret, err := common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "get", "namespace")
 	if err != nil {
 		hwlog.RunLog.Errorf("check namespace failed: %s", err.Error())
 		return errors.New("get namespace failed")
+	}
+
+	var status string
+	lines := strings.Split(ret, "\n")
+	for _, line := range lines {
+		found, err := regexp.MatchString(namespaceReg, line)
+		if err != nil {
+			hwlog.RunLog.Errorf("check namespace %s's status on reg match failed: %s", nm.namespace, err.Error())
+			return errors.New("check namespace status failed")
+		}
+		if found {
+			data := strings.Split(line, " ")
+			if len(data) < NamespaceStatusLoc+1 {
+				hwlog.RunLog.Errorf("split namespace ret failed")
+				return errors.New("split namespace ret failed")
+			}
+			status = data[NamespaceStatusLoc]
+		}
 	}
 	if status == ActiveFlag {
 		hwlog.RunLog.Info("the namespace has already existed")
@@ -58,15 +76,22 @@ func (nm *NamespaceMgr) prepareNameSpace() error {
 
 func (nm *NamespaceMgr) checkNameSpaceExist() (bool, error) {
 	namespaceReg := fmt.Sprintf("'^%s\\s'", nm.namespace)
-	checkCmd := fmt.Sprintf("%s get namespaces | grep -w %s | wc -l", CommandKubectl, namespaceReg)
-	ret, err := common.RunCommand("sh", false, common.DefCmdTimeoutSec, "-c", checkCmd)
+	ret, err := common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "get", "namespace")
 	if err != nil {
 		hwlog.RunLog.Errorf("check namespace command exec failed: %s", err.Error())
 		return false, errors.New("check namespace command exec failed")
 	}
 
-	if ret == strconv.Itoa(NamespaceExist) {
-		return true, nil
+	lines := strings.Split(ret, "\n")
+	for _, line := range lines {
+		found, err := regexp.MatchString(namespaceReg, line)
+		if err != nil {
+			hwlog.RunLog.Errorf("check if namespace %s's exists on reg match failed: %s", nm.namespace, err.Error())
+			return false, errors.New("check if namespace exists failed")
+		}
+		if found {
+			return true, nil
+		}
 	}
 
 	return false, nil
