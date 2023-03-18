@@ -24,6 +24,7 @@ const (
 	StartReplicasNum   = 1
 	DockerImageExist   = 2
 	NamespaceStatusLoc = 1
+	SplitStringCount   = -1
 	DeleteNsTimeoutSec = 300
 )
 

@@ -24,7 +24,7 @@ func NewNamespaceMgr(namespace string) *NamespaceMgr {
 
 func (nm *NamespaceMgr) prepareNameSpace() error {
 	hwlog.RunLog.Info("start to prepare namespace")
-	namespaceReg := fmt.Sprintf("'^%s\\s'", nm.namespace)
+	namespaceReg := fmt.Sprintf("^%s\\s", nm.namespace)
 	ret, err := common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "get", "namespace")
 	if err != nil {
 		hwlog.RunLog.Errorf("check namespace failed: %s", err.Error())
@@ -40,19 +40,19 @@ func (nm *NamespaceMgr) prepareNameSpace() error {
 			return errors.New("check namespace status failed")
 		}
 		if found {
-			data := strings.Split(line, " ")
-			if len(data) < NamespaceStatusLoc+1 {
+			r := regexp.MustCompile("\\S+")
+			res := r.FindAllString(line, SplitStringCount)
+			if len(res) < NamespaceStatusLoc+1 {
 				hwlog.RunLog.Errorf("split namespace ret failed")
 				return errors.New("split namespace ret failed")
 			}
-			status = data[NamespaceStatusLoc]
+			status = res[NamespaceStatusLoc]
 		}
 	}
 	if status == ActiveFlag {
 		hwlog.RunLog.Info("the namespace has already existed")
 		return nil
 	}
-
 	if status != "" && status != ActiveFlag {
 		_, err = common.RunCommand(CommandKubectl, true, DeleteNsTimeoutSec, "delete", CommandNamespace, nm.namespace)
 		if err != nil {
@@ -75,7 +75,7 @@ func (nm *NamespaceMgr) prepareNameSpace() error {
 }
 
 func (nm *NamespaceMgr) checkNameSpaceExist() (bool, error) {
-	namespaceReg := fmt.Sprintf("'^%s\\s'", nm.namespace)
+	namespaceReg := fmt.Sprintf("^%s\\s", nm.namespace)
 	ret, err := common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "get", "namespace")
 	if err != nil {
 		hwlog.RunLog.Errorf("check namespace command exec failed: %s", err.Error())
