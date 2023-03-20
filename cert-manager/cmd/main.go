@@ -30,17 +30,19 @@ const (
 var (
 	serverRunConf = &hwlog.LogConfig{LogFileName: runLogFile, BackupDirName: backupDirName}
 	serverOpConf  = &hwlog.LogConfig{LogFileName: operateLogFile, BackupDirName: backupDirName}
-	buildName     string
-	buildVersion  string
-	port          int
-	ip            string
-	version       bool
+	// BuildName cert-manager's build name
+	BuildName string
+	// BuildVersion cert-manager's build version
+	BuildVersion string
+	port         int
+	ip           string
+	version      bool
 )
 
 func main() {
 	flag.Parse()
 	if version {
-		fmt.Printf("%s version: %s\n", buildName, buildVersion)
+		fmt.Printf("%s version: %s\n", BuildName, BuildVersion)
 		return
 	}
 	if err := common.InitHwlogger(serverRunConf, serverOpConf); err != nil {
@@ -79,8 +81,8 @@ func init() {
 }
 
 func initResource() error {
-	restful.BuildNameStr = buildName
-	restful.BuildVersionStr = buildVersion
+	restful.BuildNameStr = BuildName
+	restful.BuildVersionStr = BuildVersion
 	err := common.InitKmcCfg(defaultKmcPath)
 	if err != nil {
 		hwlog.RunLog.Warnf("init kmc config from json failed: %v, use default kmc config", err)
