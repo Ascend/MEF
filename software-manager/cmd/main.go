@@ -7,6 +7,9 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"software-manager/pkg/restfulservice"
 	"software-manager/pkg/softwaremanager"
@@ -50,13 +53,12 @@ func main() {
 		hwlog.RunLog.Errorf("port %d is not in [%d, %d]", softwaremanager.Port, common.MinPort, common.MaxPort)
 		return
 	}
-	if err := register(); err != nil {
+	ctx, cancel := context.WithCancel(context.Background())
+	if err := register(ctx); err != nil {
 		hwlog.RunLog.Error("register error")
 		return
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	<-ctx.Done()
+	gracefulShutdown(cancel)
 }
 
 func init() {
@@ -66,7 +68,7 @@ func init() {
 	hwlogconfig.BindFlags(serverOpConf, serverRunConf)
 }
 
-func register() error {
+func register(ctx context.Context) error {
 	modulemanager.ModuleInit()
 	if err := modulemanager.Registry(restfulservice.
 		NewRestfulService(true, softwaremanager.IP, softwaremanager.Port)); err != nil {
@@ -77,4 +79,17 @@ func register() error {
 	}
 	modulemanager.Start()
 	return nil
+}
+
+func gracefulShutdown(cancelFunc context.CancelFunc) {
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGHUP, syscall.SIGTERM,
+		syscall.SIGQUIT, syscall.SIGILL, syscall.SIGTRAP, syscall.SIGABRT)
+	select {
+	case _, ok := <-signalChan:
+		if !ok {
+			hwlog.RunLog.Info("catch stop signal channel is closed")
+		}
+	}
+	cancelFunc()
 }
