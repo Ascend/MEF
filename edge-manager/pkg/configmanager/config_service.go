@@ -45,11 +45,9 @@ func downloadConfig(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("create k8s secret failed, %v", err)
 		return common.RespMsg{Status: common.ErrorCreateSecret, Msg: "create k8s secret failed", Data: nil}
 	}
-	go func() {
-		if err := fetchCertToClient(imageAddress); err != nil {
-			hwlog.RunLog.Errorf("distribute cert file to client failed, error:%v", err)
-		}
-	}()
+	if err := fetchCertToClient(imageAddress); err != nil {
+		hwlog.RunLog.Errorf("distribute cert file to client failed, error:%v", err)
+	}
 	hwlog.RunLog.Info("create image config success")
 	return common.RespMsg{Status: common.Success, Msg: "create image config success", Data: nil}
 }
