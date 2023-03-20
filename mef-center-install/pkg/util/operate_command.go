@@ -72,9 +72,7 @@ func (cc *CtlComponent) stopComponent() error {
 }
 
 func (cc *CtlComponent) getComponentStatus() (string, error) {
-	checkCmd := fmt.Sprintf("%s get deployment -n %s",
-		CommandKubectl, MefNamespace)
-	ret, err := common.RunCommand("sh", false, common.DefCmdTimeoutSec, "-c", checkCmd)
+	ret, err := common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "get", "deployment", "-n", MefNamespace)
 
 	NoNamespaceErr := fmt.Sprintf("No resources found in %s namespace.", MefNamespace)
 	if err != nil && strings.Contains(err.Error(), NoNamespaceErr) {

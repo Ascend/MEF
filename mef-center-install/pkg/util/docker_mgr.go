@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"path"
 	"path/filepath"
-	"strconv"
+	"strings"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
@@ -55,9 +55,8 @@ func (dd *DockerDealer) LoadImage(buildPath string) error {
 	// imageName is fixed name.
 	// tag is read from file or filename, the verification will be added in setVersion.
 	// absPath has been verified
-	cmdStrPattern := "docker build --build-arg UID=%s -t %s:%s %s/."
-	cmdStr := fmt.Sprintf(cmdStrPattern, uid, dd.imageName, dd.tag, absPath)
-	if _, err = common.RunCommand("sh", false, common.DefCmdTimeoutSec, "-c", cmdStr); err != nil {
+	if _, err = common.RunCommand(CommandDocker, true, common.DefCmdTimeoutSec, "build", "--build-arg",
+		fmt.Sprintf("UID=%s", uid), "-t", dd.imageName+":"+dd.tag, absPath+"/."); err != nil {
 		hwlog.RunLog.Errorf("load docker image [%s] failed:%s", dd.imageName, err.Error())
 		return errors.New("load docker image failed")
 	}
@@ -94,14 +93,14 @@ func (dd *DockerDealer) getImageTarName() (string, error) {
 }
 
 func (dd *DockerDealer) checkImageExist() (bool, error) {
-	checkCmd := fmt.Sprintf("docker image ls %s | wc -l", dd.imageName+":"+dd.tag)
-	ret, err := common.RunCommand("sh", false, common.DefCmdTimeoutSec, "-c", checkCmd)
+	ret, err := common.RunCommand(CommandDocker, true, common.DefCmdTimeoutSec, "image", "ls", dd.imageName+":"+dd.tag)
 	if err != nil {
 		hwlog.RunLog.Errorf("check %s's docker image command exec failed: %s", dd.imageName, err.Error())
 		return false, fmt.Errorf("check %s's docker image command exec failed", dd.imageName)
 	}
 
-	if ret == strconv.Itoa(DockerImageExist) {
+	lines := strings.Split(ret, "\n")
+	if len(lines) == DockerImageExist {
 		return true, nil
 	}
 

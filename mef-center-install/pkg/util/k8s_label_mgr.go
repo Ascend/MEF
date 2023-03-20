@@ -5,7 +5,7 @@ package util
 import (
 	"errors"
 	"fmt"
-	"strconv"
+	"regexp"
 	"strings"
 
 	"huawei.com/mindx/common/hwlog"
@@ -23,19 +23,32 @@ func (klm *K8sLabelMgr) getCurrentNodeName() (string, error) {
 		return "", err
 	}
 
+	ret, err := common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "get", "nodes", "-o", "wide")
+	if err != nil {
+		hwlog.RunLog.Errorf("get current node failed: %s", err.Error())
+		return "", errors.New("get current node failed")
+	}
+	lines := strings.Split(ret, "\n")
+
 	for _, localIp := range localIps {
 		ipReg := fmt.Sprintf("\\s*%s\\s*", localIp)
-		cmd := fmt.Sprintf(GetNodeCmdPattern, ipReg)
-		nodeName, err := common.RunCommand("sh", false, common.DefCmdTimeoutSec, "-c", cmd)
-		if err != nil {
-			hwlog.RunLog.Errorf("get current node failed: %s", err.Error())
-			return "", errors.New("get current node failed")
+		for _, line := range lines {
+			found, err := regexp.MatchString(ipReg, line)
+			if err != nil {
+				hwlog.RunLog.Errorf("get current node name on reg match failed: %s", err.Error())
+				return "", errors.New("get current node name failed")
+			}
+			if !found {
+				continue
+			}
+			r := regexp.MustCompile("\\S+")
+			res := r.FindAllString(line, SplitStringCount)
+			if len(res) < NodeSplitCount {
+				hwlog.RunLog.Errorf("get current node name failed: find invalid data")
+				return "", errors.New("get current node name failed")
+			}
+			return res[0], nil
 		}
-		if nodeName == "" {
-			continue
-		}
-
-		return nodeName, nil
 	}
 
 	hwlog.RunLog.Error("no valid node matches the device ip found")
@@ -55,8 +68,8 @@ func (klm *K8sLabelMgr) PrepareK8sLabel() error {
 		return errors.New("the nodeName contains illegal characters")
 	}
 
-	cmd := fmt.Sprintf(SetLabelCmdPattern, nodeName, K8sLabel)
-	_, err = common.RunCommand("sh", false, common.DefCmdTimeoutSec, "-c", cmd)
+	_, err = common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "label", "node", nodeName,
+		"--overwrite", K8sLabel)
 	if err != nil {
 		hwlog.RunLog.Errorf("set mef label failed: %s", err.Error())
 		return err
@@ -76,17 +89,24 @@ func (klm *K8sLabelMgr) CheckK8sLabel() (bool, error) {
 		return false, errors.New("the nodeName contains illegal characters")
 	}
 
-	nodeNameReg := fmt.Sprintf("'^%s\\s'", nodeName)
-	cmd := fmt.Sprintf(CheckLabelCmdPattern, K8sLabel, nodeNameReg)
-	ret, err := common.RunCommand("sh", false, common.DefCmdTimeoutSec, "-c", cmd)
+	ret, err := common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "get", "nodes", "-l", K8sLabel)
 	if err != nil {
 		hwlog.RunLog.Errorf("check k8s label existence failed: %s", err.Error())
 		return false, err
 	}
 
-	if ret != strconv.Itoa(LabelCount) {
-		return false, nil
+	nodeNameReg := fmt.Sprintf("'^%s\\s'", nodeName)
+	lines := strings.Split(ret, "\n")
+	for _, line := range lines {
+		found, err := regexp.MatchString(nodeNameReg, line)
+		if err != nil {
+			hwlog.RunLog.Errorf("check k8s label on reg match failed: %s", err.Error())
+			return false, errors.New("check k8s label failed")
+		}
+		if found {
+			return true, nil
+		}
 	}
 
-	return true, nil
+	return false, nil
 }

@@ -261,8 +261,10 @@ const (
 
 // user_mgr constant
 const (
-	UserGrepCommandPattern = "grep ^%s: /etc/passwd | grep nologin | wc -l"
-	NoLoginCount           = 1
+	UserGrepCommandPattern = "^%s:"
+	GrepCommand            = "grep"
+	EtcPasswdFile          = "/etc/passwd"
+	NoLoginFlag            = "nologin"
 )
 
 // const for unpack zip file
