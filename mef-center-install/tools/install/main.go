@@ -119,7 +119,7 @@ func checkSinglePath(singlePath string) (string, error) {
 		return "", fmt.Errorf("path [%s] does not exist", singlePath)
 	}
 
-	if path.IsAbs(singlePath) {
+	if !path.IsAbs(singlePath) {
 		return "", fmt.Errorf("path [%s] is not abs path", singlePath)
 	}
 
