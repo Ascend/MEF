@@ -160,7 +160,7 @@ func PrepareBinDirTest() {
 
 	Convey("test prepareBinDir func success", func() {
 		p := ApplyFuncReturn(common.MakeSurePath, nil).ApplyFuncReturn(utils.CopyDir, nil).
-			ApplyFuncReturn(common.DeleteAllFile, nil)
+			ApplyFuncReturn(utils.CopyFile, nil)
 		defer p.Reset()
 		So(ins.prepareBinDir(), ShouldBeNil)
 	})
@@ -177,17 +177,10 @@ func PrepareBinDirTest() {
 		So(ins.prepareBinDir(), ShouldResemble, errors.New("create sbin work path failed"))
 	})
 
-	Convey("test prepareBinDir func copydir failed", func() {
+	Convey("test prepareBinDir func copyfile failed", func() {
 		p := ApplyFuncReturn(common.MakeSurePath, nil).ApplyFuncReturn(utils.CopyDir, ErrTest)
 		defer p.Reset()
-		So(ins.prepareBinDir(), ShouldResemble, errors.New("copy mef scripts dir failed"))
-	})
-
-	Convey("test prepareBinDir func delete all file failed", func() {
-		p := ApplyFuncReturn(common.MakeSurePath, nil).ApplyFuncReturn(utils.CopyDir, nil).
-			ApplyFuncReturn(common.DeleteAllFile, ErrTest)
-		defer p.Reset()
-		So(ins.prepareBinDir(), ShouldResemble, errors.New("delete installer bin failed"))
+		So(ins.prepareBinDir(), ShouldResemble, errors.New("copy mef controller failed"))
 	})
 }
 
