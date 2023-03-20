@@ -7,6 +7,9 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"huawei.com/mindx/common/hwlog"
 
@@ -60,16 +63,16 @@ func main() {
 	}
 	ip = podIp
 
-	if err := initResource(); err != nil {
+	if err = initResource(); err != nil {
 		return
 	}
-	if err := register(); err != nil {
+
+	ctx, cancel := context.WithCancel(context.Background())
+	if err = register(ctx); err != nil {
 		hwlog.RunLog.Error("register error")
 		return
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	<-ctx.Done()
+	gracefulShutdown(cancel)
 }
 
 func init() {
@@ -90,7 +93,7 @@ func initResource() error {
 	return nil
 }
 
-func register() error {
+func register(ctx context.Context) error {
 	modulemanager.ModuleInit()
 	if err := modulemanager.Registry(restful.NewRestfulService(true, ip, port)); err != nil {
 		return err
@@ -100,4 +103,17 @@ func register() error {
 	}
 	modulemanager.Start()
 	return nil
+}
+
+func gracefulShutdown(cancelFunc context.CancelFunc) {
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGHUP, syscall.SIGTERM,
+		syscall.SIGQUIT, syscall.SIGILL, syscall.SIGTRAP, syscall.SIGABRT)
+	select {
+	case _, ok := <-signalChan:
+		if !ok {
+			hwlog.RunLog.Info("catch stop signal channel is closed")
+		}
+	}
+	cancelFunc()
 }
