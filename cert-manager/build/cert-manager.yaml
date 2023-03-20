@@ -31,6 +31,13 @@ spec:
             capabilities:
               drop: ["ALL"]
           image: ascend-cert-manager:v1
+          resources:
+            requests:
+              memory: 500Mi
+              cpu: 500m
+            limits:
+              memory: 5000Mi
+              cpu: 6000m
           env:
             - name: installed-module
               value: ${installed_module}
