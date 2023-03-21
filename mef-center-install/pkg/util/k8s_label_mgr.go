@@ -89,11 +89,13 @@ func (klm *K8sLabelMgr) CheckK8sLabel() (bool, error) {
 		return false, errors.New("the nodeName contains illegal characters")
 	}
 
-	ret, err := common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "get", "nodes", "-l", K8sLabel)
+	ret, err := common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "get", "nodes", "-o", "wide", "-l",
+		K8sLabel)
 	if err != nil {
 		hwlog.RunLog.Errorf("check k8s label existence failed: %s", err.Error())
 		return false, err
 	}
+	fmt.Println(ret)
 
 	nodeNameReg := fmt.Sprintf("'^%s\\s'", nodeName)
 	lines := strings.Split(ret, "\n")
