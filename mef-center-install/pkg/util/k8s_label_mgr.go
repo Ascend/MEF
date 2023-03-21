@@ -69,7 +69,7 @@ func (klm *K8sLabelMgr) PrepareK8sLabel() error {
 	}
 
 	_, err = common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "label", "node", nodeName,
-		"--overwrite", K8sLabel)
+		"--overwrite", K8sLabelSet)
 	if err != nil {
 		hwlog.RunLog.Errorf("set mef label failed: %s", err.Error())
 		return err
