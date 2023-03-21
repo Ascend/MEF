@@ -93,6 +93,10 @@ func (cpc *certPrepareCtl) prepareCerts() error {
 }
 
 func (cpc *certPrepareCtl) doPrepareCerts(ch chan<- error) {
+	if ch == nil {
+		hwlog.RunLog.Errorf("ch is nil")
+		return
+	}
 	var (
 		err         error
 		rootCertMgr *certutils.RootCertMgr
