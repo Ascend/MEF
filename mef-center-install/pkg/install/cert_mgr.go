@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"huawei.com/mindx/common/hwlog"
 
@@ -71,7 +72,7 @@ func (cpc *certPrepareCtl) prepareCertsDir() error {
 
 func (cpc *certPrepareCtl) prepareCerts() error {
 	hwlog.RunLog.Info("start to prepare certs")
-	ctx, cancel := context.WithTimeout(context.Background(), common.DefCmdTimeoutSec)
+	ctx, cancel := context.WithTimeout(context.Background(), common.DefCmdTimeoutSec*time.Second)
 	defer cancel()
 	ch := make(chan error)
 	go cpc.doPrepareCerts(ch)
