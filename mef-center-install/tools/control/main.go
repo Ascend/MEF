@@ -377,7 +377,7 @@ func main() {
 	}
 
 	if !dealArgs() {
-		return
+		os.Exit(util.ErrorExitCode)
 	}
 	fmt.Println("init log success")
 	user, ip, err := util.GetLoginUserAndIP()
