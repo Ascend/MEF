@@ -142,6 +142,17 @@ func GetFileSystem(path string) (int64, error) {
 	return fs.Type, nil
 }
 
+// GetFileDevNum is used to get the dev info of a path
+func GetFileDevNum(path string) (uint64, error) {
+	fs := syscall.Stat_t{}
+	err := syscall.Stat(path, &fs)
+	if err != nil {
+		return 0, fmt.Errorf("get [%s]'s file dev info failed: %s", path, err.Error())
+	}
+
+	return fs.Dev, nil
+}
+
 // ExtraUpgradeZipFile extract zip file
 func ExtraUpgradeZipFile(zipFile, extractPath string) error {
 	reader, err := prepareExtraZip(zipFile, extractPath)

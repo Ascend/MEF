@@ -106,11 +106,52 @@ func (sic *SftInstallCtl) checkArch() error {
 }
 
 func (sic *SftInstallCtl) checkDiskSpace() error {
-	if err := util.CheckDiskSpace(sic.InstallPathMgr.GetRootPath(), util.InstallDiskSpace); err != nil {
+	devMap := make(map[uint64]uint64)
+
+	installPath := sic.InstallPathMgr.GetRootPath()
+	installDevInfo, err := common.GetFileDevNum(installPath)
+	if err != nil {
+		hwlog.RunLog.Errorf("get install path dev num failed: %s", err.Error())
+		return errors.New("check install disk space failed")
+	}
+	devMap[installDevInfo] = util.InstallDiskSpace
+	if err = util.CheckDiskSpace(installPath, util.InstallDiskSpace); err != nil {
 		hwlog.RunLog.Errorf("check install disk space failed: %s", err.Error())
 		return errors.New("check install disk space failed")
 	}
 
+	var threshold uint64 = util.LogDiskSpace
+	logPath := sic.logPathMgr.GetModuleLogPath()
+	logDevInfo, err := common.GetFileDevNum(logPath)
+	if err != nil {
+		hwlog.RunLog.Errorf("get log path dev num failed: %s", err.Error())
+		return errors.New("check log disk space failed")
+	}
+	addSpace, existed := devMap[logDevInfo]
+	if existed {
+		devMap[logDevInfo] += util.LogDiskSpace
+		threshold = util.LogDiskSpace + addSpace
+	} else {
+		devMap[logDevInfo] = util.LogDiskSpace
+	}
+	if err = util.CheckDiskSpace(logPath, threshold); err != nil {
+		fmt.Println(" log disk space not enough")
+	}
+
+	threshold = util.LogBackupDiskSpace
+	logBackPath := sic.logPathMgr.GetModuleLogBackupPath()
+	logBackDevInfo, err := common.GetFileDevNum(logBackPath)
+	if err != nil {
+		hwlog.RunLog.Errorf("get log backup path dev num failed: %s", err.Error())
+		return errors.New("check log back up disk space failed")
+	}
+	addSpace, existed = devMap[logBackDevInfo]
+	if existed {
+		threshold = util.LogBackupDiskSpace + addSpace
+	}
+	if err := util.CheckDiskSpace(sic.logPathMgr.GetModuleLogBackupPath(), threshold); err != nil {
+		fmt.Println(" log backup disk space not enough")
+	}
 	return nil
 }
 
