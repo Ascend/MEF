@@ -8,12 +8,15 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"net/http"
 	"sync"
 
+	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 
 	"cert-manager/pkg/certconstant"
+	"cert-manager/pkg/certmanager/certchecker"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/certutils"
 	"huawei.com/mindxedge/base/common/httpsmgr"
@@ -21,7 +24,7 @@ import (
 
 var lock sync.Mutex
 
-// getCertByCertName query root ca with use id
+// getCertByCertName query root ca with cert name
 func getCertByCertName(certName string) ([]byte, error) {
 	caFilePath := getRootCaPath(certName)
 	if (certName == common.ImageCertName || certName == common.SoftwareCertName || certName == common.WsCltName) &&
@@ -124,4 +127,36 @@ func updateClientCert(certName, certOpt string, certContent []byte) error {
 		return fmt.Errorf("update %s ca file failed", certName)
 	}
 	return nil
+}
+
+// ExportRootCa export cert file
+func ExportRootCa(c *gin.Context) {
+	hwlog.OpLog.Info("export cert file start")
+	certName := c.Query("certName")
+	if !certchecker.CheckIfCanExport(certName) {
+		msg := fmt.Sprintf("export cert [%s] root ca not support", certName)
+		hwlog.OpLog.Errorf(msg)
+		common.ConstructResp(c, common.ErrorExportRootCa, msg, nil)
+		return
+	}
+	ca, err := getCertByCertName(certName)
+	if err != nil {
+		msg := fmt.Sprintf("get cert [%s] root ca failed", certName)
+		hwlog.OpLog.Errorf("%s, error:%v", msg, err)
+		common.ConstructResp(c, common.ErrorExportRootCa, msg, nil)
+		return
+	}
+	c.Writer.WriteHeader(http.StatusOK)
+	c.Header(common.ContentType, "text/plain; charset=utf-8")
+	c.Header(common.TransferEncoding, "chunked")
+	c.Header(common.ContentDisposition, fmt.Sprintf("attachment; filename=%s", certconstant.RootCaFileName))
+	c.Writer.WriteHeaderNow()
+	if _, err := c.Writer.Write(ca); err != nil {
+		msg := fmt.Sprintf("export cert [%s] root ca failed", certName)
+		hwlog.OpLog.Errorf("%s, error: %v", msg, err)
+		common.ConstructResp(c, common.ErrorExportRootCa, msg, nil)
+		return
+	}
+	c.Writer.Flush()
+	hwlog.OpLog.Infof("export cert [%s] root ca success", certName)
 }

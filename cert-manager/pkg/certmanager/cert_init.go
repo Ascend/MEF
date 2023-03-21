@@ -98,8 +98,9 @@ var (
 )
 
 var handlerFuncMap = map[string]handlerFunc{
-	common.Combine(http.MethodPost, filepath.Join(certUrlRootPath, "import")):       importRootCa,
-	common.Combine(http.MethodGet, filepath.Join(certUrlRootPath, "rootca")):        queryRootCa,
-	common.Combine(http.MethodPost, filepath.Join(certUrlRootPath, "delete-cert")):  deleteRootCa,
+	common.Combine(http.MethodPost, filepath.Join(certUrlRootPath, "import")):      importRootCa,
+	common.Combine(http.MethodPost, filepath.Join(certUrlRootPath, "delete-cert")): deleteRootCa,
+
+	common.Combine(http.MethodGet, filepath.Join(innerCertUrlRootPath, "rootca")):   queryRootCa,
 	common.Combine(http.MethodPost, filepath.Join(innerCertUrlRootPath, "service")): issueServiceCa,
 }
