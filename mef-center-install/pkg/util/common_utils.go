@@ -49,7 +49,8 @@ func CheckDiskSpace(path string, limit uint64) error {
 	}
 
 	if availSpace < limit {
-		fmt.Printf("the path of [%s] disk space is not enough, at least %d MB is required\n", path, limit/common.MB)
+		fmt.Printf("warning: the path of [%s] disk space is not enough, at least %d MB is required\n",
+			path, limit/common.MB)
 		return errors.New("no enough space")
 	}
 
