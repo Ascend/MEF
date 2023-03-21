@@ -295,3 +295,10 @@ const (
 	// MefUserNs represents the namespace that used by edge-manager to manager applications deployed by customer
 	MefUserNs = "mef-user"
 )
+
+// http header constant
+const (
+	ContentType        = "Content-Type"
+	ContentDisposition = "Content-Disposition"
+	TransferEncoding   = "Transfer-Encoding"
+)

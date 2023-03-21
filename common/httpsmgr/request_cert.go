@@ -14,7 +14,7 @@ import (
 
 const (
 	reqSvrUrl     = "inner/v1/certificates/service"
-	getRootCaUrl  = "certmanager/v1/certificates/rootca"
+	getRootCaUrl  = "inner/v1/certificates/rootca"
 	updateCertUrl = "inner/v1/image/update"
 )
 

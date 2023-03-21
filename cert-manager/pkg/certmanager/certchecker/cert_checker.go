@@ -140,12 +140,11 @@ var certImportMap = map[string]bool{
 	common.InnerName:        false,
 }
 
-var certDeleteMap = map[string]bool{
-	common.SoftwareCertName: true,
-	common.ImageCertName:    true,
-}
+var certDeleteNames = []string{common.SoftwareCertName, common.ImageCertName}
 
-// CheckCertName check use id if valid
+var certExportNames = []string{common.WsSerName}
+
+// CheckCertName check cert name if valid
 func CheckCertName(certName string) bool {
 	_, ok := certImportMap[certName]
 	return ok
@@ -160,5 +159,20 @@ func checkIfCanImport(certName string) bool {
 }
 
 func checkIfCanDelete(certName string) bool {
-	return certDeleteMap[certName]
+	for _, name := range certDeleteNames {
+		if name == certName {
+			return true
+		}
+	}
+	return false
+}
+
+// CheckIfCanExport check cert name if can export
+func CheckIfCanExport(certName string) bool {
+	for _, name := range certExportNames {
+		if name == certName {
+			return true
+		}
+	}
+	return false
 }

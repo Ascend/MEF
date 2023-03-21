@@ -180,6 +180,8 @@ const (
 	ErrorGetSecret = "60001007"
 	// ErrorCreateSecret failed to create secret
 	ErrorCreateSecret = "60001008"
+	// ErrorExportRootCa failed to export root ca
+	ErrorExportRootCa = "60001009"
 
 	// ErrorUpdateUrlInfo failed to update software url info
 	ErrorUpdateUrlInfo = "70002000"
@@ -342,6 +344,8 @@ var ErrorMap = map[string]string{
 	ErrorGetSecret: "failed to get secret",
 	// ErrorCreateSecret failed to create secret
 	ErrorCreateSecret: "failed to create secret",
+	// ErrorExportRootCa failed to export root ca
+	ErrorExportRootCa: "failed to export root ca",
 
 	// ErrorAccountOrPassword incorrect account or password
 	ErrorAccountOrPassword: "incorrect account or password",

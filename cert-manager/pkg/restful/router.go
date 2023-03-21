@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"cert-manager/pkg/certmanager"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/restfulmgr"
 )
@@ -19,10 +20,6 @@ var certRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			RelativePath: "/import",
 			Method:       http.MethodPost,
 			Destination:  common.CertManagerName},
-		queryDispatcher{restfulmgr.GenericDispatcher{
-			RelativePath: "/rootca",
-			Method:       http.MethodGet,
-			Destination:  common.CertManagerName}, "certName"},
 		restfulmgr.GenericDispatcher{
 			RelativePath: "/delete-cert",
 			Method:       http.MethodPost,
@@ -36,11 +33,16 @@ var innerCertRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			RelativePath: "/service",
 			Method:       http.MethodPost,
 			Destination:  common.CertManagerName},
+		queryDispatcher{restfulmgr.GenericDispatcher{
+			RelativePath: "/rootca",
+			Method:       http.MethodGet,
+			Destination:  common.CertManagerName}, "certName"},
 	},
 }
 
 func setRouter(engine *gin.Engine) {
 	engine.GET("/certmanager/v1/version", versionQuery)
+	engine.GET("/certmanager/v1/export", certmanager.ExportRootCa)
 	restfulmgr.InitRouter(engine, certRouterDispatchers)
 	restfulmgr.InitRouter(engine, innerCertRouterDispatchers)
 }
