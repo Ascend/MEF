@@ -159,6 +159,7 @@ func (scm *SftOperateMgr) deal() error {
 	var failedList []string
 	for _, component := range scm.componentList {
 		if err := component.Operate(); err != nil {
+			fmt.Printf("%s component %s failed\n", component.Operation, component.Name)
 			failedList = append(failedList, component.Name)
 		}
 	}
