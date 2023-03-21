@@ -166,7 +166,7 @@ func (scm *SftOperateMgr) deal() error {
 
 	if len(failedList) != 0 {
 		fmt.Printf("%s operation on components %s failed\n", scm.operate, failedList)
-		hwlog.RunLog.Errorf("%s operation on components %s failed\n", scm.operate, failedList)
+		hwlog.RunLog.Errorf("%s operation on components %s failed", scm.operate, failedList)
 		return fmt.Errorf("%s operation on components %s failed", scm.operate, failedList)
 	}
 	return nil
