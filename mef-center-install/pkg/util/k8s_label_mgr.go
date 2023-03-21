@@ -69,7 +69,7 @@ func (klm *K8sLabelMgr) PrepareK8sLabel() error {
 	}
 
 	_, err = common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "label", "node", nodeName,
-		"--overwrite", K8sLabel)
+		"--overwrite", K8sLabelSet)
 	if err != nil {
 		hwlog.RunLog.Errorf("set mef label failed: %s", err.Error())
 		return err
@@ -89,13 +89,14 @@ func (klm *K8sLabelMgr) CheckK8sLabel() (bool, error) {
 		return false, errors.New("the nodeName contains illegal characters")
 	}
 
-	ret, err := common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "get", "nodes", "-l", K8sLabel)
+	ret, err := common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "get", "nodes", "-o", "wide", "-l",
+		K8sLabel)
 	if err != nil {
 		hwlog.RunLog.Errorf("check k8s label existence failed: %s", err.Error())
 		return false, err
 	}
 
-	nodeNameReg := fmt.Sprintf("'^%s\\s'", nodeName)
+	nodeNameReg := fmt.Sprintf("^%s\\s", nodeName)
 	lines := strings.Split(ret, "\n")
 	for _, line := range lines {
 		found, err := regexp.MatchString(nodeNameReg, line)
