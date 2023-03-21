@@ -95,9 +95,8 @@ func (klm *K8sLabelMgr) CheckK8sLabel() (bool, error) {
 		hwlog.RunLog.Errorf("check k8s label existence failed: %s", err.Error())
 		return false, err
 	}
-	fmt.Println(ret)
 
-	nodeNameReg := fmt.Sprintf("'^%s\\s'", nodeName)
+	nodeNameReg := fmt.Sprintf("^%s\\s", nodeName)
 	lines := strings.Split(ret, "\n")
 	for _, line := range lines {
 		found, err := regexp.MatchString(nodeNameReg, line)
