@@ -195,11 +195,13 @@ func CheckDiskSpaceTest() {
 	})
 
 	Convey("test Check Disk Space func Disk Free enough", func() {
-		p := ApplyFunc(syscall.Statfs, func(_ string, fs *syscall.Statfs_t) error {
-			fs.Bavail = util.InstallDiskSpace
-			fs.Bsize = 1
-			return nil
-		})
+		p := ApplyFuncReturn(common.GetFileDevNum, 1, nil).
+			ApplyFunc(syscall.Statfs, func(_ string,
+				fs *syscall.Statfs_t) error {
+				fs.Bavail = util.InstallDiskSpace
+				fs.Bsize = 1
+				return nil
+			})
 		defer p.Reset()
 		So(ins.checkDiskSpace(), ShouldBeNil)
 	})
