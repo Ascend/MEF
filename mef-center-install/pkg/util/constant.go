@@ -91,7 +91,7 @@ const (
 	ModuleLogName       = "mef-center-log"
 	ModuleLogBackupName = "mef-center-log-backup"
 	MefScriptsDir       = "scripts"
-	RunLogFile          = "mef-center-install.log"
+	RunLogFile          = "mef-center-install-run.log"
 	OperateLogFile      = "mef-center-install-operate.log"
 	InstallLogDir       = "mef-center-install"
 )

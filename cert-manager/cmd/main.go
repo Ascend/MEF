@@ -13,19 +13,18 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 
+	"cert-manager/pkg/certmanager"
+	"cert-manager/pkg/restful"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
 	"huawei.com/mindxedge/base/modulemanager"
-
-	"cert-manager/pkg/certmanager"
-	"cert-manager/pkg/restful"
 )
 
 const (
 	portConst      = 8103
-	runLogFile     = "/var/log/mindx-edge/cert-manager/run.log"
-	operateLogFile = "/var/log/mindx-edge/cert-manager/operate.log"
+	runLogFile     = "/var/log/mindx-edge/cert-manager/cert-manager-run.log"
+	operateLogFile = "/var/log/mindx-edge/cert-manager/cert-manager-operate.log"
 	backupDirName  = "/var/log_backup/mindx-edge/cert-manager"
 	defaultKmcPath = "/home/data/public-config/kmc-config.json"
 )
