@@ -57,7 +57,11 @@ func DeleteAllFile(filePath string) error {
 
 // DeleteFile is used to delete one file into a path
 func DeleteFile(filePath string) error {
-	return os.Remove(filePath)
+	if utils.IsLexist(filePath) {
+		return os.Remove(filePath)
+	}
+
+	return nil
 }
 
 // MakeSurePath is used to make sure a path exists by creating it if not
