@@ -5,12 +5,15 @@ package cloudhub
 
 import (
 	"errors"
+	"fmt"
 	"math"
+	"net/http"
 	"path"
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/certutils"
 	"huawei.com/mindxedge/base/common/httpsmgr"
@@ -61,6 +64,10 @@ func InitServer() error {
 	proxyConfig.RegModInfos(getRegModuleInfoList())
 	proxy := &websocketmgr.WsServerProxy{
 		ProxyCfg: proxyConfig,
+	}
+	if err = proxy.AddHandler(util.ConnCheckUrl, checkConn); err != nil {
+		hwlog.RunLog.Errorf("add handler failed. url: %v", util.ConnCheckUrl)
+		return fmt.Errorf("add handler failed. url: %v", util.ConnCheckUrl)
 	}
 	serverSender.SetProxy(proxy)
 	if err = proxy.Start(); err != nil {
@@ -150,6 +157,11 @@ func getWsRootCert() ([]byte, error) {
 	}
 
 	return []byte(rootCaStr), nil
+}
+
+func checkConn(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	hwlog.RunLog.Info("successfully receive connection test req from mef edge")
 }
 
 // GetSvrSender get server sender

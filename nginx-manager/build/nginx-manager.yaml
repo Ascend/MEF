@@ -29,6 +29,13 @@ spec:
             capabilities:
               drop: ["ALL"]
           image: ascend-nginx-manager:v1
+          resources:
+            requests:
+              memory: 500Mi
+              cpu: 500m
+            limits:
+              memory: 5000Mi
+              cpu: 6000m
           env:
             - name: EdgeMgrSvcPort
               value: "8101"

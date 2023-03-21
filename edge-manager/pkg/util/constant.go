@@ -11,3 +11,8 @@ const (
 	// RootCaPath root ca path
 	RootCaPath = "/home/data/inner-root-ca/RootCA.crt"
 )
+
+const (
+	// ConnCheckUrl for mef edge do test connection
+	ConnCheckUrl = "/check/conn"
+)

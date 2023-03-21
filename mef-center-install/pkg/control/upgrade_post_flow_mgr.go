@@ -242,11 +242,13 @@ func (upf *UpgradePostFlowMgr) recordStarted() error {
 func (upf *UpgradePostFlowMgr) deleteNameSpace() error {
 	upf.step = util.RestartPodStep
 	hwlog.RunLog.Info("start to delete mef-center namespace")
+	fmt.Println("start to delete mef-center namespace")
 	namespaceMgr := util.NewNamespaceMgr(util.MefNamespace)
 	if err := namespaceMgr.ClearNamespace(); err != nil {
 		return err
 	}
 	hwlog.RunLog.Info("delete mef-center namespace succeeds")
+	fmt.Println("delete mef-center namespace succeeds")
 	return nil
 }
 
@@ -264,6 +266,7 @@ func (upf *UpgradePostFlowMgr) removeDockerImage() error {
 
 func (upf *UpgradePostFlowMgr) buildNewImage() error {
 	hwlog.RunLog.Info("start to build new docker image")
+	fmt.Println("start to build new docker image")
 	upf.step = util.RemoveDockerStep
 	for _, component := range upf.SoftwareMgr.Components {
 		componentMgr := util.GetComponentMgr(component)
@@ -283,10 +286,13 @@ func (upf *UpgradePostFlowMgr) buildNewImage() error {
 		}
 	}
 	hwlog.RunLog.Info("build new docker image succeeds")
+	fmt.Println("build new docker image succeeds")
 	return nil
 }
 
 func (upf *UpgradePostFlowMgr) startNewPod() error {
+	hwlog.RunLog.Info("start to start pods")
+	fmt.Println("start to start pods")
 	upf.step = util.ClearNameSpaceStep
 	for _, c := range upf.startedComponents {
 		dealer := &util.CtlComponent{
@@ -300,6 +306,8 @@ func (upf *UpgradePostFlowMgr) startNewPod() error {
 			return fmt.Errorf("start component %s failed", c)
 		}
 	}
+	hwlog.RunLog.Info("start pods succeeds")
+	fmt.Println("start pods succeeds")
 	return nil
 }
 

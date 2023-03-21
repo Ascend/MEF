@@ -39,10 +39,9 @@ func (rc *RegChecker) Check(data interface{}) CheckResult {
 	compile := regexp.MustCompile(rc.reg)
 	var matchFlag = compile.MatchString(stringValue)
 	if !matchFlag {
-		// todo 删除错误的详细信息
 		return NewFailedResult(
-			fmt.Sprintf("regex checker Check [%s] failed:the string value [%s] not match [%s]",
-				rc.filed, stringValue, rc.reg))
+			fmt.Sprintf("regex checker Check [%s] failed:the string value [%s] not match requirement",
+				rc.filed, stringValue))
 	}
 	return NewSuccessResult()
 }

@@ -8,7 +8,9 @@ import (
 	"os/exec"
 	"os/user"
 	"path"
+	"regexp"
 	"strconv"
+	"strings"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
@@ -59,18 +61,26 @@ func (u *UserMgr) createUser() error {
 }
 
 func (u *UserMgr) checkNoLogin() error {
-	cmdStr := fmt.Sprintf(UserGrepCommandPattern, u.user)
-	lines, err := RunCommand("sh", false, DefCmdTimeoutSec, "-c", cmdStr)
+	userReg := fmt.Sprintf(UserGrepCommandPattern, u.user)
+	ret, err := RunCommand(GrepCommand, true, DefCmdTimeoutSec, userReg, EtcPasswdFile)
 	if err != nil {
 		hwlog.RunLog.Errorf("exec check nologin command failed, error: %s", err.Error())
 		return errors.New("exec check nologin command failed")
 	}
 
-	if lines != strconv.Itoa(NoLoginCount) {
-		hwlog.RunLog.Errorf("the existing user [%s] is allowed to login", u.user)
-		return fmt.Errorf("the existing user [%s] is allowed to login", u.user)
+	lines := strings.Split(ret, "\n")
+	for _, line := range lines {
+		found, err := regexp.MatchString(NoLoginFlag, line)
+		if err != nil {
+			hwlog.RunLog.Errorf("check if user is no login on reg match failed: %s", err.Error())
+			return errors.New("check if user is no login failed")
+		}
+		if found {
+			return nil
+		}
 	}
-	return nil
+
+	return errors.New("user does not have nologin attribute")
 }
 
 // AddUserAccount add a user account
