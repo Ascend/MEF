@@ -4,6 +4,7 @@
 package install
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -70,31 +71,49 @@ func (cpc *certPrepareCtl) prepareCertsDir() error {
 
 func (cpc *certPrepareCtl) prepareCerts() error {
 	hwlog.RunLog.Info("start to prepare certs")
+	ctx, cancel := context.WithTimeout(context.Background(), common.DefCmdTimeoutSec)
+	defer cancel()
+	ch := make(chan error)
+	go cpc.doPrepareCerts(ch)
+	select {
+	case err := <-ch:
+		if err != nil {
+			return err
+		}
+	case <-ctx.Done():
+		hwlog.RunLog.Errorf("generate certs timeout!")
+		return errors.New("generate certs timeout")
+	}
 
+	hwlog.RunLog.Info("prepare certs successful")
+	return nil
+}
+
+func (cpc *certPrepareCtl) doPrepareCerts(ch chan<- error) {
 	var (
 		err         error
 		rootCertMgr *certutils.RootCertMgr
 	)
 
 	if rootCertMgr, err = cpc.prepareCA(); err != nil {
-		return err
+		ch <- err
+		return
 	}
 
 	for _, component := range cpc.components {
 		componentMgr := util.GetComponentMgr(component)
 		if err = componentMgr.PrepareComponentCert(rootCertMgr, cpc.certPathMgr); err != nil {
 			hwlog.RunLog.Errorf("prepare %s component cert failed: %s", component, err.Error())
-			return errors.New("prepare single component cert failed")
+			ch <- errors.New("prepare single component cert failed")
+			return
 		}
 	}
 
 	if err = cpc.setCertsOwner(); err != nil {
-		return err
+		ch <- err
+		return
 	}
-
-	hwlog.RunLog.Info("prepare certs successful")
-
-	return nil
+	ch <- nil
 }
 
 func (cpc *certPrepareCtl) deleteRootKey() error {
