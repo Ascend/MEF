@@ -129,7 +129,10 @@ func (sic *SftInstallCtl) checkDiskSpace() error {
 	}
 	addSpace, existed := devMap[logDevInfo]
 	if existed {
+		devMap[logDevInfo] += util.LogDiskSpace
 		threshold = util.LogDiskSpace + addSpace
+	} else {
+		devMap[logDevInfo] = util.LogDiskSpace
 	}
 	if err = util.CheckDiskSpace(logPath, threshold); err != nil {
 		fmt.Println(" log disk space not enough")
