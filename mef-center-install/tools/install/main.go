@@ -99,14 +99,6 @@ func checkPath() error {
 		return err
 	}
 
-	if err = util.CheckDiskSpace(logRootPath, util.LogDiskSpace); err != nil {
-		fmt.Println(" log disk space not enough")
-	}
-
-	if err = util.CheckDiskSpace(logBackupRootPath, util.LogBackupDiskSpace); err != nil {
-		fmt.Println(" log backup disk space not enough")
-	}
-
 	if installPath, err = checkSinglePath(installPath); err != nil {
 		return fmt.Errorf("check install path failed: %s", err.Error())
 	}
