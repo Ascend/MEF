@@ -156,10 +156,17 @@ func (scm *SftOperateMgr) dealUpgradeFlag() error {
 }
 
 func (scm *SftOperateMgr) deal() error {
+	var failedList []string
 	for _, component := range scm.componentList {
 		if err := component.Operate(); err != nil {
-			return err
+			failedList = append(failedList, component.Name)
 		}
+	}
+
+	if len(failedList) != 0 {
+		fmt.Printf("%s operation on components %s failed\n", scm.operate, failedList)
+		hwlog.RunLog.Errorf("%s operation on components %s failed\n", scm.operate, failedList)
+		return fmt.Errorf("%s operation on components %s failed\n", scm.operate, failedList)
 	}
 	return nil
 }
