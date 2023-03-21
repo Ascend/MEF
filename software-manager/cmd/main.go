@@ -23,8 +23,8 @@ import (
 )
 
 const (
-	runLogFile     = "/var/log/mindx-edge/software-manager/run.log"
-	operateLogFile = "/var/log/mindx-edge/software-manager/operate.log"
+	runLogFile     = "/var/log/mindx-edge/software-manager/software-manager-run.log"
+	operateLogFile = "/var/log/mindx-edge/software-manager/software-manager-operate.log"
 	backupDirName  = "/var/log_backup/mindx-edge/software-manager"
 )
 

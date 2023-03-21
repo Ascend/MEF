@@ -27,8 +27,8 @@ import (
 )
 
 const (
-	runLogFile     = "/home/MEFCenter/logs/run.log"
-	operateLogFile = "/home/MEFCenter/logs/operate.log"
+	runLogFile     = "/home/MEFCenter/logs/nginx-manager-run.log"
+	operateLogFile = "/home/MEFCenter/logs/nginx-manager-operate.log"
 	backupDirName  = "/home/MEFCenter/logs_backup"
 	defaultKmcPath = "/home/data/public-config/kmc-config.json"
 	defaultPort    = 8080
