@@ -23,7 +23,8 @@ const (
 	StopReplicasNum    = 0
 	StartReplicasNum   = 1
 	DockerImageExist   = 2
-	NamespaceExist     = 1
+	NamespaceStatusLoc = 1
+	SplitStringCount   = -1
 	DeleteNsTimeoutSec = 300
 )
 
@@ -43,7 +44,7 @@ const (
 	MefRunScript     = "run.sh"
 	VersionXml       = "version.xml"
 	InstallParamJson = "install-param.json"
-	InstallBin       = "MEF-center-installer"
+	ControllerBin    = "MEF-center-controller"
 	UpgradeFlagFile  = "upgrade-flag"
 	ConfigInPkg      = "config"
 )
@@ -90,7 +91,7 @@ const (
 	ModuleLogName       = "mef-center-log"
 	ModuleLogBackupName = "mef-center-log-backup"
 	MefScriptsDir       = "scripts"
-	RunLogFile          = "mef-center-install.log"
+	RunLogFile          = "mef-center-install-run.log"
 	OperateLogFile      = "mef-center-install-operate.log"
 	InstallLogDir       = "mef-center-install"
 )
@@ -164,11 +165,9 @@ const (
 
 // constant for set k8s label
 const (
-	K8sLabel             = "mef-center-node="
-	GetNodeCmdPattern    = "kubectl get nodes -o wide | grep -w %s | awk '{print$1}'"
-	SetLabelCmdPattern   = "kubectl label nodes %s --overwrite %s"
-	CheckLabelCmdPattern = "kubectl get nodes -l %s | grep -w %s | wc -l"
-	LabelCount           = 1
+	K8sLabelSet    = "mef-center-node="
+	K8sLabel       = "mef-center-node"
+	NodeSplitCount = 1
 )
 
 // constant for upgrade

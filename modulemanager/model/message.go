@@ -10,13 +10,18 @@ import (
 	"time"
 )
 
+// Not good, just for compatible with both mef msg and kubeede msg
 type header struct {
-	Id        string `json:"id"`
-	ParentId  string `json:"parentId"`
-	IsSync    bool   `json:"isSync"`
-	Timestamp int64  `json:"timestamp"`
-	Version   string `json:"version"`
-	NodeId    string `json:"nodeId"`
+	Id              string `json:"id"`
+	ID              string `json:"msg_id"` // kubeedge format
+	ParentId        string `json:"parentId"`
+	ParentID        string `json:"parent_msg_id"` // kubeedge format
+	IsSync          bool   `json:"isSync"`
+	Sync            bool   `json:"sync"` // kubeedge format
+	Timestamp       int64  `json:"timestamp"`
+	Version         string `json:"version"`
+	ResourceVersion string `json:"resourceversion"` // kubeedge format
+	NodeId          string `json:"nodeId"`
 }
 
 type router struct {
@@ -26,11 +31,20 @@ type router struct {
 	Resource    string `json:"resource"`
 }
 
+// MessageRoute kubeedge message route
+type MessageRoute struct {
+	Source    string `json:"source"`    // kubeedge format
+	Group     string `json:"group"`     // kubeedge format
+	Operation string `json:"operation"` // kubeedge format
+	Resource  string `json:"resource"`  // kubeedge format
+}
+
 // Message struct
 type Message struct {
-	Header  header      `json:"header"`
-	Router  router      `json:"router"`
-	Content interface{} `json:"content"`
+	Header         header       `json:"header"`
+	Router         router       `json:"router"`
+	KubeEdgeRouter MessageRoute `json:"route"`
+	Content        interface{}  `json:"content"`
 }
 
 const messageIdSize = 16
@@ -184,6 +198,14 @@ func (msg *Message) SetRouter(source, destination, option, resource string) {
 	msg.Router.Resource = resource
 }
 
+// SetKubeEdgeRouter set kubeedge message router
+func (msg *Message) SetKubeEdgeRouter(source, group, operation, resource string) {
+	msg.KubeEdgeRouter.Source = source
+	msg.KubeEdgeRouter.Group = group
+	msg.KubeEdgeRouter.Operation = operation
+	msg.KubeEdgeRouter.Resource = resource
+}
+
 // GetContent get the message content
 func (msg *Message) GetContent() interface{} {
 	return msg.Content
@@ -210,6 +232,7 @@ func (msg *Message) NewResponse() (*Message, error) {
 	respMsg.Router.Destination = msg.Router.Source
 	respMsg.Router.Option = msg.Router.Option
 	respMsg.Router.Resource = msg.Router.Resource
+	respMsg.KubeEdgeRouter.Group = msg.KubeEdgeRouter.Group
 
 	return respMsg, nil
 }

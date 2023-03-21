@@ -7,7 +7,10 @@ COPY nginx .
 COPY --chown=MEFCenter:MEFCenter ./lib/kmc-lib/* ./lib/
 
 RUN chmod 750 /home/MEFCenter &&\
-    chmod 750 -R /home/MEFCenter/* &&\
+    chmod 500 -R /home/MEFCenter/* &&\
+    chmod 700 -R /home/MEFCenter/conf &&\
+    chmod 400 -R /home/MEFCenter/conf/* &&\
+    chmod 400 -R /home/MEFCenter/html/* &&\
     chown MEFCenter:MEFCenter -R /home/MEFCenter/* &&\
     echo 'umask 027' >> /etc/profile && \
     echo 'source /etc/profile' >> /home/MEFCenter/.bashrc

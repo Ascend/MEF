@@ -8,13 +8,12 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
-
-	"huawei.com/mindxedge/base/common"
 
 	"huawei.com/mindxedge/base/mef-center-install/pkg/control"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
@@ -208,17 +207,12 @@ func (uc *upgradeController) checkZipPath() error {
 		return errors.New("zip path does not exist")
 	}
 
-	ret, err := common.IfAbsPath(zipPath)
-	if err != nil {
-		fmt.Println("get zip path's abs path failed")
-		return fmt.Errorf("get path [%s]'s abs path failed: %s", zipPath, err.Error())
-	}
-	if !ret {
+	if !path.IsAbs(zipPath) {
 		fmt.Println("zip path is not an absolute path")
 		return fmt.Errorf("zip path is not abs path")
 	}
 
-	if _, err = utils.RealFileChecker(zipPath, true, false, zipSizeMul); err != nil {
+	if _, err := utils.RealFileChecker(zipPath, true, false, zipSizeMul); err != nil {
 		fmt.Printf("check zip path failed: %s\n", err.Error())
 		return fmt.Errorf("zip path check failed: %s", err.Error())
 	}
@@ -383,7 +377,7 @@ func main() {
 	}
 
 	if !dealArgs() {
-		return
+		os.Exit(util.ErrorExitCode)
 	}
 	fmt.Println("init log success")
 	user, ip, err := util.GetLoginUserAndIP()

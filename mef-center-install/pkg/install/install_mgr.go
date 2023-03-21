@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
@@ -330,7 +331,12 @@ func (sic *SftInstallCtl) componentsInstall() error {
 	hwlog.RunLog.Info("-----Start to install components-----")
 	for _, component := range sic.Components {
 		componentMgr := util.GetComponentMgr(component)
-		if err := componentMgr.LoadAndSaveImage(sic.InstallPathMgr.WorkPathAMgr); err != nil {
+		err := componentMgr.LoadAndSaveImage(sic.InstallPathMgr.WorkPathAMgr)
+		if err != nil && strings.Contains(err.Error(), "save image failed") {
+			sic.installedComponents = append(sic.installedComponents, component)
+			return fmt.Errorf("install component [%s] failed: %s", component, err.Error())
+		}
+		if err != nil {
 			return fmt.Errorf("install component [%s] failed: %s", component, err.Error())
 		}
 		sic.installedComponents = append(sic.installedComponents, component)

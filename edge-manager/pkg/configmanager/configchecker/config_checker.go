@@ -23,8 +23,14 @@ func (cc *configChecker) init() {
 	cc.configCheck.Checker = checker.GetAndChecker(
 		checker.GetRegChecker("Account", nameReg, true),
 		checker.GetOrChecker(
-			checker.GetIpChecker("IP", true),
-			checker.GetRegChecker("Domain", dnsReg, true),
+			checker.GetAndChecker(
+				checker.GetRegChecker("Domain", dnsLenReg, true),
+				checker.GetRegChecker("Domain", dnsReg, true),
+			),
+			checker.GetAndChecker(
+				checker.GetStringChoiceChecker("Domain", []string{""}, true),
+				checker.GetIpChecker("IP", true),
+			),
 		),
 		checker.GetListChecker("Password",
 			checker.GetUintChecker("", 0, math.MaxUint8, true),

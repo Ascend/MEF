@@ -92,7 +92,7 @@ func (hr *HttpsRequest) PostJson(jsonBody []byte) ([]byte, error) {
 		}
 	}
 	req, err := http.NewRequest(http.MethodPost, hr.url, bytes.NewReader(jsonBody))
-	req.Header.Set("Content-Type", jsonContentType)
+	req.Header.Set(common.ContentType, jsonContentType)
 	if len(hr.reqHeader) > 0 {
 		for k, v := range hr.reqHeader {
 			req.Header.Set(k, fmt.Sprintf("%v", v))
@@ -127,7 +127,7 @@ func (hr *HttpsRequest) PostFile(filePath string) ([]byte, error) {
 		}
 	}()
 	req, err := http.NewRequest(http.MethodPost, hr.url, file)
-	req.Header.Set("Content-Type", binaryContentType)
+	req.Header.Set(common.ContentType, binaryContentType)
 	if len(hr.reqHeader) > 0 {
 		for k, v := range hr.reqHeader {
 			req.Header.Set(k, fmt.Sprintf("%v", v))

@@ -22,6 +22,9 @@ type WsClientProxy struct {
 	connMgr  *wsConnectMgr
 }
 
+// waiting a moment for edgeproxy server is ready
+const delayStartTime = time.Second * 3
+
 // GetName get websocket client name
 func (wcp *WsClientProxy) GetName() string {
 	return wcp.ProxyCfg.name
@@ -109,20 +112,24 @@ func (wcp *WsClientProxy) IsConnected() bool {
 
 func (wcp *WsClientProxy) tryConnect(dialer *websocket.Dialer) (*websocket.Conn, error) {
 	tryConnInterval := 1 * time.Second
+	errCnt := 0
+	time.Sleep(delayStartTime)
 	for {
 		select {
 		case <-wcp.ProxyCfg.ctx.Done():
 			return nil, fmt.Errorf("connect has be canceled")
 		default:
 		}
-
 		hwlog.RunLog.Info("websocket client try to connect server")
 		connect, _, err := dialer.Dial(wssProtocol+wcp.ProxyCfg.hosts, wcp.ProxyCfg.headers)
 		if err == nil {
 			hwlog.RunLog.Info("websocket client connect the server success")
 			return connect, nil
 		}
-		hwlog.RunLog.Errorf("websocket client connect the server failed, error: %v", err)
+		// print error msg each 3-times, not every time
+		if errCnt += 1; errCnt%3 == 0 {
+			hwlog.RunLog.Errorf("websocket client connect the server failed, error: %v", err)
+		}
 		time.Sleep(tryConnInterval)
 		if tryConnInterval < maxTryConnInterval {
 			tryConnInterval = tryConnInterval * tryConnIntervalGrowRate

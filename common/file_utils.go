@@ -57,7 +57,11 @@ func DeleteAllFile(filePath string) error {
 
 // DeleteFile is used to delete one file into a path
 func DeleteFile(filePath string) error {
-	return os.Remove(filePath)
+	if utils.IsLexist(filePath) {
+		return os.Remove(filePath)
+	}
+
+	return nil
 }
 
 // MakeSurePath is used to make sure a path exists by creating it if not
@@ -362,20 +366,6 @@ func copyTarFile(extractPath string, header *tar.Header, tarReader *tar.Reader, 
 		return fmt.Errorf("do not support the type of [%c]", header.Typeflag)
 	}
 	return nil
-}
-
-// IfAbsPath is the func to check if a path is absolute path
-func IfAbsPath(path string) (bool, error) {
-	absPath, err := filepath.Abs(path)
-	if err != nil {
-		return false, err
-	}
-
-	if absPath != path {
-		return false, nil
-	}
-
-	return true, nil
 }
 
 // SetPathPermission set permission for path or file

@@ -36,8 +36,8 @@ const (
 	defaultPort           = 8101
 	defaultWsPort         = 10000
 	defaultMaxClientNum   = 1024
-	defaultRunLogFile     = "/var/log/mindx-edge/edge-manager/run.log"
-	defaultOperateLogFile = "/var/log/mindx-edge/edge-manager/operate.log"
+	defaultRunLogFile     = "/var/log/mindx-edge/edge-manager/edge-manager-run.log"
+	defaultOperateLogFile = "/var/log/mindx-edge/edge-manager/edge-manager-operate.log"
 	defaultBackupDirName  = "/var/log_backup/mindx-edge/edge-manager"
 	defaultDbPath         = "/home/data/config/edge-manager.db"
 	defaultKmcPath        = "/home/data/public-config/kmc-config.json"

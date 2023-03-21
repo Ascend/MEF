@@ -261,8 +261,10 @@ const (
 
 // user_mgr constant
 const (
-	UserGrepCommandPattern = "grep ^%s: /etc/passwd | grep nologin | wc -l"
-	NoLoginCount           = 1
+	UserGrepCommandPattern = "^%s:"
+	GrepCommand            = "grep"
+	EtcPasswdFile          = "/etc/passwd"
+	NoLoginFlag            = "nologin"
 )
 
 // const for unpack zip file
@@ -292,4 +294,11 @@ const TmpfsDevNum = 0x01021994
 const (
 	// MefUserNs represents the namespace that used by edge-manager to manager applications deployed by customer
 	MefUserNs = "mef-user"
+)
+
+// http header constant
+const (
+	ContentType        = "Content-Type"
+	ContentDisposition = "Content-Disposition"
+	TransferEncoding   = "Transfer-Encoding"
 )

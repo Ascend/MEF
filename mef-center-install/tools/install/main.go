@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"syscall"
@@ -113,20 +114,16 @@ func checkPath() error {
 	return nil
 }
 
-func checkSinglePath(path string) (string, error) {
-	if path == "" || !utils.IsExist(path) {
-		return "", fmt.Errorf("path [%s] does not exist", path)
+func checkSinglePath(singlePath string) (string, error) {
+	if singlePath == "" || !utils.IsExist(singlePath) {
+		return "", fmt.Errorf("path [%s] does not exist", singlePath)
 	}
 
-	ret, err := common.IfAbsPath(path)
-	if err != nil {
-		return "", fmt.Errorf("get path [%s]'s abs path failed: %s", path, err.Error())
-	}
-	if !ret {
-		return "", fmt.Errorf("path [%s] is not abs path", path)
+	if !path.IsAbs(singlePath) {
+		return "", fmt.Errorf("path [%s] is not abs path", singlePath)
 	}
 
-	absPath, err := utils.RealDirChecker(path, true, false)
+	absPath, err := utils.RealDirChecker(singlePath, true, false)
 	if err != nil {
 		return "", err
 	}
