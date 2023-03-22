@@ -11,6 +11,8 @@ import (
 
 	"huawei.com/mindx/common/rand"
 	"huawei.com/mindx/common/utils"
+
+	"huawei.com/mindxedge/base/common"
 )
 
 // GetTlsCfgWithPath [method] for get tls config
@@ -41,6 +43,7 @@ func GetTlsCfgWithPath(tlsCertInfo TlsCertInfo) (*tls.Config, error) {
 }
 
 func getTlsConfig(rootPem, certPem, keyPem []byte, svrFlag bool) (*tls.Config, error) {
+	defer common.ClearSliceByteMemory(keyPem)
 	rootCaPool := x509.NewCertPool()
 	if ok := rootCaPool.AppendCertsFromPEM(rootPem); !ok {
 		return nil, errors.New("append root ca to cert pool failed")
