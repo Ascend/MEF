@@ -9,6 +9,8 @@ import (
 
 	"github.com/gorilla/websocket"
 	"huawei.com/mindx/common/hwlog"
+
+	"huawei.com/mindxedge/base/common"
 )
 
 type wsMessage struct {
@@ -83,7 +85,8 @@ func (wcp *WsClientProxy) Stop() error {
 	wcp.ProxyCfg.cancel()
 	err := wcp.connMgr.stop()
 	if err != nil {
-		return fmt.Errorf("stop websocket connection failed, error: %v", err)
+		return fmt.Errorf("stop websocket connection failed, error: %v",
+			common.TrimInfoFromError(err, wcp.ProxyCfg.hosts))
 	}
 	return nil
 }
@@ -101,7 +104,7 @@ func (wcp *WsClientProxy) Send(msg interface{}) error {
 
 	err := wcp.connMgr.send(wsMsg)
 	if err != nil {
-		return err
+		return common.TrimInfoFromError(err, wcp.ProxyCfg.hosts)
 	}
 	return nil
 }
@@ -129,7 +132,8 @@ func (wcp *WsClientProxy) tryConnect(dialer *websocket.Dialer) (*websocket.Conn,
 		}
 		// print error msg each 3-times, not every time
 		if errCnt += 1; errCnt%errorPrintFrequency == 0 {
-			hwlog.RunLog.Errorf("websocket client connect the server failed, error: %v", err)
+			hwlog.RunLog.Errorf("websocket client connect the server failed, error: %v",
+				common.TrimInfoFromError(err, wcp.ProxyCfg.hosts))
 		}
 		time.Sleep(tryConnInterval)
 		if tryConnInterval < maxTryConnInterval {

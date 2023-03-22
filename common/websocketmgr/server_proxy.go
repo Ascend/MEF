@@ -66,7 +66,8 @@ func (wsp *WsServerProxy) Stop() error {
 	wsp.clientMap.Range(wsp.closeOneClient)
 	err := wsp.httpServer.Close()
 	if err != nil {
-		return fmt.Errorf("stop websocket server failed, error: %v", err)
+		return fmt.Errorf("stop websocket server failed, error: %v",
+			common.TrimInfoFromError(err, wsp.ProxyCfg.hosts))
 	}
 	return nil
 }
@@ -107,13 +108,14 @@ func (wsp *WsServerProxy) closeOneClient(name, conn interface{}) bool {
 
 func (wsp *WsServerProxy) serveHTTP(w http.ResponseWriter, r *http.Request) {
 	if !websocket.IsWebSocketUpgrade(r) {
-		hwlog.RunLog.Errorf("it is not a websocket request: %v", r.RemoteAddr)
+		hwlog.RunLog.Errorf("request is not a websocket request")
 		return
 	}
 	if ok := CheckAndAddClientNum(wsp); !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		if _, err := w.Write([]byte(common.ErrorMap[common.ErrorMaxEdgeClientsReached])); err != nil {
-			hwlog.RunLog.Errorf("write response to mef edge error: %v", err)
+			hwlog.RunLog.Errorf("write response to mef edge error: %v",
+				common.TrimInfoFromError(err, r.RemoteAddr))
 		}
 		return
 	}
@@ -121,13 +123,14 @@ func (wsp *WsServerProxy) serveHTTP(w http.ResponseWriter, r *http.Request) {
 	conn, err := wsp.upgrade.Upgrade(w, r, nil)
 	if err != nil {
 		RemoveClientNum(wsp)
-		hwlog.RunLog.Errorf("websocket start server http failed, error: %v", err)
+		hwlog.RunLog.Errorf("websocket start server http failed, error: %v",
+			common.TrimInfoFromError(err, wsp.ProxyCfg.hosts))
 		return
 	}
 	connMgr := &wsConnectMgr{}
 	connMgr.start(conn, clientName, &wsp.ProxyCfg.handlerMgr)
 	wsp.clientMap.Store(clientName, connMgr)
-	hwlog.RunLog.Infof("client [name=%v, addr=%v] connect", clientName, r.RemoteAddr)
+	hwlog.RunLog.Infof("client [name=%v] is connected", clientName)
 	select {
 	case <-connMgr.ctx.Done():
 		RemoveClientNum(wsp)
@@ -145,7 +148,8 @@ func (wsp *WsServerProxy) listen() error {
 		default:
 		}
 		if err := wsp.httpServer.ListenAndServeTLS("", ""); err != nil {
-			hwlog.RunLog.Errorf("websocket listen and serve with tls failed, error: %v", err)
+			hwlog.RunLog.Errorf("websocket listen and serve with tls failed, error: %v",
+				common.TrimInfoFromError(err, wsp.ProxyCfg.hosts))
 		}
 		time.Sleep(retryTime)
 	}
@@ -157,7 +161,7 @@ func (wsp *WsServerProxy) AddHandler(url string, handler func(http.ResponseWrite
 		return fmt.Errorf("invalid handler")
 	}
 	if _, existed := wsp.handlerMap.LoadOrStore(url, handler); existed {
-		return fmt.Errorf("the url [%v] is already registered", url)
+		return fmt.Errorf("url is already registered")
 	}
 	return nil
 }
