@@ -260,7 +260,7 @@ func main() {
 	if err = doInstall(); err != nil {
 		hwlog.RunLog.Errorf("install failed: %s", err.Error())
 		hwlog.OpLog.Errorf("%s: %s, install MEF Center failed", ip, user)
-		os.Exit(1)
+		os.Exit(util.ErrorExitCode)
 	}
 	hwlog.RunLog.Info("--------------------Install MEF_Center success--------------------")
 	hwlog.OpLog.Infof("%s: %s, install MEF Center successfully", ip, user)

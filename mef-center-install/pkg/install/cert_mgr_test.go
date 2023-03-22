@@ -26,8 +26,7 @@ func CertMgrDoPrepareTest() {
 	var ins = &certPrepareCtl{}
 	Convey("test DoInstallPrepare func in certPrepareCtl struct success", func() {
 		p := ApplyPrivateMethod(ins, "prepareCertsDir", func(_ *certPrepareCtl) error { return nil }).
-			ApplyPrivateMethod(ins, "prepareCerts", func(_ *certPrepareCtl) error { return nil }).
-			ApplyPrivateMethod(ins, "deleteRootKey", func(_ *certPrepareCtl) error { return nil })
+			ApplyPrivateMethod(ins, "prepareCerts", func(_ *certPrepareCtl) error { return nil })
 		defer p.Reset()
 		So(ins.doPrepare(), ShouldBeNil)
 	})
