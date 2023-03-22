@@ -78,7 +78,7 @@ func (hr *HttpsRequest) Get() ([]byte, error) {
 	}
 	resp, err := hr.client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, common.TrimInfoFromError(err, hr.url)
 	}
 	defer hr.client.CloseIdleConnections()
 	return hr.handleResp(resp)
@@ -100,7 +100,7 @@ func (hr *HttpsRequest) PostJson(jsonBody []byte) ([]byte, error) {
 	}
 	resp, err := hr.client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, common.TrimInfoFromError(err, hr.url)
 	}
 
 	defer hr.client.CloseIdleConnections()
@@ -135,7 +135,7 @@ func (hr *HttpsRequest) PostFile(filePath string) ([]byte, error) {
 	}
 	resp, err := hr.client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, common.TrimInfoFromError(err, hr.url)
 	}
 
 	defer hr.client.CloseIdleConnections()
@@ -159,7 +159,7 @@ func (hr *HttpsRequest) handleResp(resp *http.Response) ([]byte, error) {
 	}
 	readBytes, err := io.ReadAll(io.LimitReader(resp.Body, maxBodySize))
 	if err != nil {
-		return nil, err
+		return nil, common.TrimInfoFromError(err, hr.url)
 	}
 	return readBytes, nil
 }
@@ -179,7 +179,7 @@ func (hr *HttpsRequest) GetRespToFileWithLimit(writer io.Writer, limit int64) er
 	}
 	resp, err := hr.client.Do(req)
 	if err != nil {
-		return err
+		return common.TrimInfoFromError(err, hr.url)
 	}
 	defer hr.client.CloseIdleConnections()
 	return hr.handleRespToFile(resp, writer, limit)
@@ -202,7 +202,7 @@ func (hr *HttpsRequest) handleRespToFile(resp *http.Response, writer io.Writer, 
 	}
 
 	if _, err := io.Copy(writer, io.LimitReader(resp.Body, limit)); err != nil {
-		return err
+		return common.TrimInfoFromError(err, hr.url)
 	}
 
 	return nil

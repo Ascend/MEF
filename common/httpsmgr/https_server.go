@@ -37,7 +37,7 @@ func (ghs *HttpsServer) Start() error {
 	}
 	err := ghs.server.ListenAndServeTLS("", "")
 	if err != nil {
-		return err
+		return common.TrimInfoFromError(err, ghs.IP)
 	}
 	return nil
 }
