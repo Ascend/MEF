@@ -365,9 +365,24 @@ Commands:
 }
 
 func main() {
-	installParam, err := util.GetInstallInfo()
-	if err != nil {
-		fmt.Printf("get info from install-param.json failed:%s\n", err.Error())
+	const retryTimes = 3
+	var (
+		installParam *util.InstallParamJsonTemplate
+		err          error
+		readSuccess  bool
+	)
+
+	for i := 1; i <= retryTimes; i++ {
+		installParam, err = util.GetInstallInfo()
+		if err != nil {
+			fmt.Printf("get info from install-param.json failed:%s\n", err.Error())
+			continue
+		}
+		readSuccess = true
+		break
+	}
+
+	if !readSuccess {
 		os.Exit(util.ErrorExitCode)
 	}
 
