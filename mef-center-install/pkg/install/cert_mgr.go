@@ -25,7 +25,6 @@ func (cpc *certPrepareCtl) doPrepare() error {
 	var prepareCertsTasks = []func() error{
 		cpc.prepareCertsDir,
 		cpc.prepareCerts,
-		cpc.deleteRootKey,
 	}
 
 	fmt.Println("start to prepare certs")
@@ -121,19 +120,6 @@ func (cpc *certPrepareCtl) doPrepareCerts(ch chan<- error) {
 		return
 	}
 	ch <- nil
-}
-
-func (cpc *certPrepareCtl) deleteRootKey() error {
-	if err := common.DeleteAllFile(cpc.certPathMgr.GetRootCaKeyDirPath()); err != nil {
-		hwlog.RunLog.Errorf("delete root key dir failed: %s", err.Error())
-		return errors.New("delete root key dir failed")
-	}
-
-	if err := common.DeleteAllFile(cpc.certPathMgr.GetRootKmcDirPath()); err != nil {
-		hwlog.RunLog.Errorf("delete root key dir failed: %s", err.Error())
-		return errors.New("delete root key dir failed")
-	}
-	return nil
 }
 
 func (cpc *certPrepareCtl) setCertsOwner() error {
