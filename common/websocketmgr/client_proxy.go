@@ -24,6 +24,7 @@ type WsClientProxy struct {
 
 // waiting a moment for edgeproxy server is ready
 const delayStartTime = time.Second * 3
+const errorPrintFrequency = 3
 
 // GetName get websocket client name
 func (wcp *WsClientProxy) GetName() string {
@@ -127,7 +128,7 @@ func (wcp *WsClientProxy) tryConnect(dialer *websocket.Dialer) (*websocket.Conn,
 			return connect, nil
 		}
 		// print error msg each 3-times, not every time
-		if errCnt += 1; errCnt%3 == 0 {
+		if errCnt += 1; errCnt%errorPrintFrequency == 0 {
 			hwlog.RunLog.Errorf("websocket client connect the server failed, error: %v", err)
 		}
 		time.Sleep(tryConnInterval)
