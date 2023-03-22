@@ -53,6 +53,8 @@ spec:
               value: "600"
             - name: TokenExpireTime
               value: "600"
+            - name: EnableResolver
+              value: "false"
             - name: installed-module
               value: ${installed_module}
             - name: POD_IP

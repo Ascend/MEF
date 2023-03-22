@@ -50,7 +50,10 @@ func updateConf() error {
 	if err != nil {
 		return err
 	}
-	updater := NewNginxConfUpdater(items, nginxcom.NginxDefaultConfigPath)
+	updater, err := NewNginxConfUpdater(items)
+	if err != nil {
+		return err
+	}
 	return updater.Update()
 }
 
@@ -59,7 +62,10 @@ func loadCerts() error {
 	if err != nil {
 		return err
 	}
-	updater := NewNginxConfUpdater(nil, nginxcom.NginxDefaultConfigPath)
+	updater, err := NewNginxConfUpdater(nil)
+	if err != nil {
+		return err
+	}
 	pipeCount, err := updater.calculatePipeCount()
 	if err != nil {
 		return err

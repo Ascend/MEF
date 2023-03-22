@@ -86,6 +86,8 @@ func newEnvironmentMgr() *environmentMgr {
 			createIntChecker(minLoginExpireTime, maxLoginExpireTime)},
 		PodIpKey: {PodIpKey, "", "", true,
 			createIpChecker()},
+		EnableResolverKey: {EnableResolverKey, "", "false", false,
+			createBoolChoiceChecker()},
 	}
 	return &environmentMgr{valuers: valuers}
 }
@@ -94,6 +96,14 @@ func createIntChecker(min int64, max int64) ObjChecker {
 	return ObjChecker{
 		Checker:  checker.GetAndChecker(checker.GetIntChecker("", min, max, true)),
 		DataType: reflect.Int,
+	}
+}
+
+func createBoolChoiceChecker() ObjChecker {
+	choices := []string{"true", "false"}
+	return ObjChecker{
+		Checker:  checker.GetAndChecker(checker.GetStringChoiceChecker("", choices, true)),
+		DataType: reflect.String,
 	}
 }
 
