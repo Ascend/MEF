@@ -14,8 +14,6 @@ const (
 	SoftPortKey = "SoftwareMgrSvcPort"
 	// CertPortKey 证书服务port对应的key
 	CertPortKey = "CertMgrSvcPort"
-	// NginxDefaultConfigPath nginx配置文件模板
-	NginxDefaultConfigPath = "/home/MEFCenter/conf/nginx_default.conf"
 	// NginxConfigPath nginx配置文件
 	NginxConfigPath = "/home/MEFCenter/conf/nginx.conf"
 	// ServerCertFile nginx对外服务证书
@@ -74,4 +72,6 @@ const (
 	LockTimeKey = "LockTime"
 	// TokenExpireTimeKey token expire time
 	TokenExpireTimeKey = "TokenExpireTime"
+	// EnableResolverKey enable the nginx dynamic ip resolver, true or false
+	EnableResolverKey = "EnableResolver"
 )

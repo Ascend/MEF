@@ -15,17 +15,32 @@ import (
 	"nginx-manager/pkg/nginxcom"
 )
 
+const (
+	nginxDefaultConfigPath  = "/home/MEFCenter/conf/nginx_default.conf"
+	nginxResolverConfigPath = "/home/MEFCenter/conf/nginx_resolver.conf"
+)
+
 type nginxConfUpdater struct {
 	confItems []nginxcom.NginxConfItem
 	confPath  string
 }
 
 // NewNginxConfUpdater create an updater to modify nginx configuration file
-func NewNginxConfUpdater(confItems []nginxcom.NginxConfItem, confPath string) *nginxConfUpdater {
+func NewNginxConfUpdater(confItems []nginxcom.NginxConfItem) (*nginxConfUpdater, error) {
+	enableResolverVal, err := nginxcom.GetEnvManager().Get(nginxcom.EnableResolverKey)
+	if err != nil {
+		return nil, err
+	}
+	configPath := ""
+	if enableResolverVal == "true" {
+		configPath = nginxResolverConfigPath
+	} else {
+		configPath = nginxDefaultConfigPath
+	}
 	return &nginxConfUpdater{
 		confItems: confItems,
-		confPath:  confPath,
-	}
+		confPath:  configPath,
+	}, nil
 }
 
 func loadConf(path string) ([]byte, error) {
