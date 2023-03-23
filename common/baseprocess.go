@@ -24,6 +24,12 @@ type Router struct {
 	Resource    string
 }
 
+const (
+	sensitiveInfoWildcard = "***"
+	// minimum substring length to be replaced
+	minimumCommonSubStrLen = 2
+)
+
 // ClearSliceByteMemory clears slice in memory
 func ClearSliceByteMemory(sliceByte []byte) {
 	for i := 0; i < len(sliceByte); i++ {
@@ -88,4 +94,62 @@ func ParamConvert(input interface{}, reqType interface{}) error {
 // Combine to combine option and resource to find url method
 func Combine(option, resource string) string {
 	return fmt.Sprintf("%s%s", option, resource)
+}
+
+// TrimInfoFromError trim sensitive information from an error, return new error
+func TrimInfoFromError(err error, sensitiveStr string) error {
+	if err == nil || sensitiveStr == "" {
+		return err
+	}
+	oldErrStr := err.Error()
+	if oldErrStr == "" {
+		return err
+	}
+	if strings.Contains(sensitiveStr, oldErrStr) {
+		return fmt.Errorf(sensitiveInfoWildcard)
+	}
+	newErrStr := strings.ReplaceAll(oldErrStr, sensitiveStr, sensitiveInfoWildcard)
+	if newErrStr != oldErrStr {
+		return fmt.Errorf(newErrStr)
+	}
+	commonStr := MaxCommonSubStr(sensitiveStr, oldErrStr)
+	if len(commonStr) >= minimumCommonSubStrLen {
+		newErrStr = strings.ReplaceAll(oldErrStr, commonStr, sensitiveInfoWildcard)
+	}
+	return fmt.Errorf(newErrStr)
+}
+
+// MaxCommonSubStr get the max common substring between two strings.
+func MaxCommonSubStr(s1 string, s2 string) string {
+	if len(s1) == 0 || len(s2) == 0 {
+		return ""
+	}
+	a := make([][]int, len(s1))
+	for i := 0; i < len(s1); i++ {
+		a[i] = make([]int, len(s2))
+		if []byte(s1)[i] == []byte(s2)[0] {
+			a[i][0] = 1
+		}
+	}
+	for j := 1; j < len(s2); j++ {
+		if []byte(s1)[0] == []byte(s2)[j] {
+			a[0][j] = 1
+		}
+	}
+	max := 0
+	idx1 := 0
+	idx2 := 0
+	for i := 1; i < len(s1); i++ {
+		for j := 1; j < len(s2); j++ {
+			if []byte(s1)[i] == []byte(s2)[j] {
+				a[i][j] = a[i-1][j-1] + 1
+			}
+			if a[i][j] > max {
+				max = a[i][j]
+				idx1 = i
+				idx2 = j
+			}
+		}
+	}
+	return string([]byte(s1)[idx1+1-a[idx1][idx2] : idx1+1])
 }
