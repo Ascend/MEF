@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"math"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,8 +16,7 @@ import (
 )
 
 const (
-	kilo                  = 1000.0
-	sensitiveInfoWildcard = "***"
+	kilo = 1000.0
 )
 
 // InitHwlogger initialize run and operate logger
@@ -90,20 +88,4 @@ func ConstructResp(c *gin.Context, errorCode string, msg string, data interface{
 	}
 
 	c.JSON(http.StatusOK, result)
-}
-
-// TrimInfoFromError trim sensitive information from an error, return new error
-func TrimInfoFromError(err error, sensitiveStr string) error {
-	if err == nil || sensitiveStr == "" {
-		return err
-	}
-	oldErrStr := err.Error()
-	if oldErrStr == "" {
-		return err
-	}
-	if strings.Contains(sensitiveStr, oldErrStr) {
-		return fmt.Errorf(sensitiveInfoWildcard)
-	}
-	newErrStr := strings.ReplaceAll(oldErrStr, sensitiveStr, sensitiveInfoWildcard)
-	return fmt.Errorf(newErrStr)
 }
