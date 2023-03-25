@@ -2,7 +2,7 @@
 
 # Copyright (c) Huawei Technologies Co., Ltd. 2023-2025. All rights reserved.
 # Description: Mef  相关c库打包脚本
-
+set -e
 CUR_DIR=$(dirname $(readlink -f "$0"))
 TOP_DIR=$(readlink -f "$CUR_DIR"/../)
 PLATFORM_DIR=$TOP_DIR/platform

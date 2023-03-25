@@ -2,7 +2,7 @@
 
 # Copyright (c) Huawei Technologies Co., Ltd. 2019-2025. All rights reserved.
 # Description: openssl 构建脚本
-
+set -e
 CUR_DIR=$(dirname $(readlink -f "$0"))
 CI_DIR=$(readlink -f "$CUR_DIR"/../)
 ROOT_DIR=$(readlink -f "$CI_DIR"/../)
