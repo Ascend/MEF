@@ -24,8 +24,12 @@ function prepare(){
 }
 
 function clean() {
-  rm -rf "${TMP_DIR}"
-  rm -rf "${TEST_DIR}"
+  if [ -f "${TMP_DIR}" ]; then
+    rm -rf "${TMP_DIR}"
+  fi
+  if [ -f "${TEST_DIR}" ]; then
+    rm -rf "${TEST_DIR}"
+  fi
   mkdir -p "${TMP_DIR}"
   mkdir -p "${TEST_DIR}"
 }
