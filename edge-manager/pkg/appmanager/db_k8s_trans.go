@@ -5,35 +5,34 @@ package appmanager
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
 	appv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"edge-manager/pkg/kubeclient"
-	"huawei.com/mindxedge/base/common"
 )
 
 func formatDaemonSetName(appName string, nodeGroupId uint64) string {
 	return fmt.Sprintf("%s-%s", appName, strconv.FormatUint(nodeGroupId, DecimalScale))
 }
 
-// initDaemonSet init daemonSet
-func initDaemonSet(appInfo *AppInfo, nodeGroupId uint64) (*appv1.DaemonSet, error) {
+func getPodSpec(containersStr string, nodeGroupId uint64) (*v1.PodSpec, error) {
 	var containerInfos []Container
-	if err := json.Unmarshal([]byte(appInfo.Containers), &containerInfos); err != nil {
-		hwlog.RunLog.Error("app containers unmarshal failed")
-		return nil, err
+	if err := json.Unmarshal([]byte(containersStr), &containerInfos); err != nil {
+		return nil, errors.New("app containers unmarshal failed")
 	}
 
 	containers, err := getContainers(containerInfos)
 	if err != nil {
-		hwlog.RunLog.Error("app daemonSet get containers failed")
-		return nil, err
+		return nil, errors.New("app daemonSet get containers failed")
 	}
 	cmVolumes := getCmVolumes(containerInfos)
 	reference := v1.LocalObjectReference{Name: kubeclient.DefaultImagePullSecretKey}
@@ -45,6 +44,17 @@ func initDaemonSet(appInfo *AppInfo, nodeGroupId uint64) (*appv1.DaemonSet, erro
 		common.NodeGroupLabelPrefix + strconv.FormatUint(nodeGroupId, DecimalScale): "",
 	}
 	tmpSpec.Volumes = cmVolumes
+	return &tmpSpec, nil
+}
+
+// initDaemonSet init daemonSet
+func initDaemonSet(appInfo *AppInfo, nodeGroupId uint64) (*appv1.DaemonSet, error) {
+	var tmpSpec *v1.PodSpec
+	var err error
+	if tmpSpec, err = getPodSpec(appInfo.Containers, nodeGroupId); err != nil {
+		hwlog.RunLog.Errorf("get pod spec failed: %s", err)
+		return nil, err
+	}
 	template := v1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
@@ -53,8 +63,10 @@ func initDaemonSet(appInfo *AppInfo, nodeGroupId uint64) (*appv1.DaemonSet, erro
 				AppId:                 strconv.FormatInt(int64(appInfo.ID), DecimalScale),
 			},
 		},
-		Spec: tmpSpec,
+		Spec: *tmpSpec,
 	}
+	const maxPercentage = "100%"
+	maxUnavailablePod := intstr.FromString(maxPercentage)
 	return &appv1.DaemonSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: formatDaemonSetName(appInfo.AppName, nodeGroupId),
@@ -63,6 +75,12 @@ func initDaemonSet(appInfo *AppInfo, nodeGroupId uint64) (*appv1.DaemonSet, erro
 			},
 		},
 		Spec: appv1.DaemonSetSpec{
+			UpdateStrategy: appv1.DaemonSetUpdateStrategy{
+				Type: appv1.RollingUpdateDaemonSetStrategyType,
+				RollingUpdate: &appv1.RollingUpdateDaemonSet{
+					MaxUnavailable: &maxUnavailablePod,
+				},
+			},
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					common.AppManagerName: AppLabel,
