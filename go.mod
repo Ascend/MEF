@@ -8,8 +8,8 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/smartystreets/goconvey v1.7.2
 	github.com/stretchr/testify v1.7.1
-	gorm.io/driver/sqlite v1.4.3
-	gorm.io/gorm v1.24.0
+	gorm.io/driver/sqlite v1.4.2
+	gorm.io/gorm v1.22.3
 	huawei.com/mindx/common/hwlog v0.10.3
 	huawei.com/mindx/common/kmc v0.1.0
 	huawei.com/mindx/common/rand v0.0.1
