@@ -166,6 +166,11 @@ func (wsp *WsServerProxy) AddHandler(url string, handler func(http.ResponseWrite
 	return nil
 }
 
+// AddDefaultHandler set default / handler, for compatible with both MEF_Edge and MEF_Edge_SDK
+func (wsp *WsServerProxy) AddDefaultHandler() {
+	wsp.handlerMap.Store(svcUrl, wsp.serveHTTP)
+}
+
 // initHandlers must be called after http.Server initialized
 func (wsp *WsServerProxy) initHandlers() {
 	wsp.handlerMap.Range(func(key, value interface{}) bool {
