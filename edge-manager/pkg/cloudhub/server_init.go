@@ -69,6 +69,7 @@ func InitServer() error {
 		hwlog.RunLog.Errorf("add handler failed. url: %v", util.ConnCheckUrl)
 		return fmt.Errorf("add handler failed. url: %v", util.ConnCheckUrl)
 	}
+	proxy.AddDefaultHandler()
 	serverSender.SetProxy(proxy)
 	if err = proxy.Start(); err != nil {
 		hwlog.RunLog.Errorf("proxy.Start failed: %v", err)
