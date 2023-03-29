@@ -42,6 +42,7 @@ func (wsp *WsServerProxy) Start() error {
 		Addr:      wsp.ProxyCfg.hosts,
 		TLSConfig: wsp.ProxyCfg.tlsConfig,
 	}
+	httpServer.SetKeepAlivesEnabled(false)
 	wsp.httpServer = httpServer
 	wsp.initHandlers()
 	wsp.upgrade = &websocket.Upgrader{
