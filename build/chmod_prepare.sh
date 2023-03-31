@@ -7,7 +7,6 @@ function chmod_400() {
   local output_dir="$1"
   find "${output_dir}" -name "*.xml" -print0 | xargs -0 chmod 400
   find "${output_dir}" -name "*.so*" -print0 | xargs -0 chmod 400
-  find "${output_dir}" -name "*.lua" -print0 | xargs -0 chmod 400
   find "${output_dir}" -name "*.html" -print0 | xargs -0 chmod 400
   find "${output_dir}" -name "*.conf" -print0 | xargs -0 chmod 400
   find "${output_dir}" -name "*.types" -print0 | xargs -0 chmod 400
@@ -20,7 +19,6 @@ function chmod_500() {
   find "${output_dir}" -name "bin" -type d -print0 | xargs -0 chmod 500
   find "${output_dir}" -name "scripts" -type d -print0 | xargs -0 chmod 500
   find "${output_dir}" -name "lib" -type d -print0 | xargs -0 chmod 500
-  find "${output_dir}" -name "lua" -type d -print0 | xargs -0 chmod 500
   find "${output_dir}" -name "html" -type d -print0 | xargs -0 chmod 500
   find "${output_dir}" -name "conf" -type d -print0 | xargs -0 chmod 500
   find "${output_dir}" -name "nginx" -type d -print0 | xargs -0 chmod 500
