@@ -67,7 +67,6 @@ func (wdc *WorkingDirCtl) DoInstallPrepare() error {
 		wdc.prepareVersionXml,
 		wdc.prepareComponentWorkDir,
 		wdc.prepareSymlinks,
-		wdc.prepareLogExportTool,
 	}
 
 	fmt.Println("start to prepare working dir")
@@ -254,81 +253,5 @@ func (wdc *WorkingDirCtl) prepareInstallParamJson() error {
 		return errors.New("prepare install-param.json failed")
 	}
 
-	return nil
-}
-
-func (wdc *WorkingDirCtl) prepareLogExportTool() error {
-	hwlog.RunLog.Info("start to copy log-export-tool")
-	currentPath, err := wdc.getCurrentPath()
-	if err != nil {
-		return err
-	}
-	realWorkDir, err := filepath.EvalSymlinks(wdc.pathMgr.GetWorkPath())
-	if err != nil {
-		hwlog.RunLog.Errorf("get real work dir failed, error: %v", err.Error())
-		return errors.New("get real work dir failed")
-	}
-
-	srcDir := filepath.Join(currentPath, "tools", "log-export-tool")
-	dstDir := filepath.Join(realWorkDir, "tools", "log-export-tool")
-	if err = utils.CopyDir(srcDir, dstDir); err != nil {
-		hwlog.RunLog.Errorf("copy log-export-tool failed, error: %v", err.Error())
-		return errors.New("copy log-export-tool failed")
-	}
-	srcLibDir := filepath.Join(currentPath, util.MefLibDir, util.MefKmcLibDir)
-	if err = common.CopyDir(srcLibDir, dstDir, true); err != nil {
-		hwlog.RunLog.Errorf("copy log-export-tool failed, error: %v", err.Error())
-		return errors.New("copy log-export-tool failed")
-	}
-
-	if err := updateLogExportToolPermission(realWorkDir); err != nil {
-		return err
-	}
-
-	hwlog.RunLog.Info("copy log-export-tool successful")
-	return nil
-}
-
-func updateLogExportToolPermission(realWorkDir string) error {
-	dstDir := filepath.Join(realWorkDir, "tools", "log-export-tool")
-	dstLibDir := filepath.Join(dstDir, util.MefKmcLibDir)
-
-	if err := os.Chmod(filepath.Join(dstDir, "log_export_tool-template.yaml"), common.Mode400); err != nil {
-		hwlog.RunLog.Errorf("chmod log_export_tool-template.yaml failed, error: %v", err.Error())
-		return errors.New("chmod log_export_tool-template.yaml failed")
-	}
-	if err := os.Chmod(filepath.Join(dstDir, "MEF-center-log-export-tool"), common.Mode500); err != nil {
-		hwlog.RunLog.Errorf("chmod log-export-tool failed, error: %v", err.Error())
-		return errors.New("chmod log-export-tool failed")
-	}
-
-	mefUid, mefGid, err := util.GetMefId()
-	if err != nil {
-		hwlog.RunLog.Errorf("get MEFCenter uid failed, error: %v", err.Error())
-		return err
-	}
-	if err := os.Chown(dstDir, mefUid, mefGid); err != nil {
-		hwlog.RunLog.Errorf("chown log-export-tool dir failed, error: %v", err.Error())
-		return errors.New("chown log-export-tool dir failed")
-	}
-	if err := os.Chown(filepath.Join(dstDir, util.MefKmcLibDir), mefUid, mefGid); err != nil {
-		hwlog.RunLog.Errorf("chown kmc lib dir failed, error: %v", err.Error())
-		return errors.New("chown kmc lib dir failed")
-	}
-	if err := os.Chown(filepath.Join(dstDir, "MEF-center-log-export-tool"), mefUid, mefGid); err != nil {
-		hwlog.RunLog.Errorf("chown log-export-tool failed, error: %v", err.Error())
-		return errors.New("chown log-export-tool failed")
-	}
-	entries, err := os.ReadDir(dstLibDir)
-	if err != nil {
-		hwlog.RunLog.Errorf("readdir kmc-lib failed, error: %v", err.Error())
-		return errors.New("readdir kmc-lib failed")
-	}
-	for _, e := range entries {
-		if err = os.Chown(filepath.Join(dstLibDir, e.Name()), mefUid, mefGid); err != nil {
-			hwlog.RunLog.Errorf("chown kmc-lib failed, error: %v", err.Error())
-			return errors.New("chown kmc-lib failed")
-		}
-	}
 	return nil
 }

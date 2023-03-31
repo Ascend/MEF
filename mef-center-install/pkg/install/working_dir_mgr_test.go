@@ -40,8 +40,7 @@ func WorkingDirMgrDoPrepareTest() {
 			ApplyPrivateMethod(ins, "prepareBinDir", func(_ *WorkingDirCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "prepareVersionXml", func(_ *WorkingDirCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "prepareComponentWorkDir", func(_ *WorkingDirCtl) error { return nil }).
-			ApplyPrivateMethod(ins, "prepareSymlinks", func(_ *WorkingDirCtl) error { return nil }).
-			ApplyPrivateMethod(ins, "prepareLogExportTool", func(_ *WorkingDirCtl) error { return nil })
+			ApplyPrivateMethod(ins, "prepareSymlinks", func(_ *WorkingDirCtl) error { return nil })
 
 		defer p.Reset()
 		So(ins.DoInstallPrepare(), ShouldBeNil)
