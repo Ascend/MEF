@@ -10,16 +10,21 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 	"syscall"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/rand"
 	"huawei.com/mindx/common/utils"
 )
 
-const fileMode = 0600
+const (
+	fileMode = 0600
+	maxSize  = 10 * MB
+)
 
 // WriteData write data with path check
 func WriteData(filePath string, fileData []byte) error {
@@ -50,8 +55,76 @@ func WriteData(filePath string, fileData []byte) error {
 	return nil
 }
 
+func isKeyFile(path string) bool {
+	sufList := []string{
+		".key",
+		".ks",
+	}
+
+	for _, suf := range sufList {
+		if strings.HasSuffix(path, suf) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func confusionFile(path string) error {
+	// Override with zero
+	overrideByte := make([]byte, maxSize, maxSize)
+	if err := WriteData(path, overrideByte); err != nil {
+		return fmt.Errorf("confusion file with 0 failed: %s", err.Error())
+	}
+
+	for i := range overrideByte {
+		overrideByte[i] = 1
+	}
+	if err := WriteData(path, overrideByte); err != nil {
+		return fmt.Errorf("confusion file with 1 failed: %s", err.Error())
+	}
+
+	if _, err := rand.Read(overrideByte); err != nil {
+		return errors.New("get random words failed")
+	}
+	if err := WriteData(path, overrideByte); err != nil {
+		return fmt.Errorf("confusion file with random num failed: %s", err.Error())
+	}
+
+	return nil
+}
+
+func recursiveConfusionFile(path string, info fs.FileInfo, err error) error {
+	if err != nil {
+		return err
+	}
+
+	if info.IsDir() {
+		return nil
+	}
+
+	if !isKeyFile(path) {
+		return nil
+	}
+
+	// if a file larger than maxSize, it should be considered as a malicious file so that we do not confuse it
+	if info.Size() > maxSize {
+		return nil
+	}
+
+	if err = confusionFile(path); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // DeleteAllFile is used to delete all files into a path
 func DeleteAllFile(filePath string) error {
+	if err := filepath.Walk(filePath, recursiveConfusionFile); err != nil {
+		return fmt.Errorf("confusion path %s failed: %s", filePath, err.Error())
+	}
+
 	return os.RemoveAll(filePath)
 }
 
@@ -121,36 +194,36 @@ func CreateSoftLink(dstPath, srcPath string) error {
 
 // GetDiskFree is used to get the free disk space of a path
 func GetDiskFree(path string) (uint64, error) {
-	fs := syscall.Statfs_t{}
-	err := syscall.Statfs(path, &fs)
+	fileStat := syscall.Statfs_t{}
+	err := syscall.Statfs(path, &fileStat)
 	if err != nil {
 		return 0, err
 	}
-	diskFree := fs.Bavail * uint64(fs.Bsize)
+	diskFree := fileStat.Bavail * uint64(fileStat.Bsize)
 	return diskFree, nil
 }
 
 // GetFileSystem is used to get the file system of a path
 // ret equals the type_t definition in linux statfs struct
 func GetFileSystem(path string) (int64, error) {
-	fs := syscall.Statfs_t{}
-	err := syscall.Statfs(path, &fs)
+	fileStat := syscall.Statfs_t{}
+	err := syscall.Statfs(path, &fileStat)
 	if err != nil {
 		return 0, fmt.Errorf("get [%s]'s file system failed: %s", path, err.Error())
 	}
 
-	return fs.Type, nil
+	return fileStat.Type, nil
 }
 
 // GetFileDevNum is used to get the dev info of a path
 func GetFileDevNum(path string) (uint64, error) {
-	fs := syscall.Stat_t{}
-	err := syscall.Stat(path, &fs)
+	fileStat := syscall.Stat_t{}
+	err := syscall.Stat(path, &fileStat)
 	if err != nil {
 		return 0, fmt.Errorf("get [%s]'s file dev info failed: %s", path, err.Error())
 	}
 
-	return fs.Dev, nil
+	return fileStat.Dev, nil
 }
 
 // ExtraUpgradeZipFile extract zip file
