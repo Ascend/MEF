@@ -277,6 +277,7 @@ func (c *ComponentMgr) PrepareComponentCert(certMng *certutils.RootCertMgr, cert
 	return nil
 }
 
+// PrepareComponentConfig is the func to prepare config for single component
 func (c *ComponentMgr) PrepareComponentConfig(pathMgr *ConfigPathMgr) error {
 	if pathMgr == nil {
 		hwlog.RunLog.Error("pointer pathMgr is nil")
@@ -290,7 +291,7 @@ func (c *ComponentMgr) PrepareComponentConfig(pathMgr *ConfigPathMgr) error {
 	}
 
 	installRootDir := path.Dir(path.Dir(currentDir))
-	configPath := path.Join(installRootDir, c.name, ConfigInPkg)
+	configPath := filepath.Join(installRootDir, c.name, ConfigInPkg)
 	if !utils.IsExist(configPath) {
 		return nil
 	}
