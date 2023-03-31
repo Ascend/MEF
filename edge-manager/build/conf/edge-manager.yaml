@@ -47,7 +47,7 @@ compile:
             path: "{{TOP_DIR}}/output/config"
         - copy:
             src:
-              - "{{TOP_DIR}}/config"
+              - "{{TOP_DIR}}/config/*"
             des: "{{TOP_DIR}}/output/config"
         - mode:
             src:
