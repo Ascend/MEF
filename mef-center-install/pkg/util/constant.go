@@ -160,7 +160,6 @@ const (
 	StartOperateFlag   = "start"
 	StopOperateFlag    = "stop"
 	RestartOperateFlag = "restart"
-	LogExportFlag      = "exportlog"
 )
 
 // constant for set k8s label
