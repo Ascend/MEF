@@ -23,8 +23,7 @@ import (
 
 const (
 	fileMode = 0600
-	byteSize = 32
-	maxLen   = 2048
+	maxSize  = 10 * MB
 )
 
 // WriteData write data with path check
@@ -73,7 +72,7 @@ func isKeyFile(path string) bool {
 
 func confusionFile(path string) error {
 	// Override with zero
-	overrideByte := make([]byte, byteSize*maxLen, byteSize*maxLen)
+	overrideByte := make([]byte, maxSize, maxSize)
 	if err := WriteData(path, overrideByte); err != nil {
 		return fmt.Errorf("confusion file with 0 failed: %s", err.Error())
 	}
@@ -105,6 +104,11 @@ func recursiveConfusionFile(path string, info fs.FileInfo, err error) error {
 	}
 
 	if !isKeyFile(path) {
+		return nil
+	}
+
+	// if a file larger than maxSize, it should be considered as a malicious file so that we do not confuse it
+	if info.Size() > maxSize {
 		return nil
 	}
 
