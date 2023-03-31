@@ -213,9 +213,22 @@ func (c *ComponentMgr) copyComponentFiles(pathMgr WorkPathItf) error {
 	// copy ComponentMgr files to ComponentMgr directory
 	filesDst := pathMgr.GetImageConfigPath(c.name)
 
-	if err = common.CopyDir(componentPath, filesDst, false); err != nil {
-		hwlog.RunLog.Errorf("copy %s's dir failed: %s", c.name, err.Error())
-		return fmt.Errorf("copy component dir failed")
+	files, err := common.ReadDir(componentPath)
+	if err != nil {
+		hwlog.RunLog.Errorf("read component [%s]'s dir failed: %s", c.name, err.Error())
+		return fmt.Errorf("read component [%s]'s dir failed", c.name)
+	}
+
+	for _, f := range files {
+		if f.Name() == ConfigInPkg {
+			continue
+		}
+
+		filePath := filepath.Join(componentPath, f.Name())
+		if err = common.CopyDir(filePath, filesDst, false); err != nil {
+			hwlog.RunLog.Errorf("copy %s's dir failed: %s", c.name, err.Error())
+			return fmt.Errorf("copy component dir failed")
+		}
 	}
 
 	return nil
@@ -261,6 +274,41 @@ func (c *ComponentMgr) PrepareComponentCert(certMng *certutils.RootCertMgr, cert
 	if err := c.prepareUserMgrCert(certMng, certPathMgr); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (c *ComponentMgr) PrepareComponentConfig(pathMgr *ConfigPathMgr) error {
+	if pathMgr == nil {
+		hwlog.RunLog.Error("pointer pathMgr is nil")
+		return errors.New("pointer pathMgr is nil")
+	}
+
+	currentDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		hwlog.RunLog.Errorf("copy %s's config file since cannot get current dir: %s", c.name, err.Error())
+		return errors.New("copy component config file failed")
+	}
+
+	installRootDir := path.Dir(path.Dir(currentDir))
+	configPath := path.Join(installRootDir, c.name, ConfigInPkg)
+	if !utils.IsExist(configPath) {
+		return nil
+	}
+
+	filesDst := pathMgr.GetComponentConfigPath(c.name)
+
+	if !utils.IsExist(filesDst) {
+		if err = common.MakeSurePath(filesDst); err != nil {
+			hwlog.RunLog.Errorf("make sure component [%s]'s config dir failed: %s", c.name, err.Error())
+			return fmt.Errorf("make sure component [%s]'s config dir failed", c.name)
+		}
+	}
+
+	if err = common.CopyDir(configPath, filesDst, false); err != nil {
+		hwlog.RunLog.Errorf("copy %s's config failed: %s", c.name, err.Error())
+		return fmt.Errorf("copy component config failed")
+	}
+
 	return nil
 }
 

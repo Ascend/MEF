@@ -29,6 +29,7 @@ function chmod_500() {
 function chmod_600() {
   local output_dir="$1"
   find "${output_dir}" -name "*.yaml" -print0 | xargs -0 chmod 600
+  find "${output_dir}" -name "*.json" -print0 | xargs -0 chmod 600
 }
 
 function chmod_700() {
