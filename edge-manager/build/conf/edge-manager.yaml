@@ -52,7 +52,7 @@ compile:
         - mode:
             src:
               - "{{TOP_DIR}}/output/config"
-            mode: "600"
+            mode: "700"
         - mode:
             src:
               - "{{TOP_DIR}}/output/*"
