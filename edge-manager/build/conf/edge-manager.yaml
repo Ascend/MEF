@@ -55,12 +55,16 @@ compile:
             des: "{{TOP_DIR}}/output/config"
         - mode:
             src:
-              - "{{TOP_DIR}}/output/config/*"
-            mode: "600"
-        - mode:
-            src:
               - "{{TOP_DIR}}/output/*"
             mode: "400"
+        - mode:
+            src:
+              - "{{TOP_DIR}}/output/config"
+            mode: "700"
+        - mode:
+            src:
+              - "{{TOP_DIR}}/output/config/*"
+            mode: "600"
         - mode:
             src:
               - "{{TOP_DIR}}/output/{{component}}"
