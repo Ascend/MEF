@@ -10,7 +10,6 @@ export GO111MODULE="on"
 OUTPUT_INSTALLER_NAME="MEF-center-installer"
 OUTPUT_CONTROLLER_NAME="MEF-center-controller"
 OUTPUT_UPGRADE_NAME="MEF-center-upgrade"
-OUTPUT_LOG_EXPORT_TOOL_NAME="MEF-center-log-export-tool"
 INSTALL_SH_NAME="install.sh"
 
 arch=$(arch 2>&1)
@@ -72,23 +71,6 @@ function build_upgrade() {
   fi
 }
 
-function build_log_export_tool() {
-  cd "${TOP_DIR}/tools/logexporttool"
-  export CGO_ENABLED=1
-  export CGO_CFLAGS="-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
-  export CGO_CPPFLAGS="-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
-  go build -mod=mod -buildmode=pie -ldflags "-s -linkmode=external -extldflags=-Wl,-z,now \
-          -X main.BuildName=${OUTPUT_LOG_EXPORT_TOOL_NAME} \
-          -X main.BuildVersion=${build_version}_linux-${arch}" \
-          -o "${OUTPUT_LOG_EXPORT_TOOL_NAME}" \
-          -trimpath
-  ls "${OUTPUT_LOG_EXPORT_TOOL_NAME}"
-  if [ $? -ne 0 ]; then
-    echo "fail to find ${OUTPUT_LOG_EXPORT_TOOL_NAME}"
-    exit 1
-  fi
-}
-
 function mv_file() {
     mkdir -p "${TOP_DIR}/output/mef_center_tools"
     mkdir -p "${TOP_DIR}/output/mef_center_tools/bin"
@@ -100,19 +82,16 @@ function mv_file() {
     mv "${TOP_DIR}/tools/install/${OUTPUT_INSTALLER_NAME}" "${TOP_DIR}/output/mef_center_tools/bin"
     mv "${TOP_DIR}/tools/control/${OUTPUT_CONTROLLER_NAME}" "${TOP_DIR}/output/mef_center_tools/bin"
     mv "${TOP_DIR}/tools/upgrade/${OUTPUT_UPGRADE_NAME}" "${TOP_DIR}/output/mef_center_tools/bin"
-    mv "${TOP_DIR}/tools/logexporttool/${OUTPUT_LOG_EXPORT_TOOL_NAME}" "${TOP_DIR}/output/mef_center_tools/bin"
     chmod 500 "${TOP_DIR}/output/mef_center_tools/${INSTALL_SH_NAME}"
     chmod 500 "${TOP_DIR}/output/mef_center_tools/bin/${OUTPUT_INSTALLER_NAME}"
     chmod 500 "${TOP_DIR}/output/mef_center_tools/bin/${OUTPUT_CONTROLLER_NAME}"
     chmod 500 "${TOP_DIR}/output/mef_center_tools/bin/${OUTPUT_UPGRADE_NAME}"
-    chmod 500 "${TOP_DIR}/output/mef_center_tools/bin/${OUTPUT_LOG_EXPORT_TOOL_NAME}"
 }
 function main() {
   clean
   build_installer
   build_controller
   build_upgrade
-  build_log_export_tool
   mv_file
 }
 main

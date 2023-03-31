@@ -10,7 +10,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strings"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
@@ -38,12 +37,6 @@ type uninstallController struct {
 }
 
 type upgradeController struct {
-	installParam *util.InstallParamJsonTemplate
-}
-
-type logExportController struct {
-	module       string
-	edgeNodes    string
 	installParam *util.InstallParamJsonTemplate
 }
 
@@ -247,45 +240,6 @@ func (uc *upgradeController) printSuccessLog(ip, user string) {
 	fmt.Println("upgrade MEF-Center successful")
 }
 
-func (lec *logExportController) doControl() error {
-	logDirPathMgr := util.InitLogDirPathMgr(lec.installParam.LogDir, lec.installParam.LogBackupDir)
-	installDirPathMgr := util.InitInstallDirPathMgr(lec.installParam.InstallDir)
-	controlMgr := control.GetLogExportMgrIns(
-		lec.module, strings.Split(lec.edgeNodes, ","), logDirPathMgr, installDirPathMgr)
-	if err := controlMgr.DoExport(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (lec *logExportController) setInstallParam(installParam *util.InstallParamJsonTemplate) {
-	lec.installParam = installParam
-}
-
-func (lec *logExportController) bindFlag() bool {
-	flag.StringVar(&lec.module, moduleFlag, "", "the module to export logs")
-	flag.StringVar(&lec.edgeNodes, nodesFlag, "", "the nodes to export logs")
-	return true
-}
-
-func (lec *logExportController) printExecutingLog(ip, user string) {
-	hwlog.RunLog.Info("-------------------start to export logs-------------------")
-	hwlog.OpLog.Infof("%s: %s, start to export logs", ip, user)
-	fmt.Println("start to export logs")
-}
-
-func (lec *logExportController) printFailedLog(ip, user string) {
-	hwlog.RunLog.Error("-------------------export logs failed-------------------")
-	hwlog.OpLog.Errorf("%s: %s, export logs failed", ip, user)
-	fmt.Println("export logs failed")
-}
-
-func (lec *logExportController) printSuccessLog(ip, user string) {
-	hwlog.RunLog.Info("-------------------export logs successful-------------------")
-	hwlog.OpLog.Infof("%s: %s, export logs successful", ip, user)
-	fmt.Println("export logs successful")
-}
-
 func dealArgs() bool {
 	flag.Usage = printUseHelp
 	if len(os.Args) == util.NoArgCount {
@@ -355,12 +309,11 @@ Options:
 	-version	Print version information
 
 Commands:
-	start      -- start all or a component
-	stop       -- stop all or a component
-	restart    -- restart all or a component
-	uninstall  -- uninstall MEF Center
-	upgrade    -- upgrade MEF Center
-	exportlog  -- export MEF logs
+	start     -- start all or a component
+	stop      -- stop all or a component
+	restart   -- restart all or a component
+	uninstall -- uninstall MEF Center
+	upgrade   -- upgrade MEF Center
 `)
 }
 
@@ -436,6 +389,5 @@ func getOperateMap(operate string) map[string]controller {
 		util.RestartOperateFlag: &operateController{operate: operate},
 		util.UninstallFlag:      &uninstallController{},
 		util.UpgradeFlag:        &upgradeController{},
-		util.LogExportFlag:      &logExportController{},
 	}
 }
