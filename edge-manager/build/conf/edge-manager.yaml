@@ -45,14 +45,18 @@ compile:
             des: "{{TOP_DIR}}/output/"
         - makedir:
             path: "{{TOP_DIR}}/output/config"
+        - mode:
+            src:
+              - "{{TOP_DIR}}/output/config"
+            mode: "700"
         - copy:
             src:
               - "{{TOP_DIR}}/config/*"
             des: "{{TOP_DIR}}/output/config"
         - mode:
             src:
-              - "{{TOP_DIR}}/output/config"
-            mode: "700"
+              - "{{TOP_DIR}}/output/config/*"
+            mode: "600"
         - mode:
             src:
               - "{{TOP_DIR}}/output/*"
