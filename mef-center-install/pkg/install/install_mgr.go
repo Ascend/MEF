@@ -271,7 +271,7 @@ func (sic *SftInstallCtl) prepareInstallPkgDir() error {
 }
 
 func (sic *SftInstallCtl) prepareConfigDir() error {
-	configMgr := util.GetConfigMgr(sic.InstallPathMgr.ConfigPathMgr, sic.installedComponents)
+	configMgr := util.GetConfigMgr(sic.InstallPathMgr.ConfigPathMgr, sic.Components)
 	if err := configMgr.DoPrepare(); err != nil {
 		hwlog.RunLog.Errorf("prepare config dir failed: %s", err.Error())
 		return errors.New("prepare config dir failed")

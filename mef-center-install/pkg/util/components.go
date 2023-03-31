@@ -225,7 +225,7 @@ func (c *ComponentMgr) copyComponentFiles(pathMgr WorkPathItf) error {
 		}
 
 		filePath := filepath.Join(componentPath, f.Name())
-		if err = common.CopyDir(filePath, filesDst, false); err != nil {
+		if err = common.CopyDir(filePath, filesDst, true); err != nil {
 			hwlog.RunLog.Errorf("copy %s's dir failed: %s", c.name, err.Error())
 			return fmt.Errorf("copy component dir failed")
 		}
