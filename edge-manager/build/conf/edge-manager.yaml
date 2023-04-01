@@ -43,10 +43,28 @@ compile:
             src:
               - "{{TOP_DIR}}/build/Dockerfile"
             des: "{{TOP_DIR}}/output/"
+        - makedir:
+            path: "{{TOP_DIR}}/output/config"
+        - mode:
+            src:
+              - "{{TOP_DIR}}/output/config"
+            mode: "700"
+        - copy:
+            src:
+              - "{{TOP_DIR}}/config/*"
+            des: "{{TOP_DIR}}/output/config"
         - mode:
             src:
               - "{{TOP_DIR}}/output/*"
             mode: "400"
+        - mode:
+            src:
+              - "{{TOP_DIR}}/output/config"
+            mode: "700"
+        - mode:
+            src:
+              - "{{TOP_DIR}}/output/config/*"
+            mode: "600"
         - mode:
             src:
               - "{{TOP_DIR}}/output/{{component}}"
