@@ -428,9 +428,9 @@ func (cpm *ConfigPathMgr) GetUserServerKeyPath() string {
 	return filepath.Join(cpm.GetMefCertsDirPath(NginxManagerName), UserManagerName+KeySuffix)
 }
 
-// GetNginxManagerCertPath returns the cert path of the 3rd party
-func (cpm *ConfigPathMgr) GetNginxManagerCertPath() string {
-	return filepath.Join(cpm.GetMefCertsDirPath(NginxManagerName), NginxManagerName+CertSuffix)
+// GetNginxNorthernCertPath returns the cert path of the 3rd party
+func (cpm *ConfigPathMgr) GetNginxNorthernCertPath() string {
+	return filepath.Join(cpm.GetMefCertsDirPath(NginxManagerName), NorthernRootName+CertSuffix)
 }
 
 // GetPublicConfigPath returns the public-config path
@@ -476,6 +476,11 @@ func (cpm *ConfigPathMgr) GetRootMasterKmcPath() string {
 // GetRootBackKmcPath returns the kmc backup key file path for root ca
 func (cpm *ConfigPathMgr) GetRootBackKmcPath() string {
 	return filepath.Join(cpm.GetRootKmcDirPath(), BackUpKeyFile)
+}
+
+// GetApigRootPath returns the root crt file path in apig dir
+func (cpm *ConfigPathMgr) GetApigRootPath() string {
+	return filepath.Join(cpm.GetComponentConfigPath(CertManagerName), ApigDirName, RootCrtName)
 }
 
 // GetComponentKmcDirPath returns the kmc dir path for single component by component's name

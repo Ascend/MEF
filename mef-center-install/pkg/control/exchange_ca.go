@@ -30,7 +30,7 @@ type ExchangeCaFlow struct {
 // NewExchangeCaFlow an ExchangeCaFlow struct
 func NewExchangeCaFlow(importPath, exportPath string, pathMgr *util.InstallDirPathMgr,
 	uid, gid uint32) *ExchangeCaFlow {
-	savePath := pathMgr.ConfigPathMgr.GetNginxManagerCertPath()
+	savePath := pathMgr.ConfigPathMgr.GetNginxNorthernCertPath()
 	return &ExchangeCaFlow{
 		pathMgr:    pathMgr,
 		importPath: importPath,
@@ -140,15 +140,14 @@ func (ecf *ExchangeCaFlow) importCa() error {
 		}
 	}()
 
-	saveCrt := filepath.Join(ecf.savePath, ecf.certName)
-	if utils.IsExist(saveCrt) {
-		if err := common.DeleteFile(saveCrt); err != nil {
-			hwlog.RunLog.Errorf("delete original crt [%s] failed: %s", saveCrt, err.Error())
+	if utils.IsExist(ecf.savePath) {
+		if err := common.DeleteFile(ecf.savePath); err != nil {
+			hwlog.RunLog.Errorf("delete original crt [%s] failed: %s", ecf.savePath, err.Error())
 			return errors.New("delete original crt failed")
 		}
 	}
 
-	if err := ecf.copyCaToEdgeMain(tempPath); err != nil {
+	if err := ecf.copyCaToNginx(tempPath); err != nil {
 		return err
 	}
 
@@ -183,7 +182,7 @@ func (ecf *ExchangeCaFlow) copyCaToTemp(tempPath string) error {
 	return nil
 }
 
-func (ecf *ExchangeCaFlow) copyCaToEdgeMain(tempPath string) error {
+func (ecf *ExchangeCaFlow) copyCaToNginx(tempPath string) error {
 	tempCrt := filepath.Join(tempPath, ecf.certName)
 	if _, err := common.RunCommandWithUser(common.CommandCopy, common.DefCmdTimeoutSec, ecf.uid, ecf.gid, tempCrt,
 		ecf.savePath); err != nil {
@@ -191,7 +190,7 @@ func (ecf *ExchangeCaFlow) copyCaToEdgeMain(tempPath string) error {
 		return errors.New("copy temp crt to dst failed")
 	}
 
-	if err := common.SetPathPermission(ecf.savePath, common.Mode400, false, false); err != nil {
+	if err := common.SetPathPermission(ecf.savePath, common.Mode600, false, false); err != nil {
 		hwlog.RunLog.Errorf("set save crt right failed: %s", err.Error())
 		if err = common.DeleteFile(ecf.savePath); err != nil {
 			hwlog.RunLog.Warnf("delete crt [%s] failed: %s", ecf.certName, err.Error())
@@ -204,7 +203,12 @@ func (ecf *ExchangeCaFlow) copyCaToEdgeMain(tempPath string) error {
 func (ecf *ExchangeCaFlow) exportCa() error {
 	hwlog.RunLog.Info("start to export ca")
 
-	srcPath := ecf.pathMgr.ConfigPathMgr.GetRootCaCertPath()
+	srcPath := ecf.pathMgr.ConfigPathMgr.GetApigRootPath()
+	if !utils.IsExist(srcPath) {
+		hwlog.RunLog.Errorf("the root ca has not yet generated, plz start cert manager first")
+		return errors.New("the root ca has not yet generated")
+	}
+
 	isLink, err := common.IsSoftLink(srcPath)
 	if err != nil {
 		hwlog.RunLog.Errorf("check path [%s] failed: %s", srcPath, err.Error())
