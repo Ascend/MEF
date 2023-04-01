@@ -264,6 +264,7 @@ func (ecc *exchangeCertsController) doControl() error {
 	uid, gid, err := util.GetMefId()
 	if err != nil {
 		hwlog.RunLog.Errorf("get MEF uid/gid failed: %s", err.Error())
+		return errors.New("get MEF uid/gid failed")
 	}
 
 	exchangeFlow := control.NewExchangeCaFlow(ecc.importPath, ecc.exportPath, pathMgr, uint32(uid), uint32(gid))
@@ -282,15 +283,15 @@ func (ecc *exchangeCertsController) printExecutingLog(ip, user string) {
 }
 
 func (ecc *exchangeCertsController) printSuccessLog(user, ip string) {
-	hwlog.RunLog.Error("-------------------exchange certs failed-------------------")
-	hwlog.OpLog.Errorf("%s: %s, exchange certs failed", ip, user)
-	fmt.Println("exchange certs failed")
-}
-
-func (ecc *exchangeCertsController) printFailedLog(user, ip string) {
 	hwlog.RunLog.Info("-------------------exchange certs successful-------------------")
 	hwlog.OpLog.Infof("%s: %s, exchange certs successful", ip, user)
 	fmt.Println("exchange certs successful")
+}
+
+func (ecc *exchangeCertsController) printFailedLog(user, ip string) {
+	hwlog.RunLog.Error("-------------------exchange certs failed-------------------")
+	hwlog.OpLog.Errorf("%s: %s, exchange certs failed", ip, user)
+	fmt.Println("exchange certs failed")
 }
 
 func dealArgs() bool {
