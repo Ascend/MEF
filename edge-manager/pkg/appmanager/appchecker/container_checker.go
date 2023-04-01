@@ -43,7 +43,7 @@ func (cc *ContainerChecker) init() {
 		),
 		checker.GetIntChecker("UserID", minUserId, maxUserId, true),
 		checker.GetIntChecker("GroupID", minGroupId, maxGroupId, true),
-		checker.GetListChecker("VolumeMounts", GetVolumeVarChecker(""),
+		checker.GetListChecker("HostPathVolumes", GetHostPathVolumeChecker(""),
 			minVolumeMountsCount, maxVolumeMountsCount, true),
 	)
 }
