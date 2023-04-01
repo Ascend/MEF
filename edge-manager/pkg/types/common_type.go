@@ -20,8 +20,3 @@ type BatchResp struct {
 	SuccessIDs  []interface{}     `json:"successIDs"`
 	FailedInfos map[string]string `json:"failedInfos"`
 }
-
-// CapReq NodeID for query node details
-type CapReq struct {
-	NodeID uint64
-}
