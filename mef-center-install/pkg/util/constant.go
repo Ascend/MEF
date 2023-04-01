@@ -70,20 +70,21 @@ const (
 
 // MEF-Config constant
 const (
-	KmcDir        = "kmc"
-	PubCfgDir     = "public-config"
-	RootCaDir     = "root-ca"
-	RootCaFileDir = "cert"
-	RootCaKeyDir  = "key"
-	RootCaFile    = "RootCA.crt"
-	RootKeyFile   = "RootCA.key"
-	MasterKeyFile = "master.ks"
-	BackUpKeyFile = "backup.ks"
-	CertsDir      = "mef-certs"
-	CertSuffix    = ".crt"
-	KeySuffix     = ".key"
-	CaCommonName  = "MindX MEF"
-	PubConfigDir  = "public-config"
+	KmcDir         = "kmc"
+	PubCfgDir      = "public-config"
+	RootCaDir      = "root-ca"
+	RootCaFileDir  = "cert"
+	RootCaKeyDir   = "key"
+	RootCaFile     = "RootCA.crt"
+	RootKeyFile    = "RootCA.key"
+	MasterKeyFile  = "master.ks"
+	BackUpKeyFile  = "backup.ks"
+	CertsDir       = "mef-certs"
+	CertSuffix     = ".crt"
+	KeySuffix      = ".key"
+	CaCommonName   = "MindX MEF"
+	PubConfigDir   = "public-config"
+	ThirdPartyName = "third-party"
 )
 
 // log constant
@@ -154,8 +155,9 @@ const (
 
 // constant for mef control bin
 const (
-	UninstallFlag = "uninstall"
-	UpgradeFlag   = "upgrade"
+	UninstallFlag  = "uninstall"
+	UpgradeFlag    = "upgrade"
+	ExchangeCaFlag = "exchange_ca"
 
 	StartOperateFlag   = "start"
 	StopOperateFlag    = "stop"

@@ -18,7 +18,7 @@ import (
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
-type controller interface {
+type Controller interface {
 	doControl() error
 	setInstallParam(installParam *util.InstallParamJsonTemplate)
 	bindFlag() bool
@@ -50,7 +50,7 @@ var (
 	version       bool
 	zipPath       string
 	help          bool
-	curController controller
+	curController Controller
 
 	allowedModule = []string{util.EdgeManagerName, util.NginxManagerName, util.CertManagerName}
 )
@@ -58,8 +58,6 @@ var (
 const (
 	componentFlag = "component"
 	pathFlag      = "pkg_path"
-	moduleFlag    = "module"
-	nodesFlag     = "nodes"
 )
 
 func checkComponent(installedComponents []string) error {
@@ -240,6 +238,66 @@ func (uc *upgradeController) printSuccessLog(ip, user string) {
 	fmt.Println("upgrade MEF-Center successful")
 }
 
+type exchangeCertsController struct {
+	installParam *util.InstallParamJsonTemplate
+	importPath   string
+	exportPath   string
+}
+
+const (
+	importPathFlag = "import_path"
+	exportPathFlag = "export_path"
+)
+
+// ExchangeCertsCmd is the func to init an ExchangeCertsCmd struct
+func ExchangeCertsCmd() Controller {
+	return &exchangeCertsController{}
+}
+
+func (ecc *exchangeCertsController) bindFlag() bool {
+	flag.StringVar(&(ecc.importPath), importPathFlag, "", "path that saves ca cert to import")
+	flag.StringVar(&(ecc.exportPath), exportPathFlag, "", "path to export MEF ca cert")
+	return true
+}
+
+func (ecc *exchangeCertsController) setInstallParam(installParam *util.InstallParamJsonTemplate) {
+	ecc.installParam = installParam
+}
+
+func (ecc *exchangeCertsController) doControl() error {
+	pathMgr := util.InitInstallDirPathMgr(ecc.installParam.InstallDir)
+	uid, gid, err := util.GetMefId()
+	if err != nil {
+		hwlog.RunLog.Errorf("get MEF uid/gid failed: %s", err.Error())
+	}
+
+	exchangeFlow := control.NewExchangeCaFlow(ecc.importPath, ecc.exportPath, pathMgr, uint32(uid), uint32(gid))
+	if err = exchangeFlow.DoExchange(); err != nil {
+		hwlog.RunLog.Errorf("execute exchange flow failed: %s", err.Error())
+		return errors.New("execute exchange flow failed")
+	}
+
+	return nil
+}
+
+func (ecc *exchangeCertsController) printExecutingLog(ip, user string) {
+	hwlog.RunLog.Info("-------------------start to exchange certs-------------------")
+	hwlog.OpLog.Infof("%s: %s, start to exchange certs", ip, user)
+	fmt.Println(" start to exchange certs")
+}
+
+func (ecc *exchangeCertsController) printSuccessLog(user, ip string) {
+	hwlog.RunLog.Error("-------------------exchange certs failed-------------------")
+	hwlog.OpLog.Errorf("%s: %s, exchange certs failed", ip, user)
+	fmt.Println("exchange certs failed")
+}
+
+func (ecc *exchangeCertsController) printFailedLog(user, ip string) {
+	hwlog.RunLog.Info("-------------------exchange certs successful-------------------")
+	hwlog.OpLog.Infof("%s: %s, exchange certs successful", ip, user)
+	fmt.Println("exchange certs successful")
+}
+
 func dealArgs() bool {
 	flag.Usage = printUseHelp
 	if len(os.Args) == util.NoArgCount {
@@ -382,12 +440,13 @@ func initLog(installParam *util.InstallParamJsonTemplate) error {
 	return nil
 }
 
-func getOperateMap(operate string) map[string]controller {
-	return map[string]controller{
+func getOperateMap(operate string) map[string]Controller {
+	return map[string]Controller{
 		util.StartOperateFlag:   &operateController{operate: operate},
 		util.StopOperateFlag:    &operateController{operate: operate},
 		util.RestartOperateFlag: &operateController{operate: operate},
 		util.UninstallFlag:      &uninstallController{},
 		util.UpgradeFlag:        &upgradeController{},
+		util.ExchangeCaFlag:     &exchangeCertsController{},
 	}
 }
