@@ -64,7 +64,8 @@ func (ecf *ExchangeCaFlow) DoExchange() error {
 }
 
 func (ecf *ExchangeCaFlow) checkParam() error {
-	if _, err := utils.RealFileChecker(ecf.importPath, false, false, common.MaxCertSize); err != nil {
+	const maxCertSizeInMb = 1
+	if _, err := utils.RealFileChecker(ecf.importPath, false, false, maxCertSizeInMb); err != nil {
 		hwlog.RunLog.Errorf("importPath [%s] check failed: %s", ecf.importPath, err.Error())
 		return errors.New("importPath check failed")
 	}
@@ -79,7 +80,7 @@ func (ecf *ExchangeCaFlow) checkParam() error {
 		return nil
 	}
 
-	if _, err := utils.RealFileChecker(ecf.exportPath, false, false, common.MaxCertSize); err != nil {
+	if _, err := utils.RealFileChecker(ecf.exportPath, false, false, maxCertSizeInMb); err != nil {
 		hwlog.RunLog.Errorf("importPath [%s] check failed: %s", ecf.importPath, err.Error())
 		return errors.New("importPath check failed")
 	}

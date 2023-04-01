@@ -305,8 +305,6 @@ const (
 
 // const to check Certs
 const (
-	SignAlg               = "SHA256-RSA"
-	SignatureCertPathName = "signature_certs"
-	MinPubKeyLen          = 3072
-	MaxCertSize           = 10 * MB
+	SignAlg      = "SHA256-RSA"
+	MinPubKeyLen = 3072
 )
