@@ -137,10 +137,6 @@ spec:
       port: 10000
       targetPort: 10000
       nodePort: 30003
-    - name: log-mgr-port
-      port: 10002
-      targetPort: 10002
-      nodePort: 30005
   selector:
     app: ascend-edge-manager
   type: NodePort

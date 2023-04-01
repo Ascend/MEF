@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 )
 
