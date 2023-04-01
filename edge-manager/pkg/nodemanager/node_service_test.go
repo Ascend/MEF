@@ -1115,16 +1115,3 @@ func TestGetAppInstanceCountByGroupId(t *testing.T) {
 		})
 	})
 }
-
-func TestGetNodesCapability(t *testing.T) {
-	convey.Convey("GetNodesCapability functional test", t, func() {
-		convey.Convey("GetNodesCapability node exit success", func() {
-			res := getNodesCapability(types.CapReq{NodeID: uint64(1)})
-			convey.So(res.Status, convey.ShouldEqual, common.Success)
-		})
-		convey.Convey("GetNodesCapability node not exit", func() {
-			res := getNodesCapability("")
-			convey.So(res.Status, convey.ShouldEqual, common.Success)
-		})
-	})
-}

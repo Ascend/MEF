@@ -5,7 +5,6 @@ package restfulservice
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -120,10 +119,6 @@ var nodeRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			Destination:  common.NodeManagerName}},
 		listDispatcher{restfulmgr.GenericDispatcher{
 			RelativePath: "/list/unmanaged",
-			Method:       http.MethodGet,
-			Destination:  common.NodeManagerName}},
-		capDispatcher{restfulmgr.GenericDispatcher{
-			RelativePath: "/capability",
 			Method:       http.MethodGet,
 			Destination:  common.NodeManagerName}},
 		listDispatcher{restfulmgr.GenericDispatcher{
@@ -257,26 +252,6 @@ func getStringReqPara(c *gin.Context, paraName string) (string, error) {
 	return value, nil
 }
 
-func getCapReq(c *gin.Context) (types.CapReq, error) {
-	input := types.CapReq{}
-	// nodeID is an optional parameter
-	if c.Query("nodeID") == "" {
-		hwlog.RunLog.Info("the nodeID parameter of get capability is empty")
-		return input, nil
-	}
-	var err error
-	input.NodeID, err = getIntReqPara(c, "nodeID")
-	if err != nil {
-		hwlog.RunLog.Errorf("get nodeID failed, error:%s", err)
-		return input, err
-	}
-	if input.NodeID <= 0 {
-		hwlog.RunLog.Error("nodeID is an invalid value")
-		return input, errors.New("nodeID is an invalid value")
-	}
-	return input, nil
-}
-
 type queryDispatcher struct {
 	restfulmgr.GenericDispatcher
 	name     string
@@ -297,14 +272,6 @@ type listDispatcher struct {
 
 func (list listDispatcher) ParseData(c *gin.Context) (interface{}, error) {
 	return pageUtil(c)
-}
-
-type capDispatcher struct {
-	restfulmgr.GenericDispatcher
-}
-
-func (node capDispatcher) ParseData(c *gin.Context) (interface{}, error) {
-	return getCapReq(c)
 }
 
 type batchQueryTaskDispatcher struct {
