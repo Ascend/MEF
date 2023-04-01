@@ -1,3 +1,5 @@
+// Copyright (c)  2023. Huawei Technologies Co., Ltd.  All rights reserved.
+
 package control
 
 import (
@@ -26,7 +28,8 @@ type ExchangeCaFlow struct {
 }
 
 // NewExchangeCaFlow an ExchangeCaFlow struct
-func NewExchangeCaFlow(importPath, exportPath string, pathMgr *util.InstallDirPathMgr, uid, gid uint32) *ExchangeCaFlow {
+func NewExchangeCaFlow(importPath, exportPath string, pathMgr *util.InstallDirPathMgr,
+	uid, gid uint32) *ExchangeCaFlow {
 	savePath := pathMgr.ConfigPathMgr.Get3rdPartyCertPath()
 	return &ExchangeCaFlow{
 		pathMgr:    pathMgr,

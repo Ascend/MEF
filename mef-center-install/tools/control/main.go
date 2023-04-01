@@ -18,7 +18,7 @@ import (
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
-type Controller interface {
+type controller interface {
 	doControl() error
 	setInstallParam(installParam *util.InstallParamJsonTemplate)
 	bindFlag() bool
@@ -50,7 +50,7 @@ var (
 	version       bool
 	zipPath       string
 	help          bool
-	curController Controller
+	curController controller
 
 	allowedModule = []string{util.EdgeManagerName, util.NginxManagerName, util.CertManagerName}
 )
@@ -249,11 +249,6 @@ const (
 	exportPathFlag = "export_path"
 )
 
-// ExchangeCertsCmd is the func to init an ExchangeCertsCmd struct
-func ExchangeCertsCmd() Controller {
-	return &exchangeCertsController{}
-}
-
 func (ecc *exchangeCertsController) bindFlag() bool {
 	flag.StringVar(&(ecc.importPath), importPathFlag, "", "path that saves ca cert to import")
 	flag.StringVar(&(ecc.exportPath), exportPathFlag, "", "path to export MEF ca cert")
@@ -440,8 +435,8 @@ func initLog(installParam *util.InstallParamJsonTemplate) error {
 	return nil
 }
 
-func getOperateMap(operate string) map[string]Controller {
-	return map[string]Controller{
+func getOperateMap(operate string) map[string]controller {
+	return map[string]controller{
 		util.StartOperateFlag:   &operateController{operate: operate},
 		util.StopOperateFlag:    &operateController{operate: operate},
 		util.RestartOperateFlag: &operateController{operate: operate},
