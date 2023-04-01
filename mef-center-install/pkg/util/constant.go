@@ -35,6 +35,7 @@ const (
 	MefWorkA          = "mef-center-A"
 	MefWorkB          = "mef-center-B"
 	TempUpgradeDir    = "temp-upgrade"
+	TempCertDir       = "temp-cert"
 	MefConfigDir      = "mef-config"
 	InstallPackageDir = "install-package"
 )

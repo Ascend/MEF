@@ -62,6 +62,11 @@ func (idm *InstallDirPathMgr) GetTmpUpgradePath() string {
 	return filepath.Join(idm.GetMefPath(), TempUpgradeDir)
 }
 
+// GetTmpCertsPath returns temp cert dir path, which is a tmp dir on exchange ca flow
+func (idm *InstallDirPathMgr) GetTmpCertsPath() string {
+	return filepath.Join(idm.GetMefPath(), TempCertDir)
+}
+
 // GetWorkPath returns mef-center softlink path
 func (idm *InstallDirPathMgr) GetWorkPath() string {
 	return filepath.Join(idm.GetMefPath(), MefSoftLink)

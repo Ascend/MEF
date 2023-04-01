@@ -52,12 +52,9 @@ func (ecf *ExchangeCaFlow) DoExchange() error {
 	}
 
 	for _, function := range upgradeTasks {
-		err := function()
-		if err == nil {
-			continue
+		if err := function(); err != nil {
+			return err
 		}
-
-		return err
 	}
 
 	return nil
@@ -129,7 +126,7 @@ func (ecf *ExchangeCaFlow) checkCa() error {
 }
 
 func (ecf *ExchangeCaFlow) importCa() error {
-	tempPath := ecf.pathMgr.WorkPathMgr.GetVarDirPath()
+	tempPath := ecf.pathMgr.GetTmpCertsPath()
 	if err := ecf.copyCaToTemp(tempPath); err != nil {
 		if err = common.DeleteAllFile(tempPath); err != nil {
 			hwlog.RunLog.Warnf("delete tempPath [%s] failed: %s", tempPath, err.Error())
