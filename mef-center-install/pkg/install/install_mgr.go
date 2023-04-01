@@ -61,7 +61,6 @@ func (sic *SftInstallCtl) preCheck() error {
 	var checkTasks = []func() error{
 		sic.checkUser,
 		sic.checkNecessaryTools,
-		sic.checkArch,
 		sic.checkInstalled,
 		sic.checkDiskSpace,
 	}
@@ -84,24 +83,6 @@ func (sic *SftInstallCtl) checkUser() error {
 		return err
 	}
 	hwlog.RunLog.Info("check user successful")
-	return nil
-}
-
-func (sic *SftInstallCtl) checkArch() error {
-	hwlog.RunLog.Info("start to check Arch")
-	arch, err := util.GetArch()
-	if err != nil {
-		hwlog.RunLog.Errorf("get arch info failed: %s", err.Error())
-		return err
-	}
-
-	if arch != util.Arch64 && arch != util.X86 {
-		fmt.Println("does not support the current CPU arch, cannot install")
-		hwlog.RunLog.Error("unsupported arch")
-		return errors.New("unsupported arch")
-	}
-
-	hwlog.RunLog.Info("check Arch successful")
 	return nil
 }
 

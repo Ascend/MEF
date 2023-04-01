@@ -145,7 +145,6 @@ func GetNecessaryTools() []string {
 		"cp",
 		"grep",
 		"useradd",
-		"wc",
 	}
 }
 
