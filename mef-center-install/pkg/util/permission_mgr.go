@@ -120,6 +120,18 @@ func GetCenterModeMgr(pathMgr *InstallDirPathMgr) *CenterModeMgr {
 	}
 }
 
+func (cmm *CenterModeMgr) getWorkMode755Dir() modeMgr {
+	return modeMgr{
+		mode:        common.Mode755,
+		fileType:    DirType,
+		isRecursive: false,
+		ignoreFile:  true,
+		fileList: []string{
+			cmm.pathMgr.GetMefPath(),
+		},
+	}
+}
+
 func (cmm *CenterModeMgr) getWorkMode700Dir() modeMgr {
 	return modeMgr{
 		mode:        common.Mode700,
@@ -243,6 +255,7 @@ func (cmm *CenterModeMgr) getConfigMode400File() modeMgr {
 func (cmm *CenterModeMgr) getWorkDirModeMgrs() []modeMgr {
 	return []modeMgr{
 		cmm.getWorkMode700Dir(),
+		cmm.getWorkMode755Dir(),
 		cmm.getWorkMode500Dir(),
 		cmm.getWorkMode600File(),
 		cmm.getWorkMode500File(),
