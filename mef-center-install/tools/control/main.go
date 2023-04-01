@@ -363,11 +363,12 @@ Options:
 	-version	Print version information
 
 Commands:
-	start     -- start all or a component
-	stop      -- stop all or a component
-	restart   -- restart all or a component
-	uninstall -- uninstall MEF Center
-	upgrade   -- upgrade MEF Center
+	start       -- start all or a component
+	stop        -- stop all or a component
+	restart     -- restart all or a component
+	uninstall   -- uninstall MEF Center
+	upgrade     -- upgrade MEF Center
+	exchange_ca -- exchange root ca with MEF Center
 `)
 }
 
