@@ -481,6 +481,7 @@ func setWalkPathMode(path string, mode os.FileMode, ignoreFile bool) error {
 	})
 }
 
+// IsSoftLink is the func to check if a path is soft link
 func IsSoftLink(path string) (bool, error) {
 	realPath, err := filepath.EvalSymlinks(path)
 	if err != nil {
