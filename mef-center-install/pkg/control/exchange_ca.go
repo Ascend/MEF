@@ -30,7 +30,7 @@ type ExchangeCaFlow struct {
 // NewExchangeCaFlow an ExchangeCaFlow struct
 func NewExchangeCaFlow(importPath, exportPath string, pathMgr *util.InstallDirPathMgr,
 	uid, gid uint32) *ExchangeCaFlow {
-	savePath := pathMgr.ConfigPathMgr.Get3rdPartyCertPath()
+	savePath := pathMgr.ConfigPathMgr.GetNginxManagerCertPath()
 	return &ExchangeCaFlow{
 		pathMgr:    pathMgr,
 		importPath: importPath,
