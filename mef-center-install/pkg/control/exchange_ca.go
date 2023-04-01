@@ -205,7 +205,17 @@ func (ecf *ExchangeCaFlow) exportCa() error {
 	hwlog.RunLog.Info("start to export ca")
 
 	srcPath := ecf.pathMgr.ConfigPathMgr.GetRootCaCertPath()
-	if err := utils.CopyFile(srcPath, ecf.exportPath); err != nil {
+	isLink, err := common.IsSoftLink(srcPath)
+	if err != nil {
+		hwlog.RunLog.Errorf("check path [%s] failed: %s", srcPath, err.Error())
+		return errors.New("export ca failed since path check failed")
+	}
+	if isLink {
+		hwlog.RunLog.Errorf("path [%s] is softlink, cannot export", err.Error())
+		return errors.New("export ca failed since path check is softlink")
+	}
+
+	if err = utils.CopyFile(srcPath, ecf.exportPath); err != nil {
 		hwlog.RunLog.Errorf("export ca failed: %s", err.Error())
 		return errors.New("export ca failed")
 	}

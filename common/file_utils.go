@@ -480,3 +480,12 @@ func setWalkPathMode(path string, mode os.FileMode, ignoreFile bool) error {
 		return setOneMode(path, mode)
 	})
 }
+
+func IsSoftLink(path string) (bool, error) {
+	realPath, err := filepath.EvalSymlinks(path)
+	if err != nil {
+		return true, fmt.Errorf("get real path failed: %s", err.Error())
+	}
+
+	return !(path == realPath), nil
+}
