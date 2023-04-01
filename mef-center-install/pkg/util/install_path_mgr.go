@@ -480,7 +480,7 @@ func (cpm *ConfigPathMgr) GetRootBackKmcPath() string {
 
 // GetApigRootPath returns the root crt file path in apig dir
 func (cpm *ConfigPathMgr) GetApigRootPath() string {
-	return filepath.Join(cpm.GetComponentConfigPath(CertManagerName), ApigDirName, RootCrtName)
+	return filepath.Join(cpm.GetComponentConfigPath(CertManagerName), RootCaDir, ApigDirName, RootCrtName)
 }
 
 // GetComponentKmcDirPath returns the kmc dir path for single component by component's name
