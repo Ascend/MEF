@@ -121,7 +121,7 @@ func recursiveConfusionFile(path string, info fs.FileInfo, err error) error {
 
 // DeleteAllFile is used to delete all files into a path
 func DeleteAllFile(filePath string) error {
-	if !utils.IsExist(filePath) {
+	if !utils.IsLexist(filePath) {
 		return nil
 	}
 
