@@ -246,9 +246,11 @@ const (
 
 // mode constant
 const (
+	Mode755 = 0755
 	Mode700 = 0700
 	Mode600 = 0600
 	Mode500 = 0500
+	Mode444 = 0444
 	Mode400 = 0400
 )
 
@@ -299,4 +301,10 @@ const (
 	ContentType        = "Content-Type"
 	ContentDisposition = "Content-Disposition"
 	TransferEncoding   = "Transfer-Encoding"
+)
+
+// const to check Certs
+const (
+	SignAlg      = "SHA256-RSA"
+	MinPubKeyLen = 3072
 )
