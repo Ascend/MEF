@@ -3,8 +3,11 @@
 package config
 
 import (
-	"edge-manager/pkg/util"
+	"path/filepath"
+
 	"huawei.com/mindx/common/hwlog"
+
+	"edge-manager/pkg/util"
 )
 
 // PodConfig is the cache of pod config
@@ -30,7 +33,7 @@ func CheckAndModifyHostPath(hostPath []string) []string {
 				"path [%s] is invalid, and won't be effective", checkResult.Reason)
 			continue
 		}
-		hostPathTmp = append(hostPathTmp, hostPath[i])
+		hostPathTmp = append(hostPathTmp, filepath.Clean(hostPath[i]))
 	}
 	return hostPathTmp
 }

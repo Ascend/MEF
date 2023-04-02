@@ -24,7 +24,7 @@ func (d *downloadChecker) init() {
 			checker.GetRegChecker("", `^[a-zA-Z0-9]([-_a-zA-Z0-9]{0,62}[a-zA-Z0-9])?$`, true),
 			1, common.MaxNode, true),
 		checker.GetStringChoiceChecker("SoftwareName",
-			[]string{common.MEFEdge, common.EdgeCore, common.DevicePlugin}, true),
+			[]string{common.MEFEdge}, true),
 		GetDownloadInfoChecker("DownloadInfo", true),
 	)
 }
