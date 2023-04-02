@@ -129,6 +129,7 @@ func getContainers(containerInfos []Container) ([]v1.Container, error) {
 
 		volumes := getVolumeMounts(containerInfo)
 		runAsNonRoot := true
+		readOnlyRootFilesystem := true
 		RunAsUser := containerInfo.UserID
 		RunAsGroup := containerInfo.GroupID
 		containers = append(containers, v1.Container{
@@ -142,9 +143,14 @@ func getContainers(containerInfos []Container) ([]v1.Container, error) {
 			Resources:       resources,
 			VolumeMounts:    volumes,
 			SecurityContext: &v1.SecurityContext{
-				RunAsUser:    &RunAsUser,
-				RunAsGroup:   &RunAsGroup,
-				RunAsNonRoot: &runAsNonRoot,
+				RunAsUser:              &RunAsUser,
+				RunAsGroup:             &RunAsGroup,
+				RunAsNonRoot:           &runAsNonRoot,
+				ReadOnlyRootFilesystem: &readOnlyRootFilesystem,
+				Capabilities: &v1.Capabilities{
+					Add:  nil,
+					Drop: []v1.Capability{"All"},
+				},
 			},
 		})
 	}
