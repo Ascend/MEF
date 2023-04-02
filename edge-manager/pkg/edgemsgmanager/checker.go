@@ -10,10 +10,12 @@ import (
 	"huawei.com/mindxedge/base/common/checker/checker"
 )
 
+// NewDownloadChecker is the struct to init a DownloadChecker
 func NewDownloadChecker() *DownloadChecker {
 	return &DownloadChecker{}
 }
 
+// DownloadChecker is the checker to check the message of download request
 type DownloadChecker struct {
 	modelChecker checker.ModelChecker
 }
@@ -29,6 +31,7 @@ func (d *DownloadChecker) init() {
 	)
 }
 
+// Check is the main func for a checker to execute checking operation
 func (d *DownloadChecker) Check(data interface{}) checker.CheckResult {
 	d.init()
 
