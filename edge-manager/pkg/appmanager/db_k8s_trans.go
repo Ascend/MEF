@@ -34,7 +34,7 @@ func getPodSpec(containersStr string, nodeGroupId uint64) (*v1.PodSpec, error) {
 	if err != nil {
 		return nil, errors.New("app daemonSet get containers failed")
 	}
-	cmVolumes := getCmVolumes(containerInfos)
+	Volumes := getVolumes(containerInfos)
 	reference := v1.LocalObjectReference{Name: kubeclient.DefaultImagePullSecretKey}
 
 	tmpSpec := v1.PodSpec{}
@@ -43,7 +43,7 @@ func getPodSpec(containersStr string, nodeGroupId uint64) (*v1.PodSpec, error) {
 	tmpSpec.NodeSelector = map[string]string{
 		common.NodeGroupLabelPrefix + strconv.FormatUint(nodeGroupId, DecimalScale): "",
 	}
-	tmpSpec.Volumes = cmVolumes
+	tmpSpec.Volumes = Volumes
 	return &tmpSpec, nil
 }
 
@@ -93,33 +93,29 @@ func initDaemonSet(appInfo *AppInfo, nodeGroupId uint64) (*appv1.DaemonSet, erro
 	}, nil
 }
 
-func getCmVolumes(containerInfos []Container) []v1.Volume {
-	var cmVolumes []v1.Volume
+func getVolumes(containerInfos []Container) []v1.Volume {
+	var volumes []v1.Volume
 	for _, containerInfo := range containerInfos {
-		cmVolumes = getCmVolumesFromContainerInfo(containerInfo)
+		volumes = append(volumes, getVolumesFromContainerInfo(containerInfo)...)
 	}
-	return cmVolumes
+	return volumes
 }
 
-func getCmVolumesFromContainerInfo(containerInfo Container) []v1.Volume {
-	var cmVolumes []v1.Volume
-	for _, volumeMount := range containerInfo.VolumeMounts {
-		var localObjectRef = v1.LocalObjectReference{
-			Name: volumeMount.ConfigmapName,
-		}
+func getVolumesFromContainerInfo(containerInfo Container) []v1.Volume {
+	var Volumes []v1.Volume
 
-		var cmVolumeSource = &v1.ConfigMapVolumeSource{
-			LocalObjectReference: localObjectRef,
+	// host path volume
+	for _, hostPathVolume := range containerInfo.HostPathVolumes {
+		hostPathSource := &v1.HostPathVolumeSource{
+			Path: hostPathVolume.HostPath,
 		}
-
-		cmVolumes = append(cmVolumes, v1.Volume{
-			Name: volumeMount.LocalVolumeName,
-			VolumeSource: v1.VolumeSource{
-				ConfigMap: cmVolumeSource,
-			},
+		Volumes = append(Volumes, v1.Volume{
+			Name:         hostPathVolume.Name,
+			VolumeSource: v1.VolumeSource{HostPath: hostPathSource},
 		})
 	}
-	return cmVolumes
+
+	return Volumes
 }
 
 func getContainers(containerInfos []Container) ([]v1.Container, error) {
@@ -131,7 +127,7 @@ func getContainers(containerInfos []Container) ([]v1.Container, error) {
 			return nil, err
 		}
 
-		volumes := getVolumeMounts(containerInfo.VolumeMounts)
+		volumes := getVolumeMounts(containerInfo)
 		runAsNonRoot := true
 		RunAsUser := containerInfo.UserID
 		RunAsGroup := containerInfo.GroupID
@@ -155,13 +151,15 @@ func getContainers(containerInfos []Container) ([]v1.Container, error) {
 	return containers, nil
 }
 
-func getVolumeMounts(volumeMounts []VolumeMount) []v1.VolumeMount {
+func getVolumeMounts(container Container) []v1.VolumeMount {
 	var mounts []v1.VolumeMount
-	for _, volumeMount := range volumeMounts {
+
+	// host path volume mount
+	for _, hostPathVolume := range container.HostPathVolumes {
 		mounts = append(mounts, v1.VolumeMount{
-			Name:      volumeMount.LocalVolumeName,
+			Name:      hostPathVolume.Name,
 			ReadOnly:  true,
-			MountPath: volumeMount.MountPath,
+			MountPath: hostPathVolume.MountPath,
 		})
 	}
 	return mounts

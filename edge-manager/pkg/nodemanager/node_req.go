@@ -124,14 +124,3 @@ type NodeResourceInfo struct {
 	Memory int64 `json:"memory"`
 	Npu    int64 `json:"npu"`
 }
-
-// ListNodesCapResp list nodes capability response
-type ListNodesCapResp struct {
-	Nodes []NodeInfoCap `json:"nodes"`
-}
-
-// NodeInfoCap node capability information for managed node
-type NodeInfoCap struct {
-	ID         uint64   `json:"id"`
-	Capability []string `json:"capability"`
-}

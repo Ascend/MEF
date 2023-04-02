@@ -34,8 +34,6 @@ type NodeService interface {
 	countNodesByName(string, int) (int64, error)
 	listManagedNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
 	listUnManagedNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
-	listManagedNodes() (*[]NodeInfo, error)
-	getNodeCapByID(nodeID uint64) (*[]string, error)
 	countAllNodesByName(string) (int64, error)
 	listAllNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
 	updateNodeInfoBySerialNumber(string, *NodeInfo) error
@@ -111,18 +109,6 @@ func (n *NodeServiceImpl) listUnManagedNodesByName(page, pageSize uint64, nodeNa
 	return &nodes,
 		n.db.Where("is_managed = ?", unmanaged).Scopes(getNodeByLikeName(page, pageSize, nodeName)).
 			Find(&nodes).Error
-}
-
-// listManagedNodes return SQL result
-func (n *NodeServiceImpl) listManagedNodes() (*[]NodeInfo, error) {
-	var nodes []NodeInfo
-	return &nodes,
-		n.db.Where("is_managed = ?", managed).Find(&nodes).Error
-}
-
-func (n *NodeServiceImpl) getNodeCapByID(nodeID uint64) (*[]string, error) {
-	var nodeCap = []string{"software_install", "info_collect", "pod_config", "support_udp_container_port"}
-	return &nodeCap, nil
 }
 
 // listAllNodesByName return SQL result

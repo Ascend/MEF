@@ -62,6 +62,11 @@ func (idm *InstallDirPathMgr) GetTmpUpgradePath() string {
 	return filepath.Join(idm.GetMefPath(), TempUpgradeDir)
 }
 
+// GetTmpCertsPath returns temp cert dir path, which is a tmp dir on exchange ca flow
+func (idm *InstallDirPathMgr) GetTmpCertsPath() string {
+	return filepath.Join(idm.GetMefPath(), TempCertDir)
+}
+
 // GetWorkPath returns mef-center softlink path
 func (idm *InstallDirPathMgr) GetWorkPath() string {
 	return filepath.Join(idm.GetMefPath(), MefSoftLink)
@@ -423,6 +428,11 @@ func (cpm *ConfigPathMgr) GetUserServerKeyPath() string {
 	return filepath.Join(cpm.GetMefCertsDirPath(NginxManagerName), UserManagerName+KeySuffix)
 }
 
+// GetNginxNorthernCertPath returns the cert path of the 3rd party
+func (cpm *ConfigPathMgr) GetNginxNorthernCertPath() string {
+	return filepath.Join(cpm.GetMefCertsDirPath(NginxManagerName), NorthernRootName+CertSuffix)
+}
+
 // GetPublicConfigPath returns the public-config path
 func (cpm *ConfigPathMgr) GetPublicConfigPath() string {
 	return filepath.Join(cpm.configPath, PubConfigDir)
@@ -466,6 +476,11 @@ func (cpm *ConfigPathMgr) GetRootMasterKmcPath() string {
 // GetRootBackKmcPath returns the kmc backup key file path for root ca
 func (cpm *ConfigPathMgr) GetRootBackKmcPath() string {
 	return filepath.Join(cpm.GetRootKmcDirPath(), BackUpKeyFile)
+}
+
+// GetApigRootPath returns the root crt file path in apig dir
+func (cpm *ConfigPathMgr) GetApigRootPath() string {
+	return filepath.Join(cpm.GetComponentConfigPath(CertManagerName), RootCaDir, ApigDirName, RootCrtName)
 }
 
 // GetComponentKmcDirPath returns the kmc dir path for single component by component's name

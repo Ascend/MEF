@@ -212,62 +212,6 @@ func listUnmanagedNode(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.ErrorListUnManagedNode, Msg: "", Data: nil}
 }
 
-// get nodes capability by node info
-func getNodesCapByNodeInfo(nodes []NodeInfo) *[]NodeInfoCap {
-	var nodesList []NodeInfoCap
-	for _, nodeInfo := range nodes {
-		var respItem NodeInfoCap
-		respItem.ID = nodeInfo.ID
-		capability, err := NodeServiceInstance().getNodeCapByID(nodeInfo.ID)
-		if err != nil {
-			hwlog.RunLog.Error("get node capability by id failed")
-			respItem.Capability = []string{}
-		} else {
-			respItem.Capability = *capability
-		}
-		nodesList = append(nodesList, respItem)
-	}
-	hwlog.RunLog.Info("get nodes capability success")
-	return &nodesList
-}
-
-// get nodes capability
-func getNodesCapability(input interface{}) common.RespMsg {
-	hwlog.RunLog.Info("start get nodes capability")
-	req, ok := input.(types.CapReq)
-	var nodesList []NodeInfo
-	if ok && req.NodeID > 0 {
-		hwlog.RunLog.Infof("get [%d] node capability", req.NodeID)
-		_, err := NodeServiceInstance().getManagedNodeByID(req.NodeID)
-		if err != nil {
-			hwlog.RunLog.Errorf("node [%d] is unmanaged", req.NodeID)
-			var respItem NodeInfoCap
-			respItem.ID = req.NodeID
-			respItem.Capability = []string{}
-			resp := ListNodesCapResp{
-				Nodes: []NodeInfoCap{respItem},
-			}
-			return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
-		}
-		var node NodeInfo
-		node.ID = req.NodeID
-		nodesList = []NodeInfo{node}
-	} else {
-		hwlog.RunLog.Info("nodeID is an invalid value, will get all managed nodes capability")
-		nodes, err := NodeServiceInstance().listManagedNodes()
-		if err != nil {
-			hwlog.RunLog.Error("list managed nodes failed")
-			return common.RespMsg{Status: common.ErrorListNode, Msg: "list managed nodes failed", Data: nil}
-		}
-		nodesList = *nodes
-	}
-	var nodesCapList = getNodesCapByNodeInfo(nodesList)
-	resp := ListNodesCapResp{
-		Nodes: *nodesCapList,
-	}
-	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
-}
-
 func listNode(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start list all nodes")
 	req, ok := input.(types.ListReq)

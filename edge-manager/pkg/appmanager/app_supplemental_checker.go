@@ -5,6 +5,10 @@ package appmanager
 
 import (
 	"errors"
+	"fmt"
+
+	"edge-manager/pkg/config"
+	"edge-manager/pkg/util"
 )
 
 // NewAppSupplementalChecker [method] for getting app backend checker
@@ -48,11 +52,31 @@ func (c *containerParaChecker) checkContainerEnvValid() error {
 	return nil
 }
 
+func (c *containerParaChecker) checkContainerVolume() error {
+	mountPaths := map[string]struct{}{}
+	volumeNames := map[string]struct{}{}
+	for _, hostPathVolume := range c.container.HostPathVolumes {
+		if !util.InWhiteList(hostPathVolume.HostPath, config.PodConfig.HostPath) {
+			return fmt.Errorf("hostpath [%s] Verification failed: not in whitelist", hostPathVolume.HostPath)
+		}
+		if _, ok := mountPaths[hostPathVolume.MountPath]; ok {
+			return errors.New("container volume mount path is not unique")
+		}
+		if _, ok := volumeNames[hostPathVolume.Name]; ok {
+			return errors.New("container volume mount name is not unique")
+		}
+		mountPaths[hostPathVolume.MountPath] = struct{}{}
+		volumeNames[hostPathVolume.Name] = struct{}{}
+	}
+	return nil
+}
+
 func (c *containerParaChecker) check() error {
 	var checkItems = []func() error{
 		c.checkContainerCpuQuantityValid,
 		c.checkContainerMemoryQuantityValid,
 		c.checkContainerEnvValid,
+		c.checkContainerVolume,
 	}
 	for _, checkItem := range checkItems {
 		if err := checkItem(); err != nil {

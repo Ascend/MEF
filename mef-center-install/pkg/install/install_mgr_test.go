@@ -23,7 +23,6 @@ func DoInstallMgrTest() {
 	Convey("checkInstalled func", CheckInstalledTest)
 	Convey("preCheck func", PreCheckTest)
 	Convey("CheckUser func", CheckUserTest)
-	Convey("CheckArch func", CheckArchTest)
 	Convey("CheckDiskSpace func", CheckDiskSpaceTest)
 	Convey("CheckNecessaryTools func", CheckNecessaryToolsTest)
 	Convey("prepareMefUser func success situation", PrepareMefUserSuccessTest)
@@ -62,7 +61,6 @@ func DoInstallTest() {
 	Convey("test doInstall func checkInstalled failed", func() {
 		p := ApplyPrivateMethod(ins, "checkUser", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "checkNecessaryTools", func(_ *SftInstallCtl) error { return nil }).
-			ApplyPrivateMethod(ins, "checkArch", func(_ *SftInstallCtl) error { return nil }).
 			ApplyFuncReturn(os.Stat, nil, nil)
 		defer p.Reset()
 		So(ins.DoInstall(), ShouldResemble, errors.New("the software has already been installed"))
@@ -72,7 +70,6 @@ func DoInstallTest() {
 	Convey("test doInstall func k8s label exists failed", func() {
 		p := ApplyPrivateMethod(ins, "checkUser", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "checkNecessaryTools", func(_ *SftInstallCtl) error { return nil }).
-			ApplyPrivateMethod(ins, "checkArch", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(k8sMgrIns, "CheckK8sLabel", func(_ *util.K8sLabelMgr) (bool, error) { return true, nil })
 		defer p.Reset()
 		So(ins.DoInstall(), ShouldResemble, errors.New("the software has already been installed since k8s label exists"))
@@ -114,7 +111,6 @@ func PreCheckTest() {
 	ins := GetSftInstallMgrIns([]string{}, "", "", "")
 	Convey("test preCheck func success", func() {
 		p := ApplyPrivateMethod(ins, "checkUser", func(_ *SftInstallCtl) error { return nil }).
-			ApplyPrivateMethod(ins, "checkArch", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "checkDiskSpace", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "checkInstalled", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "checkNecessaryTools", func(_ *SftInstallCtl) error { return nil })
@@ -153,33 +149,6 @@ func CheckUserTest() {
 		p := ApplyFuncReturn(user.Current, &user.User{Username: userName}, nil)
 		defer p.Reset()
 		So(ins.checkUser(), ShouldBeNil)
-	})
-}
-
-func CheckArchTest() {
-	ins := GetSftInstallMgrIns([]string{}, "", "", "")
-	Convey("test Check Arch func get arch failed", func() {
-		p := ApplyFuncReturn(common.RunCommand, "", ErrTest)
-		defer p.Reset()
-		So(ins.checkArch(), ShouldResemble, ErrTest)
-	})
-
-	Convey("test Check Arch func return aarch64 arch", func() {
-		p := ApplyFuncReturn(common.RunCommand, "aarch64", nil)
-		defer p.Reset()
-		So(ins.checkArch(), ShouldBeNil)
-	})
-
-	Convey("test Check Arch func return x86_64 arch", func() {
-		p := ApplyFuncReturn(common.RunCommand, "x86_64", nil)
-		defer p.Reset()
-		So(ins.checkArch(), ShouldBeNil)
-	})
-
-	Convey("test Check Arch func return notExist arch", func() {
-		p := ApplyFuncReturn(common.RunCommand, "notExist", nil)
-		defer p.Reset()
-		So(ins.checkArch(), ShouldResemble, errors.New("unsupported arch"))
 	})
 }
 

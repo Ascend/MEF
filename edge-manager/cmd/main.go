@@ -5,6 +5,8 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -14,7 +16,6 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 
-	"edge-manager/pkg/logmanager"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
@@ -39,6 +40,7 @@ const (
 	defaultOperateLogFile = "/var/log/mindx-edge/edge-manager/edge-manager-operate.log"
 	defaultBackupDirName  = "/var/log_backup/mindx-edge/edge-manager"
 	defaultDbPath         = "/home/data/config/edge-manager.db"
+	defaultPodConfigPath  = "/home/data/config/pod-config.json"
 	defaultKmcPath        = "/home/data/public-config/kmc-config.json"
 	defaultOpLogMaxSize   = 200
 	defaultRunLogMaxSize  = 400
@@ -116,6 +118,21 @@ func validateFlags() error {
 	return nil
 }
 
+func initPodConfig() error {
+	date, err := utils.LoadFile(defaultPodConfigPath)
+	if err != nil {
+		return fmt.Errorf("load pod config file failed, %s", err.Error())
+	}
+	podConfig := config.PodConfig
+	if err = json.Unmarshal(date, &podConfig); err != nil {
+		return errors.New("unmarshal pod config failed")
+	}
+	config.CheckAndModifyHostPath(podConfig.HostPath)
+
+	config.PodConfig = podConfig
+	return nil
+}
+
 func initResource() error {
 	if err := database.InitDB(dbPath); err != nil {
 		hwlog.RunLog.Error("init database failed")
@@ -125,8 +142,11 @@ func initResource() error {
 		hwlog.RunLog.Error("init k8s failed")
 		return err
 	}
-	err := common.InitKmcCfg(defaultKmcPath)
-	if err != nil {
+	if err := initPodConfig(); err != nil {
+		hwlog.RunLog.Errorf("init pod config failed")
+		return err
+	}
+	if err := common.InitKmcCfg(defaultKmcPath); err != nil {
 		hwlog.RunLog.Warnf("init kmc config from json failed: %v, use default kmc config", err)
 	}
 	return nil
@@ -151,9 +171,6 @@ func register(ctx context.Context) error {
 		return err
 	}
 	if err := modulemanager.Registry(configmanager.NewConfigManager(true)); err != nil {
-		return err
-	}
-	if err := modulemanager.Registry(logmanager.NewLogManager(ctx, true)); err != nil {
 		return err
 	}
 
