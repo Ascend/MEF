@@ -3,6 +3,7 @@
 package util
 
 import (
+	"path/filepath"
 	"sync"
 )
 
@@ -18,6 +19,6 @@ func InWhiteList(hostPath string, whiteList []string) bool {
 			whiteListMap[white] = struct{}{}
 		}
 	})
-	_, ok := whiteListMap[hostPath]
+	_, ok := whiteListMap[filepath.Clean(hostPath)]
 	return ok
 }
