@@ -116,3 +116,35 @@ func (nm *NamespaceMgr) ClearNamespace() error {
 	}
 	return nil
 }
+
+// ForceClearNamespace is the func that used to clear the namespace forcefully
+func (nm *NamespaceMgr) ForceClearNamespace() error {
+	ret, err := nm.checkNameSpaceExist()
+	if err != nil {
+		return err
+	}
+	if !ret {
+		hwlog.RunLog.Warnf("namespace %s does not exist, no need to clear", nm.namespace)
+		return nil
+	}
+
+	if _, err = common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "delete", "ds", "-n", nm.namespace,
+		"--all", "--force", "--grace-period=0"); err != nil {
+		hwlog.RunLog.Errorf("delete ds in %s namespace command exec failed: %s", nm.namespace, err.Error())
+		return errors.New("delete ds in namespace command exec failed")
+	}
+
+	if _, err = common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "delete", "pod", "-n", nm.namespace,
+		"--all", "--force", "--grace-period=0"); err != nil {
+		hwlog.RunLog.Errorf("delete pod in %s namespace command exec failed: %s", nm.namespace, err.Error())
+		return errors.New("delete pod in namespace command exec failed")
+	}
+
+	if _, err = common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "delete", "namespace", nm.namespace,
+		"--force", "--grace-period=0"); err != nil {
+		hwlog.RunLog.Errorf("delete %s namespace command exec failed: %s", nm.namespace, err.Error())
+		return errors.New("delete namespace command exec failed")
+	}
+
+	return nil
+}

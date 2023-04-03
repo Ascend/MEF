@@ -119,7 +119,7 @@ func (sm *SoftwareMgr) ClearNamespace() error {
 
 	// mef-users namespace creates by edge-manager
 	nsMgr = NewNamespaceMgr(common.MefUserNs)
-	if err := nsMgr.ClearNamespace(); err != nil {
+	if err := nsMgr.ForceClearNamespace(); err != nil {
 		fmt.Printf("clear %s namespace failed\n", common.MefUserNs)
 		return err
 	}
