@@ -78,8 +78,8 @@ func (ecf *ExchangeCaFlow) checkParam() error {
 	}
 
 	if _, err := utils.RealFileChecker(ecf.exportPath, false, false, maxCertSizeInMb); err != nil {
-		hwlog.RunLog.Errorf("importPath [%s] check failed: %s", ecf.importPath, err.Error())
-		return errors.New("importPath check failed")
+		hwlog.RunLog.Errorf("exportPath [%s] check failed: %s", ecf.exportPath, err.Error())
+		return errors.New("exportPath check failed")
 	}
 	return nil
 }
