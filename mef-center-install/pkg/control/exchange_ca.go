@@ -23,13 +23,13 @@ type ExchangeCaFlow struct {
 	exportPath string
 	savePath   string
 	certName   string
-	uid        uint32
-	gid        uint32
+	uid        int
+	gid        int
 }
 
 // NewExchangeCaFlow an ExchangeCaFlow struct
 func NewExchangeCaFlow(importPath, exportPath string, pathMgr *util.InstallDirPathMgr,
-	uid, gid uint32) *ExchangeCaFlow {
+	uid, gid int) *ExchangeCaFlow {
 	savePath := pathMgr.ConfigPathMgr.GetNginxNorthernCertPath()
 	return &ExchangeCaFlow{
 		pathMgr:    pathMgr,
@@ -132,28 +132,14 @@ func (ecf *ExchangeCaFlow) checkCa() error {
 }
 
 func (ecf *ExchangeCaFlow) importCa() error {
-	tempPath := ecf.pathMgr.GetTmpCertsPath()
-	if err := ecf.copyCaToTemp(tempPath); err != nil {
-		if err = common.DeleteAllFile(tempPath); err != nil {
-			hwlog.RunLog.Warnf("delete tempPath [%s] failed: %s", tempPath, err.Error())
-		}
-		return err
-	}
-
-	defer func() {
-		if err := common.DeleteAllFile(tempPath); err != nil {
-			hwlog.RunLog.Warnf("delete tempPath [%s] failed: %s", tempPath, err.Error())
-		}
-	}()
-
-	if utils.IsExist(ecf.savePath) {
+	if utils.IsLexist(ecf.savePath) {
 		if err := common.DeleteFile(ecf.savePath); err != nil {
 			hwlog.RunLog.Errorf("delete original crt [%s] failed: %s", ecf.savePath, err.Error())
 			return errors.New("delete original crt failed")
 		}
 	}
 
-	if err := ecf.copyCaToNginx(tempPath); err != nil {
+	if err := ecf.copyCaToNginx(); err != nil {
 		return err
 	}
 
@@ -161,39 +147,15 @@ func (ecf *ExchangeCaFlow) importCa() error {
 	return nil
 }
 
-func (ecf *ExchangeCaFlow) copyCaToTemp(tempPath string) error {
-	if !utils.IsExist(tempPath) {
-		if err := common.MakeSurePath(tempPath); err != nil {
-			hwlog.RunLog.Errorf("create temp crt path failed: %s", err.Error())
-			return errors.New("create temp crt path failed")
-		}
-
-		if err := common.SetPathPermission(tempPath, common.Mode755, false, false); err != nil {
-			hwlog.RunLog.Errorf("set temp dir right failed: %s", err.Error())
-			return errors.New("set temp dir right failed")
-		}
-	}
-
-	tempCrt := filepath.Join(tempPath, ecf.certName)
-	if err := utils.CopyFile(ecf.importPath, tempCrt); err != nil {
-		hwlog.RunLog.Errorf("import [%s] cert failed: %s", ecf.certName, err.Error())
-		return fmt.Errorf("import [%s] cert failed, error: %s", ecf.certName, err.Error())
-	}
-
-	if err := common.SetPathPermission(tempCrt, common.Mode444, false, false); err != nil {
-		hwlog.RunLog.Errorf("set temp crt right failed: %s", err.Error())
-		return errors.New("set temp crt right failed")
-	}
-
-	return nil
-}
-
-func (ecf *ExchangeCaFlow) copyCaToNginx(tempPath string) error {
-	tempCrt := filepath.Join(tempPath, ecf.certName)
-	if _, err := common.RunCommandWithUser(common.CommandCopy, common.DefCmdTimeoutSec, ecf.uid, ecf.gid, tempCrt,
-		ecf.savePath); err != nil {
+func (ecf *ExchangeCaFlow) copyCaToNginx() error {
+	if err := utils.CopyFile(ecf.importPath, ecf.savePath); err != nil {
 		hwlog.RunLog.Errorf("copy temp crt to dst failed: %s", err.Error())
 		return errors.New("copy temp crt to dst failed")
+	}
+
+	if err := util.SetPathOwnerGroup(ecf.savePath, ecf.uid, ecf.gid, false, false); err != nil {
+		hwlog.RunLog.Errorf("set crt owner failed: %s", err.Error())
+		return errors.New("set crt owner failed")
 	}
 
 	if err := common.SetPathPermission(ecf.savePath, common.Mode600, false, false); err != nil {
@@ -215,17 +177,12 @@ func (ecf *ExchangeCaFlow) exportCa() error {
 		return errors.New("the root ca has not yet generated")
 	}
 
-	isLink, err := common.IsSoftLink(srcPath)
-	if err != nil {
-		hwlog.RunLog.Errorf("check path [%s] failed: %s", srcPath, err.Error())
-		return errors.New("export ca failed since path check failed")
-	}
-	if isLink {
-		hwlog.RunLog.Errorf("path [%s] is softlink, cannot export", err.Error())
-		return errors.New("export ca failed since path check is softlink")
+	if err := common.IsSoftLink(srcPath); err != nil {
+		hwlog.RunLog.Errorf("check path [%s] failed: %s, cannot export", srcPath, err.Error())
+		return fmt.Errorf("check path [%s] failed", srcPath)
 	}
 
-	if err = utils.CopyFile(srcPath, ecf.exportPath); err != nil {
+	if err := utils.CopyFile(srcPath, ecf.exportPath); err != nil {
 		hwlog.RunLog.Errorf("export ca failed: %s", err.Error())
 		return errors.New("export ca failed")
 	}
