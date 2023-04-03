@@ -9,7 +9,7 @@ TOP_DIR=$(realpath "${CUR_DIR}"/..)
 OUTPUT_NAME="nginx-manager"
 DOCKER_FILE_NAME="Dockerfile"
 VER_FILE="${TOP_DIR}"/service_config.ini
-build_version="3.0.0"
+build_version="5.0.0.RC1"
 if [ -f "$VER_FILE" ]; then
   line=$(sed -n '6p' "$VER_FILE" 2>&1)
   #cut the chars after ':'
@@ -29,9 +29,6 @@ function mv_file() {
   cp -R "${TOP_DIR}/build/html" "${TOP_DIR}/output/nginx/"
   chmod 700 "${TOP_DIR}"/output/nginx/html
   chmod 400 "${TOP_DIR}"/output/nginx/html/*
-  cp -R "${TOP_DIR}/lua" "${TOP_DIR}/output/nginx/"
-  chmod 700 "${TOP_DIR}"/output/nginx/lua
-  chmod 400 "${TOP_DIR}"/output/nginx/lua/*
   cp "${TOP_DIR}/build/${OUTPUT_NAME}.yaml" "${TOP_DIR}/output/${OUTPUT_NAME}.yaml"
   chmod 600 "${TOP_DIR}"/output/"${OUTPUT_NAME}".yaml
   cp "${TOP_DIR}/build/${DOCKER_FILE_NAME}" "${TOP_DIR}/output/${DOCKER_FILE_NAME}"

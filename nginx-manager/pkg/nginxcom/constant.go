@@ -10,8 +10,6 @@ const (
 	ClientPipePrefix = "client_pipe"
 	// EdgePortKey port对应在配置文件的key
 	EdgePortKey = "EdgeMgrSvcPort"
-	// SoftPortKey 软件仓port对应的key
-	SoftPortKey = "SoftwareMgrSvcPort"
 	// CertPortKey 证书服务port对应的key
 	CertPortKey = "CertMgrSvcPort"
 	// NginxConfigPath nginx配置文件
@@ -20,10 +18,6 @@ const (
 	ServerCertFile = "/home/data/config/mef-certs/nginx-manager-server.crt"
 	// ServerCertKeyFile nginx对外服务证书私钥文件
 	ServerCertKeyFile = "/home/data/config/mef-certs/nginx-manager-server.key"
-	// UserCertFile 用户管理模块证书文件
-	UserCertFile = "/home/data/config/mef-certs/user-manager.crt"
-	// UserCertKeyFile 用户管理模块证书key
-	UserCertKeyFile = "/home/data/config/mef-certs/user-manager.key"
 	// ClientCertFile 内部转发消息的证书
 	ClientCertFile = "/home/data/config/mef-certs/nginx-manager.crt"
 	// ClientCertKeyFile 内部转发消息的证书私钥文件
@@ -50,22 +44,8 @@ const (
 	ReqRestartNginx = "ReqRestartNginx"
 	// RespRestartNginx 回复重启Nginx操作
 	RespRestartNginx = "RespRestartNginx"
-	// DefaultDbPath 默认数据库地址
-	DefaultDbPath = "/home/data/config/user-manager.db"
-	// UserManagerName user manager模块对应收发消息的服务名
-	UserManagerName = "UserManager"
-	// UserRestfulServiceName 用户管理模块对应的restful服务名
-	UserRestfulServiceName = "UserRestfulService"
-	// DefaultUsernameKey 用户管理模块默认账号对应的key
-	DefaultUsernameKey = "DefaultUsername"
-	// UserMgrSvcPortKey 用户管理模块端口
-	UserMgrSvcPortKey = "UserMgrSvcPort"
 	// NginxSslPortKey nginx使用ssl的端口
 	NginxSslPortKey = "NginxSslPort"
-	// MaxPwdWrongTimes 密码最大错误次数
-	MaxPwdWrongTimes = 5
-	// HistoryPasswordSaveCount 相同密码缓存次数
-	HistoryPasswordSaveCount = 5
 	// PodIpKey the key of this pod's ip
 	PodIpKey = "POD_IP"
 	// LockTimeKey lock time key for user and ip

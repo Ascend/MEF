@@ -11,11 +11,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"nginx-manager/pkg/database"
 	"nginx-manager/pkg/nginxcom"
 	"nginx-manager/pkg/nginxmgr"
 	"nginx-manager/pkg/nginxmonitor"
-	"nginx-manager/pkg/usermgr"
 
 	"huawei.com/mindx/common/hwlog"
 
@@ -31,14 +29,11 @@ const (
 	operateLogFile = "/home/MEFCenter/logs/nginx-manager-operate.log"
 	backupDirName  = "/home/MEFCenter/logs_backup"
 	defaultKmcPath = "/home/data/public-config/kmc-config.json"
-	defaultPort    = 8080
 )
 
 var (
 	serverRunConf = &hwlog.LogConfig{LogFileName: runLogFile, BackupDirName: backupDirName}
 	serverOpConf  = &hwlog.LogConfig{LogFileName: operateLogFile, BackupDirName: backupDirName}
-	restfulPort   = defaultPort
-	ip            string
 )
 
 func main() {
@@ -67,22 +62,8 @@ func initResource() error {
 	if err := nginxcom.GetEnvManager().Load(); err != nil {
 		return err
 	}
-	usrMgrPort, err := nginxcom.GetEnvManager().GetInt(nginxcom.UserMgrSvcPortKey)
-	if err != nil {
-		return err
-	}
-	restfulPort = usrMgrPort
-	if err = database.InitDB(nginxcom.DefaultDbPath); err != nil {
-		hwlog.RunLog.Errorf("init database failed, error: %s", err.Error())
-		return err
-	}
-	podIp, err := common.GetPodIP()
-	if err != nil {
-		hwlog.RunLog.Errorf("get nginx manager pod ip failed: %s", err.Error())
-		return err
-	}
-	ip = podIp
-	err = common.InitKmcCfg(defaultKmcPath)
+
+	err := common.InitKmcCfg(defaultKmcPath)
 	if err != nil {
 		hwlog.RunLog.Warnf("init kmc config from json failed: %v, use default kmc config", err)
 	}
@@ -97,13 +78,6 @@ func register(ctx context.Context) error {
 	if err := modulemanager.Registry(nginxmonitor.NewNginxMonitor(true, ctx)); err != nil {
 		return err
 	}
-	if err := modulemanager.Registry(usermgr.NewRestfulService(true, ip, restfulPort)); err != nil {
-		return err
-	}
-	if err := modulemanager.Registry(usermgr.NewUserManager(true, ctx)); err != nil {
-		return err
-	}
-
 	if err := modulemanager.Registry(logrotate.Module("", ctx, nginxlogrotate.Setup)); err != nil {
 		return err
 	}

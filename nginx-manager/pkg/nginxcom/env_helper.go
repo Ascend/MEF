@@ -26,9 +26,7 @@ type NginxConfItem struct {
 var confItemsTemplate = []NginxConfItem{
 	{Key: EdgePortKey, From: KeyPrefix + EdgePortKey},
 	{Key: CertPortKey, From: KeyPrefix + CertPortKey},
-	{Key: SoftPortKey, From: KeyPrefix + SoftPortKey},
 	{Key: NginxSslPortKey, From: KeyPrefix + NginxSslPortKey},
-	{Key: UserMgrSvcPortKey, From: KeyPrefix + UserMgrSvcPortKey},
 	{Key: PodIpKey, From: KeyPrefix + PodIpKey},
 }
 
@@ -72,18 +70,10 @@ func newEnvironmentMgr() *environmentMgr {
 	valuers := map[string]*environmentValuer{
 		EdgePortKey: {EdgePortKey, "", "", true,
 			createIntChecker(common.MinPort, common.MaxPort)},
-		SoftPortKey: {SoftPortKey, "", "", true,
-			createIntChecker(common.MinPort, common.MaxPort)},
 		CertPortKey: {CertPortKey, "", "", true,
-			createIntChecker(common.MinPort, common.MaxPort)},
-		UserMgrSvcPortKey: {UserMgrSvcPortKey, "", "", true,
 			createIntChecker(common.MinPort, common.MaxPort)},
 		NginxSslPortKey: {NginxSslPortKey, "", "", true,
 			createIntChecker(common.MinPort, common.MaxPort)},
-		LockTimeKey: {LockTimeKey, "", defaultLockTime, false,
-			createIntChecker(minLockTime, maxLockTime)},
-		TokenExpireTimeKey: {TokenExpireTimeKey, "", defaultLoginExpireTime, false,
-			createIntChecker(minLoginExpireTime, maxLoginExpireTime)},
 		PodIpKey: {PodIpKey, "", "", true,
 			createIpChecker()},
 		EnableResolverKey: {EnableResolverKey, "", "false", false,
