@@ -10,15 +10,17 @@ import (
 	"huawei.com/mindxedge/base/common/checker/checker"
 )
 
-func newDownloadChecker() *downloadChecker {
-	return &downloadChecker{}
+// NewDownloadChecker is the struct to init a DownloadChecker
+func NewDownloadChecker() *DownloadChecker {
+	return &DownloadChecker{}
 }
 
-type downloadChecker struct {
+// DownloadChecker is the checker to check the message of download request
+type DownloadChecker struct {
 	modelChecker checker.ModelChecker
 }
 
-func (d *downloadChecker) init() {
+func (d *DownloadChecker) init() {
 	d.modelChecker.Checker = checker.GetAndChecker(
 		checker.GetUniqueListChecker("SerialNumbers",
 			checker.GetRegChecker("", `^[a-zA-Z0-9]([-_a-zA-Z0-9]{0,62}[a-zA-Z0-9])?$`, true),
@@ -29,7 +31,8 @@ func (d *downloadChecker) init() {
 	)
 }
 
-func (d *downloadChecker) Check(data interface{}) checker.CheckResult {
+// Check is the main func for a checker to execute checking operation
+func (d *DownloadChecker) Check(data interface{}) checker.CheckResult {
 	d.init()
 
 	checkResult := d.modelChecker.Check(data)
