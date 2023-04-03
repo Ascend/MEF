@@ -62,6 +62,12 @@ func (ecf *ExchangeCaFlow) DoExchange() error {
 
 func (ecf *ExchangeCaFlow) checkParam() error {
 	const maxCertSizeInMb = 1
+
+	if ecf.importPath == ecf.exportPath {
+		hwlog.RunLog.Errorf("import path cannot equal export path")
+		return errors.New("import path cannot equal export path")
+	}
+
 	if _, err := utils.RealFileChecker(ecf.importPath, false, false, maxCertSizeInMb); err != nil {
 		hwlog.RunLog.Errorf("importPath [%s] check failed: %s", ecf.importPath, err.Error())
 		return errors.New("importPath check failed")
