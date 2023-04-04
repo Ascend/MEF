@@ -30,10 +30,10 @@ func downloadSoftware(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}
 
-	//if checkResult := NewDownloadChecker().Check(req); !checkResult.Result {
-	//	hwlog.RunLog.Errorf("check software download para failed: %s", checkResult.Reason)
-	//	return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
-	//}
+	if checkResult := NewDownloadChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("check software download para failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
+	}
 
 	msg, err := model.NewMessage()
 	if err != nil {
