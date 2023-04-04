@@ -64,7 +64,7 @@ func (ecf *ExchangeCaFlow) checkParam() error {
 	const maxCertSizeInMb = 1
 
 	if ecf.importPath == ecf.exportPath {
-		hwlog.RunLog.Errorf("import path cannot equal export path")
+		hwlog.RunLog.Error("import path cannot equal export path")
 		return errors.New("import path cannot equal export path")
 	}
 
