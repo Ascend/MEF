@@ -34,7 +34,6 @@ func (ec *StringEqualChecker) Check(data interface{}) CheckResult {
 		if valuer.CheckIsFieldNotExistErr(err) {
 			return NewFailedResult(fmt.Sprintf("field [%s] does not exist", ec.field1))
 		}
-		// todo 删除错误信息的返回
 		hwlog.RunLog.Errorf("String equal checker get field [%s] value failed, error: %v", ec.field1, err)
 		return NewFailedResult(fmt.Sprintf("String equal checker get field [%s] value failed, error: %v",
 			ec.field1, err))
@@ -45,7 +44,6 @@ func (ec *StringEqualChecker) Check(data interface{}) CheckResult {
 		if valuer.CheckIsFieldNotExistErr(err) {
 			return NewFailedResult(fmt.Sprintf("field [%s] does not exist", ec.field2))
 		}
-		// todo 删除错误信息的返回
 		hwlog.RunLog.Errorf("String equal checker get field [%s] value failed, error: %v", ec.field2, err)
 		return NewFailedResult(fmt.Sprintf("String equal checker get field [%s] value failed, error: %v",
 			ec.field2, err))

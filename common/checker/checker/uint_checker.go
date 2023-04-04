@@ -38,7 +38,6 @@ func (uc *UintChecker) Check(data interface{}) CheckResult {
 		return NewFailedResult(fmt.Sprintf("Uint checker get field [%s] value failed:%v", uc.filed, err))
 	}
 	if value < uc.min || value > uc.max {
-		// todo 删除错误的消息信息
 		return NewFailedResult(
 			fmt.Sprintf("Uint checker Check [%s] failed: the value[%d] not in range [%d, %d]",
 				uc.filed, value, uc.min, uc.max))

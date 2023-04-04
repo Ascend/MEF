@@ -37,7 +37,6 @@ func (lc *ListChecker) Check(data interface{}) CheckResult {
 		if valuer.CheckIsFieldNotExistErr(err) && !lc.required {
 			return NewSuccessResult()
 		}
-		// todo 删除错误信息的返回
 		return NewFailedResult(fmt.Sprintf("list checker get field [%s] value failed:%v", lc.field, err))
 	}
 	length := value.Len()

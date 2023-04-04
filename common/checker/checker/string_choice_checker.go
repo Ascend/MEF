@@ -41,7 +41,6 @@ func (scc *StringChoiceChecker) Check(data interface{}) CheckResult {
 	if index < len(scc.choices) && scc.choices[index] == targetString {
 		return NewSuccessResult()
 	}
-	// todo 删除错误的详细信息
 	return NewFailedResult(fmt.Sprintf("string choice checker Check [%s] failed: the value[%s], not in %v",
 		scc.filed, targetString, scc.choices))
 }

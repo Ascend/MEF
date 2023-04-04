@@ -37,7 +37,6 @@ func (lc *UniqueListChecker) Check(data interface{}) CheckResult {
 		if valuer.CheckIsFieldNotExistErr(err) && !lc.ListChecker.required {
 			return NewSuccessResult()
 		}
-		// todo 删除错误信息的返回
 		return NewFailedResult(fmt.Sprintf("unique list checker get field [%s] value failed:%v", lc.field, err))
 	}
 

@@ -10,6 +10,7 @@ import (
 	"edge-manager/pkg/util"
 
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager/model"
 )
@@ -22,7 +23,6 @@ func UpdateTableConnInfo(message *model.Message) common.RespMsg {
 		return common.RespMsg{Status: common.Success, Msg: "check message for updating conn_infos failed", Data: nil}
 	}
 
-	// todo password encryption
 	node := &ConnInfo{
 		Address:   updateConnInfo.Address,
 		Port:      updateConnInfo.Port,
@@ -79,7 +79,6 @@ func checkUpdateConnInfoMsg(message *model.Message) (*UpdateConnInfo, common.Res
 
 // UpdateUserConnInfo updates item in table conn_infos
 func UpdateUserConnInfo(updateInfo UpdateInfo) common.RespMsg {
-	// todo password encryption
 	node := &ConnInfo{
 		Username:  updateInfo.Username,
 		Password:  []byte(updateInfo.Password),

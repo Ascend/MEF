@@ -36,7 +36,7 @@ func (cpp *configmapParaPattern) getPatternFromMap(mapKey string) (string, bool)
 	return pattern, ok
 }
 
-func (cpc *configmapParaChecker) Check() error { // todo 后续需利用公共库校验pageNum与pageSize
+func (cpc *configmapParaChecker) Check() error {
 	var checkItems = []func() error{
 		cpc.checkConfigmapNameValid,
 		cpc.checkConfigmapDescriptionValid,

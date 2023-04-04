@@ -27,6 +27,5 @@ func (bc *ExistChecker) Check(data interface{}) CheckResult {
 	if existFlag {
 		return NewSuccessResult()
 	}
-	// todo 删除错误信息的返回
 	return NewFailedResult(fmt.Sprintf("exist checker Check field [%s] failed, err:%v", bc.field, err))
 }

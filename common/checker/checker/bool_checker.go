@@ -31,7 +31,6 @@ func (bc *BoolChecker) Check(data interface{}) CheckResult {
 		if valuer.CheckIsFieldNotExistErr(err) && !bc.required {
 			return NewSuccessResult()
 		}
-		// todo 删除错误信息的返回
 		return NewFailedResult(fmt.Sprintf("Bool checker get field[%s] value failed:%v", bc.field, err))
 	}
 	return NewSuccessResult()

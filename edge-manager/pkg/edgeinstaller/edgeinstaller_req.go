@@ -11,7 +11,7 @@ type DownloadSfwReqToSfwMgr struct {
 }
 
 // RespDataFromSfwMgr response data from software manager
-type RespDataFromSfwMgr struct { // todo json tag与软件仓统一，后续可与软件仓统一修改
+type RespDataFromSfwMgr struct {
 	NodeId      string `json:"nodeID"`
 	DownloadUrl string `json:"url"`
 	Username    string `json:"userName"`
