@@ -173,6 +173,7 @@ func (ecf *ExchangeCaFlow) exportCa() error {
 
 	srcPath := ecf.pathMgr.ConfigPathMgr.GetApigRootPath()
 	if !utils.IsExist(srcPath) {
+		fmt.Println("the root ca has not yet generated, plz start cert manager first")
 		hwlog.RunLog.Errorf("the root ca has not yet generated, plz start cert manager first")
 		return errors.New("the root ca has not yet generated")
 	}
