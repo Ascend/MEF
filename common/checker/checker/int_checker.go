@@ -35,7 +35,6 @@ func (ic *IntChecker) Check(data interface{}) CheckResult {
 		if valuer.CheckIsFieldNotExistErr(err) && !ic.required {
 			return NewSuccessResult()
 		}
-		// todo 删除错误信息的返回
 		return NewFailedResult(fmt.Sprintf("Int checker get field [%s] value failed:%v", ic.field, err))
 	}
 	if value < ic.min || value > ic.max {

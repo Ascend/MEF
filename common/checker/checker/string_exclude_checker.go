@@ -40,7 +40,6 @@ func (scc *StringExcludeChecker) Check(data interface{}) CheckResult {
 	}
 	for _, word := range scc.excludeWords {
 		if strings.Contains(srcString, word) {
-			// todo 删除错误的详细信息
 			return NewFailedResult(fmt.Sprintf("string excludeWords words checker Check [%s] failed: "+
 				"the value[%s], contains exclude words [%v]", scc.filed, srcString, word))
 		}

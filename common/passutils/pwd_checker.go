@@ -41,7 +41,6 @@ func (pc *PwdChecker) Check(data interface{}) checker.CheckResult {
 		if valuer.CheckIsFieldNotExistErr(err) && !pc.required {
 			return checker.NewSuccessResult()
 		}
-		// todo 删除错误信息的返回
 		hwlog.RunLog.Errorf("Pwd checker get field [%s] value failed, error: %v", pc.fieldUser, err)
 		return checker.NewFailedResult(fmt.Sprintf("get field [%s] value failed", pc.fieldUser))
 	}
@@ -51,7 +50,6 @@ func (pc *PwdChecker) Check(data interface{}) checker.CheckResult {
 		if valuer.CheckIsFieldNotExistErr(err) && !pc.required {
 			return checker.NewSuccessResult()
 		}
-		// todo 删除错误信息的返回
 		hwlog.RunLog.Errorf("Pwd checker get field [%s] value failed, error: %v", pc.fieldPwd, err)
 		return checker.NewFailedResult(fmt.Sprintf("get field [%s] value failed", pc.fieldPwd))
 	}

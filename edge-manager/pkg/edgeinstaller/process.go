@@ -75,7 +75,7 @@ func constructHttpReq(dealSfwReq *DownloadSfwReqToSfwMgr, nodeInfo []byte) (*htt
 	}
 
 	softwareName := dealSfwReq.SoftwareName
-	if dealSfwReq.SoftwareVersion == "" { // todo 后续需与软件仓统一修改为https
+	if dealSfwReq.SoftwareVersion == "" {
 		sfwUrl = fmt.Sprintf("http://%s:%s/%s/url?contentType=%s",
 			sfwMgrInfo.SoftwareIP, sfwMgrInfo.SoftwarePort, sfwMgrInfo.SoftRoute, softwareName)
 	} else {
@@ -97,7 +97,6 @@ func receiveRespFromHttp(req *http.Request) (*http.Response, error) {
 	hwlog.RunLog.Info("edge-installer sends request to software manager")
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
-			// todo 证书校验
 			InsecureSkipVerify: true,
 		},
 	}

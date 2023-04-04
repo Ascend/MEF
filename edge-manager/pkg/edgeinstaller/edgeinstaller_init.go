@@ -27,7 +27,7 @@ func (i *Installer) Name() string {
 
 // Enable indicates whether this module is enabled
 func (i *Installer) Enable() bool {
-	if !i.enable { // todo 后续需确认软件仓信息何时存入
+	if !i.enable {
 		return !i.enable
 	}
 	if err := initSoftwareMgrInfoTable(); err != nil {

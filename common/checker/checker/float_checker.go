@@ -35,7 +35,6 @@ func (fc *FloatChecker) Check(data interface{}) CheckResult {
 		if valuer.CheckIsFieldNotExistErr(err) && !fc.required {
 			return NewSuccessResult()
 		}
-		// todo 删除错误信息的返回
 		return NewFailedResult(fmt.Sprintf("Float checker get field[%s] value failed:%v", fc.field, err))
 	}
 	if value < fc.min || value > fc.max {

@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/kubeclient"
@@ -89,7 +90,7 @@ func deleteConfigmap(input interface{}) common.RespMsg {
 			continue
 		}
 
-		if ok := deleteCmByK8S(configmapInfoFromDB.ConfigmapName, configmapID); !ok { // todo 需回滚，保持同步
+		if ok := deleteCmByK8S(configmapInfoFromDB.ConfigmapName, configmapID); !ok {
 			failedDeleteConfigmapIDs = append(failedDeleteConfigmapIDs, configmapID)
 			continue
 		}
