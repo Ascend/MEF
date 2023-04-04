@@ -267,7 +267,7 @@ func (ecc *exchangeCertsController) doControl() error {
 		return errors.New("get MEF uid/gid failed")
 	}
 
-	exchangeFlow := control.NewExchangeCaFlow(ecc.importPath, ecc.exportPath, pathMgr, uint32(uid), uint32(gid))
+	exchangeFlow := control.NewExchangeCaFlow(ecc.importPath, ecc.exportPath, pathMgr, uid, gid)
 	if err = exchangeFlow.DoExchange(); err != nil {
 		hwlog.RunLog.Errorf("execute exchange flow failed: %s", err.Error())
 		return errors.New("execute exchange flow failed")
