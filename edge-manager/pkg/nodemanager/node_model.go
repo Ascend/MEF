@@ -182,7 +182,7 @@ func (n *NodeServiceImpl) getNodeByID(nodeID uint64) (*NodeInfo, error) {
 
 func getNodeByLikeName(page, pageSize uint64, nodeName string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Scopes(common.Paginate(page, pageSize)).Where("INSTR(node_name, ?)", nodeName)
+		return db.Scopes(common.Paginate(page, pageSize)).Where("INSTR(node_name, ?) AND ip != ''", nodeName)
 	}
 }
 
@@ -195,7 +195,9 @@ func (n *NodeServiceImpl) getRelationsByNodeID(id uint64) (*[]NodeRelation, erro
 
 // UpdateNode update node
 func (n *NodeServiceImpl) updateNode(id uint64, isManaged int, columns map[string]interface{}) (int64, error) {
-	stmt := n.db.Model(&NodeInfo{}).Where("`id` = ? and `is_managed` = ?", id, isManaged).UpdateColumns(columns)
+	stmt := n.db.Model(&NodeInfo{}).
+		Where("`id` = ? and `is_managed` = ? and `ip` != ''", id, isManaged).
+		UpdateColumns(columns)
 	return stmt.RowsAffected, stmt.Error
 }
 
@@ -230,7 +232,7 @@ func (n *NodeServiceImpl) listNodes() (*[]NodeInfo, error) {
 func (n *NodeServiceImpl) countNodesByName(name string, isManaged int) (int64, error) {
 	var count int64
 	return count,
-		n.db.Model(&NodeInfo{}).Where("INSTR(node_name, ?) and is_managed = ?", name, isManaged).
+		n.db.Model(&NodeInfo{}).Where("INSTR(node_name, ?) and is_managed = ? and ip != ''", name, isManaged).
 			Count(&count).Error
 }
 
@@ -238,7 +240,7 @@ func (n *NodeServiceImpl) countNodesByName(name string, isManaged int) (int64, e
 func (n *NodeServiceImpl) countAllNodesByName(name string) (int64, error) {
 	var count int64
 	return count,
-		n.db.Model(&NodeInfo{}).Where("INSTR(node_name, ?)", name).
+		n.db.Model(&NodeInfo{}).Where("INSTR(node_name, ?) and ip != ''", name).
 			Count(&count).Error
 }
 
