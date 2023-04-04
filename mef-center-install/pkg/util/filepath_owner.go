@@ -3,6 +3,7 @@
 package util
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"syscall"
@@ -50,6 +51,9 @@ func SetPathOwnerGroup(path string, uid, gid int, recursive bool, ignoreFile boo
 	if _, err := utils.CheckPath(path); err != nil {
 		hwlog.RunLog.Errorf("check path [%s] failed, error: %s", path, err.Error())
 		return err
+	}
+	if uid < 0 || gid < 0 {
+		return errors.New("invalid uid or gid")
 	}
 	if err := setOneOwnerGroup(path, uid, gid); err != nil {
 		return err
