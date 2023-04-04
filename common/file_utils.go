@@ -488,8 +488,7 @@ func IsSoftLink(path string) error {
 		return fmt.Errorf("get real path failed: %s", err.Error())
 	}
 
-	isLink := path == realPath
-	if !isLink {
+	if !(path == realPath) {
 		return fmt.Errorf("path [%s] is a softlink", path)
 	}
 
