@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 
 	"software-manager/pkg/restfulservice"
@@ -22,6 +23,12 @@ var (
 	// Port is to define the service entrance
 	Port int
 )
+
+// URLReq [struct] to get software url info
+type URLReq struct {
+	ContentType string `json:"contentType"`
+	Version     string `json:"version"`
+}
 
 func init() {
 	flag.StringVar(&RepositoryFilesPath, "repositoryFilesPath", defaultFilesPath,
@@ -58,10 +65,7 @@ func downloadSoftware(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("class convert error")
 		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "class convert error"}
 	}
-	result := checkDownloadRight(info.UserName, info.Password, info.NodeID)
-	if !result {
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "wrong user, password or nodeId"}
-	}
+
 	err := checkFields(info.ContentType, info.Version)
 	if err != nil {
 		hwlog.RunLog.Error(fmt.Sprintf("%s%s", err.Error(), "in downloadSoftware func"))
@@ -76,11 +80,13 @@ func downloadSoftware(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("%s%s dose not exist", info.ContentType, info.Version)
 		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "software dose not exist"}
 	}
-	path := softwarePathJoin(info.ContentType, info.Version)
+	path := softwarePathJoin(info.ContentType, info.Version, info.FileName)
+	hwlog.RunLog.Infof("download software pkg :%s", path)
 	return common.RespMsg{Status: common.Success, Data: path}
 }
 
 func uploadSoftware(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start upload software")
 	info, ok := input.(restfulservice.SoftwareInfo)
 	if !ok {
 		hwlog.RunLog.Error("class convert error")
@@ -101,14 +107,6 @@ func uploadSoftware(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "software already exists"}
 	}
 	file := info.File
-	ok, err = checkFile(file)
-	if err != nil {
-		hwlog.RunLog.Error(err.Error())
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: err.Error()}
-	}
-	if !ok {
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "wrong file format"}
-	}
 	dst, err := creatDir(info.ContentType, info.Version)
 	if err != nil {
 		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "create directory error"}
@@ -116,6 +114,11 @@ func uploadSoftware(input interface{}) common.RespMsg {
 	if err = saveUploadedFile(file, dst+"/"+info.ContentType+".zip"); err != nil {
 		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "save file error"}
 	}
+
+	if err = extraZipFile(dst+"/"+info.ContentType+".zip", dst); err != nil {
+		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "unzip file error"}
+	}
+
 	err = SoftwareDbCtlInstance().addSoftware(&info)
 	if err != nil {
 		return common.RespMsg{Status: common.ErrorGetResponse, Msg: err.Error()}
@@ -124,6 +127,7 @@ func uploadSoftware(input interface{}) common.RespMsg {
 }
 
 func listRepository(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start list software")
 	info, ok := input.(restfulservice.SoftwareInfo)
 	if !ok {
 		hwlog.RunLog.Error("class convert error")
@@ -136,44 +140,26 @@ func listRepository(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Data: queryResult{*softwareRecords, total}}
 }
 
+// getURL [method] get software url info
 func getURL(input interface{}) common.RespMsg {
-	info, ok := input.(restfulservice.SoftwareInfo)
-	if !ok {
+	hwlog.RunLog.Info("start get software url")
+	var urlReq URLReq
+	if err := common.ParamConvert(input, &urlReq); err != nil {
 		hwlog.RunLog.Error("class convert error")
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "class convert error"}
+		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
 	}
-	var err error
-	if info.Version == "" {
-		err = checkContentType(info.ContentType)
-	} else {
-		err = checkFields(info.ContentType, info.Version)
-	}
-	if err != nil {
-		hwlog.RunLog.Error(fmt.Sprintf("%s%s", err.Error(), "in getURL func"))
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: err.Error()}
-	}
-	if !checkNodeID(info.NodeID) {
-		return common.RespMsg{Status: common.ErrorGetResponse, Msg: "incorrect node_id"}
-	}
-	if info.Version == "" {
-		info.Version, err = returnLatestVer(info.ContentType)
-		if err != nil {
-			hwlog.RunLog.Error(err.Error())
-			return common.RespMsg{Status: common.ErrorGetResponse, Msg: err.Error()}
-		}
-	}
-	exist, err := checkSoftwareExist(info.ContentType, info.Version)
+	exist, err := checkSoftwareExist(urlReq.ContentType, urlReq.Version)
 	if err != nil {
 		hwlog.RunLog.Error("check software exist error in getURL func")
 		return common.RespMsg{Status: common.ErrorGetResponse, Msg: err.Error()}
 	}
 	if !exist {
-		hwlog.RunLog.Errorf("%s%s dose not exist", info.ContentType, info.Version)
+		hwlog.RunLog.Errorf("%s%s dose not exist", urlReq.ContentType, urlReq.Version)
 		return common.RespMsg{Status: common.ErrorGetResponse,
 			Msg: "software dose not exist. Need to import software first"}
 	}
-	downloadInfo := downloadData{}
-	if err = fillDownloadData(&downloadInfo, &info); err != nil {
+	downloadInfo := DownloadInfo{}
+	if err = fillDownloadData(&downloadInfo, &urlReq); err != nil {
 		return common.RespMsg{Status: common.ErrorGetResponse, Msg: err.Error()}
 	}
 	return common.RespMsg{Status: common.Success, Data: downloadInfo}

@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"huawei.com/mindxedge/base/common/checker/valuer"
-	"huawei.com/mindxedge/base/common/constant"
 )
 
 // HttpsUrlChecker [struct] for url checker
@@ -64,7 +63,7 @@ func (hc *HttpsUrlChecker) Check(data interface{}) CheckResult {
 		return NewFailedResult(fmt.Sprintf("https url checker Check [%s] failed: in not https url", hc.field))
 	}
 
-	if strings.ContainsAny(segments[1], constant.IllegalChars) {
+	if strings.ContainsAny(segments[1], "\n!\\; $<>") {
 		return NewFailedResult(fmt.Sprintf("https url checker Check [%s] failed: contain invalide char",
 			hc.field))
 	}

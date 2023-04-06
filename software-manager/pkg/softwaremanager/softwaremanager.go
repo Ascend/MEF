@@ -18,15 +18,17 @@ import (
 )
 
 const (
-	edgeCore      = "edgecore"
-	edgeInstaller = "edge-installer"
-	userLength    = 8
-	maxLength     = 20
-	randomSet     = "0123456789abcdefghijklkmnopqrstuvwxyzABCDEFGHIJKLKMNOPQRSTUVWXYZ!@#$%^&*()-.+=`~"
-	regexExp      = "^[\\w]+"
-	stringLength  = 2
-	maxByteLength = 100
-	hexTag        = 0xFF
+	edgeCore            = "edgecore"
+	edgeInstaller       = "edge-installer"
+	mefEdge             = "MEFEdge"
+	userLength          = 8
+	maxLength           = 20
+	randomSet           = "0123456789abcdefghijklkmnopqrstuvwxyzABCDEFGHIJKLKMNOPQRSTUVWXYZ!@#$%^&*()-.+=`~"
+	regexExp            = "^[\\w]+"
+	stringLength        = 2
+	maxByteLength       = 100
+	maxExtractFileCount = 100
+	hexTag              = 0xFF
 )
 
 const (
