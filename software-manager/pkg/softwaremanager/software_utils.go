@@ -3,6 +3,7 @@
 package softwaremanager
 
 import (
+	"archive/zip"
 	"bytes"
 	"encoding/hex"
 	"errors"
@@ -23,6 +24,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -49,7 +51,7 @@ func checkFields(contentType string, version string) error {
 }
 
 func checkContentType(contentType string) error {
-	if contentType != edgeCore && contentType != edgeInstaller {
+	if contentType != mefEdge {
 		return fmt.Errorf("%s is a incorrect field", contentType)
 	}
 	return nil
@@ -98,10 +100,9 @@ func checkSoftwareExist(contentType string, version string) (bool, error) {
 	return true, nil
 }
 
-func softwarePathJoin(contentType string, version string) string {
-	dst := filepath.Join(RepositoryFilesPath, contentType,
-		fmt.Sprintf("%s%s%s", contentType, "_", version))
-	return filepath.Join(dst, fmt.Sprintf("%s%s", contentType, ".zip"))
+func softwarePathJoin(contentType string, version string, fileName string) string {
+	return filepath.Join(RepositoryFilesPath, contentType,
+		fmt.Sprintf("%s%s%s", contentType, "_", version), fileName)
 }
 
 func returnLatestVer(contentType string) (string, error) {
@@ -127,6 +128,76 @@ func creatDir(contentType string, version string) (string, error) {
 		}
 	}
 	return dst, nil
+}
+
+// extraZipFile extract zip file
+func extraZipFile(zipFile, extractPath string) error {
+	reader, err := zip.OpenReader(zipFile)
+	if err != nil {
+		hwlog.RunLog.Errorf("open zip reader failed, error: %v", err)
+		return err
+	}
+	defer func() {
+		if err := reader.Close(); err != nil {
+			hwlog.RunLog.Errorf("close zip reader failed, error: %v", err)
+			return
+		}
+	}()
+
+	if len(reader.File) > maxExtractFileCount {
+		hwlog.RunLog.Error("too many files will be unzip")
+		return errors.New("too many files will be unzip")
+	}
+
+	var totalWrote uint64
+	for _, file := range reader.File {
+		if err = copyZipFile(extractPath, file); err != nil {
+			return err
+		}
+		totalWrote += file.UncompressedSize64
+	}
+	return nil
+}
+
+func copyZipFile(extractPath string, file *zip.File) error {
+	extraFilePath := filepath.Join(extractPath, file.Name)
+	if file.FileInfo().IsDir() {
+		if err := os.MkdirAll(extraFilePath, file.Mode()); err != nil {
+			hwlog.RunLog.Errorf("create path [%s] failed, error: %v", extraFilePath, err)
+			return err
+		}
+		return nil
+	}
+
+	fileReader, err := file.Open()
+	if err != nil {
+		hwlog.RunLog.Errorf("open src file [%s] failed, error: %v", file.Name, err)
+		return err
+	}
+	defer func() {
+		if err = fileReader.Close(); err != nil {
+			hwlog.RunLog.Errorf("close src file [%s] failed, error: %v", file.Name, err)
+			return
+		}
+	}()
+
+	targetFile, err := os.OpenFile(extraFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, file.Mode())
+	if err != nil {
+		hwlog.RunLog.Errorf("open dst file [%s] failed", file.Name)
+		return err
+	}
+	defer func() {
+		if err = targetFile.Close(); err != nil {
+			hwlog.RunLog.Errorf("close dst file [%s] failed, error: %v", file.Name, err)
+			return
+		}
+	}()
+
+	if _, err = io.CopyN(targetFile, fileReader, int64(file.UncompressedSize64)); err != nil {
+		hwlog.RunLog.Errorf("copy src file [%s] failed, error: %v", file.Name, err)
+		return err
+	}
+	return nil
 }
 
 func saveUploadedFile(file *multipart.FileHeader, dst string) error {
@@ -219,27 +290,58 @@ func checkByteArr(arr1 []byte, arr2 []byte) bool {
 	return true
 }
 
-func fillDownloadData(downloadInfo *downloadData, info *restfulservice.SoftwareInfo) error {
-	url := "GET " + "http://" + IP + ":" + strconv.Itoa(Port) + "/softwaremanager/v1/?" +
-		"contentType=" + info.ContentType + "&version=" + info.Version
-	var userName string
-	var password *[]byte
-	userInfo, exist := restfulservice.QueryUserInfo(info.NodeID)
-	if !exist {
-		var err error
-		userName, password, err = geneUsrPsw(info.NodeID)
-		if err != nil {
-			hwlog.RunLog.Error(err.Error())
-			return err
+// DownloadInfo [struct] to software download info
+type DownloadInfo struct {
+	Package  string  `json:"package"`
+	SignFile string  `json:"signFile,omitempty"`
+	CrlFile  string  `json:"crlFile,omitempty"`
+	UserName string  `json:"username"`
+	Password *[]byte `json:"password"`
+}
+
+func findPackageFileName(dir string) string {
+	files, _ := os.ReadDir(dir)
+	for _, file := range files {
+		if strings.HasSuffix(file.Name(), ".tar.gz") {
+			return file.Name()
 		}
-	} else {
-		userName = userInfo.UserName
-		password = &userInfo.Password
 	}
-	downloadInfo.UserName = userName
-	downloadInfo.Password = string(*password)
-	downloadInfo.URL = url
-	downloadInfo.NodeID = info.NodeID
+	return ""
+}
+
+func findSignFileName(dir string) string {
+	files, _ := os.ReadDir(dir)
+	for _, file := range files {
+		if strings.HasSuffix(file.Name(), ".tar.gz.cms") {
+			return file.Name()
+		}
+	}
+	return ""
+}
+
+func findCrlFileName(dir string) string {
+	files, _ := os.ReadDir(dir)
+	for _, file := range files {
+		if strings.HasSuffix(file.Name(), ".tar.gz.crl") {
+			return file.Name()
+		}
+	}
+	return ""
+}
+
+func fillDownloadData(downloadInfo *DownloadInfo, urlReq *URLReq) error {
+	url := "GET " + "https://" + IP + ":" + strconv.Itoa(Port) + "/softwaremanager/v1/?" +
+		"contentType=" + urlReq.ContentType + "&version=" + urlReq.Version
+	ps := "Atlas12#$"
+	pwd := []byte(ps)
+
+	pkgDir := filepath.Join(RepositoryFilesPath, urlReq.ContentType,
+		fmt.Sprintf("%s%s%s", urlReq.ContentType, "_", urlReq.Version))
+	downloadInfo.UserName = "admin"
+	downloadInfo.Password = &pwd
+	downloadInfo.Package = url + "&fileName=" + findPackageFileName(pkgDir)
+	downloadInfo.SignFile = url + "&fileName=" + findSignFileName(pkgDir)
+	downloadInfo.CrlFile = url + "&fileName=" + findCrlFileName(pkgDir)
 	return nil
 }
 

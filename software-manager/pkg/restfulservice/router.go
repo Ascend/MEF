@@ -4,8 +4,11 @@
 package restfulservice
 
 import (
+	"encoding/json"
+
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -28,7 +31,7 @@ func softwareRouter(engine *gin.Engine) {
 func deleteSoftware(c *gin.Context) {
 	res, err := c.GetRawData()
 	if err != nil {
-		hwlog.OpLog.Error("delete software: get input parameter failed")
+		hwlog.RunLog.Error("delete software: get input parameter failed")
 		common.ConstructResp(c, common.ErrorParseBody, "", nil)
 		return
 	}
@@ -45,7 +48,7 @@ func deleteSoftware(c *gin.Context) {
 func downloadSoftware(c *gin.Context) {
 	info, err := downloadInfoMapping(c)
 	if err != nil {
-		hwlog.OpLog.Error("download software: get input parameter failed")
+		hwlog.RunLog.Error("download software: get input parameter failed")
 		common.ConstructResp(c, common.ErrorParseBody, "", nil)
 		return
 	}
@@ -71,7 +74,7 @@ func downloadSoftware(c *gin.Context) {
 func uploadSoftware(c *gin.Context) {
 	info, err := uploadInfoMapping(c)
 	if err != nil {
-		hwlog.OpLog.Error("upload software: get input parameter failed")
+		hwlog.RunLog.Error("upload software: get input parameter failed")
 		common.ConstructResp(c, common.ErrorParseBody, "", nil)
 		return
 	}
@@ -88,7 +91,7 @@ func uploadSoftware(c *gin.Context) {
 func listRepository(c *gin.Context) {
 	info, err := listRepoMapping(c)
 	if err != nil {
-		hwlog.OpLog.Error("list repository: get input parameter failed")
+		hwlog.RunLog.Error("list repository: get input parameter failed")
 		common.ConstructResp(c, common.ErrorParseBody, "", nil)
 		return
 	}
@@ -102,10 +105,28 @@ func listRepository(c *gin.Context) {
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }
 
+// URLReq [struct] to get software url info
+type URLReq struct {
+	ContentType string `json:"contentType"`
+	Version     string `json:"version"`
+}
+
 func getURL(c *gin.Context) {
-	info, err := getURLMapping(c)
+	contentType := c.Query(ContentType)
+	version := c.Query(Version)
+
+	if contentType != common.MEFEdge || version == "" {
+		hwlog.RunLog.Errorf("get url req para: get input parameter failed contentType: %s, version:%s", contentType, version)
+		common.ConstructResp(c, common.ErrorParseBody, "", nil)
+		return
+	}
+	var urlReq URLReq
+	urlReq.ContentType = contentType
+	urlReq.Version = version
+
+	content, err := json.Marshal(urlReq)
 	if err != nil {
-		hwlog.OpLog.Error("get URL: get input parameter failed")
+		hwlog.RunLog.Errorf("marshal req failed:%v", err)
 		common.ConstructResp(c, common.ErrorParseBody, "", nil)
 		return
 	}
@@ -115,6 +136,6 @@ func getURL(c *gin.Context) {
 		Option:      common.Get,
 		Resource:    common.URL,
 	}
-	resp := common.SendSyncMessageByRestful(info, &router)
+	resp := common.SendSyncMessageByRestful(string(content), &router)
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }
