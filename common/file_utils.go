@@ -23,7 +23,7 @@ import (
 
 const (
 	fileMode = 0600
-	maxSize  = 10 * MB
+	maxSize  = 100 * KB
 )
 
 // WriteData write data with path check
