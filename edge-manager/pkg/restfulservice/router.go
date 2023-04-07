@@ -86,7 +86,6 @@ func setRouter(engine *gin.Engine) {
 	restfulmgr.InitRouter(engine, appRouterDispatchers)
 	restfulmgr.InitRouter(engine, configRouterDispatchers)
 	restfulmgr.InitRouter(engine, innerConfigRouterDispatchers)
-	restfulmgr.InitRouter(engine, edgeAccountRouterDispatchers)
 	restfulmgr.InitRouter(engine, softwareRouterDispatchers)
 	restfulmgr.InitRouter(engine, logCollectRouterDispatchers)
 }
@@ -167,14 +166,6 @@ var nodeGroupRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			RelativePath: "/pod/batch-delete",
 			Method:       http.MethodPost,
 			Destination:  common.NodeManagerName},
-	},
-}
-
-var edgeAccountRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
-	"/edgemanager/v1/edge-account": {
-		restfulmgr.GenericDispatcher{
-			Method:      http.MethodPost,
-			Destination: common.EdgeInstallerName},
 	},
 }
 
