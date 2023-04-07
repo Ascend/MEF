@@ -68,6 +68,10 @@ func GetCertInfo(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("message content type invalid")
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "message content type invalid", Data: nil}
 	}
+	if !newCertNameChecker().Check(certName) {
+		hwlog.RunLog.Error("the cert name not support")
+		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "query cert name not support", Data: nil}
+	}
 	certRes, err := queryCertInfo(certName)
 	if err != nil {
 		hwlog.RunLog.Errorf("query cert from cert manager failed, error: %v", err)

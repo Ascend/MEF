@@ -90,7 +90,7 @@ func (u *upgradeChecker) init() {
 			checker.GetRegChecker("", `^[a-zA-Z0-9]([-_a-zA-Z0-9]{0,62}[a-zA-Z0-9])?$`, true),
 			1, common.MaxNode, true),
 		checker.GetStringChoiceChecker("SoftwareName",
-			[]string{common.MEFEdge, common.EdgeCore, common.DevicePlugin}, true),
+			[]string{common.MEFEdge}, true),
 	)
 }
 
@@ -103,4 +103,21 @@ func (u *upgradeChecker) Check(data interface{}) checker.CheckResult {
 	}
 
 	return checker.NewSuccessResult()
+}
+
+type certNameChecker struct {
+}
+
+func newCertNameChecker() *certNameChecker {
+	return &certNameChecker{}
+}
+
+func (c *certNameChecker) Check(certName string) bool {
+	certSupportList := []string{common.WsCltName, common.SoftwareCertName, common.ImageCertName, common.NginxCertName}
+	for _, certSupport := range certSupportList {
+		if certName == certSupport {
+			return true
+		}
+	}
+	return false
 }
