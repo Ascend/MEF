@@ -263,7 +263,6 @@ func testDownloadInfoUserNameInvalid() {
 		"",
 		"_FileTransferAccount",
 		"-FileTransferAccount",
-		"0FileTransferAccount",
 		"FileTransferAccountFileTransferAccountFileTransferAccountFileTransf",
 	}
 	for _, dataCase := range failDataCases {

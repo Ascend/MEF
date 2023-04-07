@@ -50,9 +50,9 @@ type downloadInfoChecker struct {
 func (d *downloadInfoChecker) init() {
 	d.modelChecker.Checker = checker.GetAndChecker(
 		checker.GetHttpsUrlChecker("Package", true),
-		checker.GetHttpsUrlChecker("SignFile", false),
-		checker.GetHttpsUrlChecker("CrlFile", false),
-		checker.GetRegChecker("UserName", "^[a-zA-Z][a-zA-Z0-9-_]{1,64}[a-zA-Z0-9]$", true),
+		checker.GetHttpsUrlChecker("SignFile", true),
+		checker.GetHttpsUrlChecker("CrlFile", true),
+		checker.GetRegChecker("UserName", "^[a-zA-Z0-9]{6,32}$", true),
 		checker.GetExistChecker("Password"),
 	)
 }
