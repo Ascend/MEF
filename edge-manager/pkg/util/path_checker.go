@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	pathMatchStr   = "^/[a-z0-9A-Z_./-]+$"
+	pathMatchStr   = "^/[a-z0-9A-Z_./-]{1,511}$"
 	invalidPathStr = ".."
 )
 

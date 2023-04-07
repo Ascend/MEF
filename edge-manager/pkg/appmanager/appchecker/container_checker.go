@@ -41,8 +41,8 @@ func (cc *ContainerChecker) init() {
 		checker.GetListChecker("Ports", GetContainerPortChecker(""),
 			minPortMapCount, maxPortMapCount, true,
 		),
-		checker.GetIntChecker("UserID", minUserId, maxUserId, true),
-		checker.GetIntChecker("GroupID", minGroupId, maxGroupId, true),
+		checker.GetIntChecker("UserID", minUserId, maxUserId, false),
+		checker.GetIntChecker("GroupID", minGroupId, maxGroupId, false),
 		checker.GetListChecker("HostPathVolumes", GetHostPathVolumeChecker(""),
 			minVolumeMountsCount, maxVolumeMountsCount, true),
 	)

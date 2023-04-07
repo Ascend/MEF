@@ -17,8 +17,8 @@ type Container struct {
 	Args            []string         `json:"args"`
 	Env             []EnvVar         `json:"env"`
 	Ports           []ContainerPort  `json:"containerPort"`
-	UserID          int64            `json:"userID"`
-	GroupID         int64            `json:"groupID"`
+	UserID          *int64           `json:"userID"`
+	GroupID         *int64           `json:"groupID"`
 	HostPathVolumes []HostPathVolume `json:"hostPathVolumes"`
 }
 
