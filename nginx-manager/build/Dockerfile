@@ -1,4 +1,4 @@
-FROM openresty/openresty:buster as build
+FROM ubuntu:22.04 as build
 ARG UID
 RUN useradd -d /home/MEFCenter -u ${UID} -m -s  /usr/sbin/nologin MEFCenter
 WORKDIR /home/MEFCenter

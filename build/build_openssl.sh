@@ -29,6 +29,7 @@ fi
 mkdir -p "${CI_DIR}"/output/
 
 cp "${ROOT_DIR}"/libcrypto.so* "${CI_DIR}"/output -d
+cp "${ROOT_DIR}"/libssl.so*  "${CI_DIR}"/output -d
 cp -rf "${ROOT_DIR}"/include "${CI_DIR}"/output
 
 mkdir -p "${CI_DIR}"/output/include/crypto/rsa/
