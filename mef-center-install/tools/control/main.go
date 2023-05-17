@@ -270,7 +270,7 @@ func (ecc *exchangeCertsController) doControl() error {
 	exchangeFlow := control.NewExchangeCaFlow(ecc.importPath, ecc.exportPath, pathMgr, uid, gid)
 	if err = exchangeFlow.DoExchange(); err != nil {
 		hwlog.RunLog.Errorf("execute exchange flow failed: %s", err.Error())
-		return errors.New("execute exchange flow failed")
+		return err
 	}
 
 	return nil
@@ -413,6 +413,9 @@ func main() {
 	curController.printExecutingLog(ip, user)
 	if err = curController.doControl(); err != nil {
 		curController.printFailedLog(ip, user)
+		if err.Error() == util.NotGenCertErrorStr {
+			os.Exit(util.NotGenCertErrorCode)
+		}
 		os.Exit(util.ErrorExitCode)
 	}
 	curController.printSuccessLog(ip, user)

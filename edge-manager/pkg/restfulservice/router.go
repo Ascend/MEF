@@ -11,12 +11,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
-
-	"edge-manager/pkg/config"
-	"edge-manager/pkg/types"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/logmgmt/logcollect"
 	"huawei.com/mindxedge/base/common/restfulmgr"
+
+	"edge-manager/pkg/config"
+	"edge-manager/pkg/types"
 )
 
 var appRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
@@ -91,7 +91,7 @@ func setRouter(engine *gin.Engine) {
 }
 
 func versionQuery(c *gin.Context) {
-	msg := fmt.Sprintf("%s version: %s", config.BuildName, config.BuildVersion)
+	msg := config.BuildVersion
 	hwlog.RunLog.Infof("query edge manager version: %s successfully", msg)
 	common.ConstructResp(c, common.Success, "", msg)
 }
