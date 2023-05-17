@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/utils"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/modulemanager"
 	"huawei.com/mindxedge/base/modulemanager/model"
@@ -18,11 +19,12 @@ import (
 )
 
 const (
-	retryInterval = 15 * time.Second
-	startCommand  = "./nginx"
-	accessLogFile = "/home/MEFCenter/logs/access.log"
-	errorLogFile  = "/home/MEFCenter/logs/error.log"
-	logFileMode   = 0600
+	retryInterval          = 1 * time.Second
+	maxCheckNorthCertTimes = 15
+	startCommand           = "./nginx"
+	accessLogFile          = "/home/MEFCenter/logs/access.log"
+	errorLogFile           = "/home/MEFCenter/logs/error.log"
+	logFileMode            = 0600
 )
 
 // InitResource initial the resources needed by nginx
@@ -125,14 +127,21 @@ func doStartNginx() bool {
 }
 
 func startNginx() {
-	count := 0
+	checkCount := 0
 	for {
-		success := doStartNginx()
-		if success {
+		if !utils.IsExist(nginxcom.NorthernCertFile) {
+			checkCount++
+			if checkCount > maxCheckNorthCertTimes {
+				hwlog.RunLog.Error("check nginx north certs failed")
+				checkCount = 0
+			}
+			time.Sleep(retryInterval)
+			continue
+		}
+		if doStartNginx() {
 			return
 		}
-		count++
-		hwlog.RunLog.Errorf("start nginx fail exceed %d times", count)
+		hwlog.RunLog.Error("start nginx failed")
 		time.Sleep(retryInterval)
 	}
 }

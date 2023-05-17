@@ -142,18 +142,24 @@ const (
 
 // constant for install
 const (
-	MefNamespace    = "mef-center"
-	RootUserName    = "root"
-	AscendPrefix    = "ascend-"
-	HelpExitCode    = 3
-	VersionExitCode = 3
-	ErrorExitCode   = 1
+	MefNamespace        = "mef-center"
+	RootUserName        = "root"
+	AscendPrefix        = "ascend-"
+	HelpExitCode        = 3
+	VersionExitCode     = 3
+	NotGenCertErrorCode = 4
+	ErrorExitCode       = 1
 
 	InstallDiskSpace    = 750 * common.MB
 	LogDiskSpace        = 1800 * common.MB
 	LogBackupDiskSpace  = 3500 * common.MB
 	CheckStatusInterval = 3 * time.Second
 	CheckStatusTimes    = 5
+)
+
+const (
+	// NotGenCertErrorStr for the root ca has not yet generated
+	NotGenCertErrorStr = "the root ca has not yet generated"
 )
 
 // constant for mef control bin

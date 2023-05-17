@@ -175,7 +175,7 @@ func (ecf *ExchangeCaFlow) exportCa() error {
 	if !utils.IsExist(srcPath) {
 		fmt.Println("the root ca has not yet generated, plz start cert manager first")
 		hwlog.RunLog.Errorf("the root ca has not yet generated, plz start cert manager first")
-		return errors.New("the root ca has not yet generated")
+		return errors.New(util.NotGenCertErrorStr)
 	}
 
 	if err := common.IsSoftLink(srcPath); err != nil {

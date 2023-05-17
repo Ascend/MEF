@@ -12,13 +12,13 @@ import (
 	"syscall"
 
 	"huawei.com/mindx/common/hwlog"
-
-	"cert-manager/pkg/certmanager"
-	"cert-manager/pkg/restful"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
 	"huawei.com/mindxedge/base/modulemanager"
+
+	"cert-manager/pkg/certmanager"
+	"cert-manager/pkg/restful"
 )
 
 const (
@@ -83,8 +83,6 @@ func init() {
 }
 
 func initResource() error {
-	restful.BuildNameStr = BuildName
-	restful.BuildVersionStr = BuildVersion
 	err := common.InitKmcCfg(defaultKmcPath)
 	if err != nil {
 		hwlog.RunLog.Warnf("init kmc config from json failed: %v, use default kmc config", err)

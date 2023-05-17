@@ -23,7 +23,19 @@ function buildNginx() {
     CFLAG="-Wall -O2 -fstack-protector-strong -fPIE"
     LDFLAG="-Wl,-z,relro,-z,now,-z,noexecstack -pie -s"
 
-    ./auto/configure --prefix=/home/MEFCenter --conf-path=/home/MEFCenter/conf/nginx.conf --error-log-path=/home/MEFCenter/logs/error.log --http-log-path=/home/MEFCenter/logs/access.log --pid-path=/home/MEFCenter/logs/nginx.pid --lock-path=/home/MEFCenter/logs/nginx.lock --with-http_ssl_module --http-client-body-temp-path=/tmp/client_body_temp --http-proxy-temp-path=/tmp/proxy_temp --http-fastcgi-temp-path=/tmp/fastcgi_temp --http-uwsgi-temp-path=/tmp/uwsgi_temp --http-scgi-temp-path=/tmp/scgi_temp --with-cc-opt="$CFLAG" --with-ld-opt="$LDFLAG" --without-http_auth_basic_module --with-pcre-opt='-Wall -fPIC -fstack-protector-all -O2 -fomit-frame-pointer' --with-zlib-opt='-Wall -fPIC -fstack-protector-all -O2 -fomit-frame-pointer'
+    ./auto/configure --prefix=/home/MEFCenter \
+     --conf-path=/home/MEFCenter/conf/nginx.conf \
+     --error-log-path=/home/MEFCenter/logs/error.log \
+     --http-log-path=/home/MEFCenter/logs/access.log \
+     --pid-path=/home/MEFCenter/logs/nginx.pid \
+     --lock-path=/home/MEFCenter/logs/nginx.lock \
+     --with-http_ssl_module \
+     --http-client-body-temp-path=/tmp/client_body_temp \
+     --http-proxy-temp-path=/tmp/proxy_temp \
+     --http-fastcgi-temp-path=/tmp/fastcgi_temp \
+     --http-uwsgi-temp-path=/tmp/uwsgi_temp \
+     --http-scgi-temp-path=/tmp/scgi_temp \
+     --with-cc-opt="$CFLAG" --with-ld-opt="$LDFLAG" --without-http_auth_basic_module
 
     make
     cp "${TOP_DIR}/../opensource/nginx/objs/nginx" "${TOP_DIR}/output/nginx_bin"

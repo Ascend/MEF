@@ -12,13 +12,6 @@ import (
 	"cert-manager/pkg/certconstant"
 )
 
-var (
-	// BuildNameStr the program name
-	BuildNameStr string
-	// BuildVersionStr the program version
-	BuildVersionStr string
-)
-
 // Service cert manager service init
 type Service struct {
 	enable   bool
