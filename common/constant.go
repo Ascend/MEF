@@ -163,7 +163,7 @@ const (
 // regex patterns
 const (
 	// PaginationNameReg name reg of pagination query
-	PaginationNameReg = "^[\\S]{0,32}$"
+	PaginationNameReg = "^[\\S]{0,253}$"
 	// LowercaseCharactersRegex lowercase
 	LowercaseCharactersRegex = "[a-z]{1,}"
 	// UppercaseCharactersRegex uppercase
