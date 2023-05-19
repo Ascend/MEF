@@ -46,17 +46,19 @@ func (dd *DockerDealer) LoadImage(buildPath string) error {
 		return errors.New("load docker image failed")
 	}
 
-	uid, err := GetCenterUid()
+	mefUid, mefGid, err := GetMefId()
 	if err != nil {
-		hwlog.RunLog.Errorf("Get MEFCenter uid failed")
-		return errors.New("get MEFCenter uid failed")
+		hwlog.RunLog.Error("Get MEFCenter uid/gid failed")
+		return errors.New("get MEFCenter uid/gid failed")
 	}
+	uidArg := fmt.Sprintf("UID=%d", mefUid)
+	gidArg := fmt.Sprintf("GID=%d", mefGid)
 
 	// imageName is fixed name.
 	// tag is read from file or filename, the verification will be added in setVersion.
 	// absPath has been verified
 	if _, err = common.RunCommand(CommandDocker, true, common.DefCmdTimeoutSec, "build", "--build-arg",
-		fmt.Sprintf("UID=%s", uid), "-t", dd.imageName+":"+dd.tag, absPath+"/."); err != nil {
+		uidArg, "--build-arg", gidArg, "-t", dd.imageName+":"+dd.tag, absPath+"/."); err != nil {
 		hwlog.RunLog.Errorf("load docker image [%s] failed:%s", dd.imageName, err.Error())
 		return errors.New("load docker image failed")
 	}
