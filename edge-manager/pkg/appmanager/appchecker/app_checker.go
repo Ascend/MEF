@@ -14,6 +14,11 @@ func NewCreateAppChecker() *createAppChecker {
 	return &createAppChecker{}
 }
 
+// IdChecker [method] for getting query app checker struct
+func IdChecker() *checker.UintChecker {
+	return checker.GetUintChecker("", minAppId, maxAppId, true)
+}
+
 // NewUpdateAppChecker [method] for getting update app checker struct
 func NewUpdateAppChecker() *updateAppChecker {
 	return &updateAppChecker{}

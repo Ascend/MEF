@@ -65,11 +65,14 @@ func createApp(input interface{}) common.RespMsg {
 // queryApp app info
 func queryApp(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start query app info")
-
 	appId, ok := input.(uint64)
 	if !ok {
 		hwlog.RunLog.Error("query app info failed: para type not valid")
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "query app request convert error", Data: nil}
+	}
+	if checkResult := appchecker.IdChecker().Check(appId); !checkResult.Result {
+		hwlog.RunLog.Errorf("query app para check failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
 	}
 	appInfo, err := AppRepositoryInstance().getAppInfoById(appId)
 	if err == gorm.ErrRecordNotFound {
@@ -432,6 +435,10 @@ func listAppInstancesById(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("list app instances failed, param type is not integer")
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "param type is not integer", Data: nil}
 	}
+	if checkResult := appchecker.IdChecker().Check(appId); !checkResult.Result {
+		hwlog.RunLog.Errorf("list app instances failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
+	}
 	appInstances, err := AppRepositoryInstance().listAppInstancesById(appId)
 	if err != nil {
 		hwlog.RunLog.Error("list app instances db failed")
@@ -495,6 +502,10 @@ func listAppInstancesByNode(input interface{}) common.RespMsg {
 	if !ok {
 		hwlog.RunLog.Error("list app instances by node id failed, param type is not integer")
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "param type is not integer", Data: nil}
+	}
+	if checkResult := appchecker.IdChecker().Check(nodeId); !checkResult.Result {
+		hwlog.RunLog.Errorf("list app instances by node failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
 	}
 	appInstances, err := AppRepositoryInstance().listAppInstancesByNode(nodeId)
 	if err != nil {

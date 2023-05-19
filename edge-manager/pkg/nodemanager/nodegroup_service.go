@@ -97,6 +97,10 @@ func getEdgeNodeGroupDetail(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("get node group detail convert request error")
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "conver node detail input failed"}
 	}
+	if checkResult := idChecker("").Check(id); !checkResult.Result {
+		hwlog.RunLog.Errorf("get node group detail para check failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
+	}
 	var resp NodeGroupDetail
 	nodeGroup, err := NodeServiceInstance().getNodeGroupByID(id)
 	if err != nil {

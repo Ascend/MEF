@@ -32,7 +32,7 @@ func newCreateEdgeNodeChecker() *checker.AndChecker {
 }
 
 func newGetNodeDetailChecker() *checker.UintChecker {
-	return idChecker(fieldID)
+	return idChecker("")
 }
 
 func newGetGroupDetailChecker() *checker.UintChecker {
