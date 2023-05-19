@@ -1,6 +1,8 @@
 FROM ubuntu:22.04 as build
 ARG UID
-RUN useradd -d /home/MEFCenter -u ${UID} -m -s  /usr/sbin/nologin MEFCenter
+ARG GID
+RUN groupadd MEFCenter -g ${GID}
+RUN useradd -d /home/MEFCenter -u ${UID} -g ${GID} -m -s  /usr/sbin/nologin MEFCenter
 WORKDIR /home/MEFCenter
 COPY software-manager .
 COPY --chown=MEFCenter:MEFCenter ./lib/kmc-lib/* ./lib/

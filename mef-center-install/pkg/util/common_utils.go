@@ -124,17 +124,6 @@ func GetPublicIps() ([]string, error) {
 	return validIps, nil
 }
 
-// GetCenterUid is used to get the MEFCenter UID
-func GetCenterUid() (string, error) {
-	userInfo, err := user.Lookup(MefCenterName)
-	if err != nil {
-		hwlog.RunLog.Errorf("get %s uid failed: %s", MefCenterName, err.Error())
-		return "", err
-	}
-
-	return userInfo.Uid, nil
-}
-
 // GetNecessaryTools is used to get the necessary tools of MEF-Center
 func GetNecessaryTools() []string {
 	return []string{
