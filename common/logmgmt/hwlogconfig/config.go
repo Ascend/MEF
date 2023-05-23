@@ -30,6 +30,7 @@ var defaultOpConf = hwlog.LogConfig{
 	ExpiredTime:   defaultExpiredTime,
 	CacheSize:     defaultCacheSize,
 	IsCompress:    defaultIsCompress,
+	EscapeHtml:    true,
 }
 
 var defaultRunConf = hwlog.LogConfig{
@@ -40,6 +41,7 @@ var defaultRunConf = hwlog.LogConfig{
 	ExpiredTime:   defaultExpiredTime,
 	CacheSize:     defaultCacheSize,
 	IsCompress:    defaultIsCompress,
+	EscapeHtml:    true,
 }
 
 // BindFlags is wrapper of command flags

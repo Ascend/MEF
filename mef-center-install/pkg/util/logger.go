@@ -18,6 +18,7 @@ func newLogConfig(LogFileName string, logBackupDir string) *hwlog.LogConfig {
 		MaxAge:        hwlog.DefaultMinSaveAge,
 		IsCompress:    true,
 		BackupDirName: logBackupDir,
+		EscapeHtml:    true,
 	}
 }
 
