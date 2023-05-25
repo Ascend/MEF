@@ -20,6 +20,7 @@ import (
 
 	"edge-manager/pkg/types"
 	"edge-manager/pkg/util"
+
 	"huawei.com/mindxedge/base/common"
 )
 

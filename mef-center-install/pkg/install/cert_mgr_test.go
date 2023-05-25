@@ -9,8 +9,8 @@ import (
 
 	. "github.com/agiledragon/gomonkey/v2"
 	. "github.com/smartystreets/goconvey/convey"
+	"huawei.com/mindx/common/x509/certutils"
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/certutils"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 

@@ -5,8 +5,8 @@ package restful
 
 import (
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/x509/certutils"
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/certutils"
 	"huawei.com/mindxedge/base/common/httpsmgr"
 
 	"cert-manager/pkg/certconstant"

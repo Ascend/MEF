@@ -9,9 +9,8 @@ import (
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
-
-	"huawei.com/mindxedge/base/modulemanager"
-	"huawei.com/mindxedge/base/modulemanager/model"
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
 )
 
 const messageIdTimestampMask = 1e6
@@ -27,7 +26,7 @@ func newMsg(src, dst, opt, res string) *model.Message {
 // SendVoidMsg 发送一条不含content的消息
 func SendVoidMsg(src, dst, opt, res string) {
 	msg := newMsg(src, dst, opt, res)
-	if err := modulemanager.SendMessage(msg); err != nil {
+	if err := modulemgr.SendMessage(msg); err != nil {
 		hwlog.RunLog.Errorf("send message failed, error: %s", err.Error())
 	}
 }

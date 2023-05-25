@@ -7,11 +7,11 @@ import (
 	"context"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/database"
-	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/modulemanager"
-	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 // Installer edge-installer struct
@@ -60,7 +60,7 @@ func (i *Installer) Start() {
 		default:
 		}
 
-		req, err := modulemanager.ReceiveMessage(i.Name())
+		req, err := modulemgr.ReceiveMessage(i.Name())
 		if err != nil {
 			hwlog.RunLog.Errorf("module [%s] receive message from channel failed, error: %v", i.Name(), err)
 			continue
@@ -77,11 +77,6 @@ func (i *Installer) dispatchMsg(msg *model.Message) {
 }
 
 func initSoftwareMgrInfoTable() error {
-	if err := database.CreateTableIfNotExists(EdgeAccountInfo{}); err != nil {
-		hwlog.RunLog.Error("table edge_account_infos create failed")
-		return err
-	}
-
 	if err := database.CreateTableIfNotExists(SoftwareMgrInfo{}); err != nil {
 		hwlog.RunLog.Error("table software_mgr_infos create failed")
 		return err

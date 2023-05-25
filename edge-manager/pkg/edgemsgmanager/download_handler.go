@@ -7,12 +7,11 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/types"
-
-	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/modulemanager"
-	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 // downloadSoftware [method] down edge software
@@ -49,7 +48,7 @@ func downloadSoftware(input interface{}) common.RespMsg {
 	for _, sn := range req.SerialNumbers {
 		msg.SetNodeId(sn)
 
-		rsp, err := modulemanager.SendSyncMessage(msg, common.ResponseTimeout)
+		rsp, err := modulemgr.SendSyncMessage(msg, common.ResponseTimeout)
 		if err != nil {
 			errInfo := fmt.Sprintf("send software download info to %s failed", sn)
 			hwlog.RunLog.Error(errInfo)

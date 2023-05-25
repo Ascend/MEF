@@ -10,10 +10,11 @@ import (
 	"path/filepath"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/utils"
+	"huawei.com/mindx/common/x509/certutils"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/certutils"
 )
 
 // ComponentMgr is the struct for a single component's installation
@@ -257,7 +258,7 @@ func (c *ComponentMgr) PrepareComponentCert(certMng *certutils.RootCertMgr, cert
 		SvcCertPath: componentsCertPath,
 		SvcKeyPath:  componentPrivPath,
 		CommonName:  c.name,
-		KmcCfg:      common.GetKmcCfg(kmcKeyPath, kmcBackKeyPath),
+		KmcCfg:      kmc.GetKmcCfg(kmcKeyPath, kmcBackKeyPath),
 		San: certutils.CertSan{
 			DnsName: []string{getComponentDns(c.name)},
 		},
@@ -334,7 +335,7 @@ func (c *ComponentMgr) prepareUserMgrCert(certMng *certutils.RootCertMgr, certPa
 		SvcCertPath: componentsCertPath,
 		SvcKeyPath:  componentPrivPath,
 		CommonName:  c.name,
-		KmcCfg:      common.GetKmcCfg(kmcKeyPath, kmcBackKeyPath),
+		KmcCfg:      kmc.GetKmcCfg(kmcKeyPath, kmcBackKeyPath),
 		San: certutils.CertSan{
 			DnsName: []string{getComponentDns(c.name)},
 		},

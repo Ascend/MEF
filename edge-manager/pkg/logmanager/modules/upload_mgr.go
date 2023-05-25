@@ -16,14 +16,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/utils"
+	"huawei.com/mindx/common/x509/certutils"
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/httpsmgr"
+	"huawei.com/mindxedge/base/common/logmgmt/logcollect"
 
 	"edge-manager/pkg/logmanager/constants"
 	"edge-manager/pkg/util"
-	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/certutils"
-	"huawei.com/mindxedge/base/common/httpsmgr"
-	"huawei.com/mindxedge/base/common/logmgmt/logcollect"
 )
 
 const (
@@ -71,7 +72,7 @@ func (u *uploadMgr) start() {
 		IP:   os.Getenv("POD_IP"),
 		Port: servicePort,
 		TlsCertPath: certutils.TlsCertInfo{
-			KmcCfg:        common.GetDefKmcCfg(),
+			KmcCfg:        kmc.GetDefKmcCfg(),
 			RootCaContent: rootCaBytes,
 			CertPath:      path.Join(certPathDir, serviceName),
 			KeyPath:       path.Join(certPathDir, keyFileName),

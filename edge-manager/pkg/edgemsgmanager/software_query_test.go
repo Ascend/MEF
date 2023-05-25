@@ -9,10 +9,10 @@ import (
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/types"
-	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 func testSoftwareQueryValid() {

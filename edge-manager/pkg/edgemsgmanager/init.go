@@ -9,12 +9,11 @@ import (
 	"path/filepath"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/types"
-
-	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/modulemanager"
-	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 var nodesProgress map[string]types.ProgressInfo
@@ -58,7 +57,7 @@ func (nm *NodeMsgDealer) Start() {
 		default:
 		}
 
-		msg, err := modulemanager.ReceiveMessage(nm.Name())
+		msg, err := modulemgr.ReceiveMessage(nm.Name())
 		if err != nil {
 			hwlog.RunLog.Errorf("module [%s] receive message from channel failed, error: %v", nm.Name(), err)
 			continue
@@ -88,7 +87,7 @@ func (nm *NodeMsgDealer) dispatch(req *model.Message) {
 	}
 
 	resp.FillContent(msg)
-	if err = modulemanager.SendMessage(resp); err != nil {
+	if err = modulemgr.SendMessage(resp); err != nil {
 		hwlog.RunLog.Errorf("%s send response failed: %v", nm.Name(), err)
 	}
 }

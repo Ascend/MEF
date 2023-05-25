@@ -10,15 +10,13 @@ import (
 	"sync"
 
 	"huawei.com/mindx/common/hwlog"
-
-	"edge-manager/pkg/logmanager/modules"
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/handlerbase"
-	"huawei.com/mindxedge/base/modulemanager"
 
 	"edge-manager/pkg/logmanager/handlers"
-
-	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/modulemanager/model"
+	"edge-manager/pkg/logmanager/modules"
 )
 
 // NewLogManager creates a new log manager
@@ -79,7 +77,7 @@ func (l *logManager) Start() {
 		default:
 		}
 
-		req, err := modulemanager.ReceiveMessage(l.Name())
+		req, err := modulemgr.ReceiveMessage(l.Name())
 		if err != nil {
 			hwlog.RunLog.Errorf("module [%s] receive message from channel failed, error: %v", l.Name(), err)
 			continue

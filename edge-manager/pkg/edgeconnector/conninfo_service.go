@@ -6,13 +6,12 @@ package edgeconnector
 import (
 	"time"
 
+	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindxedge/base/common"
+
 	"edge-manager/pkg/database"
 	"edge-manager/pkg/util"
-
-	"huawei.com/mindx/common/hwlog"
-
-	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 // UpdateTableConnInfo updates item in table conn_infos

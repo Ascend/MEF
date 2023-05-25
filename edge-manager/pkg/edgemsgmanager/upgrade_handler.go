@@ -7,11 +7,11 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/types"
-	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/modulemanager"
-	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 func upgradeEdgeSoftware(input interface{}) common.RespMsg {
@@ -47,7 +47,7 @@ func upgradeEdgeSoftware(input interface{}) common.RespMsg {
 	for _, sn := range req.SerialNumbers {
 		msg.SetNodeId(sn)
 
-		rsp, err := modulemanager.SendSyncMessage(msg, common.ResponseTimeout)
+		rsp, err := modulemgr.SendSyncMessage(msg, common.ResponseTimeout)
 		if err != nil {
 			errInfo := fmt.Sprintf("send software upgrade info to %s failed", sn)
 			hwlog.RunLog.Error(errInfo)

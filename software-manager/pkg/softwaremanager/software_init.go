@@ -7,9 +7,10 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
+
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/modulemanager"
-	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 type handlerFunc func(req interface{}) common.RespMsg
@@ -37,7 +38,7 @@ func (sr *softwareManager) Start() {
 			return
 		default:
 		}
-		req, err := modulemanager.ReceiveMessage(common.SoftwareManagerName)
+		req, err := modulemgr.ReceiveMessage(common.SoftwareManagerName)
 		hwlog.RunLog.Debugf("%s receive request from software manager", common.SoftwareManagerName)
 		if err != nil {
 			hwlog.RunLog.Errorf("%s receive request from software manager failed", common.SoftwareManagerName)
@@ -54,7 +55,7 @@ func (sr *softwareManager) Start() {
 			continue
 		}
 		resp.FillContent(msg)
-		if err = modulemanager.SendMessage(resp); err != nil {
+		if err = modulemgr.SendMessage(resp); err != nil {
 			hwlog.RunLog.Errorf("%s send response failed", common.SoftwareManagerName)
 			continue
 		}

@@ -14,12 +14,12 @@ import (
 	"strings"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/database"
 	"edge-manager/pkg/nodemanager"
-	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/modulemanager"
-	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 func sendToSoftwareManager(nodeID string, dealSfwReq *DownloadSfwReqToSfwMgr) (*http.Response, error) {
@@ -231,7 +231,7 @@ func respRestful(message *model.Message) (*UpgradeSfwReq, error) {
 		return nil, errors.New("edge-installer new response failed")
 	}
 	respToRestful.FillContent(respContent)
-	if err = modulemanager.SendMessage(respToRestful); err != nil {
+	if err = modulemgr.SendMessage(respToRestful); err != nil {
 		hwlog.RunLog.Errorf("%s send response to restful failed", common.EdgeInstallerName)
 		return nil, err
 	}
