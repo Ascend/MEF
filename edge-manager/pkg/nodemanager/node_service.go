@@ -37,6 +37,10 @@ func getNodeDetail(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("query node detail failed: para type not valid")
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "query node detail convert param failed"}
 	}
+	if checkResult := newGetNodeDetailChecker().Check(id); !checkResult.Result {
+		hwlog.RunLog.Errorf("query node detail parameters failed, %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
+	}
 	var resp NodeInfoDetail
 	nodeInfo, err := NodeServiceInstance().getNodeByID(id)
 	if err != nil {

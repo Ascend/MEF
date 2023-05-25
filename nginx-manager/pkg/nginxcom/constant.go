@@ -18,6 +18,8 @@ const (
 	ServerCertFile = "/home/data/config/mef-certs/nginx-manager-server.crt"
 	// ServerCertKeyFile nginx对外服务证书私钥文件
 	ServerCertKeyFile = "/home/data/config/mef-certs/nginx-manager-server.key"
+	// NorthernCertFile 北向证书文件
+	NorthernCertFile = "/home/data/config/mef-certs/northern-root.crt"
 	// ClientCertFile 内部转发消息的证书
 	ClientCertFile = "/home/data/config/mef-certs/nginx-manager.crt"
 	// ClientCertKeyFile 内部转发消息的证书私钥文件

@@ -30,7 +30,7 @@ func CheckAndModifyHostPath(hostPath []string) []string {
 	for i := 0; i < whiteListNumber; i++ {
 		if checkResult := util.GetPathChecker("", true).Check(hostPath[i]); !checkResult.Result {
 			hwlog.RunLog.Errorf("checking pod config host path, "+
-				"path [%s] is invalid, and won't be effective", checkResult.Reason)
+				"path [%s] is invalid [%s], and won't be effective", hostPath[i], checkResult.Reason)
 			continue
 		}
 		hostPathTmp = append(hostPathTmp, filepath.Clean(hostPath[i]))

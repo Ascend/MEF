@@ -16,12 +16,41 @@ if [ -f "$VER_FILE" ]; then
   build_version=${line#*:}
 fi
 arch=$(arch 2>&1)
-function mv_file() {
 
+function buildNginx() {
+    cd "${TOP_DIR}/../opensource/nginx/"
+    chmod 750 auto/configure
+    CFLAG="-Wall -O2 -fstack-protector-strong -fPIE"
+    LDFLAG="-Wl,-z,relro,-z,now,-z,noexecstack -pie -s"
+
+    ./auto/configure --prefix=/home/MEFCenter \
+     --conf-path=/home/MEFCenter/conf/nginx.conf \
+     --error-log-path=/home/MEFCenter/logs/error.log \
+     --http-log-path=/home/MEFCenter/logs/access.log \
+     --pid-path=/home/MEFCenter/logs/nginx.pid \
+     --lock-path=/home/MEFCenter/logs/nginx.lock \
+     --with-http_ssl_module \
+     --http-client-body-temp-path=/tmp/client_body_temp \
+     --http-proxy-temp-path=/tmp/proxy_temp \
+     --http-fastcgi-temp-path=/tmp/fastcgi_temp \
+     --http-uwsgi-temp-path=/tmp/uwsgi_temp \
+     --http-scgi-temp-path=/tmp/scgi_temp \
+     --with-cc-opt="$CFLAG" --with-ld-opt="$LDFLAG" --without-http_auth_basic_module
+
+    make
+    cp "${TOP_DIR}/../opensource/nginx/objs/nginx" "${TOP_DIR}/output/nginx_bin"
+}
+
+function mv_file() {
   mkdir -p "${TOP_DIR}/output/nginx/conf"
   cp -R "${TOP_DIR}/../opensource/nginx/conf/mime.types" "${TOP_DIR}/output/nginx/conf/"
   cp "${TOP_DIR}/build/nginx_default.conf" "${TOP_DIR}/output/nginx/conf/"
   cp "${TOP_DIR}/build/nginx_resolver.conf" "${TOP_DIR}/output/nginx/conf/"
+
+  mv "${TOP_DIR}/output/nginx_bin" "${TOP_DIR}/output/nginx/nginx"
+  cp -R "${TOP_DIR}/../../lib" "${TOP_DIR}/output/nginx/lib"
+  cp "${TOP_DIR}"/../output/lib/libssl.so* "${TOP_DIR}/output/nginx/lib"
+
   chmod 700 "${TOP_DIR}"/output/nginx/conf
   chmod 400 "${TOP_DIR}"/output/nginx/conf/*
   cp "${TOP_DIR}/cmd/${OUTPUT_NAME}" "${TOP_DIR}/output/nginx/"
@@ -39,6 +68,7 @@ function mv_file() {
 }
 
 function main() {
+  buildNginx
   mv_file
 }
 main

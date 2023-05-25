@@ -4,14 +4,13 @@
 package restful
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-
-	"cert-manager/pkg/certmanager"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/restfulmgr"
+
+	"cert-manager/pkg/certmanager"
 )
 
 var certRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
@@ -41,15 +40,9 @@ var innerCertRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 }
 
 func setRouter(engine *gin.Engine) {
-	engine.GET("/certmanager/v1/version", versionQuery)
 	engine.GET("/certmanager/v1/export", certmanager.ExportRootCa)
 	restfulmgr.InitRouter(engine, certRouterDispatchers)
 	restfulmgr.InitRouter(engine, innerCertRouterDispatchers)
-}
-
-func versionQuery(c *gin.Context) {
-	msg := fmt.Sprintf("%s version: %s", BuildNameStr, BuildVersionStr)
-	common.ConstructResp(c, common.Success, "", msg)
 }
 
 type queryDispatcher struct {

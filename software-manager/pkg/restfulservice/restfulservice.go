@@ -23,6 +23,7 @@ type SoftwareInfo struct {
 	ContentType string
 	Version     string
 	UserName    string
+	FileName    string
 	Password    []byte
 	Page        int
 	PageSize    int
@@ -44,9 +45,12 @@ const (
 )
 
 const (
-	serverCertPath = "/home/data/config/mef-certs/software-manager.crt"
-	serverKeyPath  = "/home/data/config/mef-certs/software-manager.key"
-	rootCaPath     = "/home/data/inner-root-ca/RootCA.crt"
+	// ServerCertPath server cert path
+	ServerCertPath = "/home/data/config/mef-certs/nginx-manager-server.crt"
+	// ServerKeyPath server encrypt key path
+	ServerKeyPath = "/home/data/config/mef-certs/nginx-manager-server.key"
+	// RootCaPath root ca path
+	RootCaPath = "/home/data/inner-root-ca/root.crt"
 )
 
 const (
@@ -75,9 +79,9 @@ func NewRestfulService(enable bool, ip string, port int) model.Module {
 		httpsSvr: &httpsmgr.HttpsServer{
 			Port: port,
 			TlsCertPath: certutils.TlsCertInfo{
-				RootCaPath: rootCaPath,
-				CertPath:   serverCertPath,
-				KeyPath:    serverKeyPath,
+				RootCaPath: RootCaPath,
+				CertPath:   ServerCertPath,
+				KeyPath:    ServerKeyPath,
 				SvrFlag:    true,
 				KmcCfg:     nil,
 			},
@@ -143,9 +147,9 @@ func downloadInfoMapping(c *gin.Context) (SoftwareInfo, error) {
 	info := SoftwareInfo{
 		ContentType: c.Query(ContentType),
 		Version:     c.Query(Version),
+		FileName:    c.Query("fileName"),
 		UserName:    c.Request.Header.Get("userName"),
 		Password:    []byte(c.Request.Header.Get("password")),
-		NodeID:      c.Request.Header.Get("nodeId"),
 	}
 	return info, nil
 }

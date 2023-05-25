@@ -6,25 +6,25 @@ package nginxmgr
 import (
 	"context"
 	"os"
-	"os/exec"
 	"time"
+
+	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/utils"
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/modulemanager"
+	"huawei.com/mindxedge/base/modulemanager/model"
 
 	"nginx-manager/pkg/msgutil"
 	"nginx-manager/pkg/nginxcom"
-
-	"huawei.com/mindx/common/hwlog"
-
-	"huawei.com/mindxedge/base/modulemanager"
-	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 const (
-	retryInterval = 15 * time.Second
-	restyBinPath  = "/usr/bin/openresty"
-	restyPrefix   = "/home/MEFCenter/"
-	accessLogFile = "/home/MEFCenter/logs/access.log"
-	errorLogFile  = "/home/MEFCenter/logs/error.log"
-	logFileMode   = 0600
+	retryInterval          = 1 * time.Second
+	maxCheckNorthCertTimes = 15
+	startCommand           = "./nginx"
+	accessLogFile          = "/home/MEFCenter/logs/access.log"
+	errorLogFile           = "/home/MEFCenter/logs/error.log"
+	logFileMode            = 0600
 )
 
 // InitResource initial the resources needed by nginx
@@ -123,18 +123,25 @@ func doStartNginx() bool {
 		return false
 	}
 
-	return startResty()
+	return startNginxCmd()
 }
 
 func startNginx() {
-	count := 0
+	checkCount := 0
 	for {
-		success := doStartNginx()
-		if success {
+		if !utils.IsExist(nginxcom.NorthernCertFile) {
+			checkCount++
+			if checkCount > maxCheckNorthCertTimes {
+				hwlog.RunLog.Error("check nginx north certs failed")
+				checkCount = 0
+			}
+			time.Sleep(retryInterval)
+			continue
+		}
+		if doStartNginx() {
 			return
 		}
-		count++
-		hwlog.RunLog.Errorf("start nginx fail exceed %d times", count)
+		hwlog.RunLog.Error("start nginx failed")
 		time.Sleep(retryInterval)
 	}
 }
@@ -173,11 +180,10 @@ func reqRestartNginx(req *model.Message) {
 	msgutil.SendVoidMsg(nginxcom.NginxManagerName, nginxcom.NginxMonitorName, nginxcom.RespRestartNginx, nginxcom.Nginx)
 }
 
-func startResty() bool {
-	cmd := exec.Command(restyBinPath, "-p", restyPrefix)
-	_, err := cmd.CombinedOutput()
+func startNginxCmd() bool {
+	_, err := common.RunCommand(startCommand, true, common.DefCmdTimeoutSec)
 	if err != nil {
-		hwlog.RunLog.Errorf("run openresty failed: %s", err.Error())
+		hwlog.RunLog.Errorf("start nginx failed:%s", err.Error())
 		return false
 	}
 	if err = os.Chmod(accessLogFile, logFileMode); err != nil {
@@ -188,6 +194,6 @@ func startResty() bool {
 		hwlog.RunLog.Errorf("chmod error.log failed, cause by: {%v}", err.Error())
 		return false
 	}
-	hwlog.RunLog.Info("run openresty success")
+	hwlog.RunLog.Info("run nginx success")
 	return true
 }

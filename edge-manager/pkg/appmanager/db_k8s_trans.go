@@ -143,8 +143,8 @@ func getContainers(containerInfos []Container) ([]v1.Container, error) {
 			Resources:       resources,
 			VolumeMounts:    volumes,
 			SecurityContext: &v1.SecurityContext{
-				RunAsUser:              &RunAsUser,
-				RunAsGroup:             &RunAsGroup,
+				RunAsUser:              RunAsUser,
+				RunAsGroup:             RunAsGroup,
 				RunAsNonRoot:           &runAsNonRoot,
 				ReadOnlyRootFilesystem: &readOnlyRootFilesystem,
 				Capabilities: &v1.Capabilities{

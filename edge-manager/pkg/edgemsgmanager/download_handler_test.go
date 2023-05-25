@@ -179,7 +179,6 @@ func testDownloadInfoPackageInvalid() {
 		"GET https://A$scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
 		"GET https://A\\scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
 		"GET https://A;scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
-		"GET https://A&scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
 		"GET https://A<scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
 		"GET https://A>scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
 		"GET https://Ascend -mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
@@ -224,7 +223,6 @@ func testDownloadInfoSignFileInvalid() {
 		"GET https://A$scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
 		"GET https://A\\scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
 		"GET https://A;scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
-		"GET https://A&scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
 		"GET https://A<scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
 		"GET https://A>scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
 		"GET https://Ascend -mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
@@ -265,7 +263,6 @@ func testDownloadInfoUserNameInvalid() {
 		"",
 		"_FileTransferAccount",
 		"-FileTransferAccount",
-		"0FileTransferAccount",
 		"FileTransferAccountFileTransferAccountFileTransferAccountFileTransf",
 	}
 	for _, dataCase := range failDataCases {

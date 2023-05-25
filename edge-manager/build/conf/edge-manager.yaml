@@ -10,7 +10,7 @@ compile:
     envVariables:
       GO111MODULE: "on"
       GONOSUMDB: "*"
-      GOPROXY: "https://cmc.centralrepo.rnd.huawei.com/go,direct"
+      GOPROXY: "https://cmc.centralrepo.rnd.huawei.com/artifactory/go-central-repo,direct"
       CGO_ENABLED: "1"
       CGO_CFLAGS: "-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
       CGO_CPPFLAGS: "-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
@@ -25,7 +25,7 @@ compile:
     compilePath: "{{TOP_DIR}}/cmd"
     parameters: [['buildmode', "pie"],
                  ["mod", "mod"],
-                 ['ldflags', '-X "edge-manager/pkg/config.BuildName={{component}}" -X "edge-manager/pkg/config.BuildVersion={{version}}_linux-{{systemEnv.processor}}" -s -linkmode=external -extldflags=-Wl,-z,now'],
+                 ['ldflags', '-X "edge-manager/pkg/config.BuildName={{component}}" -X "edge-manager/pkg/config.BuildVersion={{version}}" -s -linkmode=external -extldflags=-Wl,-z,now'],
                  ["o", "{{component}}"],
                  ['trimpath',""],]
   output:
