@@ -8,13 +8,13 @@ import (
 	"errors"
 
 	"huawei.com/mindx/common/hwlog"
-
-	"edge-manager/pkg/util"
+	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindx/common/x509/certutils"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/certutils"
 	"huawei.com/mindxedge/base/common/httpsmgr"
-	"huawei.com/mindxedge/base/modulemanager/model"
+
+	"edge-manager/pkg/util"
 )
 
 func queryCertInfo(certName string) (certutils.ClientCertResp, error) {

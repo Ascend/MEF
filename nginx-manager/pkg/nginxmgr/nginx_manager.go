@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/modulemanager"
-	"huawei.com/mindxedge/base/modulemanager/model"
 
 	"nginx-manager/pkg/msgutil"
 	"nginx-manager/pkg/nginxcom"
@@ -162,7 +162,7 @@ func (n *nginxManager) Start() {
 			return
 		default:
 		}
-		req, err := modulemanager.ReceiveMessage(nginxcom.NginxManagerName)
+		req, err := modulemgr.ReceiveMessage(nginxcom.NginxManagerName)
 		if err != nil {
 			hwlog.RunLog.Errorf("%s receive request failed", nginxcom.NginxManagerName)
 			continue

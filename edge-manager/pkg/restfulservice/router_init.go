@@ -5,12 +5,12 @@ package restfulservice
 
 import (
 	"huawei.com/mindx/common/hwlog"
-
-	"edge-manager/pkg/util"
+	"huawei.com/mindx/common/x509/certutils"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/certutils"
 	"huawei.com/mindxedge/base/common/httpsmgr"
+
+	"edge-manager/pkg/util"
 )
 
 // EdgeMgrService [struct] for Edge Manager Service

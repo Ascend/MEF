@@ -12,16 +12,16 @@ import (
 	"strconv"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindx/common/x509/certutils"
+	"huawei.com/mindxedge/base/common"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"edge-manager/pkg/configmanager/configchecker"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/util"
-	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/certutils"
-	"huawei.com/mindxedge/base/modulemanager"
-	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 // downloadConfig download image config
@@ -172,7 +172,7 @@ func sendMessageToNode(serialNumber string, content string) error {
 	sendMsg.SetNodeId(serialNumber)
 	sendMsg.SetRouter(common.ConfigManagerName, common.CloudHubName, common.OptPost, common.ResDownLoadCert)
 	sendMsg.FillContent(content)
-	if err = modulemanager.SendMessage(sendMsg); err != nil {
+	if err = modulemgr.SendMessage(sendMsg); err != nil {
 		return fmt.Errorf("%s sends message to %s failed, error: %v",
 			common.ConfigManagerName, common.CloudHubName, err)
 	}

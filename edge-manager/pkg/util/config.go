@@ -9,12 +9,13 @@ import (
 	"strings"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/x509/certutils"
 	"k8s.io/api/core/v1"
 
-	"edge-manager/pkg/kubeclient"
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/certutils"
 	"huawei.com/mindxedge/base/common/httpsmgr"
+
+	"edge-manager/pkg/kubeclient"
 )
 
 const (

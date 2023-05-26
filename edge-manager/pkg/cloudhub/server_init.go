@@ -12,12 +12,13 @@ import (
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/utils"
+	"huawei.com/mindx/common/websocketmgr"
+	"huawei.com/mindx/common/x509/certutils"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/certutils"
 	"huawei.com/mindxedge/base/common/httpsmgr"
-	"huawei.com/mindxedge/base/common/websocketmgr"
 
 	"edge-manager/pkg/util"
 )
@@ -44,7 +45,7 @@ func InitServer() error {
 		return err
 	}
 	certInfo := certutils.TlsCertInfo{
-		KmcCfg:        common.GetDefKmcCfg(),
+		KmcCfg:        kmc.GetDefKmcCfg(),
 		RootCaContent: rootCaBytes,
 		CertPath:      path.Join(certPathDir, serviceName),
 		KeyPath:       path.Join(certPathDir, keyFileName),

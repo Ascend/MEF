@@ -8,11 +8,10 @@ import (
 	"sync"
 
 	"huawei.com/mindx/common/hwlog"
-
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/handlerbase"
-	"huawei.com/mindxedge/base/modulemanager"
-	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 var handlerMgr handlerbase.HandlerMgr
@@ -22,7 +21,6 @@ var registerInfoList = []handlerbase.RegisterInfo{
 	{MsgOpt: common.OptGet, MsgRes: common.ResDownLoadSoftware, Handler: new(downloadHandler)},
 	{MsgOpt: common.OptPost, MsgRes: common.ResDownLoadSoftware, Handler: new(upgradeHandler)},
 	{MsgOpt: common.OptGet, MsgRes: common.ResDownLoadCert, Handler: new(certHandler)},
-	{MsgOpt: common.OptPost, MsgRes: common.ResSetEdgeAccount, Handler: new(accountHandler)},
 }
 
 // GetHandlerMgr get handler manager
@@ -49,7 +47,7 @@ func sendMessage(msg *model.Message, resp string) error {
 	respMsg.FillContent(resp)
 	respMsg.SetRouter(common.NodeMsgManagerName, common.NodeMsgManagerName, common.OptPost, msg.GetResource())
 
-	if err = modulemanager.SendMessage(respMsg); err != nil {
+	if err = modulemgr.SendMessage(respMsg); err != nil {
 		hwlog.RunLog.Errorf("edge-installer send message failed, error: %v", err)
 		return fmt.Errorf("edge-installer send message failed, error: %v", err)
 	}
@@ -67,7 +65,7 @@ func sendResponse(msg *model.Message, resp string) error {
 	newResponse.FillContent(resp)
 	newResponse.SetRouter(common.EdgeInstallerName, common.NodeMsgManagerName, common.OptPost, msg.GetResource())
 
-	if err = modulemanager.SendAsyncMessage(newResponse); err != nil {
+	if err = modulemgr.SendAsyncMessage(newResponse); err != nil {
 		hwlog.RunLog.Errorf("edge-installer send sync message failed, error: %v", err)
 		return fmt.Errorf("edge-installer send sync message failed, error: %v", err)
 	}

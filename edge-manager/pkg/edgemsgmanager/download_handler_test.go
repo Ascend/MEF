@@ -11,10 +11,10 @@ import (
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/modulemanager"
-	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 func createBaseData() SoftwareDownloadInfo {
@@ -53,7 +53,7 @@ func testDownloadInfo() {
 
 	msg.FillContent(string(content))
 
-	var p2 = gomonkey.ApplyFunc(modulemanager.SendSyncMessage, func(m *model.Message,
+	var p2 = gomonkey.ApplyFunc(modulemgr.SendSyncMessage, func(m *model.Message,
 		duration time.Duration) (*model.Message, error) {
 		rspMsg, err := model.NewMessage()
 		if err != nil {
@@ -75,7 +75,7 @@ func testDownloadInfoSerialNumbersInvalid() {
 		hwlog.RunLog.Errorf("create message failed")
 	}
 
-	var p2 = gomonkey.ApplyFunc(modulemanager.SendSyncMessage, func(m *model.Message,
+	var p2 = gomonkey.ApplyFunc(modulemgr.SendSyncMessage, func(m *model.Message,
 		duration time.Duration) (*model.Message, error) {
 		rspMsg, err := model.NewMessage()
 		if err != nil {
@@ -119,7 +119,7 @@ func testDownloadInfoSoftWareNameInvalid() {
 		hwlog.RunLog.Errorf("create message failed")
 	}
 
-	var p2 = gomonkey.ApplyFunc(modulemanager.SendSyncMessage, func(m *model.Message,
+	var p2 = gomonkey.ApplyFunc(modulemgr.SendSyncMessage, func(m *model.Message,
 		duration time.Duration) (*model.Message, error) {
 		rspMsg, err := model.NewMessage()
 		if err != nil {
@@ -156,7 +156,7 @@ func testDownloadInfoPackageInvalid() {
 		hwlog.RunLog.Errorf("create message failed")
 	}
 
-	var p2 = gomonkey.ApplyFunc(modulemanager.SendSyncMessage, func(m *model.Message,
+	var p2 = gomonkey.ApplyFunc(modulemgr.SendSyncMessage, func(m *model.Message,
 		duration time.Duration) (*model.Message, error) {
 		rspMsg, err := model.NewMessage()
 		if err != nil {
@@ -203,7 +203,7 @@ func testDownloadInfoSignFileInvalid() {
 		hwlog.RunLog.Errorf("create message failed")
 	}
 
-	var p2 = gomonkey.ApplyFunc(modulemanager.SendSyncMessage, func(m *model.Message,
+	var p2 = gomonkey.ApplyFunc(modulemgr.SendSyncMessage, func(m *model.Message,
 		duration time.Duration) (*model.Message, error) {
 		rspMsg, err := model.NewMessage()
 		if err != nil {
@@ -247,7 +247,7 @@ func testDownloadInfoUserNameInvalid() {
 		hwlog.RunLog.Errorf("create message failed")
 	}
 
-	var p2 = gomonkey.ApplyFunc(modulemanager.SendSyncMessage, func(m *model.Message,
+	var p2 = gomonkey.ApplyFunc(modulemgr.SendSyncMessage, func(m *model.Message,
 		duration time.Duration) (*model.Message, error) {
 		rspMsg, err := model.NewMessage()
 		if err != nil {
@@ -285,7 +285,7 @@ func testDownloadInfoPasswdInvalid() {
 		hwlog.RunLog.Errorf("create message failed")
 	}
 
-	var p2 = gomonkey.ApplyFunc(modulemanager.SendSyncMessage, func(m *model.Message,
+	var p2 = gomonkey.ApplyFunc(modulemgr.SendSyncMessage, func(m *model.Message,
 		duration time.Duration) (*model.Message, error) {
 		rspMsg, err := model.NewMessage()
 		if err != nil {

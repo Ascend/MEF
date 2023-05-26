@@ -12,10 +12,12 @@ import (
 	"syscall"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/kmc"
+	"huawei.com/mindx/common/modulemgr"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
-	"huawei.com/mindxedge/base/modulemanager"
 
 	"cert-manager/pkg/certmanager"
 	"cert-manager/pkg/restful"
@@ -83,7 +85,7 @@ func init() {
 }
 
 func initResource() error {
-	err := common.InitKmcCfg(defaultKmcPath)
+	err := kmc.InitKmcCfg(defaultKmcPath)
 	if err != nil {
 		hwlog.RunLog.Warnf("init kmc config from json failed: %v, use default kmc config", err)
 	}
@@ -91,14 +93,14 @@ func initResource() error {
 }
 
 func register(ctx context.Context) error {
-	modulemanager.ModuleInit()
-	if err := modulemanager.Registry(restful.NewRestfulService(true, ip, port)); err != nil {
+	modulemgr.ModuleInit()
+	if err := modulemgr.Registry(restful.NewRestfulService(true, ip, port)); err != nil {
 		return err
 	}
-	if err := modulemanager.Registry(certmanager.NewCertManager(true)); err != nil {
+	if err := modulemgr.Registry(certmanager.NewCertManager(true)); err != nil {
 		return err
 	}
-	modulemanager.Start()
+	modulemgr.Start()
 	return nil
 }
 

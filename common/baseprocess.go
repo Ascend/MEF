@@ -11,9 +11,8 @@ import (
 	"unsafe"
 
 	"huawei.com/mindx/common/hwlog"
-
-	"huawei.com/mindxedge/base/modulemanager"
-	"huawei.com/mindxedge/base/modulemanager/model"
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
 )
 
 // Router struct
@@ -55,7 +54,7 @@ func SendSyncMessageByRestful(input interface{}, router *Router) RespMsg {
 	msg.SetIsSync(true)
 	msg.SetRouter(router.Source, router.Destination, router.Option, router.Resource)
 	msg.FillContent(input)
-	respMsg, err := modulemanager.SendSyncMessage(msg, ResponseTimeout)
+	respMsg, err := modulemgr.SendSyncMessage(msg, ResponseTimeout)
 	if err != nil {
 		hwlog.RunLog.Error("get response error")
 		return RespMsg{Status: ErrorsSendSyncMessageByRestful, Msg: "", Data: nil}

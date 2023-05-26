@@ -5,12 +5,11 @@ package edgemsgmanager
 
 import (
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker/checker"
 
 	"edge-manager/pkg/types"
-
-	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 func queryEdgeDownloadProgress(input interface{}) common.RespMsg {

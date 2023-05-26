@@ -11,16 +11,16 @@ import (
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
-
-	"edge-manager/pkg/logmanager/constants"
-	"edge-manager/pkg/logmanager/modules"
-	"edge-manager/pkg/types"
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker/checker"
 	"huawei.com/mindxedge/base/common/handlerbase"
 	"huawei.com/mindxedge/base/common/logmgmt/logcollect"
-	"huawei.com/mindxedge/base/modulemanager"
-	"huawei.com/mindxedge/base/modulemanager/model"
+
+	"edge-manager/pkg/logmanager/constants"
+	"edge-manager/pkg/logmanager/modules"
+	"edge-manager/pkg/types"
 )
 
 const sendMessageTimeout = 5 * time.Second
@@ -101,7 +101,7 @@ func (h *createTaskHandler) sendReqToEdge(edgeNode string, config logcollect.Upl
 	msg.SetRouter(common.LogManagerName, common.CloudHubName, common.OptPost, common.ResLogEdge)
 	msg.SetNodeId(edgeNode)
 	msg.Content = config
-	_, err = modulemanager.SendSyncMessage(msg, sendMessageTimeout)
+	_, err = modulemgr.SendSyncMessage(msg, sendMessageTimeout)
 	return err
 }
 

@@ -8,13 +8,13 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
-
-	"edge-manager/pkg/logmanager/modules"
-	"edge-manager/pkg/types"
+	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/handlerbase"
 	"huawei.com/mindxedge/base/common/logmgmt/logcollect"
-	"huawei.com/mindxedge/base/modulemanager/model"
+
+	"edge-manager/pkg/logmanager/modules"
+	"edge-manager/pkg/types"
 )
 
 // GetQueryTaskPathHandler get queryTaskPathHandler

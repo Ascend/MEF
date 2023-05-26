@@ -9,11 +9,11 @@ import (
 	"sync"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindx/common/websocketmgr"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/websocketmgr"
-	"huawei.com/mindxedge/base/modulemanager"
-	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 // CloudServer wraps the struct WebSocketServer
@@ -73,7 +73,7 @@ func (c *CloudServer) Start() {
 		default:
 		}
 
-		message, err := modulemanager.ReceiveMessage(c.Name())
+		message, err := modulemgr.ReceiveMessage(c.Name())
 		if err != nil {
 			hwlog.RunLog.Errorf("module [%s] receive message from channel failed, error: %v", c.Name(), err)
 			continue
@@ -103,7 +103,7 @@ func (c *CloudServer) response(message *model.Message, content string) {
 	}
 
 	resp.FillContent(content)
-	if err = modulemanager.SendMessage(resp); err != nil {
+	if err = modulemgr.SendMessage(resp); err != nil {
 		hwlog.RunLog.Errorf("%s send response failed", c.Name())
 	}
 }

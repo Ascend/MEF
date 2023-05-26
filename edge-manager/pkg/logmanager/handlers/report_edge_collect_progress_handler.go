@@ -7,11 +7,11 @@ import (
 	"encoding/json"
 
 	"huawei.com/mindx/common/hwlog"
-
-	"edge-manager/pkg/logmanager/modules"
+	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindxedge/base/common/handlerbase"
 	"huawei.com/mindxedge/base/common/logmgmt/logcollect"
-	"huawei.com/mindxedge/base/modulemanager/model"
+
+	"edge-manager/pkg/logmanager/modules"
 )
 
 // GetReportEdgeProgressHandler get reportEdgeProgressHandler

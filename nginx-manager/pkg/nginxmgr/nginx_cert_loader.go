@@ -9,10 +9,11 @@ import (
 	"syscall"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/utils"
+	"huawei.com/mindx/common/x509/certutils"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/certutils"
 	"huawei.com/mindxedge/base/common/httpsmgr"
 
 	"nginx-manager/pkg/nginxcom"
@@ -123,7 +124,7 @@ func loadKey(path string) ([]byte, error) {
 		hwlog.RunLog.Errorf("load key file failed: %s" + err.Error())
 		return nil, fmt.Errorf("load key file failed: %s" + err.Error())
 	}
-	decryptKeyByte, err := common.DecryptContent(encryptKeyContent, common.GetDefKmcCfg())
+	decryptKeyByte, err := kmc.DecryptContent(encryptKeyContent, kmc.GetDefKmcCfg())
 	if err != nil {
 		hwlog.RunLog.Errorf("decrypt key content failed: %s" + err.Error())
 		return nil, fmt.Errorf("decrypt key content failed: %s" + err.Error())
