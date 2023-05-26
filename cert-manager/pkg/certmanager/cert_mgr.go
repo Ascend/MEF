@@ -14,12 +14,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
+	"huawei.com/mindx/common/x509/certutils"
+
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/httpsmgr"
 
 	"cert-manager/pkg/certconstant"
 	"cert-manager/pkg/certmanager/certchecker"
-	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/certutils"
-	"huawei.com/mindxedge/base/common/httpsmgr"
 )
 
 var lock sync.Mutex

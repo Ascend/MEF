@@ -11,17 +11,18 @@ import (
 	"os/signal"
 	"syscall"
 
-	"nginx-manager/pkg/nginxcom"
-	"nginx-manager/pkg/nginxmgr"
-	"nginx-manager/pkg/nginxmonitor"
-
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/kmc"
+	"huawei.com/mindx/common/logmgmt/logrotate"
+	"huawei.com/mindx/common/modulemgr"
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
-	"huawei.com/mindxedge/base/common/logmgmt/logrotate"
-	"huawei.com/mindxedge/base/modulemanager"
+
+	"nginx-manager/pkg/nginxcom"
 	"nginx-manager/pkg/nginxlogrotate"
+	"nginx-manager/pkg/nginxmgr"
+	"nginx-manager/pkg/nginxmonitor"
 )
 
 const (
@@ -63,7 +64,7 @@ func initResource() error {
 		return err
 	}
 
-	err := common.InitKmcCfg(defaultKmcPath)
+	err := kmc.InitKmcCfg(defaultKmcPath)
 	if err != nil {
 		hwlog.RunLog.Warnf("init kmc config from json failed: %v, use default kmc config", err)
 	}
@@ -71,18 +72,18 @@ func initResource() error {
 }
 
 func register(ctx context.Context) error {
-	modulemanager.ModuleInit()
-	if err := modulemanager.Registry(nginxmgr.NewNginxManager(true, ctx)); err != nil {
+	modulemgr.ModuleInit()
+	if err := modulemgr.Registry(nginxmgr.NewNginxManager(true, ctx)); err != nil {
 		return err
 	}
-	if err := modulemanager.Registry(nginxmonitor.NewNginxMonitor(true, ctx)); err != nil {
+	if err := modulemgr.Registry(nginxmonitor.NewNginxMonitor(true, ctx)); err != nil {
 		return err
 	}
-	if err := modulemanager.Registry(logrotate.Module("", ctx, nginxlogrotate.Setup)); err != nil {
+	if err := modulemgr.Registry(logrotate.Module("", ctx, nginxlogrotate.Setup)); err != nil {
 		return err
 	}
 
-	modulemanager.Start()
+	modulemgr.Start()
 	return nil
 }
 

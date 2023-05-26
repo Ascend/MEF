@@ -10,9 +10,10 @@ import (
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/kmc"
+	"huawei.com/mindx/common/x509/certutils"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/certutils"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
@@ -183,7 +184,7 @@ func (cpc *certPrepareCtl) prepareCA() (*certutils.RootCertMgr, error) {
 	kmcKeyPath := cpc.certPathMgr.GetRootMasterKmcPath()
 	kmcBackKeyPath := cpc.certPathMgr.GetRootBackKmcPath()
 
-	rootKmcCfg := common.GetKmcCfg(kmcKeyPath, kmcBackKeyPath)
+	rootKmcCfg := kmc.GetKmcCfg(kmcKeyPath, kmcBackKeyPath)
 	initCertMgr := certutils.InitRootCertMgr(rootCaFilePath, rootPrivFilePath, util.CaCommonName, rootKmcCfg)
 	if _, err := initCertMgr.NewRootCa(); err != nil {
 		hwlog.RunLog.Errorf("init root ca info failed: %v", err)

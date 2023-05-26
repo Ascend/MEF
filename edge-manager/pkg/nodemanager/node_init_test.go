@@ -10,7 +10,7 @@ import (
 	"github.com/smartystreets/goconvey/convey"
 
 	. "github.com/smartystreets/goconvey/convey"
-	"huawei.com/mindxedge/base/modulemanager/model"
+	"huawei.com/mindx/common/modulemgr/model"
 )
 
 func TestDispatchMsg(t *testing.T) {

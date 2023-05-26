@@ -8,14 +8,14 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/gin-gonic/gin"
+	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindxedge/base/common"
+
 	"edge-manager/pkg/database"
 	"edge-manager/pkg/nodemanager"
 	"edge-manager/pkg/util"
-
-	"github.com/gin-gonic/gin"
-	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 // IssueInfo struct for issuing service cert

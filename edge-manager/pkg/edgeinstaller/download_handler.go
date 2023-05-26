@@ -9,7 +9,7 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/modulemanager/model"
+	"huawei.com/mindx/common/modulemgr/model"
 )
 
 type downloadHandler struct{}

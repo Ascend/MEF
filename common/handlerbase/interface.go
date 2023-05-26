@@ -3,7 +3,7 @@
 package handlerbase
 
 import (
-	"huawei.com/mindxedge/base/modulemanager/model"
+	"huawei.com/mindx/common/modulemgr/model"
 )
 
 // HandleBase handle base

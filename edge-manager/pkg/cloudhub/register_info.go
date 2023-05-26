@@ -4,8 +4,9 @@
 package cloudhub
 
 import (
+	"huawei.com/mindx/common/websocketmgr"
+
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/websocketmgr"
 )
 
 var regInfoList = []websocketmgr.RegisterModuleInfo{

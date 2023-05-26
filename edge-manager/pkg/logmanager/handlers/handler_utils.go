@@ -7,10 +7,9 @@ import (
 	"errors"
 
 	"huawei.com/mindx/common/hwlog"
-
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/modulemanager"
-	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 func sendResponse(msg common.RespMsg, req *model.Message) error {
@@ -35,7 +34,7 @@ func sendResponse(msg common.RespMsg, req *model.Message) error {
 		return originateErr
 	}
 	resp.FillContent(msg)
-	if err := modulemanager.SendMessage(resp); err != nil {
+	if err := modulemgr.SendMessage(resp); err != nil {
 		if originateErr == nil {
 			originateErr = err
 		}

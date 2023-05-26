@@ -9,12 +9,11 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/types"
-
-	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/modulemanager"
-	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 func sendMessageToEdge(msg *model.Message, content string) error {
@@ -28,7 +27,7 @@ func sendMessageToEdge(msg *model.Message, content string) error {
 	respMsg.FillContent(content)
 	respMsg.SetRouter(common.NodeMsgManagerName, common.CloudHubName, common.OptPost, msg.GetResource())
 
-	if err = modulemanager.SendMessage(respMsg); err != nil {
+	if err = modulemgr.SendMessage(respMsg); err != nil {
 		hwlog.RunLog.Errorf("edge msg manager send message failed, error: %v", err)
 		return fmt.Errorf("edge msg manager send message failed, error: %v", err)
 	}

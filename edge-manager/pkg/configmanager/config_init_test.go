@@ -11,9 +11,9 @@ import (
 
 	"github.com/smartystreets/goconvey/convey"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr/model"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 func init() {

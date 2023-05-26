@@ -11,15 +11,14 @@ import (
 	"os/signal"
 	"syscall"
 
-	"software-manager/pkg/restfulservice"
-	"software-manager/pkg/softwaremanager"
-
 	"huawei.com/mindx/common/hwlog"
-
+	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
-	"huawei.com/mindxedge/base/modulemanager"
+
+	"software-manager/pkg/restfulservice"
+	"software-manager/pkg/softwaremanager"
 )
 
 const (
@@ -69,15 +68,15 @@ func init() {
 }
 
 func register(ctx context.Context) error {
-	modulemanager.ModuleInit()
-	if err := modulemanager.Registry(restfulservice.
+	modulemgr.ModuleInit()
+	if err := modulemgr.Registry(restfulservice.
 		NewRestfulService(true, softwaremanager.IP, softwaremanager.Port)); err != nil {
 		return err
 	}
-	if err := modulemanager.Registry(softwaremanager.NewSoftwareManager(true)); err != nil {
+	if err := modulemgr.Registry(softwaremanager.NewSoftwareManager(true)); err != nil {
 		return err
 	}
-	modulemanager.Start()
+	modulemgr.Start()
 	return nil
 }
 

@@ -10,10 +10,9 @@ import (
 	"path/filepath"
 
 	"huawei.com/mindx/common/hwlog"
-
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/modulemanager"
-	"huawei.com/mindxedge/base/modulemanager/model"
 
 	"edge-manager/pkg/database"
 )
@@ -65,7 +64,7 @@ func (node *nodeManager) Start() {
 		default:
 		}
 
-		req, err := modulemanager.ReceiveMessage(node.Name())
+		req, err := modulemgr.ReceiveMessage(node.Name())
 		hwlog.RunLog.Debugf("%s receive request from restful service", node.Name())
 		if err != nil {
 			hwlog.RunLog.Errorf("%s receive request from restful service failed", node.Name())
@@ -92,7 +91,7 @@ func (node *nodeManager) dispatch(req *model.Message) {
 		return
 	}
 	resp.FillContent(msg)
-	if err = modulemanager.SendMessage(resp); err != nil {
+	if err = modulemgr.SendMessage(resp); err != nil {
 		hwlog.RunLog.Errorf("%s send response failed: %v", node.Name(), err)
 		return
 	}

@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"huawei.com/mindxedge/base/common/logmgmt/logrotate"
+	"huawei.com/mindx/common/logmgmt/logrotate"
 )
 
 const (

@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/modulemanager"
-	"huawei.com/mindxedge/base/modulemanager/model"
 )
 
 type handlerFunc func(req interface{}) common.RespMsg
@@ -51,7 +51,7 @@ func (cm *configManager) Start() {
 		default:
 		}
 
-		req, err := modulemanager.ReceiveMessage(cm.Name())
+		req, err := modulemgr.ReceiveMessage(cm.Name())
 		if err != nil {
 			hwlog.RunLog.Errorf("%s receive request from restful service failed", cm.Name())
 			continue
@@ -73,7 +73,7 @@ func (cm *configManager) dispatch(req *model.Message) {
 		return
 	}
 	resp.FillContent(msg)
-	if err = modulemanager.SendMessage(resp); err != nil {
+	if err = modulemgr.SendMessage(resp); err != nil {
 		hwlog.RunLog.Errorf("%s send response failed", cm.Name())
 		return
 	}

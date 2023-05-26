@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"sync"
 
-	"huawei.com/mindxedge/base/modulemanager/model"
+	"huawei.com/mindx/common/modulemgr/model"
 )
 
 // HandlerMgr handler manager

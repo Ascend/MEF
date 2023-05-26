@@ -14,12 +14,13 @@ import (
 	"syscall"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/kmc"
+	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/utils"
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
-	"huawei.com/mindxedge/base/modulemanager"
 
 	"edge-manager/pkg/appmanager"
 	"edge-manager/pkg/cloudhub"
@@ -146,7 +147,7 @@ func initResource() error {
 		hwlog.RunLog.Errorf("init pod config failed")
 		return err
 	}
-	if err := common.InitKmcCfg(defaultKmcPath); err != nil {
+	if err := kmc.InitKmcCfg(defaultKmcPath); err != nil {
 		hwlog.RunLog.Warnf("init kmc config from json failed: %v, use default kmc config", err)
 	}
 	return nil
@@ -154,27 +155,27 @@ func initResource() error {
 }
 
 func register(ctx context.Context) error {
-	modulemanager.ModuleInit()
-	if err := modulemanager.Registry(restfulservice.NewRestfulService(true, ip, port)); err != nil {
+	modulemgr.ModuleInit()
+	if err := modulemgr.Registry(restfulservice.NewRestfulService(true, ip, port)); err != nil {
 		return err
 	}
-	if err := modulemanager.Registry(nodemanager.NewNodeManager(true, ctx)); err != nil {
+	if err := modulemgr.Registry(nodemanager.NewNodeManager(true, ctx)); err != nil {
 		return err
 	}
-	if err := modulemanager.Registry(appmanager.NewAppManager(true)); err != nil {
+	if err := modulemgr.Registry(appmanager.NewAppManager(true)); err != nil {
 		return err
 	}
-	if err := modulemanager.Registry(cloudhub.NewCloudServer(true, wsPort, maxClientNum)); err != nil {
+	if err := modulemgr.Registry(cloudhub.NewCloudServer(true, wsPort, maxClientNum)); err != nil {
 		return err
 	}
-	if err := modulemanager.Registry(edgemsgmanager.NewNodeMsgManager(true)); err != nil {
+	if err := modulemgr.Registry(edgemsgmanager.NewNodeMsgManager(true)); err != nil {
 		return err
 	}
-	if err := modulemanager.Registry(configmanager.NewConfigManager(true)); err != nil {
+	if err := modulemgr.Registry(configmanager.NewConfigManager(true)); err != nil {
 		return err
 	}
 
-	modulemanager.Start()
+	modulemgr.Start()
 	return nil
 }
 
