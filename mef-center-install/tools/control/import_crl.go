@@ -8,6 +8,8 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/utils"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/control"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
@@ -27,6 +29,7 @@ const (
 func (icc *importCrlController) bindFlag() bool {
 	flag.StringVar(&(icc.crlPath), importCrlPathFlag, "", "path that saves crl to import")
 	flag.StringVar(&(icc.crlName), importCrlNameFlag, common.NorthernCertName, "name of crl to import")
+	utils.MarkFlagRequired(importCrlPathFlag)
 	return true
 }
 

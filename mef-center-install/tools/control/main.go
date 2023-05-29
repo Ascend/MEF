@@ -218,6 +218,7 @@ func (uc *upgradeController) setInstallParam(installParam *util.InstallParamJson
 
 func (uc *upgradeController) bindFlag() bool {
 	flag.StringVar(&zipPath, pathFlag, "", "the path of the zip file to upgrade MEF Center")
+	utils.MarkFlagRequired(pathFlag)
 	return true
 }
 
@@ -253,6 +254,8 @@ const (
 func (ecc *exchangeCertsController) bindFlag() bool {
 	flag.StringVar(&(ecc.importPath), importPathFlag, "", "path that saves ca cert to import")
 	flag.StringVar(&(ecc.exportPath), exportPathFlag, "", "path to export MEF ca cert")
+	utils.MarkFlagRequired(importPathFlag)
+	utils.MarkFlagRequired(exportPathFlag)
 	return true
 }
 
@@ -384,6 +387,11 @@ func dealCmdFlag() bool {
 	flag.Usage = flag.PrintDefaults
 	if err := flag.CommandLine.Parse(os.Args[util.CmdArgIndex:]); err != nil {
 		fmt.Printf("parse cmd args failed,error:%v\n", err)
+		return false
+	}
+	if utils.IsRequiredFlagNotFound() {
+		fmt.Println("the required parameter is missing")
+		flag.PrintDefaults()
 		return false
 	}
 	return true
