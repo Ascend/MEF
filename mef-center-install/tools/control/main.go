@@ -355,7 +355,6 @@ func printVersion() {
 }
 
 func printUsage() {
-	printVersion()
 	fmt.Printf(`Usage: [OPTIONS...] COMMAND
 
 Options:
