@@ -173,7 +173,10 @@ const (
 	// SpecialCharactersRegex special regex
 	SpecialCharactersRegex = "[!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~]{1,}"
 	// PassWordRegex PassWordRegex
-	PassWordRegex = "^[a-zA-z0-9!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~]{8,20}$"
+	PassWordRegex          = "^[a-zA-z0-9!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~]{16,64}$"
+	Pbkdf2IterationCount   = 10000
+	BytesOfEncryptedString = 32
+	LockInterval           = 5 * time.Minute
 )
 
 // field constraints

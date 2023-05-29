@@ -70,6 +70,14 @@ var configRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 	},
 }
 
+var tokenRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
+	"/edgemanager/v1/token": {
+		restfulmgr.GenericDispatcher{
+			Method:      http.MethodGet,
+			Destination: common.ConfigManagerName},
+	},
+}
+
 var innerConfigRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 	"/inner/v1/image": {
 		restfulmgr.GenericDispatcher{
@@ -88,6 +96,7 @@ func setRouter(engine *gin.Engine) {
 	restfulmgr.InitRouter(engine, innerConfigRouterDispatchers)
 	restfulmgr.InitRouter(engine, softwareRouterDispatchers)
 	restfulmgr.InitRouter(engine, logCollectRouterDispatchers)
+	restfulmgr.InitRouter(engine, tokenRouterDispatchers)
 }
 
 func versionQuery(c *gin.Context) {
