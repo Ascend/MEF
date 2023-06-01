@@ -4,23 +4,15 @@
 package certmanager
 
 import (
-	"path"
+	"path/filepath"
 
-	"cert-manager/pkg/certconstant"
+	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
 func getRootCaPath(certName string) string {
-	return path.Join(certconstant.RootCaMgrDir, certName, certconstant.RootCaFileName)
+	return filepath.Join(util.RootCaMgrDir, certName, util.RootCaFileName)
 }
 
 func getRootKeyPath(certName string) string {
-	return path.Join(certconstant.RootCaMgrDir, certName, certconstant.RootKeyFileName)
-}
-
-func getInnerRootCaPath() string {
-	return path.Join(certconstant.InnerRootCaDir, certconstant.InnerCaFileName)
-}
-
-func getInnerRootKeyPath() string {
-	return path.Join(certconstant.InnerRootCaDir, certconstant.RootKeyFileName)
+	return filepath.Join(util.RootCaMgrDir, certName, util.RootKeyFileName)
 }

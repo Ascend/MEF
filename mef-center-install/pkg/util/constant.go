@@ -105,6 +105,7 @@ const (
 	EdgeManagerName     = "edge-manager"
 	CertManagerName     = "cert-manager"
 	NginxManagerName    = "nginx-manager"
+	MefCenterRootName   = "MEF-Center-root"
 	SoftwareManagerName = "software-manager"
 	UserManagerName     = "user-manager"
 )
@@ -167,6 +168,7 @@ const (
 	UninstallFlag  = "uninstall"
 	UpgradeFlag    = "upgrade"
 	ExchangeCaFlag = "exchange_ca"
+	UpdateKmcFlag  = "updatekmc"
 
 	StartOperateFlag   = "start"
 	StopOperateFlag    = "stop"
@@ -212,4 +214,26 @@ const (
 const (
 	DirType  = "dir"
 	FileType = "file"
+)
+
+const (
+	// ServerCertPath  cert-manager server cert path
+	ServerCertPath = "/home/data/config/mef-certs/cert-manager.crt"
+	// ServerKeyPath cert-manager server key path
+	ServerKeyPath = "/home/data/config/mef-certs/cert-manager.key"
+	// RootCaPath  cert-manager server root ca path
+	RootCaPath = "/home/data/inner-root-ca/RootCA.crt"
+	// RootCaMgrDir root ca save directory
+	RootCaMgrDir = "/home/data/config/root-ca/"
+	// RootCaFileName root ca save file name
+	RootCaFileName = "root.crt"
+	// RootKeyFileName root key save file name
+	RootKeyFileName = "encrypt_root.key"
+)
+
+// const for edge-manager websocket certs
+const (
+	WebsocketCerts = "websocket-certs"
+	ServiceName    = "server.crt"
+	KeyFileName    = "server.key"
 )
