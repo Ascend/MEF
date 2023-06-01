@@ -15,11 +15,10 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509/certutils"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/httpsmgr"
+	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 
-	"cert-manager/pkg/certconstant"
 	"cert-manager/pkg/certmanager/certchecker"
 )
 
@@ -110,9 +109,9 @@ func updateClientCert(certName, certOpt string, certContent []byte) error {
 	hwlog.RunLog.Info("start update cert file")
 	reqCertParams := httpsmgr.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
-			RootCaPath: certconstant.RootCaPath,
-			CertPath:   certconstant.ServerCertPath,
-			KeyPath:    certconstant.ServerKeyPath,
+			RootCaPath: util.RootCaPath,
+			CertPath:   util.ServerCertPath,
+			KeyPath:    util.ServerKeyPath,
 			SvrFlag:    false,
 			KmcCfg:     nil,
 		},
@@ -150,7 +149,7 @@ func ExportRootCa(c *gin.Context) {
 	c.Writer.WriteHeader(http.StatusOK)
 	c.Header(common.ContentType, "text/plain; charset=utf-8")
 	c.Header(common.TransferEncoding, "chunked")
-	c.Header(common.ContentDisposition, fmt.Sprintf("attachment; filename=%s", certconstant.RootCaFileName))
+	c.Header(common.ContentDisposition, fmt.Sprintf("attachment; filename=%s", util.RootCaFileName))
 	c.Writer.WriteHeaderNow()
 	if _, err := c.Writer.Write(ca); err != nil {
 		msg := fmt.Sprintf("export cert [%s] root ca failed", certName)

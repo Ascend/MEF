@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
-	"path"
+	"path/filepath"
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
@@ -16,26 +16,22 @@ import (
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/websocketmgr"
 	"huawei.com/mindx/common/x509/certutils"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/httpsmgr"
+	centerutil "huawei.com/mindxedge/base/mef-center-install/pkg/util"
 
 	"edge-manager/pkg/util"
 )
 
 const (
-	name              = "server_edge_ctl"
-	certPathDir       = "/home/data/config/websocket-certs"
-	rootNameValidEdge = "root_edge.crt"
-	serviceName       = "server.crt"
-	keyFileName       = "server.key"
-	retryTime         = 30
-	maxRetry          = math.MaxInt
-	waitTime          = 5 * time.Second
+	name     = "server_edge_ctl"
+	maxRetry = math.MaxInt
+	waitTime = 5 * time.Second
 )
 
 var serverSender websocketmgr.WsSvrSender
 var initFlag bool
+var certPathDir = filepath.Join("/home/data/config", centerutil.WebsocketCerts)
 
 // InitServer init server
 func InitServer() error {
@@ -47,8 +43,8 @@ func InitServer() error {
 	certInfo := certutils.TlsCertInfo{
 		KmcCfg:        kmc.GetDefKmcCfg(),
 		RootCaContent: rootCaBytes,
-		CertPath:      path.Join(certPathDir, serviceName),
-		KeyPath:       path.Join(certPathDir, keyFileName),
+		CertPath:      filepath.Join(certPathDir, centerutil.ServiceName),
+		KeyPath:       filepath.Join(certPathDir, centerutil.KeyFileName),
 		SvrFlag:       true,
 	}
 
@@ -82,8 +78,8 @@ func InitServer() error {
 }
 
 func checkAndSetWsSvcCert() {
-	keyPath := path.Join(certPathDir, keyFileName)
-	certPath := path.Join(certPathDir, serviceName)
+	keyPath := filepath.Join(certPathDir, centerutil.KeyFileName)
+	certPath := filepath.Join(certPathDir, centerutil.ServiceName)
 	if utils.IsExist(keyPath) && utils.IsExist(certPath) {
 		hwlog.RunLog.Info("check websocket server certs success")
 		return

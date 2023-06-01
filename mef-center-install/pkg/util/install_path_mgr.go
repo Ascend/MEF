@@ -5,6 +5,8 @@ package util
 import (
 	"fmt"
 	"path/filepath"
+
+	"huawei.com/mindxedge/base/common"
 )
 
 // WorkPathItf is an interface contains the path on mef-center-X dir
@@ -401,6 +403,16 @@ func (cpm *ConfigPathMgr) GetComponentConfigPath(component string) string {
 // GetCompPubConfigPath returns public config path dir
 func (cpm *ConfigPathMgr) GetCompPubConfigPath() string {
 	return filepath.Join(cpm.configPath, PubCfgDir)
+}
+
+// GetHubSrvKeyPath returns the hub_srv key path
+func (cpm *ConfigPathMgr) GetHubSrvKeyPath() string {
+	return filepath.Join(cpm.GetComponentConfigPath(CertManagerName), RootCaDir, common.WsSerName, RootKeyFileName)
+}
+
+// GetWebSocketKeyPath returns the key path for southern websocket
+func (cpm *ConfigPathMgr) GetWebSocketKeyPath() string {
+	return filepath.Join(cpm.GetComponentConfigPath(EdgeManagerName), WebsocketCerts, KeyFileName)
 }
 
 // GetMefCertsDirPath returns single component's certs dir path by component's name
