@@ -58,8 +58,6 @@ func (muk *UpdateKmcFlow) RunFlow() error {
 	}
 
 	if len(failedModule) == 0 {
-		fmt.Println("update kmc keys success")
-		hwlog.RunLog.Info("update kmc keys success")
 		return nil
 	}
 	fmt.Printf("update module %s's kmc key failed\n", failedModule)
