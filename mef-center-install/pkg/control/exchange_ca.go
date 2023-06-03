@@ -3,8 +3,6 @@
 package control
 
 import (
-	"crypto/rsa"
-	"encoding/pem"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -92,40 +90,19 @@ func (ecf *ExchangeCaFlow) checkParam() error {
 
 func (ecf *ExchangeCaFlow) checkCa() error {
 	hwlog.RunLog.Infof("start to check [%s] cert", ecf.certName)
-	caBytes, err := utils.LoadFile(ecf.importPath)
+
+	if _, err := x509.CheckCertsChainReturnContent(ecf.importPath); err != nil {
+		hwlog.RunLog.Errorf("check importing cert failed: %s", err.Error())
+		return fmt.Errorf("check importing cert failed")
+	}
+
+	hash, err := utils.GetFileSha256(ecf.importPath)
 	if err != nil {
-		return fmt.Errorf("load content of cert [%s] failed, error: %v", ecf.importPath, err)
+		hwlog.RunLog.Errorf("get file sha256 sum failed: %s", err.Error())
+		return errors.New("get file sha256 sum failed")
 	}
-	if caBytes == nil {
-		return fmt.Errorf("the content of cert [%s] is empty", ecf.importPath)
-	}
-
-	block, _ := pem.Decode(caBytes)
-	if block == nil {
-		return errors.New("the cert can only be in pem format")
-	}
-
-	if err = x509.VerifyCaCert(caBytes, x509.InvalidNum); err != nil {
-		return fmt.Errorf("check cert [%s] failed, error: %v", ecf.importPath, err)
-	}
-
-	caCrt, err := x509.LoadCertsFromPEM(caBytes)
-	if err != nil {
-		return fmt.Errorf("load cert [%s] failed, error: %v", ecf.importPath, err)
-	}
-
-	if signAlg := caCrt.SignatureAlgorithm.String(); signAlg != common.SignAlg {
-		return fmt.Errorf("signature algorithm [%s] is not supported, only support %s", signAlg, common.SignAlg)
-	}
-
-	pubKey, ok := caCrt.PublicKey.(*rsa.PublicKey)
-	if !ok {
-		return errors.New("the public key convert to rsa public key failed")
-	}
-
-	if pubKeyLen := pubKey.N.BitLen(); pubKeyLen < common.MinPubKeyLen {
-		return fmt.Errorf("the length of public key %d less than %d", pubKeyLen, common.MinPubKeyLen)
-	}
+	fmt.Printf("the sha256sum of the importing cert file is: %s\n", hash)
+	hwlog.RunLog.Infof("the sha256sum of the importing cert file is: %s\n", hash)
 
 	hwlog.RunLog.Infof("check [%s] cert success", ecf.certName)
 	return nil

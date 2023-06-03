@@ -19,8 +19,8 @@ replace (
 	huawei.com/mindx/common/modulemgr => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/modulemgr v0.0.1
 	huawei.com/mindx/common/rand => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/rand v0.0.1
 	huawei.com/mindx/common/terminal => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/terminal v0.0.5
-	huawei.com/mindx/common/utils => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/utils v0.1.14
-	huawei.com/mindx/common/x509 => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/x509 v0.0.10
+	huawei.com/mindx/common/utils => codehub-dg-y.huawei.com/m30026943/common-utils.git/utils v0.1.6
+	huawei.com/mindx/common/x509 => codehub-dg-y.huawei.com/m30026943/common-utils.git/x509 v0.1.8
 	huawei.com/mindx/mef/common/cmsverify => ./../MEF_Utils/cmsverify
 	huawei.com/mindxedge/base v0.0.1 => ./../
 )
