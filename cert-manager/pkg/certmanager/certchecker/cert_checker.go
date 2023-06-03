@@ -145,6 +145,10 @@ var certDeleteNames = []string{common.SoftwareCertName, common.ImageCertName}
 
 var certExportNames = []string{common.WsSerName}
 
+var certInfoNames = map[string]struct{}{
+	common.NorthernCertName: {},
+}
+
 // CheckCertName check cert name if valid
 func CheckCertName(certName string) bool {
 	_, ok := onlineImportMap[certName]
@@ -176,4 +180,10 @@ func CheckIfCanExport(certName string) bool {
 		}
 	}
 	return false
+}
+
+// CheckIfCanGetInfo check cert name if can get summary info
+func CheckIfCanGetInfo(certName string) bool {
+	_, ok := certInfoNames[certName]
+	return ok
 }
