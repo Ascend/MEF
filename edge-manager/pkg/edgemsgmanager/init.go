@@ -62,8 +62,7 @@ func (nm *NodeMsgDealer) Start() {
 			hwlog.RunLog.Errorf("module [%s] receive message from channel failed, error: %v", nm.Name(), err)
 			continue
 		}
-		hwlog.RunLog.Infof("module [%s] receive message option:%s, resource:%s", nm.Name(),
-			msg.GetOption(), msg.GetResource())
+		hwlog.RunLog.Infof("receive msg header: %+v, router: %+v", msg.Header, msg.Router)
 
 		go nm.dispatch(msg)
 	}
@@ -116,7 +115,8 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodGet, filepath.Join(edgeSoftwareRootPath, "/version-info")):      queryEdgeSoftwareVersion,
 	common.Combine(http.MethodGet, filepath.Join(edgeSoftwareRootPath, "/download-progress")): queryEdgeDownloadProgress,
 
-	common.Combine(common.OptGet, common.ResEdgeCoreConfig):      GetConfigInfo,
+	common.Combine(common.OptGet, common.ResEdgeCoreConfig):      GetEdgeConfigInfo,
+	common.Combine(common.OptGet, common.ResConfig):              GetConfigInfo,
 	common.Combine(common.OptGet, common.ResDownLoadCert):        GetCertInfo,
 	common.Combine(common.OptReport, common.ResDownloadProgress): UpdateEdgeDownloadProgress,
 }

@@ -14,6 +14,7 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
+	"huawei.com/mindx/common/x509"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/install"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
@@ -49,6 +50,7 @@ func (upf *UpgradePostFlowMgr) DoUpgrade() error {
 		upf.createFlag,
 		upf.prepareWorkCDir,
 		upf.prepareYaml,
+		upf.copyCloudCoreCa,
 		upf.recordStarted,
 		upf.deleteNameSpace,
 		upf.removeDockerImage,
@@ -216,6 +218,45 @@ func (upf *UpgradePostFlowMgr) prepareYaml() error {
 	return nil
 }
 
+func (upf *UpgradePostFlowMgr) copyCloudCoreCa() error {
+	hwlog.RunLog.Info("start to copy cloud core ca")
+	caDir := upf.InstallPathMgr.ConfigPathMgr.GetCloudCoreCertsDir()
+	if err := utils.CreateDir(caDir, utils.Mode600); err != nil {
+		hwlog.RunLog.Errorf("creat cloud core ca cert dir failed: %v", err)
+		return err
+	}
+
+	caPath := upf.InstallPathMgr.ConfigPathMgr.GetCloudCoreCaFile()
+
+	if _, err := utils.CheckOriginPath(util.DefaultCloudCoreCaPath); err != nil {
+		hwlog.RunLog.Errorf("check cloud core cert path failed: %v", err)
+		return err
+	}
+
+	if _, err := x509.CheckCertsChainReturnContent(util.DefaultCloudCoreCaPath); err != nil {
+		hwlog.RunLog.Errorf("check cloud core ca file failed: %v", err)
+		return err
+	}
+
+	if err := utils.CopyFile(util.DefaultCloudCoreCaPath, caPath); err != nil {
+		hwlog.RunLog.Errorf("copy cloud core ca file failed: %v", err)
+		return err
+	}
+
+	mefUid, mefGid, err := util.GetMefId()
+	if err != nil {
+		hwlog.RunLog.Errorf("get mef uid or gid failed: %v", err)
+		return errors.New("get mef uid or gid failed")
+	}
+
+	if err = util.SetPathOwnerGroup(caDir, mefUid, mefGid, true, false); err != nil {
+		hwlog.RunLog.Errorf("set path [%s] owner and group failed: %v", caPath, err)
+		return errors.New("set cloud core cert path owner and group failed")
+	}
+
+	hwlog.RunLog.Info("copy cloud core ca success")
+	return nil
+}
 func (upf *UpgradePostFlowMgr) recordStarted() error {
 	hwlog.RunLog.Info("start to record started components")
 	for _, c := range upf.SoftwareMgr.Components {

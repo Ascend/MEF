@@ -97,8 +97,8 @@ const (
 
 	// ErrorSendMsgToNode failed to send msg to node
 	ErrorSendMsgToNode = "40012016"
-	// ErrorGetToken failed to get token
-	ErrorGetToken = "40012017"
+	// ErrorGetConfigData failed to get token
+	ErrorGetConfigData = "40012017"
 
 	// ErrorGetNodeSoftwareVersion failed to delete node groups
 	ErrorGetNodeSoftwareVersion = "40012018"
@@ -255,8 +255,8 @@ var ErrorMap = map[string]string{
 	ErrorSendMsgToNode: "failed to send msg to node",
 	// ErrorDeleteNodeFromGroup failed to send msg to node
 	ErrorGetNodeSoftwareVersion: "failed to get node version",
-	// ErrorGetToken failed to get token
-	ErrorGetToken: "failed to get token",
+	// ErrorGetConfigData failed to get token
+	ErrorGetConfigData: "failed to get token",
 
 	// ErrorGetNode failed to get node detail
 	ErrorGetNode: "failed to get node detail",
