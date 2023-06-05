@@ -158,6 +158,9 @@ const (
 	// ErrorLogCollectEdgeParamInvalid parameter error
 	ErrorLogCollectEdgeParamInvalid = "40051002"
 
+	// ErrorExportToken export token failed
+	ErrorExportToken = "40061001"
+
 	// ErrorGetRootCa failed to get root ca by cert name
 	ErrorGetRootCa = "60001001"
 	// ErrorIssueSrvCert failed to issue service certificate
@@ -345,4 +348,6 @@ var ErrorMap = map[string]string{
 	ErrorLogCollectEdgeBusiness: "failed to collect log due to business error",
 	// ErrorLogCollectEdgeParamInvalid parameter error
 	ErrorLogCollectEdgeParamInvalid: "failed to collect log due to parameter invalid",
+
+	ErrorExportToken: "export token failed",
 }

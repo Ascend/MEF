@@ -13,6 +13,8 @@ import (
 	"huawei.com/mindx/common/modulemgr/model"
 
 	"huawei.com/mindxedge/base/common"
+
+	"edge-manager/pkg/database"
 )
 
 type handlerFunc func(req interface{}) common.RespMsg
@@ -36,6 +38,12 @@ func (cm *configManager) Name() string {
 }
 
 func (cm *configManager) Enable() bool {
+	if cm.enable {
+		if err := initTokenTable(); err != nil {
+			hwlog.RunLog.Errorf("module (%s) init token database table failed, cannot enable", cm.Name())
+			return !cm.enable
+		}
+	}
 	return cm.enable
 }
 
@@ -94,9 +102,19 @@ func methodSelect(req *model.Message) *common.RespMsg {
 var (
 	configUrlRootPath      = "/edgemanager/v1/image"
 	innerConfigUrlRootPath = "/inner/v1/image"
+	tokenUrlRootPath       = "/edgemanager/v1/token"
 )
 
 var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodPost, filepath.Join(configUrlRootPath, "config")):      downloadConfig,
 	common.Combine(http.MethodPost, filepath.Join(innerConfigUrlRootPath, "update")): updateConfig,
+	common.Combine(http.MethodGet, tokenUrlRootPath):                                 exportToken,
+}
+
+func initTokenTable() error {
+	if err := database.CreateTableIfNotExists(TokenInfo{}); err != nil {
+		hwlog.RunLog.Error("create token database table failed")
+		return err
+	}
+	return nil
 }

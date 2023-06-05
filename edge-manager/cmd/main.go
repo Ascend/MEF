@@ -36,6 +36,7 @@ import (
 const (
 	defaultPort           = 8101
 	defaultWsPort         = 10000
+	defaultAuthPort       = 10001
 	defaultMaxClientNum   = 1024
 	defaultRunLogFile     = "/var/log/mindx-edge/edge-manager/edge-manager-run.log"
 	defaultOperateLogFile = "/var/log/mindx-edge/edge-manager/edge-manager-operate.log"
@@ -55,6 +56,7 @@ var (
 		BackupDirName: defaultBackupDirName}
 	port         int
 	wsPort       int
+	authPort     int
 	ip           string
 	version      bool
 	dbPath       string
@@ -101,6 +103,8 @@ func init() {
 		"The server port of the http service,range[1025-65535]")
 	flag.IntVar(&wsPort, "wsPort", defaultWsPort,
 		"The server port of the websocket service,range[1025-65535]")
+	flag.IntVar(&authPort, "authPort", defaultAuthPort,
+		"The server port of the edge auth service,range[1025-65535]")
 	flag.IntVar(&maxClientNum, "maxClientNum", defaultMaxClientNum,
 		"The max number of connected edge client")
 	hwlogconfig.BindFlags(serverOpConf, serverRunConf)
@@ -112,6 +116,12 @@ func validateFlags() error {
 	}
 	if !checker.IsPortInRange(common.MinPort, common.MaxPort, wsPort) {
 		return fmt.Errorf("wsPort %d is not in [%d, %d]", wsPort, common.MinPort, common.MaxPort)
+	}
+	if !checker.IsPortInRange(common.MinPort, common.MaxPort, authPort) {
+		return fmt.Errorf("authPort %d is not in [%d, %d]", wsPort, common.MinPort, common.MaxPort)
+	}
+	if authPort == wsPort {
+		return fmt.Errorf("authPort can not equals to wsPort")
 	}
 	if _, err := utils.CheckPath(dbPath); err != nil {
 		return err
@@ -165,7 +175,7 @@ func register(ctx context.Context) error {
 	if err := modulemgr.Registry(appmanager.NewAppManager(true)); err != nil {
 		return err
 	}
-	if err := modulemgr.Registry(cloudhub.NewCloudServer(true, wsPort, maxClientNum)); err != nil {
+	if err := modulemgr.Registry(cloudhub.NewCloudServer(true, wsPort, authPort, maxClientNum)); err != nil {
 		return err
 	}
 	if err := modulemgr.Registry(edgemsgmanager.NewNodeMsgManager(true)); err != nil {

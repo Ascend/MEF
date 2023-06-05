@@ -13,6 +13,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindx/common/rand"
 )
 
 // Router struct
@@ -27,6 +28,8 @@ const (
 	sensitiveInfoWildcard = "***"
 	// minimum substring length to be replaced
 	minimumCommonSubStrLen = 2
+	maxRandomLen           = 10240
+	minSaltLen             = 16
 )
 
 // ClearSliceByteMemory clears slice in memory
@@ -153,4 +156,16 @@ func MaxCommonSubStr(s1 string, s2 string) string {
 		}
 	}
 	return string([]byte(s1)[idx1+1-a[idx1][idx2] : idx1+1])
+}
+
+// GetSafeRandomBytes get safe random bytes
+func GetSafeRandomBytes(saltLength int) ([]byte, error) {
+	if saltLength > maxRandomLen || saltLength < minSaltLen {
+		return nil, errors.New("salt length invalid")
+	}
+	salt := make([]byte, saltLength)
+	if _, err := rand.Read(salt); err != nil {
+		return nil, err
+	}
+	return salt, nil
 }
