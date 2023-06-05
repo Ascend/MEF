@@ -7,6 +7,7 @@ import (
 	"context"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
@@ -48,6 +49,7 @@ func (cm *configManager) Enable() bool {
 }
 
 func (cm *configManager) Start() {
+	go periodCheckToken()
 	for {
 		select {
 		case _, ok := <-cm.ctx.Done():
@@ -117,4 +119,20 @@ func initTokenTable() error {
 		return err
 	}
 	return nil
+}
+
+func periodCheckToken() {
+	checkAndUpdateToken()
+	ticker := time.NewTicker(common.OneDay)
+	defer ticker.Stop()
+	for {
+		select {
+		case _, ok := <-ticker.C:
+			if !ok {
+				hwlog.RunLog.Warnf("token check goroutine is close")
+				return
+			}
+			checkAndUpdateToken()
+		}
+	}
 }

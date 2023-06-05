@@ -5,6 +5,7 @@ package configmanager
 
 import (
 	"bytes"
+	"edge-manager/pkg/config"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -32,7 +33,6 @@ import (
 const (
 	saltLen   = 16
 	retryTime = 3
-	oneWeek   = time.Second * 60 * 60 * 24 * 7
 )
 
 // downloadConfig download image config
@@ -192,7 +192,17 @@ func sendMessageToNode(serialNumber string, content string) error {
 
 func exportToken(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("export token start")
+	plainText, err := generateToken()
+	if err != nil {
+		return common.RespMsg{Status: common.ErrorExportToken}
+	}
+	defer utils.ClearSliceByteMemory(plainText)
 
+	hwlog.RunLog.Info("export token success")
+	return common.RespMsg{Status: common.Success, Msg: "export token success", Data: string(plainText)}
+}
+
+func generateToken() ([]byte, error) {
 	var plainText []byte
 	var err error
 	for i := 0; i < retryTime; i++ {
@@ -202,34 +212,48 @@ func exportToken(input interface{}) common.RespMsg {
 			continue
 		} else if err != nil {
 			hwlog.RunLog.Errorf("generate token failed: %v", err)
-			return common.RespMsg{Status: common.ErrorExportToken}
+			return nil, errors.New("generate raw token failed")
 		}
 		break
 	}
-	defer utils.ClearSliceByteMemory(plainText)
 
 	salt, err := common.GetSafeRandomBytes(saltLen)
 	if err != nil {
 		hwlog.RunLog.Errorf("generate salt failed: %v", err)
-		return common.RespMsg{Status: common.ErrorExportToken}
+		return nil, errors.New("generate salt failed")
 	}
 
 	token, err := xcrypto.Pbkdf2WithSha256(plainText, salt, common.Pbkdf2IterationCount, common.BytesOfEncryptedString)
 	if err != nil {
 		hwlog.RunLog.Errorf("encrypt token failed: %v", err)
-		return common.RespMsg{Status: common.ErrorExportToken}
+		return nil, errors.New("encrypt token failed")
 	}
 
-	tokenInfo := &TokenInfo{
+	durationTime := time.Duration(config.GetAuthConfig().TokenExpireTime) * common.OneDay
+	tokenInfo := TokenInfo{
 		Token:      token,
 		Salt:       salt,
-		ExpireTime: time.Now().Add(oneWeek),
+		ExpireTime: time.Now().Add(durationTime).Unix(),
 	}
-	if err := ConfigRepositoryInstance().generateAndSaveToken(tokenInfo); err != nil {
+	if err := ConfigRepositoryInstance().saveToken(tokenInfo); err != nil {
 		hwlog.RunLog.Error(err)
-		return common.RespMsg{Status: common.ErrorExportToken}
+		return nil, errors.New("save token failed")
 	}
+	return plainText, nil
+}
 
-	hwlog.RunLog.Info("export token success")
-	return common.RespMsg{Status: common.Success, Msg: "export token success", Data: string(plainText)}
+func checkAndUpdateToken() {
+	expire, err := ConfigRepositoryInstance().ifTokenExpire()
+	if err != nil {
+		hwlog.RunLog.Errorf("check if token expire error:%v", err)
+		return
+	}
+	if !expire {
+		return
+	}
+	if err = ConfigRepositoryInstance().revokeToken(); err != nil {
+		hwlog.RunLog.Errorf("token is expire, error :%v", err)
+		return
+	}
+	hwlog.OpLog.Info("token is expire, system auto revoke token")
 }
