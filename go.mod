@@ -6,9 +6,9 @@ require (
 	github.com/agiledragon/gomonkey/v2 v2.8.0
 	github.com/gin-gonic/gin v1.9.0
 	github.com/smartystreets/goconvey v1.7.2
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.8.1
 	gorm.io/driver/sqlite v1.4.2
-	gorm.io/gorm v1.22.3
+	gorm.io/gorm v1.24.0
 	huawei.com/mindx/common/hwlog v0.10.5
 	huawei.com/mindx/common/kmc v0.1.0
 	huawei.com/mindx/common/modulemgr v0.0.1
