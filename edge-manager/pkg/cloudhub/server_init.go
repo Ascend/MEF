@@ -6,7 +6,6 @@ package cloudhub
 import (
 	"errors"
 	"fmt"
-	"math"
 	"net/http"
 	"path/filepath"
 	"time"
@@ -25,7 +24,7 @@ import (
 
 const (
 	name     = "server_edge_ctl"
-	maxRetry = math.MaxInt
+	maxRetry = 10
 	waitTime = 5 * time.Second
 )
 
@@ -47,6 +46,7 @@ func InitServer() error {
 		KeyPath:       filepath.Join(certPathDir, centerutil.KeyFileName),
 		SvrFlag:       true,
 	}
+	go authServer(rootCaBytes)
 
 	podIp, err := common.GetPodIP()
 	if err != nil {
@@ -63,8 +63,8 @@ func InitServer() error {
 		ProxyCfg: proxyConfig,
 	}
 	if err = proxy.AddHandler(util.ConnCheckUrl, checkConn); err != nil {
-		hwlog.RunLog.Errorf("add handler failed. url: %v", util.ConnCheckUrl)
-		return fmt.Errorf("add handler failed. url: %v", util.ConnCheckUrl)
+		hwlog.RunLog.Errorf("add handler failed")
+		return fmt.Errorf("add handler failed")
 	}
 	proxy.AddDefaultHandler()
 	serverSender.SetProxy(proxy)
@@ -72,9 +72,21 @@ func InitServer() error {
 		hwlog.RunLog.Errorf("proxy.Start failed: %v", err)
 		return errors.New("proxy.Start failed")
 	}
-
+	hwlog.RunLog.Infof("cloudhub server start success")
 	initFlag = true
 	return nil
+}
+
+func authServer(rootCaBytes []byte) {
+	authCertInfo := certutils.TlsCertInfo{
+		KmcCfg:        kmc.GetDefKmcCfg(),
+		RootCaContent: rootCaBytes,
+		CertPath:      filepath.Join(certPathDir, centerutil.ServiceName),
+		KeyPath:       filepath.Join(certPathDir, centerutil.KeyFileName),
+		SvrFlag:       true,
+		IgnoreCltCert: true,
+	}
+	NewClientAuthService(server.authPort, authCertInfo).Start()
 }
 
 func checkAndSetWsSvcCert() {
@@ -89,8 +101,7 @@ func checkAndSetWsSvcCert() {
 	if err != nil {
 		return
 	}
-	err = common.WriteData(certPath, []byte(svcCertStr))
-	if err != nil {
+	if err = common.WriteData(certPath, []byte(svcCertStr)); err != nil {
 		hwlog.RunLog.Errorf("save cert for websocket service cert failed: %v", err)
 		return
 	}
@@ -143,7 +154,7 @@ func getWsRootCert() ([]byte, error) {
 	var rootCaStr string
 	var err error
 	for i := 0; i < maxRetry; i++ {
-		rootCaStr, err = reqCertParams.GetRootCa(common.WsCltName)
+		rootCaStr, err = reqCertParams.GetRootCa(common.WsSerName)
 		if err == nil {
 			break
 		}

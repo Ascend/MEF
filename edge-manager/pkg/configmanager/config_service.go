@@ -10,11 +10,16 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
+	"time"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindx/common/utils"
+	"huawei.com/mindx/common/x509"
 	"huawei.com/mindx/common/x509/certutils"
+	"huawei.com/mindx/common/xcrypto"
 	"huawei.com/mindxedge/base/common"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -22,6 +27,12 @@ import (
 	"edge-manager/pkg/configmanager/configchecker"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/util"
+)
+
+const (
+	saltLen   = 16
+	retryTime = 3
+	oneWeek   = time.Second * 60 * 60 * 24 * 7
 )
 
 // downloadConfig download image config
@@ -177,4 +188,48 @@ func sendMessageToNode(serialNumber string, content string) error {
 			common.ConfigManagerName, common.CloudHubName, err)
 	}
 	return nil
+}
+
+func exportToken(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("export token start")
+
+	var plainText []byte
+	var err error
+	for i := 0; i < retryTime; i++ {
+		plainText, err = x509.GetRandomPass()
+		if err != nil && strings.Contains(err.Error(), "the password is too simple") {
+			hwlog.RunLog.Warn("generate token is simple, try again")
+			continue
+		} else if err != nil {
+			hwlog.RunLog.Errorf("generate token failed: %v", err)
+			return common.RespMsg{Status: common.ErrorExportToken}
+		}
+		break
+	}
+	defer utils.ClearSliceByteMemory(plainText)
+
+	salt, err := common.GetSafeRandomBytes(saltLen)
+	if err != nil {
+		hwlog.RunLog.Errorf("generate salt failed: %v", err)
+		return common.RespMsg{Status: common.ErrorExportToken}
+	}
+
+	token, err := xcrypto.Pbkdf2WithSha256(plainText, salt, common.Pbkdf2IterationCount, common.BytesOfEncryptedString)
+	if err != nil {
+		hwlog.RunLog.Errorf("encrypt token failed: %v", err)
+		return common.RespMsg{Status: common.ErrorExportToken}
+	}
+
+	tokenInfo := &TokenInfo{
+		Token:      token,
+		Salt:       salt,
+		ExpireTime: time.Now().Add(oneWeek),
+	}
+	if err := ConfigRepositoryInstance().generateAndSaveToken(tokenInfo); err != nil {
+		hwlog.RunLog.Error(err)
+		return common.RespMsg{Status: common.ErrorExportToken}
+	}
+
+	hwlog.RunLog.Info("export token success")
+	return common.RespMsg{Status: common.Success, Msg: "export token success", Data: string(plainText)}
 }
