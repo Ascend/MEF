@@ -83,7 +83,7 @@ func (muk *UpdateKmcFlow) initKmcCtx(module string) (*kmc.Context, error) {
 	c, err := kmc.KeInitializeEx(config)
 	if err != nil {
 		hwlog.RunLog.Errorf("Init kmc failed: %v", err.Error())
-		fmt.Println("inin kmc failed")
+		fmt.Println("init kmc failed")
 		return nil, err
 	}
 
