@@ -7,11 +7,12 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
-
+	"huawei.com/mindx/common/x509"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
@@ -39,6 +40,7 @@ func (sic *SftInstallCtl) DoInstall() error {
 		sic.prepareK8sLabel,
 		sic.prepareConfigDir,
 		sic.prepareCerts,
+		sic.copyCloudCoreCa,
 		sic.prepareYaml,
 		sic.componentsInstall,
 		sic.setCenterMode,
@@ -304,6 +306,27 @@ func (sic *SftInstallCtl) prepareYaml() error {
 	return nil
 }
 
+func (sic *SftInstallCtl) copyCloudCoreCa() error {
+	hwlog.RunLog.Info("start to copy cloud core ca")
+	caPath := sic.CloudCoreCaPath
+	if utils.IsDir(caPath) {
+		caPath = filepath.Join(caPath, util.CloudCoreRootCa)
+	}
+
+	if _, err := x509.CheckCertsChainReturnContent(caPath); err != nil {
+		hwlog.RunLog.Errorf("check cloud core ca file failed: %v", err)
+		return err
+	}
+
+	if err := utils.CopyFile(caPath, sic.InstallPathMgr.ConfigPathMgr.GetCloudCoreCaFile()); err != nil {
+		return fmt.Errorf("copy cloud core ca file failed: %v", err)
+	}
+
+	hwlog.RunLog.Info("copy cloud core ca file successfully")
+
+	return nil
+}
+
 func (sic *SftInstallCtl) componentsInstall() error {
 	fmt.Println("start to prepare docker image")
 	hwlog.RunLog.Info("-----Start to install components-----")
@@ -373,11 +396,12 @@ func (sic *SftInstallCtl) clearAll() {
 
 // GetSftInstallMgrIns is used to init a SftInstallCtl struct
 func GetSftInstallMgrIns(components []string,
-	installPath string, logRootPath string, logBackupRootPath string) *SftInstallCtl {
+	installPath, logRootPath, logBackupRootPath, cloudCoreCaPath string) *SftInstallCtl {
 	return &SftInstallCtl{
 		SoftwareMgr: util.SoftwareMgr{
-			Components:     components,
-			InstallPathMgr: util.InitInstallDirPathMgr(installPath),
+			Components:      components,
+			InstallPathMgr:  util.InitInstallDirPathMgr(installPath),
+			CloudCoreCaPath: cloudCoreCaPath,
 		},
 		logPathMgr: util.InitLogDirPathMgr(logRootPath, logBackupRootPath),
 	}

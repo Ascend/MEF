@@ -12,13 +12,15 @@ import (
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/websocketmgr"
-
 	"huawei.com/mindxedge/base/common"
+
+	"edge-manager/pkg/database"
 )
 
 // CloudServer wraps the struct WebSocketServer
 type CloudServer struct {
 	wsPort       int
+	authPort     int
 	maxClientNum int
 	writeLock    sync.RWMutex
 	ctx          context.Context
@@ -28,9 +30,10 @@ type CloudServer struct {
 var server CloudServer
 
 // NewCloudServer new cloud server
-func NewCloudServer(enable bool, wsPort, maxClientNum int) *CloudServer {
+func NewCloudServer(enable bool, wsPort, authPort, maxClientNum int) *CloudServer {
 	server = CloudServer{
 		wsPort:       wsPort,
+		authPort:     authPort,
 		maxClientNum: maxClientNum,
 		ctx:          context.Background(),
 		enable:       enable,
@@ -45,6 +48,12 @@ func (c *CloudServer) Name() string {
 
 // Enable indicates whether this module is enabled
 func (c *CloudServer) Enable() bool {
+	if c.enable {
+		if err := initNodeTable(); err != nil {
+			hwlog.RunLog.Errorf("module (%s) init token database table failed, cannot enable", c.Name())
+			return !c.enable
+		}
+	}
 	return c.enable
 }
 
@@ -123,5 +132,17 @@ func (c *CloudServer) sendToClient(msg *model.Message) error {
 	hwlog.RunLog.Infof("cloud hub send msg to edge node success, operation is [%s], resource is [%s]",
 		msg.GetOption(), msg.GetResource())
 
+	return nil
+}
+
+func initNodeTable() error {
+	if err := database.CreateTableIfNotExists(AuthFailedRecord{}); err != nil {
+		hwlog.RunLog.Error("create token failed record database table failed")
+		return err
+	}
+	if err := database.CreateTableIfNotExists(LockRecord{}); err != nil {
+		hwlog.RunLog.Error("create token lock database table failed")
+		return err
+	}
 	return nil
 }

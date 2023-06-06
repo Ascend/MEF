@@ -18,6 +18,7 @@ function process()
         echo "build secure failed"
         return 1
     fi
+    cp -rf "$PLATFORM_DIR"/cmscbb_csec/include/* "$TOP_DIR"/output/include
     cp -rf "$PLATFORM_DIR"/HuaweiSecureC/include/* "$TOP_DIR"/output/include
     cp -rf "$PLATFORM_DIR"/HuaweiSecureC/lib/libsecurec.so "$TOP_DIR"/output/lib
 

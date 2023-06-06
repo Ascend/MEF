@@ -97,8 +97,8 @@ const (
 
 	// ErrorSendMsgToNode failed to send msg to node
 	ErrorSendMsgToNode = "40012016"
-	// ErrorGetToken failed to get token
-	ErrorGetToken = "40012017"
+	// ErrorGetConfigData failed to get token
+	ErrorGetConfigData = "40012017"
 
 	// ErrorGetNodeSoftwareVersion failed to delete node groups
 	ErrorGetNodeSoftwareVersion = "40012018"
@@ -157,6 +157,9 @@ const (
 	ErrorLogCollectEdgeBusiness = "40052002"
 	// ErrorLogCollectEdgeParamInvalid parameter error
 	ErrorLogCollectEdgeParamInvalid = "40051002"
+
+	// ErrorExportToken export token failed
+	ErrorExportToken = "40061001"
 
 	// ErrorGetRootCa failed to get root ca by cert name
 	ErrorGetRootCa = "60001001"
@@ -252,8 +255,8 @@ var ErrorMap = map[string]string{
 	ErrorSendMsgToNode: "failed to send msg to node",
 	// ErrorDeleteNodeFromGroup failed to send msg to node
 	ErrorGetNodeSoftwareVersion: "failed to get node version",
-	// ErrorGetToken failed to get token
-	ErrorGetToken: "failed to get token",
+	// ErrorGetConfigData failed to get token
+	ErrorGetConfigData: "failed to get token",
 
 	// ErrorGetNode failed to get node detail
 	ErrorGetNode: "failed to get node detail",
@@ -345,4 +348,6 @@ var ErrorMap = map[string]string{
 	ErrorLogCollectEdgeBusiness: "failed to collect log due to business error",
 	// ErrorLogCollectEdgeParamInvalid parameter error
 	ErrorLogCollectEdgeParamInvalid: "failed to collect log due to parameter invalid",
+
+	ErrorExportToken: "export token failed",
 }

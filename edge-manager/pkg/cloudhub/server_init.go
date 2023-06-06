@@ -6,9 +6,8 @@ package cloudhub
 import (
 	"errors"
 	"fmt"
-	"math"
 	"net/http"
-	"path"
+	"path/filepath"
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
@@ -16,26 +15,22 @@ import (
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/websocketmgr"
 	"huawei.com/mindx/common/x509/certutils"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/httpsmgr"
+	centerutil "huawei.com/mindxedge/base/mef-center-install/pkg/util"
 
 	"edge-manager/pkg/util"
 )
 
 const (
-	name              = "server_edge_ctl"
-	certPathDir       = "/home/data/config/websocket-certs"
-	rootNameValidEdge = "root_edge.crt"
-	serviceName       = "server.crt"
-	keyFileName       = "server.key"
-	retryTime         = 30
-	maxRetry          = math.MaxInt
-	waitTime          = 5 * time.Second
+	name     = "server_edge_ctl"
+	maxRetry = 10
+	waitTime = 5 * time.Second
 )
 
 var serverSender websocketmgr.WsSvrSender
 var initFlag bool
+var certPathDir = filepath.Join("/home/data/config", centerutil.WebsocketCerts)
 
 // InitServer init server
 func InitServer() error {
@@ -47,10 +42,11 @@ func InitServer() error {
 	certInfo := certutils.TlsCertInfo{
 		KmcCfg:        kmc.GetDefKmcCfg(),
 		RootCaContent: rootCaBytes,
-		CertPath:      path.Join(certPathDir, serviceName),
-		KeyPath:       path.Join(certPathDir, keyFileName),
+		CertPath:      filepath.Join(certPathDir, centerutil.ServiceName),
+		KeyPath:       filepath.Join(certPathDir, centerutil.KeyFileName),
 		SvrFlag:       true,
 	}
+	go authServer(rootCaBytes)
 
 	podIp, err := common.GetPodIP()
 	if err != nil {
@@ -67,8 +63,8 @@ func InitServer() error {
 		ProxyCfg: proxyConfig,
 	}
 	if err = proxy.AddHandler(util.ConnCheckUrl, checkConn); err != nil {
-		hwlog.RunLog.Errorf("add handler failed. url: %v", util.ConnCheckUrl)
-		return fmt.Errorf("add handler failed. url: %v", util.ConnCheckUrl)
+		hwlog.RunLog.Errorf("add handler failed")
+		return fmt.Errorf("add handler failed")
 	}
 	proxy.AddDefaultHandler()
 	serverSender.SetProxy(proxy)
@@ -76,14 +72,26 @@ func InitServer() error {
 		hwlog.RunLog.Errorf("proxy.Start failed: %v", err)
 		return errors.New("proxy.Start failed")
 	}
-
+	hwlog.RunLog.Infof("cloudhub server start success")
 	initFlag = true
 	return nil
 }
 
+func authServer(rootCaBytes []byte) {
+	authCertInfo := certutils.TlsCertInfo{
+		KmcCfg:        kmc.GetDefKmcCfg(),
+		RootCaContent: rootCaBytes,
+		CertPath:      filepath.Join(certPathDir, centerutil.ServiceName),
+		KeyPath:       filepath.Join(certPathDir, centerutil.KeyFileName),
+		SvrFlag:       true,
+		IgnoreCltCert: true,
+	}
+	NewClientAuthService(server.authPort, authCertInfo).Start()
+}
+
 func checkAndSetWsSvcCert() {
-	keyPath := path.Join(certPathDir, keyFileName)
-	certPath := path.Join(certPathDir, serviceName)
+	keyPath := filepath.Join(certPathDir, centerutil.KeyFileName)
+	certPath := filepath.Join(certPathDir, centerutil.ServiceName)
 	if utils.IsExist(keyPath) && utils.IsExist(certPath) {
 		hwlog.RunLog.Info("check websocket server certs success")
 		return
@@ -93,8 +101,7 @@ func checkAndSetWsSvcCert() {
 	if err != nil {
 		return
 	}
-	err = common.WriteData(certPath, []byte(svcCertStr))
-	if err != nil {
+	if err = common.WriteData(certPath, []byte(svcCertStr)); err != nil {
 		hwlog.RunLog.Errorf("save cert for websocket service cert failed: %v", err)
 		return
 	}
@@ -147,7 +154,7 @@ func getWsRootCert() ([]byte, error) {
 	var rootCaStr string
 	var err error
 	for i := 0; i < maxRetry; i++ {
-		rootCaStr, err = reqCertParams.GetRootCa(common.WsCltName)
+		rootCaStr, err = reqCertParams.GetRootCa(common.WsSerName)
 		if err == nil {
 			break
 		}

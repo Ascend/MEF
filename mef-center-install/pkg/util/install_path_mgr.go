@@ -5,6 +5,8 @@ package util
 import (
 	"fmt"
 	"path/filepath"
+
+	"huawei.com/mindxedge/base/common"
 )
 
 // WorkPathItf is an interface contains the path on mef-center-X dir
@@ -403,6 +405,16 @@ func (cpm *ConfigPathMgr) GetCompPubConfigPath() string {
 	return filepath.Join(cpm.configPath, PubCfgDir)
 }
 
+// GetHubSrvKeyPath returns the hub_srv key path
+func (cpm *ConfigPathMgr) GetHubSrvKeyPath() string {
+	return filepath.Join(cpm.GetComponentConfigPath(CertManagerName), RootCaDir, common.WsSerName, RootKeyFileName)
+}
+
+// GetWebSocketKeyPath returns the key path for southern websocket
+func (cpm *ConfigPathMgr) GetWebSocketKeyPath() string {
+	return filepath.Join(cpm.GetComponentConfigPath(EdgeManagerName), WebsocketCerts, KeyFileName)
+}
+
 // GetMefCertsDirPath returns single component's certs dir path by component's name
 func (cpm *ConfigPathMgr) GetMefCertsDirPath(component string) string {
 	return filepath.Join(cpm.GetComponentConfigPath(component), CertsDir)
@@ -431,6 +443,16 @@ func (cpm *ConfigPathMgr) GetUserServerKeyPath() string {
 // GetNginxNorthernCertPath returns the cert path of the 3rd party
 func (cpm *ConfigPathMgr) GetNginxNorthernCertPath() string {
 	return filepath.Join(cpm.GetMefCertsDirPath(NginxManagerName), NorthernRootName+CertSuffix)
+}
+
+// GetCloudCoreCertsDir returns the cloud core cert dir path
+func (cpm *ConfigPathMgr) GetCloudCoreCertsDir() string {
+	return filepath.Join(cpm.GetComponentConfigPath(EdgeManagerName), CloudCoreCertDir)
+}
+
+// GetCloudCoreCaFile returns the cloud core ca cert file path
+func (cpm *ConfigPathMgr) GetCloudCoreCaFile() string {
+	return filepath.Join(cpm.GetCloudCoreCertsDir(), CloudCoreRootCa)
 }
 
 // GetPublicConfigPath returns the public-config path

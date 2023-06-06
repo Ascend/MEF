@@ -74,10 +74,12 @@ const (
 	KmcDir           = "kmc"
 	PubCfgDir        = "public-config"
 	RootCaDir        = "root-ca"
+	CloudCoreCertDir = "cloud-core-certs"
 	RootCaFileDir    = "cert"
 	RootCaKeyDir     = "key"
 	RootCaFile       = "RootCA.crt"
 	RootKeyFile      = "RootCA.key"
+	CloudCoreRootCa  = "rootCA.crt"
 	MasterKeyFile    = "master.ks"
 	BackUpKeyFile    = "backup.ks"
 	CertsDir         = "mef-certs"
@@ -105,6 +107,7 @@ const (
 	EdgeManagerName     = "edge-manager"
 	CertManagerName     = "cert-manager"
 	NginxManagerName    = "nginx-manager"
+	MefCenterRootName   = "MEF-Center-root"
 	SoftwareManagerName = "software-manager"
 	UserManagerName     = "user-manager"
 )
@@ -116,6 +119,7 @@ const (
 	LogPathFlag         = "log_path"
 	LogBackupPathFlag   = "log_backup_path"
 	InstallPathFlag     = "install_path"
+	CloudCoreCaPathFlag = "cloud_core_ca_path"
 	HelpFlag            = "help"
 	HelpShortFlag       = "h"
 	VersionFlag         = "version"
@@ -158,6 +162,10 @@ const (
 )
 
 const (
+	// DefaultCloudCoreCaPath for default cloud core ca path
+	DefaultCloudCoreCaPath = "/etc/kubeedge/ca/rootCA.crt"
+)
+const (
 	// NotGenCertErrorStr for the root ca has not yet generated
 	NotGenCertErrorStr = "the root ca has not yet generated"
 )
@@ -167,6 +175,7 @@ const (
 	UninstallFlag  = "uninstall"
 	UpgradeFlag    = "upgrade"
 	ExchangeCaFlag = "exchange_ca"
+	UpdateKmcFlag  = "updatekmc"
 
 	StartOperateFlag   = "start"
 	StopOperateFlag    = "stop"
@@ -212,4 +221,26 @@ const (
 const (
 	DirType  = "dir"
 	FileType = "file"
+)
+
+const (
+	// ServerCertPath  cert-manager server cert path
+	ServerCertPath = "/home/data/config/mef-certs/cert-manager.crt"
+	// ServerKeyPath cert-manager server key path
+	ServerKeyPath = "/home/data/config/mef-certs/cert-manager.key"
+	// RootCaPath  cert-manager server root ca path
+	RootCaPath = "/home/data/inner-root-ca/RootCA.crt"
+	// RootCaMgrDir root ca save directory
+	RootCaMgrDir = "/home/data/config/root-ca/"
+	// RootCaFileName root ca save file name
+	RootCaFileName = "root.crt"
+	// RootKeyFileName root key save file name
+	RootKeyFileName = "encrypt_root.key"
+)
+
+// const for edge-manager websocket certs
+const (
+	WebsocketCerts = "websocket-certs"
+	ServiceName    = "server.crt"
+	KeyFileName    = "server.key"
 )

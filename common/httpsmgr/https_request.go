@@ -64,13 +64,13 @@ func (hr *HttpsRequest) initClient() error {
 }
 
 // Get [method] for http get methods request
-func (hr *HttpsRequest) Get() ([]byte, error) {
+func (hr *HttpsRequest) Get(body io.Reader) ([]byte, error) {
 	if hr.client == nil {
 		if err := hr.initClient(); err != nil {
 			return nil, fmt.Errorf("init https client failed: %v", err)
 		}
 	}
-	req, err := http.NewRequest(http.MethodGet, hr.url, nil)
+	req, err := http.NewRequest(http.MethodGet, hr.url, body)
 	if len(hr.reqHeader) > 0 {
 		for k, v := range hr.reqHeader {
 			req.Header.Set(k, fmt.Sprintf("%v", v))

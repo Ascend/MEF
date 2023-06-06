@@ -34,7 +34,7 @@ func (rcp *ReqCertParams) GetRootCa(certName string) (string, error) {
 	url := fmt.Sprintf("https://%s:%d/%s/?certName=%s", common.CertMgrDns, common.CertMgrPort,
 		getRootCaUrl, certName)
 	httpsReq := GetHttpsReq(url, rcp.ClientTlsCert)
-	resp, err := httpsReq.Get()
+	resp, err := httpsReq.Get(nil)
 	if err != nil {
 		return "", err
 	}

@@ -173,7 +173,10 @@ const (
 	// SpecialCharactersRegex special regex
 	SpecialCharactersRegex = "[!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~]{1,}"
 	// PassWordRegex PassWordRegex
-	PassWordRegex = "^[a-zA-z0-9!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~]{8,20}$"
+	PassWordRegex          = "^[a-zA-z0-9!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~]{16,64}$"
+	Pbkdf2IterationCount   = 10000
+	BytesOfEncryptedString = 32
+	LockInterval           = 5 * time.Minute
 )
 
 // field constraints
@@ -204,6 +207,8 @@ const (
 	OptGet = "GET"
 	// OptPost option for post
 	OptPost = "POST"
+	// OptResp option for response
+	OptResp = "response"
 	// OptReport option for report
 	OptReport = "REPORT"
 	// ResEdgeDownloadInfo resource for download software
@@ -220,6 +225,8 @@ const (
 	ResDownLoadSoftware = "/software/download_info"
 	// ResEdgeCoreConfig resource for querying edgecore config
 	ResEdgeCoreConfig = "/edgecore/config"
+	// ResConfig resource config
+	ResConfig = "/config"
 	// ResSetEdgeAccount resource for setting edge account
 	ResSetEdgeAccount = "/edgemanager/v1/edgeAccount"
 	// ResDownLoadCert resource for downloading cert

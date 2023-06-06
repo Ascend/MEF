@@ -8,8 +8,7 @@ import (
 	"huawei.com/mindx/common/x509/certutils"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/httpsmgr"
-
-	"cert-manager/pkg/certconstant"
+	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
 // Service cert manager service init
@@ -26,9 +25,9 @@ func NewRestfulService(enable bool, ip string, port int) *Service {
 			IP:   ip,
 			Port: port,
 			TlsCertPath: certutils.TlsCertInfo{
-				RootCaPath: certconstant.RootCaPath,
-				CertPath:   certconstant.ServerCertPath,
-				KeyPath:    certconstant.ServerKeyPath,
+				RootCaPath: util.RootCaPath,
+				CertPath:   util.ServerCertPath,
+				KeyPath:    util.ServerKeyPath,
 				SvrFlag:    true,
 				KmcCfg:     nil,
 			},

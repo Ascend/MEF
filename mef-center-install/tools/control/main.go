@@ -13,6 +13,7 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
+	"huawei.com/mindxedge/base/mef-center-install/pkg/control/kmcupdate"
 
 	"huawei.com/mindxedge/base/mef-center-install/pkg/control"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
@@ -294,6 +295,48 @@ func (ecc *exchangeCertsController) printFailedLog(user, ip string) {
 	fmt.Println("exchange certs failed")
 }
 
+type updateKmcController struct {
+	installParam *util.InstallParamJsonTemplate
+}
+
+func (ukc *updateKmcController) bindFlag() bool {
+	return false
+}
+
+func (ukc *updateKmcController) setInstallParam(installParam *util.InstallParamJsonTemplate) {
+	ukc.installParam = installParam
+}
+
+func (ukc *updateKmcController) doControl() error {
+	pathMgr := util.InitInstallDirPathMgr(ukc.installParam.InstallDir)
+
+	updateFlow := kmcupdate.NewUpdateKmcFlow(pathMgr)
+	if err := updateFlow.RunFlow(); err != nil {
+		hwlog.RunLog.Errorf("execute update kmc flow failed: %s", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (ukc *updateKmcController) printExecutingLog(ip, user string) {
+	hwlog.RunLog.Info("-------------------start to update kmc keys-------------------")
+	hwlog.OpLog.Infof("%s: %s, start to update kmc keys", ip, user)
+	fmt.Println(" start to update kmc keys")
+}
+
+func (ukc *updateKmcController) printSuccessLog(user, ip string) {
+	hwlog.RunLog.Info("-------------------update kmc keys successful-------------------")
+	hwlog.OpLog.Infof("%s: %s, update kmc keys successful", ip, user)
+	fmt.Println("update kmc keys successful")
+}
+
+func (ukc *updateKmcController) printFailedLog(user, ip string) {
+	hwlog.RunLog.Error("-------------------update kmc keys failed-------------------")
+	hwlog.OpLog.Errorf("%s: %s, update kmc keys failed", ip, user)
+	fmt.Println("update kmc keys failed")
+}
+
 func dealArgs() bool {
 	flag.Usage = printUseHelp
 	if len(os.Args) == util.NoArgCount {
@@ -355,7 +398,6 @@ func printVersion() {
 }
 
 func printUsage() {
-	printVersion()
 	fmt.Printf(`Usage: [OPTIONS...] COMMAND
 
 Options:
@@ -369,6 +411,7 @@ Commands:
 	uninstall   -- uninstall MEF Center
 	upgrade     -- upgrade MEF Center
 	exchange_ca -- exchange root ca with MEF Center
+	updatekmc   -- update kmc keys
 `)
 }
 
@@ -448,5 +491,6 @@ func getOperateMap(operate string) map[string]controller {
 		util.UninstallFlag:      &uninstallController{},
 		util.UpgradeFlag:        &upgradeController{},
 		util.ExchangeCaFlag:     &exchangeCertsController{},
+		util.UpdateKmcFlag:      &updateKmcController{},
 	}
 }
