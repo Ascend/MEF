@@ -312,8 +312,20 @@ func (sic *SftInstallCtl) copyCloudCoreCa() error {
 		caPath = filepath.Join(caPath, util.CloudCoreRootCa)
 	}
 
-	if err := utils.CopyFile(caPath, sic.InstallPathMgr.ConfigPathMgr.GetCloudCoreCaFile()); err != nil {
+	dstCaPath := sic.InstallPathMgr.ConfigPathMgr.GetCloudCoreCaFile()
+	if err := utils.CopyFile(caPath, dstCaPath); err != nil {
 		return fmt.Errorf("copy cloud core ca file failed: %v", err)
+	}
+
+	mefUid, mefGid, err := util.GetMefId()
+	if err != nil {
+		hwlog.RunLog.Errorf("get mef uid or gid failed: %s", err.Error())
+		return errors.New("get mef uid or gid failed")
+	}
+
+	if err = util.SetPathOwnerGroup(dstCaPath, mefUid, mefGid, true, false); err != nil {
+		hwlog.RunLog.Errorf("set path [%s] owner and group failed: %v", dstCaPath, err)
+		return errors.New("set cloud core cert path owner and group failed")
 	}
 
 	hwlog.RunLog.Info("copy cloud core ca file successfully")
