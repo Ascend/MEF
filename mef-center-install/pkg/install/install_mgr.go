@@ -311,8 +311,8 @@ func (sic *SftInstallCtl) copyCloudCoreCa() error {
 	if utils.IsDir(caPath) {
 		caPath = filepath.Join(caPath, util.CloudCoreRootCa)
 	}
-	dstCaPath := sic.InstallPathMgr.ConfigPathMgr.GetCloudCoreCaFile()
-	if err := utils.CopyFile(caPath, dstCaPath); err != nil {
+
+	if err := utils.CopyFile(caPath, sic.InstallPathMgr.ConfigPathMgr.GetCloudCoreCaFile()); err != nil {
 		return fmt.Errorf("copy cloud core ca file failed: %v", err)
 	}
 
