@@ -14,7 +14,6 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
-	"huawei.com/mindx/common/x509"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/install"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
@@ -230,11 +229,6 @@ func (upf *UpgradePostFlowMgr) copyCloudCoreCa() error {
 
 	if _, err := utils.CheckOriginPath(util.DefaultCloudCoreCaPath); err != nil {
 		hwlog.RunLog.Errorf("check cloud core cert path failed: %v", err)
-		return err
-	}
-
-	if _, err := x509.CheckCertsChainReturnContent(util.DefaultCloudCoreCaPath); err != nil {
-		hwlog.RunLog.Errorf("check cloud core ca file failed: %v", err)
 		return err
 	}
 
