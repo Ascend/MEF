@@ -239,7 +239,7 @@ func (upf *UpgradePostFlowMgr) copyCloudCoreCa() error {
 
 	mefUid, mefGid, err := util.GetMefId()
 	if err != nil {
-		hwlog.RunLog.Errorf("get mef uid or gid failed: %v", err)
+		hwlog.RunLog.Errorf("get mef uid or gid failed: %s", err.Error())
 		return errors.New("get mef uid or gid failed")
 	}
 

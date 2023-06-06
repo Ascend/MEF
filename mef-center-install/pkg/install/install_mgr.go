@@ -311,9 +311,14 @@ func (sic *SftInstallCtl) copyCloudCoreCa() error {
 	if utils.IsDir(caPath) {
 		caPath = filepath.Join(caPath, util.CloudCoreRootCa)
 	}
-
-	if err := utils.CopyFile(caPath, sic.InstallPathMgr.ConfigPathMgr.GetCloudCoreCaFile()); err != nil {
+	dstCaPath := sic.InstallPathMgr.ConfigPathMgr.GetCloudCoreCaFile()
+	if err := utils.CopyFile(caPath, dstCaPath); err != nil {
 		return fmt.Errorf("copy cloud core ca file failed: %v", err)
+	}
+
+	if err := utils.SetPathOwnerGroup(ecf.savePath, ecf.uid, ecf.gid, false, false); err != nil {
+		hwlog.RunLog.Errorf("set crt owner failed: %s", err.Error())
+		return errors.New("set crt owner failed")
 	}
 
 	hwlog.RunLog.Info("copy cloud core ca file successfully")
