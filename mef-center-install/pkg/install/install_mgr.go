@@ -12,7 +12,6 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
-	"huawei.com/mindx/common/x509"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
@@ -311,11 +310,6 @@ func (sic *SftInstallCtl) copyCloudCoreCa() error {
 	caPath := sic.CloudCoreCaPath
 	if utils.IsDir(caPath) {
 		caPath = filepath.Join(caPath, util.CloudCoreRootCa)
-	}
-
-	if _, err := x509.CheckCertsChainReturnContent(caPath); err != nil {
-		hwlog.RunLog.Errorf("check cloud core ca file failed: %v", err)
-		return err
 	}
 
 	if err := utils.CopyFile(caPath, sic.InstallPathMgr.ConfigPathMgr.GetCloudCoreCaFile()); err != nil {
