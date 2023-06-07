@@ -9,9 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"huawei.com/mindx/common/hwlog"
-
 	"gorm.io/gorm"
+	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/database"
@@ -47,13 +46,15 @@ type LockRepository interface {
 	recordFailed(string) error
 	isLock(string) (bool, error)
 	deleteOneLockRecord(string) error
-	UnlockRecords() error
+	findUnlockRecords() ([]LockRecord, error)
+	UnlockRecords(string) error
 	updateLockTime(string) error
 	getFailedRecord(string) (*AuthFailedRecord, error)
-	createFailedRecord(ip string) error
-	updateFailedRecord(ip string) error
-	createLockRecord(ip string) error
-	deleteFailedRecord(ip string) error
+	createFailedRecord(string) error
+	updateFailedRecord(string) error
+	createLockRecord(string) error
+	deleteFailedRecord(string) error
+	authPass(string) error
 }
 
 // LockRepositoryInstance returns the singleton instance of token lock service
@@ -77,6 +78,7 @@ func (c *lockRepositoryImpl) isLock(ip string) (bool, error) {
 		if err := c.deleteOneLockRecord(ip); err != nil {
 			return false, err
 		}
+		hwlog.OpLog.Infof("edge (%s) is unlock", ip)
 		return false, nil
 	}
 	if err := c.updateLockTime(ip); err != nil {
@@ -94,11 +96,11 @@ func (c *lockRepositoryImpl) recordFailed(ip string) error {
 		return c.createFailedRecord(ip)
 	}
 
-	if record.ErrorTimes+1 < lockTime {
+	if record.ErrorTimes+1 <= lockTime {
 		return c.updateFailedRecord(ip)
 	}
 	if err := c.createLockRecord(ip); err != nil {
-		return errors.New("create lock record to db error")
+		return fmt.Errorf("create lock record to db error ip(%s)", ip)
 	}
 	hwlog.OpLog.Infof("lock edge (%s)", ip)
 	if err := c.deleteFailedRecord(ip); err != nil {
@@ -107,10 +109,17 @@ func (c *lockRepositoryImpl) recordFailed(ip string) error {
 	return nil
 }
 
+func (c *lockRepositoryImpl) authPass(ip string) error {
+	if err := c.deleteFailedRecord(ip); err != nil {
+		return err
+	}
+	return c.deleteOneLockRecord(ip)
+}
+
 func (c *lockRepositoryImpl) getFailedRecord(ip string) (*AuthFailedRecord, error) {
-	var failedRecord AuthFailedRecord
-	err := c.db.Model(AuthFailedRecord{}).Where("ip = ?", ip).First(&failedRecord).Error
-	return &failedRecord, err
+	var lockInfo AuthFailedRecord
+	err := c.db.Model(AuthFailedRecord{}).Where("ip = ?", ip).First(&lockInfo).Error
+	return &lockInfo, err
 }
 
 func (c *lockRepositoryImpl) createFailedRecord(ip string) error {
@@ -119,7 +128,7 @@ func (c *lockRepositoryImpl) createFailedRecord(ip string) error {
 		ErrorTimes: 1,
 	}
 	if createErr := c.db.Model(AuthFailedRecord{}).Create(record).Error; createErr != nil {
-		return errors.New("create auth failed record to db error")
+		return fmt.Errorf("create auth failed record to db error, ip(%s)", ip)
 	}
 	return nil
 }
@@ -133,7 +142,7 @@ func (c *lockRepositoryImpl) updateFailedRecord(ip string) error {
 		"ErrorTimes": oldRecord.ErrorTimes + 1,
 	}
 	if err := c.db.Model(AuthFailedRecord{}).Where("ip = ?", ip).UpdateColumns(record).Error; err != nil {
-		return errors.New("update auth failed record to db error")
+		return fmt.Errorf("update auth failed record to db error, ip(%s)", ip)
 	}
 	return nil
 }
@@ -145,15 +154,19 @@ func (c *lockRepositoryImpl) deleteFailedRecord(ip string) error {
 	return nil
 }
 
-func (c *lockRepositoryImpl) UnlockRecords() error {
-	return c.db.Model(LockRecord{}).Where("lock_time < ?", time.Now().Unix()).Delete(LockRecord{}).Error
+func (c *lockRepositoryImpl) findUnlockRecords() ([]LockRecord, error) {
+	var unlockIP []LockRecord
+	return unlockIP, c.db.Model(LockRecord{}).Where("lock_time < ?", time.Now().Unix()).Find(&unlockIP).Error
+}
+
+func (c *lockRepositoryImpl) UnlockRecords(ip string) error {
+	return c.db.Model(LockRecord{}).Where("lock_time < ? and ip = ?", time.Now().Unix(), ip).Delete(LockRecord{}).Error
 }
 
 func (c *lockRepositoryImpl) deleteOneLockRecord(ip string) error {
 	if err := c.db.Model(LockRecord{}).Where("ip = ?", ip).Delete(&LockRecord{}).Error; err != nil {
 		return fmt.Errorf("delete lock info from ip:%s error", ip)
 	}
-	hwlog.OpLog.Infof("edge (%s) is unlock", ip)
 	return nil
 }
 

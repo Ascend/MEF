@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
@@ -64,7 +65,7 @@ func (c *CloudServer) Start() {
 		hwlog.RunLog.Errorf("init mef edge max client num failed: %v", err)
 		return
 	}
-
+	go periodCheck()
 	if err := InitServer(); err != nil {
 		hwlog.RunLog.Errorf("init websocket server failed: %v", err)
 		return
@@ -145,4 +146,34 @@ func initNodeTable() error {
 		return err
 	}
 	return nil
+}
+
+func periodCheck() {
+	unlockIP()
+	ticker := time.NewTicker(common.CheckUnlockInterval)
+	defer ticker.Stop()
+	for {
+		select {
+		case _, ok := <-ticker.C:
+			if !ok {
+				return
+			}
+			unlockIP()
+		}
+	}
+}
+
+func unlockIP() {
+	records, err := LockRepositoryInstance().findUnlockRecords()
+	if err != nil {
+		hwlog.RunLog.Error(err)
+		return
+	}
+	for _, record := range records {
+		if err := LockRepositoryInstance().deleteOneLockRecord(record.IP); err != nil {
+			hwlog.RunLog.Warnf("unlock edge(%s) failed", record.IP)
+			continue
+		}
+		hwlog.OpLog.Infof("edge (%s) is unlock", record.IP)
+	}
 }
