@@ -139,9 +139,8 @@ func initPodConfig() error {
 	if err = json.Unmarshal(date, &podConfig); err != nil {
 		return errors.New("unmarshal pod config failed")
 	}
-	config.CheckAndModifyHostPath(podConfig.HostPath)
 
-	config.PodConfig = podConfig
+	config.PodConfig.HostPath = config.CheckAndModifyHostPath(podConfig.HostPath)
 	return nil
 }
 
