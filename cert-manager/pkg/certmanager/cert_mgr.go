@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
@@ -22,16 +23,45 @@ import (
 	"cert-manager/pkg/certmanager/certchecker"
 )
 
-var lock sync.Mutex
+var (
+	lock            sync.Mutex
+	certsToImported = map[string]*time.Timer{
+		common.ImageCertName:    nil,
+		common.SoftwareCertName: nil,
+		common.WsCltName:        nil,
+		common.NorthernCertName: nil,
+	}
+)
+
+func isCertImported(certName string) bool {
+	const certQueryLogInterval = 60 * time.Second
+
+	caFilePath := getRootCaPath(certName)
+	timer, exist := certsToImported[certName]
+	if !exist || utils.IsExist(caFilePath) {
+		return true
+	}
+
+	if timer == nil {
+		timer = time.NewTimer(certQueryLogInterval)
+		certsToImported[certName] = timer
+		hwlog.RunLog.Warnf("%s cert is not be imported yet", certName)
+	}
+	select {
+	case _, ok := <-timer.C:
+		if !ok {
+			hwlog.RunLog.Error("cert query suppression timer's channel is unexpected closed")
+			return false
+		}
+		timer.Reset(certQueryLogInterval)
+	default:
+	}
+	return false
+}
 
 // getCertByCertName query root ca with cert name
 func getCertByCertName(certName string) ([]byte, error) {
 	caFilePath := getRootCaPath(certName)
-	if (certName == common.ImageCertName || certName == common.SoftwareCertName || certName == common.WsCltName) &&
-		!utils.IsExist(caFilePath) {
-		hwlog.RunLog.Warnf("%s cert content should be imported", certName)
-		return nil, nil
-	}
 	certData, err := utils.LoadFile(caFilePath)
 	if certData == nil {
 		hwlog.RunLog.Errorf("load root cert failed: %v", err)
