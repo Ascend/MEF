@@ -5,11 +5,12 @@ package certmanager
 
 import (
 	"encoding/base64"
+	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
 
 	"cert-manager/pkg/certmanager/certchecker"
-	"huawei.com/mindxedge/base/common"
 )
 
 func queryRootCa(input interface{}) common.RespMsg {
@@ -22,6 +23,11 @@ func queryRootCa(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("the cert name not support")
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "Query root ca failed", Data: nil}
 	}
+	if !isCertImported(certName) {
+		return common.RespMsg{Status: common.ErrorGetRootCa,
+			Msg: fmt.Sprintf("%s is no imported yet", certName), Data: nil}
+	}
+
 	ca, err := getCertByCertName(certName)
 	if err != nil {
 		hwlog.RunLog.Errorf("query cert [%s] root ca failed: %v", certName, err)

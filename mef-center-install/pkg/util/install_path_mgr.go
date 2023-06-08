@@ -440,9 +440,9 @@ func (cpm *ConfigPathMgr) GetUserServerKeyPath() string {
 	return filepath.Join(cpm.GetMefCertsDirPath(NginxManagerName), UserManagerName+KeySuffix)
 }
 
-// GetNginxNorthernCertPath returns the cert path of the 3rd party
-func (cpm *ConfigPathMgr) GetNginxNorthernCertPath() string {
-	return filepath.Join(cpm.GetMefCertsDirPath(NginxManagerName), NorthernRootName+CertSuffix)
+// GetNorthernCertPath returns the cert path of the 3rd party
+func (cpm *ConfigPathMgr) GetNorthernCertPath() string {
+	return filepath.Join(cpm.GetComponentConfigPath(CertManagerName), RootCaDir, common.NorthernCertName, RootCrtName)
 }
 
 // GetCloudCoreCertsDir returns the cloud core cert dir path

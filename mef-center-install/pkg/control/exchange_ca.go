@@ -30,7 +30,7 @@ type ExchangeCaFlow struct {
 // NewExchangeCaFlow an ExchangeCaFlow struct
 func NewExchangeCaFlow(importPath, exportPath string, pathMgr *util.InstallDirPathMgr,
 	uid, gid int) *ExchangeCaFlow {
-	savePath := pathMgr.ConfigPathMgr.GetNginxNorthernCertPath()
+	savePath := pathMgr.ConfigPathMgr.GetNorthernCertPath()
 	return &ExchangeCaFlow{
 		pathMgr:    pathMgr,
 		importPath: importPath,
@@ -139,7 +139,7 @@ func (ecf *ExchangeCaFlow) importCa() error {
 		}
 	}
 
-	if err := ecf.copyCaToNginx(); err != nil {
+	if err := ecf.copyCaToCertManager(); err != nil {
 		return err
 	}
 
@@ -147,7 +147,17 @@ func (ecf *ExchangeCaFlow) importCa() error {
 	return nil
 }
 
-func (ecf *ExchangeCaFlow) copyCaToNginx() error {
+func (ecf *ExchangeCaFlow) copyCaToCertManager() error {
+	if err := utils.MakeSureDir(ecf.savePath); err != nil {
+		hwlog.RunLog.Errorf("create cert dst dir failed: %s", err.Error())
+		return errors.New("create cert dst dir failed")
+	}
+	if err := util.SetPathOwnerGroup(filepath.Dir(ecf.savePath),
+		ecf.uid, ecf.gid, false, false); err != nil {
+		hwlog.RunLog.Errorf("set crt dir owner failed: %s", err.Error())
+		return errors.New("set crt dir owner failed")
+	}
+
 	if err := utils.CopyFile(ecf.importPath, ecf.savePath); err != nil {
 		hwlog.RunLog.Errorf("copy temp crt to dst failed: %s", err.Error())
 		return errors.New("copy temp crt to dst failed")
