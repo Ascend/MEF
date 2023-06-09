@@ -170,7 +170,7 @@ func checkCert() error {
 
 func updateCert() error {
 	certLock.Lock()
-	defer lock.Unlock()
+	defer certLock.Unlock()
 	if err := CreateCaIfNotExit(); err != nil {
 		hwlog.RunLog.Error(err)
 		return err
