@@ -6,15 +6,15 @@ require (
 	github.com/agiledragon/gomonkey/v2 v2.8.0
 	github.com/gin-gonic/gin v1.9.0
 	github.com/smartystreets/goconvey v1.7.2
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.7.1
 	gorm.io/driver/sqlite v1.4.2
-	gorm.io/gorm v1.24.0
+	gorm.io/gorm v1.22.3
 	huawei.com/mindx/common/hwlog v0.10.5
 	huawei.com/mindx/common/kmc v0.1.0
 	huawei.com/mindx/common/modulemgr v0.0.1
 	huawei.com/mindx/common/rand v0.0.1
 	huawei.com/mindx/common/terminal v0.0.0
-	huawei.com/mindx/common/utils v0.1.13
+	huawei.com/mindx/common/utils v0.1.5
 	huawei.com/mindx/common/x509 v0.0.12
 	huawei.com/mindx/mef/common/cmsverify v0.0.0-00010101000000-000000000000
 )
@@ -27,6 +27,6 @@ replace (
 	huawei.com/mindx/common/rand => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/rand v0.0.1
 	huawei.com/mindx/common/terminal => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/terminal v0.0.5
 	huawei.com/mindx/common/utils => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/utils v0.1.17
-	huawei.com/mindx/common/x509 => codehub-dg-y.huawei.com/m30026943/common-utils.git/x509 v0.0.24
+	huawei.com/mindx/common/x509 => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/x509 v0.0.14
 	huawei.com/mindx/mef/common/cmsverify => ./MEF_Utils/cmsverify
 )
