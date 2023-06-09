@@ -4,13 +4,23 @@
 package certmanager
 
 import (
+	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"time"
 
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindx/common/utils"
+	"huawei.com/mindx/common/x509"
 
 	"cert-manager/pkg/certmanager/certchecker"
+
+	"huawei.com/mindxedge/base/common"
+)
+
+const (
+	serialNumberLen = 20
+	sha256sumLen    = 32
 )
 
 func queryRootCa(input interface{}) common.RespMsg {
@@ -113,4 +123,54 @@ func deleteRootCa(input interface{}) common.RespMsg {
 	}
 	hwlog.RunLog.Infof("delete %s certificate success", req.Type)
 	return common.RespMsg{Status: common.Success, Msg: "delete ca file success", Data: nil}
+}
+
+func getCertInfo(input interface{}) common.RespMsg {
+	certName, ok := input.(string)
+	if !ok {
+		hwlog.RunLog.Error("get cert info failed: para type not valid")
+		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "request convert error"}
+	}
+	if !certchecker.CheckIfCanGetInfo(certName) {
+		hwlog.RunLog.Error("the cert name not support")
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "the cert name not support"}
+	}
+	ca, err := getCertByCertName(certName)
+	if err != nil {
+		hwlog.RunLog.Errorf("load cert [%s] failed, %v", certName, err)
+		return common.RespMsg{Status: common.ErrorGetRootCaInfo, Msg: "load cert failed"}
+	}
+	info, err := parseNorthernRootCa(ca)
+	if err != nil {
+		hwlog.RunLog.Errorf("cert [%s] root ca parse cert failed: %v", certName, err)
+		return common.RespMsg{Status: common.ErrorGetRootCaInfo, Msg: "parse cert failed"}
+	}
+	return common.RespMsg{Status: common.Success, Data: info}
+}
+
+func parseNorthernRootCa(caBytes []byte) (interface{}, error) {
+	caChainMgr, err := x509.NewCaChainMgr(caBytes)
+	if err != nil {
+		hwlog.RunLog.Errorf("create ca chain failed, %v", err)
+		return nil, err
+	}
+
+	var infos []map[string]interface{}
+	for _, cert := range caChainMgr.GetCerts() {
+		sha256sum := sha256.Sum256(cert.Raw)
+		cInfo := map[string]interface{}{
+			"Issuer":       cert.Issuer.String(),
+			"Subject":      cert.Subject.String(),
+			"SerialNumber": utils.BinaryFormat(cert.SerialNumber.Bytes(), serialNumberLen),
+			"Validity": map[string]interface{}{
+				"NotBefore": cert.NotBefore.In(time.Local).Format(common.TimeFormat),
+				"NotAfter":  cert.NotAfter.In(time.Local).Format(common.TimeFormat),
+			},
+			"FingerPrintAlgorithm": "sha256",
+			"FingerPrint":          utils.BinaryFormat(sha256sum[:], sha256sumLen),
+		}
+		infos = append(infos, cInfo)
+	}
+
+	return infos, nil
 }
