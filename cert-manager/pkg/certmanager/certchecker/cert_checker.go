@@ -128,7 +128,6 @@ func certContentChecker(certContent string) bool {
 		hwlog.RunLog.Errorf("valid ca certification failed, error:%v", err)
 		return false
 	}
-
 	return true
 }
 
