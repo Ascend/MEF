@@ -164,6 +164,10 @@ func checkCert() error {
 		hwlog.RunLog.Error("update cert error, %v", err)
 		return err
 	}
+	if err := sendCertUpdateMsg(); err != nil {
+		hwlog.RunLog.Error(err)
+		return err
+	}
 	hwlog.RunLog.Info("websocket client cert will overdue, update success")
 	return nil
 }
@@ -171,12 +175,13 @@ func checkCert() error {
 func updateCert() error {
 	certLock.Lock()
 	defer certLock.Unlock()
-	if err := CreateCaIfNotExit(); err != nil {
-		hwlog.RunLog.Error(err)
+	if err := utils.DeleteFile(getRootCaPath(common.WsCltName)); err != nil {
 		return err
 	}
-	if err := sendCertUpdateMsg(); err != nil {
-		hwlog.RunLog.Error(err)
+	if err := utils.DeleteFile(getRootKeyPath(common.WsCltName)); err != nil {
+		return err
+	}
+	if err := CreateCaIfNotExit(); err != nil {
 		return err
 	}
 	return nil
