@@ -18,3 +18,8 @@ type csrJson struct {
 	CertName string `json:"certName"`
 	Csr      string `json:"csr"`
 }
+
+type importCrlReq struct {
+	CrlName string `json:"crlName"`
+	Crl     string `json:"crl"`
+}

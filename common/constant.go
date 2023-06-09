@@ -35,8 +35,8 @@ const (
 	ImageCertName = "image"
 	// NginxCertName nginx apig cert name
 	NginxCertName = "apig"
-	// NorthernCertName root ca from 3rd part
-	NorthernCertName = "northern_ca"
+	// NorthernCertName dir for northbound cert and crl
+	NorthernCertName = "north"
 )
 
 const (

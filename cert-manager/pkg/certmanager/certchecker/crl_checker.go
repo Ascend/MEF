@@ -1,0 +1,64 @@
+// Copyright (c)  2023. Huawei Technologies Co., Ltd.  All rights reserved.
+
+package certchecker
+
+import (
+	"encoding/base64"
+	"fmt"
+	"path/filepath"
+
+	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/x509"
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/checker/checker"
+	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
+)
+
+type importCrlChecker struct {
+	crlChecker checker.ModelChecker
+}
+
+// NewImportCrlChecker [method] for getting issue cert checker struct
+func NewImportCrlChecker() *importCrlChecker {
+	return &importCrlChecker{
+		crlChecker: checker.ModelChecker{
+			Checker: checker.GetAndChecker(
+				checker.GetStringChoiceChecker("CrlName", []string{common.NorthernCertName}, true),
+				GetStringChecker("Crl", crlContentChecker, true),
+			)},
+	}
+}
+
+func crlContentChecker(crlContent string) bool {
+	lock.Lock()
+	defer lock.Unlock()
+
+	bytes, err := base64.StdEncoding.DecodeString(crlContent)
+	if err != nil {
+		hwlog.RunLog.Errorf("base64 decode crl content failed, error: %s", err.Error())
+		return false
+	}
+	if len(bytes) == 0 || len(bytes) > maxCertSize {
+		hwlog.RunLog.Error("valid crl file size failed")
+		return false
+	}
+
+	mgr, err := x509.NewCrlMgr(bytes, filepath.Join(util.RootCaMgrDir, common.NorthernCertName, util.RootCaFileName))
+	if err != nil {
+		hwlog.RunLog.Errorf("check crl failed, new crl mgr error: %s", err.Error())
+		return false
+	}
+	if err = mgr.CheckCrl(); err != nil {
+		hwlog.RunLog.Errorf("check crl content failed, error: %s", err.Error())
+		return false
+	}
+	return true
+}
+
+func (icc *importCrlChecker) Check(data interface{}) checker.CheckResult {
+	checkResult := icc.crlChecker.Check(data)
+	if !checkResult.Result {
+		return checker.NewFailedResult(fmt.Sprintf("crl checker check failed: %s", checkResult.Reason))
+	}
+	return checker.NewSuccessResult()
+}

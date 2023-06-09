@@ -181,6 +181,8 @@ const (
 	ErrorExportRootCa = "60001009"
 	// ErrorGetRootCaInfo failed to get root ca info by cert name
 	ErrorGetRootCaInfo = "60001010"
+	// ErrorSaveCrl failed to  save crl content
+	ErrorSaveCrl = "60001011"
 )
 
 // ErrorMap error code and error msg map

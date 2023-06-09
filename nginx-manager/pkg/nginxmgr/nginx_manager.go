@@ -4,7 +4,9 @@
 package nginxmgr
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"os"
 	"time"
 
@@ -43,10 +45,49 @@ func initResource() error {
 		return err
 	}
 
+	if err := prepareCrlFile(); err != nil {
+		return err
+	}
+
 	// remove old 3rd north ca
 	if err := utils.DeleteFile(nginxcom.NorthernCertFile); err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func prepareCrlFile() error {
+	const (
+		crlConfig = "ssl_crl /home/data/config/mef-certs/northern-root.crl;"
+	)
+	// remove old 3rd north crl
+	if err := utils.DeleteFile(nginxcom.NorthernCrlFile); err != nil {
+		return err
+	}
+	hwlog.RunLog.Info("start to get north crl from cert manager")
+	exist, err := getNorthCrl()
+	if err != nil {
+		hwlog.RunLog.Errorf("get north crl from cert manager failed: %s", err.Error())
+		return err
+	}
+	content, err := loadConf(nginxcom.NginxConfigPath)
+	if err != nil {
+		return err
+	}
+	var modifiedCrlConfig string
+	if exist {
+		hwlog.RunLog.Info("get north crl from cert manager success")
+		modifiedCrlConfig = crlConfig
+	} else {
+		hwlog.RunLog.Info("get north crl was not imported, nginx with run without ssl crl")
+	}
+	content = bytes.ReplaceAll(content, []byte(nginxcom.KeyPrefix+nginxcom.CrlConfigKey), []byte(modifiedCrlConfig))
+	if err := common.WriteData(nginxcom.NginxConfigPath, content); err != nil {
+		hwlog.RunLog.Errorf("writeFile failed. error:%s", err.Error())
+		return fmt.Errorf("writeFile failed. error:%s", err.Error())
+	}
+	hwlog.RunLog.Info("prepare nginx crl success")
 	return nil
 }
 
@@ -145,14 +186,7 @@ func startNginx() {
 }
 
 func getNorthCert() error {
-	reqCertParams := httpsmgr.ReqCertParams{
-		ClientTlsCert: certutils.TlsCertInfo{
-			RootCaPath: nginxcom.RootCaPath,
-			CertPath:   nginxcom.ClientCertFile,
-			KeyPath:    nginxcom.ClientCertKeyFile,
-			SvrFlag:    false,
-		},
-	}
+	reqCertParams := getReqCertParams()
 	var caStr string
 	var err error
 	for i := 0; i < maxGetNorthCertTimes; i++ {
@@ -167,6 +201,41 @@ func getNorthCert() error {
 		return nil
 	}
 	return err
+}
+
+func getNorthCrl() (bool, error) {
+	reqCertParams := getReqCertParams()
+	var crlStr string
+	var err error
+	for i := 0; i < maxGetNorthCertTimes; i++ {
+		crlStr, err = reqCertParams.GetCrl(common.NorthernCertName)
+		if err != nil {
+			hwlog.RunLog.Infof("reqCertParams.GetCrl err: %v", err)
+			time.Sleep(retryInterval)
+			continue
+		}
+		if crlStr != "" {
+			break
+		}
+		hwlog.RunLog.Info("north crl is not imported yet, nginx will no config crl")
+		return false, nil
+	}
+
+	if err = utils.WriteData(nginxcom.NorthernCrlFile, []byte(crlStr)); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func getReqCertParams() httpsmgr.ReqCertParams {
+	return httpsmgr.ReqCertParams{
+		ClientTlsCert: certutils.TlsCertInfo{
+			RootCaPath: nginxcom.RootCaPath,
+			CertPath:   nginxcom.ClientCertFile,
+			KeyPath:    nginxcom.ClientCertKeyFile,
+			SvrFlag:    false,
+		},
+	}
 }
 
 // Start module start
