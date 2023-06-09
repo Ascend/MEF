@@ -412,6 +412,7 @@ Commands:
 	upgrade     -- upgrade MEF Center
 	exchange_ca -- exchange root ca with MEF Center
 	updatekmc   -- update kmc keys
+	import_crl  -- improt crl from the Northbound ca
 `)
 }
 
@@ -492,5 +493,6 @@ func getOperateMap(operate string) map[string]controller {
 		util.UpgradeFlag:        &upgradeController{},
 		util.ExchangeCaFlag:     &exchangeCertsController{},
 		util.UpdateKmcFlag:      &updateKmcController{},
+		util.ImportCrlFlag:      &importCrlController{},
 	}
 }

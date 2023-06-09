@@ -46,8 +46,8 @@ func (ecf *ExchangeCaFlow) DoExchange() error {
 	var upgradeTasks = []func() error{
 		ecf.checkParam,
 		ecf.checkCa,
-		ecf.importCa,
 		ecf.exportCa,
+		ecf.importCa,
 	}
 
 	for _, function := range upgradeTasks {
@@ -119,6 +119,10 @@ func (ecf *ExchangeCaFlow) importCa() error {
 
 	if err := ecf.copyCaToCertManager(); err != nil {
 		return err
+	}
+
+	if err := utils.DeleteFile(ecf.pathMgr.ConfigPathMgr.GetNorthernCrlPath()); err != nil {
+		return fmt.Errorf("clear old crl failed, error: %s", err.Error())
 	}
 
 	hwlog.RunLog.Infof("import [%s] cert success", ecf.certName)

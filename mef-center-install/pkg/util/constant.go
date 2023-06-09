@@ -84,6 +84,7 @@ const (
 	BackUpKeyFile    = "backup.ks"
 	CertsDir         = "mef-certs"
 	CertSuffix       = ".crt"
+	CrlSuffix        = ".crl"
 	KeySuffix        = ".key"
 	CaCommonName     = "MindX MEF"
 	PubConfigDir     = "public-config"
@@ -176,6 +177,7 @@ const (
 	UpgradeFlag    = "upgrade"
 	ExchangeCaFlag = "exchange_ca"
 	UpdateKmcFlag  = "updatekmc"
+	ImportCrlFlag  = "import_crl"
 
 	StartOperateFlag   = "start"
 	StopOperateFlag    = "stop"
@@ -236,6 +238,8 @@ const (
 	RootCaFileName = "root.crt"
 	// RootKeyFileName root key save file name
 	RootKeyFileName = "encrypt_root.key"
+	// CrlName root ca save file name
+	CrlName = "revokeList.crl"
 )
 
 // const for edge-manager websocket certs

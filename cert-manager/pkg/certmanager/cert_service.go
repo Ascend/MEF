@@ -12,10 +12,9 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509"
+	"huawei.com/mindxedge/base/common"
 
 	"cert-manager/pkg/certmanager/certchecker"
-
-	"huawei.com/mindxedge/base/common"
 )
 
 const (
@@ -173,4 +172,71 @@ func parseNorthernRootCa(caBytes []byte) (interface{}, error) {
 	}
 
 	return infos, nil
+}
+
+func importCrl(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start to import the crl")
+	var req importCrlReq
+	if err := common.ParamConvert(input, &req); err != nil {
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
+	}
+	if checkResult := certchecker.NewImportCrlChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("import crl para check failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "import crl para check failed", Data: nil}
+	}
+	// base64 decode crl content
+	bytes, err := base64.StdEncoding.DecodeString(req.Crl)
+	if err != nil {
+		hwlog.RunLog.Errorf("base64 decode ca content failed, error:%v", err)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "base64 decode ca content failed", Data: nil}
+	}
+
+	if err := saveCrlContent(common.NorthernCertName, bytes); err != nil {
+		return common.RespMsg{Status: common.ErrorSaveCrl, Msg: "save ca content to file failed", Data: nil}
+	}
+
+	return common.RespMsg{Status: common.Success, Msg: "import crl file success", Data: nil}
+}
+
+// saveCaContent save ca content to File
+func saveCrlContent(crlName string, crlContent []byte) error {
+	caFilePath := getCrlPath(crlName)
+	if err := utils.MakeSureDir(caFilePath); err != nil {
+		hwlog.RunLog.Errorf("create %s crl folder failed, error: %v", crlName, err)
+		return fmt.Errorf("create %s crl folder failed, error: %v", crlName, err)
+	}
+	if err := common.WriteData(caFilePath, crlContent); err != nil {
+		hwlog.RunLog.Errorf("save %s cert file failed, error:%s", crlName, err)
+		return fmt.Errorf("save %s crl file failed", crlName)
+	}
+	hwlog.RunLog.Infof("save %s crl file success", crlName)
+	return nil
+}
+
+func queryCrl(input interface{}) common.RespMsg {
+	crlName, ok := input.(string)
+	if !ok {
+		hwlog.RunLog.Error("query crl info failed: para type not valid")
+		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "query crl info request convert error", Data: nil}
+	}
+	if crlName != common.NorthernCertName {
+		hwlog.RunLog.Error("the crl name not support")
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "query crl failed parma is invalid", Data: nil}
+	}
+	crlPath := getCrlPath(crlName)
+	if !utils.IsExist(crlPath) {
+		return common.RespMsg{Status: common.Success,
+			Msg: fmt.Sprintf("%s is no imported yet", crlName), Data: ""}
+	}
+	crlData, err := utils.LoadFile(crlPath)
+	if err != nil {
+		hwlog.RunLog.Errorf("query cert [%s] crl failed: %v", crlName, err)
+		return common.RespMsg{Status: common.ErrorGetRootCa, Msg: "query crl failed, load crl file failed", Data: nil}
+	}
+	if crlData == nil {
+		hwlog.RunLog.Errorf("[%s] crl file is empty", crlName)
+		return common.RespMsg{Status: common.ErrorGetRootCa, Msg: "query crl failed, crl file is empty", Data: nil}
+	}
+	hwlog.RunLog.Infof("query [%s] crl success", crlName)
+	return common.RespMsg{Status: common.Success, Msg: "query crl success", Data: string(crlData)}
 }

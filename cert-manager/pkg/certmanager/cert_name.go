@@ -16,3 +16,7 @@ func getRootCaPath(certName string) string {
 func getRootKeyPath(certName string) string {
 	return filepath.Join(util.RootCaMgrDir, certName, util.RootKeyFileName)
 }
+
+func getCrlPath(crlName string) string {
+	return filepath.Join(util.RootCaMgrDir, crlName, util.CrlName)
+}

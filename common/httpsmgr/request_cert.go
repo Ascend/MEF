@@ -16,6 +16,7 @@ import (
 const (
 	reqSvrUrl     = "inner/v1/certificates/service"
 	getRootCaUrl  = "inner/v1/certificates/rootca"
+	getCrlUrl     = "inner/v1/certificates/crl"
 	updateCertUrl = "inner/v1/image/update"
 )
 
@@ -33,6 +34,18 @@ type ReqCertParams struct {
 func (rcp *ReqCertParams) GetRootCa(certName string) (string, error) {
 	url := fmt.Sprintf("https://%s:%d/%s/?certName=%s", common.CertMgrDns, common.CertMgrPort,
 		getRootCaUrl, certName)
+	httpsReq := GetHttpsReq(url, rcp.ClientTlsCert)
+	resp, err := httpsReq.Get(nil)
+	if err != nil {
+		return "", err
+	}
+	return rcp.parseResp(resp)
+}
+
+// GetCrl [method] for get crl with crlName
+func (rcp *ReqCertParams) GetCrl(crlName string) (string, error) {
+	url := fmt.Sprintf("https://%s:%d/%s/?crlName=%s", common.CertMgrDns, common.CertMgrPort,
+		getCrlUrl, crlName)
 	httpsReq := GetHttpsReq(url, rcp.ClientTlsCert)
 	resp, err := httpsReq.Get(nil)
 	if err != nil {

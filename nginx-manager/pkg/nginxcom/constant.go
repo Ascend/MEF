@@ -12,6 +12,8 @@ const (
 	EdgePortKey = "EdgeMgrSvcPort"
 	// CertPortKey 证书服务port对应的key
 	CertPortKey = "CertMgrSvcPort"
+	// CrlConfigKey 证书吊销列表配置对应key
+	CrlConfigKey = "SslCrlPath"
 	// NginxConfigPath nginx配置文件
 	NginxConfigPath = "/home/MEFCenter/conf/nginx.conf"
 	// ServerCertFile nginx对外服务证书
@@ -20,6 +22,8 @@ const (
 	ServerCertKeyFile = "/home/data/config/mef-certs/nginx-manager-server.key"
 	// NorthernCertFile 北向证书文件
 	NorthernCertFile = "/home/data/config/mef-certs/northern-root.crt"
+	// NorthernCrlFile 北向证书文件
+	NorthernCrlFile = "/home/data/config/mef-certs/northern-root.crl"
 	// ClientCertFile 内部转发消息的证书
 	ClientCertFile = "/home/data/config/mef-certs/nginx-manager.crt"
 	// ClientCertKeyFile 内部转发消息的证书私钥文件

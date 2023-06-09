@@ -29,6 +29,12 @@ var certRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			Method:       http.MethodGet,
 			Destination:  common.CertManagerName}, "certName"},
 	},
+	"/certmanager/v1/crl": {
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/import",
+			Method:       http.MethodPost,
+			Destination:  common.CertManagerName},
+	},
 }
 
 var innerCertRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
@@ -41,6 +47,10 @@ var innerCertRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			RelativePath: "/rootca",
 			Method:       http.MethodGet,
 			Destination:  common.CertManagerName}, "certName"},
+		queryDispatcher{restfulmgr.GenericDispatcher{
+			RelativePath: "/crl",
+			Method:       http.MethodGet,
+			Destination:  common.CertManagerName}, "crlName"},
 	},
 }
 
