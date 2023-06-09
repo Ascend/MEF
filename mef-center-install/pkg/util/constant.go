@@ -244,3 +244,19 @@ const (
 	ServiceName    = "server.crt"
 	KeyFileName    = "server.key"
 )
+
+// compare crls result status while upgrading
+const (
+	// CompareSame two crls are same
+	CompareSame int = 0
+	// CompareNew crl to update signed time is newer
+	CompareNew int = 1
+	// CompareOld crl to update signed time is older
+	CompareOld int = 2
+)
+
+// Crl on device dir and name
+const (
+	CrlOnDeviceDir  = "/etc/hwsipcrl"
+	CrlOnDeviceName = "ascendsip.crl"
+)
