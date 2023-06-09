@@ -97,8 +97,8 @@ const (
 
 	// ErrorSendMsgToNode failed to send msg to node
 	ErrorSendMsgToNode = "40012016"
-	// ErrorGetToken failed to get token
-	ErrorGetToken = "40012017"
+	// ErrorGetConfigData failed to get token
+	ErrorGetConfigData = "40012017"
 
 	// ErrorGetNodeSoftwareVersion failed to delete node groups
 	ErrorGetNodeSoftwareVersion = "40012018"
@@ -179,6 +179,8 @@ const (
 	ErrorCreateSecret = "60001008"
 	// ErrorExportRootCa failed to export root ca
 	ErrorExportRootCa = "60001009"
+	// ErrorGetRootCaInfo failed to get root ca info by cert name
+	ErrorGetRootCaInfo = "60001010"
 )
 
 // ErrorMap error code and error msg map
@@ -255,8 +257,8 @@ var ErrorMap = map[string]string{
 	ErrorSendMsgToNode: "failed to send msg to node",
 	// ErrorDeleteNodeFromGroup failed to send msg to node
 	ErrorGetNodeSoftwareVersion: "failed to get node version",
-	// ErrorGetToken failed to get token
-	ErrorGetToken: "failed to get token",
+	// ErrorGetConfigData failed to get token
+	ErrorGetConfigData: "failed to get token",
 
 	// ErrorGetNode failed to get node detail
 	ErrorGetNode: "failed to get node detail",

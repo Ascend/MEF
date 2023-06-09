@@ -74,10 +74,12 @@ const (
 	KmcDir           = "kmc"
 	PubCfgDir        = "public-config"
 	RootCaDir        = "root-ca"
+	CloudCoreCertDir = "cloud-core-certs"
 	RootCaFileDir    = "cert"
 	RootCaKeyDir     = "key"
 	RootCaFile       = "RootCA.crt"
 	RootKeyFile      = "RootCA.key"
+	CloudCoreRootCa  = "rootCA.crt"
 	MasterKeyFile    = "master.ks"
 	BackUpKeyFile    = "backup.ks"
 	CertsDir         = "mef-certs"
@@ -117,6 +119,7 @@ const (
 	LogPathFlag         = "log_path"
 	LogBackupPathFlag   = "log_backup_path"
 	InstallPathFlag     = "install_path"
+	CloudCoreCaPathFlag = "cloud_core_ca_path"
 	HelpFlag            = "help"
 	HelpShortFlag       = "h"
 	VersionFlag         = "version"
@@ -158,6 +161,10 @@ const (
 	CheckStatusTimes    = 5
 )
 
+const (
+	// DefaultCloudCoreCaPath for default cloud core ca path
+	DefaultCloudCoreCaPath = "/etc/kubeedge/ca/rootCA.crt"
+)
 const (
 	// NotGenCertErrorStr for the root ca has not yet generated
 	NotGenCertErrorStr = "the root ca has not yet generated"
@@ -236,4 +243,20 @@ const (
 	WebsocketCerts = "websocket-certs"
 	ServiceName    = "server.crt"
 	KeyFileName    = "server.key"
+)
+
+// compare crls result status while upgrading
+const (
+	// CompareSame two crls are same
+	CompareSame int = 0
+	// CompareNew crl to update signed time is newer
+	CompareNew int = 1
+	// CompareOld crl to update signed time is older
+	CompareOld int = 2
+)
+
+// Crl on device dir and name
+const (
+	CrlOnDeviceDir  = "/etc/hwsipcrl"
+	CrlOnDeviceName = "ascendsip.crl"
 )

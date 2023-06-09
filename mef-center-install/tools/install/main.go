@@ -33,6 +33,7 @@ var (
 	logRootPath            string
 	logBackupRootPath      string
 	installPath            string
+	cloudCoreCaPath        string
 	help                   bool
 )
 
@@ -47,6 +48,8 @@ func setFlag() {
 	flag.StringVar(&logRootPath, util.LogPathFlag, "/var", "The path used to save logs")
 	flag.StringVar(&logBackupRootPath, util.LogBackupPathFlag, "/var", "The path used to backup log files")
 	flag.StringVar(&installPath, util.InstallPathFlag, "/usr/local", "The path used to install")
+	flag.StringVar(&cloudCoreCaPath, util.CloudCoreCaPathFlag, "/etc/kubeedge/ca",
+		"cloud core ca storage location")
 }
 
 func isFlagSet(name string) bool {
@@ -76,7 +79,8 @@ func paramOptionalComponents() []string {
 func doInstall() error {
 	optionalComponents := paramOptionalComponents()
 	fullComponents := append(optionalComponents, util.GetCompulsorySlice()...)
-	installCtlIns := install.GetSftInstallMgrIns(fullComponents, installPath, logRootPath, logBackupRootPath)
+	installCtlIns := install.GetSftInstallMgrIns(fullComponents, installPath,
+		logRootPath, logBackupRootPath, cloudCoreCaPath)
 
 	if err := installCtlIns.DoInstall(); err != nil {
 		return err
@@ -103,6 +107,9 @@ func checkPath() error {
 		return fmt.Errorf("check install path failed: %s", err.Error())
 	}
 
+	if _, err = utils.CheckOriginPath(cloudCoreCaPath); err != nil {
+		return fmt.Errorf("check cloude coer ca path failed: %s", err.Error())
+	}
 	return nil
 }
 

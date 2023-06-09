@@ -35,6 +35,8 @@ const (
 	ImageCertName = "image"
 	// NginxCertName nginx apig cert name
 	NginxCertName = "apig"
+	// NorthernCertName root ca from 3rd part
+	NorthernCertName = "northern_ca"
 )
 
 const (
@@ -177,6 +179,8 @@ const (
 	Pbkdf2IterationCount   = 10000
 	BytesOfEncryptedString = 32
 	LockInterval           = 5 * time.Minute
+	CheckUnlockInterval    = 15 * time.Second
+	OneDay                 = 24 * time.Hour
 )
 
 // field constraints
@@ -207,6 +211,8 @@ const (
 	OptGet = "GET"
 	// OptPost option for post
 	OptPost = "POST"
+	// OptResp option for response
+	OptResp = "response"
 	// OptReport option for report
 	OptReport = "REPORT"
 	// ResEdgeDownloadInfo resource for download software
@@ -223,6 +229,8 @@ const (
 	ResDownLoadSoftware = "/software/download_info"
 	// ResEdgeCoreConfig resource for querying edgecore config
 	ResEdgeCoreConfig = "/edgecore/config"
+	// ResConfig resource config
+	ResConfig = "/config"
 	// ResSetEdgeAccount resource for setting edge account
 	ResSetEdgeAccount = "/edgemanager/v1/edgeAccount"
 	// ResDownLoadCert resource for downloading cert
@@ -254,6 +262,7 @@ const (
 	Mode755 = 0755
 	Mode700 = 0700
 	Mode600 = 0600
+	Mode644 = 0644
 	Mode500 = 0500
 	Mode444 = 0444
 	Mode400 = 0400

@@ -12,34 +12,39 @@ import (
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/utils"
+	"huawei.com/mindx/common/x509/certutils"
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/httpsmgr"
 
 	"nginx-manager/pkg/msgutil"
 	"nginx-manager/pkg/nginxcom"
 )
 
 const (
-	retryInterval          = 1 * time.Second
-	maxCheckNorthCertTimes = 15
-	startCommand           = "./nginx"
-	accessLogFile          = "/home/MEFCenter/logs/access.log"
-	errorLogFile           = "/home/MEFCenter/logs/error.log"
-	logFileMode            = 0600
+	retryInterval        = 3 * time.Second
+	maxGetNorthCertTimes = 15
+	startCommand         = "./nginx"
+	accessLogFile        = "/home/MEFCenter/logs/access.log"
+	errorLogFile         = "/home/MEFCenter/logs/error.log"
+	logFileMode          = 0600
 )
 
-// InitResource initial the resources needed by nginx
-func InitResource() error {
-	err := updateConf()
+// initResource initial the resources needed by nginx
+func initResource() error {
+	if err := updateConf(); err != nil {
+		return err
+	}
 
-	if err != nil {
+	if err := prepareServerCert(); err != nil {
 		return err
 	}
-	err = prepareServerCert()
-	if err != nil {
+
+	if err := loadCerts(); err != nil {
 		return err
 	}
-	err = loadCerts()
-	if err != nil {
+
+	// remove old 3rd north ca
+	if err := utils.DeleteFile(nginxcom.NorthernCertFile); err != nil {
 		return err
 	}
 	return nil
@@ -116,34 +121,52 @@ func (n *nginxManager) Enable() bool {
 	return n.enable
 }
 
-func doStartNginx() bool {
-	err := InitResource()
-	if err != nil {
-		hwlog.RunLog.Error(err)
-		return false
-	}
-
-	return startNginxCmd()
-}
-
 func startNginx() {
-	checkCount := 0
+	if err := initResource(); err != nil {
+		hwlog.RunLog.Error(err)
+		return
+	}
 	for {
-		if !utils.IsExist(nginxcom.NorthernCertFile) {
-			checkCount++
-			if checkCount > maxCheckNorthCertTimes {
-				hwlog.RunLog.Error("check nginx north certs failed")
-				checkCount = 0
+		for !utils.IsExist(nginxcom.NorthernCertFile) {
+			hwlog.RunLog.Info("start to get north ca from cert manager")
+			if err := getNorthCert(); err != nil {
+				hwlog.RunLog.Errorf("get north ca from cert manager failed: %s", err.Error())
+				continue
 			}
-			time.Sleep(retryInterval)
-			continue
+			hwlog.RunLog.Info("get north ca from cert manager success")
+			break
 		}
-		if doStartNginx() {
+		if startNginxCmd() {
 			return
 		}
 		hwlog.RunLog.Error("start nginx failed")
 		time.Sleep(retryInterval)
 	}
+}
+
+func getNorthCert() error {
+	reqCertParams := httpsmgr.ReqCertParams{
+		ClientTlsCert: certutils.TlsCertInfo{
+			RootCaPath: nginxcom.RootCaPath,
+			CertPath:   nginxcom.ClientCertFile,
+			KeyPath:    nginxcom.ClientCertKeyFile,
+			SvrFlag:    false,
+		},
+	}
+	var caStr string
+	var err error
+	for i := 0; i < maxGetNorthCertTimes; i++ {
+		caStr, err = reqCertParams.GetRootCa(common.NorthernCertName)
+		if err != nil {
+			time.Sleep(retryInterval)
+			continue
+		}
+		if err = utils.WriteData(nginxcom.NorthernCertFile, []byte(caStr)); err != nil {
+			continue
+		}
+		return nil
+	}
+	return err
 }
 
 // Start module start

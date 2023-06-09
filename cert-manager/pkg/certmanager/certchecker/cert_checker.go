@@ -137,27 +137,32 @@ func certContentChecker(certContent string) bool {
 	return true
 }
 
-var certImportMap = map[string]bool{
+var onlineImportMap = map[string]bool{
 	common.WsSerName:        false,
 	common.WsCltName:        true,
 	common.SoftwareCertName: true,
 	common.ImageCertName:    true,
 	common.NginxCertName:    true,
 	common.InnerName:        false,
+	common.NorthernCertName: false,
 }
 
 var certDeleteNames = []string{common.SoftwareCertName, common.ImageCertName}
 
 var certExportNames = []string{common.WsSerName}
 
+var certInfoNames = map[string]struct{}{
+	common.NorthernCertName: {},
+}
+
 // CheckCertName check cert name if valid
 func CheckCertName(certName string) bool {
-	_, ok := certImportMap[certName]
+	_, ok := onlineImportMap[certName]
 	return ok
 }
 
 func checkIfCanImport(certName string) bool {
-	v, ok := certImportMap[certName]
+	v, ok := onlineImportMap[certName]
 	if !ok {
 		return false
 	}
@@ -181,4 +186,10 @@ func CheckIfCanExport(certName string) bool {
 		}
 	}
 	return false
+}
+
+// CheckIfCanGetInfo check cert name if can get summary info
+func CheckIfCanGetInfo(certName string) bool {
+	_, ok := certInfoNames[certName]
+	return ok
 }

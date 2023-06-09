@@ -43,6 +43,7 @@ const (
 	defaultBackupDirName  = "/var/log_backup/mindx-edge/edge-manager"
 	defaultDbPath         = "/home/data/config/edge-manager.db"
 	defaultPodConfigPath  = "/home/data/config/pod-config.json"
+	defaultAuthConfigPath = "/home/data/config/auth-config.json"
 	defaultKmcPath        = "/home/data/public-config/kmc-config.json"
 	defaultOpLogMaxSize   = 200
 	defaultRunLogMaxSize  = 400
@@ -138,9 +139,25 @@ func initPodConfig() error {
 	if err = json.Unmarshal(date, &podConfig); err != nil {
 		return errors.New("unmarshal pod config failed")
 	}
-	config.CheckAndModifyHostPath(podConfig.HostPath)
 
-	config.PodConfig = podConfig
+	config.PodConfig.HostPath = config.CheckAndModifyHostPath(podConfig.HostPath)
+	return nil
+}
+
+func initAuthConfig() error {
+	date, err := utils.LoadFile(defaultAuthConfigPath)
+	if err != nil {
+		return fmt.Errorf("load auth config file failed, %s", err.Error())
+	}
+	var authConfig config.AuthInfo
+	if err = json.Unmarshal(date, &authConfig); err != nil {
+		return errors.New("unmarshal auth config failed")
+	}
+	if err := config.CheckAuthConfig(authConfig); err != nil {
+		return err
+	}
+
+	config.SetConfig(authConfig)
 	return nil
 }
 
@@ -155,6 +172,10 @@ func initResource() error {
 	}
 	if err := initPodConfig(); err != nil {
 		hwlog.RunLog.Errorf("init pod config failed")
+		return err
+	}
+	if err := initAuthConfig(); err != nil {
+		hwlog.RunLog.Errorf("init auth config error %v", err)
 		return err
 	}
 	if err := kmc.InitKmcCfg(defaultKmcPath); err != nil {

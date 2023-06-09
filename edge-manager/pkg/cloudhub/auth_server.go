@@ -88,7 +88,7 @@ func ClientAuth(c *gin.Context) {
 			SvrFlag:    false,
 		},
 	}
-	certStr, err := reqCertParams.ReqIssueSvrCert(common.WsCltName, csrData)
+	certStr, err := reqCertParams.ReqIssueSvrCert(common.WsSerName, csrData)
 	if err != nil {
 		hwlog.RunLog.Errorf("issue cert for edge error: %v", err)
 		c.String(http.StatusBadRequest, "generate edge cert failed")
@@ -121,15 +121,20 @@ func checkEdgeToken(c *gin.Context) (int, error) {
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
-	defer common.ClearSliceByteMemory(dbToken)
+
 	encryptRawToken, err := xcrypto.Pbkdf2WithSha256([]byte(token), salt,
 		common.Pbkdf2IterationCount, common.BytesOfEncryptedString)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("encrypt token from request failed: %v", err)
 	}
 	if !bytes.Equal(encryptRawToken, dbToken) {
-		// todo lock ip
+		if err := LockRepositoryInstance().recordFailed(ip); err != nil {
+			return http.StatusUnauthorized, err
+		}
 		return http.StatusUnauthorized, fmt.Errorf("edge ip %v send an incorrect token", ip)
+	}
+	if err := LockRepositoryInstance().authPass(ip); err != nil {
+		return http.StatusBadRequest, err
 	}
 	defer common.ClearStringMemory(token)
 	return 0, nil

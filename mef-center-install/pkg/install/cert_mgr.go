@@ -66,6 +66,13 @@ func (cpc *certPrepareCtl) prepareCertsDir() error {
 			return fmt.Errorf("prepare component [%s]'s cert dir failed", component)
 		}
 	}
+
+	cloudCoreCertsPath := cpc.certPathMgr.GetCloudCoreCertsDir()
+	if err := common.MakeSurePath(cloudCoreCertsPath); err != nil {
+		hwlog.RunLog.Errorf("create cloud core certs path [%s] failed: %v", cloudCoreCertsPath, err)
+		return errors.New("create cloud core certs path failed")
+	}
+
 	hwlog.RunLog.Info("prepare component certs directories successful")
 	return nil
 }

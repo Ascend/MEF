@@ -35,6 +35,19 @@ func sendMessageToEdge(msg *model.Message, content string) error {
 	return nil
 }
 
+func sendRespToEdge(msg *model.Message, content string) error {
+	respMsg, err := msg.NewResponse()
+	if err != nil {
+		return err
+	}
+
+	respMsg.SetNodeId(msg.GetNodeId())
+	respMsg.FillContent(content)
+	respMsg.SetRouter(common.NodeMsgManagerName, common.CloudHubName, common.OptResp, msg.GetResource())
+
+	return modulemgr.SendAsyncMessage(respMsg)
+}
+
 func getNodeSoftwareInfo(serialNumber string) ([]types.SoftwareInfo, error) {
 	var nodeSoftwareInfo types.InnerSoftwareInfoResp
 	router := common.Router{
