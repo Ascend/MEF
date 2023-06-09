@@ -134,6 +134,11 @@ func (ecf *ExchangeCaFlow) copyCaToCertManager() error {
 		hwlog.RunLog.Errorf("create cert dst dir failed: %s", err.Error())
 		return errors.New("create cert dst dir failed")
 	}
+	if err := util.SetPathOwnerGroup(filepath.Dir(filepath.Dir(ecf.savePath)),
+		ecf.uid, ecf.gid, false, false); err != nil {
+		hwlog.RunLog.Errorf("set root-ca dir owner failed: %s", err.Error())
+		return errors.New("set root-ca dir owner failed")
+	}
 	if err := util.SetPathOwnerGroup(filepath.Dir(ecf.savePath),
 		ecf.uid, ecf.gid, false, false); err != nil {
 		hwlog.RunLog.Errorf("set crt dir owner failed: %s", err.Error())
