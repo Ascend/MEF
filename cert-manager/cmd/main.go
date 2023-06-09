@@ -4,7 +4,10 @@
 package main
 
 import (
+	"cert-manager/pkg/config"
 	"context"
+	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -14,6 +17,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/utils"
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
@@ -24,11 +28,12 @@ import (
 )
 
 const (
-	portConst      = 8103
-	runLogFile     = "/var/log/mindx-edge/cert-manager/cert-manager-run.log"
-	operateLogFile = "/var/log/mindx-edge/cert-manager/cert-manager-operate.log"
-	backupDirName  = "/var/log_backup/mindx-edge/cert-manager"
-	defaultKmcPath = "/home/data/public-config/kmc-config.json"
+	portConst             = 8103
+	runLogFile            = "/var/log/mindx-edge/cert-manager/cert-manager-run.log"
+	operateLogFile        = "/var/log/mindx-edge/cert-manager/cert-manager-operate.log"
+	backupDirName         = "/var/log_backup/mindx-edge/cert-manager"
+	defaultKmcPath        = "/home/data/public-config/kmc-config.json"
+	defaultCertConfigPath = "/home/data/config/cert-config.json"
 )
 
 var (
@@ -89,6 +94,10 @@ func initResource() error {
 	if err != nil {
 		hwlog.RunLog.Warnf("init kmc config from json failed: %v, use default kmc config", err)
 	}
+	if err := initCertConfig(); err != nil {
+		hwlog.RunLog.Errorf("init auth config error %v", err)
+		return err
+	}
 	return nil
 }
 
@@ -115,4 +124,21 @@ func gracefulShutdown(cancelFunc context.CancelFunc) {
 		}
 	}
 	cancelFunc()
+}
+
+func initCertConfig() error {
+	data, err := utils.LoadFile(defaultCertConfigPath)
+	if err != nil {
+		return fmt.Errorf("load auth config file failed, %s", err.Error())
+	}
+	var certConfig config.CertConfigInfo
+	if err = json.Unmarshal(data, &certConfig); err != nil {
+		return errors.New("unmarshal auth config failed")
+	}
+	if err := config.CheckCertConfig(certConfig); err != nil {
+		return err
+	}
+
+	config.SetConfig(certConfig)
+	return nil
 }

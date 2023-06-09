@@ -15,14 +15,11 @@ var authConfig AuthInfo
 const (
 	minTokenExpireTime = 1
 	maxTokenExpireTime = 60
-	minCertExpireTime  = 3
-	maxCertExpireTime  = 100
 )
 
 // AuthInfo [struct] for save auth config
 type AuthInfo struct {
 	TokenExpireTime int
-	CertExpireTime  int
 }
 
 // SetConfig to set auth config
@@ -38,11 +35,6 @@ func GetAuthConfig() AuthInfo {
 // CheckAuthConfig check auth config
 func CheckAuthConfig(config AuthInfo) error {
 	if result := checker.GetIntChecker("TokenExpireTime", minTokenExpireTime, maxTokenExpireTime, true).
-		Check(config); !result.Result {
-		hwlog.RunLog.Errorf(result.Reason)
-		return errors.New(result.Reason)
-	}
-	if result := checker.GetIntChecker("CertExpireTime", minCertExpireTime, maxCertExpireTime, true).
 		Check(config); !result.Result {
 		hwlog.RunLog.Errorf(result.Reason)
 		return errors.New(result.Reason)

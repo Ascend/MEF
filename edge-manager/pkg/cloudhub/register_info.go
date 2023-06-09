@@ -15,6 +15,8 @@ var regInfoList = []websocketmgr.RegisterModuleInfo{
 	{MsgOpt: common.OptReport, MsgRes: common.ResDownloadProgress, ModuleName: common.NodeMsgManagerName},
 	{MsgOpt: common.OptReport, MsgRes: common.ResSoftwareInfo, ModuleName: common.NodeManagerName},
 	{MsgOpt: common.OptGet, MsgRes: common.ResDownLoadCert, ModuleName: common.NodeMsgManagerName},
+	{MsgOpt: common.OptPost, MsgRes: common.ResEdgeCert, ModuleName: common.CloudHubName},
+	{MsgOpt: common.OptGet, MsgRes: common.CertWillOverdue, ModuleName: common.CloudHubName},
 }
 
 func getRegModuleInfoList() []websocketmgr.RegisterModuleInfo {

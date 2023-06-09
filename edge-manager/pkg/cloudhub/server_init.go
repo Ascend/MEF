@@ -154,7 +154,7 @@ func getWsRootCert() ([]byte, error) {
 	var rootCaStr string
 	var err error
 	for i := 0; i < maxRetry; i++ {
-		rootCaStr, err = reqCertParams.GetRootCa(common.WsSerName)
+		rootCaStr, err = reqCertParams.GetRootCa(common.WsCltName)
 		if err == nil {
 			break
 		}

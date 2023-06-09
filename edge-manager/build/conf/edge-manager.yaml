@@ -64,7 +64,7 @@ compile:
         - mode:
             src:
               - "{{TOP_DIR}}/output/config/*"
-            mode: "600"
+            mode: "400"
         - mode:
             src:
               - "{{TOP_DIR}}/output/{{component}}"

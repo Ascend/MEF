@@ -247,6 +247,13 @@ const (
 	ResRelLogTaskProgress = "/task/progress"
 	// ResRelLogTaskPath resource for output path of collection task
 	ResRelLogTaskPath = "/task/path"
+	// CertWillOverdue cert will overdue
+	CertWillOverdue = "/cert/update"
+	// ResEdgeCert resource for issuing cert for a csr from mef edge
+	ResEdgeCert = "/cert/edge"
+
+	// EdgeHubName edgehub name
+	EdgeHubName = "EdgeHub"
 )
 
 // memory unit
