@@ -105,12 +105,14 @@ var (
 	configUrlRootPath      = "/edgemanager/v1/image"
 	innerConfigUrlRootPath = "/inner/v1/image"
 	tokenUrlRootPath       = "/edgemanager/v1/token"
+	certOverdue            = "/edgemanager/v1/cert"
 )
 
 var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodPost, filepath.Join(configUrlRootPath, "config")):      downloadConfig,
 	common.Combine(http.MethodPost, filepath.Join(innerConfigUrlRootPath, "update")): updateConfig,
 	common.Combine(http.MethodGet, tokenUrlRootPath):                                 exportToken,
+	common.Combine(http.MethodGet, filepath.Join(certOverdue, "update")):             certWillOverdue,
 }
 
 func initTokenTable() error {

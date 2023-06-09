@@ -88,7 +88,7 @@ func ClientAuth(c *gin.Context) {
 			SvrFlag:    false,
 		},
 	}
-	certStr, err := reqCertParams.ReqIssueSvrCert(common.WsSerName, csrData)
+	certStr, err := reqCertParams.ReqIssueSvrCert(common.WsCltName, csrData)
 	if err != nil {
 		hwlog.RunLog.Errorf("issue cert for edge error: %v", err)
 		c.String(http.StatusBadRequest, "generate edge cert failed")

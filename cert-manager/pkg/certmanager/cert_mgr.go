@@ -28,7 +28,6 @@ var (
 	certsToImported = map[string]*time.Timer{
 		common.ImageCertName:    nil,
 		common.SoftwareCertName: nil,
-		common.WsCltName:        nil,
 		common.NorthernCertName: nil,
 	}
 )
@@ -68,6 +67,23 @@ func getCertByCertName(certName string) ([]byte, error) {
 		return nil, errors.New("load root cert failed")
 	}
 	return certData, nil
+}
+
+// CreateCaIfNotExit [method] for check root ca
+func CreateCaIfNotExit() error {
+	caFilePath := getRootCaPath(common.WsCltName)
+	certData, err := utils.LoadFile(caFilePath)
+	if err != nil {
+		return err
+	}
+	if certData != nil {
+		return nil
+	}
+	keyFilePath := getRootKeyPath(common.WsCltName)
+	certFilePath := getRootCaPath(common.WsCltName)
+	initCertMgr := certutils.InitRootCertMgr(certFilePath, keyFilePath, common.WsCltName, nil)
+	_, err = initCertMgr.NewRootCa()
+	return err
 }
 
 // issueServiceCert issue service certificate with csr file, only support pem type csr

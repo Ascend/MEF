@@ -5,14 +5,24 @@ package certmanager
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"path/filepath"
+	"sync"
+	"time"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
-
+	"huawei.com/mindx/common/utils"
+	"huawei.com/mindx/common/x509"
+	"huawei.com/mindx/common/x509/certutils"
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/httpsmgr"
+	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
+
+	"cert-manager/pkg/config"
 )
 
 type handlerFunc func(req interface{}) common.RespMsg
@@ -52,6 +62,7 @@ func methodSelect(req *model.Message) *common.RespMsg {
 }
 
 func (cm *certManager) Start() {
+	go periodCheck()
 	for {
 		select {
 		case _, ok := <-cm.ctx.Done():
@@ -104,4 +115,93 @@ var handlerFuncMap = map[string]handlerFunc{
 
 	common.Combine(http.MethodGet, filepath.Join(innerCertUrlRootPath, "rootca")):   queryRootCa,
 	common.Combine(http.MethodPost, filepath.Join(innerCertUrlRootPath, "service")): issueServiceCa,
+}
+
+func periodCheck() {
+	if err := checkCert(); err != nil {
+		hwlog.RunLog.Errorf("check cert overdue error:%v", err)
+	}
+	ticker := time.NewTicker(common.OneDay)
+	defer ticker.Stop()
+	for {
+		select {
+		case _, ok := <-ticker.C:
+			if !ok {
+				return
+			}
+			err := checkCert()
+			if err != nil {
+				hwlog.RunLog.Errorf("check cert overdue error:%v", err)
+				continue
+			}
+		}
+	}
+}
+
+var certLock sync.RWMutex
+
+func checkCert() error {
+	certData, err := utils.LoadFile(getRootCaPath(common.WsCltName))
+	if err != nil {
+		return err
+	}
+	if certData == nil {
+		return nil
+	}
+	crt, err := x509.LoadCertsFromPEM(certData)
+	if err != nil {
+		return err
+	}
+	overdueDay, err := x509.GetValidityPeriod(crt)
+	overdueData := config.GetCertConfig().CertExpireTime
+	if err == nil && (overdueDay > float64(overdueData)) {
+		return nil
+	}
+	if err := updateCert(); err != nil {
+		hwlog.RunLog.Error("update cert error, %v", err)
+		return err
+	}
+	hwlog.RunLog.Info("websocket client cert will overdue, update success")
+	return nil
+}
+
+func updateCert() error {
+	certLock.Lock()
+	defer lock.Unlock()
+	if err := CreateCaIfNotExit(); err != nil {
+		hwlog.RunLog.Error(err)
+		return err
+	}
+	if err := sendCertUpdateMsg(); err != nil {
+		hwlog.RunLog.Error(err)
+		return err
+	}
+	return nil
+}
+
+func sendCertUpdateMsg() error {
+	tls := certutils.TlsCertInfo{
+		RootCaPath: util.RootCaPath,
+		CertPath:   util.ServerCertPath,
+		KeyPath:    util.ServerKeyPath,
+		SvrFlag:    false,
+	}
+
+	url := fmt.Sprintf("https://%s:%d/%s", common.EdgeMgrDns, common.EdgeMgrPort, "edgemanager/v1/cert/update")
+	httpsReq := httpsmgr.GetHttpsReq(url, tls)
+	respByte, err := httpsReq.Get(nil)
+	if err != nil {
+		return err
+	}
+	var resp common.RespMsg
+	err = json.Unmarshal(respByte, &resp)
+	if err != nil {
+		return err
+	}
+
+	status := resp.Status
+	if status != common.Success {
+		return fmt.Errorf("parse cert response failed: status=%s, msg=%s", status, resp.Msg)
+	}
+	return nil
 }

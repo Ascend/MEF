@@ -5,6 +5,8 @@ package cloudhub
 
 import (
 	"context"
+	"encoding/base64"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -13,9 +15,12 @@ import (
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/websocketmgr"
+	"huawei.com/mindx/common/x509/certutils"
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/httpsmgr"
 
 	"edge-manager/pkg/database"
+	"edge-manager/pkg/util"
 )
 
 // CloudServer wraps the struct WebSocketServer
@@ -94,6 +99,12 @@ func (c *CloudServer) Start() {
 }
 
 func (c *CloudServer) dispatch(message *model.Message) {
+	var err error
+	message, err = certProcess(message)
+	if err != nil {
+		hwlog.RunLog.Errorf("certProcess error: %v", err)
+		return
+	}
 	if c.sendToClient(message) != nil {
 		c.response(message, common.FAIL)
 	} else {
@@ -176,4 +187,55 @@ func unlockIP() {
 		}
 		hwlog.OpLog.Infof("edge (%s) is unlock", record.IP)
 	}
+}
+
+func certProcess(msg *model.Message) (*model.Message, error) {
+	if isReqCertFromEdge(msg) {
+		return issueCertForEdge(msg)
+	}
+	return msg, nil
+}
+func isReqCertFromEdge(message *model.Message) bool {
+	if message == nil {
+		return false
+	}
+	return message.GetOption() == common.OptPost && message.GetResource() == common.ResEdgeCert
+}
+
+func issueCertForEdge(msg *model.Message) (*model.Message, error) {
+	csrRawData := msg.GetContent()
+	csrBase64Str, ok := csrRawData.(string)
+	if !ok {
+		return nil, errors.New("csr data format error")
+	}
+	csrData, err := base64.StdEncoding.DecodeString(csrBase64Str)
+	if err != nil {
+		hwlog.RunLog.Errorf("decode base64 csr data error: %v", err)
+		return nil, errors.New("decode base64 csr data error")
+	}
+	reqCertParams := httpsmgr.ReqCertParams{
+		ClientTlsCert: certutils.TlsCertInfo{
+			RootCaPath: util.RootCaPath,
+			CertPath:   util.ServerCertPath,
+			KeyPath:    util.ServerKeyPath,
+			SvrFlag:    false,
+		},
+	}
+	certStr, err := reqCertParams.ReqIssueSvrCert(common.WsCltName, csrData)
+	if err != nil {
+		hwlog.RunLog.Errorf("issue cert for edge error: %v", err)
+		return nil, errors.New("issue cert for edge error")
+	}
+	respMsg, err := msg.NewResponse()
+	if err != nil {
+		return nil, err
+	}
+	respMsg.SetRouter(
+		common.CloudHubName,
+		common.EdgeHubName,
+		common.OptResp,
+		common.ResEdgeCert)
+	respMsg.SetNodeId(msg.GetNodeId())
+	respMsg.FillContent(certStr)
+	return respMsg, nil
 }

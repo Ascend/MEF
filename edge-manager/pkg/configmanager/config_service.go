@@ -166,8 +166,14 @@ func reportCertToClient(req certutils.ClientCertResp) error {
 	if err != nil {
 		return fmt.Errorf("get all node info failed, error: %v", err)
 	}
+	router := common.Router{
+		Source:      common.ConfigManagerName,
+		Destination: common.CloudHubName,
+		Option:      common.OptPost,
+		Resource:    common.ResDownLoadCert,
+	}
 	for _, node := range nodes {
-		if err := sendMessageToNode(node.SerialNumber, string(content)); err != nil {
+		if err := sendMessageToNode(node.SerialNumber, string(content), router); err != nil {
 			hwlog.RunLog.Warnf("send message to node [%s], error: %v", node.SerialNumber, err)
 			continue
 		}
@@ -175,13 +181,13 @@ func reportCertToClient(req certutils.ClientCertResp) error {
 	return nil
 }
 
-func sendMessageToNode(serialNumber string, content string) error {
+func sendMessageToNode(serialNumber string, content string, router common.Router) error {
 	sendMsg, err := model.NewMessage()
 	if err != nil {
 		return fmt.Errorf("create new message failed, error: %v", err)
 	}
 	sendMsg.SetNodeId(serialNumber)
-	sendMsg.SetRouter(common.ConfigManagerName, common.CloudHubName, common.OptPost, common.ResDownLoadCert)
+	sendMsg.SetRouter(router.Source, router.Destination, router.Option, router.Resource)
 	sendMsg.FillContent(content)
 	if err = modulemgr.SendMessage(sendMsg); err != nil {
 		return fmt.Errorf("%s sends message to %s failed, error: %v",
@@ -256,4 +262,25 @@ func checkAndUpdateToken() {
 		return
 	}
 	hwlog.OpLog.Info("token is expire, system auto revoke token")
+}
+
+func certWillOverdue(input interface{}) common.RespMsg {
+	nodes, err := getAllNodeInfo()
+	if err != nil {
+		hwlog.RunLog.Errorf("get all nodes failed %v", err)
+		return common.RespMsg{Status: ""}
+	}
+	router := common.Router{
+		Source:      common.ConfigManagerName,
+		Destination: common.CloudHubName,
+		Option:      common.OptGet,
+		Resource:    common.CertWillOverdue,
+	}
+	for _, node := range nodes {
+		if err := sendMessageToNode(node.SerialNumber, "", router); err != nil {
+			hwlog.RunLog.Warnf("send message to node [%s], error: %v", node.SerialNumber, err)
+			continue
+		}
+	}
+	return common.RespMsg{Status: common.Success}
 }

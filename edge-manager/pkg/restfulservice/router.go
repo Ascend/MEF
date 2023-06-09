@@ -85,6 +85,12 @@ var innerConfigRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			Method:       http.MethodPost,
 			Destination:  common.ConfigManagerName},
 	},
+	"/edgemanager/v1/cert": {
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/update",
+			Method:       http.MethodGet,
+			Destination:  common.ConfigManagerName},
+	},
 }
 
 func setRouter(engine *gin.Engine) {

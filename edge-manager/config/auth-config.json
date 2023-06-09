@@ -1,4 +1,3 @@
 {
-  "tokenExpireTime": 7,
-  "certExpireTime": 15
+  "tokenExpireTime": 7
 }
