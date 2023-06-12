@@ -40,8 +40,7 @@ func (rc *RegChecker) Check(data interface{}) CheckResult {
 	var matchFlag = compile.MatchString(stringValue)
 	if !matchFlag {
 		return NewFailedResult(
-			fmt.Sprintf("regex checker Check [%s] failed:the string value [%s] not match requirement",
-				rc.filed, stringValue))
+			fmt.Sprintf("regex checker Check [%s] failed:the string value not match requirement", rc.filed))
 	}
 	return NewSuccessResult()
 }

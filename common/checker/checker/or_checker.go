@@ -24,7 +24,7 @@ func (ac *OrChecker) Check(data interface{}) CheckResult {
 		if checkResult.Result {
 			return NewSuccessResult()
 		}
-		reason += checkResult.Reason + "#"
+		reason += checkResult.Reason + ";"
 	}
 	return NewFailedResult(fmt.Sprintf("Or checker Check failed: %s", reason))
 }
