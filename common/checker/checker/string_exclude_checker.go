@@ -41,7 +41,7 @@ func (scc *StringExcludeChecker) Check(data interface{}) CheckResult {
 	for _, word := range scc.excludeWords {
 		if strings.Contains(srcString, word) {
 			return NewFailedResult(fmt.Sprintf("string excludeWords words checker Check [%s] failed: "+
-				"the value[%s], contains exclude words [%v]", scc.filed, srcString, word))
+				"the value contains exclude words [%v]", scc.filed, word))
 		}
 	}
 	return NewSuccessResult()
