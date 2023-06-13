@@ -119,15 +119,18 @@ func certContentChecker(certContent string) bool {
 		hwlog.RunLog.Errorf("base64 decode ca content failed, error:%v", err)
 		return false
 	}
-	if len(caBase64) == 0 || len(caBase64) > maxCertSize {
-		hwlog.RunLog.Error("valid ca file size failed")
+
+	caMgr, err := x509.NewCaChainMgr(caBase64)
+	if err != nil {
+		hwlog.RunLog.Errorf("new ca chain mgr failed: %s", err.Error())
 		return false
 	}
-	// verifying root certificate content
-	if err := x509.VerifyCaCert(caBase64, x509.InvalidNum); err != nil {
-		hwlog.RunLog.Errorf("valid ca certification failed, error:%v", err)
+
+	if err = caMgr.CheckCertChain(); err != nil {
+		hwlog.RunLog.Errorf("check importing certs failed: %s", err.Error())
 		return false
 	}
+
 	return true
 }
 
