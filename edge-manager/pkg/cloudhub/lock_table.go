@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	lockTime = 9
+	lockTime = 5
 )
 
 // AuthFailedRecord token error then record ip
@@ -96,13 +96,13 @@ func (c *lockRepositoryImpl) recordFailed(ip string) error {
 		return c.createFailedRecord(ip)
 	}
 
-	if record.ErrorTimes+1 <= lockTime {
+	if record.ErrorTimes < lockTime {
 		return c.updateFailedRecord(ip)
 	}
 	if err := c.createLockRecord(ip); err != nil {
 		return fmt.Errorf("create lock record to db error ip(%s)", ip)
 	}
-	hwlog.OpLog.Infof("lock edge (%s)", ip)
+	hwlog.OpLog.Warnf("%s has too much auth failed record, lock this edge device", ip)
 	if err := c.deleteFailedRecord(ip); err != nil {
 		return err
 	}

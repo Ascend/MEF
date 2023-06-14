@@ -100,7 +100,14 @@ func ClientAuth(c *gin.Context) {
 
 // EdgeConnTest check mef edge account
 func EdgeConnTest(c *gin.Context) {
-	c.String(http.StatusOK, "test connect success!")
+	status, err := checkEdgeToken(c)
+	if err != nil {
+		hwlog.RunLog.Errorf("check token request error: %v", err)
+		c.String(status, "test connect failed")
+		return
+	}
+
+	c.String(http.StatusOK, "")
 }
 
 func checkEdgeToken(c *gin.Context) (int, error) {
