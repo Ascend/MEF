@@ -6,7 +6,7 @@ package appchecker
 import (
 	"fmt"
 
-	"huawei.com/mindxedge/base/common/checker/checker"
+	"huawei.com/mindx/common/checker"
 )
 
 // GetEnvVarChecker [method] for get environment variable checker

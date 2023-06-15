@@ -5,7 +5,7 @@ package appchecker
 import (
 	"fmt"
 
-	"huawei.com/mindxedge/base/common/checker/checker"
+	"huawei.com/mindx/common/checker"
 )
 
 // NewCreateTemplateChecker to get checker [struct] for create template check

@@ -6,8 +6,9 @@ package edgemsgmanager
 import (
 	"fmt"
 
+	"huawei.com/mindx/common/checker"
+
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/checker/checker"
 )
 
 // NewDownloadChecker is the struct to init a DownloadChecker

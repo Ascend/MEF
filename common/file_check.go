@@ -2,7 +2,7 @@
 
 package common
 
-import "huawei.com/mindxedge/base/common/checker/checker"
+import "huawei.com/mindx/common/checker"
 
 const (
 	fileNameRegex = "^[a-zA-Z0-9_/.-]{1,256}$"

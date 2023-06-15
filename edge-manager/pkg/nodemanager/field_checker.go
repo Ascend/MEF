@@ -6,7 +6,7 @@ package nodemanager
 import (
 	"math"
 
-	"huawei.com/mindxedge/base/common/checker/checker"
+	"huawei.com/mindx/common/checker"
 )
 
 const (

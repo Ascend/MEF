@@ -7,10 +7,11 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/x509"
+
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/checker/checker"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
