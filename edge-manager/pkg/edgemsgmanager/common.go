@@ -59,7 +59,7 @@ func getNodeSoftwareInfo(serialNumber string) ([]types.SoftwareInfo, error) {
 	req := types.InnerGetSfwInfoBySNReq{
 		SerialNumber: serialNumber,
 	}
-	resp := common.SendSyncMessageByRestful(req, &router)
+	resp := common.SendSyncMessageByRestful(req, &router, common.ResponseTimeout)
 	if resp.Status != common.Success {
 		hwlog.RunLog.Errorf("get node info failed:%s", resp.Msg)
 		return nil, errors.New(resp.Msg)

@@ -5,6 +5,7 @@ package edgemsgmanager
 
 import (
 	"testing"
+	"time"
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
@@ -22,7 +23,8 @@ func testSoftwareQueryValid() {
 	}
 
 	var p2 = gomonkey.ApplyFunc(common.SendSyncMessageByRestful, func(input interface{},
-		router *common.Router) common.RespMsg {
+		router *common.Router,
+		timeout time.Duration) common.RespMsg {
 		var rsp common.RespMsg
 		rsp.Status = common.Success
 		var softwareInfo types.InnerSoftwareInfoResp

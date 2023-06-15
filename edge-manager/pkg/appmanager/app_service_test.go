@@ -8,19 +8,20 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
 	"k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 
 	"edge-manager/pkg/database"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
-	"huawei.com/mindxedge/base/common"
 )
 
 var (
@@ -639,7 +640,8 @@ func testGetInstanceFromAppInstances() {
 	patchFunc := gomonkey.ApplyFunc(getAppIdFromDaemonSet, func(_ *v1.DaemonSet) (uint64, error) {
 		return 1, nil
 	})
-	patchFunc2 := gomonkey.ApplyFunc(common.SendSyncMessageByRestful, func(interface{}, *common.Router) common.RespMsg {
+	patchFunc2 := gomonkey.ApplyFunc(common.SendSyncMessageByRestful, func(interface{}, *common.Router,
+		time.Duration) common.RespMsg {
 		data := types.NodeGroupInfo{NodeGroupID: 1, NodeGroupName: "name"}
 		return common.RespMsg{Status: common.Success, Msg: "", Data: types.InnerGetNodeGroupInfosResp{
 			NodeGroupInfos: []types.NodeGroupInfo{data}}}

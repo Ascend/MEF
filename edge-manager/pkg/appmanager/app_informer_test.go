@@ -6,13 +6,14 @@ import (
 	"strconv"
 	"testing"
 
-	"edge-manager/pkg/types"
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
 	"huawei.com/mindxedge/base/common"
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"edge-manager/pkg/types"
 )
 
 var (
