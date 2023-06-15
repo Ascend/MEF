@@ -44,12 +44,12 @@ func crlContentChecker(crlContent string) bool {
 		return false
 	}
 
-	mgr, err := x509.NewCrlMgr(bytes, filepath.Join(util.RootCaMgrDir, common.NorthernCertName, util.RootCaFileName))
+	mgr, err := x509.NewCrlMgr(bytes)
 	if err != nil {
 		hwlog.RunLog.Errorf("check crl failed, new crl mgr error: %s", err.Error())
 		return false
 	}
-	if err = mgr.CheckCrl(); err != nil {
+	if err = mgr.CheckCrl(filepath.Join(util.RootCaMgrDir, common.NorthernCertName, util.RootCaFileName)); err != nil {
 		hwlog.RunLog.Errorf("check crl content failed, error: %s", err.Error())
 		return false
 	}
