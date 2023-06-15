@@ -210,7 +210,7 @@ func getAppInstanceCountByGroupId(groupId uint64) (int64, error) {
 		Option:      common.Get,
 		Resource:    common.AppInstanceByNodeGroup,
 	}
-	resp := common.SendSyncMessageByRestful([]uint64{groupId}, &router)
+	resp := common.SendSyncMessageByRestful([]uint64{groupId}, &router, common.ResponseTimeout)
 	if resp.Status != common.Success {
 		return 0, errors.New(resp.Msg)
 	}

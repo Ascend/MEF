@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 	"unsafe"
 
 	"huawei.com/mindx/common/hwlog"
@@ -48,16 +49,17 @@ func ClearStringMemory(s string) {
 }
 
 // SendSyncMessageByRestful send sync message by restful
-func SendSyncMessageByRestful(input interface{}, router *Router) RespMsg {
+func SendSyncMessageByRestful(input interface{}, router *Router, timeout time.Duration) RespMsg {
 	msg, err := model.NewMessage()
 	if err != nil {
 		hwlog.RunLog.Error("new message error")
 		return RespMsg{Status: ErrorsSendSyncMessageByRestful, Msg: "", Data: nil}
 	}
-	msg.SetIsSync(true)
+
 	msg.SetRouter(router.Source, router.Destination, router.Option, router.Resource)
 	msg.FillContent(input)
-	respMsg, err := modulemgr.SendSyncMessage(msg, ResponseTimeout)
+
+	respMsg, err := modulemgr.SendSyncMessage(msg, timeout)
 	if err != nil {
 		hwlog.RunLog.Error("get response error")
 		return RespMsg{Status: ErrorsSendSyncMessageByRestful, Msg: "", Data: nil}

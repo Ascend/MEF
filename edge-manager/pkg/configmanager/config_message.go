@@ -7,9 +7,10 @@ import (
 	"encoding/json"
 	"errors"
 
+	"huawei.com/mindxedge/base/common"
+
 	"edge-manager/pkg/nodemanager"
 	"edge-manager/pkg/types"
-	"huawei.com/mindxedge/base/common"
 )
 
 func getAllNodeInfo() ([]nodemanager.NodeInfo, error) {
@@ -22,7 +23,7 @@ func getAllNodeInfo() ([]nodemanager.NodeInfo, error) {
 	req := types.InnerGetNodeInfoResReq{
 		ModuleName: common.ConfigManagerName,
 	}
-	resp := common.SendSyncMessageByRestful(req, &router)
+	resp := common.SendSyncMessageByRestful(req, &router, common.ResponseTimeout)
 	if resp.Status != common.Success {
 		return nil, errors.New(resp.Msg)
 	}

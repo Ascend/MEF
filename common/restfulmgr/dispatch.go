@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
@@ -52,7 +53,7 @@ func (g GenericDispatcher) sendToModule(resource string, data interface{}) commo
 		Resource:    resource,
 	}
 
-	return common.SendSyncMessageByRestful(data, &router)
+	return common.SendSyncMessageByRestful(data, &router, time.Minute)
 }
 
 func (g GenericDispatcher) response(c *gin.Context, result common.RespMsg) {

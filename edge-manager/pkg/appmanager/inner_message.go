@@ -8,12 +8,12 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindxedge/base/common"
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 
 	"edge-manager/pkg/types"
-	"huawei.com/mindxedge/base/common"
 )
 
 func getAppInstanceCountByNodeGroup(input interface{}) common.RespMsg {
@@ -47,7 +47,7 @@ func checkNodeGroupResWithDuplicatedNode(groupID uint64, daemonSet *appv1.Daemon
 		NodeGroupID:  groupID,
 		ResourceReqs: getTotalAppResReqs(daemonSet, duplicatedCount),
 	}
-	resp := common.SendSyncMessageByRestful(req, &router)
+	resp := common.SendSyncMessageByRestful(req, &router, common.ResponseTimeout)
 	if resp.Status != common.Success {
 		return errors.New(resp.Msg)
 	}
@@ -79,7 +79,7 @@ func updateAllocatedNodeRes(daemonSet *appv1.DaemonSet, nodeGroupID uint64, isUn
 		ResourceReqs: getAppResReqs(daemonSet),
 		IsUndeploy:   isUndeploy,
 	}
-	resp := common.SendSyncMessageByRestful(req, &router)
+	resp := common.SendSyncMessageByRestful(req, &router, common.ResponseTimeout)
 	if resp.Status != common.Success {
 		return errors.New(resp.Msg)
 	}
@@ -111,7 +111,7 @@ func getNodesByNodeGroup(nodeGroupID uint64) ([]uint64, error) {
 	req := types.InnerGetNodesReq{
 		NodeGroupID: nodeGroupID,
 	}
-	resp := common.SendSyncMessageByRestful(req, &router)
+	resp := common.SendSyncMessageByRestful(req, &router, common.ResponseTimeout)
 	if resp.Status != common.Success {
 		return nil, errors.New(resp.Msg)
 	}
@@ -136,7 +136,7 @@ func getNodeGroupInfos(nodeGroupIds []uint64) ([]types.NodeGroupInfo, error) {
 	req := types.InnerGetNodeGroupInfosReq{
 		NodeGroupIds: nodeGroupIds,
 	}
-	resp := common.SendSyncMessageByRestful(req, &router)
+	resp := common.SendSyncMessageByRestful(req, &router, common.ResponseTimeout)
 	if resp.Status != common.Success {
 		return nil, errors.New(resp.Msg)
 	}
@@ -165,7 +165,7 @@ func getNodeInfoByUniqueName(eventPod *corev1.Pod) (uint64, string, error) {
 	req := types.InnerGetNodeInfoByNameReq{
 		UniqueName: eventPod.Spec.NodeName,
 	}
-	resp := common.SendSyncMessageByRestful(req, &router)
+	resp := common.SendSyncMessageByRestful(req, &router, common.ResponseTimeout)
 	if resp.Status != common.Success {
 		return 0, "", errors.New(resp.Msg)
 	}
@@ -194,7 +194,7 @@ func getNodeStatus(nodeUniqueName string) (string, error) {
 	req := types.InnerGetNodeStatusReq{
 		UniqueName: nodeUniqueName,
 	}
-	resp := common.SendSyncMessageByRestful(req, &router)
+	resp := common.SendSyncMessageByRestful(req, &router, common.ResponseTimeout)
 	if resp.Status != common.Success {
 		return nodeStatusUnknown, fmt.Errorf("get info from other module error, %v", resp.Msg)
 	}
