@@ -7,84 +7,87 @@ import (
 	"os"
 	"path/filepath"
 
-	. "github.com/agiledragon/gomonkey/v2"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/agiledragon/gomonkey/v2"
+	"github.com/smartystreets/goconvey/convey"
+	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509/certutils"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
 func CertMgrTest() {
-	Convey("CertMgr DoInstallPrepare func", CertMgrDoPrepareTest)
-	Convey("prepareCertsDir func", PrepareCertsDirTest)
-	Convey("certMgrPrepareCert func", CertMgrPrepareCertTest)
-	Convey("serCertsOwner func", SetCertsOwnerTest)
-	Convey("setCertsOwner func set right test", SetCertsOwnerSetRightTest)
+	convey.Convey("CertMgr DoInstallPrepare func", CertMgrDoPrepareTest)
+	convey.Convey("prepareCertsDir func", PrepareCertsDirTest)
+	convey.Convey("certMgrPrepareCert func", CertMgrPrepareCertTest)
+	convey.Convey("serCertsOwner func", SetCertsOwnerTest)
+	convey.Convey("setCertsOwner func set right test", SetCertsOwnerSetRightTest)
 }
 
 func CertMgrDoPrepareTest() {
 	var ins = &certPrepareCtl{}
-	Convey("test DoInstallPrepare func in certPrepareCtl struct success", func() {
-		p := ApplyPrivateMethod(ins, "prepareCertsDir", func(_ *certPrepareCtl) error { return nil }).
+	convey.Convey("test DoInstallPrepare func in certPrepareCtl struct success", func() {
+		p := gomonkey.ApplyPrivateMethod(ins, "prepareCertsDir",
+			func(_ *certPrepareCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "prepareCerts", func(_ *certPrepareCtl) error { return nil })
 		defer p.Reset()
-		So(ins.doPrepare(), ShouldBeNil)
+		convey.So(ins.doPrepare(), convey.ShouldBeNil)
 	})
 
-	Convey("test DoInstallPrepare func in certPrepareCtl struct failed", func() {
-		p := ApplyPrivateMethod(ins, "prepareCertsDir",
+	convey.Convey("test DoInstallPrepare func in certPrepareCtl struct failed", func() {
+		p := gomonkey.ApplyPrivateMethod(ins, "prepareCertsDir",
 			func(_ *certPrepareCtl) error { return ErrTest })
 		defer p.Reset()
-		So(ins.doPrepare(), ShouldResemble, ErrTest)
+		convey.So(ins.doPrepare(), convey.ShouldResemble, ErrTest)
 	})
 }
 
 func PrepareCertsDirTest() {
-	Convey("test prepareCertDir", func() {
+	convey.Convey("test prepareCertDir", func() {
 		currentPath, err := filepath.Abs(filepath.Dir(os.Args[0]))
-		So(err, ShouldBeNil)
+		convey.So(err, convey.ShouldBeNil)
 		InstallDirPathMgrIns := util.InitInstallDirPathMgr(currentPath)
 		var ins = &certPrepareCtl{
 			certPathMgr: InstallDirPathMgrIns.ConfigPathMgr,
 			components:  []string{"edge-manager"},
 		}
 
-		Convey("test prepareCertDir func success", func() {
+		convey.Convey("test prepareCertDir func success", func() {
 			defer ResetAndClearDir(nil, InstallDirPathMgrIns.GetMefPath())
-			So(ins.prepareCertsDir(), ShouldBeNil)
+			convey.So(ins.prepareCertsDir(), convey.ShouldBeNil)
 		})
 
-		Convey("test prepareCertDir func makesure root cert path failed", func() {
-			p := ApplyFuncReturn(common.MakeSurePath, ErrTest)
+		convey.Convey("test prepareCertDir func makesure root cert path failed", func() {
+			p := gomonkey.ApplyFuncReturn(common.MakeSurePath, ErrTest)
 			defer ResetAndClearDir(p, InstallDirPathMgrIns.GetMefPath())
-			So(ins.prepareCertsDir(), ShouldResemble, errors.New("create root certs path failed"))
+			convey.So(ins.prepareCertsDir(), convey.ShouldResemble, errors.New("create root certs path failed"))
 		})
 
-		Convey("test prepareCertDir func makesure root key path failed", func() {
-			p := ApplyFuncSeq(common.MakeSurePath,
-				[]OutputCell{{Values: Params{nil}}, {Values: Params{ErrTest}}})
+		convey.Convey("test prepareCertDir func makesure root key path failed", func() {
+			p := gomonkey.ApplyFuncSeq(common.MakeSurePath,
+				[]gomonkey.OutputCell{{Values: gomonkey.Params{nil}}, {Values: gomonkey.Params{ErrTest}}})
 			defer ResetAndClearDir(p, InstallDirPathMgrIns.GetMefPath())
-			So(ins.prepareCertsDir(), ShouldResemble, errors.New("create root key path failed"))
+			convey.So(ins.prepareCertsDir(), convey.ShouldResemble, errors.New("create root key path failed"))
 		})
 
-		Convey("test prepareCertDir func makesure component's cert path failed", func() {
-			p := ApplyFuncSeq(common.MakeSurePath,
-				[]OutputCell{
-					{Values: Params{nil}},
-					{Values: Params{nil}},
-					{Values: Params{ErrTest}},
+		convey.Convey("test prepareCertDir func makesure component's cert path failed", func() {
+			p := gomonkey.ApplyFuncSeq(common.MakeSurePath,
+				[]gomonkey.OutputCell{
+					{Values: gomonkey.Params{nil}},
+					{Values: gomonkey.Params{nil}},
+					{Values: gomonkey.Params{ErrTest}},
 				})
 			defer ResetAndClearDir(p, InstallDirPathMgrIns.GetMefPath())
-			So(ins.prepareCertsDir(), ShouldResemble,
+			convey.So(ins.prepareCertsDir(), convey.ShouldResemble,
 				errors.New("prepare component [edge-manager]'s cert dir failed"))
 		})
 	})
 }
 
 func CertMgrPrepareCertTest() {
-	Convey("test prepareCertDir", func() {
+	convey.Convey("test prepareCertDir", func() {
 		currentPath, err := filepath.Abs(filepath.Dir(os.Args[0]))
-		So(err, ShouldBeNil)
+		convey.So(err, convey.ShouldBeNil)
 		InstallDirPathMgrIns := util.InitInstallDirPathMgr(currentPath)
 		var initCertMgrIns *certutils.RootCertMgr
 		var selfSignCertIns *certutils.SelfSignCert
@@ -94,42 +97,43 @@ func CertMgrPrepareCertTest() {
 			components:  []string{"edge-manager"},
 		}
 
-		Convey("test prepareCert func success", func() {
-			p := ApplyMethodReturn(initCertMgrIns, "NewRootCa", nil, nil).
+		convey.Convey("test prepareCert func success", func() {
+			p := gomonkey.ApplyMethodReturn(initCertMgrIns, "NewRootCa", nil, nil).
 				ApplyMethodReturn(selfSignCertIns, "CreateSignCert", nil).
 				ApplyPrivateMethod(ins, "setCertsOwner", func(_ *certPrepareCtl) error { return nil })
 			defer ResetAndClearDir(p, InstallDirPathMgrIns.GetMefPath())
-			So(ins.prepareCerts(), ShouldBeNil)
+			convey.So(ins.prepareCerts(), convey.ShouldBeNil)
 		})
 
-		Convey("test prepareCert func prepareCA certPathMgr is nil", func() {
+		convey.Convey("test prepareCert func prepareCA certPathMgr is nil", func() {
 			var speIns = &certPrepareCtl{
 				certPathMgr: nil,
 				components:  []string{"edge-manager"},
 			}
-			So(speIns.prepareCerts(), ShouldResemble, errors.New("pointer cpc.certPathMgr is nil"))
+			convey.So(speIns.prepareCerts(), convey.ShouldResemble, errors.New("pointer cpc.certPathMgr is nil"))
 		})
 
-		Convey("test prepareCert func init root ca failed", func() {
-			p := ApplyMethodReturn(initCertMgrIns, "NewRootCa", nil, ErrTest)
+		convey.Convey("test prepareCert func init root ca failed", func() {
+			p := gomonkey.ApplyMethodReturn(initCertMgrIns, "NewRootCa", nil, ErrTest)
 			defer p.Reset()
-			So(ins.prepareCerts(), ShouldResemble, errors.New("init root ca info failed"))
+			convey.So(ins.prepareCerts(), convey.ShouldResemble, errors.New("init root ca info failed"))
 		})
 
-		Convey("test prepareCert func prepare component cert failed", func() {
-			p := ApplyMethodReturn(initCertMgrIns, "NewRootCa", nil, nil).
+		convey.Convey("test prepareCert func prepare component cert failed", func() {
+			p := gomonkey.ApplyMethodReturn(initCertMgrIns, "NewRootCa", nil, nil).
 				ApplyMethodReturn(componentMgrIns, "PrepareComponentCert", ErrTest)
 			defer p.Reset()
-			So(ins.prepareCerts(), ShouldResemble, errors.New("prepare single component cert failed"))
+			convey.So(ins.prepareCerts(), convey.ShouldResemble,
+				errors.New("prepare single component cert failed"))
 		})
 
-		Convey("test prepareCert func set certs owner failed", func() {
-			p := ApplyMethodReturn(initCertMgrIns, "NewRootCa", nil, nil).
+		convey.Convey("test prepareCert func set certs owner failed", func() {
+			p := gomonkey.ApplyMethodReturn(initCertMgrIns, "NewRootCa", nil, nil).
 				ApplyMethodReturn(componentMgrIns, "PrepareComponentCert", nil).
 				ApplyPrivateMethod(ins, "setCertsOwner",
 					func(_ *certPrepareCtl) error { return ErrTest })
 			defer p.Reset()
-			So(ins.prepareCerts(), ShouldResemble, ErrTest)
+			convey.So(ins.prepareCerts(), convey.ShouldResemble, ErrTest)
 		})
 	})
 }
@@ -140,22 +144,25 @@ func SetCertsOwnerTest() {
 		components:  []string{"edge-manager"},
 	}
 
-	Convey("test setCertsOwner func success", func() {
-		p := ApplyFuncReturn(util.GetMefId, 0, 0, nil).ApplyFuncReturn(util.SetPathOwnerGroup, nil)
+	convey.Convey("test setCertsOwner func success", func() {
+		p := gomonkey.ApplyFuncReturn(util.GetMefId, uint32(0), uint32(0), nil).
+			ApplyFuncReturn(utils.SetPathOwnerGroup, nil)
 		defer p.Reset()
-		So(ins.setCertsOwner(), ShouldBeNil)
+		convey.So(ins.setCertsOwner(), convey.ShouldBeNil)
 	})
 
-	Convey("test setCertsOwner func getMefId failed", func() {
-		p := ApplyFuncReturn(util.GetMefId, 0, 0, ErrTest)
+	convey.Convey("test setCertsOwner func getMefId failed", func() {
+		p := gomonkey.ApplyFuncReturn(util.GetMefId, uint32(0), uint32(0), ErrTest)
 		defer p.Reset()
-		So(ins.setCertsOwner(), ShouldResemble, errors.New("get mef uid or gid failed"))
+		convey.So(ins.setCertsOwner(), convey.ShouldResemble, errors.New("get mef uid or gid failed"))
 	})
 
-	Convey("test setCertsOwner func set config path right failed", func() {
-		p := ApplyFuncReturn(util.GetMefId, 0, 0, nil).ApplyFuncReturn(util.SetPathOwnerGroup, ErrTest)
+	convey.Convey("test setCertsOwner func set config path right failed", func() {
+		p := gomonkey.ApplyFuncReturn(util.GetMefId, uint32(0), uint32(0), nil).
+			ApplyFuncReturn(utils.SetPathOwnerGroup, ErrTest)
 		defer p.Reset()
-		So(ins.setCertsOwner(), ShouldResemble, errors.New("set cert root path owner and group failed"))
+		convey.So(ins.setCertsOwner(), convey.ShouldResemble,
+			errors.New("set cert root path owner and group failed"))
 	})
 
 }
@@ -163,49 +170,50 @@ func SetCertsOwnerTest() {
 func SetCertsOwnerSetRightTest() {
 	var ins = &certPrepareCtl{certPathMgr: &util.ConfigPathMgr{}, components: []string{"edge-manager"}}
 
-	Convey("test setCertsOwner func set config dir right failed", func() {
-		p := ApplyFuncReturn(util.GetMefId, 0, 0, ErrTest).
-			ApplyFuncSeq(util.SetPathOwnerGroup, []OutputCell{{Values: Params{nil}}, {Values: Params{ErrTest}}})
+	convey.Convey("test setCertsOwner func set config dir right failed", func() {
+		p := gomonkey.ApplyFuncReturn(util.GetMefId, uint32(0), uint32(0), ErrTest).
+			ApplyFuncSeq(utils.SetPathOwnerGroup,
+				[]gomonkey.OutputCell{{Values: gomonkey.Params{nil}}, {Values: gomonkey.Params{ErrTest}}})
 		defer p.Reset()
-		So(ins.setCertsOwner(), ShouldResemble, errors.New("get mef uid or gid failed"))
+		convey.So(ins.setCertsOwner(), convey.ShouldResemble, errors.New("get mef uid or gid failed"))
 	})
 
-	Convey("test setCertsOwner func set kmc dir right failed", func() {
-		p := ApplyFuncReturn(util.GetMefId, 0, 0, ErrTest).
-			ApplyFuncSeq(util.SetPathOwnerGroup,
-				[]OutputCell{
-					{Values: Params{nil}},
-					{Values: Params{nil}},
-					{Values: Params{ErrTest}},
+	convey.Convey("test setCertsOwner func set kmc dir right failed", func() {
+		p := gomonkey.ApplyFuncReturn(util.GetMefId, uint32(0), uint32(0), ErrTest).
+			ApplyFuncSeq(utils.SetPathOwnerGroup,
+				[]gomonkey.OutputCell{
+					{Values: gomonkey.Params{nil}},
+					{Values: gomonkey.Params{nil}},
+					{Values: gomonkey.Params{ErrTest}},
 				})
 		defer p.Reset()
-		So(ins.setCertsOwner(), ShouldResemble, errors.New("get mef uid or gid failed"))
+		convey.So(ins.setCertsOwner(), convey.ShouldResemble, errors.New("get mef uid or gid failed"))
 	})
 
-	Convey("test setCertsOwner func set root-ca key failed", func() {
-		p := ApplyFuncReturn(util.GetMefId, 0, 0, ErrTest).
-			ApplyFuncSeq(util.SetPathOwnerGroup,
-				[]OutputCell{
-					{Values: Params{nil}},
-					{Values: Params{nil}},
-					{Values: Params{nil}},
-					{Values: Params{ErrTest}},
+	convey.Convey("test setCertsOwner func set root-ca key failed", func() {
+		p := gomonkey.ApplyFuncReturn(util.GetMefId, uint32(0), uint32(0), ErrTest).
+			ApplyFuncSeq(utils.SetPathOwnerGroup,
+				[]gomonkey.OutputCell{
+					{Values: gomonkey.Params{nil}},
+					{Values: gomonkey.Params{nil}},
+					{Values: gomonkey.Params{nil}},
+					{Values: gomonkey.Params{ErrTest}},
 				})
 		defer p.Reset()
-		So(ins.setCertsOwner(), ShouldResemble, errors.New("get mef uid or gid failed"))
+		convey.So(ins.setCertsOwner(), convey.ShouldResemble, errors.New("get mef uid or gid failed"))
 	})
 
-	Convey("test setCertsOwner func set root-ca cert right failed", func() {
-		p := ApplyFuncReturn(util.GetMefId, 0, 0, ErrTest).
-			ApplyFuncSeq(util.SetPathOwnerGroup,
-				[]OutputCell{
-					{Values: Params{nil}},
-					{Values: Params{nil}},
-					{Values: Params{nil}},
-					{Values: Params{nil}},
-					{Values: Params{ErrTest}},
+	convey.Convey("test setCertsOwner func set root-ca cert right failed", func() {
+		p := gomonkey.ApplyFuncReturn(util.GetMefId, uint32(0), uint32(0), ErrTest).
+			ApplyFuncSeq(utils.SetPathOwnerGroup,
+				[]gomonkey.OutputCell{
+					{Values: gomonkey.Params{nil}},
+					{Values: gomonkey.Params{nil}},
+					{Values: gomonkey.Params{nil}},
+					{Values: gomonkey.Params{nil}},
+					{Values: gomonkey.Params{ErrTest}},
 				})
 		defer p.Reset()
-		So(ins.setCertsOwner(), ShouldResemble, errors.New("get mef uid or gid failed"))
+		convey.So(ins.setCertsOwner(), convey.ShouldResemble, errors.New("get mef uid or gid failed"))
 	})
 }

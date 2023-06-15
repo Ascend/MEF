@@ -9,10 +9,10 @@ import (
 	"os/exec"
 	"strings"
 
+	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 
-	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
@@ -77,7 +77,7 @@ func (sic *SftInstallCtl) preCheck() error {
 
 func (sic *SftInstallCtl) checkUser() error {
 	hwlog.RunLog.Info("start to check user")
-	if err := util.CheckUser(); err != nil {
+	if err := envutils.CheckUserIsRoot(); err != nil {
 		fmt.Println("current user is not root, cannot install")
 		hwlog.RunLog.Errorf("check user failed: %s", err.Error())
 		return err
@@ -90,20 +90,20 @@ func (sic *SftInstallCtl) checkDiskSpace() error {
 	devMap := make(map[uint64]uint64)
 
 	installPath := sic.InstallPathMgr.GetRootPath()
-	installDevInfo, err := common.GetFileDevNum(installPath)
+	installDevInfo, err := envutils.GetFileDevNum(installPath)
 	if err != nil {
 		hwlog.RunLog.Errorf("get install path dev num failed: %s", err.Error())
 		return errors.New("check install disk space failed")
 	}
 	devMap[installDevInfo] = util.InstallDiskSpace
-	if err = util.CheckDiskSpace(installPath, util.InstallDiskSpace); err != nil {
+	if err = envutils.CheckDiskSpace(installPath, util.InstallDiskSpace); err != nil {
 		hwlog.RunLog.Errorf("check install disk space failed: %s", err.Error())
 		return errors.New("check install disk space failed")
 	}
 
 	var threshold uint64 = util.LogDiskSpace
 	logPath := sic.logPathMgr.GetModuleLogPath()
-	logDevInfo, err := common.GetFileDevNum(logPath)
+	logDevInfo, err := envutils.GetFileDevNum(logPath)
 	if err != nil {
 		hwlog.RunLog.Errorf("get log path dev num failed: %s", err.Error())
 		return errors.New("check log disk space failed")
@@ -115,13 +115,13 @@ func (sic *SftInstallCtl) checkDiskSpace() error {
 	} else {
 		devMap[logDevInfo] = util.LogDiskSpace
 	}
-	if err = util.CheckDiskSpace(logPath, threshold); err != nil {
+	if err = envutils.CheckDiskSpace(logPath, threshold); err != nil {
 		fmt.Println(" log disk space not enough")
 	}
 
 	threshold = util.LogBackupDiskSpace
 	logBackPath := sic.logPathMgr.GetModuleLogBackupPath()
-	logBackDevInfo, err := common.GetFileDevNum(logBackPath)
+	logBackDevInfo, err := envutils.GetFileDevNum(logBackPath)
 	if err != nil {
 		hwlog.RunLog.Errorf("get log backup path dev num failed: %s", err.Error())
 		return errors.New("check log back up disk space failed")
@@ -130,7 +130,7 @@ func (sic *SftInstallCtl) checkDiskSpace() error {
 	if existed {
 		threshold = util.LogBackupDiskSpace + addSpace
 	}
-	if err := util.CheckDiskSpace(sic.logPathMgr.GetModuleLogBackupPath(), threshold); err != nil {
+	if err := envutils.CheckDiskSpace(sic.logPathMgr.GetModuleLogBackupPath(), threshold); err != nil {
 		fmt.Println(" log backup disk space not enough")
 	}
 	return nil
@@ -196,7 +196,7 @@ func (sic *SftInstallCtl) checkInstalled() error {
 func (sic *SftInstallCtl) prepareMefUser() error {
 	hwlog.RunLog.Info("start to prepare mef user")
 
-	usrMgr := common.NewUserMgr(util.MefCenterName, util.MefCenterGroup, util.MefCenterUid, util.MefCenterGid)
+	usrMgr := envutils.NewUserMgr(util.MefCenterName, util.MefCenterGroup, util.MefCenterUid, util.MefCenterGid)
 	if err := usrMgr.AddUserAccount(); err != nil {
 		hwlog.RunLog.Errorf("prepare mef user failed:%s", err.Error())
 		return err

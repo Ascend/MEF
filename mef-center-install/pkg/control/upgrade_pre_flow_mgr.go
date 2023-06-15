@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/mef/common/cmsverify"
@@ -99,7 +100,7 @@ func (upf *UpgradePreFlowMgr) preCheck() error {
 }
 
 func (upf *UpgradePreFlowMgr) checkUser() error {
-	if err := util.CheckUser(); err != nil {
+	if err := envutils.CheckUserIsRoot(); err != nil {
 		fmt.Println("the current user is not root, cannot upgrade")
 		hwlog.RunLog.Errorf("check user failed: %s", err.Error())
 		return err
@@ -118,7 +119,7 @@ func (upf *UpgradePreFlowMgr) checkCurrentPath() error {
 }
 
 func (upf *UpgradePreFlowMgr) checkDiskSpace() error {
-	if err := util.CheckDiskSpace(upf.InstallPathMgr.GetRootPath(), util.UpgradeDiskSpace); err != nil {
+	if err := envutils.CheckDiskSpace(upf.InstallPathMgr.GetRootPath(), util.UpgradeDiskSpace); err != nil {
 		hwlog.RunLog.Errorf("check upgrade disk space failed: %s", err.Error())
 		return errors.New("check upgrade disk space failed")
 	}

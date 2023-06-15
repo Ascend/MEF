@@ -11,6 +11,7 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
+	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509/certutils"
 
 	"huawei.com/mindxedge/base/common"
@@ -137,35 +138,35 @@ func (cpc *certPrepareCtl) setCertsOwner() error {
 		return errors.New("get mef uid or gid failed")
 	}
 
-	if err = util.SetPathOwnerGroup(cpc.certPathMgr.GetConfigPath(), mefUid,
+	if err = utils.SetPathOwnerGroup(cpc.certPathMgr.GetConfigPath(), mefUid,
 		mefGid, true, false); err != nil {
 		hwlog.RunLog.Errorf("set path [%s] owner and group failed: %v",
 			cpc.certPathMgr.GetConfigPath(), err.Error())
 		return errors.New("set cert root path owner and group failed")
 	}
 
-	if err = util.SetPathOwnerGroup(cpc.certPathMgr.GetConfigPath(), util.RootUid,
+	if err = utils.SetPathOwnerGroup(cpc.certPathMgr.GetConfigPath(), util.RootUid,
 		util.RootGid, false, false); err != nil {
 		hwlog.RunLog.Errorf("set path [%s] owner and group failed: %v",
 			cpc.certPathMgr.GetConfigPath(), err.Error())
 		return errors.New("set cert root path owner and group failed")
 	}
 
-	if err = util.SetPathOwnerGroup(cpc.certPathMgr.GetRootKmcDirPath(), util.RootUid,
+	if err = utils.SetPathOwnerGroup(cpc.certPathMgr.GetRootKmcDirPath(), util.RootUid,
 		util.RootGid, true, false); err != nil {
 		hwlog.RunLog.Errorf("set path [%s] owner and group failed: %v",
 			cpc.certPathMgr.GetRootKmcDirPath(), err.Error())
 		return errors.New("set cert root path owner and group failed")
 	}
 
-	if err = util.SetPathOwnerGroup(cpc.certPathMgr.GetRootCaKeyDirPath(), util.RootUid,
+	if err = utils.SetPathOwnerGroup(cpc.certPathMgr.GetRootCaKeyDirPath(), util.RootUid,
 		util.RootGid, true, false); err != nil {
 		hwlog.RunLog.Errorf("set path [%s] owner and group failed: %v",
 			cpc.certPathMgr.GetRootCaKeyDirPath(), err.Error())
 		return errors.New("set cert root path owner and group failed")
 	}
 
-	if err = util.SetPathOwnerGroup(cpc.certPathMgr.GetRootCaDirPath(), util.RootUid,
+	if err = utils.SetPathOwnerGroup(cpc.certPathMgr.GetRootCaDirPath(), util.RootUid,
 		util.RootGid, false, false); err != nil {
 		hwlog.RunLog.Errorf("set path [%s] owner and group failed: %v",
 			cpc.certPathMgr.GetRootCaDirPath(), err.Error())

@@ -13,6 +13,7 @@ import (
 	"strings"
 	"syscall"
 
+	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindxedge/base/common"
@@ -188,19 +189,18 @@ func checkLogPath(path string, info fs.FileInfo, err error) error {
 
 		return fmt.Errorf("get mef uid failed: %s", err.Error())
 	}
-	if int(stat.Uid) == mefUid && int(stat.Gid) == mefGid {
+	if stat.Uid == mefUid && stat.Gid == mefGid {
 		return nil
 	}
 	return fmt.Errorf("owner not right %v uid=%v gid=%v", path, int(stat.Uid), int(stat.Gid))
 }
 
 func checkTmpfs(path string) error {
-	dev, err := common.GetFileSystem(path)
+	isInTmpfs, err := envutils.IsInTmpfs(path)
 	if err != nil {
 		return err
 	}
-
-	if dev == common.TmpfsDevNum {
+	if isInTmpfs {
 		return fmt.Errorf("path [%s] is in tmpfs filesystem", path)
 	}
 	return nil
@@ -253,7 +253,7 @@ func main() {
 	}
 	fmt.Println("init log success")
 
-	user, ip, err := util.GetLoginUserAndIP()
+	user, ip, err := envutils.GetLoginUserAndIP()
 	if err != nil {
 		hwlog.RunLog.Errorf("get current user or ip info failed: %s", err.Error())
 		os.Exit(util.ErrorExitCode)
