@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 
@@ -57,7 +58,7 @@ func (l *collector) Collect() (string, error) {
 	if _, err := utils.CheckPath(l.destination); err != nil {
 		return "", err
 	}
-	diskFree, err := common.GetDiskFree(filepath.Dir(l.destination))
+	diskFree, err := envutils.GetDiskFree(filepath.Dir(l.destination))
 	if err != nil {
 		return "", err
 	}

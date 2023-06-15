@@ -6,7 +6,9 @@ import (
 	"errors"
 	"fmt"
 
+	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
@@ -36,7 +38,7 @@ func (sum *SftUninstallMgr) DoUninstall() error {
 
 func (sum *SftUninstallMgr) checkUser() error {
 	hwlog.RunLog.Info("start to check user")
-	if err := util.CheckUser(); err != nil {
+	if err := envutils.CheckUserIsRoot(); err != nil {
 		fmt.Println("current user is not root, cannot uninstall")
 		hwlog.RunLog.Errorf("check user failed: %s", err.Error())
 		return err

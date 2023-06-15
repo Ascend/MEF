@@ -10,6 +10,8 @@ import (
 	"strings"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/utils"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -52,7 +54,7 @@ func (mi *modeMgr) setDirMode(dirList []string, mode os.FileMode, isRecursive, i
 			hwlog.RunLog.Errorf("get %s's abspath failed: %s", tempDir, err.Error())
 			return fmt.Errorf("get %s's abspath failed", tempDir)
 		}
-		if err = common.SetPathPermission(dirAbsPath, mode, isRecursive, ignoreFile); err != nil {
+		if err = utils.SetPathPermission(dirAbsPath, mode, isRecursive, ignoreFile); err != nil {
 			hwlog.RunLog.Error(err)
 			return err
 		}
@@ -76,7 +78,7 @@ func (mi *modeMgr) setFileMode(fileList []string, mode os.FileMode, isRecursive,
 			return fmt.Errorf("get %s's abspath failed", tempFile)
 		}
 
-		if err = common.SetPathPermission(dirFilePath, mode, isRecursive, ignoreFile); err != nil {
+		if err = utils.SetPathPermission(dirFilePath, mode, isRecursive, ignoreFile); err != nil {
 			hwlog.RunLog.Error(err)
 			return errors.New("set path permission failed")
 		}
@@ -99,7 +101,7 @@ func (mi *modeMgr) handleTypeFileMode(typeFile string, mode os.FileMode) error {
 			return fmt.Errorf("get %s's abspath failed", file)
 		}
 
-		if err = common.SetPathPermission(dirFilePath, mode, false, false); err != nil {
+		if err = utils.SetPathPermission(dirFilePath, mode, false, false); err != nil {
 			hwlog.RunLog.Error(err)
 			return errors.New("set path permission failed")
 		}

@@ -11,6 +11,7 @@ import (
 	"path"
 	"path/filepath"
 
+	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 
@@ -455,7 +456,7 @@ func main() {
 		os.Exit(util.ErrorExitCode)
 	}
 	fmt.Println("init log success")
-	user, ip, err := util.GetLoginUserAndIP()
+	user, ip, err := envutils.GetLoginUserAndIP()
 	if err != nil {
 		hwlog.RunLog.Errorf("get current user or ip info failed: %s", err.Error())
 		os.Exit(util.ErrorExitCode)

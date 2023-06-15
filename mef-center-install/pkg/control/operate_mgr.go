@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 
+	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 
@@ -118,7 +119,7 @@ func (scm *SftOperateMgr) check() error {
 
 func (scm *SftOperateMgr) checkUser() error {
 	hwlog.RunLog.Info("start to check user")
-	if err := util.CheckUser(); err != nil {
+	if err := envutils.CheckUserIsRoot(); err != nil {
 		fmt.Println("the current user is not root, cannot operate MEF-Center")
 		hwlog.RunLog.Errorf("check user failed: %s", err.Error())
 		return err

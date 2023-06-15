@@ -8,13 +8,10 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"os/user"
 	"path"
 	"path/filepath"
-	"strconv"
 
-	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/terminal"
+	"huawei.com/mindx/common/envutils"
 
 	"huawei.com/mindxedge/base/common"
 )
@@ -26,35 +23,6 @@ func GetArch() (string, error) {
 		return "", err
 	}
 	return arch, nil
-}
-
-// CheckUser is used to check if the current user is root and returns error if not
-func CheckUser() error {
-	usr, err := common.GetCurrentUser()
-	if err != nil {
-		return err
-	}
-	if usr != RootUserName {
-		return fmt.Errorf("install failed: the install user must be root, can not be %s", usr)
-	}
-
-	return nil
-}
-
-// CheckDiskSpace is used to check if the disk space on a path is enough to a limit
-func CheckDiskSpace(path string, limit uint64) error {
-	availSpace, err := common.GetDiskFree(path)
-	if err != nil {
-		return fmt.Errorf("get path [%s]'s disk available space failed: %s", path, err.Error())
-	}
-
-	if availSpace < limit {
-		fmt.Printf("warning: the path of [%s] disk space is not enough, at least %d MB is required\n",
-			path, limit/common.MB)
-		return errors.New("no enough space")
-	}
-
-	return nil
 }
 
 // GetInstallInfo is used to get the information from install-param.json
@@ -76,23 +44,15 @@ func GetInstallInfo() (*InstallParamJsonTemplate, error) {
 }
 
 // GetMefId is used to get uid/gid for user/group MEFCenter
-func GetMefId() (int, int, error) {
-	mefUser, err := user.Lookup(MefCenterName)
+func GetMefId() (uint32, uint32, error) {
+	uid, err := envutils.GetUid(MefCenterName)
 	if err != nil {
-		return 0, 0, fmt.Errorf("get MEFCenter uid failed： %s", err.Error())
-	}
-	uid, err := strconv.Atoi(mefUser.Uid)
-	if err != nil {
-		return 0, 0, fmt.Errorf("transfer %s uid into int failed: %s", MefCenterName, err.Error())
+		return 0, 0, fmt.Errorf("get uid failed, error: %v", err)
 	}
 
-	mefGroup, err := user.LookupGroup(MefCenterGroup)
+	gid, err := envutils.GetGid(MefCenterGroup)
 	if err != nil {
-		return 0, 0, fmt.Errorf("get MEFCenter gid failed: %s", err.Error())
-	}
-	gid, err := strconv.Atoi(mefGroup.Gid)
-	if err != nil {
-		return 0, 0, fmt.Errorf("transfer %s gid into int failed: %s", MefCenterGroup, err.Error())
+		return 0, 0, fmt.Errorf("get gid failed, error: %v", err)
 	}
 
 	return uid, gid, nil
@@ -135,23 +95,6 @@ func GetNecessaryTools() []string {
 		"grep",
 		"useradd",
 	}
-}
-
-// GetLoginUserAndIP get login user and ip
-func GetLoginUserAndIP() (string, string, error) {
-	loginUser, sshIp, err := terminal.GetLoginUserAndIP()
-	if err == nil {
-		return loginUser, sshIp, nil
-	}
-
-	hwlog.RunLog.Warnf("get ssh user or ip info failed, error: %v", err)
-	curUser, err := user.Current()
-	if err != nil {
-		hwlog.RunLog.Errorf("get current user failed, error: %v", err)
-		return "", "", errors.New("get current user failed")
-	}
-
-	return curUser.Name, "localhost", nil
 }
 
 // CheckCurrentPath is the public check func for run.sh

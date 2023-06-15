@@ -22,13 +22,13 @@ type ExchangeCaFlow struct {
 	exportPath string
 	savePath   string
 	certName   string
-	uid        int
-	gid        int
+	uid        uint32
+	gid        uint32
 }
 
 // NewExchangeCaFlow an ExchangeCaFlow struct
 func NewExchangeCaFlow(importPath, exportPath string, pathMgr *util.InstallDirPathMgr,
-	uid, gid int) *ExchangeCaFlow {
+	uid, gid uint32) *ExchangeCaFlow {
 	savePath := pathMgr.ConfigPathMgr.GetNorthernCertPath()
 	return &ExchangeCaFlow{
 		pathMgr:    pathMgr,
@@ -134,12 +134,12 @@ func (ecf *ExchangeCaFlow) copyCaToCertManager() error {
 		hwlog.RunLog.Errorf("create cert dst dir failed: %s", err.Error())
 		return errors.New("create cert dst dir failed")
 	}
-	if err := util.SetPathOwnerGroup(filepath.Dir(filepath.Dir(ecf.savePath)),
+	if err := utils.SetPathOwnerGroup(filepath.Dir(filepath.Dir(ecf.savePath)),
 		ecf.uid, ecf.gid, false, false); err != nil {
 		hwlog.RunLog.Errorf("set root-ca dir owner failed: %s", err.Error())
 		return errors.New("set root-ca dir owner failed")
 	}
-	if err := util.SetPathOwnerGroup(filepath.Dir(ecf.savePath),
+	if err := utils.SetPathOwnerGroup(filepath.Dir(ecf.savePath),
 		ecf.uid, ecf.gid, false, false); err != nil {
 		hwlog.RunLog.Errorf("set crt dir owner failed: %s", err.Error())
 		return errors.New("set crt dir owner failed")
@@ -150,12 +150,12 @@ func (ecf *ExchangeCaFlow) copyCaToCertManager() error {
 		return errors.New("copy temp crt to dst failed")
 	}
 
-	if err := util.SetPathOwnerGroup(ecf.savePath, ecf.uid, ecf.gid, false, false); err != nil {
+	if err := utils.SetPathOwnerGroup(ecf.savePath, ecf.uid, ecf.gid, false, false); err != nil {
 		hwlog.RunLog.Errorf("set crt owner failed: %s", err.Error())
 		return errors.New("set crt owner failed")
 	}
 
-	if err := common.SetPathPermission(ecf.savePath, common.Mode600, false, false); err != nil {
+	if err := utils.SetPathPermission(ecf.savePath, common.Mode600, false, false); err != nil {
 		hwlog.RunLog.Errorf("set save crt right failed: %s", err.Error())
 		if err = common.DeleteFile(ecf.savePath); err != nil {
 			hwlog.RunLog.Warnf("delete crt [%s] failed: %s", ecf.certName, err.Error())
