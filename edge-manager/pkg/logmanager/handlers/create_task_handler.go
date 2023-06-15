@@ -10,17 +10,17 @@ import (
 	"path/filepath"
 	"time"
 
+	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
-	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/checker/checker"
-	"huawei.com/mindxedge/base/common/handlerbase"
-	"huawei.com/mindxedge/base/common/logmgmt/logcollect"
 
 	"edge-manager/pkg/logmanager/constants"
 	"edge-manager/pkg/logmanager/modules"
 	"edge-manager/pkg/types"
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/handlerbase"
+	"huawei.com/mindxedge/base/common/logmgmt/logcollect"
 )
 
 const sendMessageTimeout = 5 * time.Second

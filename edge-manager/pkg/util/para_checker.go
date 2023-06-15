@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"math"
 
+	"huawei.com/mindx/common/checker"
+
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/checker/checker"
 )
 
 // NewPaginationQueryChecker [method] for getting delete app checker struct

@@ -9,6 +9,7 @@ require (
 	github.com/stretchr/testify v1.7.1
 	gorm.io/driver/sqlite v1.4.2
 	gorm.io/gorm v1.22.3
+	huawei.com/mindx/common/checker v0.0.2
 	huawei.com/mindx/common/hwlog v0.10.5
 	huawei.com/mindx/common/kmc v0.1.0
 	huawei.com/mindx/common/modulemgr v0.0.1
@@ -21,6 +22,7 @@ require (
 
 replace (
 	huawei.com/mindx/common/cache => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/cache v0.0.2
+	huawei.com/mindx/common/checker => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/checker v0.0.2
 	huawei.com/mindx/common/hwlog => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/hwlog v0.10.5
 	huawei.com/mindx/common/kmc => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/kmc v0.1.6
 	huawei.com/mindx/common/modulemgr => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/modulemgr v0.0.2

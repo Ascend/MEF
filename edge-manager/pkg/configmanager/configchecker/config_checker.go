@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"math"
 
-	"huawei.com/mindxedge/base/common/checker/checker"
+	"huawei.com/mindx/common/checker"
 )
 
 type configChecker struct {

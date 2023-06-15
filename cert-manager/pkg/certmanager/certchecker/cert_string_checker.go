@@ -6,8 +6,8 @@ package certchecker
 import (
 	"fmt"
 
-	"huawei.com/mindxedge/base/common/checker/checker"
-	"huawei.com/mindxedge/base/common/checker/valuer"
+	"huawei.com/mindx/common/checker"
+	"huawei.com/mindx/common/checker/valuer"
 )
 
 // GetStringChecker [method] for get string checker

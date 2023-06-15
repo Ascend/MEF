@@ -6,7 +6,7 @@ package appchecker
 import (
 	"fmt"
 
-	"huawei.com/mindxedge/base/common/checker/checker"
+	"huawei.com/mindx/common/checker"
 )
 
 // GetContainerChecker [method] for get container checker

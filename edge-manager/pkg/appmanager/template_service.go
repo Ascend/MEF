@@ -8,11 +8,11 @@ import (
 
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/appmanager/appchecker"
 	"edge-manager/pkg/types"
 	"edge-manager/pkg/util"
+	"huawei.com/mindxedge/base/common"
 )
 
 // createTemplate create app template

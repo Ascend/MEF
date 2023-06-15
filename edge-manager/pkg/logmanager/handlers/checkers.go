@@ -4,7 +4,8 @@
 package handlers
 
 import (
-	"huawei.com/mindxedge/base/common/checker/checker"
+	"huawei.com/mindx/common/checker"
+
 	"huawei.com/mindxedge/base/common/logmgmt/logcollect"
 )
 

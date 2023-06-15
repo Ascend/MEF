@@ -4,11 +4,11 @@
 package edgemsgmanager
 
 import (
+	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr/model"
-	"huawei.com/mindxedge/base/common"
 
-	"huawei.com/mindxedge/base/common/checker/checker"
+	"huawei.com/mindxedge/base/common"
 )
 
 func queryEdgeSoftwareVersion(input interface{}) common.RespMsg {

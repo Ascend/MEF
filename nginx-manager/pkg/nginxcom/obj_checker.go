@@ -7,9 +7,8 @@ import (
 	"reflect"
 	"strconv"
 
+	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/hwlog"
-
-	"huawei.com/mindxedge/base/common/checker/checker"
 )
 
 // ObjChecker [struct] for object checker

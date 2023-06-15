@@ -6,8 +6,8 @@ package config
 import (
 	"errors"
 
+	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common/checker/checker"
 )
 
 var certConfig CertConfigInfo

@@ -9,11 +9,11 @@ import (
 	"regexp"
 	"sync"
 
+	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/x509"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/checker/checker"
 )
 
 var lock sync.Mutex
