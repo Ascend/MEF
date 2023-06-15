@@ -44,8 +44,8 @@ func (muk *UpdateKmcFlow) RunFlow() error {
 
 		task := kmc.ManualUpdateKmcTask{
 			UpdateKmcTask: kmc.UpdateKmcTask{
-				ReEncryptedList: encryptedList,
-				Ctx:             ctx,
+				ReEncryptParamList: encryptedList,
+				Ctx:                ctx,
 			},
 		}
 
@@ -90,20 +90,30 @@ func (muk *UpdateKmcFlow) initKmcCtx(module string) (*kmc.Context, error) {
 	return &c, nil
 }
 
-func (muk *UpdateKmcFlow) getEncryptMap() map[string][]string {
-	return map[string][]string{
+func (muk *UpdateKmcFlow) getEncryptMap() map[string][]kmc.ReEncryptParam {
+	return map[string][]kmc.ReEncryptParam{
 		util.CertManagerName: {
-			muk.pathMgr.ConfigPathMgr.GetComponentKeyPath(util.CertManagerName),
-			muk.pathMgr.ConfigPathMgr.GetHubSrvKeyPath(),
+			kmc.ReEncryptParam{
+				Path:       muk.pathMgr.ConfigPathMgr.GetComponentConfigPath(util.CertManagerName),
+				SuffixList: []string{kmc.KeySuffix},
+			},
 		},
 		util.NginxManagerName: {
-			muk.pathMgr.ConfigPathMgr.GetComponentKeyPath(util.NginxManagerName),
-			muk.pathMgr.ConfigPathMgr.GetUserServerKeyPath(),
+			kmc.ReEncryptParam{
+				Path:       muk.pathMgr.ConfigPathMgr.GetComponentConfigPath(util.NginxManagerName),
+				SuffixList: []string{kmc.KeySuffix},
+			},
 		},
 		util.EdgeManagerName: {
-			muk.pathMgr.ConfigPathMgr.GetComponentKeyPath(util.EdgeManagerName),
-			muk.pathMgr.ConfigPathMgr.GetWebSocketKeyPath(),
+			kmc.ReEncryptParam{
+				Path:       muk.pathMgr.ConfigPathMgr.GetComponentConfigPath(util.EdgeManagerName),
+				SuffixList: []string{kmc.KeySuffix},
+			},
 		},
-		util.MefCenterRootName: {muk.pathMgr.ConfigPathMgr.GetRootCaKeyPath()},
+		util.MefCenterRootName: {
+			kmc.ReEncryptParam{
+				Path: muk.pathMgr.ConfigPathMgr.GetRootCaKeyPath(),
+			},
+		},
 	}
 }
