@@ -300,6 +300,20 @@ func deleteSingleNode(nodeID uint64) error {
 		return errors.New("can't delete unmanaged node")
 	}
 
+	nodeRelations, err := NodeServiceInstance().getRelationsByNodeID(nodeID)
+	if err != nil {
+		return err
+	}
+	for _, relation := range *nodeRelations {
+		count, err := getAppInstanceCountByGroupId(relation.GroupID)
+		if err != nil {
+			return fmt.Errorf("query group(%d) app count failed, %v", relation.GroupID, err)
+		}
+		if count > 0 {
+			return fmt.Errorf("group(%d) has deployed app, can't remove", relation.GroupID)
+		}
+	}
+
 	if err = NodeServiceInstance().deleteNode(nodeInfo); err != nil {
 		return err
 	}
