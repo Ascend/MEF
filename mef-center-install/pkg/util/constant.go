@@ -74,12 +74,10 @@ const (
 	KmcDir           = "kmc"
 	PubCfgDir        = "public-config"
 	RootCaDir        = "root-ca"
-	CloudCoreCertDir = "cloud-core-certs"
 	RootCaFileDir    = "cert"
 	RootCaKeyDir     = "key"
 	RootCaFile       = "RootCA.crt"
 	RootKeyFile      = "RootCA.key"
-	CloudCoreRootCa  = "rootCA.crt"
 	MasterKeyFile    = "master.ks"
 	BackUpKeyFile    = "backup.ks"
 	CertsDir         = "mef-certs"
@@ -162,10 +160,6 @@ const (
 	CheckStatusTimes    = 5
 )
 
-const (
-	// DefaultCloudCoreCaPath for default cloud core ca path
-	DefaultCloudCoreCaPath = "/etc/kubeedge/ca/rootCA.crt"
-)
 const (
 	// NotGenCertErrorStr for the root ca has not yet generated
 	NotGenCertErrorStr = "the root ca has not yet generated"

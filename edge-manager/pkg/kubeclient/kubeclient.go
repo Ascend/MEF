@@ -12,6 +12,7 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/k8stool"
+	"huawei.com/mindx/common/utils"
 	appv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -35,7 +36,9 @@ const (
 	systemNamespace = "kubeedge"
 	tokenSecretName = "tokensecret"
 	tokenDataName   = "tokendata"
-
+	caSecretName    = "casecret"
+	caDataName      = "cadata"
+	caKeyDataName   = "cakeydata"
 	// K8sNotFoundErrorFragment for check if the error is found type
 	K8sNotFoundErrorFragment = "not found"
 	// DefaultImagePullSecretKey for getting image pull secret
@@ -234,14 +237,37 @@ func (ki *Client) GetSecret(name string) (*v1.Secret, error) {
 	return ki.GetClientSet().CoreV1().Secrets(common.MefUserNs).Get(context.Background(), name, metav1.GetOptions{})
 }
 
+// GetCloudCoreCa [method] for get cloud core ca
+func (ki *Client) GetCloudCoreCa() ([]byte, error) {
+	caSecret, err := ki.GetClientSet().CoreV1().Secrets(systemNamespace).Get(context.Background(),
+		caSecretName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	if _, ok := caSecret.Data[caDataName]; !ok {
+		return nil, errors.New("cloud ca data not exist")
+	}
+
+	if _, ok := caSecret.Data[caKeyDataName]; !ok {
+		return nil, errors.New("cloud ca key data not exist")
+	}
+
+	utils.ClearSliceByteMemory(caSecret.Data[caKeyDataName])
+
+	return caSecret.Data[caDataName], nil
+}
+
 // CreateOrUpdateSecret [method] for updating secret or creating secret if it is not exist
 func (ki *Client) CreateOrUpdateSecret(secret *v1.Secret) (*v1.Secret, error) {
 	_, err := ki.GetSecret(secret.Name)
 	if err == nil {
-		return ki.kubeClient.CoreV1().Secrets(common.MefUserNs).Update(context.Background(), secret, metav1.UpdateOptions{})
+		return ki.kubeClient.CoreV1().Secrets(common.MefUserNs).Update(context.Background(),
+			secret, metav1.UpdateOptions{})
 	}
 	if strings.Contains(err.Error(), K8sNotFoundErrorFragment) {
-		return ki.kubeClient.CoreV1().Secrets(common.MefUserNs).Create(context.Background(), secret, metav1.CreateOptions{})
+		return ki.kubeClient.CoreV1().Secrets(common.MefUserNs).Create(context.Background(),
+			secret, metav1.CreateOptions{})
 	}
 	return nil, err
 }

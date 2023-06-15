@@ -15,9 +15,8 @@ import (
 
 // SoftwareMgr is the father struct of install/uninstall/upgrade struct that manages public functions
 type SoftwareMgr struct {
-	Components      []string
-	InstallPathMgr  *InstallDirPathMgr
-	CloudCoreCaPath string
+	Components     []string
+	InstallPathMgr *InstallDirPathMgr
 }
 
 // ClearDockerImage is used to clear docker images
