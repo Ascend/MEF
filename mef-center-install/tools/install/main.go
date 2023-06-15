@@ -233,6 +233,11 @@ func main() {
 		fmt.Printf("%s version: %s\n", BuildName, BuildVersion)
 		os.Exit(util.VersionExitCode)
 	}
+	if utils.IsRequiredFlagNotFound() {
+		fmt.Println("the required parameter is missing")
+		flag.PrintDefaults()
+		os.Exit(util.ErrorExitCode)
+	}
 
 	if err := checkPath(); err != nil {
 		fmt.Printf("check path failed: %s\n", err.Error())
