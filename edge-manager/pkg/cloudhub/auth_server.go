@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"regexp"
 
@@ -14,6 +15,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/x509/certutils"
 	"huawei.com/mindx/common/xcrypto"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/httpsmgr"
 
@@ -26,6 +28,7 @@ const (
 	edgeConnTestUrl = "/token-check"
 	headerToken     = "token"
 	maxBodyBytes    = 100 * 1024 * 1024
+	maxCsrBytes     = 4096
 )
 
 // ClientAuthService [struct] for mef edge client auth
@@ -74,7 +77,7 @@ func ClientAuth(c *gin.Context) {
 		return
 	}
 
-	csrData, err := c.GetRawData()
+	csrData, err := io.ReadAll(io.LimitReader(c.Request.Body, maxCsrBytes))
 	if err != nil {
 		hwlog.RunLog.Errorf("read crs data from edge error: %v", err)
 		c.String(http.StatusBadRequest, "csr data is required")
