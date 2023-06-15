@@ -136,7 +136,7 @@ func certContentChecker(certContent string) bool {
 
 var onlineImportMap = map[string]bool{
 	common.WsSerName:        false,
-	common.WsCltName:        true,
+	common.WsCltName:        false,
 	common.SoftwareCertName: true,
 	common.ImageCertName:    true,
 	common.NginxCertName:    true,
