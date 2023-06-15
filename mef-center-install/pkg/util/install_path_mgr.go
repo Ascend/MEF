@@ -450,16 +450,6 @@ func (cpm *ConfigPathMgr) GetNorthernCrlPath() string {
 	return filepath.Join(cpm.GetComponentConfigPath(CertManagerName), RootCaDir, common.NorthernCertName, CrlName)
 }
 
-// GetCloudCoreCertsDir returns the cloud core cert dir path
-func (cpm *ConfigPathMgr) GetCloudCoreCertsDir() string {
-	return filepath.Join(cpm.GetComponentConfigPath(EdgeManagerName), CloudCoreCertDir)
-}
-
-// GetCloudCoreCaFile returns the cloud core ca cert file path
-func (cpm *ConfigPathMgr) GetCloudCoreCaFile() string {
-	return filepath.Join(cpm.GetCloudCoreCertsDir(), CloudCoreRootCa)
-}
-
 // GetPublicConfigPath returns the public-config path
 func (cpm *ConfigPathMgr) GetPublicConfigPath() string {
 	return filepath.Join(cpm.configPath, PubConfigDir)

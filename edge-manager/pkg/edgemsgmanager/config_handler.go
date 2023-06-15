@@ -10,10 +10,10 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/utils"
+	"huawei.com/mindx/common/x509/certutils"
 	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/kubeclient"
-	"edge-manager/pkg/util"
 )
 
 const maxTokenLen = 1024
@@ -81,11 +81,12 @@ func getToken() ([]byte, error) {
 }
 
 func getCloudCoreCa() ([]byte, error) {
-	data, err := utils.ReadFile(util.CloudCoreCaPath)
+	data, err := kubeclient.GetKubeClient().GetCloudCoreCa()
 	if err != nil {
 		return nil, err
 	}
-	return data, nil
+
+	return certutils.PemWrapCert(data), nil
 }
 
 // GetConfigInfo get config info
