@@ -10,6 +10,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/handlerbase"
 )
@@ -18,7 +19,6 @@ var handlerMgr handlerbase.HandlerMgr
 var regOnce sync.Once
 var registerInfoList = []handlerbase.RegisterInfo{
 	{MsgOpt: common.OptGet, MsgRes: common.ResEdgeCoreConfig, Handler: new(configHandler)},
-	{MsgOpt: common.OptGet, MsgRes: common.ResDownLoadSoftware, Handler: new(downloadHandler)},
 	{MsgOpt: common.OptPost, MsgRes: common.ResDownLoadSoftware, Handler: new(upgradeHandler)},
 	{MsgOpt: common.OptGet, MsgRes: common.ResDownLoadCert, Handler: new(certHandler)},
 }

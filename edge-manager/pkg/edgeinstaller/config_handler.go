@@ -9,9 +9,9 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr/model"
-	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/kubeclient"
+	"huawei.com/mindxedge/base/common"
 )
 
 type configHandler struct{}
