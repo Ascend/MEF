@@ -1,6 +1,6 @@
 // Copyright (c)  2023. Huawei Technologies Co., Ltd.  All rights reserved.
 
-// Package edgemsgmanager to manage node msg
+// Package edgemsgmanager get cert info
 package edgemsgmanager
 
 import (
@@ -11,10 +11,9 @@ import (
 	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/x509/certutils"
 
+	"edge-manager/pkg/util"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/httpsmgr"
-
-	"edge-manager/pkg/util"
 )
 
 func queryCertInfo(certName string) (certutils.ClientCertResp, error) {
@@ -46,11 +45,9 @@ func queryCertInfo(certName string) (certutils.ClientCertResp, error) {
 		if address == "" {
 			hwlog.RunLog.Warn("image registry address should be configured")
 			return res, errors.New("image registry address should be configured")
-
 		}
 		res.ImageAddress = address
 	}
-
 	return res, nil
 }
 

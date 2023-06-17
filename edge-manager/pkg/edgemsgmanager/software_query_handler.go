@@ -1,6 +1,6 @@
 // Copyright (c)  2023. Huawei Technologies Co., Ltd.  All rights reserved.
 
-// Package edgemsgmanager to manage node msg
+// Package edgemsgmanager query the version of the edge downloaded software
 package edgemsgmanager
 
 import (

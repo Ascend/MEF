@@ -27,8 +27,8 @@ type DownloadInfo struct {
 	Password *Password `json:"password"`
 }
 
-// UpdateInfoReq update software
-type UpdateInfoReq struct {
+// UpgradeSoftwareReq update software
+type UpgradeSoftwareReq struct {
 	SerialNumbers []string `json:"serialNumbers"`
 	SoftwareName  string   `json:"softwareName"`
 }

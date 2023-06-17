@@ -4,6 +4,7 @@
 package edgemsgmanager
 
 import (
+	"errors"
 	"testing"
 
 	"huawei.com/mindx/common/hwlog"
@@ -11,6 +12,8 @@ import (
 	"edge-manager/pkg/types"
 	"huawei.com/mindxedge/base/common"
 )
+
+var testErr = errors.New("test error")
 
 func setup() {
 	var err error

@@ -1,6 +1,6 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package edgemsgmanager handler
+// Package edgemsgmanager common func
 package edgemsgmanager
 
 import (
@@ -11,9 +11,9 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
-	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/types"
+	"huawei.com/mindxedge/base/common"
 )
 
 func sendMessageToEdge(msg *model.Message, content string) error {
@@ -40,7 +40,6 @@ func sendRespToEdge(msg *model.Message, content string) error {
 	if err != nil {
 		return err
 	}
-
 	respMsg.SetNodeId(msg.GetNodeId())
 	respMsg.FillContent(content)
 	respMsg.SetRouter(common.NodeMsgManagerName, common.CloudHubName, common.OptResp, msg.GetResource())
@@ -61,18 +60,18 @@ func getNodeSoftwareInfo(serialNumber string) ([]types.SoftwareInfo, error) {
 	}
 	resp := common.SendSyncMessageByRestful(req, &router, common.ResponseTimeout)
 	if resp.Status != common.Success {
-		hwlog.RunLog.Errorf("get node info failed:%s", resp.Msg)
+		hwlog.RunLog.Errorf("get node info failed: %s", resp.Msg)
 		return nil, errors.New(resp.Msg)
 	}
 
 	data, err := json.Marshal(resp.Data)
 	if err != nil {
-		hwlog.RunLog.Errorf("marshal internal response error %v", err)
+		hwlog.RunLog.Errorf("marshal internal response error: %v", err)
 		return nil, errors.New("marshal internal response error")
 	}
 
 	if err = json.Unmarshal(data, &nodeSoftwareInfo); err != nil {
-		hwlog.RunLog.Errorf("unmarshal internal response error %v", err)
+		hwlog.RunLog.Errorf("unmarshal internal response error: %v", err)
 		return nil, errors.New("unmarshal internal response error")
 	}
 

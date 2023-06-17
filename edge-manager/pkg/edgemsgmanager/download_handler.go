@@ -1,6 +1,6 @@
 // Copyright (c)  2023. Huawei Technologies Co., Ltd.  All rights reserved.
 
-// Package edgemsgmanager to manage node msg
+// Package edgemsgmanager deal edge software download info and send to edge
 package edgemsgmanager
 
 import (
@@ -9,12 +9,12 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
-	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/types"
+	"huawei.com/mindxedge/base/common"
 )
 
-// downloadSoftware [method] down edge software
+// downloadSoftware [method] download software to edge
 func downloadSoftware(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start deal edge software download info")
 	message, ok := input.(*model.Message)
