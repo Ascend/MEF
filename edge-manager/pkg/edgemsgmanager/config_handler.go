@@ -1,6 +1,6 @@
 // Copyright (c) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package edgemsgmanager config handler
+// Package edgemsgmanager get cloud core token and ca and send to edge
 package edgemsgmanager
 
 import (
@@ -11,9 +11,9 @@ import (
 	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509/certutils"
-	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/kubeclient"
+	"huawei.com/mindxedge/base/common"
 )
 
 const maxTokenLen = 1024
@@ -45,7 +45,7 @@ func GetEdgeConfigInfo(input interface{}) common.RespMsg {
 	}
 
 	if len(token) == 0 || len(token) > maxTokenLen {
-		hwlog.RunLog.Errorf("token len:%d invalid", len(token))
+		hwlog.RunLog.Errorf("token len: %d invalid", len(token))
 		return common.RespMsg{Status: common.ErrorGetConfigData, Msg: "token len invalid", Data: nil}
 	}
 	tokenResp := TokenResp{
@@ -74,7 +74,7 @@ func getToken() ([]byte, error) {
 	}
 
 	if len(token) == 0 || len(token) > maxTokenLen {
-		return nil, fmt.Errorf("token len:%d invalid", len(token))
+		return nil, fmt.Errorf("token len: %d is invalid", len(token))
 	}
 
 	return token, nil
@@ -89,7 +89,7 @@ func getCloudCoreCa() ([]byte, error) {
 	return certutils.PemWrapCert(data), nil
 }
 
-// GetConfigInfo get config info
+// GetConfigInfo get cloud core token and ca and send to edge
 func GetConfigInfo(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("receive msg to get config info")
 	message, ok := input.(*model.Message)
@@ -111,13 +111,13 @@ func GetConfigInfo(input interface{}) common.RespMsg {
 
 	var dealer msgDealer
 	if dealer, ok = dealers[cfgType]; !ok {
-		hwlog.RunLog.Errorf("config type not support")
+		hwlog.RunLog.Error("config type not support")
 		return common.RespMsg{Status: common.ErrorGetConfigData, Msg: "config type not support", Data: nil}
 	}
 
 	data, err := dealer.deal()
 	if err != nil {
-		hwlog.RunLog.Errorf("get config data failed:%v", err)
+		hwlog.RunLog.Errorf("get config data failed: %v", err)
 		return common.RespMsg{Status: common.ErrorGetConfigData, Msg: "get config data failed", Data: nil}
 	}
 

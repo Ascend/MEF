@@ -1,6 +1,6 @@
 // Copyright (c)  2023. Huawei Technologies Co., Ltd.  All rights reserved.
 
-// Package edgemsgmanager to manage node msg
+// Package edgemsgmanager effect edge software after upgrading
 package edgemsgmanager
 
 import (
@@ -9,9 +9,9 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
-	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/types"
+	"huawei.com/mindxedge/base/common"
 )
 
 func upgradeEdgeSoftware(input interface{}) common.RespMsg {
@@ -22,7 +22,7 @@ func upgradeEdgeSoftware(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "get message failed", Data: nil}
 	}
 
-	var req UpdateInfoReq
+	var req UpgradeSoftwareReq
 	var err error
 	if err = common.ParamConvert(message.GetContent(), &req); err != nil {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}

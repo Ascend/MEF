@@ -1,6 +1,6 @@
 // Copyright (c)  2023. Huawei Technologies Co., Ltd.  All rights reserved.
 
-// Package edgemsgmanager ut test
+// Package edgemsgmanager test for dealing edge software download info and send to edge
 package edgemsgmanager
 
 import (
@@ -17,7 +17,32 @@ import (
 	"huawei.com/mindxedge/base/common"
 )
 
-func createBaseData() SoftwareDownloadInfo {
+func TestDownloadInfo(t *testing.T) {
+	var p1 = gomonkey.ApplyFunc(modulemgr.SendSyncMessage,
+		func(m *model.Message, duration time.Duration) (*model.Message, error) {
+			rspMsg, err := model.NewMessage()
+			if err != nil {
+				hwlog.RunLog.Error("create message failed")
+			}
+			rspMsg.FillContent(common.OK)
+			return rspMsg, nil
+		})
+	defer p1.Reset()
+
+	convey.Convey("test download software should be success", t, testDownloadSfw)
+	convey.Convey("test download software should be failed, invalid input", t, testDownloadSfwErrInput)
+	convey.Convey("test download software should be failed, invalid param", t, testDownloadSfwErrParam)
+	convey.Convey("test download software should be failed, invalid sn", t, testDownloadSfwErrSn)
+	convey.Convey("test download software should be failed, invalid softWareName", t, testDownloadSfwErrSfwName)
+	convey.Convey("test download software should be failed, invalid Package", t, testDownloadSfwErrPkg)
+	convey.Convey("test download software should be failed, invalid SignFile", t, testDownloadSfwErrSignFile)
+	convey.Convey("test download software should be failed, invalid UserName", t, testDownloadSfwErrUserName)
+	convey.Convey("test download software should be failed, invalid Password", t, testDownloadSfwErrPwd)
+	convey.Convey("test download software should be failed, new msg error", t, testDownloadErrNewMsg)
+	convey.Convey("test download software should be failed, send sync msg error", t, testDownloadErrSendSyncMsg)
+}
+
+func createDownloadSfwBaseData() SoftwareDownloadInfo {
 	baseContent := `{
     "serialNumbers": ["2102312NSF10K8000130"],
     "softWareName": "MEFEdge",
@@ -34,60 +59,60 @@ func createBaseData() SoftwareDownloadInfo {
 	var req SoftwareDownloadInfo
 	err := json.Unmarshal([]byte(baseContent), &req)
 	if err != nil {
-		hwlog.RunLog.Errorf("unmarshal failed")
+		hwlog.RunLog.Errorf("unmarshal failed, error: %v", err)
 		return req
 	}
 	return req
 }
-func testDownloadInfo() {
-	msg, err := model.NewMessage()
-	if err != nil {
-		hwlog.RunLog.Errorf("create message failed")
-	}
 
-	req := createBaseData()
+func createDownloadSfwRightMsg() *model.Message {
+	req := createDownloadSfwBaseData()
 	content, err := json.Marshal(req)
 	if err != nil {
-		hwlog.RunLog.Errorf("marshal failed")
+		hwlog.RunLog.Errorf("marshal failed, error: %v", err)
 	}
 
+	msg, err := model.NewMessage()
+	if err != nil {
+		hwlog.RunLog.Errorf("create message failed, error: %v", err)
+	}
 	msg.FillContent(string(content))
+	return msg
+}
 
-	var p2 = gomonkey.ApplyFunc(modulemgr.SendSyncMessage, func(m *model.Message,
-		duration time.Duration) (*model.Message, error) {
-		rspMsg, err := model.NewMessage()
-		if err != nil {
-			hwlog.RunLog.Error("create message failed")
-		}
-		rspMsg.FillContent(common.OK)
-		return rspMsg, nil
-	})
-	defer p2.Reset()
+func testDownloadSfw() {
+	msg := createDownloadSfwRightMsg()
+	if msg == nil {
+		return
+	}
 
 	resp := downloadSoftware(msg)
-
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
-func testDownloadInfoSerialNumbersInvalid() {
+func testDownloadSfwErrInput() {
+	req := createDownloadSfwBaseData()
+	resp := downloadSoftware(req)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
+}
+
+func testDownloadSfwErrParam() {
 	msg, err := model.NewMessage()
 	if err != nil {
-		hwlog.RunLog.Errorf("create message failed")
+		hwlog.RunLog.Errorf("create message failed, error: %v", err)
+	}
+	msg.FillContent(common.OK)
+	resp := downloadSoftware(msg)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
+}
+
+func testDownloadSfwErrSn() {
+	msg, err := model.NewMessage()
+	if err != nil {
+		hwlog.RunLog.Errorf("create message failed, error: %v", err)
 	}
 
-	var p2 = gomonkey.ApplyFunc(modulemgr.SendSyncMessage, func(m *model.Message,
-		duration time.Duration) (*model.Message, error) {
-		rspMsg, err := model.NewMessage()
-		if err != nil {
-			hwlog.RunLog.Error("create message failed")
-		}
-		rspMsg.FillContent(common.OK)
-		return rspMsg, nil
-	})
-	defer p2.Reset()
-
-	req := createBaseData()
-
+	req := createDownloadSfwBaseData()
 	dataCases := [][]string{
 		{},
 		{"_2102312NSF10K8000130"},
@@ -102,35 +127,22 @@ func testDownloadInfoSerialNumbersInvalid() {
 		req.SerialNumbers = dataCase
 		content, err := json.Marshal(req)
 		if err != nil {
-			hwlog.RunLog.Errorf("marshal failed")
+			hwlog.RunLog.Errorf("marshal failed, error: %v", err)
 		}
 		msg.FillContent(string(content))
 
 		resp := downloadSoftware(msg)
-
 		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
 	}
-
 }
 
-func testDownloadInfoSoftWareNameInvalid() {
+func testDownloadSfwErrSfwName() {
 	msg, err := model.NewMessage()
 	if err != nil {
-		hwlog.RunLog.Errorf("create message failed")
+		hwlog.RunLog.Errorf("create message failed, error: %v", err)
 	}
 
-	var p2 = gomonkey.ApplyFunc(modulemgr.SendSyncMessage, func(m *model.Message,
-		duration time.Duration) (*model.Message, error) {
-		rspMsg, err := model.NewMessage()
-		if err != nil {
-			hwlog.RunLog.Error("create message failed")
-		}
-		rspMsg.FillContent(common.OK)
-		return rspMsg, nil
-	})
-	defer p2.Reset()
-	req := createBaseData()
-
+	req := createDownloadSfwBaseData()
 	dataCases := []string{
 		"",
 		"AtlasEdge",
@@ -139,36 +151,22 @@ func testDownloadInfoSoftWareNameInvalid() {
 		req.SoftwareName = dataCase
 		content, err := json.Marshal(req)
 		if err != nil {
-			hwlog.RunLog.Errorf("marshal failed")
+			hwlog.RunLog.Errorf("marshal failed, error: %v", err)
 		}
 		msg.FillContent(string(content))
 
 		resp := downloadSoftware(msg)
-
 		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
 	}
-
 }
 
-func testDownloadInfoPackageInvalid() {
+func testDownloadSfwErrPkg() {
 	msg, err := model.NewMessage()
 	if err != nil {
-		hwlog.RunLog.Errorf("create message failed")
+		hwlog.RunLog.Errorf("create message failed, error: %v", err)
 	}
 
-	var p2 = gomonkey.ApplyFunc(modulemgr.SendSyncMessage, func(m *model.Message,
-		duration time.Duration) (*model.Message, error) {
-		rspMsg, err := model.NewMessage()
-		if err != nil {
-			hwlog.RunLog.Error("create message failed")
-		}
-		rspMsg.FillContent(common.OK)
-		return rspMsg, nil
-	})
-	defer p2.Reset()
-
-	req := createBaseData()
-
+	req := createDownloadSfwBaseData()
 	dataCases := []string{
 		"",
 		" ",
@@ -187,34 +185,22 @@ func testDownloadInfoPackageInvalid() {
 		req.DownloadInfo.Package = dataCase
 		content, err := json.Marshal(req)
 		if err != nil {
-			hwlog.RunLog.Errorf("marshal failed")
+			hwlog.RunLog.Errorf("marshal failed, error: %v", err)
 		}
 		msg.FillContent(string(content))
 
 		resp := downloadSoftware(msg)
-
 		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
 	}
 }
 
-func testDownloadInfoSignFileInvalid() {
+func testDownloadSfwErrSignFile() {
 	msg, err := model.NewMessage()
 	if err != nil {
-		hwlog.RunLog.Errorf("create message failed")
+		hwlog.RunLog.Errorf("create message failed, error: %v", err)
 	}
 
-	var p2 = gomonkey.ApplyFunc(modulemgr.SendSyncMessage, func(m *model.Message,
-		duration time.Duration) (*model.Message, error) {
-		rspMsg, err := model.NewMessage()
-		if err != nil {
-			hwlog.RunLog.Error("create message failed")
-		}
-		rspMsg.FillContent(common.OK)
-		return rspMsg, nil
-	})
-	defer p2.Reset()
-	req := createBaseData()
-
+	req := createDownloadSfwBaseData()
 	failDataCases := []string{
 		"GET ",
 		"https://Ascend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
@@ -231,34 +217,22 @@ func testDownloadInfoSignFileInvalid() {
 		req.DownloadInfo.SignFile = dataCase
 		content, err := json.Marshal(req)
 		if err != nil {
-			hwlog.RunLog.Errorf("marshal failed")
+			hwlog.RunLog.Errorf("marshal failed, error: %v", err)
 		}
 		msg.FillContent(string(content))
 
 		resp := downloadSoftware(msg)
-
 		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
 	}
 }
 
-func testDownloadInfoUserNameInvalid() {
+func testDownloadSfwErrUserName() {
 	msg, err := model.NewMessage()
 	if err != nil {
-		hwlog.RunLog.Errorf("create message failed")
+		hwlog.RunLog.Errorf("create message failed, error: %v", err)
 	}
 
-	var p2 = gomonkey.ApplyFunc(modulemgr.SendSyncMessage, func(m *model.Message,
-		duration time.Duration) (*model.Message, error) {
-		rspMsg, err := model.NewMessage()
-		if err != nil {
-			hwlog.RunLog.Error("create message failed")
-		}
-		rspMsg.FillContent(common.OK)
-		return rspMsg, nil
-	})
-	defer p2.Reset()
-
-	req := createBaseData()
+	req := createDownloadSfwBaseData()
 	failDataCases := []string{
 		"",
 		"_FileTransferAccount",
@@ -269,58 +243,72 @@ func testDownloadInfoUserNameInvalid() {
 		req.DownloadInfo.UserName = dataCase
 		content, err := json.Marshal(req)
 		if err != nil {
-			hwlog.RunLog.Errorf("marshal failed")
+			hwlog.RunLog.Errorf("marshal failed, error: %v", err)
 		}
 		msg.FillContent(string(content))
 
 		resp := downloadSoftware(msg)
-
 		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
 	}
 }
 
-func testDownloadInfoPasswdInvalid() {
+func testDownloadSfwErrPwd() {
 	msg, err := model.NewMessage()
 	if err != nil {
-		hwlog.RunLog.Errorf("create message failed")
+		hwlog.RunLog.Errorf("create message failed, error: %v", err)
 	}
 
-	var p2 = gomonkey.ApplyFunc(modulemgr.SendSyncMessage, func(m *model.Message,
-		duration time.Duration) (*model.Message, error) {
-		rspMsg, err := model.NewMessage()
-		if err != nil {
-			hwlog.RunLog.Error("create message failed")
-		}
-		rspMsg.FillContent(common.OK)
-		return rspMsg, nil
-	})
-	defer p2.Reset()
+	var p1 = gomonkey.ApplyFunc(modulemgr.SendSyncMessage,
+		func(m *model.Message, duration time.Duration) (*model.Message, error) {
+			rspMsg, err := model.NewMessage()
+			if err != nil {
+				hwlog.RunLog.Errorf("create message failed, error: %v", err)
+			}
+			rspMsg.FillContent(common.OK)
+			return rspMsg, nil
+		})
+	defer p1.Reset()
 
-	req := createBaseData()
-
+	req := createDownloadSfwBaseData()
 	req.DownloadInfo.Password = nil
 	content, err := json.Marshal(req)
 	if err != nil {
-		hwlog.RunLog.Errorf("marshal failed")
+		hwlog.RunLog.Errorf("marshal failed, error: %v", err)
 	}
 	msg.FillContent(string(content))
 
 	resp := downloadSoftware(msg)
-
 	convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
-
 }
 
-func TestDownloadInfo(t *testing.T) {
-	convey.Convey("test download info", t, func() {
-		convey.Convey("test download info serialNumbers", func() {
-			convey.Convey("create configmap should success", testDownloadInfo)
-			convey.Convey("test invalid serialNumbers", testDownloadInfoSerialNumbersInvalid)
-			convey.Convey("test invalid softWareName", testDownloadInfoSoftWareNameInvalid)
-			convey.Convey("test invalid Package", testDownloadInfoPackageInvalid)
-			convey.Convey("test invalid SignFile", testDownloadInfoSignFileInvalid)
-			convey.Convey("test invalid UserName", testDownloadInfoUserNameInvalid)
-			convey.Convey("test invalid Password", testDownloadInfoPasswdInvalid)
+func testDownloadErrNewMsg() {
+	msg := createDownloadSfwRightMsg()
+	if msg == nil {
+		return
+	}
+
+	var p1 = gomonkey.ApplyFunc(model.NewMessage,
+		func() (*model.Message, error) {
+			return nil, testErr
 		})
-	})
+	defer p1.Reset()
+
+	resp := downloadSoftware(msg)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorNewMsg)
+}
+
+func testDownloadErrSendSyncMsg() {
+	msg := createDownloadSfwRightMsg()
+	if msg == nil {
+		return
+	}
+
+	var p1 = gomonkey.ApplyFunc(modulemgr.SendSyncMessage,
+		func(m *model.Message, duration time.Duration) (*model.Message, error) {
+			return nil, testErr
+		})
+	defer p1.Reset()
+
+	resp := downloadSoftware(msg)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorSendMsgToNode)
 }

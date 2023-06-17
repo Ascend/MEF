@@ -1,0 +1,127 @@
+// Copyright (c)  2023. Huawei Technologies Co., Ltd.  All rights reserved.
+
+// Package edgemsgmanager test for querying the version of the edge downloaded software
+package edgemsgmanager
+
+import (
+	"encoding/json"
+	"testing"
+	"time"
+
+	"github.com/agiledragon/gomonkey/v2"
+	"github.com/smartystreets/goconvey/convey"
+	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr/model"
+
+	"edge-manager/pkg/types"
+	"huawei.com/mindxedge/base/common"
+)
+
+func TestQuerySoftwareInfo(t *testing.T) {
+	var p1 = gomonkey.ApplyFunc(common.SendSyncMessageByRestful,
+		func(input interface{}, router *common.Router, timeout time.Duration) common.RespMsg {
+			var rsp common.RespMsg
+			rsp.Status = common.Success
+			var softwareInfo types.InnerSoftwareInfoResp
+			softwareInfo.SoftwareInfo = append(softwareInfo.SoftwareInfo, types.SoftwareInfo{
+				InactiveVersion: "v1.12",
+				Name:            "edgecore",
+				Version:         "v1.12"})
+			rsp.Data = softwareInfo
+			return rsp
+		})
+	defer p1.Reset()
+
+	convey.Convey("test query software info should be success", t, testSoftwareQueryValid)
+	convey.Convey("test query software info should be failed, invalid input", t, testSoftwareQueryErrInput)
+	convey.Convey("test query software info should be failed, invalid content", t, testSoftwareQueryErrContent)
+	convey.Convey("test query software info should be failed, send sync msg error", t, testSfwQueryErrSendSyncMsg)
+	convey.Convey("test query software info should be failed, marshal error", t, testSoftwareQueryErrMarshal)
+	convey.Convey("test query software info should be failed, unmarshal error", t, testSoftwareQueryErrUnmarshal)
+}
+
+func testSoftwareQueryValid() {
+	msg, err := model.NewMessage()
+	if err != nil {
+		hwlog.RunLog.Errorf("create message failed, error: %v", err)
+	}
+
+	dataCases := []string{"2102312NSF10K8000130"}
+	for _, dataCase := range dataCases {
+		msg.FillContent(dataCase)
+		rsp := queryEdgeSoftwareVersion(msg)
+		convey.So(rsp.Status, convey.ShouldEqual, common.Success)
+		softwareInfo, ok := rsp.Data.([]types.SoftwareInfo)
+		convey.So(ok, convey.ShouldEqual, true)
+		convey.So(softwareInfo[0].Name, convey.ShouldEqual, "edgecore")
+		convey.So(softwareInfo[0].Version, convey.ShouldEqual, "v1.12")
+		convey.So(softwareInfo[0].InactiveVersion, convey.ShouldEqual, "v1.12")
+	}
+}
+
+func testSoftwareQueryErrInput() {
+	req := createDownloadSfwBaseData()
+	resp := queryEdgeSoftwareVersion(req)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
+}
+
+func testSoftwareQueryErrContent() {
+	msg, err := model.NewMessage()
+	if err != nil {
+		hwlog.RunLog.Errorf("create message failed, error: %v", err)
+	}
+	msg.FillContent([]byte{})
+	resp := queryEdgeSoftwareVersion(msg)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
+}
+
+func testSfwQueryErrSendSyncMsg() {
+	msg, err := model.NewMessage()
+	if err != nil {
+		hwlog.RunLog.Errorf("create message failed, error: %v", err)
+	}
+	msg.FillContent("2102312NSF10K8000130")
+
+	var p1 = gomonkey.ApplyFunc(common.SendSyncMessageByRestful,
+		func(input interface{}, router *common.Router, timeout time.Duration) common.RespMsg {
+			var rsp common.RespMsg
+			rsp.Status = common.FAIL
+			return rsp
+		})
+	defer p1.Reset()
+
+	rsp := queryEdgeSoftwareVersion(msg)
+	convey.So(rsp.Status, convey.ShouldEqual, common.ErrorGetNodeSoftwareVersion)
+}
+
+func testSoftwareQueryErrMarshal() {
+	msg, err := model.NewMessage()
+	if err != nil {
+		hwlog.RunLog.Errorf("create message failed, error: %v", err)
+	}
+	msg.FillContent("2102312NSF10K8000130")
+
+	var p2 = gomonkey.ApplyFunc(json.Marshal,
+		func(v interface{}) ([]byte, error) {
+			return nil, testErr
+		})
+	defer p2.Reset()
+	rsp := queryEdgeSoftwareVersion(msg)
+	convey.So(rsp.Status, convey.ShouldEqual, common.ErrorGetNodeSoftwareVersion)
+}
+
+func testSoftwareQueryErrUnmarshal() {
+	msg, err := model.NewMessage()
+	if err != nil {
+		hwlog.RunLog.Errorf("create message failed, error: %v", err)
+	}
+	msg.FillContent("2102312NSF10K8000130")
+
+	var p2 = gomonkey.ApplyFunc(json.Unmarshal,
+		func(data []byte, v interface{}) error {
+			return testErr
+		})
+	defer p2.Reset()
+	rsp := queryEdgeSoftwareVersion(msg)
+	convey.So(rsp.Status, convey.ShouldEqual, common.ErrorGetNodeSoftwareVersion)
+}
