@@ -11,10 +11,9 @@ import (
 	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/x509/certutils"
 
+	"edge-manager/pkg/util"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/httpsmgr"
-
-	"edge-manager/pkg/util"
 )
 
 type certHandler struct{}
