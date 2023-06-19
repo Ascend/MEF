@@ -28,7 +28,7 @@ func queryRootCa(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("query cert info failed: para type not valid")
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "query cert info request convert error", Data: nil}
 	}
-	if !certchecker.CheckCertName(certName) {
+	if err := certchecker.CheckCertName(certName); err != nil {
 		hwlog.RunLog.Error("the cert name not support")
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "Query root ca failed", Data: nil}
 	}
@@ -76,7 +76,8 @@ func importRootCa(input interface{}) common.RespMsg {
 	}
 	if checkResult := certchecker.NewImportCertChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("cert import para check failed: %s", checkResult.Reason)
-		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "cert import para check failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorParamInvalid,
+			Msg: fmt.Sprintf("cert import para check failed: %s", checkResult.Reason)}
 	}
 	// base64 decode root certificate content
 	caBase64, err := base64.StdEncoding.DecodeString(req.Cert)
@@ -108,7 +109,8 @@ func deleteRootCa(input interface{}) common.RespMsg {
 	}
 	if checkResult := certchecker.NewDeleteCertChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("cert delete para check failed: %s", checkResult.Reason)
-		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "cert delete para check failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorParamInvalid,
+			Msg: fmt.Sprintf("cert delete para check failed: %s", checkResult.Reason)}
 	}
 	// delete root certificate content
 	if err := removeCaFile(req.Type); err != nil {
@@ -178,24 +180,27 @@ func importCrl(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start to import the crl")
 	var req importCrlReq
 	if err := common.ParamConvert(input, &req); err != nil {
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error()}
 	}
 	if checkResult := certchecker.NewImportCrlChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("import crl para check failed: %s", checkResult.Reason)
-		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "import crl para check failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorParamInvalid,
+			Msg: fmt.Sprintf("import crl para check failed, %s", checkResult.Reason)}
 	}
 	// base64 decode crl content
 	bytes, err := base64.StdEncoding.DecodeString(req.Crl)
 	if err != nil {
-		hwlog.RunLog.Errorf("base64 decode ca content failed, error:%v", err)
-		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "base64 decode ca content failed", Data: nil}
+		hwlog.RunLog.Errorf("base64 decode ca content failed, error: %v", err)
+		return common.RespMsg{Status: common.ErrorParamInvalid,
+			Msg: fmt.Sprintf("base64 decode ca content failed, error: %v", err)}
 	}
 
 	if err := saveCrlContent(common.NorthernCertName, bytes); err != nil {
-		return common.RespMsg{Status: common.ErrorSaveCrl, Msg: "save ca content to file failed", Data: nil}
+		return common.RespMsg{Status: common.ErrorSaveCrl,
+			Msg: fmt.Sprintf("save ca content to file failed, error: %v", err)}
 	}
 
-	return common.RespMsg{Status: common.Success, Msg: "import crl file success", Data: nil}
+	return common.RespMsg{Status: common.Success, Msg: "import crl file success"}
 }
 
 // saveCaContent save ca content to File

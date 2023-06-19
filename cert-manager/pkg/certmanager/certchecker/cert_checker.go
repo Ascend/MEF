@@ -5,6 +5,7 @@ package certchecker
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"regexp"
 	"sync"
@@ -92,46 +93,46 @@ func (icc *issueCertChecker) Check(data interface{}) checker.CheckResult {
 	return checker.NewSuccessResult()
 }
 
-func csrChecker(csr string) bool {
+func csrChecker(csr string) error {
 	csrLen := len(csr)
 	if csrLen < minCsrLen || csrLen > maxCsrLen {
 		hwlog.RunLog.Errorf("csr checker check failed: the length is not in range [%d, %d]", minCsrLen, maxCsrLen)
-		return false
+		return fmt.Errorf("the length is out of range [%d, %d]", minCsrLen, maxCsrLen)
 	}
 	pattern := regexp.MustCompile(csrReg)
 	if match := pattern.MatchString(csr); !match {
 		hwlog.RunLog.Error("csr checker check failed: not meet regex")
-		return false
+		return errors.New("csr is not meet regex required")
 	}
 	if _, err := base64.StdEncoding.DecodeString(csr); err != nil {
 		hwlog.RunLog.Errorf("base64 decode csr failed, error:%v", err)
-		return false
+		return err
 	}
-	return true
+	return nil
 }
 
-func certContentChecker(certContent string) bool {
+func certContentChecker(certContent string) error {
 	lock.Lock()
 	defer lock.Unlock()
 	// base64 decode root certificate content
 	caBase64, err := base64.StdEncoding.DecodeString(certContent)
 	if err != nil {
 		hwlog.RunLog.Errorf("base64 decode ca content failed, error:%v", err)
-		return false
+		return err
 	}
 
 	caMgr, err := x509.NewCaChainMgr(caBase64)
 	if err != nil {
 		hwlog.RunLog.Errorf("new ca chain mgr failed: %s", err.Error())
-		return false
+		return err
 	}
 
 	if err = caMgr.CheckCertChain(); err != nil {
 		hwlog.RunLog.Errorf("check importing certs failed: %s", err.Error())
-		return false
+		return err
 	}
 
-	return true
+	return nil
 }
 
 var onlineImportMap = map[string]bool{
@@ -153,26 +154,32 @@ var certInfoNames = map[string]struct{}{
 }
 
 // CheckCertName check cert name if valid
-func CheckCertName(certName string) bool {
+func CheckCertName(certName string) error {
 	_, ok := onlineImportMap[certName]
-	return ok
-}
-
-func checkIfCanImport(certName string) bool {
-	v, ok := onlineImportMap[certName]
 	if !ok {
-		return false
+		return errors.New("target cert is invalid")
 	}
-	return v
+	return nil
 }
 
-func checkIfCanDelete(certName string) bool {
+func checkIfCanImport(certName string) error {
+	allowed, ok := onlineImportMap[certName]
+	if !ok {
+		return errors.New("target cert is invalid")
+	}
+	if !allowed {
+		return errors.New("target cert is no allowed to be imported online")
+	}
+	return nil
+}
+
+func checkIfCanDelete(certName string) error {
 	for _, name := range certDeleteNames {
 		if name == certName {
-			return true
+			return nil
 		}
 	}
-	return false
+	return errors.New("target cert is invalid to be deleted")
 }
 
 // CheckIfCanExport check cert name if can export

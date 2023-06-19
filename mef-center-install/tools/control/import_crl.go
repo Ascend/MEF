@@ -23,13 +23,15 @@ type importCrlController struct {
 
 const (
 	importCrlPathFlag = "crl_path"
-	importCrlNameFlag = "crl_name"
+	importPeerFlag    = "peer"
 )
 
 func (icc *importCrlController) bindFlag() bool {
 	flag.StringVar(&(icc.crlPath), importCrlPathFlag, "", "path that saves crl to import")
-	flag.StringVar(&(icc.crlName), importCrlNameFlag, common.NorthernCertName, "name of crl to import")
+	flag.StringVar(&(icc.crlName), importPeerFlag, "",
+		"name of crl to import, currently only supports north")
 	utils.MarkFlagRequired(importCrlPathFlag)
+	utils.MarkFlagRequired(importPeerFlag)
 	return true
 }
 
@@ -64,7 +66,7 @@ func (icc *importCrlController) doControl() error {
 func (icc *importCrlController) printExecutingLog(ip, user string) {
 	hwlog.RunLog.Info("-------------------start to import crl-------------------")
 	hwlog.OpLog.Infof("%s: %s, start to import crl", ip, user)
-	fmt.Println(" start start to import crl")
+	fmt.Println("start to import crl")
 }
 
 func (icc *importCrlController) printSuccessLog(user, ip string) {

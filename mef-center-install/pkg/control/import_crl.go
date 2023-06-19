@@ -51,7 +51,7 @@ func (icf *ImportCrlFlow) DoImportCrl() error {
 }
 
 func (icf *ImportCrlFlow) checkParam() error {
-	const maxCrlSizeInMb = 10
+	const maxCrlSizeInMb = 1
 
 	if !utils.IsExist(icf.caPath) {
 		hwlog.RunLog.Error("import crl check failed: ca is not be imported")
