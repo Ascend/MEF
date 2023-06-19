@@ -73,7 +73,7 @@ func newNodeInfoChecker() *checker.AndChecker {
 		nodeNameChecker(fieldNodeName),
 		uniqueNameChecker(fieldUniqueName),
 		nodeSerialNumberChecker(fieldSerialNumber),
-		checker.GetIpChecker(fieldIP, true))
+		checker.GetIpV4Checker(fieldIP, true))
 }
 
 func newDeleteNodeFromGroupChecker() *checker.AndChecker {
