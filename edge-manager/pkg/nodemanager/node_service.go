@@ -603,3 +603,44 @@ func updateNodeSoftwareInfo(input interface{}) common.RespMsg {
 
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
+
+func deleteUnManagedNode(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start delete unmanaged node")
+	var req BatchDeleteNodeReq
+	if err := common.ParamConvert(input, &req); err != nil {
+		hwlog.RunLog.Errorf("failed to delete unmanaged node, error: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error()}
+	}
+	if checkResult := newBatchDeleteNodeChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("failed to delete unmanaged node, error: %v", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
+	}
+	var res types.BatchResp
+	failedMap := make(map[string]string)
+	res.FailedInfos = failedMap
+	for _, nodeID := range req.NodeIDs {
+		if err := deleteSingleUnManagedNode(nodeID); err != nil {
+			errInfo := fmt.Sprintf("failed to delete unmanaged node, error: err=%v", err)
+			hwlog.RunLog.Error(errInfo)
+			failedMap[strconv.Itoa(int(nodeID))] = errInfo
+			continue
+		}
+		res.SuccessIDs = append(res.SuccessIDs, nodeID)
+	}
+	if len(res.FailedInfos) != 0 {
+		return common.RespMsg{Status: common.ErrorDeleteNode, Data: res}
+	}
+	hwlog.RunLog.Info("delete unmanaged node success")
+	return common.RespMsg{Status: common.Success}
+}
+
+func deleteSingleUnManagedNode(nodeID uint64) error {
+	nodeInfo, err := NodeServiceInstance().getNodeByID(nodeID)
+	if err != nil {
+		return errors.New("db query failed")
+	}
+	if err = NodeServiceInstance().deleteUnmanagedNode(nodeInfo); err != nil {
+		return err
+	}
+	return nil
+}

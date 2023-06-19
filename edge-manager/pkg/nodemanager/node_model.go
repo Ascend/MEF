@@ -61,6 +61,7 @@ type NodeService interface {
 	listNodes() (*[]NodeInfo, error)
 	deleteAllUnManagedNodes() error
 	deleteSingleNodeRelation(uint64, uint64) error
+	deleteUnmanagedNode(*NodeInfo) error
 }
 
 // GetTableCount get table count
@@ -275,6 +276,22 @@ func (n *NodeServiceImpl) deleteNode(nodeInfo *NodeInfo) error {
 			Delete(&NodeRelation{}).Error; err != nil {
 			return fmt.Errorf("db delete node(%d) relation error", nodeInfo.ID)
 		}
+		if err := tx.Model(&NodeInfo{}).Where("node_name = ?", nodeInfo.NodeName).
+			Delete(nodeInfo).Error; err != nil {
+			return fmt.Errorf("db delete node(%d) error", nodeInfo.ID)
+		}
+		if err := n.kubeClient.DeleteNode(nodeInfo.UniqueName); err != nil && isNodeNotFound(err) {
+			hwlog.RunLog.Warnf("k8s dont have this node(%s), err=%v", nodeInfo.UniqueName, err)
+		} else if err != nil {
+			return fmt.Errorf("k8s delete node(%s) failed", nodeInfo.UniqueName)
+
+		}
+		return nil
+	})
+}
+
+func (n *NodeServiceImpl) deleteUnmanagedNode(nodeInfo *NodeInfo) error {
+	return n.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&NodeInfo{}).Where("node_name = ?", nodeInfo.NodeName).
 			Delete(nodeInfo).Error; err != nil {
 			return fmt.Errorf("db delete node(%d) error", nodeInfo.ID)

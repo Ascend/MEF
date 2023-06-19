@@ -143,6 +143,10 @@ var nodeRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			RelativePath: "/add",
 			Method:       http.MethodPost,
 			Destination:  common.NodeManagerName},
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/batch-delete/unmanaged",
+			Method:       http.MethodPost,
+			Destination:  common.NodeManagerName},
 	},
 }
 

@@ -158,9 +158,6 @@ const (
 	// ErrorLogCollectEdgeParamInvalid parameter error
 	ErrorLogCollectEdgeParamInvalid = "40051002"
 
-	// ErrorExportToken export token failed
-	ErrorExportToken = "40061001"
-
 	// ErrorGetRootCa failed to get root ca by cert name
 	ErrorGetRootCa = "60001001"
 	// ErrorIssueSrvCert failed to issue service certificate
@@ -183,6 +180,8 @@ const (
 	ErrorGetRootCaInfo = "60001010"
 	// ErrorSaveCrl failed to  save crl content
 	ErrorSaveCrl = "60001011"
+	// ErrorExportToken export token failed
+	ErrorExportToken = "60002001"
 )
 
 // ErrorMap error code and error msg map
