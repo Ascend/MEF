@@ -26,7 +26,7 @@ func (evc *ContainerPortChecker) init() {
 		checker.GetRegChecker("Name", nameReg, true),
 		checker.GetStringChoiceChecker("Proto", []string{"TCP", "UDP", "SCTP"}, true),
 		checker.GetIntChecker("ContainerPort", minContainerPort, maxContainerPort, true),
-		checker.GetIpChecker("HostIP", true),
+		checker.GetIpV4Checker("HostIP", true),
 		checker.GetIntChecker("HostPort", minHostPort, maxHostPort, true),
 	)
 }

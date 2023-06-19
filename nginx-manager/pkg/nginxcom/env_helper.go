@@ -99,7 +99,7 @@ func createBoolChoiceChecker() ObjChecker {
 
 func createIpChecker() ObjChecker {
 	return ObjChecker{
-		Checker:  checker.GetAndChecker(checker.GetIpChecker("", true)),
+		Checker:  checker.GetAndChecker(checker.GetIpV4Checker("", true)),
 		DataType: reflect.String,
 	}
 }

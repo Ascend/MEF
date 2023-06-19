@@ -29,7 +29,7 @@ func (cc *configChecker) init() {
 			),
 			checker.GetAndChecker(
 				checker.GetStringChoiceChecker("Domain", []string{""}, true),
-				checker.GetIpChecker("IP", true),
+				checker.GetIpV4Checker("IP", true),
 			),
 		),
 		checker.GetListChecker("Password",
