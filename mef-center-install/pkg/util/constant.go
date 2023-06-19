@@ -169,9 +169,9 @@ const (
 const (
 	UninstallFlag  = "uninstall"
 	UpgradeFlag    = "upgrade"
-	ExchangeCaFlag = "exchange_ca"
+	ExchangeCaFlag = "exchangeca"
 	UpdateKmcFlag  = "updatekmc"
-	ImportCrlFlag  = "import_crl"
+	ImportCrlFlag  = "importcrl"
 
 	StartOperateFlag   = "start"
 	StopOperateFlag    = "stop"

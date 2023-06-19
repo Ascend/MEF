@@ -419,9 +419,9 @@ Commands:
 	restart     -- restart all or a component
 	uninstall   -- uninstall MEF Center
 	upgrade     -- upgrade MEF Center
-	exchange_ca -- exchange root ca with MEF Center
+	exchangeca  -- exchange root ca with MEF Center
 	updatekmc   -- update kmc keys
-	import_crl  -- improt crl from the Northbound ca
+	importcrl   -- improt crl from the Northbound ca
 `)
 }
 

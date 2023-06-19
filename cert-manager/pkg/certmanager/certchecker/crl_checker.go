@@ -4,6 +4,7 @@ package certchecker
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -30,30 +31,30 @@ func NewImportCrlChecker() *importCrlChecker {
 	}
 }
 
-func crlContentChecker(crlContent string) bool {
+func crlContentChecker(crlContent string) error {
 	lock.Lock()
 	defer lock.Unlock()
 
 	bytes, err := base64.StdEncoding.DecodeString(crlContent)
 	if err != nil {
 		hwlog.RunLog.Errorf("base64 decode crl content failed, error: %s", err.Error())
-		return false
+		return err
 	}
 	if len(bytes) == 0 || len(bytes) > maxCertSize {
-		hwlog.RunLog.Error("valid crl file size failed")
-		return false
+		hwlog.RunLog.Errorf("check crl file size failed, [%d] is out of limit [%d] ", len(bytes), maxCertSize)
+		return errors.New("size of crl file is out of limit")
 	}
 
 	mgr, err := x509.NewCrlMgr(bytes)
 	if err != nil {
 		hwlog.RunLog.Errorf("check crl failed, new crl mgr error: %s", err.Error())
-		return false
+		return err
 	}
 	if err = mgr.CheckCrl(filepath.Join(util.RootCaMgrDir, common.NorthernCertName, util.RootCaFileName)); err != nil {
 		hwlog.RunLog.Errorf("check crl content failed, error: %s", err.Error())
-		return false
+		return err
 	}
-	return true
+	return nil
 }
 
 func (icc *importCrlChecker) Check(data interface{}) checker.CheckResult {

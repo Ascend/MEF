@@ -11,7 +11,7 @@ import (
 )
 
 // GetStringChecker [method] for get string checker
-func GetStringChecker(field string, f func(string) bool, required bool) *StringChecker {
+func GetStringChecker(field string, f func(string) error, required bool) *StringChecker {
 	return &StringChecker{
 		filed:    field,
 		f:        f,
@@ -23,7 +23,7 @@ func GetStringChecker(field string, f func(string) bool, required bool) *StringC
 // StringChecker [struct] for string checker
 type StringChecker struct {
 	filed    string
-	f        func(string) bool
+	f        func(string) error
 	required bool
 	valuer   valuer.StringValuer
 }
@@ -37,9 +37,8 @@ func (sc *StringChecker) Check(data interface{}) checker.CheckResult {
 		}
 		return checker.NewFailedResult(fmt.Sprintf("string checker get field [%s] value failed:%v", sc.filed, err))
 	}
-	if !sc.f(targetString) {
-		return checker.NewFailedResult(fmt.Sprintf("string checker Check [%s] failed: the value[%s]",
-			sc.filed, targetString))
+	if err := sc.f(targetString); err != nil {
+		return checker.NewFailedResult(fmt.Sprintf("string checker Check [%s] failed: %v", sc.filed, err))
 	}
 	return checker.NewSuccessResult()
 
