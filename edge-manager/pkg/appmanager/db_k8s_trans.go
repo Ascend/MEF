@@ -38,6 +38,7 @@ func getPodSpec(containersStr string, nodeGroupId uint64) (*v1.PodSpec, error) {
 	reference := v1.LocalObjectReference{Name: kubeclient.DefaultImagePullSecretKey}
 
 	tmpSpec := v1.PodSpec{}
+	tmpSpec.AutomountServiceAccountToken = new(bool)
 	tmpSpec.Containers = containers
 	tmpSpec.ImagePullSecrets = []v1.LocalObjectReference{reference}
 	tmpSpec.NodeSelector = map[string]string{
