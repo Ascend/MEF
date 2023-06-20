@@ -10,14 +10,15 @@ import (
 	"os"
 	"time"
 
+	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509/certutils"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/httpsmgr"
-
 	"nginx-manager/pkg/msgutil"
 	"nginx-manager/pkg/nginxcom"
 )
@@ -273,16 +274,15 @@ func reqRestartNginx(req *model.Message) {
 }
 
 func startNginxCmd() bool {
-	_, err := common.RunCommand(startCommand, true, common.DefCmdTimeoutSec)
-	if err != nil {
-		hwlog.RunLog.Errorf("start nginx failed:%s", err.Error())
+	if _, err := envutils.RunCommand(startCommand, envutils.DefCmdTimeoutSec); err != nil {
+		hwlog.RunLog.Errorf("start nginx failed: %v", err)
 		return false
 	}
-	if err = os.Chmod(accessLogFile, logFileMode); err != nil {
+	if err := os.Chmod(accessLogFile, logFileMode); err != nil {
 		hwlog.RunLog.Errorf("chmod access.log failed, cause by: {%s}", err.Error())
 		return false
 	}
-	if err = os.Chmod(errorLogFile, logFileMode); err != nil {
+	if err := os.Chmod(errorLogFile, logFileMode); err != nil {
 		hwlog.RunLog.Errorf("chmod error.log failed, cause by: {%v}", err.Error())
 		return false
 	}

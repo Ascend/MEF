@@ -253,7 +253,7 @@ func main() {
 	}
 	fmt.Println("init log success")
 
-	user, ip, err := envutils.GetLoginUserAndIP()
+	user, ip, err := envutils.GetUserAndIP()
 	if err != nil {
 		hwlog.RunLog.Errorf("get current user or ip info failed: %s", err.Error())
 		os.Exit(util.ErrorExitCode)

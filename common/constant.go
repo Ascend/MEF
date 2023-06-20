@@ -280,14 +280,6 @@ const (
 	CommandCopy = "cp"
 )
 
-// user_mgr constant
-const (
-	UserGrepCommandPattern = "^%s:"
-	GrepCommand            = "grep"
-	EtcPasswdFile          = "/etc/passwd"
-	NoLoginFlag            = "nologin"
-)
-
 // const for unpack zip file
 const (
 	MaxPkgSizeTimes      = 100
@@ -308,9 +300,6 @@ const (
 	MaxNodePerGroup = 1024
 	MaxGroupPerNode = 10
 )
-
-// TmpfsDevNum represents the dev number of tmpfs filesystem in linux stat struct
-const TmpfsDevNum = 0x01021994
 
 const (
 	// MefUserNs represents the namespace that used by edge-manager to manager applications deployed by customer

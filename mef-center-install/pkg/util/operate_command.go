@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
+	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
-	"huawei.com/mindxedge/base/common"
 )
 
 // CtlComponent is a struct used to do a specific command to a single component
@@ -33,8 +33,7 @@ func (cc *CtlComponent) startComponent(yamlPath string) (bool, error) {
 		return true, nil
 	}
 
-	if _, err = common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec,
-		"apply", "-f", yamlPath); err != nil {
+	if _, err = envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "apply", "-f", yamlPath); err != nil {
 		hwlog.RunLog.Errorf("exec kubectl apply failed: %s", err.Error())
 		return false, fmt.Errorf("exec kubectl apply failed: %s", err.Error())
 	}
@@ -72,7 +71,7 @@ func (cc *CtlComponent) stopComponent() error {
 }
 
 func (cc *CtlComponent) getComponentStatus() (string, error) {
-	ret, err := common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "get", "deployment", "-n", MefNamespace)
+	ret, err := envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "get", "deployment", "-n", MefNamespace)
 
 	NoNamespaceErr := fmt.Sprintf("No resources found in %s namespace.", MefNamespace)
 	if err != nil && strings.Contains(err.Error(), NoNamespaceErr) {
@@ -109,8 +108,7 @@ func (cc *CtlComponent) checkIfStatusStopped(status string) bool {
 
 func (cc *CtlComponent) setReplicas(num int) error {
 	deploymentName := AscendPrefix + cc.Name
-	if _, err := common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec,
-		"scale", "deployment", deploymentName,
+	if _, err := envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "scale", "deployment", deploymentName,
 		"-n", MefNamespace, fmt.Sprintf("--replicas=%d", num)); err != nil {
 		hwlog.RunLog.Errorf("exec kubectl delete failed: %s", err.Error())
 		return fmt.Errorf("exec kubectl delete failed: %s", err.Error())

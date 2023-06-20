@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 
+	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindxedge/base/common"
@@ -65,7 +66,7 @@ func (sm *SoftwareMgr) clearNodeLabel() error {
 		return err
 	}
 
-	ret, err := common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "get", "nodes", "-o", "wide")
+	ret, err := envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "get", "nodes", "-o", "wide")
 	if err != nil {
 		hwlog.RunLog.Errorf("get current node failed: %s", err.Error())
 		return errors.New("get current node failed")
@@ -92,7 +93,7 @@ func (sm *SoftwareMgr) clearNodeLabel() error {
 			nodeName := datas[0]
 
 			// 删除不存在的label会显示执行命令成功
-			_, err = common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec,
+			_, err = envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec,
 				"label", "node", nodeName, "mef-center-node-")
 			if err != nil {
 				hwlog.RunLog.Errorf("clear %s label command exec failed: %s", MefNamespace, err.Error())
