@@ -12,9 +12,9 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
-	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/database"
+	"huawei.com/mindxedge/base/common"
 )
 
 type handlerFunc func(req interface{}) common.RespMsg
@@ -139,12 +139,12 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodGet, filepath.Join(nodeUrlRootPath, "list")):                    listNode,
 	common.Combine(http.MethodPost, filepath.Join(nodeUrlRootPath, "add")):                    addUnManagedNode,
 
-	common.Combine(http.MethodPost, nodeGroupRootPath):                                     createGroup,
-	common.Combine(http.MethodGet, filepath.Join(nodeGroupRootPath, "stats")):              getGroupNodeStatistics,
-	common.Combine(http.MethodGet, nodeGroupRootPath):                                      getEdgeNodeGroupDetail,
+	common.Combine(http.MethodPost, nodeGroupRootPath):                                     createNodeGroup,
+	common.Combine(http.MethodGet, filepath.Join(nodeGroupRootPath, "stats")):              getNodeGroupStatistics,
+	common.Combine(http.MethodGet, nodeGroupRootPath):                                      getNodeGroupDetail,
 	common.Combine(http.MethodPatch, nodeGroupRootPath):                                    modifyNodeGroup,
 	common.Combine(http.MethodPost, filepath.Join(nodeGroupRootPath, "batch-delete")):      batchDeleteNodeGroup,
-	common.Combine(http.MethodGet, filepath.Join(nodeGroupRootPath, "list")):               listEdgeNodeGroup,
+	common.Combine(http.MethodGet, filepath.Join(nodeGroupRootPath, "list")):               listNodeGroup,
 	common.Combine(http.MethodPost, filepath.Join(nodeGroupRootPath, "node")):              addNodeRelation,
 	common.Combine(http.MethodPost, filepath.Join(nodeGroupRootPath, "node/batch-delete")): deleteNodeFromGroup,
 	common.Combine(http.MethodPost, filepath.Join(nodeGroupRootPath, "pod/batch-delete")):  batchDeleteNodeRelation,
