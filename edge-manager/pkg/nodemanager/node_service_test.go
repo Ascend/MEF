@@ -17,6 +17,7 @@ import (
 	"github.com/smartystreets/goconvey/convey"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/hwlog"
 	"k8s.io/api/core/v1"
 
@@ -30,6 +31,7 @@ const (
 	memoryDsn           = ":memory:?cache=shared"
 	defaultPageSize     = 20
 	shuffledNumberCount = 10000
+	errPageSize         = 200
 )
 
 var (
@@ -279,11 +281,14 @@ func TestMain(m *testing.M) {
 }
 
 func TestGetNodeDetail(t *testing.T) {
-	convey.Convey("getNodeDetail functional test", t, getNodeDetailFunctionalTest)
-	convey.Convey("getNodeDetail validation test", t, getNodeDetailValidationTest)
+	convey.Convey("getNodeDetail should be success", t, testGetNodeDetail)
+	convey.Convey("getNodeDetail should be failed, input error", t, testGetNodeDetailErrInput)
+	convey.Convey("getNodeDetail should be failed, param error", t, testGetNodeDetailErrParam)
+	convey.Convey("getNodeDetail should be failed, id error", t, testGetNodeDetailErrGetNodeByID)
+	convey.Convey("getNodeDetail should be failed, eval node group error", t, testGetNodeDetailErrEvalNodeGroup)
 }
 
-func getNodeDetailFunctionalTest() {
+func testGetNodeDetail() {
 	node := &NodeInfo{
 		Description:  "test-get-node-detail-1-description",
 		NodeName:     "test-get-node-detail-1-name",
@@ -305,20 +310,50 @@ func getNodeDetailFunctionalTest() {
 	})
 }
 
-func getNodeDetailValidationTest() {
-	convey.Convey("bad id type", func() {
-		args := `{"id": "1"}`
-		resp := getNodeDetail(args)
-		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
+func testGetNodeDetailErrInput() {
+	resp := getNodeDetail("1")
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
+}
+
+func testGetNodeDetailErrParam() {
+	var c *checker.UintChecker
+	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "Check",
+		func(n *checker.UintChecker, data interface{}) checker.CheckResult {
+			checkRes := checker.CheckResult{
+				Result: false,
+				Reason: "",
+			}
+			return checkRes
+		})
+	defer p1.Reset()
+	resp := getNodeDetail(uint64(0))
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
+}
+
+func testGetNodeDetailErrGetNodeByID() {
+	resp := getNodeDetail(uint64(20))
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorGetNode)
+}
+
+func testGetNodeDetailErrEvalNodeGroup() {
+	convey.Convey("error get relations by id", func() {
+		var c *NodeServiceImpl
+		var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "getRelationsByNodeID",
+			func(n *NodeServiceImpl, id uint64) (*[]NodeRelation, error) {
+				return nil, testErr
+			})
+		defer p1.Reset()
+		resp := getNodeDetail(uint64(1))
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorGetNode)
 	})
 }
 
 func TestModifyNode(t *testing.T) {
-	convey.Convey("modifyNode functional test", t, modifyNodeFunctionalTest)
-	convey.Convey("modifyNode validation test", t, modifyNodeValidationTest)
+	convey.Convey("modifyNode should be success", t, testModifyNode)
+	convey.Convey("modifyNode should be failed", t, testModifyNodeErr)
 }
 
-func modifyNodeFunctionalTest() {
+func testModifyNode() {
 	node := &NodeInfo{
 		Description:  "test-modify-node-1-description",
 		NodeName:     "test-modify-node-1-name",
@@ -348,7 +383,7 @@ func modifyNodeFunctionalTest() {
 	})
 }
 
-func modifyNodeValidationTest() {
+func testModifyNodeErr() {
 	node := &NodeInfo{
 		Description:  "test-modify-node-2-#{random}-description",
 		NodeName:     "test-modify-node-2-#{random}-name",
@@ -361,19 +396,47 @@ func modifyNodeValidationTest() {
 	}
 	env.randomize(node)
 
-	convey.Convey("empty description", func() {
+	convey.Convey("input error", func() {
+		resp := modifyNode(``)
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
+	})
+
+	convey.Convey("param error", func() {
 		nodeRes := env.createNode(node)
 		convey.So(nodeRes, convey.ShouldBeNil)
 		node.Description = ""
 		args := fmt.Sprintf(`
 			{
+    			"description": "%s",
     			"nodeName": "%s",
     			"nodeID": %d
-			}`, node.NodeName, node.ID)
+			}`, node.Description, "", node.ID)
+		resp := modifyNode(args)
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
+	})
+
+	convey.Convey("empty description", func() {
+		nodeRes := env.createNode(node)
+		convey.So(nodeRes, convey.ShouldBeNil)
+		node.Description = ""
+		args := fmt.Sprintf(`{"nodeName": "%s", "nodeID": %d}`, node.NodeName, node.ID)
 		resp := modifyNode(args)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
 		verifyRes := env.verifyDbNodeInfo(node, "UpdatedAt")
 		convey.So(verifyRes, convey.ShouldBeNil)
+	})
+
+	convey.Convey("duplicate node name", func() {
+		nodeRes := env.createNode(node)
+		convey.So(nodeRes, convey.ShouldBeNil)
+		args := fmt.Sprintf(`
+			{
+    			"description": "%s",
+    			"nodeName": "%s",
+    			"nodeID": %d
+			}`, node.Description, "test-modify-node-1-name-modified", node.ID)
+		resp := modifyNode(args)
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorNodeMrgDuplicate)
 	})
 
 	convey.Convey("modify unmanaged node", func() {
@@ -386,61 +449,52 @@ func modifyNodeValidationTest() {
     			"nodeID": %d
 			}`, node.NodeName, node.ID)
 		resp := modifyNode(args)
-		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorModifyNode)
 	})
 }
 
 func TestGetNodeStatistics(t *testing.T) {
-	convey.Convey("getNodeStatistics functional test", t, getNodeStatisticsFunctionalTest)
+	convey.Convey("getNodeStatistics should be success", t, testGetNodeStatistics)
+	convey.Convey("getNodeStatistics should be failed, list node error", t, testGetNodeStatisticsErr)
 }
 
-func getNodeStatisticsFunctionalTest() {
+func testGetNodeStatistics() {
 	convey.Convey("normal input", func() {
 		resp := getNodeStatistics(``)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
 	})
 }
 
-func TestListManagedNode(t *testing.T) {
-	convey.Convey("listManagedNode functional test", t, listManagedNodeFunctionalTest)
-	convey.Convey("listManagedNode functional test", t, listManagedNodeTest1)
-}
-
-func listManagedNodeFunctionalTest() {
-	convey.Convey("normal input", func() {
-		args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
-		resp := listManagedNode(args)
-		convey.So(resp.Status, convey.ShouldEqual, common.Success)
-	})
-}
-
-func listManagedNodeTest1() {
-	convey.Convey("error input", func() {
-		args := ""
-		resp := listManagedNode(args)
-		convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
-	})
+func testGetNodeStatisticsErr() {
+	var c *NodeServiceImpl
+	var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "listNodes",
+		func(n *NodeServiceImpl) (*[]NodeInfo, error) {
+			return nil, testErr
+		})
+	defer p1.Reset()
+	resp := getNodeStatistics(``)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorCountNodeByStatus)
 }
 
 func TestAddUnManagedNode(t *testing.T) {
-	convey.Convey("addUnmanagedNode functional test", t, addUnManagedNodeFunctionalTest)
-	convey.Convey("addUnmanagedNode validation test", t, addUnManagedNodeValidationTest)
+	convey.Convey("addUnmanagedNode should be success", t, testAddUnManagedNode)
+	convey.Convey("addUnmanagedNode should be failed", t, testAddUnManagedNodeErr)
 }
 
-func addUnManagedNodeFunctionalTest() {
+func testAddUnManagedNode() {
 	node := &NodeInfo{
-		Description:  "test-adn-1-description",
-		NodeName:     "test-adn-1-name",
-		UniqueName:   "test-adn-1-unique-name",
-		SerialNumber: "test-adn-1-serial-number",
+		Description:  "test-add-node-1-description",
+		NodeName:     "test-add-node-1-name",
+		UniqueName:   "test-add-node-1-unique-name",
+		SerialNumber: "test-add-node-1-serial-number",
 		IP:           "0.0.0.0",
 		IsManaged:    false,
 		CreatedAt:    time.Now().Format(TimeFormat),
 		UpdatedAt:    time.Now().Format(TimeFormat),
 	}
 	group := &NodeGroup{
-		Description: "test-add-adn-1-description",
-		GroupName:   "test_add_adn_1_name",
+		Description: "test-add-1-description",
+		GroupName:   "test_add_1_name",
 		CreatedAt:   time.Now().Format(TimeFormat),
 		UpdatedAt:   time.Now().Format(TimeFormat),
 	}
@@ -465,12 +519,12 @@ func addUnManagedNodeFunctionalTest() {
 	})
 }
 
-func addUnManagedNodeValidationTest() {
+func testAddUnManagedNodeErr() {
 	node := &NodeInfo{
-		Description:  "test-adn-#{random}-description",
-		NodeName:     "test-adn-#{random}-name",
-		UniqueName:   "test-adn-#{random}-unique-name",
-		SerialNumber: "test-adn-#{random}-serial-umber",
+		Description:  "test-add-#{random}-description",
+		NodeName:     "test-add-#{random}-name",
+		UniqueName:   "test-add-#{random}-unique-name",
+		SerialNumber: "test-add-#{random}-serial-umber",
 		IP:           "0.0.0.0",
 		IsManaged:    false,
 		CreatedAt:    time.Now().Format(TimeFormat),
@@ -480,14 +534,31 @@ func addUnManagedNodeValidationTest() {
 	res := env.createNode(node)
 	convey.So(res, convey.ShouldBeNil)
 
-	convey.Convey("groupIDs not present", func() {
+	convey.Convey("input error", func() {
+		args := ``
+		resp := addUnManagedNode(args)
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
+	})
+
+	convey.Convey("invalid param: node name is not exist", func() {
+		args := fmt.Sprintf(`{
+			"name": "",
+            "description": "%s",
+            "groupIDs": [],
+            "nodeID": %d
+			}`, node.Description, node.ID)
+		resp := addUnManagedNode(args)
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
+	})
+
+	convey.Convey("groupIDs is not exist", func() {
 		args := fmt.Sprintf(`{
 			"name": "%s",
             "description": "%s",
             "nodeID": %d
-			}`, node.NodeName, node.Description, node.ID)
+			}`, node.NodeName, node.Description, uint64(20))
 		resp := addUnManagedNode(args)
-		convey.So(resp.Status, convey.ShouldEqual, common.Success)
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorAddUnManagedNode)
 	})
 
 	convey.Convey("groupIDs is empty", func() {
@@ -502,33 +573,102 @@ func addUnManagedNodeValidationTest() {
 	})
 }
 
-func TestListUnManagedNode(t *testing.T) {
-	convey.Convey("listUnmanagedNode functional test", t, listUnManagedNodeFunctionalTest)
-	convey.Convey("listUnmanagedNode param error", t, listUnManagedNodeFunctionalError)
+func TestListManagedAndUnmanagedNode(t *testing.T) {
+	convey.Convey("listManagedNode and listUnmanagedNode should be success", t, testListManagedAndUnmanagedNode)
+	convey.Convey("listManagedNode and listUnmanagedNode failed, input error", t, testListManagedAndUnmanagedErrInput)
+	convey.Convey("listManagedNode and listUnmanagedNode failed, param error", t, testListManagedAndUnmanagedErrParam)
+	convey.Convey("listManagedNode and listUnmanagedNode failed, count error", t, testListManagedAndUnmanagedErrCount)
+	convey.Convey("listManagedNode and listUnmanagedNode failed, list node error", t, testListManagedAndUnmanagedErrList)
+	convey.Convey("listManagedNode should be failed, eval node group error", t, testListManagedNodeErrEvalNodeGroup)
 }
 
-func listUnManagedNodeFunctionalTest() {
+func testListManagedAndUnmanagedNode() {
 	convey.Convey("normal input", func() {
 		args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
-		resp := listUnmanagedNode(args)
+		resp := listManagedNode(args)
+		convey.So(resp.Status, convey.ShouldEqual, common.Success)
+		resp = listUnmanagedNode(args)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
 	})
 }
 
-func listUnManagedNodeFunctionalError() {
-	convey.Convey("error input", func() {
-		args := ""
-		resp := listUnmanagedNode(args)
-		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
+func testListManagedAndUnmanagedErrInput() {
+	args := ""
+	resp := listManagedNode(args)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
+	resp = listUnmanagedNode(args)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
+}
+
+func testListManagedAndUnmanagedErrParam() {
+	args := types.ListReq{PageNum: 1, PageSize: errPageSize}
+	resp := listManagedNode(args)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
+	resp = listUnmanagedNode(args)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
+}
+
+func testListManagedAndUnmanagedErrCount() {
+	var c *NodeServiceImpl
+	var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "countNodesByName",
+		func(n *NodeServiceImpl, name string, isManaged int) (int64, error) {
+			return 0, testErr
+		})
+	defer p1.Reset()
+	args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
+	resp := listManagedNode(args)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorListNode)
+	resp = listUnmanagedNode(args)
+	convey.So(resp.Msg, convey.ShouldEqual, "count node failed")
+}
+
+func testListManagedAndUnmanagedErrList() {
+	args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
+
+	var c1 *NodeServiceImpl
+	var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c1), "listManagedNodesByName",
+		func(n *NodeServiceImpl, page, pageSize uint64, nodeName string) (*[]NodeInfo, error) {
+			return nil, testErr
+		})
+	defer p1.Reset()
+
+	resp := listManagedNode(args)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorListNode)
+
+	var c2 *NodeServiceImpl
+	var p2 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c2), "listUnManagedNodesByName",
+		func(n *NodeServiceImpl, page, pageSize uint64, nodeName string) (*[]NodeInfo, error) {
+			return nil, testErr
+		})
+	defer p2.Reset()
+	resp = listUnmanagedNode(args)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorListUnManagedNode)
+}
+
+func testListManagedNodeErrEvalNodeGroup() {
+	convey.Convey("error get relations by id", func() {
+		var c *NodeServiceImpl
+		var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "getRelationsByNodeID",
+			func(n *NodeServiceImpl, id uint64) (*[]NodeRelation, error) {
+				return nil, testErr
+			})
+		defer p1.Reset()
+		args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
+		resp := listManagedNode(args)
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorListNode)
 	})
 }
 
 func TestListNode(t *testing.T) {
-	convey.Convey("listNode functional test", t, listNodeFunctionalTest)
-	convey.Convey("listNode error input", t, listNodeTest1)
+	convey.Convey("listNode should be success", t, testListNode)
+	convey.Convey("listNode should be failed, input error", t, testListNodeErrInput)
+	convey.Convey("listNode should be failed, param error", t, testListNodeErrParam)
+	convey.Convey("listNode should be failed, count nodes error", t, testListNodeErrCount)
+	convey.Convey("listNode should be failed, list nodes error", t, testListNodeErrList)
+	convey.Convey("listNode should be failed, eval node group error", t, testListNodeErrEvalNodeGroup)
 }
 
-func listNodeFunctionalTest() {
+func testListNode() {
 	convey.Convey("normal input", func() {
 		args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
 		resp := listNode(args)
@@ -536,20 +676,62 @@ func listNodeFunctionalTest() {
 	})
 }
 
-func listNodeTest1() {
-	convey.Convey("error input", func() {
-		args := ""
+func testListNodeErrInput() {
+	args := ""
+	resp := listNode(args)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
+}
+
+func testListNodeErrParam() {
+	args := types.ListReq{PageNum: 1, PageSize: errPageSize}
+	resp := listNode(args)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
+}
+
+func testListNodeErrCount() {
+	var c *NodeServiceImpl
+	var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "countAllNodesByName",
+		func(n *NodeServiceImpl, name string) (int64, error) {
+			return 0, testErr
+		})
+	defer p1.Reset()
+	args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
+	resp := listNode(args)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorListNode)
+}
+
+func testListNodeErrList() {
+	var c *NodeServiceImpl
+	var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "listAllNodesByName",
+		func(n *NodeServiceImpl, page, pageSize uint64, nodeName string) (*[]NodeInfo, error) {
+			return nil, testErr
+		})
+	defer p1.Reset()
+	args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
+	resp := listNode(args)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorListNode)
+}
+
+func testListNodeErrEvalNodeGroup() {
+	convey.Convey("error get relations by id", func() {
+		var c *NodeServiceImpl
+		var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "getRelationsByNodeID",
+			func(n *NodeServiceImpl, id uint64) (*[]NodeRelation, error) {
+				return nil, testErr
+			})
+		defer p1.Reset()
+		args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
 		resp := listNode(args)
-		convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorListNode)
 	})
 }
 
 func TestBatchDeleteNode(t *testing.T) {
-	convey.Convey("batchDeleteNode functional test", t, batchDeleteNodeFunctionalTest)
-	convey.Convey("batchDeleteNode validation test", t, batchDeleteNodeValidationTest)
+	convey.Convey("batchDeleteNode should be success", t, testBatchDeleteNode)
+	convey.Convey("batchDeleteNode should be failed", t, testBatchDeleteNodeErr)
 }
 
-func batchDeleteNodeFunctionalTest() {
+func testBatchDeleteNode() {
 	node := &NodeInfo{
 		Description:  "test-batch-delete-node-1-description",
 		NodeName:     "test-batch-delete-node-1-name",
@@ -572,71 +754,71 @@ func batchDeleteNodeFunctionalTest() {
 	})
 }
 
-func batchDeleteNodeValidationTest() {
+func testBatchDeleteNodeErr() {
 	convey.Convey("empty request", func() {
 		args := ``
 		resp := batchDeleteNode(args)
-		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
+	})
+
+	convey.Convey("param error", func() {
+		args := `{"nodeIDs": []}`
+		resp := batchDeleteNode(args)
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
+	})
+
+	convey.Convey("delete node id error", func() {
+		args := `{"nodeIDs": [20]}`
+		resp := batchDeleteNode(args)
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorDeleteNode)
 	})
 }
 
-func TestBatchDeleteNodeRelation(t *testing.T) {
-	convey.Convey("batchDeleteNodeRelation functional test", t, batchDeleteNodeRelationFunctionalTest)
-	convey.Convey("batchDeleteNodeRelation validation test", t, batchDeleteNodeRelationValidationTest)
+func TestDeleteUnManagedNode(t *testing.T) {
+	convey.Convey("deleteUnManagedNode should be success", t, testDeleteUnManagedNode)
+	convey.Convey("deleteUnManagedNode should be failed", t, testDeleteUnManagedNodeErr)
 }
 
-func batchDeleteNodeRelationFunctionalTest() {
+func testDeleteUnManagedNode() {
 	node := &NodeInfo{
-		Description:  "test-batch-delete-relation-1-description",
-		NodeName:     "test-batch-delete-relation-1-name",
-		UniqueName:   "test-batch-delete-relation-1-unique-name",
-		SerialNumber: "test-batch-delete-relation-1-serial-number",
+		Description:  "test-delete-unmanaged-node-1-description",
+		NodeName:     "test-delete-unmanaged-node-1-name",
+		UniqueName:   "test-delete-unmanaged-node-1-unique-name",
+		SerialNumber: "test-delete-unmanaged-node-1-serial-number",
 		IP:           "0.0.0.0",
-		IsManaged:    true,
+		IsManaged:    false,
 		CreatedAt:    time.Now().Format(TimeFormat),
 		UpdatedAt:    time.Now().Format(TimeFormat),
 	}
-	group := &NodeGroup{
-		Description: "test-batch-delete-relation-1-description",
-		GroupName:   "test_batch_delete_relation_1_nme",
-		CreatedAt:   time.Now().Format(TimeFormat),
-		UpdatedAt:   time.Now().Format(TimeFormat),
-	}
-	resNode := env.createNode(node)
-	convey.So(resNode, convey.ShouldBeNil)
-	resGroup := env.createGroup(group)
-	convey.So(resGroup, convey.ShouldBeNil)
-	relation := &NodeRelation{
-		NodeID:    node.ID,
-		GroupID:   group.ID,
-		CreatedAt: time.Now().Format(TimeFormat),
-	}
-	resRelation := env.createRelation(relation)
-	convey.So(resRelation, convey.ShouldBeNil)
+	res := env.createNode(node)
+	convey.So(res, convey.ShouldBeNil)
 
 	convey.Convey("normal input", func() {
-		args := fmt.Sprintf(`[
-            {
-                "nodeID": %d,
-                "groupID": %d
-            }]`, node.ID, group.ID)
-		resp := batchDeleteNodeRelation(args)
+		args := fmt.Sprintf(`{"nodeIDs": [%d]}`, node.ID)
+		resp := deleteUnManagedNode(args)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
-		verifyRes := env.verifyDbNodeRelation(relation)
-		convey.So(verifyRes, convey.ShouldEqual, gorm.ErrRecordNotFound)
+		verifyRes := env.verifyDbNodeInfo(node)
+		convey.So(verifyRes, convey.ShouldNotEqual, "record not found")
 	})
 }
 
-func batchDeleteNodeRelationValidationTest() {
-	convey.Convey("nodeID not present", func() {
-		args := `[{"groupID": 1}]`
-		resp := batchDeleteNodeRelation(args)
+func testDeleteUnManagedNodeErr() {
+	convey.Convey("empty request", func() {
+		args := ``
+		resp := deleteUnManagedNode(args)
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
+	})
+
+	convey.Convey("param error", func() {
+		args := `{"nodeIDs": []}`
+		resp := deleteUnManagedNode(args)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 	})
-	convey.Convey("duplicate relations", func() {
-		args := `[{"groupID":1, "nodeID":2},{"nodeID":2,"groupID":1}]`
-		resp := batchDeleteNodeRelation(args)
-		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
+
+	convey.Convey("delete node id error", func() {
+		args := `{"nodeIDs": [20]}`
+		resp := deleteUnManagedNode(args)
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorDeleteNode)
 	})
 }
 
