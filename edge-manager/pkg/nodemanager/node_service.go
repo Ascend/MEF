@@ -30,7 +30,6 @@ var (
 
 const groupLabelLen = 4
 
-// getNodeDetail get node detail
 func getNodeDetail(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start get node detail")
 	id, ok := input.(uint64)
@@ -128,7 +127,6 @@ func getNodeStatistics(interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
-// ListNode get node list
 func listManagedNode(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start list node managed")
 	req, ok := input.(types.ListReq)
@@ -173,7 +171,6 @@ func listManagedNode(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
-// ListNode get node list
 func listUnmanagedNode(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start list node unmanaged")
 	req, ok := input.(types.ListReq)

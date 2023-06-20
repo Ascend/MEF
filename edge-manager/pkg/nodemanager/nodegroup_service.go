@@ -16,8 +16,7 @@ import (
 	"huawei.com/mindxedge/base/common"
 )
 
-// CreateGroup Create Node Group
-func createGroup(input interface{}) common.RespMsg {
+func createNodeGroup(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start create node group")
 	var req CreateNodeGroupReq
 	if err := common.ParamConvert(input, &req); err != nil {
@@ -52,7 +51,7 @@ func createGroup(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: group.ID}
 }
 
-func listEdgeNodeGroup(input interface{}) common.RespMsg {
+func listNodeGroup(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start list node group")
 	req, ok := input.(types.ListReq)
 	if !ok {
@@ -90,7 +89,7 @@ func listEdgeNodeGroup(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
-func getEdgeNodeGroupDetail(input interface{}) common.RespMsg {
+func getNodeGroupDetail(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start get node group detail")
 	id, ok := input.(uint64)
 	if !ok {
@@ -159,7 +158,7 @@ func modifyNodeGroup(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
-func getGroupNodeStatistics(interface{}) common.RespMsg {
+func getNodeGroupStatistics(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start get node group statistics")
 	total, err := GetTableCount(NodeGroup{})
 	if err != nil {

@@ -1,6 +1,6 @@
 // Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
 
-// Package nodemanager to init node service
+// Package nodemanager test about node
 package nodemanager
 
 import (
@@ -20,11 +20,10 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"k8s.io/api/core/v1"
 
-	"huawei.com/mindxedge/base/common"
-
 	"edge-manager/pkg/database"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
+	"huawei.com/mindxedge/base/common"
 )
 
 const (
@@ -34,7 +33,8 @@ const (
 )
 
 var (
-	env environment
+	env     environment
+	testErr = errors.New("test error")
 )
 
 type environment struct {
@@ -52,7 +52,7 @@ func (e *environment) setup() error {
 	if err != nil {
 		return err
 	}
-	if err := e.setupTables(db); err != nil {
+	if err = e.setupTables(db); err != nil {
 		return err
 	}
 	e.patches = e.setupGoMonkeyPatches(db)
@@ -401,118 +401,6 @@ func getNodeStatisticsFunctionalTest() {
 	})
 }
 
-func TestGroupStatistics(t *testing.T) {
-	convey.Convey("getGroupNodeStatistics functional test", t, groupStatisticsFunctionalTest)
-}
-
-func groupStatisticsFunctionalTest() {
-	convey.Convey("normal input", func() {
-		resp := getGroupNodeStatistics(``)
-		convey.So(resp.Status, convey.ShouldEqual, common.Success)
-	})
-}
-
-func TestCreateGroup(t *testing.T) {
-	convey.Convey("createGroup functional test", t, createGroupFunctionalTest)
-	convey.Convey("createGroup validation test", t, createGroupValidationTest)
-}
-
-func createGroupFunctionalTest() {
-	group := &NodeGroup{
-		Description: "test-create-group-1-description",
-		GroupName:   "test_create_group_1_name",
-	}
-
-	convey.Convey("normal input", func() {
-		args := fmt.Sprintf(`
-			{
-    			"nodeGroupName": "%s",
-    			"description": "%s"
-			}`, group.GroupName, group.Description)
-		resp := createGroup(args)
-		convey.So(resp.Status, convey.ShouldEqual, common.Success)
-		verifyRes := env.verifyDbNodeGroup(group, "ID", "UpdatedAt", "CreatedAt")
-		convey.So(verifyRes, convey.ShouldBeNil)
-	})
-}
-
-func createGroupValidationTest() {
-	group := &NodeGroup{
-		Description: "test-create-group-2-description",
-		GroupName:   "test_create_group_2_name",
-	}
-
-	convey.Convey("description not present", func() {
-		args := fmt.Sprintf(`{"nodeGroupName": "%s"}`, group.GroupName)
-		resp := createGroup(args)
-		convey.So(resp.Status, convey.ShouldEqual, common.Success)
-	})
-
-	convey.Convey("groupName not present", func() {
-		args := fmt.Sprintf(`{"description": "%s"}`, group.Description)
-		resp := createGroup(args)
-		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
-	})
-	convey.Convey("groupName duplicate", func() {
-		args := fmt.Sprintf(`{"nodeGroupName": "%s"}`, group.GroupName)
-		_ = createGroup(args)
-		resp := createGroup(args)
-		convey.So(resp.Status, convey.ShouldEqual, common.ErrorNodeMrgDuplicate)
-	})
-}
-
-func TestGetGroupDetail(t *testing.T) {
-	convey.Convey("getEdgeNodeGroupDetail functional test", t, getGroupDetailFunctionalTest)
-	convey.Convey("getEdgeNodeGroupDetail validation test", t, getGroupDetailValidationTest)
-	convey.Convey("getEdgeNodeGroupDetail id not exit", t, getGroupDetailValidationTest2)
-}
-
-func getGroupDetailFunctionalTest() {
-	group := &NodeGroup{
-		GroupName: "test_get_group_detail_1_name",
-		CreatedAt: time.Now().Format(TimeFormat),
-		UpdatedAt: time.Now().Format(TimeFormat),
-	}
-	convey.So(env.createGroup(group), convey.ShouldBeNil)
-	node := &NodeInfo{
-		NodeName:   "test-get-group-detail-1-node",
-		UniqueName: "test-get-group-detail-1-unique-name",
-		IP:         "0.0.0.0",
-		IsManaged:  true,
-		CreatedAt:  time.Now().Format(TimeFormat),
-		UpdatedAt:  time.Now().Format(TimeFormat),
-	}
-	convey.So(env.createNode(node), convey.ShouldBeNil)
-	relation := &NodeRelation{
-		NodeID:    node.ID,
-		GroupID:   group.ID,
-		CreatedAt: time.Now().Format(TimeFormat),
-	}
-	convey.So(env.createRelation(relation), convey.ShouldBeNil)
-	convey.Convey("normal input", func() {
-		resp := getEdgeNodeGroupDetail(group.ID)
-		convey.So(resp.Status, convey.ShouldEqual, common.Success)
-		groupDetail, ok := resp.Data.(NodeGroupDetail)
-		convey.So(ok, convey.ShouldBeTrue)
-		convey.So(groupDetail.NodeGroup, convey.ShouldResemble, *group)
-	})
-}
-
-func getGroupDetailValidationTest() {
-	convey.Convey("bad id type", func() {
-		args := `{"id": "1"}`
-		resp := getEdgeNodeGroupDetail(args)
-		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
-	})
-}
-
-func getGroupDetailValidationTest2() {
-	convey.Convey("id not exit", func() {
-		resp := getEdgeNodeGroupDetail(uint64(0))
-		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
-	})
-}
-
 func TestListManagedNode(t *testing.T) {
 	convey.Convey("listManagedNode functional test", t, listManagedNodeFunctionalTest)
 	convey.Convey("listManagedNode functional test", t, listManagedNodeTest1)
@@ -749,233 +637,6 @@ func batchDeleteNodeRelationValidationTest() {
 		args := `[{"groupID":1, "nodeID":2},{"nodeID":2,"groupID":1}]`
 		resp := batchDeleteNodeRelation(args)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
-	})
-}
-
-func TestAddNodeRelation(t *testing.T) {
-	convey.Convey("addNodeRelation functional test", t, addNodeRelationFunctionalTest)
-	convey.Convey("addNodeRelation validation test", t, addNodeRelationValidationTest)
-}
-
-func addNodeRelationFunctionalTest() {
-	node := &NodeInfo{
-		Description:  "test-add-relation-1-description",
-		NodeName:     "test-add-relation-1-name",
-		UniqueName:   "test-add-relation-1-description-unique-name",
-		SerialNumber: "test-add-relation-1-serial-number",
-		IP:           "0.0.0.0",
-		IsManaged:    true,
-		CreatedAt:    time.Now().Format(TimeFormat),
-		UpdatedAt:    time.Now().Format(TimeFormat),
-	}
-	group := &NodeGroup{
-		Description: "test-add-relation-1-description",
-		GroupName:   "test_add_relation_1_name",
-		CreatedAt:   time.Now().Format(TimeFormat),
-		UpdatedAt:   time.Now().Format(TimeFormat),
-	}
-	resNode := env.createNode(node)
-	convey.So(resNode, convey.ShouldBeNil)
-	resGroup := env.createGroup(group)
-	convey.So(resGroup, convey.ShouldBeNil)
-
-	convey.Convey("normal input", func() {
-		args := fmt.Sprintf(`{"groupID": %d, "nodeIDs": [%d]}`, group.ID, node.ID)
-		resp := addNodeRelation(args)
-		convey.So(resp.Status, convey.ShouldEqual, common.Success)
-		relation := &NodeRelation{NodeID: node.ID, GroupID: group.ID}
-		verifyRes := env.verifyDbNodeRelation(relation, "CreatedAt")
-		convey.So(verifyRes, convey.ShouldBeNil)
-	})
-}
-
-func addNodeRelationValidationTest() {
-	convey.Convey("groupID not present", func() {
-		args := `{"nodeIDs": [1]}`
-		resp := addNodeRelation(args)
-		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
-	})
-}
-
-func TestListEdgeNodeGroup(t *testing.T) {
-	convey.Convey("listEdgeNodeGroup functional test", t, listEdgeNodeGroupFunctionalTest)
-	convey.Convey("listEdgeNodeGroup error test", t, listEdgeNodeGroupTest1)
-}
-
-func listEdgeNodeGroupFunctionalTest() {
-	convey.Convey("normal input", func() {
-		args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
-		resp := listEdgeNodeGroup(args)
-		convey.So(resp.Status, convey.ShouldEqual, common.Success)
-	})
-}
-
-func listEdgeNodeGroupTest1() {
-	convey.Convey("error input", func() {
-		args := ""
-		resp := listEdgeNodeGroup(args)
-		convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
-	})
-}
-
-func TestModifyGroup(t *testing.T) {
-	convey.Convey("modifyGroup functional test", t, modifyGroupFunctionalTest)
-	convey.Convey("modifyGroup validation test", t, modifyGroupValidationTest)
-}
-
-func modifyGroupFunctionalTest() {
-	group := &NodeGroup{
-		Description: "test-modify-group-1-description",
-		GroupName:   "test_modify_group_1_n",
-	}
-	res := env.createGroup(group)
-	convey.So(res, convey.ShouldBeNil)
-	group.Description += "-m"
-	group.GroupName += "_m"
-
-	convey.Convey("normal input", func() {
-		args := fmt.Sprintf(`
-				{
-   					"groupID": %d,
-   					"nodeGroupName": "%s",
-   					"description": "%s"
-				}`, group.ID, group.GroupName, group.Description)
-		resp := modifyNodeGroup(args)
-		convey.So(resp.Status, convey.ShouldEqual, common.Success)
-		verifyRes := env.verifyDbNodeGroup(group, "UpdatedAt")
-		convey.So(verifyRes, convey.ShouldBeNil)
-	})
-}
-
-func modifyGroupValidationTest() {
-	group := &NodeGroup{
-		Description: "test-modify-group-2-#{random}-description",
-		GroupName:   "test_modify_group_2_#{random}_n",
-	}
-	env.randomize(group)
-	res := env.createGroup(group)
-	convey.So(res, convey.ShouldBeNil)
-
-	convey.Convey("empty description", func() {
-		args := fmt.Sprintf(`
-				{
-   					"groupID": %d,
-   					"nodeGroupName": "%s"
-				}`, group.ID, group.GroupName)
-		resp := modifyNodeGroup(args)
-		convey.So(resp.Status, convey.ShouldEqual, common.Success)
-	})
-
-	convey.Convey("empty groupID", func() {
-		args := fmt.Sprintf(`
-				{
-   					"nodeGroupName": "%s",
-   					"description": "%s"
-				}`, group.GroupName, group.Description)
-		resp := modifyNodeGroup(args)
-		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
-	})
-}
-
-func TestBatchDeleteGroup(t *testing.T) {
-	convey.Convey("batchDeleteNodeGroup functional test", t, batchDeleteGroupFunctionalTest)
-	convey.Convey("batchDeleteNodeGroup validation test", t, batchDeleteGroupValidationTest)
-}
-
-func batchDeleteGroupFunctionalTest() {
-	group := &NodeGroup{
-		Description: "test-batch-delete-group-1-description",
-		GroupName:   "test_batch_delete_group_1_name",
-	}
-	res := env.createGroup(group)
-	convey.So(res, convey.ShouldBeNil)
-
-	convey.Convey("normal input", func() {
-		args := fmt.Sprintf(`{"groupIDs": [%d]}`, group.ID)
-		resp := batchDeleteNodeGroup(args)
-		convey.So(resp.Status, convey.ShouldEqual, common.Success)
-		verifyRes := env.verifyDbNodeGroup(group)
-		convey.So(verifyRes, convey.ShouldEqual, gorm.ErrRecordNotFound)
-	})
-}
-
-func batchDeleteGroupValidationTest() {
-	convey.Convey("GroupIDs not present", func() {
-		args := ``
-		resp := batchDeleteNodeGroup(args)
-		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
-	})
-	convey.Convey("bad group id", func() {
-		args := `{"groupIDs": [-1]}`
-		resp := batchDeleteNodeGroup(args)
-		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
-	})
-	convey.Convey("bad id type", func() {
-		args := `{"groupIDs": ["1"]}`
-		resp := batchDeleteNodeGroup(args)
-		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
-	})
-	convey.Convey("duplicate id", func() {
-		args := `{"groupIDs": [1, 1]}`
-		resp := batchDeleteNodeGroup(args)
-		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
-	})
-	convey.Convey("empty list", func() {
-		args := `{"groupIDs": []}`
-		resp := batchDeleteNodeGroup(args)
-		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
-	})
-}
-
-func TestDeleteNodeFromGroup(t *testing.T) {
-	convey.Convey("batchDeleteNodeGroup functional test", t, testDeleteNodeFromGroup)
-	convey.Convey("batchDeleteNodeGroup validation test", t, deleteNodeFromGroupValidation)
-}
-
-func testDeleteNodeFromGroup() {
-	node := &NodeInfo{
-		NodeName:     "test-delete-node-from-group-1-name",
-		UniqueName:   "test-delete-node-from-group-1-unique-name",
-		SerialNumber: "test-delete-node-from-group-1-serial-number",
-		IP:           "0.0.0.0",
-		IsManaged:    true,
-		CreatedAt:    time.Now().Format(TimeFormat),
-		UpdatedAt:    time.Now().Format(TimeFormat),
-	}
-	group := &NodeGroup{
-		GroupName: "test_delete_node_from_group_1_name",
-		CreatedAt: time.Now().Format(TimeFormat),
-		UpdatedAt: time.Now().Format(TimeFormat),
-	}
-	resNode := env.createNode(node)
-	convey.So(resNode, convey.ShouldBeNil)
-	resGroup := env.createGroup(group)
-	convey.So(resGroup, convey.ShouldBeNil)
-	relation := &NodeRelation{
-		NodeID:    node.ID,
-		GroupID:   group.ID,
-		CreatedAt: time.Now().Format(TimeFormat),
-	}
-	resRelation := env.createRelation(relation)
-	convey.So(resRelation, convey.ShouldBeNil)
-	convey.Convey("test deleteNodeFromGroup success", func() {
-		args := fmt.Sprintf(`{
-                "nodeIDs": [%d],
-                "groupID": %d
-            }`, node.ID, group.ID)
-		resp := deleteNodeFromGroup(args)
-		convey.So(resp.Status, convey.ShouldEqual, common.Success)
-	})
-}
-
-func deleteNodeFromGroupValidation() {
-	convey.Convey("test deleteNodeFromGroup param error", func() {
-		args := fmt.Sprintf(`{
-                "nodeIDs": %d,
-                "groupID": %d
-            }`, 1, 1)
-		resp := deleteNodeFromGroup(args)
-		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
 	})
 }
 
