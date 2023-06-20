@@ -12,13 +12,11 @@ import (
 	"path/filepath"
 
 	"huawei.com/mindx/common/envutils"
-
-	"huawei.com/mindxedge/base/common"
 )
 
 // GetArch is used to get the arch info
 func GetArch() (string, error) {
-	arch, err := common.RunCommand(ArchCommand, true, common.DefCmdTimeoutSec, "-i")
+	arch, err := envutils.RunCommand(ArchCommand, envutils.DefCmdTimeoutSec, "-i")
 	if err != nil {
 		return "", err
 	}

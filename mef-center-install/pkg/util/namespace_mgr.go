@@ -8,8 +8,8 @@ import (
 	"regexp"
 	"strings"
 
+	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
 )
 
 // NamespaceMgr is the struct that manages the func related to namespace operation
@@ -25,7 +25,7 @@ func NewNamespaceMgr(namespace string) *NamespaceMgr {
 func (nm *NamespaceMgr) prepareNameSpace() error {
 	hwlog.RunLog.Info("start to prepare namespace")
 	namespaceReg := fmt.Sprintf("^%s\\s", nm.namespace)
-	ret, err := common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "get", "namespace")
+	ret, err := envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "get", "namespace")
 	if err != nil {
 		hwlog.RunLog.Errorf("check namespace failed: %s", err.Error())
 		return errors.New("get namespace failed")
@@ -54,7 +54,7 @@ func (nm *NamespaceMgr) prepareNameSpace() error {
 		return nil
 	}
 	if status != "" && status != ActiveFlag {
-		_, err = common.RunCommand(CommandKubectl, true, DeleteNsTimeoutSec, "delete", CommandNamespace, nm.namespace)
+		_, err = envutils.RunCommand(CommandKubectl, DeleteNsTimeoutSec, "delete", CommandNamespace, nm.namespace)
 		if err != nil {
 			hwlog.RunLog.Errorf("the namespace exists but not active, delete it failed: %s", err.Error())
 			return errors.New("the namespace exists but not active, delete it failed")
@@ -63,8 +63,7 @@ func (nm *NamespaceMgr) prepareNameSpace() error {
 
 	// namespace does not exist, then create
 	hwlog.RunLog.Info("start to create namespace")
-	_, err = common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec,
-		"create", CommandNamespace, nm.namespace)
+	_, err = envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "create", CommandNamespace, nm.namespace)
 	if err != nil {
 		hwlog.RunLog.Errorf("create namespace failed: %s", err.Error())
 		return fmt.Errorf("create namespace failed")
@@ -76,7 +75,7 @@ func (nm *NamespaceMgr) prepareNameSpace() error {
 
 func (nm *NamespaceMgr) checkNameSpaceExist() (bool, error) {
 	namespaceReg := fmt.Sprintf("^%s\\s", nm.namespace)
-	ret, err := common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "get", "namespace")
+	ret, err := envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "get", "namespace")
 	if err != nil {
 		hwlog.RunLog.Errorf("check namespace command exec failed: %s", err.Error())
 		return false, errors.New("check namespace command exec failed")
@@ -108,8 +107,7 @@ func (nm *NamespaceMgr) ClearNamespace() error {
 		return nil
 	}
 
-	_, err = common.RunCommand(CommandKubectl, true, DeleteNsTimeoutSec,
-		"delete", "namespace", nm.namespace)
+	_, err = envutils.RunCommand(CommandKubectl, DeleteNsTimeoutSec, "delete", "namespace", nm.namespace)
 	if err != nil {
 		hwlog.RunLog.Errorf("delete %s namespace command exec failed: %s", nm.namespace, err.Error())
 		return errors.New("delete namespace command exec failed")
@@ -128,19 +126,19 @@ func (nm *NamespaceMgr) ForceClearNamespace() error {
 		return nil
 	}
 
-	if _, err = common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "delete", "ds", "-n", nm.namespace,
+	if _, err = envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "delete", "ds", "-n", nm.namespace,
 		"--all", "--force", "--grace-period=0"); err != nil {
 		hwlog.RunLog.Errorf("delete ds in %s namespace command exec failed: %s", nm.namespace, err.Error())
 		return errors.New("delete ds in namespace command exec failed")
 	}
 
-	if _, err = common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "delete", "pod", "-n", nm.namespace,
+	if _, err = envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "delete", "pod", "-n", nm.namespace,
 		"--all", "--force", "--grace-period=0"); err != nil {
 		hwlog.RunLog.Errorf("delete pod in %s namespace command exec failed: %s", nm.namespace, err.Error())
 		return errors.New("delete pod in namespace command exec failed")
 	}
 
-	if _, err = common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "delete", "namespace", nm.namespace,
+	if _, err = envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "delete", "namespace", nm.namespace,
 		"--force", "--grace-period=0"); err != nil {
 		hwlog.RunLog.Errorf("delete %s namespace command exec failed: %s", nm.namespace, err.Error())
 		return errors.New("delete namespace command exec failed")

@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 
+	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindxedge/base/common"
 )
@@ -23,7 +24,7 @@ func (klm *K8sLabelMgr) getCurrentNodeName() (string, error) {
 		return "", err
 	}
 
-	ret, err := common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "get", "nodes", "-o", "wide")
+	ret, err := envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "get", "nodes", "-o", "wide")
 	if err != nil {
 		hwlog.RunLog.Errorf("get current node failed: %s", err.Error())
 		return "", errors.New("get current node failed")
@@ -68,7 +69,7 @@ func (klm *K8sLabelMgr) PrepareK8sLabel() error {
 		return errors.New("the nodeName contains illegal characters")
 	}
 
-	_, err = common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "label", "node", nodeName,
+	_, err = envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "label", "node", nodeName,
 		"--overwrite", K8sLabelSet)
 	if err != nil {
 		hwlog.RunLog.Errorf("set mef label failed: %s", err.Error())
@@ -89,7 +90,7 @@ func (klm *K8sLabelMgr) CheckK8sLabel() (bool, error) {
 		return false, errors.New("the nodeName contains illegal characters")
 	}
 
-	ret, err := common.RunCommand(CommandKubectl, true, common.DefCmdTimeoutSec, "get", "nodes", "-o", "wide", "-l",
+	ret, err := envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "get", "nodes", "-o", "wide", "-l",
 		K8sLabel)
 	if err != nil {
 		hwlog.RunLog.Errorf("check k8s label existence failed: %s", err.Error())

@@ -14,8 +14,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"syscall"
 
+	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/rand"
 	"huawei.com/mindx/common/utils"
@@ -175,7 +175,7 @@ func CopyDir(srcPath string, dstPath string, includeDir bool) error {
 		srcPath = srcPath + "/."
 	}
 
-	if _, err := RunCommand(CommandCopy, true, DefCmdTimeoutSec, "-r", srcPath, dstPath); err != nil {
+	if _, err := envutils.RunCommand(CommandCopy, envutils.DefCmdTimeoutSec, "-r", srcPath, dstPath); err != nil {
 		return err
 	}
 	return nil
@@ -194,40 +194,6 @@ func RenameFile(oldPath, newPath string) error {
 // CreateSoftLink creates a softLink to dstPath on srcPath.
 func CreateSoftLink(dstPath, srcPath string) error {
 	return os.Symlink(dstPath, srcPath)
-}
-
-// GetDiskFree is used to get the free disk space of a path
-func GetDiskFree(path string) (uint64, error) {
-	fileStat := syscall.Statfs_t{}
-	err := syscall.Statfs(path, &fileStat)
-	if err != nil {
-		return 0, err
-	}
-	diskFree := fileStat.Bavail * uint64(fileStat.Bsize)
-	return diskFree, nil
-}
-
-// GetFileSystem is used to get the file system of a path
-// ret equals the type_t definition in linux statfs struct
-func GetFileSystem(path string) (int64, error) {
-	fileStat := syscall.Statfs_t{}
-	err := syscall.Statfs(path, &fileStat)
-	if err != nil {
-		return 0, fmt.Errorf("get [%s]'s file system failed: %s", path, err.Error())
-	}
-
-	return fileStat.Type, nil
-}
-
-// GetFileDevNum is used to get the dev info of a path
-func GetFileDevNum(path string) (uint64, error) {
-	fileStat := syscall.Stat_t{}
-	err := syscall.Stat(path, &fileStat)
-	if err != nil {
-		return 0, fmt.Errorf("get [%s]'s file dev info failed: %s", path, err.Error())
-	}
-
-	return fileStat.Dev, nil
 }
 
 // ExtraUpgradeZipFile extract zip file
@@ -443,42 +409,6 @@ func copyTarFile(extractPath string, header *tar.Header, tarReader *tar.Reader, 
 		return fmt.Errorf("do not support the type of [%c]", header.Typeflag)
 	}
 	return nil
-}
-
-// SetPathPermission set permission for path or file
-func SetPathPermission(path string, mode os.FileMode, recursive, ignoreFile bool) error {
-	if err := setOneMode(path, mode); err != nil {
-		return err
-	}
-
-	if !recursive || utils.IsFile(path) {
-		return nil
-	}
-
-	return setWalkPathMode(path, mode, ignoreFile)
-}
-
-func setOneMode(path string, mode os.FileMode) error {
-	if _, err := utils.CheckPath(path); err != nil {
-		return fmt.Errorf("check path [%s] failed, error: %s", path, err.Error())
-	}
-
-	if err := os.Chmod(path, mode); err != nil {
-		return fmt.Errorf("set path [%s] mode failed, error: %s", path, err.Error())
-	}
-	return nil
-}
-
-func setWalkPathMode(path string, mode os.FileMode, ignoreFile bool) error {
-	return filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return fmt.Errorf("walk path [%s] failed, error: %s", path, err.Error())
-		}
-		if ignoreFile && !info.IsDir() {
-			return nil
-		}
-		return setOneMode(path, mode)
-	})
 }
 
 // IsSoftLink is the func to check if a path is soft link

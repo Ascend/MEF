@@ -9,10 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
-
-	"huawei.com/mindxedge/base/common"
 )
 
 // DockerDealer is a struct to handle docker images
@@ -57,7 +56,7 @@ func (dd *DockerDealer) LoadImage(buildPath string) error {
 	// imageName is fixed name.
 	// tag is read from file or filename, the verification will be added in setVersion.
 	// absPath has been verified
-	if _, err = common.RunCommand(CommandDocker, true, common.DefCmdTimeoutSec, "build", "--build-arg",
+	if _, err = envutils.RunCommand(CommandDocker, envutils.DefCmdTimeoutSec, "build", "--build-arg",
 		uidArg, "--build-arg", gidArg, "-t", dd.imageName+":"+dd.tag, absPath+"/."); err != nil {
 		hwlog.RunLog.Errorf("load docker image [%s] failed:%s", dd.imageName, err.Error())
 		return errors.New("load docker image failed")
@@ -74,8 +73,9 @@ func (dd *DockerDealer) SaveImage(savePath string) error {
 	}
 
 	savePath = path.Join(savePath, imageTarName)
-	cmdStr := fmt.Sprintf("docker save %s:%s > %s", dd.imageName, dd.tag, savePath)
-	if _, err = common.RunCommand("sh", false, common.DefCmdTimeoutSec, "-c", cmdStr); err != nil {
+	fullImage := fmt.Sprintf("%s:%s", dd.imageName, dd.tag)
+	if _, err = envutils.RunCommand(CommandDocker, envutils.DefCmdTimeoutSec, "save", fullImage,
+		"-o", savePath); err != nil {
 		hwlog.RunLog.Errorf("save docker image [%s:%s] failed:%s", dd.imageName, dd.tag, err.Error())
 		return errors.New("save docker image failed")
 	}
@@ -95,7 +95,7 @@ func (dd *DockerDealer) getImageTarName() (string, error) {
 }
 
 func (dd *DockerDealer) checkImageExist() (bool, error) {
-	ret, err := common.RunCommand(CommandDocker, true, common.DefCmdTimeoutSec, "image", "ls", dd.imageName+":"+dd.tag)
+	ret, err := envutils.RunCommand(CommandDocker, envutils.DefCmdTimeoutSec, "image", "ls", dd.imageName+":"+dd.tag)
 	if err != nil {
 		hwlog.RunLog.Errorf("check %s's docker image command exec failed: %s", dd.imageName, err.Error())
 		return false, fmt.Errorf("check %s's docker image command exec failed", dd.imageName)
@@ -120,8 +120,7 @@ func (dd *DockerDealer) DeleteImage() error {
 		return nil
 	}
 
-	_, err = common.RunCommand(CommandDocker, true, common.DefCmdTimeoutSec,
-		"rmi", dd.imageName+":"+dd.tag)
+	_, err = envutils.RunCommand(CommandDocker, envutils.DefCmdTimeoutSec, "rmi", dd.imageName+":"+dd.tag)
 	if err != nil {
 		hwlog.RunLog.Errorf("delete %s's docker image command exec failed: %s", dd.imageName, err.Error())
 		return fmt.Errorf("delete %s's docker image command exec failed", dd.imageName)
@@ -138,7 +137,7 @@ func (dd *DockerDealer) ReloadImage(imageDirPath string) error {
 	}
 
 	imagePath := filepath.Join(imageDirPath, imageName)
-	_, err = common.RunCommand(CommandDocker, true, common.DefCmdTimeoutSec, "load", "-i", imagePath)
+	_, err = envutils.RunCommand(CommandDocker, envutils.DefCmdTimeoutSec, "load", "-i", imagePath)
 	if err != nil {
 		return fmt.Errorf("reload docker image %s failed: %s", imagePath, err.Error())
 	}
