@@ -3,7 +3,7 @@ module cert-manager
 go 1.16
 
 require (
-	github.com/gin-gonic/gin v1.9.0
+	github.com/gin-gonic/gin v1.9.1
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	huawei.com/mindx/common/checker v0.0.2
 	huawei.com/mindx/common/hwlog v0.10.5

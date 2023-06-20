@@ -3,7 +3,7 @@ module software-manager
 go 1.16
 
 require (
-	github.com/gin-gonic/gin v1.9.0
+	github.com/gin-gonic/gin v1.9.1
 	gorm.io/gorm v1.22.3
 	huawei.com/mindx/common/hwlog v0.10.5
 	huawei.com/mindx/common/utils v0.1.5
