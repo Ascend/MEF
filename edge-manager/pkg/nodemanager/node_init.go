@@ -149,13 +149,13 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodPost, filepath.Join(nodeGroupRootPath, "node/batch-delete")): deleteNodeFromGroup,
 	common.Combine(http.MethodPost, filepath.Join(nodeGroupRootPath, "pod/batch-delete")):  batchDeleteNodeRelation,
 
+	common.Combine(common.OptReport, common.ResSoftwareInfo): updateNodeSoftwareInfo,
 	common.Combine(common.Inner, common.Node):                innerGetNodeInfoByUniqueName,
 	common.Combine(common.Inner, common.NodeGroup):           innerGetNodeGroupInfosByIds,
 	common.Combine(common.Inner, common.NodeSoftwareInfo):    innerGetNodeSoftwareInfo,
 	common.Combine(common.Inner, common.NodeStatus):          innerGetNodeStatus,
 	common.Combine(common.Inner, common.CheckResource):       innerCheckNodeGroupResReq,
 	common.Combine(common.Inner, common.UpdateResource):      innerUpdateNodeGroupResReq,
-	common.Combine(common.OptReport, common.ResSoftwareInfo): updateNodeSoftwareInfo,
 	common.Combine(common.Inner, common.NodeList):            innerAllNodeInfos,
 	common.Combine(common.Inner, common.NodeID):              innerGetNodesByNodeGroupID,
 }

@@ -17,7 +17,7 @@ import (
 	"huawei.com/mindxedge/base/common"
 )
 
-func TestCreateGroup(t *testing.T) {
+func TestCreateNodeGroup(t *testing.T) {
 	convey.Convey("createNodeGroup should be success", t, testCreateNodeGroup)
 	convey.Convey("createNodeGroup should be failed, input error", t, testCreateNodeGroupErrInput)
 	convey.Convey("createNodeGroup should be failed, param error", t, testCreateNodeGroupErrParam)
@@ -329,7 +329,7 @@ func testBatchDeleteNodeGroupErr() {
 	})
 }
 
-func TestListEdgeNodeGroup(t *testing.T) {
+func TestListNodeGroup(t *testing.T) {
 	convey.Convey("listNodeGroup should be success", t, testListNodeGroup)
 	convey.Convey("listNodeGroup should be failed, input error", t, testListNodeGroupErrInput)
 	convey.Convey("listNodeGroup should be failed, param error", t, testListNodeGroupErrParam)
@@ -350,8 +350,7 @@ func testListNodeGroupErrInput() {
 }
 
 func testListNodeGroupErrParam() {
-	const errorPageSize = 200
-	args := types.ListReq{PageNum: 1, PageSize: errorPageSize}
+	args := types.ListReq{PageNum: 1, PageSize: errPageSize}
 	resp := listNodeGroup(args)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 }
@@ -540,6 +539,76 @@ func testDeleteNodeFromGroupErr() {
 	convey.Convey("group id is not exist", func() {
 		args := `{"groupID": 1, "nodeIDs": [100]}`
 		resp := deleteNodeFromGroup(args)
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorDeleteNodeFromGroup)
+	})
+}
+
+func TestBatchDeleteNodeRelation(t *testing.T) {
+	convey.Convey("batchDeleteNodeRelation should be success", t, testBatchDeleteNodeRelation)
+	convey.Convey("batchDeleteNodeRelation should be failed", t, testBatchDeleteNodeRelationErr)
+}
+
+func testBatchDeleteNodeRelation() {
+	node := &NodeInfo{
+		Description:  "test-batch-delete-relation-1-description",
+		NodeName:     "test-batch-delete-relation-1-name",
+		UniqueName:   "test-batch-delete-relation-1-unique-name",
+		SerialNumber: "test-batch-delete-relation-1-serial-number",
+		IP:           "0.0.0.0",
+		IsManaged:    true,
+		CreatedAt:    time.Now().Format(TimeFormat),
+		UpdatedAt:    time.Now().Format(TimeFormat),
+	}
+	group := &NodeGroup{
+		Description: "test-batch-delete-relation-1-description",
+		GroupName:   "test_batch_delete_relation_1_name",
+		CreatedAt:   time.Now().Format(TimeFormat),
+		UpdatedAt:   time.Now().Format(TimeFormat),
+	}
+	resNode := env.createNode(node)
+	convey.So(resNode, convey.ShouldBeNil)
+	resGroup := env.createGroup(group)
+	convey.So(resGroup, convey.ShouldBeNil)
+	relation := &NodeRelation{
+		NodeID:    node.ID,
+		GroupID:   group.ID,
+		CreatedAt: time.Now().Format(TimeFormat),
+	}
+	resRelation := env.createRelation(relation)
+	convey.So(resRelation, convey.ShouldBeNil)
+
+	args := fmt.Sprintf(`[
+            {
+                "nodeID": %d,
+                "groupID": %d
+            }]`, node.ID, group.ID)
+	resp := batchDeleteNodeRelation(args)
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
+	verifyRes := env.verifyDbNodeRelation(relation)
+	convey.So(verifyRes, convey.ShouldEqual, gorm.ErrRecordNotFound)
+}
+
+func testBatchDeleteNodeRelationErr() {
+	convey.Convey("input error", func() {
+		resp := batchDeleteNodeRelation(``)
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
+	})
+
+	convey.Convey("nodeID is not exist", func() {
+		args := `[{"groupID": 1}]`
+		resp := batchDeleteNodeRelation(args)
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
+	})
+
+	convey.Convey("duplicate relations", func() {
+		args := `[{"groupID":1, "nodeID":2},{"nodeID":2,"groupID":1}]`
+		resp := batchDeleteNodeRelation(args)
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
+	})
+
+	convey.Convey("delete error", func() {
+		args := `[{"groupID":1, "nodeID":2}]`
+		resp := batchDeleteNodeRelation(args)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorDeleteNodeFromGroup)
 	})
 }
