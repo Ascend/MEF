@@ -27,6 +27,8 @@ const (
 	InnerName = "inner_cert"
 	// WsSerName websocket server cert name
 	WsSerName = "hub_svr"
+	// WsSerSerName websocket server cert CN
+	WsSerSerName = "hub_srv_server"
 	// WsCltName websocket client cert name
 	WsCltName = "hub_client"
 	// SoftwareCertName software manager cert name
@@ -35,6 +37,8 @@ const (
 	ImageCertName = "image"
 	// NginxCertName nginx apig cert name
 	NginxCertName = "apig"
+	// NginxCertSerName nginx apig cert CN
+	NginxCertSerName = "apig_server"
 	// NorthernCertName dir for northbound cert and crl
 	NorthernCertName = "north"
 )
