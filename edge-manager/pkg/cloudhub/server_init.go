@@ -124,7 +124,7 @@ func getWsSvcCert(keyPath string) (string, error) {
 		return "", err
 	}
 	san.IpAddr = ips
-	csr, err := certutils.CreateCsr(keyPath, common.WsSerName, nil, san)
+	csr, err := certutils.CreateCsr(keyPath, common.WsSerSerName, nil, san)
 	if err != nil {
 		hwlog.RunLog.Errorf("create websocket service cert csr failed: %v", err)
 		return "", err

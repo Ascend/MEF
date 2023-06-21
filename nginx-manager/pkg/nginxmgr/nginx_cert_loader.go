@@ -46,7 +46,7 @@ func getServerCert(keyPath string) (string, error) {
 		return "", err
 	}
 	san := certutils.CertSan{IpAddr: ips}
-	csr, err := certutils.CreateCsr(keyPath, common.NginxCertName, nil, san)
+	csr, err := certutils.CreateCsr(keyPath, common.NginxCertSerName, nil, san)
 	if err != nil {
 		hwlog.RunLog.Errorf("create nginx service cert csr failed: %s", err.Error())
 		return "", err
