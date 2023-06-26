@@ -10,10 +10,10 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/x509/certutils"
-
-	"edge-manager/pkg/util"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/httpsmgr"
+
+	"edge-manager/pkg/util"
 )
 
 func queryCertInfo(certName string) (certutils.ClientCertResp, error) {
@@ -28,7 +28,7 @@ func queryCertInfo(certName string) (certutils.ClientCertResp, error) {
 	}
 	rootCaRes, err := reqCertParams.GetRootCa(certName)
 	if err != nil {
-		hwlog.RunLog.Errorf("query cert content from cert-manager failed, error: %v", err)
+		hwlog.RunLog.Errorf("query %s cert content from cert-manager failed, error: %v", certName, err)
 		return res, errors.New("query cert content from cert-manager failed")
 	}
 

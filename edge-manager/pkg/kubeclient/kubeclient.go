@@ -13,6 +13,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/k8stool"
 	"huawei.com/mindx/common/utils"
+	"huawei.com/mindx/common/x509"
 	appv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -245,7 +246,8 @@ func (ki *Client) GetCloudCoreCa() ([]byte, error) {
 		return nil, err
 	}
 
-	if _, ok := caSecret.Data[caDataName]; !ok {
+	caData, ok := caSecret.Data[caDataName]
+	if !ok {
 		return nil, errors.New("cloud ca data not exist")
 	}
 
@@ -255,7 +257,11 @@ func (ki *Client) GetCloudCoreCa() ([]byte, error) {
 
 	utils.ClearSliceByteMemory(caSecret.Data[caKeyDataName])
 
-	return caSecret.Data[caDataName], nil
+	if err = x509.CheckDerCertChain(caData); err != nil {
+		return nil, fmt.Errorf("parse cloudcore cert failed: %s", err.Error())
+	}
+
+	return caData, nil
 }
 
 // CreateOrUpdateSecret [method] for updating secret or creating secret if it is not exist
