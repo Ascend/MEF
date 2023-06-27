@@ -94,7 +94,7 @@ func getNodeGroupDetail(input interface{}) common.RespMsg {
 	id, ok := input.(uint64)
 	if !ok {
 		hwlog.RunLog.Error("get node group detail convert request error")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "conver node detail input failed"}
+		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "convert node detail input failed"}
 	}
 	if checkResult := idChecker("").Check(id); !checkResult.Result {
 		hwlog.RunLog.Errorf("get node group detail para check failed: %s", checkResult.Reason)
@@ -216,7 +216,7 @@ func deleteSingleGroup(groupID uint64) error {
 	if err != nil {
 		return fmt.Errorf("get relations between node and node group by group id %d failed", groupID)
 	}
-	if err := NodeServiceInstance().deleteNodeGroup(groupID, relations); err != nil {
+	if err = NodeServiceInstance().deleteNodeGroup(groupID, relations); err != nil {
 		return err
 	}
 	return nil

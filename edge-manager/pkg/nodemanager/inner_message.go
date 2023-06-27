@@ -42,7 +42,7 @@ func innerGetNodeSoftwareInfo(input interface{}) common.RespMsg {
 	}
 	nodeInfo, err := NodeServiceInstance().getNodeInfoBySerialNumber(req.SerialNumber)
 	if err != nil {
-		hwlog.RunLog.Errorf("get node info by unique name [%s] failed:%v", req.SerialNumber, err)
+		hwlog.RunLog.Errorf("get node info by unique name [%s] failed: %v", req.SerialNumber, err)
 		return common.RespMsg{Status: "", Msg: "get node info by unique name failed", Data: nil}
 	}
 	resp := types.InnerSoftwareInfoResp{}
@@ -122,7 +122,7 @@ func checkNodeResBeforeDeployApp(req types.InnerCheckNodeResReq) error {
 		return fmt.Errorf("get node relations by group id [%d] error", req.NodeGroupID)
 	}
 	for _, nodeRelation := range *nodeRelations {
-		if err := checkNodeResource(req.ResourceReqs, nodeRelation.NodeID); err != nil {
+		if err = checkNodeResource(req.ResourceReqs, nodeRelation.NodeID); err != nil {
 			return fmt.Errorf("in group [%d], %s", req.NodeGroupID, err.Error())
 		}
 	}

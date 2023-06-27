@@ -10,10 +10,9 @@ import (
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
 
-	"huawei.com/mindxedge/base/common"
-
 	"edge-manager/pkg/database"
 	"edge-manager/pkg/kubeclient"
+	"huawei.com/mindxedge/base/common"
 )
 
 var (
