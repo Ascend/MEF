@@ -140,12 +140,12 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodPost, filepath.Join(nodeUrlRootPath, "add")):                    addUnManagedNode,
 
 	common.Combine(http.MethodPost, nodeGroupRootPath):                                     createNodeGroup,
-	common.Combine(http.MethodGet, filepath.Join(nodeGroupRootPath, "stats")):              getNodeGroupStatistics,
-	common.Combine(http.MethodGet, nodeGroupRootPath):                                      getNodeGroupDetail,
 	common.Combine(http.MethodPatch, nodeGroupRootPath):                                    modifyNodeGroup,
-	common.Combine(http.MethodPost, filepath.Join(nodeGroupRootPath, "batch-delete")):      batchDeleteNodeGroup,
+	common.Combine(http.MethodGet, nodeGroupRootPath):                                      getNodeGroupDetail,
+	common.Combine(http.MethodGet, filepath.Join(nodeGroupRootPath, "stats")):              getNodeGroupStatistics,
 	common.Combine(http.MethodGet, filepath.Join(nodeGroupRootPath, "list")):               listNodeGroup,
 	common.Combine(http.MethodPost, filepath.Join(nodeGroupRootPath, "node")):              addNodeRelation,
+	common.Combine(http.MethodPost, filepath.Join(nodeGroupRootPath, "batch-delete")):      batchDeleteNodeGroup,
 	common.Combine(http.MethodPost, filepath.Join(nodeGroupRootPath, "node/batch-delete")): deleteNodeFromGroup,
 	common.Combine(http.MethodPost, filepath.Join(nodeGroupRootPath, "pod/batch-delete")):  batchDeleteNodeRelation,
 

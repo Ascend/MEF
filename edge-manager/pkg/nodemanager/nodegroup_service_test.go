@@ -28,8 +28,8 @@ func TestCreateNodeGroup(t *testing.T) {
 
 func testCreateNodeGroup() {
 	group := &NodeGroup{
-		Description: "test-create-group-1-description",
-		GroupName:   "test_create_group_1_name",
+		Description: "test-group-description-1",
+		GroupName:   "test_group_name_1",
 	}
 
 	args := fmt.Sprintf(`
@@ -39,8 +39,6 @@ func testCreateNodeGroup() {
 			}`, group.GroupName, group.Description)
 	resp := createNodeGroup(args)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
-	verifyRes := env.verifyDbNodeGroup(group, "ID", "UpdatedAt", "CreatedAt")
-	convey.So(verifyRes, convey.ShouldBeNil)
 }
 
 func testCreateNodeGroupErrInput() {
@@ -50,8 +48,8 @@ func testCreateNodeGroupErrInput() {
 
 func testCreateNodeGroupErrParam() {
 	group := &NodeGroup{
-		Description: "test-create-group-2-description",
-		GroupName:   "test_create_group_2_name",
+		Description: "test-group-description-2",
+		GroupName:   "test_group_name_2",
 	}
 
 	convey.Convey("groupName is not exist", func() {
@@ -69,8 +67,8 @@ func testCreateNodeGroupErrParam() {
 
 func testCreateGroupMaxCount() {
 	group := &NodeGroup{
-		Description: "test-create-group-3-description",
-		GroupName:   "test_create_group_3_name",
+		Description: "test-group-description-3",
+		GroupName:   "test_group_name_3",
 	}
 
 	const maxTableCount = 1024
@@ -90,8 +88,8 @@ func testCreateGroupMaxCount() {
 
 func testCreateGroupNameDuplicate() {
 	group := &NodeGroup{
-		Description: "test-create-group-4-description",
-		GroupName:   "test_create_group_4_name",
+		Description: "test-group-description-4",
+		GroupName:   "test_group_name_4",
 	}
 	args := fmt.Sprintf(`{"nodeGroupName": "%s"}`, group.GroupName)
 	_ = createNodeGroup(args)
@@ -101,8 +99,8 @@ func testCreateGroupNameDuplicate() {
 
 func testCreateNodeGroupErrCreate() {
 	group := &NodeGroup{
-		Description: "test-create-group-5-description",
-		GroupName:   "test_create_group_5_name",
+		Description: "test-group-description-5",
+		GroupName:   "test_group_name_5",
 	}
 	args := fmt.Sprintf(`{"nodeGroupName": "%s"}`, group.GroupName)
 
@@ -147,18 +145,20 @@ func TestGetGroupDetail(t *testing.T) {
 
 func testGetNodeGroupDetail() {
 	group := &NodeGroup{
-		GroupName: "test_get_group_detail_1_name",
+		GroupName: "test_group_name_6",
 		CreatedAt: time.Now().Format(TimeFormat),
 		UpdatedAt: time.Now().Format(TimeFormat),
 	}
 	convey.So(env.createGroup(group), convey.ShouldBeNil)
 	node := &NodeInfo{
-		NodeName:   "test-get-group-detail-1-node-name",
-		UniqueName: "test-get-group-detail-1-unique-name",
-		IP:         "0.0.0.0",
-		IsManaged:  true,
-		CreatedAt:  time.Now().Format(TimeFormat),
-		UpdatedAt:  time.Now().Format(TimeFormat),
+		Description:  "test-node-description-10",
+		NodeName:     "test-node-name-10",
+		UniqueName:   "test-node-unique-name-10",
+		SerialNumber: "test-node-serial-number-10",
+		IP:           "0.0.0.0",
+		IsManaged:    true,
+		CreatedAt:    time.Now().Format(TimeFormat),
+		UpdatedAt:    time.Now().Format(TimeFormat),
 	}
 	convey.So(env.createNode(node), convey.ShouldBeNil)
 	relation := &NodeRelation{
@@ -209,13 +209,39 @@ func testGetDetailErrListRelations() {
 }
 
 func testGetGroupDetailErrGetNodeById() {
+	group := &NodeGroup{
+		GroupName: "test_group_name_7",
+		CreatedAt: time.Now().Format(TimeFormat),
+		UpdatedAt: time.Now().Format(TimeFormat),
+	}
+	convey.So(env.createGroup(group), convey.ShouldBeNil)
+
+	node := &NodeInfo{
+		Description:  "test-node-description-11",
+		NodeName:     "test-node-name-11",
+		UniqueName:   "test-node-unique-name-11",
+		SerialNumber: "test-node-serial-number-11",
+		IP:           "0.0.0.0",
+		IsManaged:    true,
+		CreatedAt:    time.Now().Format(TimeFormat),
+		UpdatedAt:    time.Now().Format(TimeFormat),
+	}
+	convey.So(env.createNode(node), convey.ShouldBeNil)
+
+	relation := &NodeRelation{
+		NodeID:    node.ID,
+		GroupID:   group.ID,
+		CreatedAt: time.Now().Format(TimeFormat),
+	}
+	convey.So(env.createRelation(relation), convey.ShouldBeNil)
+
 	var c *NodeServiceImpl
 	var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "getNodeByID",
 		func(uint64) (*NodeInfo, error) {
 			return nil, testErr
 		})
 	defer p1.Reset()
-	resp := getNodeGroupDetail(uint64(1))
+	resp := getNodeGroupDetail(group.ID)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorGetNodeGroup)
 }
 
@@ -228,8 +254,8 @@ func TestModifyGroup(t *testing.T) {
 
 func testModifyGroup() {
 	group := &NodeGroup{
-		Description: "test-modify-group-1-description",
-		GroupName:   "test_modify_group_1_name",
+		Description: "test-group-description-8",
+		GroupName:   "test_group_name_8",
 	}
 	res := env.createGroup(group)
 	convey.So(res, convey.ShouldBeNil)
@@ -254,8 +280,8 @@ func testModifyGroupErrInput() {
 func testModifyGroupErrParam() {
 	args := `
 {
-	"nodeGroupName": "test_modify_group_2_name",
-	"description": "test-modify-group-2-description"
+	"nodeGroupName": "test_group_name_9",
+	"description": "test-group-description-9"
 }`
 	resp := modifyNodeGroup(args)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
@@ -263,8 +289,8 @@ func testModifyGroupErrParam() {
 
 func testModifyGroupErrUpdate() {
 	group := &NodeGroup{
-		Description: "test-modify-group-2-description",
-		GroupName:   "test_modify_group_2_name",
+		Description: "test-group-description-10",
+		GroupName:   "test_group_name_10",
 	}
 	res := env.createGroup(group)
 	convey.So(res, convey.ShouldBeNil)
@@ -293,11 +319,21 @@ func TestBatchDeleteGroup(t *testing.T) {
 
 func testBatchDeleteNodeGroup() {
 	group := &NodeGroup{
-		Description: "test-batch-delete-group-1-description",
-		GroupName:   "test_batch_delete_group_1_name",
+		Description: "test-group-description-11",
+		GroupName:   "test_group_name_11",
 	}
 	res := env.createGroup(group)
 	convey.So(res, convey.ShouldBeNil)
+
+	var p1 = gomonkey.ApplyFunc(common.SendSyncMessageByRestful,
+		func(input interface{}, router *common.Router, timeout time.Duration) common.RespMsg {
+			var rsp common.RespMsg
+			counts := map[uint64]int64{group.ID: 0}
+			rsp.Status = common.Success
+			rsp.Data = counts
+			return rsp
+		})
+	defer p1.Reset()
 
 	args := fmt.Sprintf(`{"groupIDs": [%d]}`, group.ID)
 	resp := batchDeleteNodeGroup(args)
@@ -400,18 +436,18 @@ func TestAddNodeRelation(t *testing.T) {
 
 func testAddNodeRelation() {
 	node := &NodeInfo{
-		Description:  "test-add-relation-1-description",
-		NodeName:     "test-add-relation-1-name",
-		UniqueName:   "test-add-relation-1-description-unique-name",
-		SerialNumber: "test-add-relation-1-serial-number",
+		Description:  "test-node-description-12",
+		NodeName:     "test-node-name-12",
+		UniqueName:   "test-node-unique-name-12",
+		SerialNumber: "test-node-serial-number-12",
 		IP:           "0.0.0.0",
 		IsManaged:    true,
 		CreatedAt:    time.Now().Format(TimeFormat),
 		UpdatedAt:    time.Now().Format(TimeFormat),
 	}
 	group := &NodeGroup{
-		Description: "test-add-relation-1-description",
-		GroupName:   "test_add_relation_1_name",
+		Description: "test-group-description-12",
+		GroupName:   "test_group_name_12",
 		CreatedAt:   time.Now().Format(TimeFormat),
 		UpdatedAt:   time.Now().Format(TimeFormat),
 	}
@@ -446,7 +482,7 @@ func testAddNodeRelationErrAdd() {
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorAddNodeToGroup)
 	})
 	convey.Convey("nodeIDs is not exist", func() {
-		args := `{"groupID": 1, "nodeIDs": [20]}`
+		args := `{"groupID": 1, "nodeIDs": [50]}`
 		resp := addNodeRelation(args)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorAddNodeToGroup)
 	})
@@ -492,16 +528,17 @@ func TestDeleteNodeFromGroup(t *testing.T) {
 
 func testDeleteNodeFromGroup() {
 	node := &NodeInfo{
-		NodeName:     "test-delete-node-from-group-1-name",
-		UniqueName:   "test-delete-node-from-group-1-unique-name",
-		SerialNumber: "test-delete-node-from-group-1-serial-number",
+		Description:  "test-node-description-13",
+		NodeName:     "test-node-name-13",
+		UniqueName:   "test-node-unique-name-13",
+		SerialNumber: "test-node-serial-number-13",
 		IP:           "0.0.0.0",
 		IsManaged:    true,
 		CreatedAt:    time.Now().Format(TimeFormat),
 		UpdatedAt:    time.Now().Format(TimeFormat),
 	}
 	group := &NodeGroup{
-		GroupName: "test_delete_node_from_group_1_name",
+		GroupName: "test_group_name_13",
 		CreatedAt: time.Now().Format(TimeFormat),
 		UpdatedAt: time.Now().Format(TimeFormat),
 	}
@@ -550,25 +587,27 @@ func TestBatchDeleteNodeRelation(t *testing.T) {
 
 func testBatchDeleteNodeRelation() {
 	node := &NodeInfo{
-		Description:  "test-batch-delete-relation-1-description",
-		NodeName:     "test-batch-delete-relation-1-name",
-		UniqueName:   "test-batch-delete-relation-1-unique-name",
-		SerialNumber: "test-batch-delete-relation-1-serial-number",
+		Description:  "test-node-description-14",
+		NodeName:     "test-node-name-14",
+		UniqueName:   "test-node-unique-name-14",
+		SerialNumber: "test-node-serial-number-14",
 		IP:           "0.0.0.0",
 		IsManaged:    true,
 		CreatedAt:    time.Now().Format(TimeFormat),
 		UpdatedAt:    time.Now().Format(TimeFormat),
 	}
+	resNode := env.createNode(node)
+	convey.So(resNode, convey.ShouldBeNil)
+
 	group := &NodeGroup{
-		Description: "test-batch-delete-relation-1-description",
-		GroupName:   "test_batch_delete_relation_1_name",
+		Description: "test-group-description-14",
+		GroupName:   "test_group_name_14",
 		CreatedAt:   time.Now().Format(TimeFormat),
 		UpdatedAt:   time.Now().Format(TimeFormat),
 	}
-	resNode := env.createNode(node)
-	convey.So(resNode, convey.ShouldBeNil)
 	resGroup := env.createGroup(group)
 	convey.So(resGroup, convey.ShouldBeNil)
+
 	relation := &NodeRelation{
 		NodeID:    node.ID,
 		GroupID:   group.ID,

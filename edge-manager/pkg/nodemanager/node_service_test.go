@@ -4,6 +4,7 @@
 package nodemanager
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -90,8 +91,7 @@ func (e *environment) setupGoMonkeyPatches(db *gorm.DB) *gomonkey.Patches {
 		ApplyFuncReturn(kubeclient.GetKubeClient, client).
 		ApplyPrivateMethod(client, "patchNode", e.mockPatchNode).
 		ApplyMethodReturn(client, "ListNode", &v1.NodeList{}, nil).
-		ApplyMethodReturn(client, "DeleteNode", nil).
-		ApplyFuncReturn(getAppInstanceCountByGroupId, int64(0), nil)
+		ApplyMethodReturn(client, "DeleteNode", nil)
 }
 
 func (e *environment) mockPatchNode(string, []map[string]interface{}) (*v1.Node, error) {
@@ -290,10 +290,10 @@ func TestGetNodeDetail(t *testing.T) {
 
 func testGetNodeDetail() {
 	node := &NodeInfo{
-		Description:  "test-get-node-detail-1-description",
-		NodeName:     "test-get-node-detail-1-name",
-		UniqueName:   "test-get-node-detail-1-unique-name",
-		SerialNumber: "test-get-node-detail-1-serial-number",
+		Description:  "test-node-description-1",
+		NodeName:     "test-node-name-1",
+		UniqueName:   "test-node-unique-name-1",
+		SerialNumber: "test-node-serial-number-1",
 		IP:           "0.0.0.0",
 		CreatedAt:    time.Now().Format(TimeFormat),
 		UpdatedAt:    time.Now().Format(TimeFormat),
@@ -355,10 +355,10 @@ func TestModifyNode(t *testing.T) {
 
 func testModifyNode() {
 	node := &NodeInfo{
-		Description:  "test-modify-node-1-description",
-		NodeName:     "test-modify-node-1-name",
-		UniqueName:   "test-modify-node-1-unique-name",
-		SerialNumber: "test-modify-node-1-serial-number",
+		Description:  "test-node-description-2",
+		NodeName:     "test-node-name-2",
+		UniqueName:   "test-node-unique-name-2",
+		SerialNumber: "test-node-serial-number-2",
 		IsManaged:    true,
 		IP:           "0.0.0.0",
 		CreatedAt:    time.Now().Format(TimeFormat),
@@ -385,10 +385,10 @@ func testModifyNode() {
 
 func testModifyNodeErr() {
 	node := &NodeInfo{
-		Description:  "test-modify-node-2-#{random}-description",
-		NodeName:     "test-modify-node-2-#{random}-name",
-		UniqueName:   "test-modify-node-2-#{random}-unique-name",
-		SerialNumber: "test-modify-node-2-#{random}-serial-number",
+		Description:  "test-node-description-3-#{random}",
+		NodeName:     "test-node-name-3-#{random}",
+		UniqueName:   "test-node-unique-name-3-#{random}",
+		SerialNumber: "test-node-serial-number-3-#{random}",
 		IP:           "0.0.0.0",
 		IsManaged:    true,
 		CreatedAt:    time.Now().Format(TimeFormat),
@@ -483,23 +483,24 @@ func TestAddUnManagedNode(t *testing.T) {
 
 func testAddUnManagedNode() {
 	node := &NodeInfo{
-		Description:  "test-add-node-1-description",
-		NodeName:     "test-add-node-1-name",
-		UniqueName:   "test-add-node-1-unique-name",
-		SerialNumber: "test-add-node-1-serial-number",
+		Description:  "test-node-description-4",
+		NodeName:     "test-node-name-4",
+		UniqueName:   "test-node-unique-name-4",
+		SerialNumber: "test-node-serial-number-4",
 		IP:           "0.0.0.0",
 		IsManaged:    false,
 		CreatedAt:    time.Now().Format(TimeFormat),
 		UpdatedAt:    time.Now().Format(TimeFormat),
 	}
+	resNode := env.createNode(node)
+	convey.So(resNode, convey.ShouldBeNil)
+
 	group := &NodeGroup{
-		Description: "test-add-1-description",
-		GroupName:   "test_add_1_name",
+		Description: "test-group-description-17",
+		GroupName:   "test_group_name_17",
 		CreatedAt:   time.Now().Format(TimeFormat),
 		UpdatedAt:   time.Now().Format(TimeFormat),
 	}
-	resNode := env.createNode(node)
-	convey.So(resNode, convey.ShouldBeNil)
 	resGroup := env.createGroup(group)
 	convey.So(resGroup, convey.ShouldBeNil)
 
@@ -521,10 +522,10 @@ func testAddUnManagedNode() {
 
 func testAddUnManagedNodeErr() {
 	node := &NodeInfo{
-		Description:  "test-add-#{random}-description",
-		NodeName:     "test-add-#{random}-name",
-		UniqueName:   "test-add-#{random}-unique-name",
-		SerialNumber: "test-add-#{random}-serial-umber",
+		Description:  "test-node-description-5-#{random}",
+		NodeName:     "test-node-name-5-#{random}",
+		UniqueName:   "test-node-unique-name-5-#{random}",
+		SerialNumber: "test-node-serial-number-5-#{random}",
 		IP:           "0.0.0.0",
 		IsManaged:    false,
 		CreatedAt:    time.Now().Format(TimeFormat),
@@ -733,10 +734,10 @@ func TestBatchDeleteNode(t *testing.T) {
 
 func testBatchDeleteNode() {
 	node := &NodeInfo{
-		Description:  "test-batch-delete-node-1-description",
-		NodeName:     "test-batch-delete-node-1-name",
-		UniqueName:   "test-batch-delete-node-1-unique-name",
-		SerialNumber: "test-batch-delete-node-1-serial-number",
+		Description:  "test-node-description-6",
+		NodeName:     "test-node-name-6",
+		UniqueName:   "test-node-unique-name-6",
+		SerialNumber: "test-node-serial-number-6",
 		IP:           "0.0.0.0",
 		IsManaged:    true,
 		CreatedAt:    time.Now().Format(TimeFormat),
@@ -781,10 +782,10 @@ func TestDeleteUnManagedNode(t *testing.T) {
 
 func testDeleteUnManagedNode() {
 	node := &NodeInfo{
-		Description:  "test-delete-unmanaged-node-1-description",
-		NodeName:     "test-delete-unmanaged-node-1-name",
-		UniqueName:   "test-delete-unmanaged-node-1-unique-name",
-		SerialNumber: "test-delete-unmanaged-node-1-serial-number",
+		Description:  "test-node-description-7",
+		NodeName:     "test-node-name-7",
+		UniqueName:   "test-node-unique-name-7",
+		SerialNumber: "test-node-serial-number-7",
 		IP:           "0.0.0.0",
 		IsManaged:    false,
 		CreatedAt:    time.Now().Format(TimeFormat),
@@ -822,139 +823,118 @@ func testDeleteUnManagedNodeErr() {
 	})
 }
 
-func TestInnerGetNodeInfoByUniqueName(t *testing.T) {
-	convey.Convey("InnerGetNodeInfoByUniqueName functional test", t, func() {
-		convey.Convey("innerGetNodeInfoByUniqueName success", func() {
-			node := &NodeInfo{
-				NodeName:     "test-inner-node1",
-				UniqueName:   "test-inner-node-unique-name1",
-				SerialNumber: "test-inner-node-serial-number1",
-				IP:           "0.0.0.0",
-				IsManaged:    true,
-				CreatedAt:    time.Now().Format(TimeFormat),
-				UpdatedAt:    time.Now().Format(TimeFormat),
-			}
-			resNode := env.createNode(node)
-			convey.So(resNode, convey.ShouldBeNil)
-			input := types.InnerGetNodeInfoByNameReq{UniqueName: node.UniqueName}
-			res := innerGetNodeInfoByUniqueName(input)
-			convey.So(res.Status, convey.ShouldEqual, common.Success)
-		})
-		convey.Convey("innerGetNodeInfoByUniqueName param error", func() {
-			input := ""
-			res := innerGetNodeInfoByUniqueName(input)
-			convey.So(res.Status, convey.ShouldNotEqual, common.Success)
-		})
-	})
+func TestUpdateNodeSoftwareInfo(t *testing.T) {
+	convey.Convey("updateNodeSoftwareInfo should be success", t, testUpdateNodeSoftwareInfo)
+	convey.Convey("updateNodeSoftwareInfo should be failed", t, testUpdateNodeSoftwareInfoErr)
 }
 
-func TestInnerGetNodeStatus(t *testing.T) {
-	convey.Convey("InnerGetNodeStatus functional test", t, func() {
-		convey.Convey("innerGetNodeInfoByUniqueName success", func() {
-			node := &NodeInfo{
-				NodeName:     "test-inner-node2",
-				UniqueName:   "test-inner-node-unique-name2",
-				SerialNumber: "test-inner-node-unique-serial-number2",
-				IP:           "0.0.0.0",
-				IsManaged:    true,
-				CreatedAt:    time.Now().Format(TimeFormat),
-				UpdatedAt:    time.Now().Format(TimeFormat),
-			}
-			resNode := env.createNode(node)
-			convey.So(resNode, convey.ShouldBeNil)
-			input := types.InnerGetNodeStatusReq{UniqueName: node.UniqueName}
-			res := innerGetNodeStatus(input)
-			convey.So(res.Status, convey.ShouldEqual, common.Success)
-		})
-		convey.Convey("innerGetNodeInfoByUniqueName param error", func() {
-			input := ""
-			res := innerGetNodeStatus(input)
-			convey.So(res.Status, convey.ShouldNotEqual, common.Success)
-		})
-	})
+func testUpdateNodeSoftwareInfo() {
+	node := &NodeInfo{
+		Description:  "test-node-description-8",
+		NodeName:     "test-node-name-8",
+		UniqueName:   "test-node-unique-name-8",
+		SerialNumber: "test-node-serial-number-8",
+		IP:           "0.0.0.0",
+		IsManaged:    false,
+		CreatedAt:    time.Now().Format(TimeFormat),
+		UpdatedAt:    time.Now().Format(TimeFormat),
+	}
+	res := env.createNode(node)
+	convey.So(res, convey.ShouldBeNil)
+
+	sfwInfo := types.SoftwareInfo{
+		InactiveVersion: "v1.12",
+		Name:            "edgecore",
+		Version:         "v1.12",
+	}
+
+	req := types.EdgeReportSoftwareInfoReq{
+		SerialNumber: node.SerialNumber,
+		SoftwareInfo: []types.SoftwareInfo{sfwInfo},
+	}
+	reqByte, err := json.Marshal(req)
+	if err != nil {
+		fmt.Printf("marshal req failed, error: %v", err)
+	}
+	resp := updateNodeSoftwareInfo(string(reqByte))
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
+
+	req = types.EdgeReportSoftwareInfoReq{
+		SerialNumber: "test-update-node-software-info-2-serial-number",
+		SoftwareInfo: []types.SoftwareInfo{sfwInfo},
+	}
+	reqByte, err = json.Marshal(req)
+	if err != nil {
+		fmt.Printf("marshal req failed, error: %v", err)
+	}
+	resp = updateNodeSoftwareInfo(string(reqByte))
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
-func TestInnerGetNodeGroupInfosByIds(t *testing.T) {
-	convey.Convey("InnerGetNodeGroupInfosByIds functional test", t, func() {
-		convey.Convey("innerGetNodeInfoByUniqueName success", func() {
-			group := &NodeGroup{
-				GroupName: "test_inner_node_group_2_name",
-				CreatedAt: time.Now().Format(TimeFormat),
-				UpdatedAt: time.Now().Format(TimeFormat),
-			}
-			resGroup := env.createGroup(group)
-			convey.So(resGroup, convey.ShouldBeNil)
-			input := types.InnerGetNodeGroupInfosReq{NodeGroupIds: []uint64{group.ID}}
-			res := innerGetNodeGroupInfosByIds(input)
-			convey.So(res.Status, convey.ShouldEqual, common.Success)
-		})
-		convey.Convey("innerGetNodeInfoByUniqueName param error", func() {
-			input := types.InnerGetNodeGroupInfosReq{NodeGroupIds: []uint64{0}}
-			res := innerGetNodeGroupInfosByIds(input)
-			convey.So(res.Status, convey.ShouldNotEqual, common.Success)
-		})
-	})
-}
+func testUpdateNodeSoftwareInfoErr() {
+	node := &NodeInfo{
+		Description:  "test-node-description-9",
+		NodeName:     "test-node-name-9",
+		UniqueName:   "test-node-unique-name-9",
+		SerialNumber: "test-node-serial-number-9",
+		IP:           "0.0.0.0",
+		IsManaged:    false,
+		CreatedAt:    time.Now().Format(TimeFormat),
+		UpdatedAt:    time.Now().Format(TimeFormat),
+	}
+	res := env.createNode(node)
+	convey.So(res, convey.ShouldBeNil)
 
-func TestInnerGetNodeSoftwareInfo(t *testing.T) {
-	convey.Convey("InnerGetNodeSoftwareInfo functional test", t, func() {
-		convey.Convey("InnerGetNodeSoftwareInfo failed", func() {
-			node := &NodeInfo{
-				NodeName:     "test-inner-node-software",
-				UniqueName:   "test-inner-node-unique-software",
-				SerialNumber: "test-inner-node-serial-number-software",
-				IP:           "0.0.0.0",
-				IsManaged:    true,
-				CreatedAt:    time.Now().Format(TimeFormat),
-				UpdatedAt:    time.Now().Format(TimeFormat),
-				SoftwareInfo: "",
-			}
-			resNode := env.createNode(node)
-			convey.So(resNode, convey.ShouldBeNil)
-			input := types.InnerGetSfwInfoBySNReq{SerialNumber: "test-inner-node-serial-number-software"}
-			res := innerGetNodeSoftwareInfo(input)
-			convey.So(res.Status, convey.ShouldEqual, "")
-		})
-	})
-}
+	sfwInfo := types.SoftwareInfo{
+		InactiveVersion: "v1.12",
+		Name:            "edgecore",
+		Version:         "v1.12"}
 
-func TestInnerGetNodesByNodeGroupID(t *testing.T) {
-	convey.Convey("InnerGetNodesByNodeGroupID functional test", t, func() {
-		convey.Convey("InnerGetNodesByNodeGroupID success", func() {
-			input := types.InnerGetNodesReq{NodeGroupID: 1}
-			res := innerGetNodesByNodeGroupID(input)
-			convey.So(res.Status, convey.ShouldEqual, common.Success)
-		})
-	})
-}
+	req := types.EdgeReportSoftwareInfoReq{
+		SerialNumber: node.SerialNumber,
+		SoftwareInfo: []types.SoftwareInfo{sfwInfo},
+	}
+	reqByte, err := json.Marshal(req)
+	if err != nil {
+		fmt.Printf("marshal req failed, error: %v", err)
+	}
 
-func TestInnerAllNodeInfos(t *testing.T) {
-	convey.Convey("innerAllNodeInfos functional test", t, func() {
-		convey.Convey("innerAllNodeInfos success", func() {
-			res := innerAllNodeInfos("")
-			convey.So(res.Status, convey.ShouldEqual, common.Success)
-		})
+	convey.Convey("empty request", func() {
+		args := ``
+		resp := updateNodeSoftwareInfo(args)
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
 	})
-}
 
-func TestInnerCheckNodeGroupResReq(t *testing.T) {
-	convey.Convey("innerAllNodeInfos functional test", t, func() {
-		convey.Convey("innerAllNodeInfos success", func() {
-			input := types.InnerCheckNodeResReq{NodeGroupID: 1}
-			res := innerCheckNodeGroupResReq(input)
-			convey.So(res.Status, convey.ShouldEqual, common.Success)
-		})
+	convey.Convey("marshal error", func() {
+		var p1 = gomonkey.ApplyFunc(json.Marshal,
+			func(v interface{}) ([]byte, error) {
+				return nil, testErr
+			})
+		defer p1.Reset()
+		resp := updateNodeSoftwareInfo(string(reqByte))
+		convey.So(resp.Msg, convey.ShouldEqual, "marshal version info failed")
 	})
-}
 
-func TestGetAppInstanceCountByGroupId(t *testing.T) {
-	convey.Convey("getAppInstanceCountByGroupId functional test", t, func() {
-		convey.Convey("getAppInstanceCountByGroupId success", func() {
-			counts := map[uint64]int64{1: 1}
-			gomonkey.ApplyFuncReturn(common.SendSyncMessageByRestful,
-				common.RespMsg{Status: common.Success, Data: counts})
-			_, err := getAppInstanceCountByGroupId(1)
-			convey.So(err, convey.ShouldBeNil)
-		})
+	convey.Convey("getNodeInfoBySerialNumber error is not [record not found]", func() {
+		var c *NodeServiceImpl
+		var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "getNodeInfoBySerialNumber",
+			func(n *NodeServiceImpl, name string) (*NodeInfo, error) {
+				return nil, testErr
+			})
+		defer p1.Reset()
+		resp := updateNodeSoftwareInfo(string(reqByte))
+		convey.So(resp.Msg, convey.ShouldEqual, "get node info failed")
+	})
+
+	convey.Convey("update error", func() {
+		var c *NodeServiceImpl
+		var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "updateNodeInfoBySerialNumber",
+			func(n *NodeServiceImpl, sn string, nodeInfo *NodeInfo) error {
+				return testErr
+			})
+		defer p1.Reset()
+
+		resp := updateNodeSoftwareInfo(string(reqByte))
+		convey.So(resp.Msg, convey.ShouldEqual, "update node software info failed")
 	})
 }

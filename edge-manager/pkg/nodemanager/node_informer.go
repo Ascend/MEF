@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -21,6 +20,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 
 	"edge-manager/pkg/kubeclient"
+	"huawei.com/mindxedge/base/common"
 )
 
 const (
@@ -162,7 +162,7 @@ func (s *nodeSyncImpl) handleAddNode(node *v1.Node) {
 		UpdatedAt:    time.Now().Format(TimeFormat),
 	}
 	if checkResult := newNodeInfoChecker().Check(*nodeInfo); !checkResult.Result {
-		hwlog.RunLog.Errorf("node info check failed:%s", checkResult.Reason)
+		hwlog.RunLog.Errorf("node info check failed: %s", checkResult.Reason)
 		return
 	}
 	err := NodeServiceInstance().createNode(nodeInfo)
@@ -192,11 +192,11 @@ func (s *nodeSyncImpl) autoUpdateLabel(nodeK8s *v1.Node, label []string) {
 	if nodeDb.IsManaged {
 		return
 	}
-	if _, err := kubeclient.GetKubeClient().DeleteNodeLabels(nodeK8s.Name, label); err != nil {
-		hwlog.RunLog.Errorf("automatically delete umanaged node(%s) label error", nodeK8s.Name)
+	if _, err = kubeclient.GetKubeClient().DeleteNodeLabels(nodeK8s.Name, label); err != nil {
+		hwlog.RunLog.Errorf("automatically delete unmanaged node(%s) label error", nodeK8s.Name)
 		return
 	}
-	hwlog.RunLog.Infof("automatically delete umanaged node(%s) label", nodeK8s.Name)
+	hwlog.RunLog.Infof("automatically delete unmanaged node(%s) label", nodeK8s.Name)
 }
 
 func getLabelAndGroupIDsFromNode(node *v1.Node) []string {
@@ -254,7 +254,7 @@ func (s *nodeSyncImpl) ListNodeStatus() map[string]string {
 func (s *nodeSyncImpl) GetAvailableResource(hostname string) (*NodeResource, error) {
 	AllocatedRes, err := kubeclient.GetKubeClient().GetNodeAllocatedResource(hostname)
 	if err != nil {
-		return nil, fmt.Errorf("get node all allocated resource failed %s", err.Error())
+		return nil, fmt.Errorf("get node all allocated resource failed: %s", err.Error())
 	}
 	AllocatableRes, err := s.GetAllocatableResource(hostname)
 	if err != nil {
