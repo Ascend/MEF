@@ -41,6 +41,7 @@ type NodeService interface {
 	getNodeByID(uint64) (*NodeInfo, error)
 	getManagedNodeByID(uint64) (*NodeInfo, error)
 	countGroupsByNode(uint64) (int64, error)
+	getGroupsByNodeID(uint64) (*[]NodeGroup, error)
 
 	createNodeGroup(*NodeGroup) error
 	getNodeGroupsByName(uint64, uint64, string) (*[]NodeGroup, error)
@@ -221,6 +222,15 @@ func (n *NodeServiceImpl) getManagedNodeByID(nodeID uint64) (*NodeInfo, error) {
 func (n *NodeServiceImpl) countGroupsByNode(nodeID uint64) (int64, error) {
 	var num int64
 	return num, n.db.Model(NodeRelation{}).Where("node_id = ?", nodeID).Count(&num).Error
+}
+
+func (n *NodeServiceImpl) getGroupsByNodeID(nodeID uint64) (*[]NodeGroup, error) {
+	var nodeGroups []NodeGroup
+	return &nodeGroups, n.db.Model(NodeGroup{}).
+		Select("*").
+		Joins("LEFT JOIN node_relations ON node_groups.id = node_relations.group_id").
+		Where("node_relations.node_id = ?", nodeID).
+		Scan(&nodeGroups).Error
 }
 
 func (n *NodeServiceImpl) listNodes() (*[]NodeInfo, error) {

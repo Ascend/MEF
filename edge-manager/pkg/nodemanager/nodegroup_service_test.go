@@ -489,7 +489,7 @@ func testAddNodeRelationErrAdd() {
 	convey.Convey("get available resource error", func() {
 		var c *nodeSyncImpl
 		var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "GetAvailableResource",
-			func(n *nodeSyncImpl, hostname string) (*NodeResource, error) {
+			func(n *nodeSyncImpl, nodeID uint64, hostname string) (*NodeResource, error) {
 				return nil, testErr
 			})
 		defer p1.Reset()
