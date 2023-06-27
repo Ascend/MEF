@@ -4,11 +4,11 @@
 package restfulservice
 
 import (
+	"huawei.com/mindx/common/httpsmgr"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/x509/certutils"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/httpsmgr"
 
 	"edge-manager/pkg/util"
 )
@@ -24,8 +24,9 @@ func NewRestfulService(enable bool, ip string, port int) *EdgeMgrService {
 	nm := &EdgeMgrService{
 		enable: enable,
 		httpsSvr: &httpsmgr.HttpsServer{
-			IP:   ip,
-			Port: port,
+			IP:           ip,
+			Port:         port,
+			WriteTimeout: common.EdgeManagerRestfulWriteTimeout,
 			TlsCertPath: certutils.TlsCertInfo{
 				RootCaPath: util.RootCaPath,
 				CertPath:   util.ServerCertPath,

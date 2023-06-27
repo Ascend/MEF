@@ -165,7 +165,7 @@ func initResource() error {
 		hwlog.RunLog.Error("init database failed")
 		return err
 	}
-	if _, err := kubeclient.NewClientK8s(""); err != nil {
+	if _, err := kubeclient.NewClientK8s(); err != nil {
 		hwlog.RunLog.Error("init k8s failed")
 		return err
 	}

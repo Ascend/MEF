@@ -15,13 +15,15 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"huawei.com/mindx/common/httpsmgr"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509/certutils"
+
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/httpsmgr"
 	"huawei.com/mindxedge/base/common/logmgmt/logcollect"
+	"huawei.com/mindxedge/base/common/requests"
 
 	"edge-manager/pkg/logmanager/constants"
 	"edge-manager/pkg/util"
@@ -143,7 +145,7 @@ func (u *uploadMgr) abort(c *gin.Context, status int, reason string) {
 }
 
 func getWsRootCert() ([]byte, error) {
-	reqCertParams := httpsmgr.ReqCertParams{
+	reqCertParams := requests.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
 			RootCaPath: util.RootCaPath,
 			CertPath:   util.ServerCertPath,

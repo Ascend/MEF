@@ -85,6 +85,10 @@ spec:
             - name: log-export
               mountPath: /home/MEFCenter/log_exports
           env:
+            - name: KUBE_CLIENT_QPS
+              value: "1000"
+            - name: KUBE_CLIENT_BURST
+              value: "100"
             - name: installed-module
               value: ${installed_module}
             - name: LOG_MGR_NODE_PORT

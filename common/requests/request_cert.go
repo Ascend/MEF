@@ -1,13 +1,14 @@
 // Copyright (c) 2023. Huawei Technologies Co., Ltd. All rights reserved.
 
 // Package httpsmgr for https manager
-package httpsmgr
+package requests
 
 import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 
+	"huawei.com/mindx/common/httpsmgr"
 	"huawei.com/mindx/common/x509/certutils"
 
 	"huawei.com/mindxedge/base/common"
@@ -34,7 +35,7 @@ type ReqCertParams struct {
 func (rcp *ReqCertParams) GetRootCa(certName string) (string, error) {
 	url := fmt.Sprintf("https://%s:%d/%s/?certName=%s", common.CertMgrDns, common.CertMgrPort,
 		getRootCaUrl, certName)
-	httpsReq := GetHttpsReq(url, rcp.ClientTlsCert)
+	httpsReq := httpsmgr.GetHttpsReq(url, rcp.ClientTlsCert)
 	resp, err := httpsReq.Get(nil)
 	if err != nil {
 		return "", err
@@ -46,7 +47,7 @@ func (rcp *ReqCertParams) GetRootCa(certName string) (string, error) {
 func (rcp *ReqCertParams) GetCrl(crlName string) (string, error) {
 	url := fmt.Sprintf("https://%s:%d/%s/?crlName=%s", common.CertMgrDns, common.CertMgrPort,
 		getCrlUrl, crlName)
-	httpsReq := GetHttpsReq(url, rcp.ClientTlsCert)
+	httpsReq := httpsmgr.GetHttpsReq(url, rcp.ClientTlsCert)
 	resp, err := httpsReq.Get(nil)
 	if err != nil {
 		return "", err
@@ -57,7 +58,7 @@ func (rcp *ReqCertParams) GetCrl(crlName string) (string, error) {
 // UpdateCertFile [method] for update cert content
 func (rcp *ReqCertParams) UpdateCertFile(cert certutils.UpdateClientCert) (string, error) {
 	url := fmt.Sprintf("https://%s:%d/%s", common.EdgeMgrDns, common.EdgeMgrPort, updateCertUrl)
-	httpsReq := GetHttpsReq(url, rcp.ClientTlsCert)
+	httpsReq := httpsmgr.GetHttpsReq(url, rcp.ClientTlsCert)
 	jsonBody, err := json.Marshal(&cert)
 	if err != nil {
 		return "", err
@@ -72,7 +73,7 @@ func (rcp *ReqCertParams) UpdateCertFile(cert certutils.UpdateClientCert) (strin
 // ReqIssueSvrCert [method] for issue server cert
 func (rcp *ReqCertParams) ReqIssueSvrCert(certName string, csr []byte) (string, error) {
 	url := fmt.Sprintf("https://%s:%d/%s", common.CertMgrDns, common.CertMgrPort, reqSvrUrl)
-	httpsReq := GetHttpsReq(url, rcp.ClientTlsCert)
+	httpsReq := httpsmgr.GetHttpsReq(url, rcp.ClientTlsCert)
 	issueCertBody := &reqIssueCertBody{
 		CertName: certName,
 		Csr:      base64.StdEncoding.EncodeToString(certutils.PemWrapCert(csr)),

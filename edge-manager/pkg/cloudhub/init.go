@@ -20,7 +20,7 @@ import (
 
 	"edge-manager/pkg/util"
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/httpsmgr"
+	"huawei.com/mindxedge/base/common/requests"
 )
 
 // CloudServer wraps the struct WebSocketServer
@@ -213,7 +213,7 @@ func issueCertForEdge(msg *model.Message) (*model.Message, error) {
 		hwlog.RunLog.Errorf("decode base64 csr data error: %v", err)
 		return nil, errors.New("decode base64 csr data error")
 	}
-	reqCertParams := httpsmgr.ReqCertParams{
+	reqCertParams := requests.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
 			RootCaPath: util.RootCaPath,
 			CertPath:   util.ServerCertPath,

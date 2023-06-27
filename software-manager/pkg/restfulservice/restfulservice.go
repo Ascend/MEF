@@ -9,12 +9,12 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"huawei.com/mindx/common/httpsmgr"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/x509/certutils"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/httpsmgr"
 )
 
 // SoftwareInfo is to warp the request info into a struct object

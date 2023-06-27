@@ -52,6 +52,7 @@ func (app *appManager) Enable() bool {
 }
 
 func (app *appManager) Start() {
+	go app.housekeeper()
 	for {
 		select {
 		case _, ok := <-app.ctx.Done():
@@ -62,7 +63,6 @@ func (app *appManager) Start() {
 			return
 		default:
 		}
-		go app.housekeeper()
 
 		req, err := modulemgr.ReceiveMessage(common.AppManagerName)
 		hwlog.RunLog.Infof("%s receive request from restful service", common.AppManagerName)

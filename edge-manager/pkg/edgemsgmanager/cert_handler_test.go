@@ -16,13 +16,13 @@ import (
 
 	"edge-manager/pkg/util"
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/httpsmgr"
+	"huawei.com/mindxedge/base/common/requests"
 )
 
 func TestGetCertInfo(t *testing.T) {
-	var c *httpsmgr.ReqCertParams
+	var c *requests.ReqCertParams
 	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "GetRootCa",
-		func(c *httpsmgr.ReqCertParams, certName string) (string, error) {
+		func(c *requests.ReqCertParams, certName string) (string, error) {
 			return "", nil
 		})
 	defer p1.Reset()
@@ -99,9 +99,9 @@ func testGetCertInfoErrGetRootCa() {
 	}
 	msg.FillContent(common.SoftwareCertName)
 
-	var c *httpsmgr.ReqCertParams
+	var c *requests.ReqCertParams
 	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "GetRootCa",
-		func(c *httpsmgr.ReqCertParams, certName string) (string, error) {
+		func(c *requests.ReqCertParams, certName string) (string, error) {
 			return "", testErr
 		})
 	defer p1.Reset()

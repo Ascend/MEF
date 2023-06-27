@@ -41,7 +41,7 @@ func deleteSoftware(c *gin.Context) {
 		Option:      common.Delete,
 		Resource:    common.Software,
 	}
-	resp := common.SendSyncMessageByRestful(string(res), &router)
+	resp := common.SendSyncMessageByRestful(string(res), &router, common.RestfulTimeout)
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }
 
@@ -58,7 +58,7 @@ func downloadSoftware(c *gin.Context) {
 		Option:      common.Get,
 		Resource:    common.Software,
 	}
-	resp := common.SendSyncMessageByRestful(info, &router)
+	resp := common.SendSyncMessageByRestful(info, &router, common.RestfulTimeout)
 	if resp.Status != common.Success {
 		common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 		return
@@ -84,7 +84,7 @@ func uploadSoftware(c *gin.Context) {
 		Option:      common.Update,
 		Resource:    common.Software,
 	}
-	resp := common.SendSyncMessageByRestful(info, &router)
+	resp := common.SendSyncMessageByRestful(info, &router, common.RestfulTimeout)
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }
 
@@ -101,7 +101,7 @@ func listRepository(c *gin.Context) {
 		Option:      common.Get,
 		Resource:    common.Repository,
 	}
-	resp := common.SendSyncMessageByRestful(info, &router)
+	resp := common.SendSyncMessageByRestful(info, &router, common.RestfulTimeout)
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }
 
@@ -136,6 +136,6 @@ func getURL(c *gin.Context) {
 		Option:      common.Get,
 		Resource:    common.URL,
 	}
-	resp := common.SendSyncMessageByRestful(string(content), &router)
+	resp := common.SendSyncMessageByRestful(string(content), &router, common.RestfulTimeout)
 	common.ConstructResp(c, resp.Status, resp.Msg, resp.Data)
 }
