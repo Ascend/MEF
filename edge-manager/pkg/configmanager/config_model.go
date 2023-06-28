@@ -9,8 +9,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
-
-	"edge-manager/pkg/database"
+	"huawei.com/mindx/common/database"
 )
 
 var (

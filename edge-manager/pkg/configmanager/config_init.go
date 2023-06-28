@@ -9,13 +9,12 @@ import (
 	"path/filepath"
 	"time"
 
+	"huawei.com/mindx/common/database"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 
 	"huawei.com/mindxedge/base/common"
-
-	"edge-manager/pkg/database"
 )
 
 type handlerFunc func(req interface{}) common.RespMsg
@@ -116,7 +115,7 @@ var handlerFuncMap = map[string]handlerFunc{
 }
 
 func initTokenTable() error {
-	if err := database.CreateTableIfNotExists(TokenInfo{}); err != nil {
+	if err := database.CreateTableIfNotExist(TokenInfo{}); err != nil {
 		hwlog.RunLog.Error("create token database table failed")
 		return err
 	}

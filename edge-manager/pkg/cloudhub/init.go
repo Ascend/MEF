@@ -11,16 +11,16 @@ import (
 	"sync"
 	"time"
 
+	"huawei.com/mindx/common/database"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/websocketmgr"
 	"huawei.com/mindx/common/x509/certutils"
+
+	"edge-manager/pkg/util"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/httpsmgr"
-
-	"edge-manager/pkg/database"
-	"edge-manager/pkg/util"
 )
 
 // CloudServer wraps the struct WebSocketServer
@@ -148,11 +148,11 @@ func (c *CloudServer) sendToClient(msg *model.Message) error {
 }
 
 func initNodeTable() error {
-	if err := database.CreateTableIfNotExists(AuthFailedRecord{}); err != nil {
+	if err := database.CreateTableIfNotExist(AuthFailedRecord{}); err != nil {
 		hwlog.RunLog.Error("create token failed record database table failed")
 		return err
 	}
-	if err := database.CreateTableIfNotExists(LockRecord{}); err != nil {
+	if err := database.CreateTableIfNotExist(LockRecord{}); err != nil {
 		hwlog.RunLog.Error("create token lock database table failed")
 		return err
 	}

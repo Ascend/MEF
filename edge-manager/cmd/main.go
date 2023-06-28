@@ -13,24 +13,23 @@ import (
 	"os/signal"
 	"syscall"
 
+	"huawei.com/mindx/common/database"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/utils"
 
-	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/checker"
-	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
-
 	"edge-manager/pkg/appmanager"
 	"edge-manager/pkg/cloudhub"
 	"edge-manager/pkg/config"
 	"edge-manager/pkg/configmanager"
-	"edge-manager/pkg/database"
 	"edge-manager/pkg/edgemsgmanager"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/nodemanager"
 	"edge-manager/pkg/restfulservice"
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/checker"
+	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
 )
 
 const (
@@ -85,12 +84,12 @@ func main() {
 	}
 	ip = podIp
 
-	if err := initResource(); err != nil {
+	if err = initResource(); err != nil {
 		hwlog.RunLog.Errorf("initialize resource failed, %s", err.Error())
 		return
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	if err := register(ctx); err != nil {
+	if err = register(ctx); err != nil {
 		hwlog.RunLog.Error("register error")
 		return
 	}

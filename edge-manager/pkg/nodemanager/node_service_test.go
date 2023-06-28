@@ -19,10 +19,10 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/checker"
+	"huawei.com/mindx/common/database"
 	"huawei.com/mindx/common/hwlog"
 	"k8s.io/api/core/v1"
 
-	"edge-manager/pkg/database"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
 	"huawei.com/mindxedge/base/common"
