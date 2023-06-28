@@ -9,8 +9,8 @@ import (
 	"sync"
 
 	"gorm.io/gorm"
+	"huawei.com/mindx/common/database"
 
-	"edge-manager/pkg/database"
 	"edge-manager/pkg/types"
 	"huawei.com/mindxedge/base/common"
 )

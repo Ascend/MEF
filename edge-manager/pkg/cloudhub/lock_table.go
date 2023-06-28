@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"huawei.com/mindx/common/database"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
 
-	"edge-manager/pkg/database"
+	"huawei.com/mindxedge/base/common"
 )
 
 const (
@@ -26,7 +26,7 @@ type AuthFailedRecord struct {
 	ErrorTimes int    `gorm:"type:integer;not null"`
 }
 
-//  LockRecord lock ip record
+// LockRecord lock ip record
 type LockRecord struct {
 	IP       string `gorm:"type:char(32);unique;not null"`
 	LockTime int64  `gorm:"type:integer"`

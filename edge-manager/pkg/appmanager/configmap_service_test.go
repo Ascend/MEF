@@ -1,6 +1,6 @@
 // Copyright (c) 2023. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package appmanager for
+// Package appmanager for configmap service
 package appmanager
 
 import (
@@ -8,19 +8,65 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"testing"
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
 	"huawei.com/mindx/common/hwlog"
 	"k8s.io/api/core/v1"
 
-	"edge-manager/pkg/database"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
 	"huawei.com/mindxedge/base/common"
 )
 
 var testErr = errors.New("test error")
+
+func setupGoMonkeyPatches() *gomonkey.Patches {
+	c := &kubeclient.Client{}
+	return gomonkey.ApplyFuncReturn(common.GetItemCount, 1, nil).
+		ApplyMethodReturn(c, "CreateConfigMap", &v1.ConfigMap{}, nil).
+		ApplyMethodReturn(c, "UpdateConfigMap", &v1.ConfigMap{}, nil).
+		ApplyMethodReturn(c, "DeleteConfigMap", nil)
+}
+
+func TestConfigmap(t *testing.T) {
+	p := setupGoMonkeyPatches()
+	defer p.Reset()
+
+	convey.Convey("test creat configmap", t, func() {
+		convey.Convey("create configmap should success", testCreateConfigmap)
+		convey.Convey("create configmap should failed", testCreateConfigmapDuplicateName)
+		convey.Convey("create configmap should failed, check item count in db error", testCreateConfigmapItemCountError)
+		convey.Convey("create configmap should failed, check param error", testCreateConfigmapParamError)
+		convey.Convey("create configmap should failed, param convert error", testCreateConfigmapParamConvertError)
+		convey.Convey("create configmap should failed, create by k8s error", testCreateConfigmapK8SError)
+	})
+	convey.Convey("test update configmap", t, func() {
+		convey.Convey("update configmap should success", testUpdateConfigmap)
+		convey.Convey("update configmap should failed, name does not exist", testUpdateConfigmapNotExist)
+		convey.Convey("update configmap should failed, check param error", testUpdateConfigmapParamError)
+		convey.Convey("update configmap should failed, param convert error", testUpdateConfigmapParamConvertError)
+		convey.Convey("update configmap should failed, update by k8s error", testUpdateConfigmapK8SError)
+	})
+	convey.Convey("test query configmap", t, func() {
+		convey.Convey("query configmap should success", testQueryConfigmap)
+		convey.Convey("query configmap should failed, id does not exist", testQueryConfigmapNotExist)
+		convey.Convey("query configmap should failed, param convert error", testQueryConfigmapParamConvertError)
+		convey.Convey("query configmap should failed, content unmarshal error", testQueryConfigmapContentUnmarshalError)
+	})
+	convey.Convey("test list configmap", t, func() {
+		convey.Convey("list configmap should success", testListConfigmap)
+		convey.Convey("list configmap should failed, param convert error", testListConfigmapParamConvertError)
+		convey.Convey("list configmap should failed, name does not exist", testListConfigmapNotExist)
+	})
+	convey.Convey("test delete configmap", t, func() {
+		convey.Convey("delete configmap should success", testDeleteConfigmap)
+		convey.Convey("delete configmap should failed， id does not exist", testDeleteConfigmapNotExist)
+		convey.Convey("delete configmap should failed, param convert error", testDeleteConfigmapParamConvertError)
+		convey.Convey("delete configmap should failed, delete by k8s error", testDeleteConfigmapK8SError)
+	})
+}
 
 func testCreateConfigmap() {
 	input := `{
@@ -33,13 +79,6 @@ func testCreateConfigmap() {
         }
     ]
 }`
-	var c *kubeclient.Client
-	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "CreateConfigMap",
-		func(*kubeclient.Client, *v1.ConfigMap) (*v1.ConfigMap, error) {
-			return &v1.ConfigMap{}, nil
-		})
-	defer p1.Reset()
-
 	resp := createConfigmap(input)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
@@ -55,37 +94,23 @@ func testCreateConfigmapDuplicateName() {
         }
     ]
 }`
-	var c *kubeclient.Client
-	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "CreateConfigMap",
-		func(*kubeclient.Client, *v1.ConfigMap) (*v1.ConfigMap, error) {
-			return &v1.ConfigMap{}, nil
-		})
-	defer p1.Reset()
-
 	resp := createConfigmap(input)
 	convey.So(resp.Status, convey.ShouldEqual, "")
 }
 
 func testCreateConfigmapItemCountError() {
 	input := `{
-    "configmapName":"test03",
+    "configmapName":"test02",
     "description":"",
     "configmapContent":[
         {
-            "name":"name03",
-            "value":"value03"
+            "name":"name02",
+            "value":"value02"
         }
     ]
 }`
-	var c *kubeclient.Client
-	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "CreateConfigMap",
-		func(*kubeclient.Client, *v1.ConfigMap) (*v1.ConfigMap, error) {
-			return &v1.ConfigMap{}, nil
-		})
-	defer p1.Reset()
-
 	const itemCount = 65
-	var p2 = gomonkey.ApplyFunc(database.GetItemCount, func(configmapInfo interface{}) (int, error) {
+	var p2 = gomonkey.ApplyFunc(common.GetItemCount, func(configmapInfo interface{}) (int, error) {
 		return itemCount, nil
 	})
 	defer p2.Reset()
@@ -95,13 +120,6 @@ func testCreateConfigmapItemCountError() {
 }
 
 func testCreateConfigmapParamError() {
-	var c *kubeclient.Client
-	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "CreateConfigMap",
-		func(*kubeclient.Client, *v1.ConfigMap) (*v1.ConfigMap, error) {
-			return &v1.ConfigMap{}, nil
-		})
-	defer p1.Reset()
-
 	configmapReqs := constructConfigmapReqs()
 	for index := range configmapReqs {
 		configmapReq := configmapReqs[index]
@@ -149,12 +167,6 @@ func constructConfigmapReqs() []ConfigmapReq {
 }
 
 func testCreateConfigmapParamConvertError() {
-	var c *kubeclient.Client
-	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "CreateConfigMap",
-		func(*kubeclient.Client, *v1.ConfigMap) (*v1.ConfigMap, error) {
-			return &v1.ConfigMap{}, nil
-		})
-	defer p1.Reset()
 
 	configmapInput := [1]int{1}
 	resp := createConfigmap(configmapInput)
@@ -163,12 +175,12 @@ func testCreateConfigmapParamConvertError() {
 
 func testCreateConfigmapK8SError() {
 	input := `{
-    "configmapName":"test04",
+    "configmapName":"test03",
     "description":"",
     "configmapContent":[
         {
-            "name":"name04",
-            "value":"value04"
+            "name":"name03",
+            "value":"value03"
         }
     ]
 }`
@@ -185,78 +197,63 @@ func testCreateConfigmapK8SError() {
 
 func testUpdateConfigmap() {
 	input := `{
-    "configmapName":"test01",
+    "configmapName":"test04",
     "description":"",
     "configmapContent":[
         {
-            "name":"name001",
-            "value":"value001"
+            "name":"name04",
+            "value":"value04"
         }
     ]
 }`
-	var c *kubeclient.Client
-	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "UpdateConfigMap",
-		func(*kubeclient.Client, *v1.ConfigMap) (*v1.ConfigMap, error) {
-			return &v1.ConfigMap{}, nil
-		})
-	defer p1.Reset()
+	resp := createConfigmap(input)
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 
-	resp := updateConfigmap(input)
+	input2 := `{
+    "configmapName":"test04",
+    "description":"",
+    "configmapContent":[
+        {
+            "name":"name004",
+            "value":"value004"
+        }
+    ]
+}`
+	resp = updateConfigmap(input2)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
 func testUpdateConfigmapNotExist() {
 	input := `{
-    "configmapName":"test02",
+    "configmapName":"test05",
     "description":"",
     "configmapContent":[
         {
-            "name":"name02",
-            "value":"value02"
+            "name":"name05",
+            "value":"value05"
         }
     ]
 }`
-	var c *kubeclient.Client
-	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "UpdateConfigMap",
-		func(*kubeclient.Client, *v1.ConfigMap) (*v1.ConfigMap, error) {
-			return &v1.ConfigMap{}, nil
-		})
-	defer p1.Reset()
-
 	resp := updateConfigmap(input)
 	convey.So(resp.Status, convey.ShouldEqual, "")
 }
 
 func testUpdateConfigmapParamError() {
 	input := `{
-    "configmapName":"./test01",
+    "configmapName":"./test05",
     "description":"",
     "configmapContent":[
         {
-            "name":"name01",
-            "value":"value01"
+            "name":"name05",
+            "value":"value05"
         }
     ]
 }`
-	var c *kubeclient.Client
-	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "UpdateConfigMap",
-		func(*kubeclient.Client, *v1.ConfigMap) (*v1.ConfigMap, error) {
-			return &v1.ConfigMap{}, nil
-		})
-	defer p1.Reset()
-
 	resp := updateConfigmap(input)
 	convey.So(resp.Status, convey.ShouldEqual, "")
 }
 
 func testUpdateConfigmapParamConvertError() {
-	var c *kubeclient.Client
-	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "UpdateConfigMap",
-		func(*kubeclient.Client, *v1.ConfigMap) (*v1.ConfigMap, error) {
-			return &v1.ConfigMap{}, nil
-		})
-	defer p1.Reset()
-
 	updateInput := [1]int{1}
 	resp := updateConfigmap(updateInput)
 	convey.So(resp.Status, convey.ShouldEqual, "")
@@ -264,12 +261,12 @@ func testUpdateConfigmapParamConvertError() {
 
 func testUpdateConfigmapK8SError() {
 	input := `{
-    "configmapName":"test01",
+    "configmapName":"test06",
     "description":"",
     "configmapContent":[
         {
-            "name":"name005",
-            "value":"value005"
+            "name":"name006",
+            "value":"value006"
         }
     ]
 }`
@@ -285,8 +282,21 @@ func testUpdateConfigmapK8SError() {
 }
 
 func testQueryConfigmap() {
+	input := `{
+    "configmapName":"test07",
+    "description":"",
+    "configmapContent":[
+        {
+            "name":"name07",
+            "value":"value07"
+        }
+    ]
+}`
+	resp := createConfigmap(input)
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
+
 	var reqData = int64(1)
-	resp := queryConfigmap(reqData)
+	resp = queryConfigmap(reqData)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
@@ -343,9 +353,10 @@ func testListConfigmapParamConvertError() {
 }
 
 func testListConfigmapNotExist() {
-	var p1 = gomonkey.ApplyFunc(getListConfigmapReturnInfo, func(listReq types.ListReq) (*ListConfigmapReturnInfo, error) {
-		return nil, fmt.Errorf("unmarshal configmap [%d] content failed", 1)
-	})
+	var p1 = gomonkey.ApplyFunc(getListConfigmapReturnInfo,
+		func(listReq types.ListReq) (*ListConfigmapReturnInfo, error) {
+			return nil, fmt.Errorf("unmarshal configmap [%d] content failed", 1)
+		})
 	defer p1.Reset()
 
 	var reqData = types.ListReq{
@@ -358,28 +369,27 @@ func testListConfigmapNotExist() {
 }
 
 func testDeleteConfigmap() {
-	var c *kubeclient.Client
-	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "DeleteConfigMap",
-		func(*kubeclient.Client, string) error {
-			return nil
-		})
-	defer p1.Reset()
+	input := `{
+    "configmapName":"test08",
+    "description":"",
+    "configmapContent":[
+        {
+            "name":"name08",
+            "value":"value08"
+        }
+    ]
+}`
+	resp := createConfigmap(input)
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 
 	reqData := `{
 				"configmapIDs": [1]
 				}`
-	resp := deleteConfigmap(reqData)
+	resp = deleteConfigmap(reqData)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
 func testDeleteConfigmapNotExist() {
-	var c *kubeclient.Client
-	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "DeleteConfigMap",
-		func(*kubeclient.Client, string) error {
-			return nil
-		})
-	defer p1.Reset()
-
 	reqData := `{
 				"configmapIDs": [100]
 				}`
@@ -388,13 +398,6 @@ func testDeleteConfigmapNotExist() {
 }
 
 func testDeleteConfigmapParamConvertError() {
-	var c *kubeclient.Client
-	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "DeleteConfigMap",
-		func(*kubeclient.Client, string) error {
-			return nil
-		})
-	defer p1.Reset()
-
 	reqData := [1]int{1}
 	resp := deleteConfigmap(reqData)
 	convey.So(resp.Status, convey.ShouldEqual, "")
@@ -402,36 +405,21 @@ func testDeleteConfigmapParamConvertError() {
 
 func testDeleteConfigmapK8SError() {
 	input := `{
-    "configmapName":"test05",
+    "configmapName":"test09",
     "description":"",
     "configmapContent":[
         {
-            "name":"name05",
-            "value":"value05"
+            "name":"name09",
+            "value":"value09"
         }
     ]
 }`
-	var c *kubeclient.Client
-	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "CreateConfigMap",
-		func(*kubeclient.Client, *v1.ConfigMap) (*v1.ConfigMap, error) {
-			return &v1.ConfigMap{}, nil
-		})
-	defer p1.Reset()
+	resp := createConfigmap(input)
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 
-	createResp := createConfigmap(input)
-	if createResp.Status != common.Success {
-		hwlog.RunLog.Error("create configmap failed")
-		return
-	}
-
-	var p2 = gomonkey.ApplyMethod(reflect.TypeOf(c), "DeleteConfigMap",
-		func(*kubeclient.Client, string) error {
-			return testErr
-		})
-	defer p2.Reset()
 	reqData := `{
 				"configmapIDs": [1]
 				}`
-	resp := deleteConfigmap(reqData)
+	resp = deleteConfigmap(reqData)
 	convey.So(resp.Status, convey.ShouldEqual, "")
 }

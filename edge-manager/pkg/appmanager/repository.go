@@ -7,10 +7,10 @@ import (
 	"sync"
 
 	"gorm.io/gorm"
+	"huawei.com/mindx/common/database"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
 
-	"edge-manager/pkg/database"
+	"huawei.com/mindxedge/base/common"
 )
 
 var (

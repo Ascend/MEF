@@ -9,11 +9,11 @@ import (
 	"net/http"
 	"path/filepath"
 
+	"huawei.com/mindx/common/database"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 
-	"edge-manager/pkg/database"
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -98,15 +98,15 @@ func (node *nodeManager) dispatch(req *model.Message) {
 }
 
 func initNodeTable() error {
-	if err := database.CreateTableIfNotExists(NodeGroup{}); err != nil {
+	if err := database.CreateTableIfNotExist(NodeGroup{}); err != nil {
 		hwlog.RunLog.Error("create node group database table failed")
 		return err
 	}
-	if err := database.CreateTableIfNotExists(NodeInfo{}); err != nil {
+	if err := database.CreateTableIfNotExist(NodeInfo{}); err != nil {
 		hwlog.RunLog.Error("create node database table failed")
 		return err
 	}
-	if err := database.CreateTableIfNotExists(NodeRelation{}); err != nil {
+	if err := database.CreateTableIfNotExist(NodeRelation{}); err != nil {
 		hwlog.RunLog.Error("create node database table failed")
 		return err
 	}

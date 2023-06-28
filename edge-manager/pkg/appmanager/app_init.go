@@ -9,13 +9,12 @@ import (
 	"path/filepath"
 	"time"
 
+	"huawei.com/mindx/common/database"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 
 	"huawei.com/mindxedge/base/common"
-
-	"edge-manager/pkg/database"
 )
 
 type handlerFunc func(req interface{}) common.RespMsg
@@ -126,23 +125,23 @@ func methodSelect(req *model.Message) *common.RespMsg {
 }
 
 func initAppTable() error {
-	if err := database.CreateTableIfNotExists(AppInfo{}); err != nil {
+	if err := database.CreateTableIfNotExist(AppInfo{}); err != nil {
 		hwlog.RunLog.Error("create app information database table failed")
 		return err
 	}
-	if err := database.CreateTableIfNotExists(AppInstance{}); err != nil {
+	if err := database.CreateTableIfNotExist(AppInstance{}); err != nil {
 		hwlog.RunLog.Error("create app instance database table failed")
 		return err
 	}
-	if err := database.CreateTableIfNotExists(AppDaemonSet{}); err != nil {
+	if err := database.CreateTableIfNotExist(AppDaemonSet{}); err != nil {
 		hwlog.RunLog.Error("create app daemon set database table failed")
 		return err
 	}
-	if err := database.CreateTableIfNotExists(AppTemplateDb{}); err != nil {
+	if err := database.CreateTableIfNotExist(AppTemplateDb{}); err != nil {
 		hwlog.RunLog.Error("create app template instance database table failed")
 		return err
 	}
-	if err := database.CreateTableIfNotExists(ConfigmapInfo{}); err != nil {
+	if err := database.CreateTableIfNotExist(ConfigmapInfo{}); err != nil {
 		hwlog.RunLog.Error("create configmap instance database table failed")
 		return err
 	}
