@@ -68,6 +68,8 @@ spec:
               mountPath: /home/data/config
             - name: public-config
               mountPath: /home/data/public-config/
+            - name: localtime
+              mountPath: /etc/localtime
       volumes:
         - name: nginx-manager-config
           hostPath:
@@ -84,6 +86,9 @@ spec:
         - name: public-config
           hostPath:
             path: ${public-config}
+        - name: localtime
+          hostPath:
+            path: /etc/localtime
 ---
 apiVersion: v1
 kind: Service
