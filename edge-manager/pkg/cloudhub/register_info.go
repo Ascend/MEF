@@ -17,6 +17,7 @@ var regInfoList = []websocketmgr.RegisterModuleInfo{
 	{MsgOpt: common.OptGet, MsgRes: common.ResDownLoadCert, ModuleName: common.NodeMsgManagerName},
 	{MsgOpt: common.OptPost, MsgRes: common.ResEdgeCert, ModuleName: common.CloudHubName},
 	{MsgOpt: common.OptGet, MsgRes: common.CertWillOverdue, ModuleName: common.CloudHubName},
+	{MsgOpt: common.Delete, MsgRes: common.DeleteNodeMsg, ModuleName: common.NodeManagerName},
 }
 
 func getRegModuleInfoList() []websocketmgr.RegisterModuleInfo {
