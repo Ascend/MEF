@@ -15,6 +15,8 @@ import (
 
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 
@@ -313,6 +315,9 @@ func deleteSingleNode(nodeID uint64) error {
 
 	if err = NodeServiceInstance().deleteNode(nodeInfo); err != nil {
 		return err
+	}
+	if err := sendDeleteNodeMessageToNode(nodeInfo.SerialNumber); err != nil {
+		return fmt.Errorf("send delete node msg error:%v", err)
 	}
 	return nil
 }
@@ -631,6 +636,21 @@ func deleteUnManagedNode(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success}
 }
 
+func sendDeleteNodeMessageToNode(serialNumber string) error {
+	sendMsg, err := model.NewMessage()
+	if err != nil {
+		return fmt.Errorf("create new message failed, error: %v", err)
+	}
+	sendMsg.SetNodeId(serialNumber)
+	sendMsg.SetRouter(common.NodeManagerName, common.CloudHubName, common.Delete, common.DeleteNodeMsg)
+	sendMsg.FillContent(fmt.Sprintf("delete:%s", serialNumber))
+	if err = modulemgr.SendMessage(sendMsg); err != nil {
+		return fmt.Errorf("%s sends message to %s failed, error: %v",
+			common.NodeManagerName, common.CloudHubName, err)
+	}
+	return nil
+}
+
 func deleteSingleUnManagedNode(nodeID uint64) error {
 	nodeInfo, err := NodeServiceInstance().getNodeByID(nodeID)
 	if err != nil {
@@ -638,6 +658,9 @@ func deleteSingleUnManagedNode(nodeID uint64) error {
 	}
 	if err = NodeServiceInstance().deleteUnmanagedNode(nodeInfo); err != nil {
 		return err
+	}
+	if err := sendDeleteNodeMessageToNode(nodeInfo.SerialNumber); err != nil {
+		return fmt.Errorf("send delete node msg error:%v", err)
 	}
 	return nil
 }

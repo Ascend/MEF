@@ -728,6 +728,10 @@ func testListNodeErrEvalNodeGroup() {
 }
 
 func TestBatchDeleteNode(t *testing.T) {
+	var p1 = gomonkey.ApplyFunc(sendDeleteNodeMessageToNode, func(s string) error {
+		return nil
+	})
+	defer p1.Reset()
 	convey.Convey("batchDeleteNode should be success", t, testBatchDeleteNode)
 	convey.Convey("batchDeleteNode should be failed", t, testBatchDeleteNodeErr)
 }
@@ -776,6 +780,10 @@ func testBatchDeleteNodeErr() {
 }
 
 func TestDeleteUnManagedNode(t *testing.T) {
+	var p1 = gomonkey.ApplyFunc(sendDeleteNodeMessageToNode, func(s string) error {
+		return nil
+	})
+	defer p1.Reset()
 	convey.Convey("deleteUnManagedNode should be success", t, testDeleteUnManagedNode)
 	convey.Convey("deleteUnManagedNode should be failed", t, testDeleteUnManagedNodeErr)
 }

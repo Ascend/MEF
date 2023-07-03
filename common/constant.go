@@ -261,6 +261,8 @@ const (
 	CertWillOverdue = "/cert/update"
 	// ResEdgeCert resource for issuing cert for a csr from mef edge
 	ResEdgeCert = "/cert/edge"
+	// DeleteNodeMsg when delete node send msg to edgehub to stop connection
+	DeleteNodeMsg = "/edgemanager/delete/node"
 
 	// EdgeHubName edgehub name
 	EdgeHubName = "EdgeHub"
