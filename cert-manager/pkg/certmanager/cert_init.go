@@ -196,7 +196,7 @@ func sendCertUpdateMsg() error {
 		SvrFlag:    false,
 	}
 
-	url := fmt.Sprintf("https://%s:%d/%s", common.EdgeMgrDns, common.EdgeMgrPort, "edgemanager/v1/cert/update")
+	url := fmt.Sprintf("https://%s:%d/%s", common.EdgeMgrDns, common.EdgeMgrPort, "inner/v1/cert/update")
 	httpsReq := httpsmgr.GetHttpsReq(url, tls)
 	respByte, err := httpsReq.Get(nil)
 	if err != nil {
