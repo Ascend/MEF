@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/logmgmt/logcollect"
 	"huawei.com/mindxedge/base/common/restfulmgr"
@@ -85,7 +86,7 @@ var innerConfigRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			Method:       http.MethodPost,
 			Destination:  common.ConfigManagerName},
 	},
-	"/edgemanager/v1/cert": {
+	"/inner/v1/cert": {
 		restfulmgr.GenericDispatcher{
 			RelativePath: "/update",
 			Method:       http.MethodGet,
