@@ -10,15 +10,16 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/x509/certutils"
+
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/httpsmgr"
+	"huawei.com/mindxedge/base/common/requests"
 
 	"edge-manager/pkg/util"
 )
 
 func queryCertInfo(certName string) (certutils.ClientCertResp, error) {
 	res := certutils.ClientCertResp{}
-	reqCertParams := httpsmgr.ReqCertParams{
+	reqCertParams := requests.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
 			RootCaPath: util.RootCaPath,
 			CertPath:   util.ServerCertPath,

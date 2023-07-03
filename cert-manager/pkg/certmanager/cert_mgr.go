@@ -16,8 +16,9 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509/certutils"
+
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/httpsmgr"
+	"huawei.com/mindxedge/base/common/requests"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 
 	"cert-manager/pkg/certmanager/certchecker"
@@ -153,7 +154,7 @@ func updateClientCert(certName, certOpt string, certContent []byte) error {
 	lock.Lock()
 	defer lock.Unlock()
 	hwlog.RunLog.Info("start update cert file")
-	reqCertParams := httpsmgr.ReqCertParams{
+	reqCertParams := requests.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
 			RootCaPath: util.RootCaPath,
 			CertPath:   util.ServerCertPath,

@@ -13,7 +13,7 @@ import (
 	"k8s.io/api/core/v1"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/httpsmgr"
+	"huawei.com/mindxedge/base/common/requests"
 
 	"edge-manager/pkg/kubeclient"
 )
@@ -56,7 +56,7 @@ func GetImageAddress() (string, error) {
 
 // GetCertContent get cert content
 func GetCertContent(certName string) (certutils.ClientCertResp, error) {
-	reqCertParams := httpsmgr.ReqCertParams{
+	reqCertParams := requests.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
 			RootCaPath: RootCaPath,
 			CertPath:   ServerCertPath,

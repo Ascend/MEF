@@ -120,7 +120,11 @@ const (
 	NodeID = "nodeID"
 
 	// ResponseTimeout response timeout time
-	ResponseTimeout = 3 * time.Second
+	ResponseTimeout = 30 * time.Second
+	// RestfulTimeout restful timeout time
+	RestfulTimeout = 6 * time.Minute
+	// EdgeManagerRestfulWriteTimeout edge-manager restful write timeout time
+	EdgeManagerRestfulWriteTimeout = 10 * time.Minute
 
 	// Software resource software
 	Software = "software"
@@ -141,6 +145,8 @@ const (
 	MinPort = 1025
 	// BaseHex  Base Parse integer need params
 	BaseHex = 10
+	// BitSize32 Base Parse integer need params
+	BitSize32 = 32
 	// BitSize64 Base Parse integer need params
 	BitSize64 = 64
 	// BitSize8 Base Parse integer need params

@@ -15,8 +15,9 @@ import (
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/websocketmgr"
 	"huawei.com/mindx/common/x509/certutils"
+
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/httpsmgr"
+	"huawei.com/mindxedge/base/common/requests"
 	centerutil "huawei.com/mindxedge/base/mef-center-install/pkg/util"
 
 	"edge-manager/pkg/util"
@@ -110,7 +111,7 @@ func checkAndSetWsSvcCert() {
 }
 
 func getWsSvcCert(keyPath string) (string, error) {
-	reqCertParams := httpsmgr.ReqCertParams{
+	reqCertParams := requests.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
 			RootCaPath: util.RootCaPath,
 			CertPath:   util.ServerCertPath,
@@ -144,7 +145,7 @@ func getWsSvcCert(keyPath string) (string, error) {
 }
 
 func getWsRootCert() ([]byte, error) {
-	reqCertParams := httpsmgr.ReqCertParams{
+	reqCertParams := requests.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
 			RootCaPath: util.RootCaPath,
 			CertPath:   util.ServerCertPath,

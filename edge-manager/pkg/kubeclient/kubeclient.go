@@ -8,10 +8,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/k8stool"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509"
 	appv1 "k8s.io/api/apps/v1"
@@ -21,6 +21,7 @@ import (
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 
 	"huawei.com/mindxedge/base/common"
 )
@@ -46,6 +47,9 @@ const (
 	DefaultImagePullSecretKey = "image-pull-secret"
 	// DefaultImagePullSecretValue for initialization of app manager to create a default image pull secret value
 	DefaultImagePullSecretValue = "{}"
+
+	configKeyQps   = "KUBE_CLIENT_QPS"
+	configKeyBurst = "KUBE_CLIENT_BURST"
 )
 
 var k8sClient *Client
@@ -56,8 +60,15 @@ type Client struct {
 }
 
 // NewClientK8s create ClientK8s
-func NewClientK8s(kubeConfig string) (*Client, error) {
-	client, err := k8stool.K8sClientFor(kubeConfig, "")
+func NewClientK8s() (*Client, error) {
+	cfg, err := rest.InClusterConfig()
+	if err != nil {
+		return nil, err
+	}
+	if err := setupClientConfig(cfg); err != nil {
+		return nil, err
+	}
+	client, err := kubernetes.NewForConfig(cfg)
 	if err != nil || client == nil {
 		return nil, fmt.Errorf("failed to create kube client: %v", err)
 	}
@@ -66,6 +77,24 @@ func NewClientK8s(kubeConfig string) (*Client, error) {
 		kubeClient: client,
 	}
 	return k8sClient, nil
+}
+
+func setupClientConfig(clientConfig *rest.Config) error {
+	var (
+		qps   float32
+		burst int
+	)
+	decoder := json.NewDecoder(strings.NewReader(os.Getenv(configKeyQps)))
+	if err := decoder.Decode(&qps); err != nil {
+		return err
+	}
+	decoder = json.NewDecoder(strings.NewReader(os.Getenv(configKeyBurst)))
+	if err := decoder.Decode(&burst); err != nil {
+		return err
+	}
+	clientConfig.QPS = qps
+	clientConfig.Burst = burst
+	return nil
 }
 
 // GetKubeClient get k8s client

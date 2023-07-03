@@ -14,8 +14,7 @@ import (
 	"huawei.com/mindx/common/x509/certutils"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/httpsmgr"
-
+	"huawei.com/mindxedge/base/common/requests"
 	"nginx-manager/pkg/nginxcom"
 )
 
@@ -51,7 +50,7 @@ func getServerCert(keyPath string) (string, error) {
 		hwlog.RunLog.Errorf("create nginx service cert csr failed: %s", err.Error())
 		return "", err
 	}
-	reqCertParams := httpsmgr.ReqCertParams{
+	reqCertParams := requests.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
 			RootCaPath: nginxcom.RootCaPath,
 			CertPath:   nginxcom.ClientCertFile,

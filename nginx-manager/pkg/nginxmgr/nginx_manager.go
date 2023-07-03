@@ -18,7 +18,7 @@ import (
 	"huawei.com/mindx/common/x509/certutils"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/httpsmgr"
+	"huawei.com/mindxedge/base/common/requests"
 	"nginx-manager/pkg/msgutil"
 	"nginx-manager/pkg/nginxcom"
 )
@@ -228,8 +228,8 @@ func getNorthCrl() (bool, error) {
 	return true, nil
 }
 
-func getReqCertParams() httpsmgr.ReqCertParams {
-	return httpsmgr.ReqCertParams{
+func getReqCertParams() requests.ReqCertParams {
+	return requests.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
 			RootCaPath: nginxcom.RootCaPath,
 			CertPath:   nginxcom.ClientCertFile,

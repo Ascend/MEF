@@ -4,11 +4,12 @@
 package restful
 
 import (
-	"cert-manager/pkg/certmanager"
+	"huawei.com/mindx/common/httpsmgr"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/x509/certutils"
+
+	"cert-manager/pkg/certmanager"
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/httpsmgr"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 

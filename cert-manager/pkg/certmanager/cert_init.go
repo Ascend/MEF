@@ -12,14 +12,15 @@ import (
 	"sync"
 	"time"
 
+	"huawei.com/mindx/common/httpsmgr"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509"
 	"huawei.com/mindx/common/x509/certutils"
+
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/httpsmgr"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 
 	"cert-manager/pkg/config"

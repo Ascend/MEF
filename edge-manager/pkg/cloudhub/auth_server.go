@@ -12,12 +12,13 @@ import (
 	"regexp"
 
 	"github.com/gin-gonic/gin"
+	"huawei.com/mindx/common/httpsmgr"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/x509/certutils"
 	"huawei.com/mindx/common/xcrypto"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/httpsmgr"
+	"huawei.com/mindxedge/base/common/requests"
 
 	"edge-manager/pkg/configmanager"
 	"edge-manager/pkg/util"
@@ -83,7 +84,7 @@ func ClientAuth(c *gin.Context) {
 		c.String(http.StatusBadRequest, "csr data is required")
 		return
 	}
-	reqCertParams := httpsmgr.ReqCertParams{
+	reqCertParams := requests.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
 			RootCaPath: util.RootCaPath,
 			CertPath:   util.ServerCertPath,

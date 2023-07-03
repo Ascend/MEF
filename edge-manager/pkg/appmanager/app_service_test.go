@@ -64,7 +64,7 @@ func setup() {
 		hwlog.RunLog.Errorf("setup table error, %v", err)
 	}
 
-	if _, err = kubeclient.NewClientK8s(""); err != nil {
+	if _, err = kubeclient.NewClientK8s(); err != nil {
 		hwlog.RunLog.Error("init k8s failed")
 	}
 }
