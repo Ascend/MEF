@@ -4,6 +4,7 @@
 package nodemanager
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"regexp"
@@ -251,31 +252,32 @@ func (s *nodeSyncImpl) ListNodeStatus() map[string]string {
 	return allNodeStatus
 }
 
-func (s *nodeSyncImpl) GetAvailableResource(hostname string) (*NodeResource, error) {
-	AllocatedRes, err := kubeclient.GetKubeClient().GetNodeAllocatedResource(hostname)
+func (s *nodeSyncImpl) GetAvailableResource(nodeID uint64, hostname string) (*NodeResource, error) {
+	var (
+		allocatedCpu, allocatedMemory, allocatedNpu resource.Quantity
+		err                                         error
+	)
+	groups, err := NodeServiceInstance().getGroupsByNodeID(nodeID)
 	if err != nil {
-		return nil, fmt.Errorf("get node all allocated resource failed: %s", err.Error())
+		return nil, fmt.Errorf("get node all groups failed: %s", err.Error())
 	}
-	AllocatableRes, err := s.GetAllocatableResource(hostname)
+	for _, group := range *groups {
+		var res NodeResource
+		if err := json.Unmarshal([]byte(group.ResourcesRequest), &res); err != nil {
+			continue
+		}
+		allocatedCpu.Add(res.Cpu)
+		allocatedMemory.Add(res.Memory)
+		allocatedNpu.Add(res.Npu)
+	}
+	allocatableRes, err := s.GetAllocatableResource(hostname)
 	if err != nil {
 		return nil, fmt.Errorf("get node all allocatable resource failed: %s", err.Error())
 	}
-	allocatedCpu, ok := AllocatedRes[v1.ResourceCPU]
-	if !ok {
-		return nil, errors.New("get allocated resources cpu failed")
-	}
-	allocatedMemory, ok := AllocatedRes[v1.ResourceMemory]
-	if !ok {
-		return nil, errors.New("get allocated resources memory failed")
-	}
-	allocatedNpu, ok := AllocatedRes[common.DeviceType]
-	if !ok {
-		return nil, errors.New("get allocated resources npu failed")
-	}
-	AllocatableRes.Cpu.Sub(allocatedCpu)
-	AllocatableRes.Memory.Sub(allocatedMemory)
-	AllocatableRes.Npu.Sub(allocatedNpu)
-	return AllocatableRes, nil
+	allocatableRes.Cpu.Sub(allocatedCpu)
+	allocatableRes.Memory.Sub(allocatedMemory)
+	allocatableRes.Npu.Sub(allocatedNpu)
+	return allocatableRes, nil
 }
 
 func (s *nodeSyncImpl) getNode(hostname string) (*v1.Node, error) {

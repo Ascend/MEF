@@ -557,7 +557,7 @@ func checkNodeResource(req v1.ResourceList, nodeId uint64) error {
 	if err != nil {
 		return fmt.Errorf("get node info by node id [%d] error", nodeId)
 	}
-	availableRes, err := NodeSyncInstance().GetAvailableResource(nodeInfo.UniqueName)
+	availableRes, err := NodeSyncInstance().GetAvailableResource(nodeInfo.ID, nodeInfo.UniqueName)
 	if err != nil {
 		return fmt.Errorf("get node allocatable resource by node unique name [%s] error: %s",
 			nodeInfo.UniqueName, err.Error())
