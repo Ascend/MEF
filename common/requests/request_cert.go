@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"huawei.com/mindx/common/httpsmgr"
 	"huawei.com/mindx/common/x509/certutils"
@@ -48,7 +49,8 @@ func (rcp *ReqCertParams) GetCrl(crlName string) (string, error) {
 	url := fmt.Sprintf("https://%s:%d/%s/?crlName=%s", common.CertMgrDns, common.CertMgrPort,
 		getCrlUrl, crlName)
 	httpsReq := httpsmgr.GetHttpsReq(url, rcp.ClientTlsCert)
-	resp, err := httpsReq.Get(nil)
+	const timeout = 3 * time.Second
+	resp, err := httpsReq.GetWithTimeout(nil, timeout)
 	if err != nil {
 		return "", err
 	}
