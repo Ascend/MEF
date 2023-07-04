@@ -425,14 +425,15 @@ Commands:
 `)
 }
 
-func main() {
-	const retryTimes = 3
-	var (
-		installParam *util.InstallParamJsonTemplate
-		err          error
-		readSuccess  bool
-	)
+const retryTimes = 3
 
+var (
+	installParam *util.InstallParamJsonTemplate
+	err          error
+	readSuccess  bool
+)
+
+func main() {
 	for i := 1; i <= retryTimes; i++ {
 		installParam, err = util.GetInstallInfo()
 		if err != nil {
@@ -462,6 +463,13 @@ func main() {
 		os.Exit(util.ErrorExitCode)
 	}
 
+	pathMgr := util.InitInstallDirPathMgr(installParam.InstallDir)
+	if err = util.CheckCurrentPath(pathMgr.GetWorkPath()); err != nil {
+		fmt.Println("execute command failed")
+		hwlog.RunLog.Error(err)
+		os.Exit(util.ErrorExitCode)
+	}
+
 	curController.setInstallParam(installParam)
 	curController.printExecutingLog(ip, user)
 	if err = curController.doControl(); err != nil {
@@ -475,6 +483,9 @@ func main() {
 }
 
 func initLog(installParam *util.InstallParamJsonTemplate) error {
+	if installParam == nil {
+		return errors.New("installParam is nil")
+	}
 	logDirPath := installParam.LogDir
 	logBackupDirPath := installParam.LogBackupDir
 	logPathMgr := util.InitLogDirPathMgr(logDirPath, logBackupDirPath)

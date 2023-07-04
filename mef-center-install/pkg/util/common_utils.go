@@ -114,6 +114,7 @@ func CheckCurrentPath(linkPath string) error {
 	}
 
 	if filepath.Dir(curAbsPath) != workingAbsPath {
+		fmt.Println("the existing dir is not the MEF working dir, cannot execute any command here")
 		return fmt.Errorf("current sh path is not in the working path")
 	}
 
