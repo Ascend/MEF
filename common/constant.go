@@ -237,8 +237,6 @@ const (
 	ResSoftwareInfo = "/edge/version-info"
 	// ResDownLoadSoftware resource for downloading software
 	ResDownLoadSoftware = "/software/download_info"
-	// ResEdgeCoreConfig resource for querying edgecore config
-	ResEdgeCoreConfig = "/edgecore/config"
 	// ResConfig resource config
 	ResConfig = "/config"
 	// ResSetEdgeAccount resource for setting edge account

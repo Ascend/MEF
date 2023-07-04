@@ -5,7 +5,6 @@ package cloudhub
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"path/filepath"
 	"time"
@@ -63,10 +62,7 @@ func InitServer() error {
 	proxy := &websocketmgr.WsServerProxy{
 		ProxyCfg: proxyConfig,
 	}
-	if err = proxy.AddHandler(util.ConnCheckUrl, checkConn); err != nil {
-		hwlog.RunLog.Errorf("add handler failed")
-		return fmt.Errorf("add handler failed")
-	}
+
 	proxy.AddDefaultHandler()
 	serverSender.SetProxy(proxy)
 	if err = proxy.Start(); err != nil {
