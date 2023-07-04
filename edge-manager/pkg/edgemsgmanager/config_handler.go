@@ -4,16 +4,15 @@
 package edgemsgmanager
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509/certutils"
+	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/kubeclient"
-	"huawei.com/mindxedge/base/common"
 )
 
 const maxTokenLen = 1024
@@ -26,45 +25,6 @@ type TokenResp struct {
 type msgDealer struct {
 	deal func() ([]byte, error)
 	post func([]byte)
-}
-
-// GetEdgeConfigInfo get config info
-func GetEdgeConfigInfo(input interface{}) common.RespMsg {
-	hwlog.RunLog.Info("edge msg manager received message from edge hub success to get token")
-	message, ok := input.(*model.Message)
-	if !ok {
-		hwlog.RunLog.Error("get message failed")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "get message failed", Data: nil}
-	}
-
-	token, err := kubeclient.GetKubeClient().GetToken()
-	defer common.ClearSliceByteMemory(token)
-	if err != nil {
-		hwlog.RunLog.Errorf("get token from k8s failed, error: %v", err)
-		return common.RespMsg{Status: common.ErrorGetConfigData, Msg: "get token from k8s failed", Data: nil}
-	}
-
-	if len(token) == 0 || len(token) > maxTokenLen {
-		hwlog.RunLog.Errorf("token len: %d invalid", len(token))
-		return common.RespMsg{Status: common.ErrorGetConfigData, Msg: "token len invalid", Data: nil}
-	}
-	tokenResp := TokenResp{
-		Token: token,
-	}
-	defer common.ClearSliceByteMemory(tokenResp.Token)
-	data, err := json.Marshal(tokenResp)
-	if err != nil {
-		hwlog.RunLog.Errorf("marshal token response failed, error: %v", err)
-		return common.RespMsg{Status: common.ErrorGetConfigData, Msg: "get token from k8s failed", Data: nil}
-	}
-
-	if err = sendMessageToEdge(message, string(data)); err != nil {
-		hwlog.RunLog.Errorf("edge msg manager send message to edge hub for config failed, error: %v", err)
-		return common.RespMsg{Status: common.ErrorSendMsgToNode, Msg: "get token from k8s failed", Data: nil}
-	}
-
-	hwlog.RunLog.Info("edge msg manager send message to edge hub success with token")
-	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
 func getToken() ([]byte, error) {

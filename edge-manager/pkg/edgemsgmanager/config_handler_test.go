@@ -4,7 +4,6 @@
 package edgemsgmanager
 
 import (
-	"encoding/json"
 	"reflect"
 	"testing"
 
@@ -13,9 +12,9 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/kubeclient"
-	"huawei.com/mindxedge/base/common"
 )
 
 func TestGetConfigInfo(t *testing.T) {
@@ -127,45 +126,4 @@ func testGetConfigInfoErrSendAsyncMsg() {
 
 	resp := GetConfigInfo(msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorSendMsgToNode)
-}
-
-func TestGetEdgeConfigInfo(t *testing.T) {
-	convey.Convey("test get config info should be success", t, testGetEdgeConfigInfo)
-}
-
-func testGetEdgeConfigInfo() {
-	baseContent := `{
-    "token": "SwyHTEx_RQppr97g4J5lKXtabJecpejuef8AqKYMAJc",
-	}`
-
-	var token TokenResp
-	err := json.Unmarshal([]byte(baseContent), &token)
-	if err != nil {
-		hwlog.RunLog.Errorf("unmarshal failed, error: %v", err)
-	}
-	content, err := json.Marshal(token)
-	if err != nil {
-		hwlog.RunLog.Errorf("marshal failed, error: %v", err)
-	}
-
-	msg, err := model.NewMessage()
-	if err != nil {
-		hwlog.RunLog.Errorf("create message failed, error: %v", err)
-	}
-	msg.FillContent(string(content))
-
-	var c *kubeclient.Client
-	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "GetToken",
-		func(ki *kubeclient.Client) ([]byte, error) {
-			return []byte("SwyHTEx_RQppr97g4J5lKXtabJecpejuef8AqKYMAJc"), nil
-		})
-	defer p1.Reset()
-
-	var p2 = gomonkey.ApplyFunc(modulemgr.SendMessage,
-		func(m *model.Message) error {
-			return nil
-		})
-	defer p2.Reset()
-	resp := GetEdgeConfigInfo(msg)
-	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }

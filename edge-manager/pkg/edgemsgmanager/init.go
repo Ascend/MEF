@@ -11,9 +11,9 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/types"
-	"huawei.com/mindxedge/base/common"
 )
 
 var nodesProgress map[string]types.ProgressInfo
@@ -115,7 +115,6 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodGet, filepath.Join(edgeSoftwareRootPath, "/version-info")):      queryEdgeSoftwareVersion,
 	common.Combine(http.MethodGet, filepath.Join(edgeSoftwareRootPath, "/download-progress")): queryEdgeDownloadProgress,
 
-	common.Combine(common.OptGet, common.ResEdgeCoreConfig):      GetEdgeConfigInfo,
 	common.Combine(common.OptGet, common.ResConfig):              GetConfigInfo,
 	common.Combine(common.OptGet, common.ResDownLoadCert):        GetCertInfo,
 	common.Combine(common.OptReport, common.ResDownloadProgress): UpdateEdgeDownloadProgress,
