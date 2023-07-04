@@ -21,7 +21,6 @@ type SftUninstallMgr struct {
 func (sum *SftUninstallMgr) DoUninstall() error {
 	var installTasks = []func() error{
 		sum.checkUser,
-		sum.checkCurrentPath,
 		sum.ClearNamespace,
 		sum.ClearAllDockerImages,
 		sum.ClearAndLabel,
