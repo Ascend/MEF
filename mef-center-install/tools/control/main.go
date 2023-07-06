@@ -430,10 +430,10 @@ const retryTimes = 3
 var (
 	installParam *util.InstallParamJsonTemplate
 	err          error
-	readSuccess  bool
 )
 
-func main() {
+func initInstallParam() bool {
+	var readSuccess bool
 	for i := 1; i <= retryTimes; i++ {
 		installParam, err = util.GetInstallInfo()
 		if err != nil {
@@ -444,7 +444,11 @@ func main() {
 		break
 	}
 
-	if !readSuccess {
+	return readSuccess
+}
+
+func main() {
+	if !initInstallParam() {
 		os.Exit(util.ErrorExitCode)
 	}
 
@@ -460,6 +464,11 @@ func main() {
 	user, ip, err := envutils.GetUserAndIP()
 	if err != nil {
 		hwlog.RunLog.Errorf("get current user or ip info failed: %s", err.Error())
+		os.Exit(util.ErrorExitCode)
+	}
+
+	if installParam == nil {
+		hwlog.RunLog.Error("installParam is nil")
 		os.Exit(util.ErrorExitCode)
 	}
 
