@@ -35,12 +35,14 @@ const (
 	labelResourcePrefix = "/metadata/labels/"
 	fieldSelectorPrefix = "spec.nodeName="
 
-	systemNamespace = "kubeedge"
-	tokenSecretName = "tokensecret"
-	tokenDataName   = "tokendata"
-	caSecretName    = "casecret"
-	caDataName      = "cadata"
-	caKeyDataName   = "cakeydata"
+	mefEdgeNodeLabel    = "mef-edge-node"
+	kubeSystemNamespace = "kube-system"
+	systemNamespace     = "kubeedge"
+	tokenSecretName     = "tokensecret"
+	tokenDataName       = "tokendata"
+	caSecretName        = "casecret"
+	caDataName          = "cadata"
+	caKeyDataName       = "cakeydata"
 	// K8sNotFoundErrorFragment for check if the error is found type
 	K8sNotFoundErrorFragment = "not found"
 	// DefaultImagePullSecretKey for getting image pull secret
@@ -76,7 +78,59 @@ func NewClientK8s() (*Client, error) {
 	k8sClient = &Client{
 		kubeClient: client,
 	}
+	k8sClient.systemComponentsModify()
 	return k8sClient, nil
+}
+
+func (ki *Client) systemComponentsModify() {
+	dsList, err := ki.kubeClient.AppsV1().DaemonSets(kubeSystemNamespace).
+		List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+		hwlog.RunLog.Warnf("modify kube-system components failed, get system daemonset error: %v", err)
+		return
+	}
+	for _, ds := range dsList.Items {
+		if ds.Spec.Template.Spec.Affinity == nil {
+			ds.Spec.Template.Spec.Affinity = &v1.Affinity{}
+		}
+		if ds.Spec.Template.Spec.Affinity.NodeAffinity == nil {
+			ds.Spec.Template.Spec.Affinity.NodeAffinity = &v1.NodeAffinity{}
+		}
+		if ds.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution == nil {
+			ds.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution =
+				&v1.NodeSelector{}
+		}
+		terms := ds.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.
+			NodeSelectorTerms
+		if isModified(terms) {
+			return
+		}
+		term := v1.NodeSelectorTerm{
+			MatchExpressions: []v1.NodeSelectorRequirement{
+				{
+					Key:      mefEdgeNodeLabel,
+					Operator: v1.NodeSelectorOpDoesNotExist,
+				},
+			},
+		}
+		ds.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.
+			NodeSelectorTerms = append(terms, term)
+		if _, err := ki.kubeClient.AppsV1().DaemonSets(kubeSystemNamespace).
+			Update(context.Background(), &ds, metav1.UpdateOptions{}); err != nil {
+			hwlog.RunLog.Warnf("modify kube-system daemonset failed, %v", err)
+		}
+	}
+}
+
+func isModified(terms []v1.NodeSelectorTerm) bool {
+	for _, term := range terms {
+		for _, expression := range term.MatchExpressions {
+			if expression.Key == mefEdgeNodeLabel && expression.Operator == v1.NodeSelectorOpDoesNotExist {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func setupClientConfig(clientConfig *rest.Config) error {
