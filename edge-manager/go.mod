@@ -41,7 +41,7 @@ replace (
 	huawei.com/mindx/common/xcrypto => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/xcrypto v0.0.2
 	huawei.com/mindx/mef/common/cmsverify => ./../MEF_Utils/cmsverify
 	huawei.com/mindxedge/base v0.0.1 => ./../
-	k8s.io/api => szv-open.codehub.huawei.com/OpenSourceCenter/kubernetes/kubernetes.git/staging/src/k8s.io/api v0.0.0-20230316115657-3ccff71419e0
-	k8s.io/apimachinery => szv-open.codehub.huawei.com/OpenSourceCenter/kubernetes/kubernetes.git/staging/src/k8s.io/apimachinery v0.0.0-20230316115657-3ccff71419e0
-	k8s.io/client-go => szv-open.codehub.huawei.com/OpenSourceCenter/kubernetes/kubernetes.git/staging/src/k8s.io/client-go v0.0.0-20230316115657-3ccff71419e0
+	k8s.io/api => szv-open.codehub.huawei.com/OpenSourceCenter/kubernetes/kubernetes.git/staging/src/k8s.io/api v0.0.0-20230710114506-32a8b0ba6ed1
+	k8s.io/apimachinery => szv-open.codehub.huawei.com/OpenSourceCenter/kubernetes/kubernetes.git/staging/src/k8s.io/apimachinery v0.0.0-20230710114506-32a8b0ba6ed1
+	k8s.io/client-go => szv-open.codehub.huawei.com/OpenSourceCenter/kubernetes/kubernetes.git/staging/src/k8s.io/client-go v0.0.0-20230710114506-32a8b0ba6ed1
 )
