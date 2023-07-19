@@ -108,7 +108,6 @@ const (
 	NginxManagerName    = "nginx-manager"
 	MefCenterRootName   = "MEF-Center-root"
 	SoftwareManagerName = "software-manager"
-	UserManagerName     = "user-manager"
 )
 
 // install constant
