@@ -267,14 +267,6 @@ func (c *ComponentMgr) PrepareComponentCert(certMng *certutils.RootCertMgr, cert
 		hwlog.RunLog.Errorf("create component [%s] cert failed: %v", c.name, err)
 		return fmt.Errorf("create component [%s] cert failed", c.name)
 	}
-
-	if c.name != NginxManagerName {
-		return nil
-	}
-
-	if err := c.prepareUserMgrCert(certMng, certPathMgr); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -311,41 +303,6 @@ func (c *ComponentMgr) PrepareComponentConfig(pathMgr *ConfigPathMgr) error {
 		return fmt.Errorf("copy component config failed")
 	}
 
-	return nil
-}
-
-// prepareUserMgrCert create service crt for user manager module
-func (c *ComponentMgr) prepareUserMgrCert(certMng *certutils.RootCertMgr, certPathMgr *ConfigPathMgr) error {
-	hwlog.RunLog.Info("start to prepare user manager server cert")
-	if certMng == nil {
-		hwlog.RunLog.Error("pointer certMng is nil")
-		return errors.New("pointer certMng is nil")
-	}
-	if certPathMgr == nil {
-		hwlog.RunLog.Error("pointer certPathMgr is nil")
-		return errors.New("pointer certPathMgr is nil")
-	}
-	componentsCertPath := certPathMgr.GetUserServerCrtPath()
-	componentPrivPath := certPathMgr.GetUserServerKeyPath()
-	kmcKeyPath := certPathMgr.GetComponentMasterKmcPath(c.name)
-	kmcBackKeyPath := certPathMgr.GetComponentBackKmcPath(c.name)
-
-	componentCert := certutils.SelfSignCert{
-		RootCertMgr: certMng,
-		SvcCertPath: componentsCertPath,
-		SvcKeyPath:  componentPrivPath,
-		CommonName:  c.name,
-		KmcCfg:      kmc.GetKmcCfg(kmcKeyPath, kmcBackKeyPath),
-		San: certutils.CertSan{
-			DnsName: []string{getComponentDns(c.name)},
-		},
-	}
-	if err := componentCert.CreateSignCert(); err != nil {
-		hwlog.RunLog.Errorf("create user-manager server cert failed: %v", err)
-		return errors.New("create user-manager server cert failed")
-	}
-
-	hwlog.RunLog.Infof("prepare user-manager server cert successful")
 	return nil
 }
 
