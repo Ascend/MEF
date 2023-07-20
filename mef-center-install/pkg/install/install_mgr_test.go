@@ -440,7 +440,9 @@ func PrepareYamlTest() {
 	var yamlMgrCtl *YamlMgr
 	convey.Convey("test prepareYaml func success", func() {
 		p := gomonkey.ApplyMethodReturn(yamlMgrCtl, "EditSingleYaml", nil)
+		p2 := gomonkey.ApplyFuncReturn(util.ModifyEndpointYaml, nil)
 		defer p.Reset()
+		defer p2.Reset()
 		convey.So(ins.prepareYaml(), convey.ShouldBeNil)
 	})
 

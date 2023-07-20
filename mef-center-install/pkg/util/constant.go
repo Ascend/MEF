@@ -81,6 +81,7 @@ const (
 	MasterKeyFile    = "master.ks"
 	BackUpKeyFile    = "backup.ks"
 	CertsDir         = "mef-certs"
+	KubeCertsDir     = "kube-config"
 	CertSuffix       = ".crt"
 	CrlSuffix        = ".crl"
 	KeySuffix        = ".key"
@@ -231,6 +232,10 @@ const (
 	RootKeyFileName = "encrypt_root.key"
 	// CrlName root ca save file name
 	CrlName = "revokeList.crl"
+	// ServiceName for edge-manager kubeconfig certs
+	ServiceName = "server.crt"
+	// KeyFileName for edge-manager kubeconfig key
+	KeyFileName = "server.key"
 )
 
 // compare crls result status while upgrading

@@ -22,6 +22,7 @@ func (sum *SftUninstallMgr) DoUninstall() error {
 	var installTasks = []func() error{
 		sum.checkUser,
 		sum.ClearNamespace,
+		sum.ClearKubeAuth,
 		sum.ClearAllDockerImages,
 		sum.ClearAndLabel,
 	}

@@ -166,7 +166,7 @@ func initResource() error {
 		return err
 	}
 	if _, err := kubeclient.NewClientK8s(); err != nil {
-		hwlog.RunLog.Error("init k8s failed")
+		hwlog.RunLog.Errorf("init k8s failed: %v", err)
 		return err
 	}
 	if err := initPodConfig(); err != nil {

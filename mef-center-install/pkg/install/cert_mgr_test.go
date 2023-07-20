@@ -94,7 +94,7 @@ func CertMgrPrepareCertTest() {
 		var componentMgrIns *util.ComponentMgr
 		var ins = &certPrepareCtl{
 			certPathMgr: InstallDirPathMgrIns.ConfigPathMgr,
-			components:  []string{"edge-manager"},
+			components:  []string{"cert-manager"},
 		}
 
 		convey.Convey("test prepareCert func success", func() {

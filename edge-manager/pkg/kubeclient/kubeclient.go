@@ -8,12 +8,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"os"
+	"strconv"
 	"strings"
 
-	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/utils"
-	"huawei.com/mindx/common/x509"
 	appv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -23,6 +22,11 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
+	"huawei.com/mindx/common/checker/valid"
+	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/utils"
+	"huawei.com/mindx/common/x509"
+	"huawei.com/mindx/common/x509/certutils"
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -34,6 +38,7 @@ const (
 	opAdd               = "add"
 	labelResourcePrefix = "/metadata/labels/"
 	fieldSelectorPrefix = "spec.nodeName="
+	arrLen              = 2
 
 	mefEdgeNodeLabel    = "mef-edge-node"
 	kubeSystemNamespace = "kube-system"
@@ -50,8 +55,12 @@ const (
 	// DefaultImagePullSecretValue for initialization of app manager to create a default image pull secret value
 	DefaultImagePullSecretValue = "{}"
 
-	configKeyQps   = "KUBE_CLIENT_QPS"
-	configKeyBurst = "KUBE_CLIENT_BURST"
+	configKeyQps       = "KUBE_CLIENT_QPS"
+	configKeyBurst     = "KUBE_CLIENT_BURST"
+	configEndpoint     = "API_SERVER_ENDPOINT"
+	kubeConfigCertPath = "/home/data/config/kube-config/server.crt"
+	kubeConfigKeyPath  = "/home/data/config/kube-config/server.key"
+	kubeConfigCaPath   = "/home/data/config/kube-config/root.crt"
 )
 
 var k8sClient *Client
@@ -63,14 +72,29 @@ type Client struct {
 
 // NewClientK8s create ClientK8s
 func NewClientK8s() (*Client, error) {
-	cfg, err := rest.InClusterConfig()
+	pemPair, err := certutils.GetCertPairForPem(kubeConfigCertPath, kubeConfigKeyPath, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get kubeconfig cert pair failed: %v", err)
 	}
-	if err := setupClientConfig(cfg); err != nil {
-		return nil, err
+	rootCaPemBytes, err := utils.LoadFile(kubeConfigCaPath)
+	if err != nil || rootCaPemBytes == nil {
+		return nil, fmt.Errorf("load kube client ca failed")
 	}
-	client, err := kubernetes.NewForConfig(cfg)
+
+	selfCreateConfig := rest.Config{
+		TLSClientConfig: rest.TLSClientConfig{
+			Insecure:   false,
+			ServerName: "",
+			CertData:   pemPair.CertPem,
+			KeyData:    pemPair.KeyPem,
+			CAData:     rootCaPemBytes,
+			NextProtos: []string(nil),
+		},
+	}
+	if err := setupClientConfig(&selfCreateConfig); err != nil {
+		return nil, fmt.Errorf("set kube client config failed: %v", err)
+	}
+	client, err := kubernetes.NewForConfig(&selfCreateConfig)
 	if err != nil || client == nil {
 		return nil, fmt.Errorf("failed to create kube client: %v", err)
 	}
@@ -148,6 +172,37 @@ func setupClientConfig(clientConfig *rest.Config) error {
 	}
 	clientConfig.QPS = qps
 	clientConfig.Burst = burst
+
+	endpointStr := os.Getenv(configEndpoint)
+	if err := checkEndpoint(endpointStr); err != nil {
+		return err
+	}
+	clientConfig.Host = fmt.Sprintf("https://%s", endpointStr)
+	return nil
+}
+
+func checkEndpoint(endpointStr string) error {
+	if endpointStr == "" {
+		return errors.New("apiserver endpoint is nil, please modify " +
+			"edge-manager.yaml in env API_SERVER_ENDPOINT with real endpoint")
+	}
+	endpoint := strings.Split(endpointStr, ":")
+	if len(endpoint) != arrLen {
+		return errors.New("endpoint parse failed")
+	}
+
+	parsedIp := net.ParseIP(endpoint[0])
+	if parsedIp == nil {
+		return errors.New("apiserver advertise address is invalid")
+	}
+
+	port, err := strconv.Atoi(endpoint[1])
+	if err != nil {
+		return fmt.Errorf("convert port to int value error:%v", err)
+	}
+	if !valid.IsPortInRange(common.MinPort, common.MaxPort, port) {
+		return fmt.Errorf("apiserver secure port %d is not in [%d, %d]", port, common.MinPort, common.MaxPort)
+	}
 	return nil
 }
 
