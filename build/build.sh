@@ -10,14 +10,12 @@ INSTALL_BUILD_SCRIPT=$(realpath "${ATLAS_EDGE_BASE_DIR}/mef-center-install/build
 
 # project directory name
 EDGE_MANAGER_DIR_NAME="edge-manager"
-SOFTWARE_MANAGER_DIR_NAME="software-manager"
 CERT_MANAGER_DIR_NAME="cert-manager"
 C_SCRIPT=${CUR_DIR}/build_c_package.sh
 
 VER_FILE="${TOP_DIR}"/service_config.ini
 if [ -f "$VER_FILE" ]; then
   cp "${VER_FILE}" "${TOP_DIR}/${EDGE_MANAGER_DIR_NAME}/"
-  cp "${VER_FILE}" "${TOP_DIR}/${SOFTWARE_MANAGER_DIR_NAME}/"
   cp "${VER_FILE}" "${TOP_DIR}/${CERT_MANAGER_DIR_NAME}/"
 fi
 
@@ -78,7 +76,6 @@ function main() {
   clean
   build_c_files
   build_and_zip_component ${EDGE_MANAGER_DIR_NAME}
-  build_and_zip_component ${SOFTWARE_MANAGER_DIR_NAME}
   build_and_zip_component ${CERT_MANAGER_DIR_NAME}
   build_install_bin
 }

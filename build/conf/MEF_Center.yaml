@@ -7,7 +7,6 @@ systemEnv:
 TOP_DIR: "{{systemEnv.workspace}}/{{component}}"
 CMS_VERIFY_DIR: "{{TOP_DIR}}/MEF_Utils/cmsverifytool"
 EDGE_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/edge-manager"
-SOFTWARE_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/software-manager"
 CERT_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/cert-manager"
 MEF_CENTER_INSTALL_DIR: "{{systemEnv.workspace}}/{{component}}/mef-center-install"
 NGINX_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/nginx-manager"

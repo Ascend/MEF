@@ -103,16 +103,14 @@ const (
 
 // module name constant
 const (
-	EdgeManagerName     = "edge-manager"
-	CertManagerName     = "cert-manager"
-	NginxManagerName    = "nginx-manager"
-	MefCenterRootName   = "MEF-Center-root"
-	SoftwareManagerName = "software-manager"
+	EdgeManagerName   = "edge-manager"
+	CertManagerName   = "cert-manager"
+	NginxManagerName  = "nginx-manager"
+	MefCenterRootName = "MEF-Center-root"
 )
 
 // install constant
 const (
-	SoftwareManagerFlag = SoftwareManagerName
 	AllInstallFlag      = "install_all"
 	LogPathFlag         = "log_path"
 	LogBackupPathFlag   = "log_backup_path"

@@ -68,8 +68,6 @@ const (
 	EdgeInstallerName = "edge-installer"
 	// CertManagerName CertManager
 	CertManagerName = "CertManager"
-	// SoftwareManagerName software manager
-	SoftwareManagerName = "software manager"
 	// CertManagerService CertManager module name
 	CertManagerService = "CertManagerService"
 	// ConfigManagerName ConfigManagerName
