@@ -27,13 +27,11 @@ var (
 	// BuildVersion the program version
 	BuildVersion string
 
-	version                bool
-	installAll             bool
-	installSoftwareManager bool
-	logRootPath            string
-	logBackupRootPath      string
-	installPath            string
-	help                   bool
+	version           bool
+	logRootPath       string
+	logBackupRootPath string
+	installPath       string
+	help              bool
 )
 
 func init() {
@@ -59,23 +57,8 @@ func isFlagSet(name string) bool {
 	return found
 }
 
-func paramOptionalComponents() []string {
-	if installAll {
-		return []string{
-			util.SoftwareManagerFlag,
-		}
-	}
-	var installComponents []string
-	if isFlagSet(util.SoftwareManagerFlag) && installSoftwareManager {
-		installComponents = append(installComponents, util.SoftwareManagerFlag)
-	}
-
-	return installComponents
-}
-
 func doInstall() error {
-	optionalComponents := paramOptionalComponents()
-	fullComponents := append(optionalComponents, util.GetCompulsorySlice()...)
+	fullComponents := util.GetCompulsorySlice()
 	installCtlIns := install.GetSftInstallMgrIns(fullComponents, installPath, logRootPath, logBackupRootPath)
 
 	if err := installCtlIns.DoInstall(); err != nil {
