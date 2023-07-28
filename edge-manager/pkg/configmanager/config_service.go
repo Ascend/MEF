@@ -32,7 +32,7 @@ import (
 
 const (
 	saltLen   = 16
-	retryTime = 3
+	retryTime = 5
 )
 
 // downloadConfig download image config
@@ -211,7 +211,8 @@ func exportToken(input interface{}) common.RespMsg {
 func generateToken() ([]byte, error) {
 	var plainText []byte
 	var err error
-	for i := 0; i < retryTime; i++ {
+	var index int
+	for index = 0; index < retryTime; index++ {
 		plainText, err = x509.GetRandomPass()
 		if err != nil && strings.Contains(err.Error(), "the password is too simple") {
 			hwlog.RunLog.Warn("generate token is simple, try again")
@@ -222,7 +223,9 @@ func generateToken() ([]byte, error) {
 		}
 		break
 	}
-
+	if index >= retryTime {
+		return nil, errors.New("generate token is simple")
+	}
 	salt, err := common.GetSafeRandomBytes(saltLen)
 	if err != nil {
 		hwlog.RunLog.Errorf("generate salt failed: %v", err)
