@@ -311,11 +311,6 @@ func (ki *Client) GetConfigMap(name string) (*v1.ConfigMap, error) {
 	return ki.kubeClient.CoreV1().ConfigMaps(common.MefUserNs).Get(context.Background(), name, metav1.GetOptions{})
 }
 
-// ListConfigMapList list configmap list
-func (ki *Client) ListConfigMapList() (*v1.ConfigMapList, error) {
-	return ki.kubeClient.CoreV1().ConfigMaps(common.MefUserNs).List(context.Background(), metav1.ListOptions{})
-}
-
 // GetSecret [method] for creating secret
 func (ki *Client) GetSecret(name string) (*v1.Secret, error) {
 	return ki.GetClientSet().CoreV1().Secrets(common.MefUserNs).Get(context.Background(), name, metav1.GetOptions{})

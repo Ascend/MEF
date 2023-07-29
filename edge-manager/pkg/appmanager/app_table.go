@@ -53,10 +53,11 @@ type AppTemplateDb struct {
 
 // ConfigmapInfo is configmap table info
 type ConfigmapInfo struct {
-	ConfigmapID      int64     `gorm:"type:integer;primaryKey;autoIncrement:true"`
-	ConfigmapName    string    `gorm:"type:char(64);unique;not null"`
-	ConfigmapContent string    `gorm:"type:char(65535)"`
-	Description      string    `gorm:"type:char(255)"`
-	CreatedAt        time.Time `gorm:"type:time"`
-	UpdatedAt        time.Time `gorm:"type:time"`
+	ID                uint64    `gorm:"type:integer;primaryKey;autoIncrement:true"`
+	ConfigmapName     string    `gorm:"type:char(64);unique;not null"`
+	ConfigmapContent  string    `gorm:"type:char(65535)"`
+	Description       string    `gorm:"type:char(255)"`
+	AssociatedAppList []uint64  `gorm:""`
+	CreatedAt         time.Time `gorm:"type:time"`
+	UpdatedAt         time.Time `gorm:"type:time"`
 }
