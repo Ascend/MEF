@@ -47,7 +47,7 @@ func createApp(input interface{}) common.RespMsg {
 	}
 	app, err := req.toDb()
 	if err != nil {
-		hwlog.RunLog.Error("create app requst conver to db failed ")
+		hwlog.RunLog.Error("create app request convert to db failed ")
 		return common.RespMsg{Status: common.ErrorAppParamConvertDb, Msg: "get appInfo failed", Data: nil}
 	}
 	if err = AppRepositoryInstance().createApp(app); err != nil {

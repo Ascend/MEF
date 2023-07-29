@@ -1,291 +1,243 @@
 // Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
 
-// Package appmanager operation table configmap_infos according to the request body
+// Package appmanager operation table configmap_infos according to the request
 package appmanager
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 
+	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
 
-	"huawei.com/mindxedge/base/common"
-
-	"edge-manager/pkg/kubeclient"
+	"edge-manager/pkg/appmanager/appchecker"
 	"edge-manager/pkg/types"
+	"edge-manager/pkg/util"
+	"huawei.com/mindxedge/base/common"
 )
 
-const maxConfigmapItemNum = 64
-
 func createConfigmap(input interface{}) common.RespMsg {
-	hwlog.RunLog.Info("create the configmap item start")
+	hwlog.RunLog.Info("create the configmap start")
 
 	var createCmReq ConfigmapReq
 	if err := common.ParamConvert(input, &createCmReq); err != nil {
-		hwlog.RunLog.Errorf("convert request parameter from restful service module failed, error: %v", err)
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+		hwlog.RunLog.Errorf("convert request param failed, error: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}
 
-	if err := checkItemCountInDB(); err != nil {
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	if err := CheckItemCountInDB(); err != nil {
+		return common.RespMsg{Status: common.ErrorCheckCmCount, Msg: err.Error(), Data: nil}
 	}
 
-	checker := configmapParaChecker{req: &createCmReq}
-	if err := checker.Check(); err != nil {
-		hwlog.RunLog.Errorf("configmap para check failed before creating, error: %v", err)
-		return common.RespMsg{Status: "",
-			Msg: fmt.Sprintf("configmap para check failed before creating, error: %s", err.Error()), Data: nil}
+	if checkResult := appchecker.NewCreateCmChecker().Check(createCmReq); !checkResult.Result {
+		hwlog.RunLog.Errorf("create configmap param check failed, error: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
 	}
 
-	if err := createCmByK8S(&createCmReq); err != nil {
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	if err := NewCmSupplementalChecker(createCmReq).Check(); err != nil {
+		hwlog.RunLog.Errorf("supplemental param check failed, error: %v", err)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error(), Data: nil}
 	}
 
-	configmap, err := createCmReq.toDb()
+	id, err := CmRepositoryInstance().createCm(&createCmReq)
 	if err != nil {
-		hwlog.RunLog.Errorf("convert request to configmapInfo failed, error: %v", err)
-		return common.RespMsg{Status: "", Msg: fmt.Sprintf("convert request to configmapInfo failed, error: %s",
-			err.Error()), Data: nil}
-	}
-
-	if err = ConfigmapRepositoryInstance().createConfigmap(configmap); err != nil {
-		hwlog.RunLog.Errorf("create configmap [%s] in db failed, error: %v", createCmReq.ConfigmapName, err)
-		return common.RespMsg{Status: "", Msg: fmt.Sprintf("create configmap [%s] in db failed, error: %s",
-			createCmReq.ConfigmapName, err.Error()), Data: nil}
+		if err.Error() == common.ErrDbUniqueFailed {
+			return common.RespMsg{Status: common.ErrorAppMrgDuplicate, Msg: "configmap name is duplicate", Data: nil}
+		}
+		return common.RespMsg{Status: common.ErrorCreateCm, Msg: err.Error(), Data: nil}
 	}
 
 	hwlog.RunLog.Infof("create configmap [%s] success", createCmReq.ConfigmapName)
-	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
-}
-
-func createCmByK8S(createCmReq *ConfigmapReq) error {
-	configmapToK8S := convertCmToK8S(createCmReq)
-
-	_, err := kubeclient.GetKubeClient().CreateConfigMap(configmapToK8S)
-	if err != nil {
-		hwlog.RunLog.Errorf("create configmap [%s] by k8s failed, error: %v", createCmReq.ConfigmapName, err)
-		return fmt.Errorf("create configmap [%s] by k8s failed, error: %s", createCmReq.ConfigmapName, err.Error())
-	}
-
-	hwlog.RunLog.Infof("create configmap [%s] by k8s success", createCmReq.ConfigmapName)
-	return nil
+	return common.RespMsg{Status: common.Success, Msg: "", Data: id}
 }
 
 func deleteConfigmap(input interface{}) common.RespMsg {
-	hwlog.RunLog.Info("delete the configmap item start")
+	hwlog.RunLog.Info("delete the configmap start")
 
-	var deleteCmReq DeleteConfigmapReq
+	var deleteCmReq DeleteCmReq
 	if err := common.ParamConvert(input, &deleteCmReq); err != nil {
-		hwlog.RunLog.Errorf("convert request parameter from restful service module failed, error: %v", err)
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+		hwlog.RunLog.Errorf("convert request param failed, error: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}
 
-	var failedDeleteConfigmapIDs = make([]int64, 0, len(deleteCmReq.ConfigmapIDs))
+	if checkResult := appchecker.NewDeleteCmChecker().Check(deleteCmReq); !checkResult.Result {
+		hwlog.RunLog.Errorf("delete configmap param check failed, error: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
+	}
+
+	var res types.BatchResp
+	failedMap := make(map[string]string)
+	res.FailedInfos = failedMap
 	for _, configmapID := range deleteCmReq.ConfigmapIDs {
-		configmapInfoFromDB, err := ConfigmapRepositoryInstance().queryConfigmapByID(configmapID)
-		if err != nil {
-			hwlog.RunLog.Errorf("query configmap [%d] from db failed, error: %v", configmapID, err)
-			failedDeleteConfigmapIDs = append(failedDeleteConfigmapIDs, configmapID)
+
+		if err := CmRepositoryInstance().deleteSingleCm(configmapID); err != nil {
+			failedMap[strconv.Itoa(int(configmapID))] = err.Error()
 			continue
 		}
 
-		if ok := deleteCmByK8S(configmapInfoFromDB.ConfigmapName, configmapID); !ok {
-			failedDeleteConfigmapIDs = append(failedDeleteConfigmapIDs, configmapID)
-			continue
-		}
-
-		if err = ConfigmapRepositoryInstance().deleteConfigmapByID(configmapID); err != nil {
-			hwlog.RunLog.Errorf("delete configmap [%d] from db failed, error: %v", configmapID, err)
-			failedDeleteConfigmapIDs = append(failedDeleteConfigmapIDs, configmapID)
-			continue
-		}
+		res.SuccessIDs = append(res.SuccessIDs, configmapID)
 	}
 
-	if len(failedDeleteConfigmapIDs) > 0 {
-		return common.RespMsg{Status: "", Msg: fmt.Sprintf("delete configmap %d failed",
-			failedDeleteConfigmapIDs), Data: nil}
+	if len(res.FailedInfos) != 0 {
+		return common.RespMsg{Status: common.ErrorDeleteCm, Msg: "", Data: res}
 	}
 
 	hwlog.RunLog.Info("delete configmap success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
-func deleteCmByK8S(configmapName string, configmapID int64) bool {
-	if err := kubeclient.GetKubeClient().DeleteConfigMap(configmapName); err != nil {
-		hwlog.RunLog.Errorf("delete configmap [%d] by k8s failed, error: %v", configmapID, err)
-		return false
-	}
-
-	hwlog.RunLog.Infof("delete configmap [%d] by k8s success", configmapID)
-	return true
-}
-
 func updateConfigmap(input interface{}) common.RespMsg {
-	hwlog.RunLog.Info("update the configmap item start")
+	hwlog.RunLog.Info("update the configmap start")
 
 	var updateCmReq ConfigmapReq
 	var err error
 	if err = common.ParamConvert(input, &updateCmReq); err != nil {
-		hwlog.RunLog.Errorf("convert request parameter from restful service module failed, error: %v", err)
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+		hwlog.RunLog.Errorf("convert request param failed, error: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}
 
-	checker := configmapParaChecker{req: &updateCmReq}
-	if err = checker.Check(); err != nil {
-		hwlog.RunLog.Errorf("configmap para check failed before updating, error: %v", err)
-		return common.RespMsg{Status: "",
-			Msg: fmt.Sprintf("configmap para check failed before updating, error: %s", err.Error()), Data: nil}
+	if checkResult := appchecker.NewUpdateCmChecker().Check(updateCmReq); !checkResult.Result {
+		hwlog.RunLog.Errorf("update configmap param check failed, error: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
 	}
 
-	if err = updateCmByK8S(&updateCmReq); err != nil {
-		return common.RespMsg{Status: "", Msg: err.Error(), Data: nil}
+	if err = NewCmSupplementalChecker(updateCmReq).Check(); err != nil {
+		hwlog.RunLog.Errorf("supplemental param check failed, error: %v", err)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error(), Data: nil}
 	}
 
-	configmapInfo, err := ConfigmapRepositoryInstance().queryConfigmapByName(updateCmReq.ConfigmapName)
+	err = CmRepositoryInstance().updateCm(&updateCmReq)
 	if err != nil {
-		hwlog.RunLog.Errorf("query configmap [%s] from db failed, error: %v", updateCmReq.ConfigmapName, err)
-		return common.RespMsg{Status: "", Msg: fmt.Sprintf("query configmap [%s] from db failed, error: %s",
-			updateCmReq.ConfigmapName, err.Error()), Data: nil}
-	}
-
-	configmapInfo.Description = updateCmReq.Description
-	if err = convertCmContentInReqToDB(&updateCmReq, configmapInfo); err != nil {
-		hwlog.RunLog.Errorf("convert configmap content in request to db failed: %v", err)
-		return common.RespMsg{Status: "",
-			Msg: fmt.Sprintf("convert configmap content in request to db failed: %s", err.Error()), Data: nil}
-	}
-
-	if err = ConfigmapRepositoryInstance().updateConfigmapByName(configmapInfo.ConfigmapName, configmapInfo); err != nil {
-		hwlog.RunLog.Errorf("update configmap [%s] to db failed, error: %v", configmapInfo.ConfigmapName, err)
-		return common.RespMsg{Status: "", Msg: fmt.Sprintf("update configmap [%s] to db failed, error: %s",
-			configmapInfo.ConfigmapName, err.Error()), Data: nil}
+		if err == gorm.ErrRecordNotFound {
+			return common.RespMsg{Status: common.ErrorAppMrgRecodeNoFound, Msg: "configmap does not exist", Data: nil}
+		} else if err.Error() == common.ErrDbUniqueFailed {
+			return common.RespMsg{Status: common.ErrorAppMrgDuplicate, Msg: "configmap name is duplicate", Data: nil}
+		}
+		return common.RespMsg{Status: common.ErrorUpdateCm, Msg: err.Error(), Data: nil}
 	}
 
 	hwlog.RunLog.Infof("update configmap [%s] success", updateCmReq.ConfigmapName)
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
-func convertCmContentInReqToDB(updateCmReq *ConfigmapReq, configmapInfo *ConfigmapInfo) error {
-	content, err := json.Marshal(updateCmReq.ConfigmapContent)
-	if err != nil {
-		return errors.New("marshal configmapContent info failed")
-	}
-
-	configmapInfo.ConfigmapContent = string(content)
-	return nil
-}
-
-func updateCmByK8S(updateCmReq *ConfigmapReq) error {
-	configmapK8S := convertCmToK8S(updateCmReq)
-
-	_, err := kubeclient.GetKubeClient().UpdateConfigMap(configmapK8S)
-	if err != nil {
-		hwlog.RunLog.Errorf("update configmap [%s] by k8s failed, error: %v", updateCmReq.ConfigmapName, err)
-		return fmt.Errorf("update configmap [%s] by k8s failed, error: %s", updateCmReq.ConfigmapName, err.Error())
-	}
-
-	hwlog.RunLog.Infof("update configmap [%s] by k8s success", updateCmReq.ConfigmapName)
-	return nil
-}
-
 func queryConfigmap(input interface{}) common.RespMsg {
-	hwlog.RunLog.Info("query the configmap item start")
+	hwlog.RunLog.Info("query the configmap start")
 
-	configmapID, ok := input.(int64)
+	configmapID, ok := input.(uint64)
 	if !ok {
-		hwlog.RunLog.Error("get configmap id failed: param type is not int64")
-		return common.RespMsg{Status: "", Msg: "param type is not int64", Data: nil}
+		hwlog.RunLog.Error("get configmap id failed: param type is not uint64")
+		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "param type is not uint64", Data: nil}
 	}
 
-	configmapInfo, err := ConfigmapRepositoryInstance().queryConfigmapByID(configmapID)
+	if checkResult := appchecker.NewQueryCmChecker().Check(configmapID); !checkResult.Result {
+		hwlog.RunLog.Errorf("query configmap param check failed, error: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
+	}
+
+	cmInfo, err := CmRepositoryInstance().queryCmByID(configmapID)
 	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			hwlog.RunLog.Errorf("query configmap id [%d] does not exist", configmapID)
+			return common.RespMsg{Status: common.ErrorAppMrgRecodeNoFound, Msg: "configmap does not exist", Data: nil}
+		}
+
 		hwlog.RunLog.Errorf("query configmap [%d] from db failed, error: %v", configmapID, err)
-		return common.RespMsg{Status: "", Msg: fmt.Sprintf("query configmap failed, error: %s",
-			err.Error()), Data: nil}
+		return common.RespMsg{Status: common.ErrorQueryCm, Msg: "query configmap from db failed", Data: nil}
 	}
 
-	createdAt := configmapInfo.CreatedAt.Format(common.TimeFormat)
-	updatedAt := configmapInfo.UpdatedAt.Format(common.TimeFormat)
-	queryCmReturnInfo := QueryConfigmapReturnInfo{
-		ConfigmapID:   configmapInfo.ConfigmapID,
-		ConfigmapName: configmapInfo.ConfigmapName,
-		Description:   configmapInfo.Description,
-		CreatedAt:     createdAt,
-		UpdatedAt:     updatedAt,
+	queryCmResp := ConfigmapInstance{
+		ConfigmapID:       cmInfo.ID,
+		ConfigmapName:     cmInfo.ConfigmapName,
+		Description:       cmInfo.Description,
+		AssociatedAppList: cmInfo.AssociatedAppList,
+		AssociatedAppNum:  uint64(len(cmInfo.AssociatedAppList)),
+		CreatedAt:         cmInfo.CreatedAt.Format(common.TimeFormat),
+		UpdatedAt:         cmInfo.UpdatedAt.Format(common.TimeFormat),
 	}
-	if err = json.Unmarshal([]byte(configmapInfo.ConfigmapContent), &queryCmReturnInfo.ConfigmapContent); err != nil {
+	if err = json.Unmarshal([]byte(cmInfo.ConfigmapContent), &queryCmResp.ConfigmapContent); err != nil {
 		hwlog.RunLog.Errorf("unmarshal configmap content info failed, error: %v", err)
-		return common.RespMsg{Status: "", Msg: fmt.Sprintf("unmarshal configmap content info failed, error: %s",
-			err.Error()), Data: nil}
+		return common.RespMsg{Status: common.ErrorUnmarshalCm, Msg: "unmarshal configmap info failed", Data: nil}
 	}
 
 	hwlog.RunLog.Infof("query configmap [%d] from db success", configmapID)
-	return common.RespMsg{Status: common.Success, Msg: "", Data: queryCmReturnInfo}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: queryCmResp}
 }
 
 func listConfigmap(input interface{}) common.RespMsg {
-	hwlog.RunLog.Info("list the configmap items start")
+	hwlog.RunLog.Info("list the configmap start")
 
 	listReq, ok := input.(types.ListReq)
 	if !ok {
-		hwlog.RunLog.Error("get list request failed: para type is not ListReq")
-		return common.RespMsg{Status: "", Msg: "para type is not ListReq", Data: nil}
+		hwlog.RunLog.Error("get list request failed: param type is not ListReq")
+		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "convert list request error", Data: nil}
 	}
 
-	configmaps, err := getListConfigmapReturnInfo(listReq)
+	if checkResult := util.NewPaginationQueryChecker().Check(listReq); !checkResult.Result {
+		hwlog.RunLog.Errorf("list configmap param check failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
+	}
+
+	configmaps, err := getListConfigmapResp(listReq)
 	if err != nil {
 		hwlog.RunLog.Errorf("get configmap infos list from db failed, error: %v", err)
-		return common.RespMsg{Status: "", Msg: fmt.Sprintf("get configmap infos list from db failed, error: %s",
-			err.Error()), Data: nil}
+		return common.RespMsg{Status: common.ErrorListCm, Msg: err.Error(), Data: nil}
 	}
 
-	configmaps.Total, err = ConfigmapRepositoryInstance().configmapInfosListCountByName(listReq.Name)
+	configmaps.Total, err = CmRepositoryInstance().cmListCountByName(listReq.Name)
 	if err != nil {
 		hwlog.RunLog.Errorf("get configmap infos list count by name failed, error: %v", err)
-		return common.RespMsg{Status: "",
-			Msg: fmt.Sprintf("get configmap infos list count by name failed, error: %s", err.Error()), Data: nil}
+		return common.RespMsg{Status: common.ErrorListCm, Msg: "get cm list count error", Data: nil}
 	}
 
 	hwlog.RunLog.Info("list configmap items from db success")
-	return common.RespMsg{Status: common.Success, Msg: "list configmap items success", Data: configmaps}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: configmaps}
 }
 
-func getListConfigmapReturnInfo(listReq types.ListReq) (*ListConfigmapReturnInfo, error) {
-	cmInfoList, err := ConfigmapRepositoryInstance().listConfigmapInfo(listReq.PageNum,
-		listReq.PageSize, listReq.Name)
+func getListConfigmapResp(listReq types.ListReq) (*ListConfigmapResp, error) {
+	cmInfoList, err := CmRepositoryInstance().listCmInfo(listReq.PageNum, listReq.PageSize, listReq.Name)
 	if err != nil {
 		return nil, err
 	}
 
-	var cmInstanceResp []ConfigmapInstanceResp
-	var cmInfoFromDB *ConfigmapInfo
+	var cmInstanceResp []ConfigmapInstance
 	for _, cmInfo := range cmInfoList {
-		cmInfoFromDB, err = ConfigmapRepositoryInstance().queryConfigmapByID(cmInfo.ConfigmapID)
-		if err != nil {
-			hwlog.RunLog.Errorf("query configmap [%d] from db failed, error: %v", cmInfo.ConfigmapID, err)
-			return nil, err
+		instanceResp := ConfigmapInstance{
+			ConfigmapID:       cmInfo.ID,
+			ConfigmapName:     cmInfo.ConfigmapName,
+			Description:       cmInfo.Description,
+			AssociatedAppList: cmInfo.AssociatedAppList,
+			AssociatedAppNum:  uint64(len(cmInfo.AssociatedAppList)),
+			CreatedAt:         cmInfo.CreatedAt.Format(common.TimeFormat),
+			UpdatedAt:         cmInfo.UpdatedAt.Format(common.TimeFormat),
 		}
-
-		createdAt := cmInfo.CreatedAt.Format(common.TimeFormat)
-		updatedAt := cmInfo.UpdatedAt.Format(common.TimeFormat)
-		instanceResp := ConfigmapInstanceResp{
-			ConfigmapID:   cmInfoFromDB.ConfigmapID,
-			ConfigmapName: cmInfoFromDB.ConfigmapName,
-			Description:   cmInfoFromDB.Description,
-			CreatedAt:     createdAt,
-			UpdatedAt:     updatedAt,
-		}
-
 		if err = json.Unmarshal([]byte(cmInfo.ConfigmapContent), &instanceResp.ConfigmapContent); err != nil {
-			hwlog.RunLog.Errorf("unmarshal configmap [%d] content failed, error: %v", cmInfo.ConfigmapID, err)
-			return nil, fmt.Errorf("unmarshal configmap [%d] content failed", cmInfo.ConfigmapID)
+			hwlog.RunLog.Errorf("unmarshal configmap [%d] content failed, error: %v", cmInfo.ID, err)
+			return nil, fmt.Errorf("unmarshal configmap [%d] content failed", cmInfo.ID)
 		}
 
 		cmInstanceResp = append(cmInstanceResp, instanceResp)
 	}
 
-	return &ListConfigmapReturnInfo{
-		ConfigmapInstance: cmInstanceResp,
-	}, nil
+	return &ListConfigmapResp{Configmaps: cmInstanceResp}, nil
+}
+
+const maxCmItemNum = 1000
+
+// CheckItemCountInDB check item count in db
+func CheckItemCountInDB() error {
+	total, err := common.GetItemCount(ConfigmapInfo{})
+	if err != nil {
+		hwlog.RunLog.Errorf("get table configmap_infos num failed, error: %v", err)
+		return errors.New("get table configmap_infos num failed")
+	}
+
+	if total >= maxCmItemNum {
+		hwlog.RunLog.Error("table configmap_infos item num is enough, can't be created")
+		return errors.New("table configmap_infos item num is enough, can't be created")
+	}
+
+	hwlog.RunLog.Info("check item count in database success")
+	return nil
 }

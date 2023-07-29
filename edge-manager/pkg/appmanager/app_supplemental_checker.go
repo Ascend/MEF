@@ -11,6 +11,8 @@ import (
 	"edge-manager/pkg/util"
 )
 
+const maxContentValueLen = 2048
+
 // NewAppSupplementalChecker [method] for getting app backend checker
 func NewAppSupplementalChecker(req CreateAppReq) *appParaChecker {
 	return &appParaChecker{req: &req}
@@ -141,6 +143,54 @@ func (c *templateParaChecker) Check() error {
 	for _, checkItem := range checkItems {
 		if err := checkItem(); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+// CmParamChecker cm param checker
+type CmParamChecker struct {
+	req *ConfigmapReq
+}
+
+// NewCmSupplementalChecker get cm param checker
+func NewCmSupplementalChecker(req ConfigmapReq) *CmParamChecker {
+	return &CmParamChecker{req: &req}
+}
+
+// Check cm param supplemental checker
+func (cpc *CmParamChecker) Check() error {
+	var checkItems = []func() error{
+		cpc.checkContentKeyUnique,
+		cpc.checkContentValueLen,
+	}
+
+	for _, checkItem := range checkItems {
+		if err := checkItem(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// configmap content key should be unique
+func (cpc *CmParamChecker) checkContentKeyUnique() error {
+	cmContentKeysMap := make(map[string]struct{})
+	for _, content := range cpc.req.ConfigmapContent {
+		if _, ok := cmContentKeysMap[content.Name]; ok {
+			return errors.New("configmap content key is duplicated")
+		}
+		cmContentKeysMap[content.Name] = struct{}{}
+	}
+
+	return nil
+}
+
+func (cpc *CmParamChecker) checkContentValueLen() error {
+	for _, content := range cpc.req.ConfigmapContent {
+		if len(content.Value) > maxContentValueLen {
+			return errors.New("configmap content value length is invalid")
 		}
 	}
 	return nil

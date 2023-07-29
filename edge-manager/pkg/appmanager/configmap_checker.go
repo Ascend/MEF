@@ -10,7 +10,6 @@ import (
 	"huawei.com/mindx/common/hwlog"
 
 	"edge-manager/pkg/util"
-	"huawei.com/mindxedge/base/common"
 )
 
 const configMapContentMaxCount = 64
@@ -171,21 +170,5 @@ func checkConfigmapContentKeyUniqueValid(configmapContentKeys []string) error {
 	}
 
 	hwlog.RunLog.Info("check configmap content key unique success")
-	return nil
-}
-
-func checkItemCountInDB() error {
-	total, err := common.GetItemCount(ConfigmapInfo{})
-	if err != nil {
-		hwlog.RunLog.Errorf("get table configmap_infos num failed, error: %v", err)
-		return fmt.Errorf("get table configmap_infos num failed, error: %s", err.Error())
-	}
-
-	if total >= maxConfigmapItemNum {
-		hwlog.RunLog.Error("table configmap_infos item num is enough, can't be created")
-		return errors.New("table configmap_infos item num is enough, can't be created")
-	}
-
-	hwlog.RunLog.Info("check item count in database success")
 	return nil
 }
