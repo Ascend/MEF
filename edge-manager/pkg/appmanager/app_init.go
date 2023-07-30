@@ -141,10 +141,6 @@ func initAppTable() error {
 		hwlog.RunLog.Error("create app template instance database table failed")
 		return err
 	}
-	if err := database.CreateTableIfNotExist(ConfigmapInfo{}); err != nil {
-		hwlog.RunLog.Error("create configmap instance database table failed")
-		return err
-	}
 
 	return nil
 }
