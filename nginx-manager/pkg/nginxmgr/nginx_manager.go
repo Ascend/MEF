@@ -38,7 +38,7 @@ func initResource() error {
 		return err
 	}
 
-	if err := prepareServerCert(); err != nil {
+	if err := prepareCert(); err != nil {
 		return err
 	}
 
@@ -47,11 +47,6 @@ func initResource() error {
 	}
 
 	if err := prepareCrlFile(); err != nil {
-		return err
-	}
-
-	// remove old 3rd north ca
-	if err := utils.DeleteFile(nginxcom.NorthernCertFile); err != nil {
 		return err
 	}
 
@@ -105,8 +100,13 @@ func updateConf() error {
 }
 
 func loadCerts() error {
-	err := Load(nginxcom.ServerCertKeyFile, nginxcom.PipePath)
-	if err != nil {
+	if err := Load(nginxcom.ServerCertKeyFile, nginxcom.PipePath); err != nil {
+		return err
+	}
+	if err := Load(nginxcom.SouthAuthCertKeyFile, nginxcom.AuthPipePath); err != nil {
+		return err
+	}
+	if err := Load(nginxcom.WebsocketCertKeyFile, nginxcom.WebsocketPipePath); err != nil {
 		return err
 	}
 	updater, err := NewNginxConfUpdater(nil)
@@ -169,39 +169,12 @@ func startNginx() {
 		return
 	}
 	for {
-		for !utils.IsExist(nginxcom.NorthernCertFile) {
-			hwlog.RunLog.Info("start to get north ca from cert manager")
-			if err := getNorthCert(); err != nil {
-				hwlog.RunLog.Errorf("get north ca from cert manager failed: %s", err.Error())
-				continue
-			}
-			hwlog.RunLog.Info("get north ca from cert manager success")
-			break
-		}
 		if startNginxCmd() {
 			return
 		}
 		hwlog.RunLog.Error("start nginx failed")
 		time.Sleep(retryInterval)
 	}
-}
-
-func getNorthCert() error {
-	reqCertParams := getReqCertParams()
-	var caStr string
-	var err error
-	for i := 0; i < maxGetNorthCertTimes; i++ {
-		caStr, err = reqCertParams.GetRootCa(common.NorthernCertName)
-		if err != nil {
-			time.Sleep(retryInterval)
-			continue
-		}
-		if err = utils.WriteData(nginxcom.NorthernCertFile, []byte(caStr)); err != nil {
-			continue
-		}
-		return nil
-	}
-	return err
 }
 
 func getNorthCrl() (bool, error) {
