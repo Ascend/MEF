@@ -233,13 +233,6 @@ const (
 	CrlName = "revokeList.crl"
 )
 
-// const for edge-manager websocket certs
-const (
-	WebsocketCerts = "websocket-certs"
-	ServiceName    = "server.crt"
-	KeyFileName    = "server.key"
-)
-
 // compare crls result status while upgrading
 const (
 	// CompareSame two crls are same

@@ -43,6 +43,10 @@ spec:
               value: "8103"
             - name: NginxSslPort
               value: "8443"
+            - name: AuthPort
+              value: "10001"
+            - name: WebsocketPort
+              value: "10000"
             - name: EnableResolver
               value: "false"
             - name: installed-module
@@ -105,6 +109,16 @@ spec:
       targetPort: 8443
       protocol: TCP
       nodePort: 30035
+    - name: auth-port
+      port: 10001
+      targetPort: 10001
+      protocol: TCP
+      nodePort: 30004
+    - name: websocket-port
+      port: 10000
+      targetPort: 10000
+      protocol: TCP
+      nodePort: 30003
   selector:
     app: ascend-nginx-manager
   type: NodePort

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"syscall"
+	"time"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
@@ -18,36 +19,89 @@ import (
 	"nginx-manager/pkg/nginxcom"
 )
 
-func prepareServerCert() error {
-	keyPath := nginxcom.ServerCertKeyFile
-	certPath := nginxcom.ServerCertFile
+const (
+	maxRetry = 10
+	waitTime = 5 * time.Second
+)
+
+func prepareCert() error {
+	if err := prepareServerCert(nginxcom.ServerCertKeyFile, nginxcom.ServerCertFile, common.NginxCertName); err != nil {
+		return err
+	}
+	if err := prepareServerCert(nginxcom.SouthAuthCertKeyFile, nginxcom.SouthAuthCertFile, common.WsSerName); err != nil {
+		return err
+	}
+	if err := prepareServerCert(nginxcom.WebsocketCertKeyFile, nginxcom.WebsocketCertFile, common.WsSerName); err != nil {
+		return err
+	}
+	if err := prepareRootCert(nginxcom.SouthernCertFile, common.WsCltName, "SouthRoot"); err != nil {
+		return err
+	}
+	if err := prepareRootCert(nginxcom.NorthernCertFile, common.NorthernCertName, "NorthRoot"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func prepareRootCert(certPath string, certName string, server string) error {
+	reqCertParams := requests.ReqCertParams{
+		ClientTlsCert: certutils.TlsCertInfo{
+			RootCaPath: nginxcom.RootCaPath,
+			CertPath:   nginxcom.ClientCertFile,
+			KeyPath:    nginxcom.ClientCertKeyFile,
+		},
+	}
+	var rootCaStr string
+	var err error
+	for i := 0; i < maxRetry; i++ {
+		rootCaStr, err = reqCertParams.GetRootCa(certName)
+		if err == nil {
+			break
+		}
+		time.Sleep(waitTime)
+	}
+	if rootCaStr == "" {
+		hwlog.RunLog.Errorf("get valid root ca for %s service failed: %v", server, err)
+		return err
+	}
+
+	// To ensure the latest root certificate, overwritten root each restarted.
+	err = common.WriteData(certPath, []byte(rootCaStr))
+	if err != nil {
+		hwlog.RunLog.Errorf("save cert for %s service cert failed: %s", server, err.Error())
+		return err
+	}
+	return nil
+}
+
+func prepareServerCert(keyPath string, certPath string, server string) error {
 	if utils.IsExist(keyPath) && utils.IsExist(certPath) {
-		hwlog.RunLog.Info("check nginx server certs success")
+		hwlog.RunLog.Infof("check %s server certs success", server)
 		return nil
 	}
-	hwlog.RunLog.Warn("check nginx server certs failed, start to create")
-	certStr, err := getServerCert(keyPath)
+	hwlog.RunLog.Warnf("check %s server certs failed, start to create", server)
+	certStr, err := getServerCert(keyPath, server)
 	if err != nil {
 		return err
 	}
 	err = common.WriteData(certPath, []byte(certStr))
 	if err != nil {
-		hwlog.RunLog.Errorf("save cert for nginx service cert failed: %s", err.Error())
+		hwlog.RunLog.Errorf("save cert for %s service cert failed: %s", server, err.Error())
 		return err
 	}
-	hwlog.RunLog.Info("create cert for nginx service success")
+	hwlog.RunLog.Infof("create cert for %s service success", server)
 	return nil
 }
 
-func getServerCert(keyPath string) (string, error) {
+func getServerCert(keyPath string, server string) (string, error) {
 	ips, err := common.GetHostIpV4()
 	if err != nil {
 		return "", err
 	}
 	san := certutils.CertSan{IpAddr: ips}
-	csr, err := certutils.CreateCsr(keyPath, common.NginxCertSerName, nil, san)
+	csr, err := certutils.CreateCsr(keyPath, server+"_server", nil, san)
 	if err != nil {
-		hwlog.RunLog.Errorf("create nginx service cert csr failed: %s", err.Error())
+		hwlog.RunLog.Errorf("create %s service cert csr failed: %s", server, err.Error())
 		return "", err
 	}
 	reqCertParams := requests.ReqCertParams{
@@ -59,7 +113,7 @@ func getServerCert(keyPath string) (string, error) {
 		},
 	}
 	var certStr string
-	certStr, err = reqCertParams.ReqIssueSvrCert(common.NginxCertName, csr)
+	certStr, err = reqCertParams.ReqIssueSvrCert(server, csr)
 	if err != nil {
 		hwlog.RunLog.Errorf("issue certStr for nginx service cert failed: %s", err.Error())
 		return "", err

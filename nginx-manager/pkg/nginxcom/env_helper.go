@@ -26,6 +26,8 @@ type NginxConfItem struct {
 var confItemsTemplate = []NginxConfItem{
 	{Key: EdgePortKey, From: KeyPrefix + EdgePortKey},
 	{Key: CertPortKey, From: KeyPrefix + CertPortKey},
+	{Key: AuthPortKey, From: KeyPrefix + AuthPortKey},
+	{Key: WebsocketPortKey, From: KeyPrefix + WebsocketPortKey},
 	{Key: NginxSslPortKey, From: KeyPrefix + NginxSslPortKey},
 	{Key: PodIpKey, From: KeyPrefix + PodIpKey},
 }
@@ -48,17 +50,6 @@ type environmentValuer struct {
 	Checker      ObjChecker
 }
 
-const (
-	minLockTime        = 60 * 5
-	maxLockTime        = 60 * 60 * 2
-	minLoginExpireTime = 60 * 5
-	maxLoginExpireTime = 60 * 60 * 2
-	// user or ip default lock time, 600 seconds
-	defaultLockTime = "600"
-	// user token default expire time, 600 seconds
-	defaultLoginExpireTime = "600"
-)
-
 var envMgr = newEnvironmentMgr()
 
 // GetEnvManager env manager is for check, load, get environment vars
@@ -71,6 +62,10 @@ func newEnvironmentMgr() *environmentMgr {
 		EdgePortKey: {EdgePortKey, "", "", true,
 			createIntChecker(common.MinPort, common.MaxPort)},
 		CertPortKey: {CertPortKey, "", "", true,
+			createIntChecker(common.MinPort, common.MaxPort)},
+		AuthPortKey: {AuthPortKey, "", "", true,
+			createIntChecker(common.MinPort, common.MaxPort)},
+		WebsocketPortKey: {WebsocketPortKey, "", "", true,
 			createIntChecker(common.MinPort, common.MaxPort)},
 		NginxSslPortKey: {NginxSslPortKey, "", "", true,
 			createIntChecker(common.MinPort, common.MaxPort)},

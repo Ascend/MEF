@@ -410,11 +410,6 @@ func (cpm *ConfigPathMgr) GetHubSrvKeyPath() string {
 	return filepath.Join(cpm.GetComponentConfigPath(CertManagerName), RootCaDir, common.WsSerName, RootKeyFileName)
 }
 
-// GetWebSocketKeyPath returns the key path for southern websocket
-func (cpm *ConfigPathMgr) GetWebSocketKeyPath() string {
-	return filepath.Join(cpm.GetComponentConfigPath(EdgeManagerName), WebsocketCerts, KeyFileName)
-}
-
 // GetMefCertsDirPath returns single component's certs dir path by component's name
 func (cpm *ConfigPathMgr) GetMefCertsDirPath(component string) string {
 	return filepath.Join(cpm.GetComponentConfigPath(component), CertsDir)
