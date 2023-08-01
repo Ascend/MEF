@@ -70,3 +70,30 @@ func (utc *updateTemplateChecker) Check(data interface{}) checker.CheckResult {
 	}
 	return checker.NewSuccessResult()
 }
+
+type deleteTemplateChecker struct {
+	idListChecker checker.UniqueListChecker
+}
+
+// NewDeleteTemplateChecker checker for delete template ids list
+func NewDeleteTemplateChecker() *deleteTemplateChecker {
+	return &deleteTemplateChecker{}
+}
+
+func (dtc *deleteTemplateChecker) init() {
+	dtc.idListChecker = *checker.GetUniqueListChecker(
+		"Ids",
+		checker.GetUintChecker("", minTemplateId, maxTemplateId, true),
+		minList,
+		maxList,
+		true)
+}
+
+func (dtc *deleteTemplateChecker) Check(data interface{}) checker.CheckResult {
+	dtc.init()
+	checkResult := dtc.idListChecker.Check(data)
+	if !checkResult.Result {
+		return checker.NewFailedResult(fmt.Sprintf("delete templates checker check failed: %s", checkResult.Reason))
+	}
+	return checker.NewSuccessResult()
+}
