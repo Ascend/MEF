@@ -6,6 +6,7 @@ package appmanager
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
@@ -54,6 +55,12 @@ func createTemplate(param interface{}) common.RespMsg {
 
 	if err := RepositoryInstance().createTemplate(&template); err != nil {
 		hwlog.RunLog.Errorf("create app template failed,err:%v", err)
+		if strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
+			return common.RespMsg{
+				Status: common.ErrorCreateAppTemplate,
+				Msg:    fmt.Sprintf("template with name %s already exists", template.TemplateName),
+			}
+		}
 		return common.RespMsg{Status: common.ErrorCreateAppTemplate, Msg: "create app template in db failed"}
 	}
 	hwlog.RunLog.Info("create app template,success")
