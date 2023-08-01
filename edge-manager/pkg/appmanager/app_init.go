@@ -162,4 +162,11 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodGet, filepath.Join(appUrlRootPath, "deployment/list")):          listAppInstances,
 
 	common.Combine(common.Get, common.AppInstanceByNodeGroup): getAppInstanceCountByNodeGroup,
+
+	// template service related methods
+	http.MethodPost + "/edgemanager/v1/apptemplate":              createTemplate,
+	http.MethodPatch + "/edgemanager/v1/apptemplate":             updateTemplate,
+	http.MethodPost + "/edgemanager/v1/apptemplate/batch-delete": deleteTemplate,
+	http.MethodGet + "/edgemanager/v1/apptemplate":               getTemplate,
+	http.MethodGet + "/edgemanager/v1/apptemplate/list":          listTemplates,
 }

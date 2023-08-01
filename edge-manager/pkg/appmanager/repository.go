@@ -4,6 +4,8 @@
 package appmanager
 
 import (
+	"fmt"
+	"strings"
 	"sync"
 
 	"gorm.io/gorm"
@@ -23,14 +25,15 @@ type Repository interface {
 	// createTemplate create app template
 	createTemplate(template *AppTemplateDb) error
 	// deleteTemplates batch delete app template
-	deleteTemplates(ids []uint64) error
+	deleteTemplates(ids []uint64) ([]uint64, error)
 	// updateTemplate modify app template
 	updateTemplate(template *AppTemplateDb) error
+	// getTemplateByName get template by mached name
+	getTemplateByName(name string) (*AppTemplateDb, error)
 	// getTemplates get app template
 	getTemplates(name string, pageNum, pageSize uint64) ([]AppTemplateDb, error)
 	// getTemplate get app template
 	getTemplate(id uint64) (*AppTemplateDb, error)
-
 	// countListAppsInfo get app template
 	getTemplateCount(name string) (int64, error)
 }
@@ -50,30 +53,53 @@ func RepositoryInstance() Repository {
 // createTemplate create app template
 func (r *repositoryImpl) createTemplate(template *AppTemplateDb) error {
 	if err := r.db.Model(AppTemplateDb{}).Create(template).Error; err != nil {
-		hwlog.RunLog.Errorf("create app template failed")
+		if strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
+			return fmt.Errorf("template with name %s already exists", template.TemplateName)
+		}
 		return err
 	}
 	return nil
 }
 
 // DeleteTemplates batch delete app template
-func (r *repositoryImpl) deleteTemplates(ids []uint64) error {
-	if err := r.db.Where("Id in (?)", ids).Delete(AppTemplateDb{}).Error; err != nil {
-		hwlog.RunLog.Error("delete app templates failed")
-		return err
+func (r *repositoryImpl) deleteTemplates(ids []uint64) ([]uint64, error) {
+	var templates []AppTemplateDb
+	if err := r.db.Where("Id in (?)", ids).Find(&templates).Error; err != nil {
+		return []uint64{}, err
 	}
-
-	return nil
+	res := r.db.Where("Id in (?)", ids).Delete(&AppTemplateDb{})
+	if err := res.Error; err != nil {
+		return []uint64{}, err
+	}
+	deletedIDs := make([]uint64, len(templates))
+	for idx, rec := range templates {
+		deletedIDs[idx] = rec.ID
+	}
+	return deletedIDs, nil
 }
 
 // updateTemplate modify app template
 func (r *repositoryImpl) updateTemplate(template *AppTemplateDb) error {
-	if err := r.db.Model(AppTemplateDb{}).Where("id = ?", template.ID).Updates(template).Error; err != nil {
-		hwlog.RunLog.Errorf("update template failed: %s", err.Error())
-		return err
+	if res := r.db.Model(AppTemplateDb{}).Where("id = ?", template.ID).Updates(template); res.Error != nil {
+		if strings.Contains(res.Error.Error(), common.ErrDbUniqueFailed) {
+			return fmt.Errorf("update template failed,target updating name is duplicated,name:%v",
+				template.TemplateName)
+		}
+		hwlog.RunLog.Errorf("update template failed: %s", res.Error.Error())
+		return fmt.Errorf("update template failed while operating db")
+	} else if res.RowsAffected == 0 {
+		return fmt.Errorf("updating template failed,err:template with id[%v] not exists", template.ID)
 	}
 	return nil
+}
 
+// getTemplateByName get app template
+func (r *repositoryImpl) getTemplateByName(name string) (*AppTemplateDb, error) {
+	var template AppTemplateDb
+	if err := r.db.Model(AppTemplateDb{}).Where("template_name = ?", name).First(&template).Error; err != nil {
+		return nil, fmt.Errorf("get db template with name %s failed,not found", name)
+	}
+	return &template, nil
 }
 
 func getTemplateByLikeName(page, pageSize uint64, appName string) func(db *gorm.DB) *gorm.DB {
