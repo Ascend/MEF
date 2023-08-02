@@ -57,7 +57,7 @@ type ConfigmapInfo struct {
 	ConfigmapName     string    `gorm:"type:char(64);unique;not null"`
 	ConfigmapContent  string    `gorm:"type:char(65535)"`
 	Description       string    `gorm:"type:char(255)"`
-	AssociatedAppList []uint64  `gorm:""`
+	AssociatedAppList string    `gorm:""`
 	CreatedAt         time.Time `gorm:"type:time"`
 	UpdatedAt         time.Time `gorm:"type:time"`
 }

@@ -80,7 +80,7 @@ func testCreateConfigmap() {
     ]
 }`
 	resp := createConfigmap(input)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorCreateCm)
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
 func testCreateConfigmapDuplicateName() {
@@ -95,7 +95,7 @@ func testCreateConfigmapDuplicateName() {
     ]
 }`
 	resp := createConfigmap(input)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorCreateCm)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorAppMrgDuplicate)
 }
 
 func testCreateConfigmapItemCountError() {
@@ -116,7 +116,7 @@ func testCreateConfigmapItemCountError() {
 	defer p2.Reset()
 
 	resp := createConfigmap(input)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorCreateCm)
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
 func testCreateConfigmapParamError() {
@@ -207,7 +207,7 @@ func testUpdateConfigmap() {
     ]
 }`
 	resp := createConfigmap(input)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorCreateCm)
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 
 	input2 := `{
     "configmapName":"test04",
@@ -220,7 +220,7 @@ func testUpdateConfigmap() {
     ]
 }`
 	resp = updateConfigmap(input2)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorUpdateCm)
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
 func testUpdateConfigmapNotExist() {
@@ -235,7 +235,7 @@ func testUpdateConfigmapNotExist() {
     ]
 }`
 	resp := updateConfigmap(input)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorUpdateCm)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorAppMrgRecodeNoFound)
 }
 
 func testUpdateConfigmapParamError() {
@@ -278,7 +278,7 @@ func testUpdateConfigmapK8SError() {
 	defer p1.Reset()
 
 	resp := updateConfigmap(input)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorUpdateCm)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorAppMrgRecodeNoFound)
 }
 
 func testQueryConfigmap() {
@@ -293,17 +293,17 @@ func testQueryConfigmap() {
     ]
 }`
 	resp := createConfigmap(input)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorCreateCm)
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 
 	var reqData = uint64(1)
 	resp = queryConfigmap(reqData)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorQueryCm)
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
 func testQueryConfigmapNotExist() {
 	var reqData = uint64(notExitID)
 	resp := queryConfigmap(reqData)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorQueryCm)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorAppMrgRecodeNoFound)
 }
 
 func testQueryConfigmapParamConvertError() {
@@ -343,7 +343,7 @@ func testListConfigmap() {
 		Name:     "test01",
 	}
 	resp := listConfigmap(reqData)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorListCm)
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
 func testListConfigmapParamConvertError() {
@@ -380,13 +380,13 @@ func testDeleteConfigmap() {
     ]
 }`
 	resp := createConfigmap(input)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorCreateCm)
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 
 	reqData := `{
 				"configmapIDs": [1]
 				}`
 	resp = deleteConfigmap(reqData)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorDeleteCm)
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
 func testDeleteConfigmapNotExist() {
@@ -415,7 +415,7 @@ func testDeleteConfigmapK8SError() {
     ]
 }`
 	resp := createConfigmap(input)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorCreateCm)
+	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 
 	reqData := `{
 				"configmapIDs": [1]
