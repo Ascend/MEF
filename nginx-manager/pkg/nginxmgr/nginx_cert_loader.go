@@ -6,9 +6,11 @@ package nginxmgr
 import (
 	"fmt"
 	"os"
+	"strings"
 	"syscall"
 	"time"
 
+	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/utils"
@@ -201,6 +203,17 @@ func writeKeyToPipe(pipeFile string, content []byte) {
 			hwlog.RunLog.Error("pipe remove error")
 		}
 	}()
+	var nginxStatus bool
+	for i := 0; i < maxRetry; i++ {
+		nginxStatus = isNginxRunning()
+		if nginxStatus {
+			break
+		}
+		time.Sleep(waitTime)
+	}
+	if !nginxStatus {
+		return
+	}
 	_, err = pipe.Write(content)
 	if err != nil {
 		hwlog.RunLog.Errorf("pass key to pipe failed:%v", err)
@@ -212,6 +225,23 @@ func writeKeyToPipe(pipeFile string, content []byte) {
 		return
 	}
 	hwlog.RunLog.Infof("write pipe %s success", pipeFile)
+}
+func isNginxRunning() bool {
+	pid, err := envutils.RunCommand("pgrep", envutils.DefCmdTimeoutSec, "-o", "-x", "nginx")
+	if err != nil || pid == "" {
+		return false
+	}
+	nginxPID := strings.TrimSpace(pid)
+	ppid, err := envutils.RunCommand("ps", envutils.DefCmdTimeoutSec, "-o", "ppid=", "-p", nginxPID)
+	if err != nil || ppid == "" {
+		return false
+	}
+	nginxPPID := strings.TrimSpace(ppid)
+	// To prevent forgery
+	if nginxPPID != "1" {
+		return false
+	}
+	return true
 }
 
 func createPipe(pipeFile string) error {
