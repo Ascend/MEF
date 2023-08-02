@@ -106,7 +106,7 @@ func (cr *ConfigmapReq) toDb() (*ConfigmapInfo, error) {
 	configmapContentBytes, err := json.Marshal(cr.ConfigmapContent)
 	if err != nil {
 		hwlog.RunLog.Errorf("marshal configmap content failed, error: %v", err)
-		return nil, err
+		return nil, errors.New("marshal configmap content failed")
 	}
 
 	return &ConfigmapInfo{

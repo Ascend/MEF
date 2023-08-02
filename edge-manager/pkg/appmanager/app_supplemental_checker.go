@@ -7,27 +7,36 @@ import (
 	"errors"
 	"fmt"
 
+	"gorm.io/gorm"
+	"huawei.com/mindx/common/hwlog"
+
 	"edge-manager/pkg/config"
 	"edge-manager/pkg/util"
 )
 
-const maxContentValueLen = 2048
+const (
+	maxVolumesNum      = 256
+	maxContentValueLen = 2048
+
+	hostPathVolumeType  = "hostPath"
+	configMapVolumeType = "configMap"
+)
 
 // NewAppSupplementalChecker [method] for getting app backend checker
-func NewAppSupplementalChecker(req CreateAppReq) *appParaChecker {
-	return &appParaChecker{req: &req}
+func NewAppSupplementalChecker(req CreateAppReq) *appParamChecker {
+	return &appParamChecker{req: &req}
 }
 
 // NewTemplateSupplementalChecker [method] for getting template backend checker
-func NewTemplateSupplementalChecker(req CreateTemplateReq) *templateParaChecker {
-	return &templateParaChecker{req: &req}
+func NewTemplateSupplementalChecker(req CreateTemplateReq) *templateParamChecker {
+	return &templateParamChecker{req: &req}
 }
 
-type containerParaChecker struct {
+type containerParamChecker struct {
 	container *Container
 }
 
-func (c *containerParaChecker) checkContainerCpuQuantityValid() error {
+func (c *containerParamChecker) checkContainerCpuQuantityValid() error {
 	if c.container.CpuLimit != nil &&
 		*c.container.CpuLimit < c.container.CpuRequest {
 		return errors.New("container cpu request is illegally greater than limit")
@@ -35,7 +44,7 @@ func (c *containerParaChecker) checkContainerCpuQuantityValid() error {
 	return nil
 }
 
-func (c *containerParaChecker) checkContainerMemoryQuantityValid() error {
+func (c *containerParamChecker) checkContainerMemoryQuantityValid() error {
 	if c.container.MemLimit != nil &&
 		*c.container.MemLimit < c.container.MemRequest {
 		return errors.New("container memory request is illegally greater than limit")
@@ -43,7 +52,7 @@ func (c *containerParaChecker) checkContainerMemoryQuantityValid() error {
 	return nil
 }
 
-func (c *containerParaChecker) checkContainerEnvValid() error {
+func (c *containerParamChecker) checkContainerEnvValid() error {
 	var envNames = map[string]struct{}{}
 	for idx := range c.container.Env {
 		if _, ok := envNames[c.container.Env[idx].Name]; ok {
@@ -54,7 +63,7 @@ func (c *containerParaChecker) checkContainerEnvValid() error {
 	return nil
 }
 
-func (c *containerParaChecker) checkContainerVolume() error {
+func (c *containerParamChecker) checkContainerVolume() error {
 	mountPaths := map[string]struct{}{}
 	volumeNames := map[string]struct{}{}
 	for _, hostPathVolume := range c.container.HostPathVolumes {
@@ -70,10 +79,79 @@ func (c *containerParaChecker) checkContainerVolume() error {
 		mountPaths[hostPathVolume.MountPath] = struct{}{}
 		volumeNames[hostPathVolume.Name] = struct{}{}
 	}
+
+	var checker = volumeParamChecker{container: c.container}
+	if err := checker.check(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (c *containerParaChecker) check() error {
+type volumeParamChecker struct {
+	container *Container
+}
+
+func (v *volumeParamChecker) check() error {
+	var checkItems = []func() error{
+		v.checkVolumeNum,
+		v.checkVolumeNameUnique,
+		v.checkVolumeMountPathUnique,
+	}
+	for _, checkItem := range checkItems {
+		if err := checkItem(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (v *volumeParamChecker) checkVolumeNum() error {
+	if len(v.container.HostPathVolumes)+len(v.container.ConfigmapVolumes) > maxVolumesNum {
+		return fmt.Errorf("container volume num can not exceed %v", maxVolumesNum)
+	}
+	return nil
+}
+
+func (v *volumeParamChecker) checkVolumeNameUnique() error {
+	volumeNames := make(map[string]struct{})
+	for _, volume := range v.container.ConfigmapVolumes {
+		if _, ok := volumeNames[volume.Name]; ok {
+			return errors.New("container volume name is duplicated")
+		}
+		volumeNames[volume.Name] = struct{}{}
+	}
+
+	for _, volume := range v.container.HostPathVolumes {
+		if _, ok := volumeNames[volume.Name]; ok {
+			return errors.New("container volume name is duplicated")
+		}
+		volumeNames[volume.Name] = struct{}{}
+	}
+
+	return nil
+}
+
+func (v *volumeParamChecker) checkVolumeMountPathUnique() error {
+	volumeMounts := make(map[string]struct{})
+	for _, volume := range v.container.ConfigmapVolumes {
+		if _, ok := volumeMounts[volume.MountPath]; ok {
+			return errors.New("container volume mount path is duplicated")
+		}
+		volumeMounts[volume.MountPath] = struct{}{}
+	}
+
+	for _, volume := range v.container.HostPathVolumes {
+		if _, ok := volumeMounts[volume.MountPath]; ok {
+			return errors.New("container volume mount path is duplicated")
+		}
+		volumeMounts[volume.MountPath] = struct{}{}
+	}
+
+	return nil
+}
+
+func (c *containerParamChecker) check() error {
 	var checkItems = []func() error{
 		c.checkContainerCpuQuantityValid,
 		c.checkContainerMemoryQuantityValid,
@@ -88,18 +166,18 @@ func (c *containerParaChecker) check() error {
 	return nil
 }
 
-type appParaChecker struct {
+type appParamChecker struct {
 	req *CreateAppReq
 }
 
-func (c *appParaChecker) checkAppContainersValid() error {
+func (c *appParamChecker) checkAppContainersValid() error {
 	containerName := make(map[string]struct{})
 	for idx := range c.req.Containers {
 		if _, ok := containerName[c.req.Containers[idx].Name]; ok {
 			return errors.New("check containers par failed: duplicated name")
 		}
 		containerName[c.req.Containers[idx].Name] = struct{}{}
-		var checker = containerParaChecker{container: &c.req.Containers[idx]}
+		var checker = containerParamChecker{container: &c.req.Containers[idx]}
 		if err := checker.check(); err != nil {
 			return err
 		}
@@ -107,10 +185,77 @@ func (c *appParaChecker) checkAppContainersValid() error {
 	return nil
 }
 
-// Check [method] for starting checker
-func (c *appParaChecker) Check() error {
+func (c *appParamChecker) checkContainersVolumeUniqueType() error {
+	// 如果不同容器本地卷名称相同，则卷类型也要相同
+	var nameTypeMap = make(map[string]string) // key: name; value: volume type
+	var namesMap = make(map[string]string)    // key: name; value: configmap name/host path
+
+	for _, container := range c.req.Containers {
+		for _, cmVolume := range container.ConfigmapVolumes {
+			volumeType, ok := nameTypeMap[cmVolume.Name]
+			if !ok {
+				nameTypeMap[cmVolume.Name] = configMapVolumeType
+			}
+			configmapName, ok := namesMap[cmVolume.Name]
+			if !ok {
+				namesMap[cmVolume.Name] = cmVolume.ConfigmapName
+				continue
+			}
+			if volumeType != configMapVolumeType || configmapName != cmVolume.ConfigmapName {
+				return errors.New("the same local volume name but different volume types")
+			}
+		}
+
+		for _, hostPathVolume := range container.HostPathVolumes {
+			volumeType, ok := nameTypeMap[hostPathVolume.Name]
+			if !ok {
+				nameTypeMap[hostPathVolume.Name] = hostPathVolumeType
+			}
+			hostPath, ok := namesMap[hostPathVolume.Name]
+			if !ok {
+				namesMap[hostPathVolume.Name] = hostPathVolume.HostPath
+				continue
+			}
+			if volumeType != hostPathVolumeType || hostPath != hostPathVolume.HostPath {
+				return errors.New("the same local volume name but different volume types")
+			}
+		}
+	}
+
+	return nil
+}
+
+func (c *appParamChecker) checkIsCmExist() error {
+	for _, container := range c.req.Containers {
+		for _, cm := range container.ConfigmapVolumes {
+			if err := isCmExist(cm.ConfigmapName); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func isCmExist(cmName string) error {
+	if _, err := CmRepositoryInstance().queryCmByName(cmName); err != nil {
+		if err == gorm.ErrRecordNotFound {
+			hwlog.RunLog.Errorf("configmap [%s] does not exist", cmName)
+			return fmt.Errorf("configmap [%s] does not exist", cmName)
+		}
+
+		hwlog.RunLog.Errorf("query whether the configmap [%s] exists failed, error: %v", cmName, err)
+		return fmt.Errorf("query whether the configmap [%s] exists failed", cmName)
+	}
+
+	return nil
+}
+
+// Check [method] for app param checker
+func (c *appParamChecker) Check() error {
 	var checkItems = []func() error{
 		c.checkAppContainersValid,
+		c.checkContainersVolumeUniqueType,
+		c.checkIsCmExist,
 	}
 	for _, checkItem := range checkItems {
 		if err := checkItem(); err != nil {
@@ -120,23 +265,23 @@ func (c *appParaChecker) Check() error {
 	return nil
 }
 
-type templateParaChecker struct {
+type templateParamChecker struct {
 	req *CreateTemplateReq
-	appParaChecker
+	appParamChecker
 }
 
-func (c *templateParaChecker) checkTemplateContainersValid() error {
-	c.appParaChecker.req = &CreateAppReq{
+func (c *templateParamChecker) checkTemplateContainersValid() error {
+	c.appParamChecker.req = &CreateAppReq{
 		Containers: c.req.Containers,
 	}
-	if err := c.appParaChecker.Check(); err != nil {
+	if err := c.appParamChecker.Check(); err != nil {
 		return err
 	}
 	return nil
 }
 
-// Check [method] for starting checker
-func (c *templateParaChecker) Check() error {
+// Check [method] for template param checker
+func (c *templateParamChecker) Check() error {
 	var checkItems = []func() error{
 		c.checkTemplateContainersValid,
 	}

@@ -10,7 +10,6 @@ import (
 	"strconv"
 
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
 	appv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -18,6 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"edge-manager/pkg/kubeclient"
+	"huawei.com/mindxedge/base/common"
 )
 
 func formatDaemonSetName(appName string, nodeGroupId uint64) string {
@@ -95,10 +95,33 @@ func initDaemonSet(appInfo *AppInfo, nodeGroupId uint64) (*appv1.DaemonSet, erro
 }
 
 func getVolumes(containerInfos []Container) []v1.Volume {
-	var volumes []v1.Volume
+	// containers内挂载卷名称相同，也只算一个
+	var nameMap = make(map[string]struct{}) // key: host path name / configmap name
+	var infosVolNameUnique []Container
 	for _, containerInfo := range containerInfos {
+		for _, hostPathVolume := range containerInfo.HostPathVolumes {
+			if _, ok := nameMap[hostPathVolume.Name]; ok {
+				continue
+			}
+			nameMap[hostPathVolume.Name] = struct{}{}
+			infosVolNameUnique = append(infosVolNameUnique, containerInfo)
+		}
+
+		for _, hostPathVolume := range containerInfo.HostPathVolumes {
+			if _, ok := nameMap[hostPathVolume.Name]; ok {
+				continue
+			}
+			nameMap[hostPathVolume.Name] = struct{}{}
+			infosVolNameUnique = append(infosVolNameUnique, containerInfo)
+		}
+	}
+
+	// get volumes from container infos
+	var volumes []v1.Volume
+	for _, containerInfo := range infosVolNameUnique {
 		volumes = append(volumes, getVolumesFromContainerInfo(containerInfo)...)
 	}
+
 	return volumes
 }
 
@@ -113,6 +136,24 @@ func getVolumesFromContainerInfo(containerInfo Container) []v1.Volume {
 		Volumes = append(Volumes, v1.Volume{
 			Name:         hostPathVolume.Name,
 			VolumeSource: v1.VolumeSource{HostPath: hostPathSource},
+		})
+	}
+
+	// configmap volume
+	for _, configmapVolume := range containerInfo.ConfigmapVolumes {
+		var localObjectRef = v1.LocalObjectReference{
+			Name: configmapVolume.ConfigmapName,
+		}
+
+		var cmVolumeSource = &v1.ConfigMapVolumeSource{
+			LocalObjectReference: localObjectRef,
+		}
+
+		Volumes = append(Volumes, v1.Volume{
+			Name: configmapVolume.Name,
+			VolumeSource: v1.VolumeSource{
+				ConfigMap: cmVolumeSource,
+			},
 		})
 	}
 
@@ -169,6 +210,16 @@ func getVolumeMounts(container Container) []v1.VolumeMount {
 			MountPath: hostPathVolume.MountPath,
 		})
 	}
+
+	// configmap volume
+	for _, volumeMount := range container.ConfigmapVolumes {
+		mounts = append(mounts, v1.VolumeMount{
+			Name:      volumeMount.Name,
+			ReadOnly:  true,
+			MountPath: volumeMount.MountPath,
+		})
+	}
+
 	return mounts
 }
 

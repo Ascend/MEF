@@ -139,7 +139,7 @@ func queryConfigmap(input interface{}) common.RespMsg {
 	cmInfo, err := CmRepositoryInstance().queryCmByID(configmapID)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			hwlog.RunLog.Errorf("query configmap id [%d] does not exist", configmapID)
+			hwlog.RunLog.Errorf("configmap id [%d] does not exist", configmapID)
 			return common.RespMsg{Status: common.ErrorAppMrgRecodeNoFound, Msg: "configmap does not exist", Data: nil}
 		}
 
@@ -148,18 +148,24 @@ func queryConfigmap(input interface{}) common.RespMsg {
 	}
 
 	queryCmResp := ConfigmapInstance{
-		ConfigmapID:       cmInfo.ID,
-		ConfigmapName:     cmInfo.ConfigmapName,
-		Description:       cmInfo.Description,
-		AssociatedAppList: cmInfo.AssociatedAppList,
-		AssociatedAppNum:  uint64(len(cmInfo.AssociatedAppList)),
-		CreatedAt:         cmInfo.CreatedAt.Format(common.TimeFormat),
-		UpdatedAt:         cmInfo.UpdatedAt.Format(common.TimeFormat),
+		ConfigmapID:   cmInfo.ID,
+		ConfigmapName: cmInfo.ConfigmapName,
+		Description:   cmInfo.Description,
+		CreatedAt:     cmInfo.CreatedAt.Format(common.TimeFormat),
+		UpdatedAt:     cmInfo.UpdatedAt.Format(common.TimeFormat),
 	}
 	if err = json.Unmarshal([]byte(cmInfo.ConfigmapContent), &queryCmResp.ConfigmapContent); err != nil {
 		hwlog.RunLog.Errorf("unmarshal configmap content info failed, error: %v", err)
 		return common.RespMsg{Status: common.ErrorUnmarshalCm, Msg: "unmarshal configmap info failed", Data: nil}
 	}
+	if cmInfo.AssociatedAppList != "" { // 此处若直接对空切片进行反序列化：unexpected end of JSON input
+		if err = json.Unmarshal([]byte(cmInfo.AssociatedAppList), &queryCmResp.AssociatedAppList); err != nil {
+			hwlog.RunLog.Errorf("unmarshal configmap associated app info failed, error: %v", err)
+			return common.RespMsg{Status: common.ErrorUnmarshalCm, Msg: "unmarshal configmap info failed", Data: nil}
+		}
+	}
+
+	queryCmResp.AssociatedAppNum = uint64(len(queryCmResp.AssociatedAppList))
 
 	hwlog.RunLog.Infof("query configmap [%d] from db success", configmapID)
 	return common.RespMsg{Status: common.Success, Msg: "", Data: queryCmResp}
@@ -204,18 +210,23 @@ func getListConfigmapResp(listReq types.ListReq) (*ListConfigmapResp, error) {
 	var cmInstanceResp []ConfigmapInstance
 	for _, cmInfo := range cmInfoList {
 		instanceResp := ConfigmapInstance{
-			ConfigmapID:       cmInfo.ID,
-			ConfigmapName:     cmInfo.ConfigmapName,
-			Description:       cmInfo.Description,
-			AssociatedAppList: cmInfo.AssociatedAppList,
-			AssociatedAppNum:  uint64(len(cmInfo.AssociatedAppList)),
-			CreatedAt:         cmInfo.CreatedAt.Format(common.TimeFormat),
-			UpdatedAt:         cmInfo.UpdatedAt.Format(common.TimeFormat),
+			ConfigmapID:   cmInfo.ID,
+			ConfigmapName: cmInfo.ConfigmapName,
+			Description:   cmInfo.Description,
+			CreatedAt:     cmInfo.CreatedAt.Format(common.TimeFormat),
+			UpdatedAt:     cmInfo.UpdatedAt.Format(common.TimeFormat),
 		}
 		if err = json.Unmarshal([]byte(cmInfo.ConfigmapContent), &instanceResp.ConfigmapContent); err != nil {
 			hwlog.RunLog.Errorf("unmarshal configmap [%d] content failed, error: %v", cmInfo.ID, err)
 			return nil, fmt.Errorf("unmarshal configmap [%d] content failed", cmInfo.ID)
 		}
+		if cmInfo.AssociatedAppList != "" { // 此处若直接对空切片进行反序列化：unexpected end of JSON input
+			if err = json.Unmarshal([]byte(cmInfo.AssociatedAppList), &instanceResp.AssociatedAppList); err != nil {
+				hwlog.RunLog.Errorf("unmarshal configmap associated app info failed, error: %v", err)
+				return nil, fmt.Errorf("unmarshal configmap [%d] associated app failed", cmInfo.ID)
+			}
+		}
+		instanceResp.AssociatedAppNum = uint64(len(instanceResp.AssociatedAppList))
 
 		cmInstanceResp = append(cmInstanceResp, instanceResp)
 	}

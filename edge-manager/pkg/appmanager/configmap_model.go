@@ -161,7 +161,7 @@ func (ci *CmRepositoryImpl) updateCm(updateCmReq *ConfigmapReq) error {
 			return errors.New("query configmap from db failed")
 		}
 
-		if err = updateCmPara(&configmapInfo, updateCmReq); err != nil {
+		if err = updateCmParam(&configmapInfo, updateCmReq); err != nil {
 			hwlog.RunLog.Errorf("convert cm request param to db failed, error: %v", err)
 			return errors.New("convert cm request param to db failed")
 		}
@@ -186,7 +186,7 @@ func (ci *CmRepositoryImpl) updateCm(updateCmReq *ConfigmapReq) error {
 	})
 }
 
-func updateCmPara(configmapInfo *ConfigmapInfo, updateCmReq *ConfigmapReq) error {
+func updateCmParam(configmapInfo *ConfigmapInfo, updateCmReq *ConfigmapReq) error {
 	if configmapInfo == nil {
 		return errors.New("configmap info is nil")
 	}
@@ -228,7 +228,8 @@ func (ci *CmRepositoryImpl) deleteSingleCm(cmID uint64) error {
 			return errors.New("query configmap from db failed")
 		}
 
-		if len(cmInfoFromDB.AssociatedAppList) > 0 {
+		// 初始化时为""，经过app关联后为[]
+		if cmInfoFromDB.AssociatedAppList != "" && cmInfoFromDB.AssociatedAppList != "[]" {
 			hwlog.RunLog.Errorf("configmap [%d] is associated with app, can not be deleted", cmInfoFromDB.ID)
 			return fmt.Errorf("configmap [%d] is associated with app, can not be deleted", cmInfoFromDB.ID)
 		}
