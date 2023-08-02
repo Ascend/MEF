@@ -53,9 +53,6 @@ func RepositoryInstance() Repository {
 // createTemplate create app template
 func (r *repositoryImpl) createTemplate(template *AppTemplateDb) error {
 	if err := r.db.Model(AppTemplateDb{}).Create(template).Error; err != nil {
-		if strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
-			return fmt.Errorf("template with name %s already exists", template.TemplateName)
-		}
 		return err
 	}
 	return nil
