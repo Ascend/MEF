@@ -87,7 +87,7 @@ const (
 	// ErrorGetConfigData failed to get token
 	ErrorGetConfigData = "40012017"
 
-	// ErrorGetNodeSoftwareVersion failed to delete node groups
+	// ErrorGetNodeSoftwareVersion failed to get node software version
 	ErrorGetNodeSoftwareVersion = "40012018"
 
 	// ErrorCheckAppMrgSize failed to check data size while creating
