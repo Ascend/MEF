@@ -126,7 +126,10 @@ func checkEdgeToken(c *gin.Context) (int, error) {
 	token := c.GetHeader(headerToken)
 
 	if match := regexp.MustCompile(common.PassWordRegex).MatchString(token); !match {
-		return http.StatusBadRequest, errors.New("token check failed")
+		if err := LockRepositoryInstance().recordFailed(ip); err != nil {
+			return http.StatusUnauthorized, err
+		}
+		return http.StatusUnauthorized, errors.New("token check failed")
 	}
 	dbToken, salt, err := configmanager.ConfigRepositoryInstance().GetToken()
 	if err != nil {
@@ -144,9 +147,9 @@ func checkEdgeToken(c *gin.Context) (int, error) {
 		}
 		return http.StatusUnauthorized, fmt.Errorf("edge ip %v send an incorrect token", ip)
 	}
+	defer common.ClearStringMemory(token)
 	if err := LockRepositoryInstance().authPass(ip); err != nil {
 		return http.StatusBadRequest, err
 	}
-	defer common.ClearStringMemory(token)
 	return 0, nil
 }
