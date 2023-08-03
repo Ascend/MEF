@@ -187,6 +187,7 @@ func (ci *CmRepositoryImpl) updateCm(updateCmReq *ConfigmapReq) error {
 }
 
 func updateCmParam(configmapInfo *ConfigmapInfo, updateCmReq *ConfigmapReq) error {
+	// 只支持修改description和content
 	if configmapInfo == nil {
 		return errors.New("configmap info is nil")
 	}

@@ -96,68 +96,63 @@ func initDaemonSet(appInfo *AppInfo, nodeGroupId uint64) (*appv1.DaemonSet, erro
 
 func getVolumes(containerInfos []Container) []v1.Volume {
 	// containers内挂载卷名称相同，也只算一个
-	var nameMap = make(map[string]struct{}) // key: host path name / configmap name
-	var infosVolNameUnique []Container
+	hostPathVols := getHostPathVols(containerInfos)
+	cmVols := getCmVols(containerInfos)
+	return append(hostPathVols, cmVols...)
+}
+
+func getHostPathVols(containerInfos []Container) []v1.Volume {
+	var hostPathVols []v1.Volume
+	var nameMap = make(map[string]struct{}) // key: host path name
 	for _, containerInfo := range containerInfos {
 		for _, hostPathVolume := range containerInfo.HostPathVolumes {
 			if _, ok := nameMap[hostPathVolume.Name]; ok {
 				continue
 			}
 			nameMap[hostPathVolume.Name] = struct{}{}
-			infosVolNameUnique = append(infosVolNameUnique, containerInfo)
-		}
 
-		for _, hostPathVolume := range containerInfo.HostPathVolumes {
-			if _, ok := nameMap[hostPathVolume.Name]; ok {
-				continue
+			// host path volume
+			hostPathSource := &v1.HostPathVolumeSource{
+				Path: hostPathVolume.HostPath,
 			}
-			nameMap[hostPathVolume.Name] = struct{}{}
-			infosVolNameUnique = append(infosVolNameUnique, containerInfo)
+			hostPathVols = append(hostPathVols, v1.Volume{
+				Name:         hostPathVolume.Name,
+				VolumeSource: v1.VolumeSource{HostPath: hostPathSource},
+			})
+
 		}
 	}
-
-	// get volumes from container infos
-	var volumes []v1.Volume
-	for _, containerInfo := range infosVolNameUnique {
-		volumes = append(volumes, getVolumesFromContainerInfo(containerInfo)...)
-	}
-
-	return volumes
+	return hostPathVols
 }
 
-func getVolumesFromContainerInfo(containerInfo Container) []v1.Volume {
-	var Volumes []v1.Volume
+func getCmVols(containerInfos []Container) []v1.Volume {
+	var cmVolumes []v1.Volume
+	var nameMap = make(map[string]struct{}) // key: configmap name
+	for _, containerInfo := range containerInfos {
+		for _, configmapVolume := range containerInfo.ConfigmapVolumes {
+			if _, ok := nameMap[configmapVolume.Name]; ok {
+				continue
+			}
+			nameMap[configmapVolume.Name] = struct{}{}
 
-	// host path volume
-	for _, hostPathVolume := range containerInfo.HostPathVolumes {
-		hostPathSource := &v1.HostPathVolumeSource{
-			Path: hostPathVolume.HostPath,
+			// configmap volume
+			var localObjectRef = v1.LocalObjectReference{
+				Name: configmapVolume.ConfigmapName,
+			}
+
+			var cmVolumeSource = &v1.ConfigMapVolumeSource{
+				LocalObjectReference: localObjectRef,
+			}
+
+			cmVolumes = append(cmVolumes, v1.Volume{
+				Name: configmapVolume.Name,
+				VolumeSource: v1.VolumeSource{
+					ConfigMap: cmVolumeSource,
+				},
+			})
 		}
-		Volumes = append(Volumes, v1.Volume{
-			Name:         hostPathVolume.Name,
-			VolumeSource: v1.VolumeSource{HostPath: hostPathSource},
-		})
 	}
-
-	// configmap volume
-	for _, configmapVolume := range containerInfo.ConfigmapVolumes {
-		var localObjectRef = v1.LocalObjectReference{
-			Name: configmapVolume.ConfigmapName,
-		}
-
-		var cmVolumeSource = &v1.ConfigMapVolumeSource{
-			LocalObjectReference: localObjectRef,
-		}
-
-		Volumes = append(Volumes, v1.Volume{
-			Name: configmapVolume.Name,
-			VolumeSource: v1.VolumeSource{
-				ConfigMap: cmVolumeSource,
-			},
-		})
-	}
-
-	return Volumes
+	return cmVolumes
 }
 
 func getContainers(containerInfos []Container) ([]v1.Container, error) {
