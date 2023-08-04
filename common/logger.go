@@ -86,6 +86,9 @@ func ConstructResp(c *gin.Context, errorCode string, msg string, data interface{
 		Msg:    msg,
 		Data:   data,
 	}
-
+	if result.Status != Success {
+		c.JSON(http.StatusBadRequest, result)
+		return
+	}
 	c.JSON(http.StatusOK, result)
 }
