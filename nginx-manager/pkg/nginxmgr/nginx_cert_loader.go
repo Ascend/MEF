@@ -123,13 +123,9 @@ func getServerCert(keyPath string, server string) (string, error) {
 	return certStr, nil
 }
 
-// Load load the apigw secret key file and write into pipe
-func Load(keyPath, pipePath string) error {
-	var keyContent []byte
+// PreparePipe Check and create a pipeline file
+func PreparePipe(pipePath string) error {
 	var err error
-	if keyContent, err = loadKey(keyPath); err != nil {
-		return err
-	}
 	err = utils.MakeSureDir(pipePath)
 	if err != nil {
 		return err
@@ -141,17 +137,27 @@ func Load(keyPath, pipePath string) error {
 	if err != nil {
 		return err
 	}
-	go writeKeyToPipe(pipePath, keyContent)
 	return nil
 }
 
-// LoadForClient load the secret key file which used for inner communication and write into pipe
-func LoadForClient(keyPath, pipeDir string, pipeCount int) error {
+// WritePipe load the apigw secret key file and write into pipe
+func WritePipe(keyPath, pipePath string) error {
 	var keyContent []byte
 	var err error
 	if keyContent, err = loadKey(keyPath); err != nil {
 		return err
 	}
+	if !utils.IsExist(pipePath) {
+		common.ClearSliceByteMemory(keyContent)
+		return fmt.Errorf("The  file: %s does not exist." + pipePath)
+	}
+	go writeKeyToPipe(pipePath, keyContent)
+	return nil
+}
+
+// PrepareForClient creates a pipe file for internal communication.
+func PrepareForClient(pipeDir string, pipeCount int) error {
+	var err error
 	var pipePaths []string
 	for i := 0; i < pipeCount; i++ {
 		pipePath := fmt.Sprintf("%s%s_%d", pipeDir, nginxcom.ClientPipePrefix, i)
@@ -167,7 +173,27 @@ func LoadForClient(keyPath, pipeDir string, pipeCount int) error {
 			return err
 		}
 	}
+	return nil
+}
+
+// WritePipeForClient load the secret key file which used for inner communication and write into pipe
+func WritePipeForClient(keyPath, pipeDir string, pipeCount int) error {
+	var keyContent []byte
+	var err error
+	if keyContent, err = loadKey(keyPath); err != nil {
+		return err
+	}
+	var pipePaths []string
+	for i := 0; i < pipeCount; i++ {
+		pipePath := fmt.Sprintf("%s%s_%d", pipeDir, nginxcom.ClientPipePrefix, i)
+		pipePaths = append(pipePaths, pipePath)
+	}
+
 	for _, pipePath := range pipePaths {
+		if !utils.IsExist(pipePath) {
+			common.ClearSliceByteMemory(keyContent)
+			return fmt.Errorf("The  file: %s does not exist." + pipePath)
+		}
 		go writeKeyToPipe(pipePath, keyContent)
 	}
 	return nil
