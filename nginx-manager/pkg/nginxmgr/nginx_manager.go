@@ -42,10 +42,6 @@ func initResource() error {
 		return err
 	}
 
-	if err := loadCerts(); err != nil {
-		return err
-	}
-
 	if err := prepareCrlFile(); err != nil {
 		return err
 	}
@@ -100,13 +96,13 @@ func updateConf() error {
 }
 
 func loadCerts() error {
-	if err := Load(nginxcom.ServerCertKeyFile, nginxcom.PipePath); err != nil {
+	if err := WritePipe(nginxcom.ServerCertKeyFile, nginxcom.PipePath); err != nil {
 		return err
 	}
-	if err := Load(nginxcom.SouthAuthCertKeyFile, nginxcom.AuthPipePath); err != nil {
+	if err := WritePipe(nginxcom.SouthAuthCertKeyFile, nginxcom.AuthPipePath); err != nil {
 		return err
 	}
-	if err := Load(nginxcom.WebsocketCertKeyFile, nginxcom.WebsocketPipePath); err != nil {
+	if err := WritePipe(nginxcom.WebsocketCertKeyFile, nginxcom.WebsocketPipePath); err != nil {
 		return err
 	}
 	updater, err := NewNginxConfUpdater(nil)
@@ -117,8 +113,28 @@ func loadCerts() error {
 	if err != nil {
 		return err
 	}
-	err = LoadForClient(nginxcom.ClientCertKeyFile, nginxcom.ClientPipeDir, pipeCount)
-	return err
+	return WritePipeForClient(nginxcom.ClientCertKeyFile, nginxcom.ClientPipeDir, pipeCount)
+}
+
+func preparePipeCerts() error {
+	if err := PreparePipe(nginxcom.PipePath); err != nil {
+		return err
+	}
+	if err := PreparePipe(nginxcom.AuthPipePath); err != nil {
+		return err
+	}
+	if err := PreparePipe(nginxcom.WebsocketPipePath); err != nil {
+		return err
+	}
+	updater, err := NewNginxConfUpdater(nil)
+	if err != nil {
+		return err
+	}
+	pipeCount, err := updater.calculatePipeCount()
+	if err != nil {
+		return err
+	}
+	return PrepareForClient(nginxcom.ClientPipeDir, pipeCount)
 }
 
 // CreateConfItems create some items which used to replace into nginx.conf file
@@ -247,8 +263,16 @@ func reqRestartNginx(req *model.Message) {
 }
 
 func startNginxCmd() bool {
-	if _, err := envutils.RunCommand(startCommand, envutils.DefCmdTimeoutSec); err != nil {
+	if err := preparePipeCerts(); err != nil {
+		hwlog.RunLog.Errorf("prepare certs failed: %v", err)
+		return false
+	}
+	if _, err := envutils.RunResidentCmd(startCommand); err != nil {
 		hwlog.RunLog.Errorf("start nginx failed: %v", err)
+		return false
+	}
+	if err := loadCerts(); err != nil {
+		hwlog.RunLog.Errorf("load certs failed: %v", err)
 		return false
 	}
 	if err := os.Chmod(accessLogFile, logFileMode); err != nil {
