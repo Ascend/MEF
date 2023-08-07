@@ -9,6 +9,7 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
+
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
@@ -53,6 +54,7 @@ func (muk *UpdateKmcFlow) RunFlow() error {
 		if err = task.RunTask(); err != nil {
 			hwlog.RunLog.Errorf("update module %s's kmc keys failed: %s", module, err.Error())
 			failedModule = append(failedModule, module)
+			continue
 		}
 		hwlog.RunLog.Infof("update module %s's kmc keys success", module)
 	}
