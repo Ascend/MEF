@@ -60,7 +60,7 @@ spec:
                 fieldRef:
                   fieldPath: status.hostIP
           command: [ "/bin/bash", "-c", "--"]
-          args: ["./nginx-manager"]
+          args: [ "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/home/MEFCenter/lib ./nginx-manager" ]
           volumeMounts:
             - name: nginx-manager-log
               mountPath: /home/MEFCenter/logs/
