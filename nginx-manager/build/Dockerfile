@@ -17,6 +17,5 @@ RUN chmod 750 /home/MEFCenter &&\
     echo 'umask 027' >> /etc/profile && \
     echo 'source /etc/profile' >> /home/MEFCenter/.bashrc
 
-ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/home/MEFCenter/lib
 # MEFCenter is used as the default user of the container
 USER MEFCenter

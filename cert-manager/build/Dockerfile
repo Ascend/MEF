@@ -16,6 +16,5 @@ RUN chown MEFCenter:MEFCenter -Rh /home/MEFCenter/* /home/cert_mgr_lib &&\
     echo 'export LD_LIBRARY_PATH=/home/cert_mgr_lib' >> /home/MEFCenter/.bashrc && \
     echo 'source /etc/profile' >> /home/MEFCenter/.bashrc
 
-ENV LD_LIBRARY_PATH=/home/cert_mgr_lib
 # MEFCenter is used as the default user of the container
 USER MEFCenter
