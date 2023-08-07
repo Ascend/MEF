@@ -11,10 +11,13 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/utils"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
@@ -57,8 +60,10 @@ func TestMain(m *testing.M) {
 
 func TestUpdateKmc(t *testing.T) {
 	convey.Convey("test UpdateKmcFlow", t, func() {
+		p1 := gomonkey.ApplyFuncReturn(fileutils.IsSoftLink, nil)
 		convey.Convey("test entire Flow no key", doUpdateKmcEntireTest)
 		convey.Convey("test entire Flow with key", doUpdateKmcWithKeyTest)
+		defer p1.Reset()
 	})
 }
 
