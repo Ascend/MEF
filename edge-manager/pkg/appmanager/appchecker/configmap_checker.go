@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	regexpCmName       = "^[a-z][a-zA-Z0-9-]{2,62}[a-zA-Z0-9]$"
+	regexpCmName       = "^[a-z][a-z0-9-]{2,62}[a-z0-9]$"
 	regexpDescription  = `^[\S ]{0,255}$`
 	regexpCmContentKey = "^[a-zA-Z-]([a-zA-Z0-9-_]){0,62}$"
 
