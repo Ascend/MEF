@@ -140,7 +140,7 @@ var onlineImportMap = map[string]bool{
 	common.WsCltName:        false,
 	common.SoftwareCertName: true,
 	common.ImageCertName:    true,
-	common.NginxCertName:    true,
+	common.NginxCertName:    false,
 	common.InnerName:        false,
 	common.NorthernCertName: false,
 }
