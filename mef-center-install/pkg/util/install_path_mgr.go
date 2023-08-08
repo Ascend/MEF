@@ -415,6 +415,21 @@ func (cpm *ConfigPathMgr) GetMefCertsDirPath(component string) string {
 	return filepath.Join(cpm.GetComponentConfigPath(component), CertsDir)
 }
 
+// GetKubeConfigKeyPath returns kube config key path
+func (cpm *ConfigPathMgr) GetKubeConfigKeyPath() string {
+	return filepath.Join(cpm.GetComponentConfigPath(EdgeManagerName), KubeCertsDir, KeyFileName)
+}
+
+// GetKubeConfigCertPath returns kube config cert path
+func (cpm *ConfigPathMgr) GetKubeConfigCertPath() string {
+	return filepath.Join(cpm.GetComponentConfigPath(EdgeManagerName), KubeCertsDir, ServiceName)
+}
+
+// GetKubeConfigCa returns kube config ca path
+func (cpm *ConfigPathMgr) GetKubeConfigCa() string {
+	return filepath.Join(cpm.GetComponentConfigPath(EdgeManagerName), KubeCertsDir, RootCaFileName)
+}
+
 // GetComponentCertPath returns single component's certs file path by component's name
 func (cpm *ConfigPathMgr) GetComponentCertPath(component string) string {
 	return filepath.Join(cpm.GetMefCertsDirPath(component), component+CertSuffix)

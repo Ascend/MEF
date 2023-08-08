@@ -300,6 +300,10 @@ func (sic *SftInstallCtl) prepareYaml() error {
 			return err
 		}
 	}
+	yamlPath := sic.InstallPathMgr.WorkPathAMgr.GetComponentYamlPath(util.EdgeManagerName)
+	if err := util.ModifyEndpointYaml(util.GetApiserverEndpoint(), yamlPath); err != nil {
+		return err
+	}
 	hwlog.RunLog.Info("prepare components' yaml successful")
 	return nil
 }

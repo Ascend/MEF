@@ -129,6 +129,28 @@ func (sm *SoftwareMgr) ClearNamespace() error {
 	return nil
 }
 
+// ClearKubeAuth is used to clear mef-center k8s auth
+func (sm *SoftwareMgr) ClearKubeAuth() error {
+	fmt.Println("start to clear K8s auth")
+	hwlog.RunLog.Info("start to clear K8s auth")
+
+	var err error
+	if _, err = envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "delete",
+		"clusterrole", clusterroleName); err != nil {
+		hwlog.RunLog.Warnf("delete clusterrole failed: %v", err)
+	}
+	if _, err = envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "delete",
+		"clusterrolebinding", bindingName); err != nil {
+		hwlog.RunLog.Warnf("delete clusterrolebinding failed: %v", err)
+	}
+	if err != nil {
+		return nil
+	}
+	fmt.Println("clear K8s auth success")
+	hwlog.RunLog.Info("clear K8s auth success")
+	return nil
+}
+
 // ClearAndLabel is the func that used to recover the environment that effected by installation
 func (sm *SoftwareMgr) ClearAndLabel() error {
 	var installTasks = []func() error{
