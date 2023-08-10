@@ -100,6 +100,7 @@ func CertMgrPrepareCertTest() {
 		convey.Convey("test prepareCert func success", func() {
 			p := gomonkey.ApplyMethodReturn(initCertMgrIns, "NewRootCa", nil, nil).
 				ApplyMethodReturn(selfSignCertIns, "CreateSignCert", nil).
+				ApplyFuncReturn(util.PrepareKubeConfigCert, nil).
 				ApplyPrivateMethod(ins, "setCertsOwner", func(_ *certPrepareCtl) error { return nil })
 			defer ResetAndClearDir(p, InstallDirPathMgrIns.GetMefPath())
 			convey.So(ins.prepareCerts(), convey.ShouldBeNil)
@@ -130,6 +131,7 @@ func CertMgrPrepareCertTest() {
 		convey.Convey("test prepareCert func set certs owner failed", func() {
 			p := gomonkey.ApplyMethodReturn(initCertMgrIns, "NewRootCa", nil, nil).
 				ApplyMethodReturn(componentMgrIns, "PrepareComponentCert", nil).
+				ApplyFuncReturn(util.PrepareKubeConfigCert, nil).
 				ApplyPrivateMethod(ins, "setCertsOwner",
 					func(_ *certPrepareCtl) error { return ErrTest })
 			defer p.Reset()
