@@ -13,6 +13,7 @@ import (
 	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509/certutils"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -264,11 +265,6 @@ func (c *ComponentMgr) PrepareComponentCert(certMng *certutils.RootCertMgr, cert
 	if err := componentCert.CreateSignCert(); err != nil {
 		hwlog.RunLog.Errorf("create component [%s] cert failed: %v", c.name, err)
 		return fmt.Errorf("create component [%s] cert failed", c.name)
-	}
-	if c.name == EdgeManagerName {
-		if err := newKubeConfig(certPathMgr).prepareKubeConfigCert(); err != nil {
-			return err
-		}
 	}
 	return nil
 }

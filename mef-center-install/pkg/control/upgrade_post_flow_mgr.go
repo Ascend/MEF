@@ -49,6 +49,7 @@ func (upf *UpgradePostFlowMgr) DoUpgrade() error {
 		upf.prepareK8sLabel,
 		upf.createFlag,
 		upf.prepareWorkCDir,
+		upf.prepareCerts,
 		upf.prepareYaml,
 		upf.recordStarted,
 		upf.deleteNameSpace,
@@ -213,7 +214,60 @@ func (upf *UpgradePostFlowMgr) prepareYaml() error {
 			return err
 		}
 	}
+	yamlPath := upf.InstallPathMgr.TmpPathMgr.GetComponentYamlPath(util.EdgeManagerName)
+	if err := util.ModifyEndpointYaml(util.GetApiserverEndpoint(), yamlPath); err != nil {
+		return err
+	}
 	hwlog.RunLog.Info("prepare components' yaml successful")
+	return nil
+}
+
+func (upf *UpgradePostFlowMgr) prepareCerts() error {
+	hwlog.RunLog.Info("-----start to prepare certs-----")
+	originalDir := upf.InstallPathMgr.ConfigPathMgr.GetKubeConfigCertDirPath()
+	backupDir := originalDir + "_bak"
+	if utils.IsLexist(originalDir) {
+		if err := utils.RenameFile(originalDir, backupDir); err != nil {
+			hwlog.RunLog.Errorf("rename kube config cert dir failed, %v", err)
+			return err
+		}
+	}
+	var successFlag bool
+	defer func() {
+		dirtToClean := originalDir
+		if successFlag {
+			dirtToClean = backupDir
+		}
+		if err := utils.DeleteAllFileWithConfusion(dirtToClean); err != nil {
+			hwlog.RunLog.Errorf("clean kube config cert dir failed, %v", err)
+		}
+		if successFlag {
+			return
+		}
+		if utils.IsLexist(backupDir) {
+			if err := utils.RenameFile(backupDir, originalDir); err != nil {
+				hwlog.RunLog.Errorf("restore kube config cert dir failed, %v", err)
+			}
+		}
+	}()
+
+	if err := util.PrepareKubeConfigCert(upf.InstallPathMgr.ConfigPathMgr); err != nil {
+		return err
+	}
+	mefUid, mefGid, err := util.GetMefId()
+	if err != nil {
+		hwlog.RunLog.Errorf("get mef uid or gid failed: %s", err.Error())
+		return errors.New("get mef uid or gid failed")
+	}
+
+	if err = utils.SetPathOwnerGroup(originalDir, mefUid,
+		mefGid, true, false); err != nil {
+		hwlog.RunLog.Errorf("set path [%s] owner and group failed: %v", originalDir, err.Error())
+		return errors.New("set kube config cert root path owner and group failed")
+	}
+
+	successFlag = true
+	hwlog.RunLog.Info("-----prepare certs successful-----")
 	return nil
 }
 

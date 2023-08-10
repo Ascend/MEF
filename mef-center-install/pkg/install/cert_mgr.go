@@ -118,6 +118,11 @@ func (cpc *certPrepareCtl) doPrepareCerts(ch chan<- error) {
 		}
 	}
 
+	if err := util.PrepareKubeConfigCert(cpc.certPathMgr); err != nil {
+		hwlog.RunLog.Errorf("prepare kube config cert failed: %s", err.Error())
+		ch <- errors.New("prepare kube config cert failed")
+	}
+
 	if err = cpc.setCertsOwner(); err != nil {
 		ch <- err
 		return

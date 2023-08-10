@@ -14,6 +14,7 @@ import (
 	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509/certutils"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -24,6 +25,11 @@ const (
 	bindingName         = "edge-manager-clusterrolebinding"
 	clusterroleName     = "edge-manager-role"
 )
+
+// PrepareKubeConfigCert prepares kubeconfig cert
+func PrepareKubeConfigCert(certPathMgr *ConfigPathMgr) error {
+	return newKubeConfig(certPathMgr).prepareKubeConfigCert()
+}
 
 type kubeConfig struct {
 	certPathMgr *ConfigPathMgr
