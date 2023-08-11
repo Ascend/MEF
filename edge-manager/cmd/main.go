@@ -118,7 +118,7 @@ func validateFlags() error {
 		return fmt.Errorf("wsPort %d is not in [%d, %d]", wsPort, common.MinPort, common.MaxPort)
 	}
 	if !checker.IsPortInRange(common.MinPort, common.MaxPort, authPort) {
-		return fmt.Errorf("authPort %d is not in [%d, %d]", wsPort, common.MinPort, common.MaxPort)
+		return fmt.Errorf("authPort %d is not in [%d, %d]", authPort, common.MinPort, common.MaxPort)
 	}
 	if authPort == wsPort {
 		return fmt.Errorf("authPort can not equals to wsPort")

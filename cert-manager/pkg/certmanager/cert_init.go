@@ -182,6 +182,7 @@ func updateCert() error {
 	if err := utils.DeleteFile(getRootKeyPath(common.WsCltName)); err != nil {
 		return err
 	}
+	hwlog.RunLog.Infof("Destroyed %s key file", getRootKeyPath(common.WsCltName))
 	if err := CreateCaIfNotExit(); err != nil {
 		return err
 	}

@@ -11,6 +11,7 @@ import (
 	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -47,11 +48,12 @@ func (sm *SoftwareMgr) clearInstallPkg() error {
 		hwlog.RunLog.Warn("mef-center install package does not exist, no need to delete")
 		return nil
 	}
-
+	hwlog.RunLog.Infof("All key in %s are about to be destroyed.", sm.InstallPathMgr.GetMefPath())
 	if err := common.DeleteAllFile(sm.InstallPathMgr.GetMefPath()); err != nil {
 		hwlog.RunLog.Errorf("delete mef-center install package failed:%s", err.Error())
 		return err
 	}
+
 	fmt.Println("clear install dir success")
 	hwlog.RunLog.Info("clear install dir success")
 	return nil
