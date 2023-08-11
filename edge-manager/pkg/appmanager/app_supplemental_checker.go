@@ -187,8 +187,10 @@ func (c *appParamChecker) checkAppContainersValid() error {
 
 func (c *appParamChecker) checkContainersVolumeUniqueType() error {
 	// 如果不同容器本地卷名称相同，则卷类型也要相同
-	var nameTypeMap = make(map[string]string) // key: name; value: volume type
-	var namesMap = make(map[string]string)    // key: name; value: configmap name/host path
+	// key: name; value: volume type
+	var nameTypeMap = make(map[string]string)
+	// key: name; value: configmap name/host path
+	var namesMap = make(map[string]string)
 
 	for _, container := range c.req.Containers {
 		for _, cmVolume := range container.ConfigmapVolumes {
