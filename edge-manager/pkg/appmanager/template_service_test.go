@@ -268,12 +268,13 @@ func testGetTemplate() {
 func testGetTemplateInvalid() {
 	reqData := []string{"string", "12s", "-1", "213"}
 	var resp common.RespMsg
+	const exsitId uint64 = 1001
 	for _, key := range reqData {
 		resp = getTemplate(key)
 		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
 	}
-	reqUnExsitTemp := uint64(1001)
-	resp = getTemplate(reqUnExsitTemp)
+
+	resp = getTemplate(exsitId)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTemplateNotFind)
 }
 
@@ -344,10 +345,10 @@ func testBatchDeleteTemplates() {
     "containers":[%s]}`, containerJson)
 	resp2 := createTemplate(templateJson2)
 	convey.So(resp2.Status, convey.ShouldEqual, common.Success)
-
+	const deleteTempPageSize = 10
 	reqData := types.ListReq{
 		PageNum:  1,
-		PageSize: 10,
+		PageSize: deleteTempPageSize,
 		Name:     "",
 	}
 	resp := listTemplates(reqData)
