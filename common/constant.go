@@ -10,16 +10,16 @@ const (
 	EdgeMgrDns = "ascend-edge-manager.mef-center.svc.cluster.local"
 	// EdgeMgrPort Edge manager port
 	EdgeMgrPort = 8101
-	// SoftwareMgrDns software manager dns name
-	SoftwareMgrDns = "ascend-software-manager.mef-center.svc.cluster.local"
-	// SoftwareMgrPort software manager port
-	SoftwareMgrPort = 8102
 	// CertMgrDns cert manager dns name
 	CertMgrDns = "ascend-cert-manager.mef-center.svc.cluster.local"
 	// CertMgrPort cert manager port
 	CertMgrPort = 8103
-	// NginxMgrDns nginx manager port
+	// NginxMgrDns nginx manager dns name
 	NginxMgrDns = "ascend-nginx-manager.mef-center.svc.cluster.local"
+	// AlarmMgrPort alarm manager port
+	AlarmMgrPort = 8102
+	// AlarmMgrDns alarm manager dns name
+	AlarmMgrDns = "ascend-alarm-manager.mef-center.svc.cluster.local"
 )
 
 const (

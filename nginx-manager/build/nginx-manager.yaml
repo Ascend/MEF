@@ -32,6 +32,8 @@ spec:
           env:
             - name: EdgeMgrSvcPort
               value: "8101"
+            - name: AlarmMgrSvcPort
+              value: "8102"
             - name: CertMgrSvcPort
               value: "8103"
             - name: NginxSslPort

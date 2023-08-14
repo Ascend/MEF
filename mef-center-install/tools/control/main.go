@@ -92,7 +92,7 @@ func checkComponent(installedComponents []string) error {
 }
 
 func (oc *operateController) doControl() error {
-	installedComponents := oc.installParam.Components
+	installedComponents := util.GetCompulsorySlice()
 	if err := checkComponent(installedComponents); err != nil {
 		return err
 	}
@@ -134,7 +134,7 @@ func (oc *operateController) printSuccessLog(ip, user string) {
 }
 
 func (uc *uninstallController) doControl() error {
-	installedComponents := uc.installParam.Components
+	installedComponents := util.GetCompulsorySlice()
 
 	controlMgr := control.GetSftUninstallMgrIns(installedComponents, uc.installParam.InstallDir)
 	if err := controlMgr.DoUninstall(); err != nil {
@@ -170,7 +170,7 @@ func (uc *uninstallController) printSuccessLog(ip, user string) {
 }
 
 func (uc *upgradeController) doControl() error {
-	installedComponents := uc.installParam.Components
+	installedComponents := util.GetCompulsorySlice()
 
 	if err := uc.checkZipPath(); err != nil {
 		hwlog.RunLog.Errorf("check zip path failed: %s", err.Error())
