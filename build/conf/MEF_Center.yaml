@@ -10,6 +10,7 @@ EDGE_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/edge-manager"
 CERT_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/cert-manager"
 MEF_CENTER_INSTALL_DIR: "{{systemEnv.workspace}}/{{component}}/mef-center-install"
 NGINX_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/nginx-manager"
+ALARM_MANAGER_DIR: "{{systemEnv.workspace}}/{{component}}/alarm-manager"
 
 compile:
   input:
@@ -42,6 +43,10 @@ compile:
         version: "1.0"
         type: opensource
         buildFile: "{{NGINX_MANAGER_DIR}}/build/conf"
+      - name: alarm-manager
+        version: "1.0"
+        type: opensource
+        buildFile: "{{ALARM_MANAGER_DIR}}/build/conf"
 
   process:
     language: go
@@ -60,6 +65,8 @@ compile:
             path: "{{TOP_DIR}}/savedir/installer"
         - makedir:
             path: "{{TOP_DIR}}/savedir/nginx-manager"
+        - makedir:
+            path: "{{TOP_DIR}}/savedir/alarm-manager"
         - mode:
             src: [ "{{TOP_DIR}}/savedir" ]
             mode: "700"
@@ -71,6 +78,8 @@ compile:
             - command: "fakeroot cp -rf {{NGINX_MANAGER_DIR}}/output/* {{TOP_DIR}}/savedir/nginx-manager/"
         - commands:
             - command: "fakeroot cp -rf {{CERT_MANAGER_DIR}}/output/* {{TOP_DIR}}/savedir/cert-manager/"
+        - commands:
+            - command: "fakeroot cp -rf {{ALARM_MANAGER_DIR}}/output/* {{TOP_DIR}}/savedir/alarm-manager/"
         - copy:
             src: [ '{{ CMS_VERIFY_DIR }}/build/libcms_verify.so' ]
             des: "{{TOP_DIR}}/savedir/installer/lib/lib"

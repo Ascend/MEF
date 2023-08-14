@@ -51,6 +51,7 @@ func (upf *UpgradePostFlowMgr) DoUpgrade() error {
 		upf.prepareWorkCDir,
 		upf.prepareCerts,
 		upf.prepareYaml,
+		upf.smoothUpgrade,
 		upf.recordStarted,
 		upf.deleteNameSpace,
 		upf.removeDockerImage,
@@ -219,6 +220,19 @@ func (upf *UpgradePostFlowMgr) prepareYaml() error {
 		return err
 	}
 	hwlog.RunLog.Info("prepare components' yaml successful")
+	return nil
+}
+
+func (upf *UpgradePostFlowMgr) smoothUpgrade() error {
+	hwlog.RunLog.Info("start to smooth")
+	upgradeSmoother, err := GetSmoother(upgradeFlow, upf.InstallPathMgr)
+	if err != nil {
+		return fmt.Errorf("get smoother failed: %s", err.Error())
+	}
+	if err = upgradeSmoother.smooth(); err != nil {
+		return err
+	}
+	hwlog.RunLog.Info("smooth success")
 	return nil
 }
 

@@ -107,6 +107,7 @@ const (
 	EdgeManagerName   = "edge-manager"
 	CertManagerName   = "cert-manager"
 	NginxManagerName  = "nginx-manager"
+	AlarmManagerName  = "alarm-manager"
 	MefCenterRootName = "MEF-Center-root"
 )
 

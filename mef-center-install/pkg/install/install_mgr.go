@@ -156,7 +156,6 @@ func (sic *SftInstallCtl) checkNecessaryTools() error {
 func (sic *SftInstallCtl) setInstallJson() error {
 	hwlog.RunLog.Info("start to set install json")
 	jsonHandler := util.InstallParamJsonTemplate{
-		Components:   sic.Components,
 		InstallDir:   sic.InstallPathMgr.GetRootPath(),
 		LogDir:       sic.logPathMgr.GetLogRootPath(),
 		LogBackupDir: sic.logPathMgr.GetLogBackupRootPath(),

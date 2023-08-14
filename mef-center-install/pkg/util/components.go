@@ -33,6 +33,7 @@ func GetCompulsorySlice() []string {
 		EdgeManagerName,
 		CertManagerName,
 		NginxManagerName,
+		AlarmManagerName,
 	}
 }
 
@@ -41,6 +42,7 @@ func getComponentDns(component string) string {
 		EdgeManagerName:  common.EdgeMgrDns,
 		CertManagerName:  common.CertMgrDns,
 		NginxManagerName: common.NginxMgrDns,
+		AlarmManagerName: common.AlarmMgrDns,
 	}
 	return DnsMap[component]
 }

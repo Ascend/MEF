@@ -10,9 +10,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"os"
-	"os/signal"
-	"syscall"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
@@ -78,7 +75,7 @@ func main() {
 		hwlog.RunLog.Error("register error")
 		return
 	}
-	gracefulShutdown(cancel)
+	common.GracefulShutDown(cancel)
 }
 
 func init() {
@@ -111,19 +108,6 @@ func register(ctx context.Context) error {
 	}
 	modulemgr.Start()
 	return nil
-}
-
-func gracefulShutdown(cancelFunc context.CancelFunc) {
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGHUP, syscall.SIGTERM,
-		syscall.SIGQUIT, syscall.SIGILL, syscall.SIGTRAP, syscall.SIGABRT)
-	select {
-	case _, ok := <-signalChan:
-		if !ok {
-			hwlog.RunLog.Info("catch stop signal channel is closed")
-		}
-	}
-	cancelFunc()
 }
 
 func initCertConfig() error {

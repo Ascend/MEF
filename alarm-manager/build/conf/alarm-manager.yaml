@@ -1,0 +1,82 @@
+component: alarm-manager
+product: MEF_Center
+systemEnv:
+  - workspace
+  - processor
+  - version
+TOP_DIR: "{{systemEnv.workspace}}/{{product}}/{{component}}"
+compile:
+  input:
+    dependency:
+      - name: huawei_secure_c
+        version: 1.0
+        type: opensource
+      - name: KMC
+        version: 1.0
+        type: opensource
+    envVariables:
+      GO111MODULE: "on"
+      GONOSUMDB: "*"
+      GOPROXY: "https://cmc.centralrepo.rnd.huawei.com/artifactory/go-central-repo,direct"
+      CGO_ENABLED: "1"
+      CGO_CFLAGS: "-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
+      CGO_CPPFLAGS: "-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
+    files:
+      exclude:
+        - remove: ["{{TOP_DIR}}/output/"]
+        - makedir:
+            path: "{{TOP_DIR}}/output"
+
+  process:
+    language: go
+    compilePath: "{{TOP_DIR}}/cmd"
+    parameters: [['buildmode', "pie"],
+                 ["mod", "mod"],
+                 ['ldflags', '-X "main.BuildName={{component}}" -X "main.BuildVersion={{version}}_linux-{{systemEnv.processor}}" -s -linkmode=external -extldflags=-Wl,-z,now'],
+                 ["o", "{{component}}"],
+                 ['trimpath',""],]
+  output:
+    files:
+      include:
+        - move:
+            src: ["{{TOP_DIR}}/cmd/{{component}}"]
+            des: "{{TOP_DIR}}/output"
+        - copy:
+            src:
+              - '{{TOP_DIR}}/build/{{component}}.yaml'
+            des: "{{TOP_DIR}}/output/{{component}}.yaml"
+            rename: True
+        - copy:
+            src:
+              - "{{TOP_DIR}}/build/Dockerfile"
+            des: "{{TOP_DIR}}/output/"
+        - makedir:
+            path: "{{TOP_DIR}}/output/config"
+        - mode:
+            src:
+              - "{{TOP_DIR}}/output/config"
+            mode: "700"
+        - copy:
+            src:
+              - "{{TOP_DIR}}/config/*"
+            des: "{{TOP_DIR}}/output/config"
+        - mode:
+            src:
+              - "{{TOP_DIR}}/output/*"
+            mode: "400"
+        - mode:
+            src:
+              - "{{TOP_DIR}}/output/config"
+            mode: "700"
+        - mode:
+            src:
+              - "{{TOP_DIR}}/output/config/*"
+            mode: "400"
+        - mode:
+            src:
+              - "{{TOP_DIR}}/output/{{component}}"
+            mode: "500"
+        - mode:
+            src:
+              - "{{TOP_DIR}}/output/{{component}}.yaml"
+            mode: "600"
