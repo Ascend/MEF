@@ -294,7 +294,7 @@ func (upf *UpgradePostFlowMgr) recordStarted() error {
 		}
 		started, err := dealer.CheckStarted()
 		if err != nil {
-			hwlog.RunLog.Errorf("check component %s's status failed", c)
+			hwlog.RunLog.Errorf("check component %s's status failed: %s", c, err.Error())
 			return fmt.Errorf("check component %s's status failed", c)
 		}
 
@@ -303,6 +303,26 @@ func (upf *UpgradePostFlowMgr) recordStarted() error {
 		}
 		hwlog.RunLog.Infof("component %s is running", c)
 		upf.startedComponents = append(upf.startedComponents, c)
+	}
+
+	var notInstalledComponents []string
+	for _, c := range util.GetAddedComponent() {
+		dockerDealer := util.GetDockerDealer(c, util.DockerTag)
+		ret, err := dockerDealer.CheckImageExists()
+		if err != nil {
+			hwlog.RunLog.Errorf("check component %s's image failed: %s", c, err.Error())
+			return fmt.Errorf("check component %s's image failed", c)
+		}
+
+		if ret {
+			continue
+		}
+
+		notInstalledComponents = append(notInstalledComponents, c)
+	}
+
+	if len(notInstalledComponents)+len(upf.startedComponents) == len(upf.Components) {
+		upf.startedComponents = append(upf.startedComponents, notInstalledComponents...)
 	}
 	hwlog.RunLog.Info("record started components succeeds")
 	return nil

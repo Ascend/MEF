@@ -54,7 +54,7 @@ var (
 	help          bool
 	curController controller
 
-	allowedModule = []string{util.EdgeManagerName, util.NginxManagerName, util.CertManagerName}
+	allowedModule = util.GetCompulsorySlice()
 )
 
 const (

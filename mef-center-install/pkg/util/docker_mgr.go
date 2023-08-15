@@ -84,6 +84,34 @@ func (dd *DockerDealer) SaveImage(savePath string) error {
 
 }
 
+// CheckImageExists checks if the docker image exists
+func (dd *DockerDealer) CheckImageExists() (bool, error) {
+	const (
+		imageNameColumn  = 0
+		imageTagColumn   = 1
+		imagesMinColumns = 2
+	)
+	images, err := envutils.RunCommand(CommandDocker, envutils.DefCmdTimeoutSec, "images")
+	if err != nil {
+		hwlog.RunLog.Errorf("get all docker images failed:%s", err.Error())
+		return false, errors.New("get all docker images failed")
+	}
+
+	lines := strings.Split(images, "\n")
+	for _, line := range lines {
+		columns := strings.Fields(line)
+		if len(columns) < imagesMinColumns {
+			continue
+		}
+
+		if columns[imageNameColumn] == dd.imageName && columns[imageTagColumn] == dd.tag {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
 func (dd *DockerDealer) getImageTarName() (string, error) {
 	arch, err := GetArch()
 	if err != nil {

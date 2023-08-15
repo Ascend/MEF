@@ -29,10 +29,17 @@ func GetComponentMgr(name string) *ComponentMgr {
 
 // GetCompulsorySlice returns a slice that contains all compulsory components
 func GetCompulsorySlice() []string {
-	return []string{
+	return append([]string{
 		EdgeManagerName,
 		CertManagerName,
 		NginxManagerName,
+	}, GetAddedComponent()...)
+
+}
+
+// GetAddedComponent returns a slice that contains all components that needs smooth
+func GetAddedComponent() []string {
+	return []string{
 		AlarmManagerName,
 	}
 }

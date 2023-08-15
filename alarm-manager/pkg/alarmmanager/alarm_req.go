@@ -22,7 +22,7 @@ type AlarmInfo struct {
 	AlarmType string    `gorm:"type:varchar(64);not null"`
 	CreatedAt time.Time `gorm:"type:time;not null"`
 	NodeId    int       `gorm:"type:int64;not null"`
-	AlarmId   int       `gorm:"type:varchar(64);not null"`
+	AlarmId   string    `gorm:"type:varchar(64);not null"`
 }
 
 type addAlarmReq struct {
