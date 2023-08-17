@@ -17,7 +17,17 @@ var (
 
 // InitDefaultScheduler init the default scheduler
 func InitDefaultScheduler(ctx context.Context, db *gorm.DB, spec SchedulerSpec) error {
-	return nil
+	var (
+		err       error
+		scheduler Scheduler
+	)
+	defaultSchedulerOnce.Do(func() {
+		scheduler, err = startScheduler(ctx, db, spec)
+		if err == nil {
+			defaultScheduler = scheduler
+		}
+	})
+	return err
 }
 
 // DefaultScheduler returns the default scheduler
