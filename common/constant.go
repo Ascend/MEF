@@ -151,6 +151,8 @@ const (
 	BitSize8 = 8
 	// DefCmdTimeoutSec represent the default timeout time to exec cmd
 	DefCmdTimeoutSec = 120
+	// ProgressMax max progress
+	ProgressMax = 100
 )
 
 const (
@@ -274,13 +276,14 @@ const (
 
 // mode constant
 const (
-	Mode755 = 0755
-	Mode700 = 0700
-	Mode600 = 0600
-	Mode644 = 0644
-	Mode500 = 0500
-	Mode444 = 0444
-	Mode400 = 0400
+	Mode755  = 0755
+	Mode700  = 0700
+	Mode600  = 0600
+	Mode644  = 0644
+	Mode500  = 0500
+	Mode444  = 0444
+	Mode400  = 0400
+	Umask077 = 0077
 )
 
 // CommandCopy constant
