@@ -18,7 +18,7 @@ type K8sLabelMgr struct {
 }
 
 func (klm *K8sLabelMgr) getCurrentNodeName() (string, error) {
-	localIps, err := GetPublicIps()
+	localIps, err := GetLocalIps()
 	if err != nil {
 		hwlog.RunLog.Errorf("get local IP failed: %s", err.Error())
 		return "", err
