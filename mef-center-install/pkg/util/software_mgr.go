@@ -62,7 +62,7 @@ func (sm *SoftwareMgr) clearInstallPkg() error {
 func (sm *SoftwareMgr) clearNodeLabel() error {
 	fmt.Println("start to clear node label")
 	hwlog.RunLog.Info("start to clear node label")
-	localIps, err := GetPublicIps()
+	localIps, err := GetLocalIps()
 	if err != nil {
 		hwlog.RunLog.Errorf("get local IP failed: %s", err.Error())
 		return err

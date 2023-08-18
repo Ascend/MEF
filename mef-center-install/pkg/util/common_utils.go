@@ -56,8 +56,8 @@ func GetMefId() (uint32, uint32, error) {
 	return uid, gid, nil
 }
 
-// GetPublicIps get local ips
-func GetPublicIps() ([]string, error) {
+// GetLocalIps get local ips
+func GetLocalIps() ([]string, error) {
 	addresses, err := net.InterfaceAddrs()
 	if err != nil {
 		return nil, fmt.Errorf("get local ip address failed: %s", err.Error())
@@ -69,9 +69,6 @@ func GetPublicIps() ([]string, error) {
 			continue
 		}
 		if ipNet.IP.To4() == nil {
-			continue
-		}
-		if ipNet.IP.IsPrivate() {
 			continue
 		}
 		validIps = append(validIps, ipNet.IP.String())
