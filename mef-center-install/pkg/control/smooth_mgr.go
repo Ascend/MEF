@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 
+	"huawei.com/mindx/common/fileutils"
+	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509/certutils"
@@ -65,6 +67,10 @@ func (usm *upgradeSmoothMgr) smoothAlarmManager() error {
 func (usm *upgradeSmoothMgr) smoothSingleComponent(component string) error {
 	alarmConfigPath := usm.InstallPathMgr.ConfigPathMgr.GetComponentConfigPath(component)
 	if utils.IsExist(alarmConfigPath) {
+		if err := usm.setSingleOwner(component); err != nil {
+			return err
+		}
+
 		return nil
 	}
 
@@ -86,6 +92,32 @@ func (usm *upgradeSmoothMgr) smoothSingleComponent(component string) error {
 
 	if err := componentMgr.PrepareComponentConfig(usm.InstallPathMgr.ConfigPathMgr); err != nil {
 		return fmt.Errorf("prepare %s's config failed: %s", component, err.Error())
+	}
+
+	if err := usm.setSingleOwner(component); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (usm *upgradeSmoothMgr) setSingleOwner(component string) error {
+	mefUid, mefGid, err := util.GetMefId()
+	if err != nil {
+		hwlog.RunLog.Errorf("get mef uid or gid failed: %s", err.Error())
+		return errors.New("get mef uid or gid failed")
+	}
+
+	param := fileutils.SetOwnerParam{
+		Path:       usm.InstallPathMgr.ConfigPathMgr.GetComponentConfigPath(component),
+		Uid:        mefUid,
+		Gid:        mefGid,
+		Recursive:  true,
+		IgnoreFile: false,
+	}
+	if err = fileutils.SetPathOwnerGroup(param); err != nil {
+		hwlog.RunLog.Errorf("set alarm config right failed: %s", err.Error())
+		return errors.New("set alarm config right failed")
 	}
 
 	return nil
