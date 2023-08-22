@@ -14,23 +14,30 @@ import (
 // UpgradeClearMgr is the mgr to restore environment for upgrade flow
 type UpgradeClearMgr struct {
 	SoftwareMgr
-	step             int
-	startedComponent []string
+	step               int
+	startedComponent   []string
+	installedComponent []string
 }
 
 // GetUpgradeClearMgr is the func to init an UpgradeClearMgr mgt
-func GetUpgradeClearMgr(softwareMgr SoftwareMgr, step int, startedComponent []string) *UpgradeClearMgr {
+func GetUpgradeClearMgr(softwareMgr SoftwareMgr, step int, startedComponent []string,
+	notInstalledComponent []string) *UpgradeClearMgr {
+	allSet := utils.NewSet(softwareMgr.Components...)
+	startedSet := utils.NewSet(startedComponent...)
+	notInstalledSet := utils.NewSet(notInstalledComponent...)
+
 	return &UpgradeClearMgr{
-		SoftwareMgr:      softwareMgr,
-		step:             step,
-		startedComponent: startedComponent,
+		SoftwareMgr:        softwareMgr,
+		step:               step,
+		startedComponent:   startedSet.Difference(notInstalledSet).List(),
+		installedComponent: allSet.Difference(notInstalledSet).List(),
 	}
 }
 
 func (ucm *UpgradeClearMgr) reloadDockerImage() error {
 	fmt.Println("start to reload docker image")
 	hwlog.RunLog.Info("start to reload docker image")
-	for _, component := range ucm.Components {
+	for _, component := range ucm.installedComponent {
 		dockerDealerIns := GetDockerDealer(component, DockerTag)
 		imagePath := ucm.InstallPathMgr.WorkPathMgr.GetImageDirPath(component)
 		if err := dockerDealerIns.ReloadImage(imagePath); err != nil {

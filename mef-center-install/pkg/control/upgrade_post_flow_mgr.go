@@ -23,9 +23,10 @@ import (
 // UpgradePostFlowMgr is a struct that used to uninstall mef-center
 type UpgradePostFlowMgr struct {
 	util.SoftwareMgr
-	logPathMgr        *util.LogDirPathMgr
-	startedComponents []string
-	step              int
+	logPathMgr             *util.LogDirPathMgr
+	startedComponents      []string
+	notInstalledComponents []string
+	step                   int
 }
 
 // GetUpgradePostMgr is a func to init an UpgradePostFlowMgr struct
@@ -305,7 +306,6 @@ func (upf *UpgradePostFlowMgr) recordStarted() error {
 		upf.startedComponents = append(upf.startedComponents, c)
 	}
 
-	var notInstalledComponents []string
 	for _, c := range util.GetAddedComponent() {
 		dockerDealer := util.GetDockerDealer(c, util.DockerTag)
 		ret, err := dockerDealer.CheckImageExists()
@@ -318,11 +318,11 @@ func (upf *UpgradePostFlowMgr) recordStarted() error {
 			continue
 		}
 
-		notInstalledComponents = append(notInstalledComponents, c)
+		upf.notInstalledComponents = append(upf.notInstalledComponents, c)
 	}
 
-	if len(notInstalledComponents)+len(upf.startedComponents) == len(upf.Components) {
-		upf.startedComponents = append(upf.startedComponents, notInstalledComponents...)
+	if len(upf.notInstalledComponents)+len(upf.startedComponents) == len(upf.Components) {
+		upf.startedComponents = append(upf.startedComponents, upf.notInstalledComponents...)
 	}
 	hwlog.RunLog.Info("record started components succeeds")
 	return nil
@@ -462,7 +462,7 @@ func (upf *UpgradePostFlowMgr) clearFlag() error {
 func (upf *UpgradePostFlowMgr) clearEnv() {
 	fmt.Println("upgrade failed, start to restore environment")
 	hwlog.RunLog.Info("----------upgrade failed, start to restore environment-----------")
-	clearMgr := util.GetUpgradeClearMgr(upf.SoftwareMgr, upf.step, upf.startedComponents)
+	clearMgr := util.GetUpgradeClearMgr(upf.SoftwareMgr, upf.step, upf.startedComponents, upf.notInstalledComponents)
 	if err := clearMgr.ClearUpgrade(); err != nil {
 		hwlog.RunLog.Errorf("clear upgrade environment failed: %s", err.Error())
 		hwlog.RunLog.Error("----------upgrade failed, restore environment failed-----------")

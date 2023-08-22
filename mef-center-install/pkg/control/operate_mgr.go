@@ -134,7 +134,7 @@ func (scm *SftOperateMgr) dealUpgradeFlag() error {
 	clearMgr := util.GetUpgradeClearMgr(util.SoftwareMgr{
 		Components:     scm.installedComponent,
 		InstallPathMgr: scm.installPathMgr,
-	}, util.ClearNameSpaceStep, []string{})
+	}, util.ClearNameSpaceStep, []string{}, []string{})
 	if err := clearMgr.ClearUpgrade(); err != nil {
 		hwlog.RunLog.Errorf("clear upgrade environment failed: %s", err.Error())
 		hwlog.RunLog.Error("----------restore environment failed-----------")
