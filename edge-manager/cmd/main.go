@@ -48,9 +48,9 @@ const (
 )
 
 var (
-	serverRunConf = &hwlog.LogConfig{LogFileName: defaultRunLogFile, FileMaxSize: defaultRunLogMaxSize,
+	serverRunConf = &hwlog.LogConfig{OnlyToFile: true, LogFileName: defaultRunLogFile, FileMaxSize: defaultRunLogMaxSize,
 		BackupDirName: defaultBackupDirName, MaxLineLength: logMaxLineLength}
-	serverOpConf = &hwlog.LogConfig{LogFileName: defaultOperateLogFile, FileMaxSize: defaultOpLogMaxSize,
+	serverOpConf = &hwlog.LogConfig{OnlyToFile: true, LogFileName: defaultOperateLogFile, FileMaxSize: defaultOpLogMaxSize,
 		BackupDirName: defaultBackupDirName}
 	port         int
 	wsPort       int
