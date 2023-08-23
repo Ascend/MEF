@@ -226,7 +226,7 @@ func (upf *UpgradePostFlowMgr) prepareYaml() error {
 
 func (upf *UpgradePostFlowMgr) smoothUpgrade() error {
 	hwlog.RunLog.Info("start to smooth")
-	upgradeSmoother, err := GetSmoother(upgradeFlow, upf.InstallPathMgr)
+	upgradeSmoother, err := GetSmoother(upgradeFlow, upf.InstallPathMgr, upf.logPathMgr)
 	if err != nil {
 		return fmt.Errorf("get smoother failed: %s", err.Error())
 	}
