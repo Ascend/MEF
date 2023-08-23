@@ -9,7 +9,6 @@ import (
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
-	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509/certutils"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
@@ -19,11 +18,12 @@ const (
 )
 
 // GetSmoother func returns a smoother by a flow
-func GetSmoother(flow string, pathMgr *util.InstallDirPathMgr) (Smoother, error) {
+func GetSmoother(flow string, pathMgr *util.InstallDirPathMgr, logPathMgr *util.LogDirPathMgr) (Smoother, error) {
 	if flow == upgradeFlow {
 		return &upgradeSmoothMgr{
 			smoothMgr: smoothMgr{
-				InstallPathMgr: pathMgr,
+				installPathMgr: pathMgr,
+				logPathMgr:     logPathMgr,
 			},
 		}, nil
 	}
@@ -36,7 +36,8 @@ type Smoother interface {
 }
 
 type smoothMgr struct {
-	InstallPathMgr *util.InstallDirPathMgr
+	installPathMgr *util.InstallDirPathMgr
+	logPathMgr     *util.LogDirPathMgr
 }
 
 type upgradeSmoothMgr struct {
@@ -58,50 +59,64 @@ func (usm *upgradeSmoothMgr) smooth() error {
 }
 
 func (usm *upgradeSmoothMgr) smoothAlarmManager() error {
-	if err := usm.smoothSingleComponent(util.AlarmManagerName); err != nil {
+	if err := usm.smoothSingleComponentConfig(util.AlarmManagerName); err != nil {
+		return err
+	}
+
+	if err := usm.smoothSingleComponentLog(util.AlarmManagerName); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (usm *upgradeSmoothMgr) smoothSingleComponent(component string) error {
-	alarmConfigPath := usm.InstallPathMgr.ConfigPathMgr.GetComponentConfigPath(component)
-	if utils.IsExist(alarmConfigPath) {
-		if err := usm.setSingleOwner(component); err != nil {
-			return err
+func (usm *upgradeSmoothMgr) smoothSingleComponentConfig(component string) error {
+	alarmConfigPath := usm.installPathMgr.ConfigPathMgr.GetComponentConfigPath(component)
+	if !fileutils.IsExist(alarmConfigPath) {
+		componentMgr := util.GetComponentMgr(component)
+		if err := componentMgr.PrepareComponentCertDir(usm.installPathMgr.GetConfigPath()); err != nil {
+			return fmt.Errorf("prepare %s's cert dir failed: %s", component, err.Error())
 		}
 
-		return nil
+		rootCaFilePath := usm.installPathMgr.ConfigPathMgr.GetRootCaCertPath()
+		rootPrivFilePath := usm.installPathMgr.ConfigPathMgr.GetRootCaKeyPath()
+		kmcKeyPath := usm.installPathMgr.ConfigPathMgr.GetRootMasterKmcPath()
+		kmcBackKeyPath := usm.installPathMgr.ConfigPathMgr.GetRootBackKmcPath()
+
+		rootKmcCfg := kmc.GetKmcCfg(kmcKeyPath, kmcBackKeyPath)
+		rootCaMgr := certutils.InitRootCertMgr(rootCaFilePath, rootPrivFilePath, component, rootKmcCfg)
+		if err := componentMgr.PrepareComponentCert(rootCaMgr, usm.installPathMgr.ConfigPathMgr); err != nil {
+			return fmt.Errorf("prepare %s's cert failed: %s", component, err.Error())
+		}
+
+		if err := componentMgr.PrepareComponentConfig(usm.installPathMgr.ConfigPathMgr); err != nil {
+			return fmt.Errorf("prepare %s's config failed: %s", component, err.Error())
+		}
 	}
 
-	componentMgr := util.GetComponentMgr(component)
-	if err := componentMgr.PrepareComponentCertDir(usm.InstallPathMgr.GetConfigPath()); err != nil {
-		return fmt.Errorf("prepare %s's cert dir failed: %s", component, err.Error())
-	}
-
-	rootCaFilePath := usm.InstallPathMgr.ConfigPathMgr.GetRootCaCertPath()
-	rootPrivFilePath := usm.InstallPathMgr.ConfigPathMgr.GetRootCaKeyPath()
-	kmcKeyPath := usm.InstallPathMgr.ConfigPathMgr.GetRootMasterKmcPath()
-	kmcBackKeyPath := usm.InstallPathMgr.ConfigPathMgr.GetRootBackKmcPath()
-
-	rootKmcCfg := kmc.GetKmcCfg(kmcKeyPath, kmcBackKeyPath)
-	rootCaMgr := certutils.InitRootCertMgr(rootCaFilePath, rootPrivFilePath, component, rootKmcCfg)
-	if err := componentMgr.PrepareComponentCert(rootCaMgr, usm.InstallPathMgr.ConfigPathMgr); err != nil {
-		return fmt.Errorf("prepare %s's cert failed: %s", component, err.Error())
-	}
-
-	if err := componentMgr.PrepareComponentConfig(usm.InstallPathMgr.ConfigPathMgr); err != nil {
-		return fmt.Errorf("prepare %s's config failed: %s", component, err.Error())
-	}
-
-	if err := usm.setSingleOwner(component); err != nil {
+	if err := usm.setSingleOwner(alarmConfigPath); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (usm *upgradeSmoothMgr) setSingleOwner(component string) error {
+func (usm *upgradeSmoothMgr) smoothSingleComponentLog(component string) error {
+	alarmLogPath := usm.logPathMgr.GetComponentLogPath(component)
+	if !fileutils.IsExist(alarmLogPath) {
+		if err := fileutils.CreateDir(alarmLogPath, fileutils.Mode600); err != nil {
+			hwlog.RunLog.Errorf("create component %s's log dir failed: %s", component, err.Error())
+			return fmt.Errorf("create component %s's log dir failed", component)
+		}
+	}
+
+	if err := usm.setSingleOwner(alarmLogPath); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (usm *upgradeSmoothMgr) setSingleOwner(path string) error {
 	mefUid, mefGid, err := util.GetMefId()
 	if err != nil {
 		hwlog.RunLog.Errorf("get mef uid or gid failed: %s", err.Error())
@@ -109,7 +124,7 @@ func (usm *upgradeSmoothMgr) setSingleOwner(component string) error {
 	}
 
 	param := fileutils.SetOwnerParam{
-		Path:       usm.InstallPathMgr.ConfigPathMgr.GetComponentConfigPath(component),
+		Path:       path,
 		Uid:        mefUid,
 		Gid:        mefGid,
 		Recursive:  true,
