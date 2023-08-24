@@ -17,7 +17,8 @@ const (
 	opLogDefaultMaxBackups  = 10
 	runLogDefaultMaxBackups = 30
 	defaultMaxLineLength    = 256
-	defaultExpiredTime      = 1
+	defaultOpExpireTime     = 0
+	defaultRunExpireTime    = 1
 	defaultCacheSize        = 10240
 	defaultIsCompress       = true
 )
@@ -27,7 +28,7 @@ var defaultOpConf = hwlog.LogConfig{
 	FileMaxSize:   defaultFileMaxSize,
 	MaxBackups:    opLogDefaultMaxBackups,
 	MaxLineLength: defaultMaxLineLength,
-	ExpiredTime:   defaultExpiredTime,
+	ExpiredTime:   defaultOpExpireTime,
 	CacheSize:     defaultCacheSize,
 	IsCompress:    defaultIsCompress,
 	EscapeHtml:    true,
@@ -38,7 +39,7 @@ var defaultRunConf = hwlog.LogConfig{
 	FileMaxSize:   defaultFileMaxSize,
 	MaxBackups:    runLogDefaultMaxBackups,
 	MaxLineLength: defaultMaxLineLength,
-	ExpiredTime:   defaultExpiredTime,
+	ExpiredTime:   defaultRunExpireTime,
 	CacheSize:     defaultCacheSize,
 	IsCompress:    defaultIsCompress,
 	EscapeHtml:    true,
