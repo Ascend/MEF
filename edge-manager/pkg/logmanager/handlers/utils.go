@@ -9,10 +9,11 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
+
 	"huawei.com/mindxedge/base/common"
 )
 
-func sendResponse(msg common.RespMsg, req *model.Message) error {
+func sendRestfulResponse(msg common.RespMsg, req *model.Message) error {
 	var originateErr error
 	if msg.Status != common.Success {
 		errMessage := msg.Msg

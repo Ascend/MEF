@@ -13,8 +13,9 @@ import (
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
 
-	"edge-manager/pkg/types"
 	"huawei.com/mindxedge/base/common"
+
+	"edge-manager/pkg/types"
 )
 
 func TestInnerGetNodeInfoByUniqueName(t *testing.T) {

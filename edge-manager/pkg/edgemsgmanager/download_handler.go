@@ -10,8 +10,9 @@ import (
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 
-	"edge-manager/pkg/types"
 	"huawei.com/mindxedge/base/common"
+
+	"edge-manager/pkg/types"
 )
 
 // downloadSoftware [method] download software to edge

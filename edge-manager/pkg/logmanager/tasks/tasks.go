@@ -6,8 +6,9 @@ package tasks
 import (
 	"time"
 
-	"edge-manager/pkg/constants"
 	"huawei.com/mindxedge/base/common/taskschedule"
+
+	"edge-manager/pkg/constants"
 )
 
 const (

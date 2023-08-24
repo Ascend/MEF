@@ -21,7 +21,7 @@ import (
 	"huawei.com/mindxedge/base/common/requests"
 
 	"edge-manager/pkg/configmanager"
-	"edge-manager/pkg/util"
+	"edge-manager/pkg/constants"
 )
 
 const (
@@ -86,9 +86,9 @@ func ClientAuth(c *gin.Context) {
 	}
 	reqCertParams := requests.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
-			RootCaPath: util.RootCaPath,
-			CertPath:   util.ServerCertPath,
-			KeyPath:    util.ServerKeyPath,
+			RootCaPath: constants.RootCaPath,
+			CertPath:   constants.ServerCertPath,
+			KeyPath:    constants.ServerKeyPath,
 			SvrFlag:    false,
 		},
 	}

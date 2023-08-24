@@ -10,7 +10,7 @@ import (
 
 	"huawei.com/mindxedge/base/common"
 
-	"edge-manager/pkg/util"
+	"edge-manager/pkg/constants"
 )
 
 // EdgeMgrService [struct] for Edge Manager Service
@@ -28,9 +28,9 @@ func NewRestfulService(enable bool, ip string, port int) *EdgeMgrService {
 			Port:         port,
 			WriteTimeout: common.EdgeManagerRestfulWriteTimeout,
 			TlsCertPath: certutils.TlsCertInfo{
-				RootCaPath: util.RootCaPath,
-				CertPath:   util.ServerCertPath,
-				KeyPath:    util.ServerKeyPath,
+				RootCaPath: constants.RootCaPath,
+				CertPath:   constants.ServerCertPath,
+				KeyPath:    constants.ServerKeyPath,
 				SvrFlag:    true,
 				KmcCfg:     nil,
 			},

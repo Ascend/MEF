@@ -5,18 +5,22 @@ package cloudhub
 
 import (
 	"errors"
+	"time"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/websocketmgr"
 	"huawei.com/mindx/common/x509/certutils"
 
-	"edge-manager/pkg/util"
 	"huawei.com/mindxedge/base/common"
+
+	"edge-manager/pkg/constants"
+	"edge-manager/pkg/logmanager"
 )
 
 const (
-	name = "server_edge_ctl"
+	name           = "server_edge_ctl"
+	wsWriteTimeout = 10 * time.Minute
 )
 
 var serverSender websocketmgr.WsSvrSender
@@ -26,9 +30,9 @@ var initFlag bool
 func InitServer() error {
 	certInfo := certutils.TlsCertInfo{
 		KmcCfg:     kmc.GetDefKmcCfg(),
-		RootCaPath: util.RootCaPath,
-		CertPath:   util.ServerCertPath,
-		KeyPath:    util.ServerKeyPath,
+		RootCaPath: constants.RootCaPath,
+		CertPath:   constants.ServerCertPath,
+		KeyPath:    constants.ServerKeyPath,
 	}
 	go authServer()
 
@@ -43,11 +47,17 @@ func InitServer() error {
 		return errors.New("init proxy config failed")
 	}
 	proxyConfig.RegModInfos(getRegModuleInfoList())
+	proxyConfig.ReadTimeout = wsWriteTimeout
+	proxyConfig.WriteTimeout = wsWriteTimeout
 	proxy := &websocketmgr.WsServerProxy{
 		ProxyCfg: proxyConfig,
 	}
 
 	proxy.AddDefaultHandler()
+	if err = proxy.AddHandler(constants.LogUploadUrl, logmanager.HandleUpload); err != nil {
+		hwlog.RunLog.Error("add handler failed")
+		return errors.New("add handler failed")
+	}
 	serverSender.SetProxy(proxy)
 	if err = proxy.Start(); err != nil {
 		hwlog.RunLog.Errorf("proxy.Start failed: %v", err)
@@ -61,9 +71,9 @@ func InitServer() error {
 func authServer() {
 	authCertInfo := certutils.TlsCertInfo{
 		KmcCfg:        kmc.GetDefKmcCfg(),
-		RootCaPath:    util.RootCaPath,
-		CertPath:      util.ServerCertPath,
-		KeyPath:       util.ServerKeyPath,
+		RootCaPath:    constants.RootCaPath,
+		CertPath:      constants.ServerCertPath,
+		KeyPath:       constants.ServerKeyPath,
 		SvrFlag:       true,
 		IgnoreCltCert: true,
 	}

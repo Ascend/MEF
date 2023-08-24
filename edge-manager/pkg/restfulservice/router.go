@@ -4,19 +4,20 @@
 package restfulservice
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/hwlog"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/logmgmt/logcollect"
 	"huawei.com/mindxedge/base/common/restfulmgr"
 
 	"edge-manager/pkg/config"
+	"edge-manager/pkg/constants"
+	"edge-manager/pkg/logmanager"
 	"edge-manager/pkg/types"
 )
 
@@ -139,6 +140,8 @@ var templateRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 
 func setRouter(engine *gin.Engine) {
 	engine.GET("/edgemanager/v1/version", versionQuery)
+	engine.GET(filepath.Join(constants.LogDumpUrlPrefix, constants.ResDownload, constants.EdgeNodesTarGzFileName),
+		logmanager.HandleDownload)
 	restfulmgr.InitRouter(engine, nodeRouterDispatchers)
 	restfulmgr.InitRouter(engine, nodeGroupRouterDispatchers)
 	restfulmgr.InitRouter(engine, appRouterDispatchers)
@@ -255,22 +258,17 @@ var softwareRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 }
 
 var logCollectRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
-	common.LogCollectPathPrefix: {
+	constants.LogDumpUrlPrefix: {
 		restfulmgr.GenericDispatcher{
-			RelativePath: common.ResRelLogTask,
+			RelativePath: constants.ResTask,
 			Method:       http.MethodPost,
-			Destination:  common.LogManagerName,
+			Destination:  constants.LogManagerName,
 		},
-		batchQueryTaskDispatcher{restfulmgr.GenericDispatcher{
-			RelativePath: common.ResRelLogTaskProgress,
+		queryDispatcher{restfulmgr.GenericDispatcher{
+			RelativePath: constants.ResTask,
 			Method:       http.MethodGet,
-			Destination:  common.LogManagerName,
-		}},
-		batchQueryTaskDispatcher{restfulmgr.GenericDispatcher{
-			RelativePath: common.ResRelLogTaskPath,
-			Method:       http.MethodGet,
-			Destination:  common.LogManagerName,
-		}},
+			Destination:  constants.LogManagerName,
+		}, "taskId", true},
 	},
 }
 
@@ -327,21 +325,4 @@ type listDispatcher struct {
 
 func (list listDispatcher) ParseData(c *gin.Context) (interface{}, error) {
 	return pageUtil(c)
-}
-
-type batchQueryTaskDispatcher struct {
-	restfulmgr.GenericDispatcher
-}
-
-func (list batchQueryTaskDispatcher) ParseData(c *gin.Context) (interface{}, error) {
-	var (
-		req logcollect.BatchQueryTaskReq
-		err error
-	)
-	if req.Module, err = getStringReqPara(c, "module"); err != nil {
-		return nil, err
-	}
-	req.EdgeNodes = c.QueryArray("node")
-	reqBytes, err := json.Marshal(req)
-	return string(reqBytes), err
 }

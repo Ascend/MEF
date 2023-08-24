@@ -186,7 +186,7 @@ func (s *schedulerImpl) doRemoveHistoryTasks() {
 		if !task.Status.Phase.IsFinished() {
 			continue
 		}
-		if _, err := s.getActiveTaskContext(task.Spec.Id); err == nil {
+		if _, err := s.getActiveTaskContext(task.Spec.Id); err != nil {
 			continue
 		}
 		if err := s.walkTaskTree(task.Spec.Id, deleteTaskInfo); err != nil {
@@ -201,19 +201,13 @@ func (s *schedulerImpl) doRemoveHistoryTasks() {
 	less := func(i, j int) bool { return tasks[i].Status.FinishedAt.Before(tasks[j].Status.FinishedAt) }
 	sort.Slice(tasks, less)
 
-	var (
-		now          = time.Now()
-		deletedCount int
-	)
+	var deletedCount int
 	deleteTaskFromDb := func(tn TaskTreeNode) {
 		if err := s.repo.deleteTask(tn.Current.Spec.Id); err == nil {
 			deletedCount++
 		}
 	}
 	for i := 0; deletedCount < int(s.MaxHistoryMasterTasks)-len(tasks) && i < len(tasks); i++ {
-		if now.Sub(tasks[i].Status.FinishedAt) <= s.HistoryTasksMaxLiveTime {
-			break
-		}
 		if err := s.walkTaskTree(tasks[i].Spec.Id, deleteTaskFromDb); err != nil {
 			hwlog.RunLog.Errorf("failed to clean tasks from database, %v", err)
 		}

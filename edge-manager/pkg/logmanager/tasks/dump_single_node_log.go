@@ -11,10 +11,11 @@ import (
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 
-	"edge-manager/pkg/constants"
-	"edge-manager/pkg/logmanager/utils"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/taskschedule"
+
+	"edge-manager/pkg/constants"
+	"edge-manager/pkg/logmanager/utils"
 )
 
 const (

@@ -10,9 +10,10 @@ import (
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 
-	"edge-manager/pkg/constants"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/taskschedule"
+
+	"edge-manager/pkg/constants"
 )
 
 // CleanTempFiles clean temp files

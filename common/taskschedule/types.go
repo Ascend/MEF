@@ -80,9 +80,8 @@ type GoroutinePoolSpec struct {
 
 // SchedulerSpec struct
 type SchedulerSpec struct {
-	HistoryTasksMaxLiveTime time.Duration
-	MaxHistoryMasterTasks   int64
-	MaxActiveTasks          int64
+	MaxHistoryMasterTasks int64
+	MaxActiveTasks        int64
 }
 
 // IsFinished tests phase is finished

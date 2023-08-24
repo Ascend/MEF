@@ -8,8 +8,9 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr/model"
 
-	"edge-manager/pkg/types"
 	"huawei.com/mindxedge/base/common"
+
+	"edge-manager/pkg/types"
 )
 
 func queryEdgeDownloadProgress(input interface{}) common.RespMsg {

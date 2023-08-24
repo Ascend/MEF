@@ -50,6 +50,7 @@ func (upf *UpgradePostFlowMgr) DoUpgrade() error {
 		upf.prepareK8sLabel,
 		upf.createFlag,
 		upf.prepareWorkCDir,
+		upf.prepareLogDumpDir,
 		upf.prepareCerts,
 		upf.prepareYaml,
 		upf.smoothUpgrade,
@@ -201,6 +202,16 @@ func (upf *UpgradePostFlowMgr) prepareWorkCDir() error {
 		hwlog.RunLog.Errorf("delete unpack dir failed: %s", err.Error())
 		return errors.New("delete unpack dir failed")
 	}
+	return nil
+}
+
+func (upf *UpgradePostFlowMgr) prepareLogDumpDir() error {
+	hwlog.RunLog.Info("start to prepare log dump dir")
+	if err := util.PrepareLogDumpDir(); err != nil {
+		hwlog.RunLog.Errorf("prepare log dump dir failed, %v", err)
+		return fmt.Errorf("prepare log dump dir failed, %v", err)
+	}
+	hwlog.RunLog.Info("prepare log dump dir successful")
 	return nil
 }
 

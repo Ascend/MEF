@@ -20,6 +20,11 @@ type InnerGetNodeGroupInfosReq struct {
 	NodeGroupIds []uint64 `json:"nodeGroupIDs"`
 }
 
+// InnerGetNodeInfosReq is the request struct for internal module to get node infos by node ids
+type InnerGetNodeInfosReq struct {
+	NodeIds []uint64 `json:"nodeIDs"`
+}
+
 // InnerGetNodeStatusReq is request struct for internal module to get node status
 type InnerGetNodeStatusReq struct {
 	UniqueName string `json:"uniqueName"`
@@ -57,6 +62,11 @@ type InnerGetNodeInfoByNameResp struct {
 // InnerGetNodeGroupInfosResp is the response struct of node group infos by group ids
 type InnerGetNodeGroupInfosResp struct {
 	NodeGroupInfos []NodeGroupInfo `json:"nodeGroupInfos"`
+}
+
+// InnerGetNodeInfosResp is the response struct of node group infos by group ids
+type InnerGetNodeInfosResp struct {
+	NodeInfos []NodeInfo `json:"nodeInfos"`
 }
 
 // InnerGetNodeStatusResp is the response struct of node status

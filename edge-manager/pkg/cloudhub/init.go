@@ -18,7 +18,7 @@ import (
 	"huawei.com/mindx/common/websocketmgr"
 	"huawei.com/mindx/common/x509/certutils"
 
-	"edge-manager/pkg/util"
+	"edge-manager/pkg/constants"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/requests"
 )
@@ -215,9 +215,9 @@ func issueCertForEdge(msg *model.Message) (*model.Message, error) {
 	}
 	reqCertParams := requests.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
-			RootCaPath: util.RootCaPath,
-			CertPath:   util.ServerCertPath,
-			KeyPath:    util.ServerKeyPath,
+			RootCaPath: constants.RootCaPath,
+			CertPath:   constants.ServerCertPath,
+			KeyPath:    constants.ServerKeyPath,
 			SvrFlag:    false,
 		},
 	}

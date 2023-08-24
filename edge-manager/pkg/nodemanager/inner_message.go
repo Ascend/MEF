@@ -228,3 +228,34 @@ func getAppInstanceCountByGroupId(groupId uint64) (int64, error) {
 	}
 	return count, nil
 }
+
+func innerGetNodeUniqueNameByID(input interface{}) common.RespMsg {
+	req, ok := input.(types.InnerGetNodeInfosReq)
+	if !ok {
+		hwlog.RunLog.Error("parse inner message content failed")
+		return common.RespMsg{Status: "", Msg: "parse inner message content failed", Data: nil}
+	}
+	var nodeInfos []types.NodeInfo
+	for _, id := range req.NodeIds {
+		nodeInfo, err := NodeServiceInstance().getNodeByID(id)
+		if err == gorm.ErrRecordNotFound {
+			hwlog.RunLog.Errorf("get node info, id %v do no exist", id)
+			return common.RespMsg{Status: "",
+				Msg: fmt.Sprintf("get node info, id %v do no exist", id), Data: nil}
+		}
+		if err != nil {
+			hwlog.RunLog.Errorf("get node id %v, db failed", id)
+			return common.RespMsg{Status: "",
+				Msg: fmt.Sprintf("get node info id %v, db failed", id), Data: nil}
+		}
+		nodeInfos = append(nodeInfos, types.NodeInfo{
+			NodeID:       nodeInfo.ID,
+			UniqueName:   nodeInfo.UniqueName,
+			SerialNumber: nodeInfo.SerialNumber,
+		})
+	}
+	resp := types.InnerGetNodeInfosResp{
+		NodeInfos: nodeInfos,
+	}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
+}
