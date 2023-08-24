@@ -18,10 +18,11 @@ const (
 
 func TestTaskWaitTimeout(t *testing.T) {
 	convey.Convey("test task wait timeout", t, func() {
+		const capacity2 = 2
 		DefaultScheduler().RegisterGoroutinePool(GoroutinePoolSpec{
 			Id:             "TestTaskWaitTimeout",
 			MaxConcurrency: 1,
-			MaxCapacity:    2,
+			MaxCapacity:    capacity2,
 		})
 		DefaultScheduler().RegisterExecutorFactory(
 			NewExecutorFactory("TestTaskWaitTimeout", func(context TaskContext) {}))

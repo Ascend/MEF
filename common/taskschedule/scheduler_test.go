@@ -98,10 +98,14 @@ func TestTaskIterate(t *testing.T) {
 	convey.Convey("test task iterate", t, func() {
 		immediatelySucceedTask := func(context TaskContext) { _ = context.UpdateStatus(TaskStatus{Phase: Succeed}) }
 
+		const (
+			capacity3    = 3
+			concurrency3 = 3
+		)
 		DefaultScheduler().RegisterGoroutinePool(GoroutinePoolSpec{
 			Id:             "TestTaskIterate",
-			MaxConcurrency: 3,
-			MaxCapacity:    3,
+			MaxConcurrency: concurrency3,
+			MaxCapacity:    capacity3,
 		})
 		DefaultScheduler().RegisterExecutorFactory(
 			NewExecutorFactory("TestTaskIterateMaster", func(context TaskContext) {}))
