@@ -6,139 +6,79 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	"net/http"
-	"path/filepath"
-	"time"
 
-	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/handler"
 	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindx/common/utils"
 
-	"edge-manager/pkg/logmanager/constants"
-	"edge-manager/pkg/logmanager/modules"
-	"edge-manager/pkg/types"
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/handlerbase"
-	"huawei.com/mindxedge/base/common/logmgmt/logcollect"
+
+	"edge-manager/pkg/constants"
+	"edge-manager/pkg/logmanager/tasks"
+	"edge-manager/pkg/types"
 )
 
-const sendMessageTimeout = 5 * time.Second
-
-// GetCreateTaskHandler get createTaskHandler
-func GetCreateTaskHandler(
-	taskMgr modules.TaskMgr, ip string, port int) handlerbase.HandleBase {
-	return &createTaskHandler{progressMgr: taskMgr, ip: ip, port: port}
+// NewCreateTaskHandler get createTaskHandler
+func NewCreateTaskHandler() handler.HandleBase {
+	return &createTaskHandler{}
 }
 
 type createTaskHandler struct {
-	progressMgr modules.TaskMgr
-	ip          string
-	port        int
 }
 
 func (h *createTaskHandler) Handle(msg *model.Message) error {
-	hwlog.RunLog.Info("start to handle task creation")
-	req, err := h.parse(msg.Content)
+	hwlog.RunLog.Info("start to handle task creating")
+	req, err := h.parseAndCheckArgs(msg.Content)
 	if err != nil {
-		hwlog.RunLog.Errorf("failed to handle task creation, %v", err)
-		return sendResponse(common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error()}, msg)
+		hwlog.RunLog.Errorf("failed to parse or check arguments, %v", err)
+		return sendRestfulResponse(common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error()}, msg)
 	}
-	if err := h.check(req); err != nil {
-		hwlog.RunLog.Errorf("failed to handle task creation, %v", err)
-		return sendResponse(common.RespMsg{Status: common.ErrorParamInvalid, Msg: err.Error()}, msg)
-	}
-	var resp types.BatchResp
-	failedMap := make(map[string]string)
-	resp.FailedInfos = failedMap
 
-	for _, node := range req.EdgeNodes {
-		uploadConfig := h.prepareUpload(node)
-		if err := h.progressMgr.AddTask(node, filepath.Base(uploadConfig.MethodAndUrl.Url)); err != nil {
-			errInfo := fmt.Sprintf("failed to add task: %v", err)
-			hwlog.RunLog.Error(errInfo)
-			failedMap[node] = errInfo
-			continue
-		}
-		if err := h.sendReqToEdge(node, uploadConfig); err != nil {
-			sendErr := h.progressMgr.NotifyProgress(logcollect.TaskProgress{
-				Status:  common.ErrorLogCollectEdgeBusiness,
-				Message: "failed to send message to edge",
-			}, node)
-			errInfo := fmt.Sprintf("failed to send message to edge: %v, %v", err, sendErr)
-			hwlog.RunLog.Error(errInfo)
-			failedMap[node] = errInfo
-			continue
-		}
-		resp.SuccessIDs = append(resp.SuccessIDs, node)
-	}
-	if len(resp.FailedInfos) > 0 {
-		hwlog.RunLog.Error("failed to handle task creation")
-		return sendResponse(
-			common.RespMsg{Status: common.ErrorLogCollectEdgeBusiness, Msg: "handle adding task failed", Data: resp},
-			msg)
-	}
-	hwlog.RunLog.Info("handle task creation successful")
-	return sendResponse(common.RespMsg{Status: common.Success}, msg)
-}
-
-func (h *createTaskHandler) prepareUpload(nodeSn string) logcollect.UploadConfig {
-	fileName := logcollect.GetLogPackFileName(logcollect.ModuleEdge, nodeSn)
-	url := fmt.Sprintf("https://%s:%d%s/%s", h.ip, h.port, constants.UploadUrlPathPrefix, fileName)
-	return logcollect.UploadConfig{
-		MethodAndUrl: logcollect.MethodAndUrl{
-			Method: http.MethodPost,
-			Url:    url,
-		},
-	}
-}
-
-func (h *createTaskHandler) sendReqToEdge(edgeNode string, config logcollect.UploadConfig) error {
-	msg, err := model.NewMessage()
+	edgeNodes, err := getNodeSerialNumbersByID(req.EdgeNodes)
 	if err != nil {
-		return err
+		hwlog.RunLog.Errorf("failed to get serial number of edge node, %v", err)
+		return sendRestfulResponse(common.RespMsg{Status: common.ErrorLogDumpNodeInfoError, Msg: err.Error()}, msg)
 	}
-	msg.SetRouter(common.LogManagerName, common.CloudHubName, common.OptPost, common.ResLogEdge)
-	msg.SetNodeId(edgeNode)
-	msg.Content = config
-	_, err = modulemgr.SendSyncMessage(msg, sendMessageTimeout)
-	return err
-}
 
-func (h *createTaskHandler) parse(content interface{}) (logcollect.CreateTaskReq, error) {
-	var req logcollect.CreateTaskReq
-	return req, common.ParamConvert(content, &req)
-}
-
-func (h *createTaskHandler) check(req logcollect.CreateTaskReq) error {
-	checkResult := getBatchQueryChecker().Check(req)
-	if !checkResult.Result {
-		return errors.New(checkResult.Reason)
+	taskId, err := tasks.SubmitLogDumpTask(edgeNodes)
+	if err != nil {
+		hwlog.RunLog.Errorf("failed to create master task, %v", err)
+		return sendRestfulResponse(common.RespMsg{Status: common.ErrorLogDumpBusiness, Msg: err.Error()}, msg)
 	}
-	var emptyServer logcollect.UploadConfig
-	if req.HttpsServer == emptyServer {
-		return nil
+	return sendRestfulResponse(common.RespMsg{Data: CreateTaskResp{TaskId: taskId}, Status: common.Success}, msg)
+}
+
+func (h *createTaskHandler) parseAndCheckArgs(content interface{}) (CreateTaskReq, error) {
+	var req CreateTaskReq
+	if err := common.ParamConvert(content, &req); err != nil {
+		return CreateTaskReq{}, err
 	}
-	if req.HttpsServer.MethodAndUrl.Method != http.MethodPost {
-		return errors.New("method not allowed")
+	if checkResult := newCreateTaskReqChecker().Check(req); !checkResult.Result {
+		return CreateTaskReq{}, fmt.Errorf("check request failed, %s", checkResult.Reason)
 	}
-	checkResult = checker.GetRegChecker("Url", `^https://`, true).Check(req.HttpsServer.MethodAndUrl)
-	if !checkResult.Result {
-		return errors.New("schema is not supported")
+	return req, nil
+}
+
+func getNodeSerialNumbersByID(nodeIds []uint64) ([]string, error) {
+	router := common.Router{
+		Source:      constants.LogManagerName,
+		Destination: common.NodeManagerName,
+		Option:      common.Inner,
+		Resource:    constants.NodeSerialNumber,
 	}
-	return nil
-}
-
-func (h *createTaskHandler) Parse(*model.Message) error {
-	return nil
-}
-
-func (h *createTaskHandler) Check(*model.Message) error {
-	return nil
-}
-
-func (h *createTaskHandler) PrintOpLogOk() {
-}
-
-func (h *createTaskHandler) PrintOpLogFail() {
+	resp := common.SendSyncMessageByRestful(
+		types.InnerGetNodeInfosReq{NodeIds: nodeIds}, &router, common.ResponseTimeout)
+	if resp.Status != common.Success {
+		return nil, errors.New(resp.Msg)
+	}
+	var nodeInfos types.InnerGetNodeInfosResp
+	if err := utils.ObjectConvert(resp.Data, &nodeInfos); err != nil {
+		return nil, errors.New("convert internal response error")
+	}
+	var serialNumbers []string
+	for _, info := range nodeInfos.NodeInfos {
+		serialNumbers = append(serialNumbers, info.SerialNumber)
+	}
+	return serialNumbers, nil
 }

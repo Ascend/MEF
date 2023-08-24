@@ -6,6 +6,7 @@ package cloudhub
 import (
 	"huawei.com/mindx/common/websocketmgr"
 
+	"edge-manager/pkg/constants"
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -17,6 +18,7 @@ var regInfoList = []websocketmgr.RegisterModuleInfo{
 	{MsgOpt: common.OptPost, MsgRes: common.ResEdgeCert, ModuleName: common.CloudHubName},
 	{MsgOpt: common.OptGet, MsgRes: common.CertWillOverdue, ModuleName: common.CloudHubName},
 	{MsgOpt: common.Delete, MsgRes: common.DeleteNodeMsg, ModuleName: common.NodeManagerName},
+	{MsgOpt: common.OptReport, MsgRes: constants.ResLogDumpError, ModuleName: constants.LogManagerName},
 }
 
 func getRegModuleInfoList() []websocketmgr.RegisterModuleInfo {

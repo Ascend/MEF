@@ -1,29 +1,41 @@
 // Copyright (c)  2023. Huawei Technologies Co., Ltd.  All rights reserved.
 
-// Package handlers provides handlers to process business logic of log collection
+// Package handlers
 package handlers
 
 import (
+	"math"
+
 	"huawei.com/mindx/common/checker"
 
-	"huawei.com/mindxedge/base/common/logmgmt/logcollect"
+	"edge-manager/pkg/constants"
 )
 
 const (
-	minList = 1
-	maxList = 16
+	minNodes = 1
+	maxNodes = 100
 
-	regexpNodeSn = `^[a-zA-Z0-9]([-_a-zA-Z0-9]{0,62}[a-zA-Z0-9])?$`
+	genericStringRegexp = `.{0,512}`
 )
 
-var (
-	validModuleList = []string{logcollect.ModuleEdge}
-)
-
-func getBatchQueryChecker() *checker.AndChecker {
+func newCreateTaskReqChecker() *checker.AndChecker {
 	return checker.GetAndChecker(
 		checker.GetUniqueListChecker(
-			"EdgeNodes", checker.GetRegChecker("", regexpNodeSn, true), minList, maxList, true),
-		checker.GetStringChoiceChecker("Module", validModuleList, true),
+			"EdgeNodes",
+			checker.GetUintChecker("", 1, math.MaxInt64, true),
+			minNodes, maxNodes, true),
+		checker.GetStringChoiceChecker("Module", []string{"edgeNode"}, true),
+	)
+}
+
+func newQueryTaskProgressChecker() *checker.RegChecker {
+	return checker.GetRegChecker("", constants.DumpMultiNodesLogTaskName+constants.TaskIdRegexpStr, true)
+}
+
+func newTaskErrorChecker() *checker.AndChecker {
+	return checker.GetAndChecker(
+		checker.GetRegChecker("Id", constants.DumpSingleNodeLogTaskName+constants.TaskIdRegexpStr, true),
+		checker.GetRegChecker("Reason", genericStringRegexp, false),
+		checker.GetRegChecker("Message", genericStringRegexp, false),
 	)
 }

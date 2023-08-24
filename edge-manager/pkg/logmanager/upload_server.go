@@ -53,7 +53,6 @@ var (
 		Message:  "receive file from edge successful",
 		Progress: common.ProgressMax,
 	}
-	errTemplate = template.New("{{.}}")
 )
 
 type uploadProcess struct {
@@ -129,7 +128,8 @@ func (p uploadProcess) receiveFile(taskCtx taskschedule.TaskContext) error {
 		}
 	}()
 
-	if err := doReceiveFile(taskCtx, p.httpRequest.Body, localFile, p.packageSize); err != nil {
+	if err := doReceiveFile(taskCtx, p.httpRequest.Body,
+		utils.WithDiskPressureProtect(localFile, localPath), p.packageSize); err != nil {
 		if err := fileutils.DeleteFile(localFile.Name()); err != nil {
 			hwlog.RunLog.Errorf("failed to delete local file, %v", err)
 		}
@@ -270,7 +270,7 @@ func HandleUpload(w http.ResponseWriter, r *http.Request) {
 	if err := p.processUpload(); err != nil {
 		hwlog.RunLog.Errorf("abort the upload request, reason: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
-		if err := errTemplate.Execute(w, err.Error()); err != nil {
+		if _, err := w.Write([]byte(template.HTMLEscapeString(err.Error()))); err != nil {
 			hwlog.RunLog.Errorf("failed to respond error to edge: %v", err)
 		}
 		hwlog.OpLog.Errorf("edge(%s,ip:%s) %s %s failed", p.serialNumber, p.clientIP, r.Method, r.URL.Path)

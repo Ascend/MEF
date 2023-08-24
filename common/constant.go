@@ -72,8 +72,6 @@ const (
 	CertManagerService = "CertManagerService"
 	// ConfigManagerName ConfigManagerName
 	ConfigManagerName = "ConfigManager"
-	// LogManagerName LogManagerName
-	LogManagerName = "LogManager"
 
 	// Create option create
 	Create = "create"
@@ -122,7 +120,7 @@ const (
 	// RestfulTimeout restful timeout time
 	RestfulTimeout = 6 * time.Minute
 	// EdgeManagerRestfulWriteTimeout edge-manager restful write timeout time
-	EdgeManagerRestfulWriteTimeout = 10 * time.Minute
+	EdgeManagerRestfulWriteTimeout = 2 * time.Hour
 
 	// Software resource software
 	Software = "software"
@@ -243,18 +241,6 @@ const (
 	ResSetEdgeAccount = "/edgemanager/v1/edgeAccount"
 	// ResDownLoadCert resource for downloading cert
 	ResDownLoadCert = "/cert/download_info"
-	// ResLogEdge resource for log of edge node
-	ResLogEdge = "/logcollect/log/edge"
-	// ResLogTaskProgressEdge resource for progress of edge node log collection
-	ResLogTaskProgressEdge = "/logcollect/task/progress/edge"
-	// LogCollectPathPrefix prefix for request url of log collection
-	LogCollectPathPrefix = "/inner/v1/logcollect"
-	// ResRelLogTask resource for collection task
-	ResRelLogTask = "/task"
-	// ResRelLogTaskProgress resource for progress of collection task
-	ResRelLogTaskProgress = "/task/progress"
-	// ResRelLogTaskPath resource for output path of collection task
-	ResRelLogTaskPath = "/task/path"
 	// CertWillOverdue cert will overdue
 	CertWillOverdue = "/cert/update"
 	// ResEdgeCert resource for issuing cert for a csr from mef edge

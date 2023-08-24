@@ -5,74 +5,60 @@ package logmanager
 
 import (
 	"context"
-	"os"
-	"strconv"
 	"sync"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/handler"
 	"huawei.com/mindx/common/modulemgr/model"
-	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/handlerbase"
 
+	"huawei.com/mindxedge/base/common"
+
+	"edge-manager/pkg/constants"
 	"edge-manager/pkg/logmanager/handlers"
-	"edge-manager/pkg/logmanager/modules"
+	"edge-manager/pkg/logmanager/tasks"
+	"edge-manager/pkg/logmanager/utils"
 )
 
 // NewLogManager creates a new log manager
 func NewLogManager(ctx context.Context, enable bool) model.Module {
-	return &logManager{
-		enable:    enable,
-		ctx:       ctx,
-		taskMgr:   modules.NewTaskMgr(ctx),
-		uploadMgr: modules.NewUploadMgr(ctx),
+	return &logMgr{
+		enable: enable,
+		ctx:    ctx,
 	}
 }
 
-type logManager struct {
+type logMgr struct {
 	enable         bool
-	nodeIp         string
-	nodePort       int
 	ctx            context.Context
-	handlerMgr     handlerbase.HandlerMgr
-	handlerMgrOnce sync.Once
-	uploadMgr      modules.UploadMgr
-	taskMgr        modules.TaskMgr
+	msgHandler     handler.MsgHandler
+	msgHandlerOnce sync.Once
 }
 
 // Name returns name of module
-func (l *logManager) Name() string {
-	return common.LogManagerName
+func (l *logMgr) Name() string {
+	return constants.LogManagerName
 }
 
 // Enable does preparation for module
-func (l *logManager) Enable() bool {
+func (l *logMgr) Enable() bool {
 	if l.enable {
-		portStr := os.Getenv("LOG_MGR_NODE_PORT")
-		port, err := strconv.Atoi(portStr)
-		if err != nil {
-			hwlog.RunLog.Error("failed to parse nodePort value")
+		if err := tasks.InitTasks(); err != nil {
+			hwlog.RunLog.Errorf("failed to init task scheduler, %v", err)
 			return !l.enable
 		}
-		l.nodePort = port
-		l.nodeIp = os.Getenv("NODE_IP")
+		_, _ = utils.CleanTempFiles()
 	}
 	return l.enable
 }
 
 // Start starts module
-func (l *logManager) Start() {
-
-	l.taskMgr.Start()
-	l.uploadMgr.Start()
-
+func (l *logMgr) Start() {
+	hwlog.RunLog.Infof("module [%s] started", l.Name())
 	for {
 		select {
-		case _, ok := <-l.ctx.Done():
-			if !ok {
-				hwlog.RunLog.Info("catch stop signal channel is closed")
-			}
-			hwlog.RunLog.Info("has listened stop signal")
+		case <-l.ctx.Done():
+			hwlog.RunLog.Infof("module [%s] exited", l.Name())
 			return
 		default:
 		}
@@ -82,40 +68,31 @@ func (l *logManager) Start() {
 			hwlog.RunLog.Errorf("module [%s] receive message from channel failed, error: %v", l.Name(), err)
 			continue
 		}
-		go l.dispatchMsg(req)
+		if err := l.getMsgHandler().Process(req); err != nil {
+			hwlog.RunLog.Errorf("failed to process message, %v", err)
+		}
 	}
 }
 
-func (l *logManager) dispatchMsg(msg *model.Message) {
-	if err := l.getHandlerMgr().Process(msg); err != nil {
-		hwlog.RunLog.Errorf("failed to process msg, %v", err)
-	}
+func (l *logMgr) getMsgHandler() *handler.MsgHandler {
+	l.msgHandlerOnce.Do(l.registerHandlers)
+	return &l.msgHandler
 }
 
-func (l *logManager) getHandlerMgr() *handlerbase.HandlerMgr {
-	l.handlerMgrOnce.Do(l.registerHandlers)
-	return &l.handlerMgr
-}
-
-func (l *logManager) registerHandlers() {
-	l.handlerMgr.Register(handlerbase.RegisterInfo{
+func (l *logMgr) registerHandlers() {
+	l.msgHandler.Register(handler.RegisterInfo{
 		MsgOpt:  common.OptReport,
-		MsgRes:  common.ResLogTaskProgressEdge,
-		Handler: handlers.GetReportEdgeProgressHandler(l.taskMgr),
+		MsgRes:  constants.ResLogDumpError,
+		Handler: handlers.NewReportErrorHandler(),
 	})
-	l.handlerMgr.Register(handlerbase.RegisterInfo{
+	l.msgHandler.Register(handler.RegisterInfo{
 		MsgOpt:  common.OptPost,
-		MsgRes:  common.LogCollectPathPrefix + common.ResRelLogTask,
-		Handler: handlers.GetCreateTaskHandler(l.taskMgr, l.nodeIp, l.nodePort),
+		MsgRes:  constants.LogDumpUrlPrefix + constants.ResTask,
+		Handler: handlers.NewCreateTaskHandler(),
 	})
-	l.handlerMgr.Register(handlerbase.RegisterInfo{
+	l.msgHandler.Register(handler.RegisterInfo{
 		MsgOpt:  common.OptGet,
-		MsgRes:  common.LogCollectPathPrefix + common.ResRelLogTaskProgress,
-		Handler: handlers.GetQueryTaskProgressHandler(l.taskMgr),
-	})
-	l.handlerMgr.Register(handlerbase.RegisterInfo{
-		MsgOpt:  common.OptGet,
-		MsgRes:  common.LogCollectPathPrefix + common.ResRelLogTaskPath,
-		Handler: handlers.GetQueryTaskPathHandler(l.taskMgr),
+		MsgRes:  constants.LogDumpUrlPrefix + constants.ResTask,
+		Handler: handlers.NewQueryProgressHandler(),
 	})
 }

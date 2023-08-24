@@ -188,8 +188,8 @@ func dumpEdgeLogs(masterTaskCtx taskschedule.TaskContext, serialNumbers []string
 
 		doneCount++
 		status := taskschedule.TaskStatus{
-			Progress: (common.ProgressMax - progressStartCreateTarGz) *
-				uint(float64(doneCount)/float64(len(serialNumbers))),
+			Progress: uint(float64(common.ProgressMax-progressStartCreateTarGz) *
+				float64(doneCount) / float64(len(serialNumbers))),
 			Message: fmt.Sprintf("receving (%d/%d) files", doneCount, len(serialNumbers)),
 		}
 		if err = masterTaskCtx.UpdateStatus(status); err != nil {
@@ -229,7 +229,8 @@ func createTarGz(ctx taskschedule.TaskContext, subTasks []taskschedule.Task) err
 	if err := fileChecker.Check(outputFile, edgeNodesLogTempPath); err != nil {
 		return fmt.Errorf("failed to check log temp path, %v", err)
 	}
-	gzipWriter, err := gzip.NewWriterLevel(outputFile, gzip.BestSpeed)
+	gzipWriter, err := gzip.NewWriterLevel(
+		utils.WithDiskPressureProtect(outputFile, edgeNodesLogTempPath), gzip.BestSpeed)
 	if err != nil {
 		return fmt.Errorf("failed to create gzip write, %v", err)
 	}

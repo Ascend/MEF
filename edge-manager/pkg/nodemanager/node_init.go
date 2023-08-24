@@ -14,6 +14,7 @@ import (
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 
+	"edge-manager/pkg/constants"
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -151,6 +152,7 @@ var handlerFuncMap = map[string]handlerFunc{
 
 	common.Combine(common.OptReport, common.ResSoftwareInfo): updateNodeSoftwareInfo,
 	common.Combine(common.Inner, common.Node):                innerGetNodeInfoByUniqueName,
+	common.Combine(common.Inner, constants.NodeSerialNumber): innerGetNodeUniqueNameByID,
 	common.Combine(common.Inner, common.NodeGroup):           innerGetNodeGroupInfosByIds,
 	common.Combine(common.Inner, common.NodeSoftwareInfo):    innerGetNodeSoftwareInfo,
 	common.Combine(common.Inner, common.NodeStatus):          innerGetNodeStatus,

@@ -8,6 +8,13 @@ type NodeGroupInfo struct {
 	NodeGroupName string `json:"nodeGroupName"`
 }
 
+// NodeInfo define node info
+type NodeInfo struct {
+	NodeID       uint64 `json:"nodeID"`
+	UniqueName   string `json:"uniqueName"`
+	SerialNumber string `json:"serialNumber"`
+}
+
 // ListReq for common list request, PageNum and PageSize for slice page, Name for fuzzy query
 type ListReq struct {
 	PageNum  uint64

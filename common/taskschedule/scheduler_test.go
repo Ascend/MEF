@@ -41,9 +41,8 @@ func setup() error {
 	}
 	rawDb.SetMaxOpenConns(1)
 	if err := InitDefaultScheduler(context.Background(), db, SchedulerSpec{
-		HistoryTasksMaxLiveTime: time.Hour,
-		MaxHistoryMasterTasks:   thousand,
-		MaxActiveTasks:          thousand,
+		MaxHistoryMasterTasks: thousand,
+		MaxActiveTasks:        thousand,
 	}); err != nil {
 		return fmt.Errorf("init sheduler failed, %v", err)
 	}

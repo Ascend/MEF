@@ -7,7 +7,10 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
+
+	"huawei.com/mindxedge/base/common"
 )
 
 const (
@@ -15,6 +18,8 @@ const (
 	fileMaxSize      = 100
 	opLogMaxBackups  = 10
 	runLogMaxBackups = 30
+
+	logDumpRootDir = "/var/mef_logcollect"
 )
 
 func newLogConfig(LogFileName string, logBackupDir string, maxBackups int) *hwlog.LogConfig {
@@ -48,6 +53,25 @@ func initHwLogger(runLogConfig, opLogConfig *hwlog.LogConfig) error {
 	}
 	if err := hwlog.InitOperateLogger(opLogConfig, context.Background()); err != nil {
 		return err
+	}
+	return nil
+}
+
+// PrepareLogDumpDir prepares the log dump dir
+func PrepareLogDumpDir() error {
+	if err := fileutils.DeleteAllFileWithConfusion(logDumpRootDir); err != nil {
+		return fmt.Errorf("delete log dump dir failed, %v", err)
+	}
+	if err := fileutils.CreateDir(logDumpRootDir, common.Mode700); err != nil {
+		return fmt.Errorf("create log dump dir failed, %v", err)
+	}
+	uid, gid, err := GetMefId()
+	if err != nil {
+		return fmt.Errorf("get mef id failed, %v", err)
+	}
+	if err := fileutils.SetPathOwnerGroup(
+		fileutils.SetOwnerParam{Path: logDumpRootDir, Uid: uid, Gid: gid, IgnoreFile: true}); err != nil {
+		return fmt.Errorf("set log dump dir ownership failed, %v", err)
 	}
 	return nil
 }

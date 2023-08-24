@@ -15,6 +15,7 @@ import (
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/requests"
 
+	"edge-manager/pkg/constants"
 	"edge-manager/pkg/kubeclient"
 )
 
@@ -58,9 +59,9 @@ func GetImageAddress() (string, error) {
 func GetCertContent(certName string) (certutils.ClientCertResp, error) {
 	reqCertParams := requests.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
-			RootCaPath: RootCaPath,
-			CertPath:   ServerCertPath,
-			KeyPath:    ServerKeyPath,
+			RootCaPath: constants.RootCaPath,
+			CertPath:   constants.ServerCertPath,
+			KeyPath:    constants.ServerKeyPath,
 			SvrFlag:    false,
 		},
 	}

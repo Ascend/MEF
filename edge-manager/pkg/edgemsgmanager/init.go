@@ -11,6 +11,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
+
 	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/types"

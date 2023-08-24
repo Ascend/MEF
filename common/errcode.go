@@ -175,12 +175,12 @@ const (
 	// ErrorQueryCrt failed to get crt from cert manager
 	ErrorQueryCrt = "40042002"
 
-	// ErrorLogCollectEdgeBusy edge is busy
-	ErrorLogCollectEdgeBusy = "40052001"
-	// ErrorLogCollectEdgeBusiness business error
-	ErrorLogCollectEdgeBusiness = "40052002"
-	// ErrorLogCollectEdgeParamInvalid parameter error
-	ErrorLogCollectEdgeParamInvalid = "40051002"
+	// ErrorLogDumpBusy edge is busy
+	ErrorLogDumpBusy = "40052001"
+	// ErrorLogDumpBusiness business error
+	ErrorLogDumpBusiness = "40052002"
+	// ErrorLogDumpNodeInfoError parameter error
+	ErrorLogDumpNodeInfoError = "40051002"
 
 	// ErrorGetRootCa failed to get root ca by cert name
 	ErrorGetRootCa = "60001001"
@@ -394,12 +394,12 @@ var ErrorMap = map[string]string{
 	// ErrorMaxEdgeClientsReached max mef-edge clients connection reached
 	ErrorMaxEdgeClientsReached: "max edge client connection reached, please try again later",
 
-	// ErrorLogCollectEdgeBusy edge is busy
-	ErrorLogCollectEdgeBusy: "edge node is busy",
-	// ErrorLogCollectEdgeBusiness business error
-	ErrorLogCollectEdgeBusiness: "failed to collect log due to business error",
-	// ErrorLogCollectEdgeParamInvalid parameter error
-	ErrorLogCollectEdgeParamInvalid: "failed to collect log due to parameter invalid",
+	// ErrorLogDumpBusy edge is busy
+	ErrorLogDumpBusy: "edge node is busy",
+	// ErrorLogDumpBusiness business error
+	ErrorLogDumpBusiness: "failed to collect log due to business error",
+	// ErrorLogDumpNodeInfoError parameter error
+	ErrorLogDumpNodeInfoError: "failed to collect log due to abnormal node info",
 
 	ErrorExportToken: "export token failed",
 }

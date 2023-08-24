@@ -14,9 +14,10 @@ import (
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 
-	"edge-manager/pkg/util"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/requests"
+
+	"edge-manager/pkg/util"
 )
 
 func TestGetCertInfo(t *testing.T) {

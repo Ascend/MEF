@@ -34,6 +34,7 @@ func (sic *SftInstallCtl) DoInstall() error {
 		sic.prepareMefUser,
 		sic.prepareComponentLogDir,
 		sic.prepareComponentLogBackupDir,
+		sic.prepareLogDumpDir,
 		sic.prepareWorkingDir,
 		sic.setInstallJson,
 		sic.prepareK8sLabel,
@@ -236,6 +237,16 @@ func (sic *SftInstallCtl) prepareComponentLogBackupDir() error {
 		}
 	}
 	hwlog.RunLog.Info("prepare components' log backup dir successful")
+	return nil
+}
+
+func (sic *SftInstallCtl) prepareLogDumpDir() error {
+	hwlog.RunLog.Info("start to prepare log dump dir")
+	if err := util.PrepareLogDumpDir(); err != nil {
+		hwlog.RunLog.Errorf("prepare log dump dir failed, %v", err)
+		return fmt.Errorf("prepare log dump dir failed, %v", err)
+	}
+	hwlog.RunLog.Info("prepare log dump dir successful")
 	return nil
 }
 

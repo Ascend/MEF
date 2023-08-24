@@ -48,8 +48,8 @@ spec:
               mountPath: /home/data/public-config/
             - name: root-ca
               mountPath: /home/data/inner-root-ca/
-            - name: log-export
-              mountPath: /home/MEFCenter/log_exports
+            - name: log-collect-dir
+              mountPath: /home/MEFCenter/mef_logcollect
           env:
             - name: KUBE_CLIENT_QPS
               value: "1000"
@@ -57,10 +57,10 @@ spec:
               value: "100"
             - name: installed-module
               value: ${installed_module}
-            - name: LOG_MGR_NODE_PORT
-              value: "30005"
             - name: API_SERVER_ENDPOINT
               value: ${apiserver_endpoint}
+            - name: LOG_UPLOAD_CONCURRENCY
+              value: "10"
             - name: POD_IP
               valueFrom:
                 fieldRef:
@@ -90,9 +90,9 @@ spec:
         - name: public-config
           hostPath:
             path: ${public-config}
-        - name: log-export
+        - name: log-collect-dir
           hostPath:
-            path: /var/log_exports
+            path: /var/mef_logcollect
 ---
 apiVersion: v1
 kind: Service

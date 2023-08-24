@@ -14,6 +14,7 @@ import (
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/requests"
 
+	"edge-manager/pkg/constants"
 	"edge-manager/pkg/util"
 )
 
@@ -21,9 +22,9 @@ func queryCertInfo(certName string) (certutils.ClientCertResp, error) {
 	res := certutils.ClientCertResp{}
 	reqCertParams := requests.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
-			RootCaPath: util.RootCaPath,
-			CertPath:   util.ServerCertPath,
-			KeyPath:    util.ServerKeyPath,
+			RootCaPath: constants.RootCaPath,
+			CertPath:   constants.ServerCertPath,
+			KeyPath:    constants.ServerKeyPath,
 			SvrFlag:    false,
 		},
 	}

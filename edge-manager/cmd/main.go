@@ -10,6 +10,8 @@ import (
 	"flag"
 	"fmt"
 
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 	"huawei.com/mindx/common/database"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
@@ -22,12 +24,14 @@ import (
 	"edge-manager/pkg/configmanager"
 	"edge-manager/pkg/edgemsgmanager"
 	"edge-manager/pkg/kubeclient"
+	"edge-manager/pkg/logmanager"
 	"edge-manager/pkg/nodemanager"
 	"edge-manager/pkg/restfulservice"
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/checker"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
+	"huawei.com/mindxedge/base/common/taskschedule"
 )
 
 const (
@@ -158,6 +162,26 @@ func initAuthConfig() error {
 	return nil
 }
 
+func initScheduler() error {
+	const (
+		maxHistoryMasterTasks = 2000
+		maxActiveTasks        = 200
+	)
+	db, err := gorm.Open(sqlite.Open(":memory:?cache=shared"))
+	if err != nil {
+		return err
+	}
+	rawDb, err := db.DB()
+	if err != nil {
+		return err
+	}
+	rawDb.SetMaxOpenConns(1)
+	return taskschedule.InitDefaultScheduler(context.Background(), db, taskschedule.SchedulerSpec{
+		MaxHistoryMasterTasks: maxHistoryMasterTasks,
+		MaxActiveTasks:        maxActiveTasks,
+	})
+}
+
 func initResource() error {
 	if err := database.InitDB(dbPath); err != nil {
 		hwlog.RunLog.Error("init database failed")
@@ -177,6 +201,10 @@ func initResource() error {
 	}
 	if err := kmc.InitKmcCfg(defaultKmcPath); err != nil {
 		hwlog.RunLog.Warnf("init kmc config from json failed: %v, use default kmc config", err)
+	}
+	if err := initScheduler(); err != nil {
+		hwlog.RunLog.Errorf("init scheduler failed, %v", err)
+		return err
 	}
 	return nil
 
@@ -200,6 +228,9 @@ func register(ctx context.Context) error {
 		return err
 	}
 	if err := modulemgr.Registry(configmanager.NewConfigManager(true)); err != nil {
+		return err
+	}
+	if err := modulemgr.Registry(logmanager.NewLogManager(ctx, true)); err != nil {
 		return err
 	}
 
