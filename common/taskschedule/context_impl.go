@@ -156,9 +156,9 @@ func (t *taskContextImpl) onWaiting() {
 		select {
 		case updateReq, _ := <-t.updates:
 			t.handleUpdateRequest(updateReq)
-		case <-t.mainCtx.Done():
+		case _, _ = <-t.mainCtx.Done():
 			t.handleUpdateRequest(forcedShutdownReq)
-		case <-waitTimerCh:
+		case _, _ = <-waitTimerCh:
 			t.handleUpdateRequest(forcedShutdownReq)
 		}
 	}
@@ -279,13 +279,20 @@ func (t *taskContextImpl) handleUpdateRequest(req taskUpdateRequest) {
 	}
 }
 
+const (
+	weight0 = 0
+	weight1 = 1
+	weight2 = 2
+	weight3 = 3
+)
+
 var phaseWeights = map[TaskPhase]int{
-	Waiting:         0,
-	Progressing:     1,
-	Aborting:        2,
-	Succeed:         3,
-	Failed:          3,
-	PartiallyFailed: 3,
+	Waiting:         weight0,
+	Progressing:     weight1,
+	Aborting:        weight2,
+	Succeed:         weight3,
+	Failed:          weight3,
+	PartiallyFailed: weight3,
 }
 
 func allowPhaseTrans(from, to TaskPhase, byUser bool) bool {
@@ -315,6 +322,9 @@ func doHeartbeatMonitoring(
 	timer := time.NewTimer(duration)
 forLoop:
 	for {
+		if heartbeat == nil {
+			break
+		}
 		select {
 		case <-timer.C:
 			break forLoop

@@ -47,7 +47,7 @@ var (
 		Phase:    taskschedule.Succeed,
 		Message:  "task succeeded",
 		Data:     map[string]interface{}{"fileName": constants.EdgeNodesTarGzFileName},
-		Progress: 100,
+		Progress: common.ProgressMax,
 	}
 	partiallyFailedStatus = taskschedule.TaskStatus{
 		Phase:   taskschedule.PartiallyFailed,

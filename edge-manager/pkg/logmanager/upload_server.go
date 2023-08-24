@@ -163,7 +163,8 @@ func (p uploadProcess) verifyFile(taskCtx taskschedule.TaskContext) error {
 	if _, err := localFile.Seek(0, io.SeekStart); err != nil {
 		return err
 	}
-	fileHeader := make([]byte, 3)
+	const headerBytesLen = 3
+	fileHeader := make([]byte, headerBytesLen)
 	if _, err := localFile.Read(fileHeader); err != nil {
 		return err
 	}
