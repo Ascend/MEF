@@ -79,34 +79,40 @@ func dumpMultiNodesLog(ctx taskschedule.TaskContext) error {
 	// 1. parse serial number
 	var serialNumbers []string
 	if err := ctx.Spec().Args.Get(paramNameNodeSerialNumbers, &serialNumbers); err != nil {
-		return fmt.Errorf("failed to parse serial number, %v", err)
+		hwlog.RunLog.Errorf("failed to parse serial number, %v", err)
+		return errors.New("failed to parse serial number")
 	}
 	hwlog.RunLog.Info("start to dump logs of edge nodes")
 
 	// 2. ensure temp dirs
 	if err := prepareDirs(); err != nil {
-		return err
+		hwlog.RunLog.Errorf("failed to prepare temp dir, %v", err)
+		return errors.New("failed to prepare temp dir")
 	}
 
 	// 3. check disk space
 	if err := envutils.CheckDiskSpace(
 		constants.LogDumpTempDir, uint64(len(serialNumbers))*constants.LogUploadMaxSize); err != nil {
-		return fmt.Errorf("temp dir has no engouh disk space, %v", err)
+		hwlog.RunLog.Errorf("temp dir has no enough disk space, %v", err)
+		return errors.New("temp dir has no enough disk space")
 	}
 	// 4. dump edge logs
 	succeedTasks, err := dumpEdgeLogs(ctx, serialNumbers)
 	if err != nil {
-		return err
+		hwlog.RunLog.Errorf("failed to dump edge logs, %v", err)
+		return errors.New("failed to dump edge logs")
 	}
 
 	// 5. create tar.gz
 	if err := createTarGz(ctx, succeedTasks); err != nil {
-		return err
+		hwlog.RunLog.Errorf("failed to create tar gz, %v", err)
+		return errors.New("failed to create tar gz")
 	}
 
 	// 6. rename file
 	if err := fileutils.RenameFile(edgeNodesLogTempPath, edgeNodesLogPublicPath); err != nil {
-		return fmt.Errorf("failed to rename file, %v", err)
+		hwlog.RunLog.Errorf("failed to rename file, %v", err)
+		return errors.New("failed to rename file")
 	}
 	hwlog.RunLog.Info("rename tar.gz successful")
 
@@ -160,7 +166,7 @@ func createSubTasks(masterTaskCtx taskschedule.TaskContext, serialNumbers []stri
 			ParentId:         masterTaskCtx.Spec().Id,
 			GoroutinePool:    constants.DumpSingleNodeLogTaskName,
 			Command:          constants.DumpSingleNodeLogTaskName,
-			Args:             map[string]interface{}{paramNameNodeSerialNumber: serialNumber},
+			Args:             map[string]interface{}{constants.NodeSerialNumber: serialNumber},
 			HeartbeatTimeout: dumpSingleNodeLogTaskHeartbeatTimeout,
 			ExecuteTimeout:   dumpSingleNodeLogTaskExecuteTimeout,
 		}
@@ -172,6 +178,9 @@ func createSubTasks(masterTaskCtx taskschedule.TaskContext, serialNumbers []stri
 }
 
 func dumpEdgeLogs(masterTaskCtx taskschedule.TaskContext, serialNumbers []string) ([]taskschedule.Task, error) {
+	if len(serialNumbers) == 0 {
+		return nil, errors.New("no edge node to dump logs")
+	}
 	createSubTasks(masterTaskCtx, serialNumbers)
 	var (
 		succeedTasks []taskschedule.Task
@@ -185,7 +194,6 @@ func dumpEdgeLogs(masterTaskCtx taskschedule.TaskContext, serialNumbers []string
 		if err != nil {
 			break
 		}
-
 		doneCount++
 		status := taskschedule.TaskStatus{
 			Progress: uint(float64(common.ProgressMax-progressStartCreateTarGz) *
@@ -202,12 +210,17 @@ func dumpEdgeLogs(masterTaskCtx taskschedule.TaskContext, serialNumbers []string
 		}
 		if status.Phase == taskschedule.Succeed {
 			succeedTasks = append(succeedTasks, taskschedule.Task{Spec: childCtx.Spec(), Status: status})
+			continue
 		}
+		var serialNumber string
+		if err := childCtx.Spec().Args.Get(constants.NodeSerialNumber, &serialNumber); err != nil {
+			continue
+		}
+		hwlog.RunLog.Errorf("sub task for node(%s) failed, %s", serialNumber, status.Message)
 	}
-	if err != nil && err != taskschedule.ErrNoMoreChild {
+	if err != nil && err != taskschedule.ErrNoRunningSubTask {
 		return nil, fmt.Errorf("failed to dump edge logs, %v", err)
 	}
-
 	if len(succeedTasks) == 0 {
 		return nil, errors.New("none of task succeed")
 	}
@@ -248,11 +261,10 @@ func createTarGz(ctx taskschedule.TaskContext, subTasks []taskschedule.Task) err
 }
 
 func addSingleNodeTarGz(task taskschedule.Task, tarWriter *tar.Writer) error {
-	taskName := task.Spec.Name
-	if len(taskName) <= len(constants.DumpSingleNodeLogTaskName) {
-		return errors.New("invalid task name")
+	var serialNumber string
+	if err := task.Spec.Args.Get(constants.NodeSerialNumber, &serialNumber); err != nil {
+		return errors.New("can't get serial number")
 	}
-	serialNumber := taskName[len(constants.DumpSingleNodeLogTaskName)+1:]
 	tarGzPath := filepath.Join(constants.LogDumpTempDir, task.Spec.Id+common.TarGzSuffix)
 	if _, err := fileutils.CheckOriginPath(tarGzPath); err != nil {
 		return fmt.Errorf("failed to check log temp path, %v", err)

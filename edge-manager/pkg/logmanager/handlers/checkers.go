@@ -15,7 +15,7 @@ const (
 	minNodes = 1
 	maxNodes = 100
 
-	genericStringRegexp = `.{0,512}`
+	genericStringRegexp = `^.{0,512}$`
 )
 
 func newCreateTaskReqChecker() *checker.AndChecker {
@@ -26,10 +26,6 @@ func newCreateTaskReqChecker() *checker.AndChecker {
 			minNodes, maxNodes, true),
 		checker.GetStringChoiceChecker("Module", []string{"edgeNode"}, true),
 	)
-}
-
-func newQueryTaskProgressChecker() *checker.RegChecker {
-	return checker.GetRegChecker("", constants.DumpMultiNodesLogTaskName+constants.TaskIdRegexpStr, true)
 }
 
 func newTaskErrorChecker() *checker.AndChecker {

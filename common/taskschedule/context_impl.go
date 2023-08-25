@@ -95,6 +95,9 @@ func (t *taskContextImpl) updateStatus(status TaskStatus, byUser bool) error {
 }
 
 func (t *taskContextImpl) tryUpdateStatus(status TaskStatus, byUser bool) error {
+	if t.updates == nil {
+		return ErrTaskAlreadyFinished
+	}
 	const sendSyncMessageTimeout = 5 * time.Second
 	timer := time.NewTimer(sendSyncMessageTimeout)
 	defer timer.Stop()
@@ -259,7 +262,7 @@ func (t *taskContextImpl) onAborting() {
 func (t *taskContextImpl) handleUpdateRequest(req taskUpdateRequest) {
 	if !allowPhaseTrans(t.phase, req.newStatus.Phase, req.byUser) {
 		if req.respCh != nil {
-			req.respCh <- taskUpdateResponse{rowsAffected: 0, err: ErrInvalidPhase}
+			req.respCh <- taskUpdateResponse{rowsAffected: 0, err: ErrTaskAlreadyFinished}
 		}
 		return
 	}

@@ -4,7 +4,7 @@
 package tasks
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
@@ -25,14 +25,16 @@ const (
 // doDumpSingleNodeLog sends message to edge and tells edge to collect and upload logs
 func doDumpSingleNodeLog(ctx taskschedule.TaskContext) {
 	var serialNumber string
-	if err := ctx.Spec().Args.Get(paramNameNodeSerialNumber, &serialNumber); err != nil {
-		utils.FeedbackTaskError(ctx, fmt.Errorf("failed to parse serial number, %v", err))
+	if err := ctx.Spec().Args.Get(constants.NodeSerialNumber, &serialNumber); err != nil {
+		hwlog.RunLog.Errorf("failed to parse serial number, %v", err)
+		utils.FeedbackTaskError(ctx, errors.New("failed to parse serial number"))
 		return
 	}
 
 	msg, err := model.NewMessage()
 	if err != nil {
-		utils.FeedbackTaskError(ctx, fmt.Errorf("failed to create message, %v", err))
+		hwlog.RunLog.Errorf("failed to create message, %v", err)
+		utils.FeedbackTaskError(ctx, errors.New("failed to create message"))
 		return
 	}
 	msg.SetRouter(constants.LogManagerName, common.CloudHubName, common.OptPost, constants.ResLogDumpTask)
@@ -40,16 +42,19 @@ func doDumpSingleNodeLog(ctx taskschedule.TaskContext) {
 	msg.Content = map[string]interface{}{"taskId": ctx.Spec().Id, "module": "edgeNode"}
 	response, err := modulemgr.SendSyncMessage(msg, sendMessageTimeout)
 	if err != nil {
-		utils.FeedbackTaskError(ctx, fmt.Errorf("failed to send message to cloudhub, %v, node=%s", err, serialNumber))
+		hwlog.RunLog.Errorf("failed to send message to cloudhub, %v", err)
+		utils.FeedbackTaskError(ctx, errors.New("failed to send message to cloudhub"))
 		return
 	}
 	respMsg, ok := response.Content.(string)
 	if !ok {
-		utils.FeedbackTaskError(ctx, fmt.Errorf("failed to parse response from cloudhub, node=%s", serialNumber))
+		hwlog.RunLog.Errorf("failed to parse response from cloudhub, %v", err)
+		utils.FeedbackTaskError(ctx, errors.New("failed to parse response from cloudhub"))
 		return
 	}
 	if respMsg != common.OK {
-		utils.FeedbackTaskError(ctx, fmt.Errorf("get unsuccessful response from cloudhub: %s", respMsg))
+		hwlog.RunLog.Errorf("failed to send message to edge, the response cloudhub returns is %s", respMsg)
+		utils.FeedbackTaskError(ctx, errors.New("failed to send message to edge"))
 		return
 	}
 

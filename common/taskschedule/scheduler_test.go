@@ -136,7 +136,7 @@ func TestTaskIterate(t *testing.T) {
 		subTaskIter := DefaultScheduler().NewSubTaskSelector("TestTaskIterate-1")
 		for {
 			_, err := subTaskIter.Select()
-			if err == ErrNoMoreChild {
+			if err == ErrNoRunningSubTask {
 				break
 			} else {
 				convey.So(err, convey.ShouldBeNil)
