@@ -18,12 +18,21 @@ fi
 arch=$(arch 2>&1)
 
 function buildNginx() {
+    cd "${TOP_DIR}"/../opensource/pcre2/
+    autoreconf -ivf
+    ./configure
+
     cd "${TOP_DIR}/../opensource/nginx/"
     chmod 750 auto/configure
     CFLAG="-Wall -O2 -fstack-protector-strong -fPIE"
     LDFLAG="-Wl,-z,relro,-z,now,-z,noexecstack -pie -s"
 
+
     ./auto/configure --prefix=/home/MEFCenter \
+     --with-openssl="${TOP_DIR}"/../opensource/openssl/ \
+     --with-pcre="${TOP_DIR}"/../opensource/pcre2/ \
+     --with-openssl-opt='-Wall -fPIC -fstack-protector-all -O2 -fomit-frame-pointer' \
+     --with-pcre-opt='-Wall -fPIC -fstack-protector-all -O2 -fomit-frame-pointer' \
      --conf-path=/home/MEFCenter/conf/nginx.conf \
      --error-log-path=/home/MEFCenter/logs/error.log \
      --http-log-path=/home/MEFCenter/logs/access.log \
@@ -37,7 +46,7 @@ function buildNginx() {
      --http-scgi-temp-path=/tmp/scgi_temp \
      --with-cc-opt="$CFLAG" --with-ld-opt="$LDFLAG" --without-http_auth_basic_module
 
-    make
+    make -j64
     cp "${TOP_DIR}/../opensource/nginx/objs/nginx" "${TOP_DIR}/output/nginx_bin"
 }
 

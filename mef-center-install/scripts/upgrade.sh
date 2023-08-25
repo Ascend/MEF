@@ -12,6 +12,8 @@ UPGRADE_BIN_PATH="${CURRENT_PATH}/../bin"
 VERSION_XML_PATH="${CURRENT_PATH}/../version.xml"
 UPGRADE_BIN="MEF-center-upgrade"
 
+export LD_LIBRARY_PATH=${CURRENT_PATH}/../lib/kmc-lib:${CURRENT_PATH}/../lib/lib:$LD_LIBRARY_PATH
+
 function check_arch()
 {
     arch=$(grep '<ProcessorArchitecture>' "$VERSION_XML_PATH")

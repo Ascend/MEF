@@ -16,9 +16,9 @@ if [ -d "${CI_DIR}"/output ];then
 fi
 
 cd "${ROOT_DIR}"
-./config --prefix=/ CFLAGS="${CFLAGS_ENV}" CXXFLAGS="${CXXFLAGS_ENV}"
+./config  CFLAGS="${CFLAGS_ENV}" CXXFLAGS="${CXXFLAGS_ENV}"
 
-make -j8
+  make -j64
 
 if [[ $? -ne 0 ]];then
     echo "build openssl failed!"
