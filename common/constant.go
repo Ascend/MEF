@@ -72,6 +72,10 @@ const (
 	CertManagerService = "CertManagerService"
 	// ConfigManagerName ConfigManagerName
 	ConfigManagerName = "ConfigManager"
+	// LogManagerName LogManagerName
+	LogManagerName = "LogManager"
+	// AlarmManagerName AlarmManagerName
+	AlarmManagerName = "AlarmManager"
 
 	// Create option create
 	Create = "create"

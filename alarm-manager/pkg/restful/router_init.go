@@ -9,7 +9,6 @@ import (
 	"huawei.com/mindx/common/x509/certutils"
 
 	"alarm-manager/pkg/alarmmanager"
-
 	"huawei.com/mindxedge/base/common"
 )
 

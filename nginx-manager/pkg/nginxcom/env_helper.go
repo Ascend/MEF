@@ -25,6 +25,7 @@ type NginxConfItem struct {
 // confItemsTemplate the items needed to replace into nginx.conf
 var confItemsTemplate = []NginxConfItem{
 	{Key: EdgePortKey, From: KeyPrefix + EdgePortKey},
+	{Key: AlarmPortKey, From: KeyPrefix + AlarmPortKey},
 	{Key: CertPortKey, From: KeyPrefix + CertPortKey},
 	{Key: AuthPortKey, From: KeyPrefix + AuthPortKey},
 	{Key: WebsocketPortKey, From: KeyPrefix + WebsocketPortKey},
@@ -60,6 +61,8 @@ func GetEnvManager() *environmentMgr {
 func newEnvironmentMgr() *environmentMgr {
 	valuers := map[string]*environmentValuer{
 		EdgePortKey: {EdgePortKey, "", "", true,
+			createIntChecker(common.MinPort, common.MaxPort)},
+		AlarmPortKey: {AlarmPortKey, "", "", true,
 			createIntChecker(common.MinPort, common.MaxPort)},
 		CertPortKey: {CertPortKey, "", "", true,
 			createIntChecker(common.MinPort, common.MaxPort)},

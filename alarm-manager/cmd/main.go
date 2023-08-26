@@ -83,11 +83,6 @@ func initResource() error {
 		return errors.New("init database failed")
 	}
 
-	if err := database.CreateTableIfNotExist(alarmmanager.AlarmStaticInfo{}); err != nil {
-		hwlog.RunLog.Error("create alarm static info table failed")
-		return errors.New("create alarm static info table failed")
-	}
-
 	if err := database.CreateTableIfNotExist(alarmmanager.AlarmInfo{}); err != nil {
 		hwlog.RunLog.Error("create alarm info table failed")
 		return errors.New("create alarm info table failed")

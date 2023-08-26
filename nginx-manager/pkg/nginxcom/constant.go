@@ -10,6 +10,8 @@ const (
 	ClientPipePrefix = "client_pipe"
 	// EdgePortKey port对应在配置文件的key
 	EdgePortKey = "EdgeMgrSvcPort"
+	// AlarmPortKey port对应在配置文件的key
+	AlarmPortKey = "AlarmMgrSvcPort"
 	// CertPortKey 证书服务port对应的key
 	CertPortKey = "CertMgrSvcPort"
 	// AuthPortKey 认证接口服务port对应的key

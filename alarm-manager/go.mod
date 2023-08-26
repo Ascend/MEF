@@ -3,10 +3,13 @@ module alarm-manager
 go 1.16
 
 require (
+	github.com/agiledragon/gomonkey/v2 v2.8.0
 	github.com/gin-gonic/gin v1.9.1
+	github.com/smartystreets/goconvey v1.7.2
+	gorm.io/driver/sqlite v1.4.2
 	gorm.io/gorm v1.22.3
+	huawei.com/mindx/common/checker v0.0.2
 	huawei.com/mindx/common/database v0.0.2
-	huawei.com/mindx/common/checker v0.0.1
 	huawei.com/mindx/common/httpsmgr v0.0.2
 	huawei.com/mindx/common/hwlog v0.10.5
 	huawei.com/mindx/common/kmc v0.1.0
