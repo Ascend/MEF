@@ -15,4 +15,5 @@ const (
 	AlarmFlag        = "alarm"
 	AlarmType        = "alarm"
 	EventType        = "event"
+	CenterNodeID     = 0
 )

@@ -1,10 +1,11 @@
 // Copyright (c)  2023. Huawei Technologies Co., Ltd.  All rights reserved.
 
-// Package alarmmanager cert manager module
+// Package alarmmanager for alarm-manager module init
 package alarmmanager
 
 import (
 	"context"
+	"net/http"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
@@ -67,7 +68,6 @@ func (cm *alarmManager) Start() {
 			hwlog.RunLog.Errorf("%s receive request from restful service failed", cm.Name())
 			continue
 		}
-
 		go cm.dispatch(req)
 	}
 }
@@ -90,4 +90,16 @@ func (cm *alarmManager) dispatch(req *model.Message) {
 	}
 }
 
-var handlerFuncMap = map[string]handlerFunc{}
+var (
+	listAlarmRouter      = "/alarmmanager/v1/alarms"
+	listEventsRouter     = "/alarmmanager/v1/events"
+	getAlarmDetailRouter = "/alarmmanager/v1/alarm"
+	getEventDetailRouter = "/alarmmanager/v1/event"
+)
+
+var handlerFuncMap = map[string]handlerFunc{
+	common.Combine(http.MethodGet, listAlarmRouter):      listAlarms,
+	common.Combine(http.MethodGet, getAlarmDetailRouter): getAlarmDetail,
+	common.Combine(http.MethodGet, listEventsRouter):     listEvents,
+	common.Combine(http.MethodGet, getEventDetailRouter): getEventDetail,
+}

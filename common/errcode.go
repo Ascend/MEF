@@ -182,6 +182,21 @@ const (
 	// ErrorLogDumpNodeInfoError parameter error
 	ErrorLogDumpNodeInfoError = "40051002"
 
+	// ErrorListCenterNodeAlarm failed to list center node alarm info
+	ErrorListCenterNodeAlarm = "50011001"
+	// ErrorListEdgeNodeAlarm  failed to list edge node alarm info
+	ErrorListEdgeNodeAlarm = "50011002"
+	// ErrorListGroupAlarm  failed to list specific group node alarm info
+	ErrorListGroupAlarm = "50011003"
+	// ErrorListAlarm failed to list alarms
+	ErrorListAlarm = "50011004"
+	// ErrorListGroupNodeFromEdgeMgr failed to query nodeGroup information,please recheck provided groupId is valid
+	ErrorListGroupNodeFromEdgeMgr = "50011005"
+	// ErrorDecodeRespFromEdgeMgr failed to unmarshal response from edge-manager
+	ErrorDecodeRespFromEdgeMgr = "50011006"
+	// ErrorGetAlarmDetail failed to get alarm detail in db
+	ErrorGetAlarmDetail = "50011007"
+
 	// ErrorGetRootCa failed to get root ca by cert name
 	ErrorGetRootCa = "60001001"
 	// ErrorIssueSrvCert failed to issue service certificate
@@ -400,6 +415,20 @@ var ErrorMap = map[string]string{
 	ErrorLogDumpBusiness: "failed to collect log due to business error",
 	// ErrorLogDumpNodeInfoError parameter error
 	ErrorLogDumpNodeInfoError: "failed to collect log due to abnormal node info",
+	// ErrorListCenterNodeAlarm failed to list center node alarm info
+	ErrorListCenterNodeAlarm: "failed to list center node alarm info",
+	// ErrorListEdgeNodeAlarm  failed to list edge node alarm info
+	ErrorListEdgeNodeAlarm: "failed to list edge node alarm info",
+	// ErrorListGroupAlarm  failed to list specific group node alarm info
+	ErrorListGroupAlarm: "failed to list specific group node alarm info",
+	// ErrorListGroupNodeFromEdgeMgr failed to query nodeGroup information,please recheck provided groupId
+	ErrorListGroupNodeFromEdgeMgr: "failed to query nodeGroup information,please recheck provided groupId is valid",
+	// ErrorListAlarm failed to list alarms
+	ErrorListAlarm: "ErrorListAlarm failed to list alarms",
+	// ErrorDecodeRespFromEdgeMgr failed to unmarshal response from edge-manager
+	ErrorDecodeRespFromEdgeMgr: "failed to unmarshal response from edge-manager",
+	// ErrorGetAlarmDetail failed to get alarm detail in db
+	ErrorGetAlarmDetail: "failed to get alarm detail in db",
 
 	ErrorExportToken: "export token failed",
 }
