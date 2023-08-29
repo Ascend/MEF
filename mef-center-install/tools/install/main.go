@@ -16,6 +16,7 @@ import (
 	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/install"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
@@ -197,50 +198,22 @@ func initLogPath(installLogPath string, installLogBackupPath string) error {
 }
 
 func main() {
-	flag.Parse()
-
-	if help {
-		flag.Usage()
-		os.Exit(util.HelpExitCode)
+	errCode := preCheck()
+	if errCode != 0 {
+		os.Exit(errCode)
 	}
-
-	if version {
-		fmt.Printf("%s version: %s\n", BuildName, BuildVersion)
-		os.Exit(util.VersionExitCode)
-	}
-	if utils.IsRequiredFlagNotFound() {
-		fmt.Println("the required parameter is missing")
-		flag.PrintDefaults()
-		os.Exit(util.ErrorExitCode)
-	}
-
-	if err := checkPath(); err != nil {
-		fmt.Printf("check path failed: %s\n", err.Error())
-		os.Exit(util.ErrorExitCode)
-	}
-	fmt.Println("check path success")
-
-	logPathMgr := util.InitLogDirPathMgr(logRootPath, logBackupRootPath)
-	installLogPath := logPathMgr.GetInstallLogPath()
-	installLogBackupPath := logPathMgr.GetInstallLogBackupPath()
-	if err := common.MakeSurePath(installLogPath); err != nil {
-		// install log has not initialized yet
-		fmt.Printf("create log path [%s] failed\n", installLogPath)
-		os.Exit(util.ErrorExitCode)
-	}
-
-	if err := initLogPath(installLogPath, installLogBackupPath); err != nil {
-		// install log has not initialized yet
-		fmt.Println(err.Error())
-		os.Exit(util.ErrorExitCode)
-	}
-	fmt.Println("init log success")
-
 	user, ip, err := envutils.GetUserAndIP()
 	if err != nil {
 		hwlog.RunLog.Errorf("get current user or ip info failed: %s", err.Error())
 		os.Exit(util.ErrorExitCode)
 	}
+
+	err = envutils.GetFlock(util.MefCenterLock).Lock("install")
+	if err != nil {
+		fmt.Println("execute command failed: lock file fail")
+		os.Exit(util.ErrorExitCode)
+	}
+	defer envutils.GetFlock(util.MefCenterLock).Unlock()
 
 	hwlog.OpLog.Infof("%s: %s, start to install MEF Center", ip, user)
 	hwlog.RunLog.Info("--------------------Start to install MEF-Center--------------------")
@@ -251,4 +224,46 @@ func main() {
 	}
 	hwlog.RunLog.Info("--------------------Install MEF_Center success--------------------")
 	hwlog.OpLog.Infof("%s: %s, install MEF Center successfully", ip, user)
+}
+
+func preCheck() int {
+	flag.Parse()
+
+	if help {
+		flag.Usage()
+		return util.HelpExitCode
+	}
+
+	if version {
+		fmt.Printf("%s version: %s\n", BuildName, BuildVersion)
+		return util.VersionExitCode
+	}
+	if utils.IsRequiredFlagNotFound() {
+		fmt.Println("the required parameter is missing")
+		flag.PrintDefaults()
+		return util.ErrorExitCode
+	}
+
+	if err := checkPath(); err != nil {
+		fmt.Printf("check path failed: %s\n", err.Error())
+		return util.ErrorExitCode
+	}
+	fmt.Println("check path success")
+
+	logPathMgr := util.InitLogDirPathMgr(logRootPath, logBackupRootPath)
+	installLogPath := logPathMgr.GetInstallLogPath()
+	installLogBackupPath := logPathMgr.GetInstallLogBackupPath()
+	if err := common.MakeSurePath(installLogPath); err != nil {
+		// install log has not initialized yet
+		fmt.Printf("create log path [%s] failed\n", installLogPath)
+		return util.ErrorExitCode
+	}
+
+	if err := initLogPath(installLogPath, installLogBackupPath); err != nil {
+		// install log has not initialized yet
+		fmt.Println(err.Error())
+		return util.ErrorExitCode
+	}
+	fmt.Println("init log success")
+	return 0
 }

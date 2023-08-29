@@ -27,6 +27,7 @@ type controller interface {
 	printExecutingLog(ip, user string)
 	printFailedLog(ip, user string)
 	printSuccessLog(ip, user string)
+	getName() string
 }
 
 type operateController struct {
@@ -35,10 +36,12 @@ type operateController struct {
 }
 
 type uninstallController struct {
+	operate      string
 	installParam *util.InstallParamJsonTemplate
 }
 
 type upgradeController struct {
+	operate      string
 	installParam *util.InstallParamJsonTemplate
 }
 
@@ -133,6 +136,10 @@ func (oc *operateController) printSuccessLog(ip, user string) {
 	hwlog.OpLog.Infof("%s: %s, %s %s component successful", ip, user, oc.operate, componentType)
 }
 
+func (oc *operateController) getName() string {
+	return oc.operate
+}
+
 func (uc *uninstallController) doControl() error {
 	installedComponents := util.GetCompulsorySlice()
 
@@ -167,6 +174,10 @@ func (uc *uninstallController) printSuccessLog(ip, user string) {
 	hwlog.RunLog.Info("-------------------uninstall MEF-Center successful-------------------")
 	hwlog.OpLog.Infof("%s: %s, uninstall MEF-Center successful", ip, user)
 	fmt.Println("uninstall MEF-Center successful")
+}
+
+func (uc *uninstallController) getName() string {
+	return uc.operate
 }
 
 func (uc *upgradeController) doControl() error {
@@ -241,7 +252,12 @@ func (uc *upgradeController) printSuccessLog(ip, user string) {
 	fmt.Println("upgrade MEF-Center successful")
 }
 
+func (uc *upgradeController) getName() string {
+	return uc.operate
+}
+
 type exchangeCertsController struct {
+	operate      string
 	installParam *util.InstallParamJsonTemplate
 	importPath   string
 	exportPath   string
@@ -299,7 +315,12 @@ func (ecc *exchangeCertsController) printFailedLog(user, ip string) {
 	fmt.Println("exchange certs failed")
 }
 
+func (ecc *exchangeCertsController) getName() string {
+	return ecc.operate
+}
+
 type updateKmcController struct {
+	operate      string
 	installParam *util.InstallParamJsonTemplate
 }
 
@@ -339,6 +360,10 @@ func (ukc *updateKmcController) printFailedLog(user, ip string) {
 	hwlog.RunLog.Error("-------------------update kmc keys failed-------------------")
 	hwlog.OpLog.Errorf("%s: %s, update kmc keys failed", ip, user)
 	fmt.Println("update kmc keys failed")
+}
+
+func (ukc *updateKmcController) getName() string {
+	return ukc.operate
 }
 
 func dealArgs() bool {
@@ -448,47 +473,58 @@ func initInstallParam() bool {
 }
 
 func main() {
+	errorCode := handle()
+	os.Exit(errorCode)
+}
+
+func handle() int {
 	if !initInstallParam() {
-		os.Exit(util.ErrorExitCode)
+		return util.ErrorExitCode
 	}
 
 	if err = initLog(installParam); err != nil {
 		fmt.Println(err.Error())
-		os.Exit(util.ErrorExitCode)
+		return util.ErrorExitCode
 	}
 
 	if !dealArgs() {
-		os.Exit(util.ErrorExitCode)
+		return util.ErrorExitCode
 	}
 	fmt.Println("init log success")
 	user, ip, err := envutils.GetUserAndIP()
 	if err != nil {
 		hwlog.RunLog.Errorf("get current user or ip info failed: %s", err.Error())
-		os.Exit(util.ErrorExitCode)
+		return util.ErrorExitCode
 	}
 
 	if installParam == nil {
 		hwlog.RunLog.Error("installParam is nil")
-		os.Exit(util.ErrorExitCode)
+		return util.ErrorExitCode
 	}
 
 	pathMgr := util.InitInstallDirPathMgr(installParam.InstallDir)
 	if err = util.CheckCurrentPath(pathMgr.GetWorkPath()); err != nil {
 		fmt.Println("execute command failed")
 		hwlog.RunLog.Error(err)
-		os.Exit(util.ErrorExitCode)
+		return util.ErrorExitCode
 	}
-
+	err = envutils.GetFlock(util.MefCenterLock).Lock(curController.getName())
+	if err != nil {
+		fmt.Println("execute command failed: lock file fail")
+		return util.ErrorExitCode
+	}
+	defer envutils.GetFlock(util.MefCenterLock).Unlock()
 	curController.setInstallParam(installParam)
 	curController.printExecutingLog(ip, user)
 	if err = curController.doControl(); err != nil {
 		curController.printFailedLog(ip, user)
 		if err.Error() == util.NotGenCertErrorStr {
-			os.Exit(util.NotGenCertErrorCode)
+			return util.NotGenCertErrorCode
 		}
-		os.Exit(util.ErrorExitCode)
+		return util.ErrorExitCode
 	}
 	curController.printSuccessLog(ip, user)
+	return 0
 }
 
 func initLog(installParam *util.InstallParamJsonTemplate) error {
@@ -518,10 +554,10 @@ func getOperateMap(operate string) map[string]controller {
 		util.StartOperateFlag:   &operateController{operate: operate},
 		util.StopOperateFlag:    &operateController{operate: operate},
 		util.RestartOperateFlag: &operateController{operate: operate},
-		util.UninstallFlag:      &uninstallController{},
-		util.UpgradeFlag:        &upgradeController{},
-		util.ExchangeCaFlag:     &exchangeCertsController{},
-		util.UpdateKmcFlag:      &updateKmcController{},
-		util.ImportCrlFlag:      &importCrlController{},
+		util.UninstallFlag:      &uninstallController{operate: operate},
+		util.UpgradeFlag:        &upgradeController{operate: operate},
+		util.ExchangeCaFlag:     &exchangeCertsController{operate: operate},
+		util.UpdateKmcFlag:      &updateKmcController{operate: operate},
+		util.ImportCrlFlag:      &importCrlController{operate: operate},
 	}
 }

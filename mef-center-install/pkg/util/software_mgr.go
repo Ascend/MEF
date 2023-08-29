@@ -5,10 +5,12 @@ package util
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"regexp"
 	"strings"
 
 	"huawei.com/mindx/common/envutils"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 
@@ -56,6 +58,21 @@ func (sm *SoftwareMgr) clearInstallPkg() error {
 
 	fmt.Println("clear install dir success")
 	hwlog.RunLog.Info("clear install dir success")
+	return nil
+}
+
+func (sm *SoftwareMgr) clearLock() error {
+	fmt.Println("start to clear lock")
+	hwlog.RunLog.Info("start to clear lock")
+	lockPath := filepath.Join("/run", MefCenterLock)
+
+	if err := fileutils.DeleteFile(lockPath); err != nil {
+		hwlog.RunLog.Errorf("delete mef-center lock failed:%s", err.Error())
+		return err
+	}
+
+	fmt.Println("clear mef-center lock success")
+	hwlog.RunLog.Info("clear mef-center lock success")
 	return nil
 }
 
@@ -158,6 +175,7 @@ func (sm *SoftwareMgr) ClearAndLabel() error {
 	var installTasks = []func() error{
 		sm.clearNodeLabel,
 		sm.clearInstallPkg,
+		sm.clearLock,
 	}
 
 	for _, function := range installTasks {

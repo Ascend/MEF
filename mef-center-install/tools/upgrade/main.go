@@ -37,6 +37,7 @@ func main() {
 		logPath:      installParam.LogDir,
 		logBackPath:  installParam.LogBackupDir,
 	}
+
 	hwlog.RunLog.Info("-------------------start to upgrade MEF-Center steps in new package-------------------")
 	if err = controller.doUpgrade(); err != nil {
 		hwlog.RunLog.Error("-------------------upgrade MEF-Center steps in new package failed-------------------")
