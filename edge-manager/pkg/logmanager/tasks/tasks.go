@@ -18,7 +18,6 @@ const (
 	dumpSingleNodeLogTaskCapacity                = 90
 
 	paramNameNodeSerialNumbers = "nodeSerialNumbers"
-	paramNameNodeSerialNumber  = "nodeSerialNumber"
 )
 
 // InitTasks init goroutine pools and tasks

@@ -44,8 +44,20 @@ func FeedbackTaskError(ctx taskschedule.TaskContext, err error) {
 		Phase:   taskschedule.Failed,
 		Message: err.Error(),
 	}
-	if err := ctx.UpdateStatus(errStatus); err != nil {
-		hwlog.RunLog.Errorf("failed to update task status, %v", err)
+	var serialNumber string
+	if err := ctx.Spec().Args.Get(constants.NodeSerialNumber, &serialNumber); err != nil {
+		serialNumber = ""
 	}
-	hwlog.RunLog.Errorf("task failed, %v", err)
+	if err := ctx.UpdateStatus(errStatus); err != nil {
+		if serialNumber != "" {
+			hwlog.RunLog.Errorf("failed to update sub task status for edge(%s), %v", serialNumber, err)
+		} else {
+			hwlog.RunLog.Errorf("failed to update task status, %v", err)
+		}
+	}
+	if serialNumber != "" {
+		hwlog.RunLog.Errorf("sub task for edge(%s) failed, %v", serialNumber, err)
+	} else {
+		hwlog.RunLog.Errorf("task failed, %v", err)
+	}
 }

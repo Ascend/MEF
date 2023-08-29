@@ -70,32 +70,30 @@ func (p uploadProcess) processUpload() error {
 	hwlog.RunLog.Infof("start to receive file from edge(%s)", p.serialNumber)
 	taskCtx, err := taskschedule.DefaultScheduler().GetTaskContext(p.taskId)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get task for edge(%s)", p.serialNumber)
 	}
 	if err := taskCtx.UpdateStatus(statusStartReceive); err != nil {
-		return err
+		return fmt.Errorf("failed to update task status for edge(%s)", p.serialNumber)
 	}
 
 	// 2. receiving file
 	if err := p.receiveFile(taskCtx); err != nil {
 		p.deleteFile()
-		err = fmt.Errorf("failed to receive file from edge(%s), %v", p.serialNumber, err)
-		utils.FeedbackTaskError(taskCtx, err)
-		return err
+		utils.FeedbackTaskError(taskCtx, errors.New("failed to receive file from edge"))
+		return fmt.Errorf("failed to receive file from edge, %v", err)
 	}
 
 	// 3. verifying file
 	if err := p.verifyFile(taskCtx); err != nil {
 		p.deleteFile()
-		err = fmt.Errorf("failed to verify file from edge(%s), %v", p.serialNumber, err)
-		utils.FeedbackTaskError(taskCtx, err)
-		return err
+		utils.FeedbackTaskError(taskCtx, errors.New("failed to verify file from edge"))
+		return fmt.Errorf("failed to verify file from edge, %v", err)
 	}
 
 	// 4. finish receiving
 	if err := taskCtx.UpdateStatus(statusFinishReceive); err != nil {
 		p.deleteFile()
-		return err
+		return fmt.Errorf("failed to update task status for edge(%s)", p.serialNumber)
 	}
 	hwlog.RunLog.Infof("handle uploading for edge(%s) successful", p.serialNumber)
 

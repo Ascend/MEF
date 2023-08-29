@@ -9,16 +9,16 @@ import (
 
 // common errors
 var (
-	ErrNoMoreChild           = errors.New("no more child")
-	ErrNoRowsAffected        = errors.New("no rows affected")
+	ErrNoRunningSubTask      = errors.New("no running sub task")
+	ErrNoRowsAffected        = errors.New("no rows is affected")
 	ErrNilPointer            = errors.New("nil pointer")
-	ErrInvalidPhase          = errors.New("invalid phase")
+	ErrTaskAlreadyFinished   = errors.New("task already finished")
 	ErrTimeout               = errors.New("timeout")
 	ErrTypeInvalid           = errors.New("invalid type")
 	ErrTaskNotFound          = errors.New("no such task")
 	ErrFactoryNotFound       = errors.New("no such factory")
 	ErrGoroutinePoolNotFound = errors.New("no such goroutine pool")
-	ErrFullQueue             = errors.New("full queue")
+	ErrFullQueue             = errors.New("task queue is full")
 	ErrTooManyTask           = errors.New("too many tasks")
 	ErrCancelled             = errors.New("cancelled")
 )

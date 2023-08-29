@@ -34,6 +34,7 @@ func (h *reportErrorHandler) Handle(msg *model.Message) error {
 		hwlog.RunLog.Errorf("failed to update progress, %v", err)
 		return err
 	}
+	hwlog.RunLog.Errorf("receive error message from edge(%s): %s", h.serialNumber, h.errInfo.Message)
 	status := taskschedule.TaskStatus{Phase: taskschedule.Failed, Reason: h.errInfo.Reason, Message: h.errInfo.Message}
 	if err := taskCtx.UpdateStatus(status); err != nil {
 		hwlog.RunLog.Errorf("failed to update progress, %v", err)

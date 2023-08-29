@@ -256,7 +256,7 @@ func (s *subTaskSelectorImpl) Select(cancel ...<-chan struct{}) (TaskContext, er
 	var chosenChildCtx TaskContext
 	for {
 		if len(childrenCtx) == 0 {
-			return nil, ErrNoMoreChild
+			return nil, ErrNoRunningSubTask
 		}
 
 		selectCases := make([]reflect.SelectCase, 0, len(childrenCtx)+1)

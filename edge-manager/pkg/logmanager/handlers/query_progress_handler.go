@@ -5,7 +5,6 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr/handler"
@@ -48,9 +47,6 @@ func (h *queryProgressHandler) parseAndCheckArgs(content interface{}) (string, e
 	req, ok := content.(string)
 	if !ok {
 		return "", errors.New("type error")
-	}
-	if checkResult := newQueryTaskProgressChecker().Check(req); !checkResult.Result {
-		return "", fmt.Errorf("check request failed, %s", checkResult.Reason)
 	}
 	return req, nil
 }
