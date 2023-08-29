@@ -16,6 +16,7 @@ import (
 )
 
 type importCrlController struct {
+	operate      string
 	installParam *util.InstallParamJsonTemplate
 	crlPath      string
 	crlName      string
@@ -79,4 +80,8 @@ func (icc *importCrlController) printFailedLog(user, ip string) {
 	hwlog.RunLog.Error("-------------------import crl failed-------------------")
 	hwlog.OpLog.Errorf("%s: %s, import crl failed", ip, user)
 	fmt.Println("import crl failed")
+}
+
+func (icc *importCrlController) getName() string {
+	return icc.operate
 }

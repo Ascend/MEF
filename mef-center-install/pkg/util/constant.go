@@ -38,6 +38,7 @@ const (
 	TempCertDir       = "temp-cert"
 	MefConfigDir      = "mef-config"
 	InstallPackageDir = "install-package"
+	MefCenterLock     = "mef-center.lock"
 )
 
 // MEF-Center File constant
