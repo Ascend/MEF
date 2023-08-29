@@ -36,7 +36,8 @@ func getQueryType(input interface{}) (string, types.ListAlarmOrEventReq, error) 
 	if req.IfCenter == trueStr {
 		return centerNodeQueryType, req, nil
 	}
-	if req.IfCenter == "" && req.NodeId == 0 && req.GroupId == 0 { // without any param will return all
+	// without any param will return all
+	if req.IfCenter == "" && req.NodeId == 0 && req.GroupId == 0 {
 		return fullNodesQueryType, req, nil
 	}
 	if req.IfCenter == falseStr && req.NodeId == 0 && req.GroupId == 0 {
