@@ -102,14 +102,28 @@ func (usm *upgradeSmoothMgr) smoothSingleComponentConfig(component string) error
 
 func (usm *upgradeSmoothMgr) smoothSingleComponentLog(component string) error {
 	alarmLogPath := usm.logPathMgr.GetComponentLogPath(component)
+	alarmLogBackPath := usm.logPathMgr.GetComponentBackupLogPath(component)
 	if !fileutils.IsExist(alarmLogPath) {
 		if err := fileutils.CreateDir(alarmLogPath, fileutils.Mode600); err != nil {
 			hwlog.RunLog.Errorf("create component %s's log dir failed: %s", component, err.Error())
 			return fmt.Errorf("create component %s's log dir failed", component)
 		}
+		hwlog.RunLog.Infof("create component %s's log dir success", component)
+	}
+
+	if !fileutils.IsExist(alarmLogBackPath) {
+		if err := fileutils.CreateDir(alarmLogBackPath, fileutils.Mode600); err != nil {
+			hwlog.RunLog.Errorf("create component %s's log back up dir failed: %s", component, err.Error())
+			return fmt.Errorf("create component %s's log back up dir failed", component)
+		}
+		hwlog.RunLog.Infof("create component %s's log back up dir success", component)
 	}
 
 	if err := usm.setSingleOwner(alarmLogPath); err != nil {
+		return err
+	}
+
+	if err := usm.setSingleOwner(alarmLogBackPath); err != nil {
 		return err
 	}
 
