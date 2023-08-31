@@ -12,7 +12,7 @@ import (
 type ListAlarmOrEventReq struct {
 	PageNum  uint64 `json:"pageNum"`
 	PageSize uint64 `json:"pageSize"`
-	NodeId   uint64 `json:"nodeId,omitempty"`
+	Sn       string `json:"serialNumber,omitempty"`
 	GroupId  uint64 `json:"groupId,omitempty"`
 	IfCenter string `json:"ifCenter,omitempty"`
 }
@@ -24,20 +24,20 @@ type NodeGroupDetailFromEdgeManager struct {
 
 // NodeInfo query results from edge-manager
 type NodeInfo struct {
-	ID uint64 `json:"id"`
+	Sn string `json:"serialNumber"`
 }
 
 // AlarmBriefInfo the simple information for respond to User
 type AlarmBriefInfo struct {
 	ID        uint64    `json:"ID"`
-	NodeID    uint64    `json:"nodeID"`
-	Severity  string    `json:"severity"`
-	Resource  string    `json:"resource"`
-	CreatedAt time.Time `json:"createAt"`
-	AlarmType string    `json:"alarmType"`
+	Sn        string    `json:"SerialNumber"`
+	Severity  string    `json:"Severity"`
+	Resource  string    `json:"Resource"`
+	CreatedAt time.Time `json:"CreateAt"`
+	AlarmType string    `json:"AlarmType"`
 }
 
 func (dig AlarmBriefInfo) String() string {
-	return fmt.Sprintf("DigestInfo  ID: %d,NodeId:%d,Severity:%s,Resource:%s,CreateTime:%v", dig.ID,
-		dig.NodeID, dig.Severity, dig.Resource, dig.CreatedAt)
+	return fmt.Sprintf("DigestInfo  ID: %d,SerialNumber:%s,Severity:%s,Resource:%s,CreateTime:%v", dig.ID,
+		dig.Sn, dig.Severity, dig.Resource, dig.CreatedAt)
 }

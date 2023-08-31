@@ -8,10 +8,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
-
 	"alarm-manager/pkg/alarmmanager"
 	"alarm-manager/pkg/types"
+
+	"github.com/gin-gonic/gin"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/restfulmgr"
 )
@@ -19,7 +20,7 @@ import (
 const (
 	pageNumberKey = "pageNum"
 	pageSizeKey   = "pageSize"
-	nodeIdKey     = "nodeId"
+	snKey         = "sn"
 	groupIdKey    = "groupId"
 	ifCenterKey   = "ifCenter"
 )
@@ -45,8 +46,8 @@ var northAlarmDispatchers = map[string][]restfulmgr.DispatcherItf{
 	},
 }
 
-var innerAlarmRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
-	"/inner/v1/alarm": {
+var edgeAlarmRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
+	"/edge/alarm": {
 		restfulmgr.GenericDispatcher{
 			RelativePath: "/report",
 			Method:       http.MethodPost,
@@ -56,7 +57,7 @@ var innerAlarmRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 }
 
 func setRouter(engine *gin.Engine) {
-	restfulmgr.InitRouter(engine, innerAlarmRouterDispatchers)
+	restfulmgr.InitRouter(engine, edgeAlarmRouterDispatchers)
 	restfulmgr.InitRouter(engine, northAlarmDispatchers)
 }
 
@@ -100,26 +101,29 @@ func (list listDispatcher) ParseData(c *gin.Context) (interface{}, error) {
 		return nil, fmt.Errorf("pageNum[%s] or pageSize[%s] is invalid",
 			c.Query(pageNumberKey), c.Query(pageSizeKey))
 	}
-	ifCenter := c.Query(ifCenterKey)
-	nodeIdStr := c.Query(nodeIdKey)
-	groupIdStr := c.Query(groupIdKey)
-	if nodeIdStr == "0" {
-		return nil, fmt.Errorf("nodeId cannot be 0")
-	}
+	values := c.Request.URL.Query()
+	ifCenter := values.Get(ifCenterKey)
+	groupIdStr := values.Get(groupIdKey)
 	if groupIdStr == "0" {
 		return nil, fmt.Errorf("groupId cannot be 0")
-	}
-	if nodeIdStr == "" {
-		nodeIdStr = "0"
 	}
 	if groupIdStr == "" {
 		groupIdStr = "0"
 	}
-	nodeId, err1 := strconv.ParseUint(nodeIdStr, common.BaseHex, common.BitSize64)
-	groupId, err2 := strconv.ParseUint(groupIdStr, common.BaseHex, common.BitSize64)
-	if err1 != nil || err2 != nil {
-		return nil, fmt.Errorf("nodeId[%s] or groupId[%s] is invalid", c.Query(nodeIdKey), c.Query(groupIdKey))
+
+	snStr := values.Get(snKey)
+	if snStr == "" && len(values[snKey]) != 0 {
+		return nil, fmt.Errorf("sn cannot be empty string")
 	}
-	return types.ListAlarmOrEventReq{PageNum: pageNum, PageSize: pageSize, NodeId: nodeId, GroupId: groupId,
+
+	if len(values[snKey]) == 0 {
+		snStr = alarmmanager.CenterSn
+	}
+
+	groupId, err2 := strconv.ParseUint(groupIdStr, common.BaseHex, common.BitSize64)
+	if err2 != nil {
+		return nil, fmt.Errorf("groupId[%s] is invalid", c.Query(groupIdKey))
+	}
+	return types.ListAlarmOrEventReq{PageNum: pageNum, PageSize: pageSize, Sn: snStr, GroupId: groupId,
 		IfCenter: ifCenter}, nil
 }

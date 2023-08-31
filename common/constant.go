@@ -43,40 +43,23 @@ const (
 	NorthernCertName = "north"
 )
 
+// consts for ModuleName
 const (
-	// MEF software name
-	MEF = "MEF"
-	// EdgeCore software edgecore name
-	EdgeCore = "edgecore"
-	// MEFEdge software mef edge name
-	MEFEdge = "MEFEdge"
-	// EdgeInstaller software edge-installer name
-	EdgeInstaller = "edge-installer"
-	// DevicePlugin software device-plugin name
-	DevicePlugin = "device-plugin"
-	// RestfulServiceName RestfulService
-	RestfulServiceName = "RestfulService"
-	// NodeManagerName NodeManager
-	NodeManagerName = "NodeManager"
-	// AppManagerName AppManagerName
-	AppManagerName = "AppManager"
-	// CloudHubName edge-connector
-	CloudHubName = "CloudHub"
-	// NodeMsgManagerName node msg manager
-	NodeMsgManagerName = "NodeMsgManager"
-	// EdgeInstallerName edge-installer
-	EdgeInstallerName = "edge-installer"
-	// CertManagerName CertManager
-	CertManagerName = "CertManager"
-	// CertManagerService CertManager module name
-	CertManagerService = "CertManagerService"
-	// ConfigManagerName ConfigManagerName
-	ConfigManagerName = "ConfigManager"
-	// LogManagerName LogManagerName
-	LogManagerName = "LogManager"
-	// AlarmManagerName AlarmManagerName
-	AlarmManagerName = "AlarmManager"
+	MEFEdge                = "MEFEdge"
+	RestfulServiceName     = "RestfulService"
+	NodeManagerName        = "NodeManager"
+	AppManagerName         = "AppManager"
+	CloudHubName           = "CloudHub"
+	InnerServerName        = "InnerServer"
+	AlarmManagerClientName = "AlarmManagerClient"
+	NodeMsgManagerName     = "NodeMsgManager"
+	CertManagerName        = "CertManager"
+	ConfigManagerName      = "ConfigManager"
+	LogManagerName         = "LogManager"
+	AlarmManagerName       = "AlarmManager"
+)
 
+const (
 	// Create option create
 	Create = "create"
 	// Delete option delete
@@ -125,17 +108,6 @@ const (
 	RestfulTimeout = 6 * time.Minute
 	// EdgeManagerRestfulWriteTimeout edge-manager restful write timeout time
 	EdgeManagerRestfulWriteTimeout = 2 * time.Hour
-
-	// Software resource software
-	Software = "software"
-	// SoftwareResp resource software response
-	SoftwareResp = "software/response"
-	// Repository resource
-	Repository = "repository"
-	// Token resource
-	Token = "/edgecore/token"
-	// URL link
-	URL = "url"
 )
 
 const (
@@ -178,14 +150,6 @@ const (
 const (
 	// PaginationNameReg name reg of pagination query
 	PaginationNameReg = "^[\\S]{0,253}$"
-	// LowercaseCharactersRegex lowercase
-	LowercaseCharactersRegex = "[a-z]{1,}"
-	// UppercaseCharactersRegex uppercase
-	UppercaseCharactersRegex = "[A-Z]{1,}"
-	// BaseNumberRegex BaseNumberRegex
-	BaseNumberRegex = "[0-9]{1,}"
-	// SpecialCharactersRegex special regex
-	SpecialCharactersRegex = "[!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~]{1,}"
 	// PassWordRegex PassWordRegex
 	PassWordRegex          = "^[a-zA-z0-9!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~]{16,64}$"
 	Pbkdf2IterationCount   = 10000
@@ -195,22 +159,10 @@ const (
 	OneDay                 = 24 * time.Hour
 )
 
-// field constraints
-const (
-	// MinComplexCount min complex count
-	MinComplexCount = 2
-)
-
 // field status
 const (
 	OK   = "OK"
 	FAIL = "FAIL"
-)
-
-// used to check ip
-const (
-	ZeroAddr      = "0.0.0.0"
-	BroadCastAddr = "255.255.255.255"
 )
 
 const (
@@ -227,6 +179,8 @@ const (
 	OptResp = "response"
 	// OptReport option for report
 	OptReport = "REPORT"
+	// OptDelete option for delete
+	OptDelete = "OptDelete"
 	// ResEdgeDownloadInfo resource for download software
 	ResEdgeDownloadInfo = "/edge/download"
 	// ResEdgeUpgradeInfo resource for effect software
@@ -281,7 +235,7 @@ const (
 	CommandCopy = "cp"
 )
 
-// const for unpack zip file
+// consts for unpack zip file
 const (
 	MaxPkgSizeTimes      = 100
 	MaxExtractFileCount  = 100
@@ -314,8 +268,7 @@ const (
 	TransferEncoding   = "Transfer-Encoding"
 )
 
-// const to check Certs
+// consts for inner websocket Port
 const (
-	SignAlg      = "SHA256-RSA"
-	MinPubKeyLen = 3072
+	EdgeManagerInnerWsPort = 20000
 )

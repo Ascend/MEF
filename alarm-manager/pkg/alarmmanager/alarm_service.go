@@ -3,10 +3,6 @@
 // Package alarmmanager for alarm-manager module handler
 package alarmmanager
 
-import (
-	"huawei.com/mindxedge/base/common"
-)
-
 const (
 	centerNodeQueryType    = "CenterNodeQuery"
 	nodeIdQueryType        = "NodeIdQuery"
@@ -15,18 +11,18 @@ const (
 	fullEdgeNodesQueryType = "FullEdgeNodesQuery"
 )
 
-func listAlarms(input interface{}) common.RespMsg {
-	return dealRequest(input, AlarmType)
+func listAlarms(input interface{}) (interface{}, error) {
+	return dealRequest(input, AlarmType), nil
 }
 
-func listEvents(input interface{}) common.RespMsg {
-	return dealRequest(input, EventType)
+func listEvents(input interface{}) (interface{}, error) {
+	return dealRequest(input, EventType), nil
 }
 
-func getAlarmDetail(input interface{}) common.RespMsg {
-	return getAlarmOrEventDbDetail(input, AlarmType)
+func getAlarmDetail(input interface{}) (interface{}, error) {
+	return getAlarmOrEventDbDetail(input, AlarmType), nil
 }
 
-func getEventDetail(input interface{}) common.RespMsg {
-	return getAlarmOrEventDbDetail(input, EventType)
+func getEventDetail(input interface{}) (interface{}, error) {
+	return getAlarmOrEventDbDetail(input, EventType), nil
 }

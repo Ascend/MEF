@@ -17,6 +17,7 @@ import (
 
 	"alarm-manager/pkg/alarmmanager"
 	"alarm-manager/pkg/restful"
+	"alarm-manager/pkg/websocket"
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
@@ -83,6 +84,11 @@ func initResource() error {
 		return errors.New("init database failed")
 	}
 
+	if err := alarmmanager.AlarmDbInstance().DeleteAlarmTable(); err != nil {
+		hwlog.RunLog.Errorf("clear alarm info table failed: %s", err.Error())
+		return errors.New("clear alarm info table failed")
+	}
+
 	if err := database.CreateTableIfNotExist(alarmmanager.AlarmInfo{}); err != nil {
 		hwlog.RunLog.Error("create alarm info table failed")
 		return errors.New("create alarm info table failed")
@@ -99,6 +105,9 @@ func initResource() error {
 func register(ctx context.Context) error {
 	modulemgr.ModuleInit()
 	if err := modulemgr.Registry(restful.NewRestfulService(true, ip, port)); err != nil {
+		return err
+	}
+	if err := modulemgr.Registry(websocket.NewAlarmWsClient(true, ctx)); err != nil {
 		return err
 	}
 	if err := modulemgr.Registry(alarmmanager.NewAlarmManager(true, ctx)); err != nil {

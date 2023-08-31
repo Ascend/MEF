@@ -5,16 +5,18 @@ package alarmmanager
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindxedge/base/common/requests"
 
 	"huawei.com/mindxedge/base/common"
 )
 
-type handlerFunc func(req interface{}) common.RespMsg
+type handlerFunc func(req interface{}) (interface{}, error)
 
 type alarmManager struct {
 	enable bool
@@ -30,30 +32,28 @@ func NewAlarmManager(enable bool, ctx context.Context) model.Module {
 	return cm
 }
 
-func (cm *alarmManager) Name() string {
+func (am *alarmManager) Name() string {
 	return AlarmModuleName
 }
 
-func (cm *alarmManager) Enable() bool {
-	return cm.enable
+func (am *alarmManager) Enable() bool {
+	return am.enable
 }
 
-func methodSelect(req *model.Message) *common.RespMsg {
-	var res common.RespMsg
+func methodSelect(req *model.Message) (interface{}, error) {
 	method, exit := handlerFuncMap[common.Combine(req.GetOption(), req.GetResource())]
 	if !exit {
 		hwlog.RunLog.Errorf("handler func is not exist, option: %s, resource: %s", req.GetOption(),
 			req.GetResource())
-		return nil
+		return nil, errors.New("handler func is not exist")
 	}
-	res = method(req.GetContent())
-	return &res
+	return method(req.GetContent())
 }
 
-func (cm *alarmManager) Start() {
+func (am *alarmManager) Start() {
 	for {
 		select {
-		case _, ok := <-cm.ctx.Done():
+		case _, ok := <-am.ctx.Done():
 			if !ok {
 				hwlog.RunLog.Info("catch stop signal channel is closed")
 			}
@@ -62,30 +62,35 @@ func (cm *alarmManager) Start() {
 		default:
 		}
 
-		req, err := modulemgr.ReceiveMessage(cm.Name())
-		hwlog.RunLog.Infof("%s receive request from restful service", cm.Name())
+		req, err := modulemgr.ReceiveMessage(am.Name())
 		if err != nil {
-			hwlog.RunLog.Errorf("%s receive request from restful service failed", cm.Name())
+			hwlog.RunLog.Errorf("%s receive request from restful service failed", am.Name())
 			continue
 		}
-		go cm.dispatch(req)
+
+		go am.dispatch(req)
 	}
 }
 
-func (cm *alarmManager) dispatch(req *model.Message) {
-	msg := methodSelect(req)
-	if msg == nil {
-		hwlog.RunLog.Errorf("%s get method by option and resource failed", cm.Name())
+func (am *alarmManager) dispatch(req *model.Message) {
+	msg, err := methodSelect(req)
+	if err != nil {
+		hwlog.RunLog.Errorf("%s get method by option and resource failed: %s", am.Name(), err.Error())
 		return
 	}
+	if msg == nil {
+		return
+	}
+
 	resp, err := req.NewResponse()
 	if err != nil {
-		hwlog.RunLog.Errorf("%s new response failed", cm.Name())
+		hwlog.RunLog.Errorf("%s new response failed: %s", am.Name(), err.Error())
 		return
 	}
+
 	resp.FillContent(msg)
 	if err = modulemgr.SendMessage(resp); err != nil {
-		hwlog.RunLog.Errorf("%s send response failed", cm.Name())
+		hwlog.RunLog.Errorf("%s send response failed: %s", am.Name(), err.Error())
 		return
 	}
 }
@@ -98,8 +103,10 @@ var (
 )
 
 var handlerFuncMap = map[string]handlerFunc{
-	common.Combine(http.MethodGet, listAlarmRouter):      listAlarms,
-	common.Combine(http.MethodGet, getAlarmDetailRouter): getAlarmDetail,
-	common.Combine(http.MethodGet, listEventsRouter):     listEvents,
-	common.Combine(http.MethodGet, getEventDetailRouter): getEventDetail,
+	common.Combine(http.MethodGet, listAlarmRouter):                 listAlarms,
+	common.Combine(http.MethodGet, getAlarmDetailRouter):            getAlarmDetail,
+	common.Combine(http.MethodGet, listEventsRouter):                listEvents,
+	common.Combine(http.MethodGet, getEventDetailRouter):            getEventDetail,
+	common.Combine(http.MethodPost, requests.ReportAlarmRouter):     dealAlarmReq,
+	common.Combine(common.Delete, requests.ClearOneNodeAlarmRouter): dealNodeClearReq,
 }
