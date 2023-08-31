@@ -19,7 +19,7 @@ require (
 	huawei.com/mindx/common/rand v0.0.1
 	huawei.com/mindx/common/utils v0.1.13
 	huawei.com/mindx/common/x509 v0.0.12
-	huawei.com/mindx/mef/common/cmsverify v0.0.0-00010101000000-000000000000
+	huawei.com/mindx/mef/common/cmsverify v0.0.1
 )
 
 replace (
