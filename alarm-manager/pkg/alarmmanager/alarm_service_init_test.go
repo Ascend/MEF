@@ -24,6 +24,7 @@ import (
 	"huawei.com/mindx/common/x509/certutils"
 
 	"alarm-manager/pkg/types"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -31,8 +32,8 @@ var (
 	gormInstance  *gorm.DB
 	dbPath        = "./test.db"
 	pachers       = make([]*gomonkey.Patches, 0)
-	groupNodes    = []uint64{1, 2}
-	groupNodesMap = map[uint64]bool{}
+	groupNodes    = []string{"testSn", "testSn2"}
+	groupNodesMap = map[string]bool{}
 )
 
 const (
@@ -169,7 +170,7 @@ func randSetOneAlarm(alarm *AlarmInfo, idx int) {
 	}
 	alarm.AlarmType = randType
 	alarm.CreatedAt = time.Now()
-	alarm.NodeId = uint64(randNodeId)
+	alarm.SerialNumber = strconv.Itoa(randNodeId)
 	alarmId, err := randIntn(math.MaxInt64)
 	if err != nil {
 		hwlog.RunLog.Error("failed to generate alarm id")
@@ -209,13 +210,13 @@ func genNodeGroup() types.NodeGroupDetailFromEdgeManager {
 	var nodeGroup types.NodeGroupDetailFromEdgeManager
 	nodesList := make([]types.NodeInfo, len(groupNodes))
 	for i := 0; i < len(groupNodes); i++ {
-		nodeId := groupNodes[i]
-		groupNodesMap[nodeId] = true
+		sn := groupNodes[i]
+		groupNodesMap[sn] = true
 		if i >= len(nodesList) {
 			break
 		}
 		nodesList[i] = types.NodeInfo{
-			ID: nodeId,
+			Sn: sn,
 		}
 	}
 	nodeGroup.Nodes = nodesList

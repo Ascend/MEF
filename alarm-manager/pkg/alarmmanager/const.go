@@ -2,18 +2,26 @@
 
 package alarmmanager
 
-// consts for alarmStaticInfo manager
+// consts for alarm manager path in container
 const (
-	ServerCertPath   = "/home/data/config/mef-certs/alarm-manager.crt"
-	ServerKeyPath    = "/home/data/config/mef-certs/alarm-manager.key"
-	RootCaPath       = "/home/data/inner-root-ca/RootCA.crt"
-	AlarmModuleName  = "AlarmManager"
-	MinorSeverity    = "Minor"
-	MajorSeverity    = "Major"
-	CriticalSeverity = "Critical"
+	ServerCertPath = "/home/data/config/mef-certs/alarm-manager.crt"
+	ServerKeyPath  = "/home/data/config/mef-certs/alarm-manager.key"
+	RootCaPath     = "/home/data/inner-root-ca/RootCA.crt"
+)
+
+// consts for alarms
+const (
+	MinorSeverity    = "MINOR"
+	MajorSeverity    = "MAJOR"
+	CriticalSeverity = "CRITICAL"
 	ClearFlag        = "clear"
 	AlarmFlag        = "alarm"
 	AlarmType        = "alarm"
 	EventType        = "event"
-	CenterNodeID     = 0
+	CenterSn         = ""
+)
+
+// consts for alarm manager module
+const (
+	AlarmModuleName = "AlarmManager"
 )

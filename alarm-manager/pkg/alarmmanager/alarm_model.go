@@ -8,7 +8,6 @@ import (
 
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/database"
-
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -36,34 +35,56 @@ func (adh *AlarmDbHandler) addAlarmInfo(data *AlarmInfo) error {
 	return adh.db.Model(AlarmInfo{}).Create(data).Error
 }
 
-func (adh *AlarmDbHandler) getNodeAlarmCount(nodeId int) (int, error) {
+func (adh *AlarmDbHandler) getNodeAlarmCount(sn string) (int, error) {
 	var count int64
-	return int(count), adh.db.Model(AlarmInfo{}).Where("node_id = ? and alarm_type = ?", nodeId,
-		AlarmType).Count(&count).Error
+	return int(count), adh.db.Model(AlarmInfo{}).Where("serial_number = ? and alarm_type = ?", sn, AlarmType).
+		Count(&count).Error
 }
 
-func (adh *AlarmDbHandler) getAlarmInfo(alarmId string, nodeId int) (*[]AlarmInfo, error) {
+func (adh *AlarmDbHandler) getNodeEventCount(sn string) (int, error) {
+	var count int64
+	return int(count), adh.db.Model(AlarmInfo{}).Where("serial_number = ? and alarm_type = ?", sn, EventType).
+		Count(&count).Error
+}
+
+func (adh *AlarmDbHandler) getNodeOldestEvent(sn string) (*AlarmInfo, error) {
+	var ret AlarmInfo
+	return &ret, adh.db.Model(AlarmInfo{}).Where("serial_number = ?", sn).Order("created_at").First(&ret).Error
+}
+
+func (adh *AlarmDbHandler) getAlarmInfo(alarmId string, sn string) (*[]AlarmInfo, error) {
 	var ret []AlarmInfo
-	return &ret, adh.db.Model(AlarmInfo{}).Where("alarm_id = ? and node_id = ?",
-		alarmId, nodeId).Find(&ret).Error
+	return &ret, adh.db.Model(AlarmInfo{}).Where("alarm_id = ? and serial_number = ?", alarmId, sn).Find(&ret).Error
 }
 
 func (adh *AlarmDbHandler) deleteAlarmInfo(data *AlarmInfo) error {
-	return adh.db.Model(AlarmInfo{}).Where("alarm_id = ? and node_id = ?", data.AlarmId,
-		data.NodeId).Delete(&data).Error
+	return adh.db.Model(AlarmInfo{}).Where("alarm_id = ? and serial_number = ?", data.AlarmId, data.SerialNumber).
+		Delete(&data).Error
+}
+
+func (adh *AlarmDbHandler) deleteBySn(sn string) error {
+	return adh.db.Model(AlarmInfo{}).Where("serial_number = ?", sn).Delete(AlarmInfo{}).Error
+}
+
+// DeleteAlarmTable is the func to delete all alarm table
+func (adh *AlarmDbHandler) DeleteAlarmTable() error {
+	if !adh.db.Migrator().HasTable(&AlarmInfo{}) {
+		return nil
+	}
+	return adh.db.Migrator().DropTable(&AlarmInfo{})
 }
 
 func (adh *AlarmDbHandler) listCenterAlarmsOrEventsDb(pageNum, pageSize uint64, queryType string) (
 	*[]AlarmInfo, error) {
 	var alarmInfo []AlarmInfo
-	return &alarmInfo, adh.db.Scopes(getAlarmNodeScopes(pageNum, pageSize, CenterNodeID, queryType)).
+	return &alarmInfo, adh.db.Scopes(getAlarmNodeScopes(pageNum, pageSize, CenterSn, queryType)).
 		Find(&alarmInfo).Error
 }
 
-func (adh *AlarmDbHandler) listEdgeAlarmsOrEventsDb(pageNum, pageSize uint64, nodeId uint64, queryType string) (
+func (adh *AlarmDbHandler) listEdgeAlarmsOrEventsDb(pageNum, pageSize uint64, sn string, queryType string) (
 	*[]AlarmInfo, error) {
 	var alarmInfo []AlarmInfo
-	return &alarmInfo, adh.db.Scopes(getAlarmNodeScopes(pageNum, pageSize, nodeId, queryType)).Find(&alarmInfo).Error
+	return &alarmInfo, adh.db.Scopes(getAlarmNodeScopes(pageNum, pageSize, sn, queryType)).Find(&alarmInfo).Error
 }
 
 func (adh *AlarmDbHandler) listAllAlarmsOrEventsDb(pageNum, pageSize uint64, queryType string) (*[]AlarmInfo, error) {
@@ -79,7 +100,7 @@ func (adh *AlarmDbHandler) listAllEdgeAlarmsOrEventsDb(pageNum, pageSize uint64,
 
 func getPagedEdgeScopes(pageNum, pageSize uint64, queryType string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Scopes(common.Paginate(pageNum, pageSize)).Where("alarm_type=? and node_id <> ?", queryType, CenterNodeID)
+		return db.Scopes(common.Paginate(pageNum, pageSize)).Where("alarm_type=? and serial_number <> ?", queryType, CenterSn)
 	}
 }
 
@@ -89,9 +110,9 @@ func getPagedScopes(pageNum, pageSize uint64, queryType string) func(db *gorm.DB
 	}
 }
 
-func getAlarmNodeScopes(page, pageSize uint64, nodeId uint64, queryType string) func(db *gorm.DB) *gorm.DB {
+func getAlarmNodeScopes(page, pageSize uint64, sn string, queryType string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Scopes(common.Paginate(page, pageSize)).Where("alarm_type=? and node_id=?", queryType, nodeId)
+		return db.Scopes(common.Paginate(page, pageSize)).Where("alarm_type=? and serial_number=?", queryType, sn)
 	}
 }
 
@@ -100,14 +121,14 @@ func (adh *AlarmDbHandler) getAlarmOrEventInfoByAlarmInfoId(Id uint64) (*AlarmIn
 	return &alarm, adh.db.Model(AlarmInfo{}).Where("id=?", Id).First(&alarm).Error
 }
 
-func (adh *AlarmDbHandler) listGroupAlarmsOrEventsDb(pageNum, pageSize uint64, nodeIds []uint64, queryType string) (
+func (adh *AlarmDbHandler) listGroupAlarmsOrEventsDb(pageNum, pageSize uint64, sns []string, queryType string) (
 	*[]AlarmInfo, error) {
 	var alarmInfo []AlarmInfo
-	return &alarmInfo, adh.db.Scopes(getAlarmGroupScopes(pageNum, pageSize, nodeIds, queryType)).Find(&alarmInfo).Error
+	return &alarmInfo, adh.db.Scopes(getAlarmGroupScopes(pageNum, pageSize, sns, queryType)).Find(&alarmInfo).Error
 }
 
-func getAlarmGroupScopes(page, pageSize uint64, nodeIds []uint64, queryType string) func(db *gorm.DB) *gorm.DB {
+func getAlarmGroupScopes(page, pageSize uint64, sns []string, queryType string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Scopes(common.Paginate(page, pageSize)).Where("alarm_type=? and node_id in (?)", queryType, nodeIds)
+		return db.Scopes(common.Paginate(page, pageSize)).Where("alarm_type=? and sn in (?)", queryType, sns)
 	}
 }

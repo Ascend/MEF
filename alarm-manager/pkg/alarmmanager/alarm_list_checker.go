@@ -10,6 +10,7 @@ import (
 	"huawei.com/mindx/common/checker"
 
 	"alarm-manager/pkg/types"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -40,8 +41,8 @@ func (alc *AlarmListerChecker) Check(data types.ListAlarmOrEventReq) checker.Che
 	alc.init()
 
 	if data.IfCenter != trueStr {
-		if data.NodeId != 0 && data.GroupId != 0 {
-			return checker.NewFailedResult("nodeId and groupId can't exist at the same " +
+		if data.Sn != "" && data.GroupId != 0 {
+			return checker.NewFailedResult("sn and groupId can't exist at the same " +
 				"time when ifCenter is not true")
 		}
 	}
