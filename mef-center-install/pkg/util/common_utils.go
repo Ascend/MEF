@@ -181,3 +181,14 @@ func ResetCfgPathPermAfterReducePriv(installPathMgr *InstallDirPathMgr) error {
 
 	return nil
 }
+
+// CheckParamOption check parameter in option slice
+func CheckParamOption(optionalParam []string, inputParam string) error {
+	for _, param := range optionalParam {
+		if inputParam == param {
+			return nil
+		}
+	}
+
+	return errors.New("not support parameter")
+}

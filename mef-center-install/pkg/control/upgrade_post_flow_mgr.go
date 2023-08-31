@@ -24,21 +24,23 @@ import (
 type UpgradePostFlowMgr struct {
 	util.SoftwareMgr
 	logPathMgr             *util.LogDirPathMgr
+	optionComponent        []string
 	startedComponents      []string
 	notInstalledComponents []string
+	optionComList          []util.OptionComponent
 	step                   int
 }
 
 // GetUpgradePostMgr is a func to init an UpgradePostFlowMgr struct
-func GetUpgradePostMgr(components []string, installPath string,
-	logRootPath string, logBackupRootPath string) *UpgradePostFlowMgr {
+func GetUpgradePostMgr(components []string, installInfo *util.InstallParamJsonTemplate) *UpgradePostFlowMgr {
 	return &UpgradePostFlowMgr{
 		SoftwareMgr: util.SoftwareMgr{
 			Components:     components,
-			InstallPathMgr: util.InitInstallDirPathMgr(installPath),
+			InstallPathMgr: util.InitInstallDirPathMgr(installInfo.InstallDir),
 		},
-		logPathMgr: util.InitLogDirPathMgr(logRootPath, logBackupRootPath),
-		step:       util.ClearUnpackPathStep,
+		optionComponent: installInfo.OptionComponent,
+		logPathMgr:      util.InitLogDirPathMgr(installInfo.LogDir, installInfo.LogBackupDir),
+		step:            util.ClearUnpackPathStep,
 	}
 }
 
@@ -304,7 +306,7 @@ func (upf *UpgradePostFlowMgr) recordStarted() error {
 			Name:           c,
 			InstallPathMgr: upf.SoftwareMgr.InstallPathMgr.WorkPathMgr,
 		}
-		started, err := dealer.CheckStarted()
+		started, err := util.CheckStarted(dealer.Name)
 		if err != nil {
 			hwlog.RunLog.Errorf("check component %s's status failed: %s", c, err.Error())
 			return fmt.Errorf("check component %s's status failed", c)
@@ -330,6 +332,23 @@ func (upf *UpgradePostFlowMgr) recordStarted() error {
 		}
 
 		upf.notInstalledComponents = append(upf.notInstalledComponents, c)
+	}
+
+	for _, c := range upf.optionComponent {
+		component := util.OptionComponent{
+			Name:    c,
+			PathMgr: upf.SoftwareMgr.InstallPathMgr,
+		}
+		started, err := util.CheckStarted(c)
+		if err != nil {
+			hwlog.RunLog.Errorf("check component %s's status failed: %s", c, err.Error())
+			return fmt.Errorf("check component %s's status failed", c)
+		}
+
+		if !started {
+			continue
+		}
+		upf.optionComList = append(upf.optionComList, component)
 	}
 
 	if len(upf.notInstalledComponents)+len(upf.startedComponents) == len(upf.Components) {
@@ -406,6 +425,16 @@ func (upf *UpgradePostFlowMgr) startNewPod() error {
 			return fmt.Errorf("start component %s failed", c)
 		}
 	}
+	for _, c := range upf.optionComList {
+		if c.Name == util.IcsManagerName {
+			ics := icsManager{pathMgr: c.PathMgr, name: util.IcsManagerName, operate: util.StartOperateFlag}
+			if err := ics.Operate(); err != nil {
+				hwlog.RunLog.Errorf("start component %s failed", c.Name)
+				return fmt.Errorf("start component %s failed", c.Name)
+			}
+		}
+	}
+
 	hwlog.RunLog.Info("start pods succeeds")
 	fmt.Println("start pods succeeds")
 	return nil

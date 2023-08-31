@@ -19,30 +19,47 @@ import (
 
 // ExchangeCaFlow is used to exchange root ca with north module
 type ExchangeCaFlow struct {
-	pathMgr        *util.InstallDirPathMgr
-	importPath     string
-	exportPath     string
-	savePath       string
-	saveBackupPath string
-	certName       string
-	uid            uint32
-	gid            uint32
+	pathMgr    *util.InstallDirPathMgr
+	importPath string
+	exportPath string
+	savePath   string
+	srcPath    string
+	component  string
+	uid        uint32
+	gid        uint32
 }
 
 // NewExchangeCaFlow an ExchangeCaFlow struct
-func NewExchangeCaFlow(importPath, exportPath string, pathMgr *util.InstallDirPathMgr,
-	uid, gid uint32) *ExchangeCaFlow {
-	savePath := pathMgr.ConfigPathMgr.GetNorthernCertPath()
-	return &ExchangeCaFlow{
-		pathMgr:        pathMgr,
-		importPath:     importPath,
-		exportPath:     exportPath,
-		savePath:       savePath,
-		saveBackupPath: savePath + backuputils.BackupSuffix,
-		certName:       filepath.Base(savePath),
-		uid:            uid,
-		gid:            gid,
+func NewExchangeCaFlow(importPath, exportPath, component string,
+	pathMgr *util.InstallDirPathMgr) (*ExchangeCaFlow, error) {
+	uid, gid, err := util.GetMefId()
+	if err != nil {
+		hwlog.RunLog.Errorf("get MEF uid/gid failed: %s", err.Error())
+		return nil, errors.New("get MEF uid/gid failed")
 	}
+
+	var savePath, srcPath string
+	switch component {
+	case util.IcsManagerName:
+		savePath = pathMgr.ConfigPathMgr.GetIcsCertPath()
+		srcPath = pathMgr.ConfigPathMgr.GetRootCaCertPath()
+	case util.NginxManagerName:
+		savePath = pathMgr.ConfigPathMgr.GetNorthernCertPath()
+		srcPath = pathMgr.ConfigPathMgr.GetApigRootPath()
+	default:
+		return nil, errors.New("not support component to exchange ca")
+	}
+
+	return &ExchangeCaFlow{
+		pathMgr:    pathMgr,
+		importPath: importPath,
+		exportPath: exportPath,
+		component:  component,
+		gid:        gid,
+		uid:        uid,
+		srcPath:    srcPath,
+		savePath:   savePath,
+	}, nil
 }
 
 // DoExchange is the main func to exchange certs
@@ -65,7 +82,6 @@ func (ecf *ExchangeCaFlow) DoExchange() error {
 
 func (ecf *ExchangeCaFlow) checkParam() error {
 	const maxCertSizeInMb = 1
-
 	if ecf.importPath == ecf.exportPath {
 		hwlog.RunLog.Error("import path cannot equal export path")
 		return errors.New("import path cannot equal export path")
@@ -94,7 +110,7 @@ func (ecf *ExchangeCaFlow) checkParam() error {
 }
 
 func (ecf *ExchangeCaFlow) checkCa() error {
-	hwlog.RunLog.Infof("start to check [%s] cert", ecf.certName)
+	hwlog.RunLog.Infof("start to check [%s] cert", ecf.component)
 
 	if _, err := x509.CheckCertsChainReturnContent(ecf.importPath); err != nil {
 		hwlog.RunLog.Errorf("check importing cert failed: %s", err.Error())
@@ -109,7 +125,7 @@ func (ecf *ExchangeCaFlow) checkCa() error {
 	fmt.Printf("the sha256sum of the importing cert file is: %s\n", hash)
 	hwlog.RunLog.Infof("the sha256sum of the importing cert file is: %s\n", hash)
 
-	hwlog.RunLog.Infof("check [%s] cert success", ecf.certName)
+	hwlog.RunLog.Infof("check [%s] cert success", ecf.component)
 	return nil
 }
 
@@ -120,7 +136,6 @@ func (ecf *ExchangeCaFlow) importCa() error {
 			return errors.New("delete original crt failed")
 		}
 	}
-
 	if err := ecf.copyCaToCertManager(); err != nil {
 		return err
 	}
@@ -134,7 +149,7 @@ func (ecf *ExchangeCaFlow) importCa() error {
 		}
 	}
 
-	hwlog.RunLog.Infof("import [%s] cert success", ecf.certName)
+	hwlog.RunLog.Infof("import [%s] cert success", ecf.component)
 	return nil
 }
 
@@ -163,13 +178,14 @@ func (ecf *ExchangeCaFlow) copyCaToCertManager() error {
 		return errors.New("create backup of cert failed")
 	}
 
-	if err := ecf.setDirOwnerAndPermission(ecf.savePath, ecf.saveBackupPath); err != nil {
+	saveBackupPath := ecf.savePath + backuputils.BackupSuffix
+	if err := ecf.setDirOwnerAndPermission(ecf.savePath, saveBackupPath); err != nil {
 		hwlog.RunLog.Errorf("set save crt right failed: %s", err.Error())
 		if err = common.DeleteFile(ecf.savePath); err != nil {
-			hwlog.RunLog.Warnf("delete crt [%s] failed: %s", ecf.certName, err.Error())
+			hwlog.RunLog.Warnf("delete crt [%s] failed: %s", ecf.component, err.Error())
 		}
-		if err = common.DeleteFile(ecf.saveBackupPath); err != nil {
-			hwlog.RunLog.Warnf("delete crt backup [%s] failed: %s", ecf.certName, err.Error())
+		if err = common.DeleteFile(saveBackupPath); err != nil {
+			hwlog.RunLog.Warnf("delete crt backup [%s] failed: %s", ecf.component, err.Error())
 		}
 		return errors.New("set save crt right failed")
 	}
@@ -179,29 +195,28 @@ func (ecf *ExchangeCaFlow) copyCaToCertManager() error {
 func (ecf *ExchangeCaFlow) exportCa() error {
 	hwlog.RunLog.Info("start to export ca")
 
-	srcPath := ecf.pathMgr.ConfigPathMgr.GetApigRootPath()
-	srcBackupPath := srcPath + backuputils.BackupSuffix
-	if !utils.IsExist(srcPath) {
+	srcBackupPath := ecf.srcPath + backuputils.BackupSuffix
+	if !utils.IsExist(ecf.srcPath) {
 		fmt.Println("the root ca has not yet generated, plz start cert manager first")
 		hwlog.RunLog.Errorf("the root ca has not yet generated, plz start cert manager first")
 		return errors.New(util.NotGenCertErrorStr)
 	}
 
-	if err := common.IsSoftLink(srcPath); err != nil {
-		hwlog.RunLog.Errorf("check path [%s] failed: %s, cannot export", srcPath, err.Error())
-		return fmt.Errorf("check path [%s] failed", srcPath)
+	if err := common.IsSoftLink(ecf.srcPath); err != nil {
+		hwlog.RunLog.Errorf("check path [%s] failed: %s, cannot export", ecf.srcPath, err.Error())
+		return fmt.Errorf("check path [%s] failed", ecf.srcPath)
 	}
 
-	if _, err := certutils.GetCertContentWithBackup(srcPath); err != nil {
-		hwlog.RunLog.Errorf("check cert [%s] failed: %s, cannot export", srcPath, err.Error())
-		return fmt.Errorf("check cert [%s] failed", srcPath)
+	if _, err := certutils.GetCertContentWithBackup(ecf.srcPath); err != nil {
+		hwlog.RunLog.Errorf("check cert [%s] failed: %s, cannot export", ecf.srcPath, err.Error())
+		return fmt.Errorf("check cert [%s] failed", ecf.srcPath)
 	}
-	if err := ecf.setDirOwnerAndPermission(srcPath, srcBackupPath); err != nil {
+	if err := ecf.setDirOwnerAndPermission(ecf.srcPath, srcBackupPath); err != nil {
 		hwlog.RunLog.Errorf("reset apig crt file right failed: %s", err.Error())
 		return errors.New("reset apig crt file right failed")
 	}
 
-	if err := utils.CopyFile(srcPath, ecf.exportPath); err != nil {
+	if err := utils.CopyFile(ecf.srcPath, ecf.exportPath); err != nil {
 		hwlog.RunLog.Errorf("export ca failed: %s", err.Error())
 		return errors.New("export ca failed")
 	}

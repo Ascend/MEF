@@ -43,6 +43,9 @@ func prepareCert() error {
 	if err := prepareRootCert(nginxcom.SouthernCertFile, common.WsCltName, "SouthRoot"); err != nil {
 		return err
 	}
+	if err := prepareRootCert(nginxcom.IcsCaPath, common.IcsCertName, "IcsRoot"); err != nil {
+		hwlog.RunLog.Warnf("cannot get icsmanager cert, maybe not import yet")
+	}
 	return nil
 }
 

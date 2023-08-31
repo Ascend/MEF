@@ -21,6 +21,7 @@ type SftUninstallMgr struct {
 func (sum *SftUninstallMgr) DoUninstall() error {
 	var installTasks = []func() error{
 		sum.checkUser,
+		sum.uninstallOptionComponent,
 		sum.ClearNamespace,
 		sum.ClearKubeAuth,
 		sum.ClearAllDockerImages,
@@ -44,6 +45,22 @@ func (sum *SftUninstallMgr) checkUser() error {
 		return err
 	}
 	hwlog.RunLog.Info("check user successful")
+	return nil
+}
+
+func (sum *SftUninstallMgr) uninstallOptionComponent() error {
+	installInfo, err := util.GetInstallInfo()
+	if err != nil {
+		return err
+	}
+	for _, c := range installInfo.OptionComponent {
+		if c == util.IcsManagerName {
+			ics := icsManager{pathMgr: sum.InstallPathMgr, name: util.IcsManagerName, operate: util.UninstallFlag}
+			if err = ics.uninstall(); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 

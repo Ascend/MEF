@@ -23,14 +23,21 @@ type CtlComponent struct {
 	InstallPathMgr WorkPathItf
 }
 
+// OptionComponent is a struct used to do a specific command to a optional single component
+type OptionComponent struct {
+	Name      string
+	Operation string
+	PathMgr   *InstallDirPathMgr
+}
+
 func (cc *CtlComponent) startComponent(yamlPath string) (bool, error) {
 	nsMgr := NewNamespaceMgr(MefNamespace)
 	if err := nsMgr.prepareNameSpace(); err != nil {
 		return false, err
 	}
 
-	status, err := cc.getComponentStatus()
-	if cc.checkIfStatusReady(status) && err == nil {
+	status, err := getComponentStatus(cc.Name)
+	if checkIfStatusReady(status) && err == nil {
 		return true, nil
 	}
 
@@ -64,7 +71,7 @@ func (cc *CtlComponent) stopComponent() error {
 		return nil
 	}
 
-	status, err := cc.getComponentStatus()
+	status, err := getComponentStatus(cc.Name)
 	if err != nil {
 		return err
 	}
@@ -79,7 +86,7 @@ func (cc *CtlComponent) stopComponent() error {
 	return nil
 }
 
-func (cc *CtlComponent) getComponentStatus() (string, error) {
+func getComponentStatus(name string) (string, error) {
 	ret, err := envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "get", "deployment", "-n", MefNamespace)
 
 	NoNamespaceErr := fmt.Sprintf("No resources found in %s namespace.", MefNamespace)
@@ -87,16 +94,16 @@ func (cc *CtlComponent) getComponentStatus() (string, error) {
 		return ret, err
 	}
 	if err != nil {
-		hwlog.RunLog.Warnf("check components %s's status failed: %s", cc.Name, err.Error())
+		hwlog.RunLog.Warnf("check components %s's status failed: %s", name, err.Error())
 		return "", errors.New("check components status failed")
 	}
 
-	deploymentReg := fmt.Sprintf("^%s\\s", AscendPrefix+cc.Name)
+	deploymentReg := fmt.Sprintf("^%s\\s", AscendPrefix+name)
 	lines := strings.Split(ret, "\n")
 	for _, line := range lines {
 		found, err := regexp.MatchString(deploymentReg, line)
 		if err != nil {
-			hwlog.RunLog.Errorf("check components %s's status on reg match failed: %s", cc.Name, err.Error())
+			hwlog.RunLog.Errorf("check components %s's status on reg match failed: %s", name, err.Error())
 			return "", errors.New("check components status failed")
 		}
 		if found {
@@ -126,7 +133,7 @@ func (cc *CtlComponent) setReplicas(num int) error {
 	return nil
 }
 
-func (cc *CtlComponent) checkIfStatusReady(status string) bool {
+func checkIfStatusReady(status string) bool {
 	if !strings.Contains(status, ReadyFlag) {
 		return false
 	}
@@ -135,7 +142,7 @@ func (cc *CtlComponent) checkIfStatusReady(status string) bool {
 
 func (cc *CtlComponent) checkIfComponentReady() error {
 	for i := 0; i < CheckStatusTimes; i++ {
-		status, err := cc.getComponentStatus()
+		status, err := getComponentStatus(cc.Name)
 		if err != nil {
 			time.Sleep(CheckStatusInterval)
 			continue
@@ -147,7 +154,7 @@ func (cc *CtlComponent) checkIfComponentReady() error {
 				continue
 			}
 		}
-		if cc.checkIfStatusReady(status) {
+		if checkIfStatusReady(status) {
 			return nil
 		}
 		time.Sleep(CheckStatusInterval)
@@ -157,13 +164,13 @@ func (cc *CtlComponent) checkIfComponentReady() error {
 }
 
 // CheckStarted is used to check if a single component starts
-func (cc *CtlComponent) CheckStarted() (bool, error) {
-	status, err := cc.getComponentStatus()
+func CheckStarted(name string) (bool, error) {
+	status, err := getComponentStatus(name)
 	if err != nil {
-		hwlog.RunLog.Errorf("get component %s's status failed: %s", cc.Name, err.Error())
-		return false, fmt.Errorf("get component %s's status failed", cc.Name)
+		hwlog.RunLog.Errorf("get component %s's status failed: %s", name, err.Error())
+		return false, fmt.Errorf("get component %s's status failed", name)
 	}
-	if cc.checkIfStatusReady(status) {
+	if checkIfStatusReady(status) {
 		return true, nil
 	}
 	return false, nil
