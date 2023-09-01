@@ -30,11 +30,8 @@ type Router struct {
 }
 
 const (
-	sensitiveInfoWildcard = "***"
-	// minimum substring length to be replaced
-	minimumCommonSubStrLen = 2
-	maxRandomLen           = 10240
-	minSaltLen             = 16
+	maxRandomLen = 10240
+	minSaltLen   = 16
 )
 
 // ClearSliceByteMemory clears slice in memory

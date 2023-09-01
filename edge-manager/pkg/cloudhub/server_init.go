@@ -4,18 +4,22 @@
 package cloudhub
 
 import (
+	"encoding/json"
 	"errors"
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/websocketmgr"
 	"huawei.com/mindx/common/x509/certutils"
 
-	"huawei.com/mindxedge/base/common"
-
 	"edge-manager/pkg/constants"
 	"edge-manager/pkg/logmanager"
+
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/requests"
 )
 
 const (
@@ -54,6 +58,7 @@ func InitServer() error {
 	}
 
 	proxy.AddDefaultHandler()
+	proxy.SetDisconnCallback(clearAlarm)
 	if err = proxy.AddHandler(constants.LogUploadUrl, logmanager.HandleUpload); err != nil {
 		hwlog.RunLog.Error("add handler failed")
 		return errors.New("add handler failed")
@@ -63,7 +68,7 @@ func InitServer() error {
 		hwlog.RunLog.Errorf("proxy.Start failed: %v", err)
 		return errors.New("proxy.Start failed")
 	}
-	hwlog.RunLog.Infof("cloudhub server start success")
+	hwlog.RunLog.Info("cloudhub server start success")
 	initFlag = true
 	return nil
 }
@@ -89,4 +94,44 @@ func GetSvrSender() (websocketmgr.WsSvrSender, error) {
 		}
 	}
 	return serverSender, nil
+}
+
+func clearAlarm(sn string) {
+	msg, err := model.NewMessage()
+	if err != nil {
+		hwlog.RunLog.Errorf("create new msg failed: %s", err.Error())
+		return
+	}
+
+	clearStruct := requests.ClearNodeAlarmReq{
+		Sn: sn,
+	}
+	clearMsg, err := json.Marshal(clearStruct)
+	if err != nil {
+		hwlog.RunLog.Errorf("marshal msg to alarm manager failed: %s", err.Error())
+		return
+	}
+	msg.FillContent(string(clearMsg))
+	msg.SetNodeId(common.AlarmManagerClientName)
+	msg.SetRouter(common.CloudHubName, common.InnerServerName, common.Delete, requests.ClearOneNodeAlarmRouter)
+
+	const (
+		clearWaitTime = 60 * time.Second
+		maxRetryTimes = 20
+	)
+
+	for i := 0; i < maxRetryTimes; i++ {
+		ret, err := modulemgr.SendSyncMessage(msg, common.ResponseTimeout)
+		if err != nil {
+			hwlog.RunLog.Errorf("send clear node alarm msg to alarm-manager failed: %s", err.Error())
+			return
+		}
+
+		if content, ok := ret.GetContent().(string); !ok || content != common.OK {
+			hwlog.RunLog.Warnf("clear node: %s alarm failed", sn)
+			time.Sleep(clearWaitTime)
+			continue
+		}
+		break
+	}
 }
