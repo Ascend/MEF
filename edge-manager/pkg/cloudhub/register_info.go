@@ -7,7 +7,9 @@ import (
 	"huawei.com/mindx/common/websocketmgr"
 
 	"edge-manager/pkg/constants"
+
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/requests"
 )
 
 var regInfoList = []websocketmgr.RegisterModuleInfo{
@@ -18,6 +20,7 @@ var regInfoList = []websocketmgr.RegisterModuleInfo{
 	{MsgOpt: common.OptPost, MsgRes: common.ResEdgeCert, ModuleName: common.CloudHubName},
 	{MsgOpt: common.OptGet, MsgRes: common.CertWillOverdue, ModuleName: common.CloudHubName},
 	{MsgOpt: common.Delete, MsgRes: common.DeleteNodeMsg, ModuleName: common.NodeManagerName},
+	{MsgOpt: common.OptPost, MsgRes: requests.ReportAlarmRouter, ModuleName: common.AlarmManagerName},
 	{MsgOpt: common.OptReport, MsgRes: constants.ResLogDumpError, ModuleName: constants.LogManagerName},
 }
 

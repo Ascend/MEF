@@ -115,6 +115,10 @@ spec:
       port: 10000
       targetPort: 10000
       protocol: TCP
+    - name: inner-ws-port
+      port: 20000
+      targetPort: 20000
+      protocol: TCP
   selector:
     app: ascend-edge-manager
   type: ClusterIP

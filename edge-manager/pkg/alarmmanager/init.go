@@ -1,0 +1,90 @@
+// Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
+
+// Package alarmmanager to init config manager
+package alarmmanager
+
+import (
+	"context"
+	"encoding/json"
+
+	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/requests"
+)
+
+type alarmManager struct {
+	enable bool
+	ctx    context.Context
+}
+
+// NewAlarmManager create config manager
+func NewAlarmManager(enable bool) model.Module {
+	im := &alarmManager{
+		enable: enable,
+		ctx:    context.Background(),
+	}
+	return im
+}
+
+func (am *alarmManager) Name() string {
+	return common.AlarmManagerName
+}
+
+func (am *alarmManager) Enable() bool {
+	return am.enable
+}
+
+func (am *alarmManager) Start() {
+	for {
+		select {
+		case _, ok := <-am.ctx.Done():
+			if !ok {
+				hwlog.RunLog.Info("catch stop signal channel is closed")
+			}
+			hwlog.RunLog.Info("has listened stop signal")
+			return
+		default:
+		}
+
+		req, err := modulemgr.ReceiveMessage(am.Name())
+		if err != nil {
+			hwlog.RunLog.Errorf("%s receive request from restful service failed", am.Name())
+			continue
+		}
+
+		go am.forwardMsgToAlarmManager(req)
+	}
+}
+
+func (am *alarmManager) forwardMsgToAlarmManager(msg *model.Message) {
+	sn := msg.GetNodeId()
+
+	content, ok := msg.GetContent().(string)
+	if !ok {
+		hwlog.RunLog.Error("add alarm receive invalid param type")
+		return
+	}
+
+	var alarmReq requests.AddAlarmReq
+	err := json.Unmarshal([]byte(content), &alarmReq)
+	if err != nil {
+		hwlog.RunLog.Errorf("unmarshal alarm req failed: %s", err.Error())
+		return
+	}
+
+	alarmReq.Sn = sn
+	updatedContent, err := json.Marshal(alarmReq)
+	if err != nil {
+		hwlog.RunLog.Errorf("marshal alarm req failed: %s", err.Error())
+		return
+	}
+
+	msg.FillContent(string(updatedContent))
+	msg.SetNodeId(common.AlarmManagerClientName)
+	msg.Router.Destination = common.InnerServerName
+	if err := modulemgr.SendAsyncMessage(msg); err != nil {
+		hwlog.RunLog.Errorf("send msg to inner server failed: %s", err.Error())
+	}
+}
