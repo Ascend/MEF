@@ -4,9 +4,11 @@ package util
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 
+	"huawei.com/mindx/common/database"
 	"huawei.com/mindx/common/hwlog"
 
 	"huawei.com/mindxedge/base/common"
@@ -79,5 +81,30 @@ func (cm *ConfigMgr) prepareComponentsConfig() error {
 		}
 	}
 
+	return nil
+}
+
+// InitAndSetAlarmCfgTable init and set alarm config
+func InitAndSetAlarmCfgTable(configDir string) error {
+	if err := database.CreateTableIfNotExist(common.AlarmConfig{}); err != nil {
+		hwlog.RunLog.Errorf("create alarm config table failed, error: %v", err)
+		return errors.New("create alarm config table failed")
+	}
+
+	dbMgr := common.NewDbMgr(configDir, AlarmConfigDB)
+	hasModified := GetBoolPointer(false)
+	var alarmConfigs = []common.AlarmConfig{
+		{CertCheckPeriodDB, DefaultCheckPeriod, hasModified},
+		{CertOverdueThresholdDB, DefaultOverdueThreshold, hasModified},
+	}
+
+	for _, cfg := range alarmConfigs {
+		if err := dbMgr.SetAlarmConfig(&cfg); err != nil {
+			hwlog.RunLog.Errorf("set alarm config %s failed, error: %v", cfg.ConfigName, err)
+			return fmt.Errorf("set alarm config failed, error: %v", err)
+		}
+	}
+
+	hwlog.RunLog.Info("set alarm config success")
 	return nil
 }

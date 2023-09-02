@@ -5,11 +5,15 @@ package control
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 
+	"huawei.com/mindx/common/database"
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/x509/certutils"
+
+	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
@@ -70,8 +74,8 @@ func (usm *upgradeSmoothMgr) smoothAlarmManager() error {
 }
 
 func (usm *upgradeSmoothMgr) smoothSingleComponentConfig(component string) error {
-	alarmConfigPath := usm.installPathMgr.ConfigPathMgr.GetComponentConfigPath(component)
-	if !fileutils.IsExist(alarmConfigPath) {
+	configPath := usm.installPathMgr.ConfigPathMgr.GetComponentConfigPath(component)
+	if !fileutils.IsExist(configPath) {
 		componentMgr := util.GetComponentMgr(component)
 		if err := componentMgr.PrepareComponentCertDir(usm.installPathMgr.GetConfigPath()); err != nil {
 			return fmt.Errorf("prepare %s's cert dir failed: %s", component, err.Error())
@@ -93,10 +97,60 @@ func (usm *upgradeSmoothMgr) smoothSingleComponentConfig(component string) error
 		}
 	}
 
-	if err := usm.setSingleOwner(alarmConfigPath); err != nil {
+	if err := setSingleOwner(configPath); err != nil {
 		return err
 	}
 
+	dealFunc, ok := postSmoothFuncMap[component]
+	if ok {
+		return dealFunc(usm.installPathMgr)
+	}
+	return nil
+}
+
+type postSmoothFunc func(installPathMgr *util.InstallDirPathMgr) error
+
+var postSmoothFuncMap = map[string]postSmoothFunc{
+	util.AlarmManagerName: postSmoothAlarmManager,
+}
+
+func postSmoothAlarmManager(installPathMgr *util.InstallDirPathMgr) error {
+	defer func() {
+		if err := util.ResetCfgPathPermAfterReducePriv(installPathMgr); err != nil {
+			hwlog.RunLog.Errorf("reset config path permission after reducing privilege failed, error: %v", err)
+		}
+	}()
+	if err := util.SetCfgPathPermAndReducePriv(installPathMgr); err != nil {
+		return err
+	}
+
+	configDir := installPathMgr.GetConfigPath()
+	alarmConfigDir := filepath.Join(configDir, util.AlarmManagerName)
+	alarmDbMgr := common.NewDbMgr(alarmConfigDir, util.AlarmConfigDB)
+	alarmDbPath := filepath.Join(alarmConfigDir, util.AlarmConfigDB)
+	if fileutils.IsExist(alarmDbPath) {
+		if err := alarmDbMgr.InitDB(); err != nil {
+			return errors.New("init alarm manager database failed")
+		}
+
+		if err := database.CreateTableIfNotExist(common.AlarmConfig{}); err != nil {
+			hwlog.RunLog.Errorf("create alarm config table failed, error: %v", err)
+			return errors.New("create alarm config table failed")
+		}
+		return nil
+	}
+
+	if err := alarmDbMgr.InitDB(); err != nil {
+		return errors.New("init alarm manager database failed")
+	}
+	if err := util.InitAndSetAlarmCfgTable(alarmConfigDir); err != nil {
+		hwlog.RunLog.Errorf("init and set alarm config to table failed, error: %v", err)
+		return errors.New("init and set alarm config to table failed")
+	}
+	if err := setSingleOwner(alarmDbPath); err != nil {
+		hwlog.RunLog.Errorf("set alarm db owner failed, error: %v", err)
+		return errors.New("set alarm db owner failed")
+	}
 	return nil
 }
 
@@ -119,18 +173,18 @@ func (usm *upgradeSmoothMgr) smoothSingleComponentLog(component string) error {
 		hwlog.RunLog.Infof("create component %s's log back up dir success", component)
 	}
 
-	if err := usm.setSingleOwner(alarmLogPath); err != nil {
+	if err := setSingleOwner(alarmLogPath); err != nil {
 		return err
 	}
 
-	if err := usm.setSingleOwner(alarmLogBackPath); err != nil {
+	if err := setSingleOwner(alarmLogBackPath); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (usm *upgradeSmoothMgr) setSingleOwner(path string) error {
+func setSingleOwner(path string) error {
 	mefUid, mefGid, err := util.GetMefId()
 	if err != nil {
 		hwlog.RunLog.Errorf("get mef uid or gid failed: %s", err.Error())

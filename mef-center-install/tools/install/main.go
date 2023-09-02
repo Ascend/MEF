@@ -48,16 +48,6 @@ func setFlag() {
 	flag.StringVar(&installPath, util.InstallPathFlag, "/usr/local", "The path used to install")
 }
 
-func isFlagSet(name string) bool {
-	found := false
-	flag.Visit(func(f *flag.Flag) {
-		if f.Name == name {
-			found = true
-		}
-	})
-	return found
-}
-
 func doInstall() error {
 	fullComponents := util.GetCompulsorySlice()
 	installCtlIns := install.GetSftInstallMgrIns(fullComponents, installPath, logRootPath, logBackupRootPath)
