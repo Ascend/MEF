@@ -9,6 +9,7 @@ import (
 	"path"
 	"path/filepath"
 
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/utils"
@@ -309,6 +310,38 @@ func (c *ComponentMgr) PrepareComponentConfig(pathMgr *ConfigPathMgr) error {
 	if err = common.CopyDir(configPath, filesDst, false); err != nil {
 		hwlog.RunLog.Errorf("copy %s's config failed: %s", c.name, err.Error())
 		return fmt.Errorf("copy component config failed")
+	}
+
+	dealFunc, ok := postDealFuncMap[c.name]
+	if ok {
+		return dealFunc(pathMgr)
+	}
+	return nil
+}
+
+type postDealFunc func(pathMgr *ConfigPathMgr) error
+
+var postDealFuncMap = map[string]postDealFunc{
+	AlarmManagerName: postAlarmManager,
+}
+
+func postAlarmManager(pathMgr *ConfigPathMgr) error {
+	alarmConfigDir := pathMgr.GetComponentConfigPath(AlarmManagerName)
+	if !utils.IsExist(alarmConfigDir) {
+		if err := fileutils.MakeSureDir(alarmConfigDir); err != nil {
+			hwlog.RunLog.Errorf("make sure alarm config dir failed, error: %v", err)
+			return errors.New("make sure alarm config dir failed")
+		}
+	}
+
+	alarmDbMgr := common.NewDbMgr(alarmConfigDir, AlarmConfigDB)
+	if err := alarmDbMgr.InitDB(); err != nil {
+		return errors.New("init alarm manager database failed")
+	}
+
+	if err := InitAndSetAlarmCfgTable(alarmConfigDir); err != nil {
+		hwlog.RunLog.Errorf("init and set alarm config to table failed, error: %v", err)
+		return errors.New("init and set alarm config to table failed")
 	}
 
 	return nil

@@ -167,11 +167,13 @@ const (
 
 // constant for mef control bin
 const (
-	UninstallFlag  = "uninstall"
-	UpgradeFlag    = "upgrade"
-	ExchangeCaFlag = "exchangeca"
-	UpdateKmcFlag  = "updatekmc"
-	ImportCrlFlag  = "importcrl"
+	UninstallFlag   = "uninstall"
+	UpgradeFlag     = "upgrade"
+	ExchangeCaFlag  = "exchangeca"
+	UpdateKmcFlag   = "updatekmc"
+	ImportCrlFlag   = "importcrl"
+	AlarmCfgFlag    = "alarmconfig"
+	GetAlarmCfgFlag = "getalarmconfig"
 
 	StartOperateFlag   = "start"
 	StopOperateFlag    = "stop"
@@ -254,4 +256,16 @@ const (
 const (
 	CrlOnDeviceDir  = "/etc/hwsipcrl"
 	CrlOnDeviceName = "ascendsip.crl"
+)
+
+// const for alarm config
+const (
+	AlarmConfigDB           = "alarm-manager.db"
+	CertCheckPeriodDB       = "cert_check_period"
+	CertOverdueThresholdDB  = "cert_overdue_threshold"
+	DefaultCheckPeriod      = 7
+	MinCheckPeriod          = 1
+	DefaultOverdueThreshold = 90
+	MinOverdueThreshold     = 7
+	MaxOverdueThreshold     = 180
 )

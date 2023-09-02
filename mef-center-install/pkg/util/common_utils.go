@@ -10,8 +10,13 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"syscall"
 
 	"huawei.com/mindx/common/envutils"
+	"huawei.com/mindx/common/fileutils"
+	"huawei.com/mindx/common/hwlog"
+
+	"huawei.com/mindxedge/base/common"
 )
 
 // GetArch is used to get the arch info
@@ -113,6 +118,65 @@ func CheckCurrentPath(linkPath string) error {
 	if filepath.Dir(curAbsPath) != workingAbsPath {
 		fmt.Println("the existing dir is not the MEF working dir, cannot execute any command here")
 		return fmt.Errorf("current sh path is not in the working path")
+	}
+
+	return nil
+}
+
+// GetBoolPointer get pointer based on bool value
+// If the query or update value is 0 in db, the query or update fails. Use the pointer can solve the problem.
+func GetBoolPointer(value bool) *bool {
+	pointer := new(bool)
+	*pointer = value
+	return pointer
+}
+
+// SetCfgPathPermAndReducePriv set MEF-Center and mef-config dir permission and reduce privilege
+func SetCfgPathPermAndReducePriv(installPathMgr *InstallDirPathMgr) error {
+	configDir := installPathMgr.GetConfigPath()
+	if err := fileutils.SetParentPathPermission(configDir, common.Mode755); err != nil {
+		hwlog.RunLog.Errorf("set config dir and parent dir permission failed, error: %v", err)
+		return errors.New("set config dir and parent dir permission failed")
+	}
+
+	mefUid, mefGid, err := GetMefId()
+	if err != nil {
+		hwlog.RunLog.Errorf("get mef uid and gid failed, error: %v", err)
+		return errors.New("get mef uid and gid failed")
+	}
+	if err = syscall.Setegid(int(mefGid)); err != nil {
+		hwlog.RunLog.Errorf("set egid failed, error: %v", err)
+		return errors.New("set egid failed")
+	}
+	if err = syscall.Seteuid(int(mefUid)); err != nil {
+		hwlog.RunLog.Errorf("set euid failed, error: %v", err)
+		return errors.New("set euid failed")
+	}
+
+	return nil
+}
+
+// ResetCfgPathPermAfterReducePriv reset privilege and reset MEF-Center and mef-config dir permission
+func ResetCfgPathPermAfterReducePriv(installPathMgr *InstallDirPathMgr) error {
+	if err := syscall.Setegid(RootGid); err != nil {
+		hwlog.RunLog.Errorf("set egid failed, error: %v", err)
+		return errors.New("set egid failed")
+	}
+	if err := syscall.Seteuid(RootUid); err != nil {
+		hwlog.RunLog.Errorf("set euid failed, error: %v", err)
+		return errors.New("set euid failed")
+	}
+
+	configDir := installPathMgr.GetConfigPath()
+	if err := fileutils.SetPathPermission(configDir, common.Mode700, false, false); err != nil {
+		hwlog.RunLog.Errorf("set config dir permission failed, error: %v", err)
+		return errors.New("set config dir permission failed")
+	}
+
+	mefCenterDir := installPathMgr.GetMefPath()
+	if err := fileutils.SetPathPermission(mefCenterDir, common.Mode700, false, false); err != nil {
+		hwlog.RunLog.Errorf("set mef center dir permission failed, error: %v", err)
+		return errors.New("set mef center dir permission failed")
 	}
 
 	return nil

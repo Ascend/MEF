@@ -439,14 +439,16 @@ Options:
 	-version	Print version information
 
 Commands:
-	start       -- start all or a component
-	stop        -- stop all or a component
-	restart     -- restart all or a component
-	uninstall   -- uninstall MEF Center
-	upgrade     -- upgrade MEF Center
-	exchangeca  -- exchange root ca with MEF Center
-	updatekmc   -- update kmc keys
-	importcrl   -- improt crl from the Northbound ca
+	start       	-- start all or a component
+	stop        	-- stop all or a component
+	restart     	-- restart all or a component
+	uninstall   	-- uninstall MEF Center
+	upgrade     	-- upgrade MEF Center
+	exchangeca  	-- exchange root ca with MEF Center
+	updatekmc   	-- update kmc keys
+	importcrl   	-- improt crl from the Northbound ca
+	alarmconfig 	-- update alarm used configuration 
+	getalarmconfig  -- get alarm used configuration
 `)
 }
 
@@ -543,7 +545,7 @@ func initLog(installParam *util.InstallParamJsonTemplate) error {
 		return fmt.Errorf("check log backup path %s failed:%s", logBackupPath, err.Error())
 	}
 
-	if err := util.InitLogPath(logPath, logBackupPath); err != nil {
+	if err = util.InitLogPath(logPath, logBackupPath); err != nil {
 		return fmt.Errorf("init log path %s failed:%s", logPath, err.Error())
 	}
 	return nil
@@ -559,5 +561,7 @@ func getOperateMap(operate string) map[string]controller {
 		util.ExchangeCaFlag:     &exchangeCertsController{operate: operate},
 		util.UpdateKmcFlag:      &updateKmcController{operate: operate},
 		util.ImportCrlFlag:      &importCrlController{operate: operate},
+		util.AlarmCfgFlag:       &alarmCfgController{operate: operate},
+		util.GetAlarmCfgFlag:    &getAlarmCfgController{operate: operate},
 	}
 }
