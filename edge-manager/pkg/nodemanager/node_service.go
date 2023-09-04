@@ -493,11 +493,15 @@ func addUnManagedNode(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("add unmanaged node validate parameters error, %s", checkResult.Reason)
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
 	}
-
 	checker := specificationChecker{nodeService: NodeServiceInstance()}
 	if err := checker.checkAddNodeToGroup([]uint64{*req.NodeID}, req.GroupIDs); err != nil {
 		hwlog.RunLog.Errorf("add unmanaged node to group check spec error: %s", err.Error())
 		return common.RespMsg{Status: common.ErrorCheckNodeMrgSize, Msg: err.Error()}
+	}
+	err := NodeServiceInstance().checkNodeManagedStatus(*req.NodeID, unmanaged)
+	if err != nil {
+		hwlog.RunLog.Error(err.Error())
+		return common.RespMsg{Status: common.ErrorAddUnManagedNode, Msg: err.Error(), Data: nil}
 	}
 	updatedColumns := map[string]interface{}{
 		"NodeName":    req.NodeName,
@@ -509,6 +513,16 @@ func addUnManagedNode(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("add unmanaged node error")
 		return common.RespMsg{Status: common.ErrorAddUnManagedNode, Msg: "add node to mef system error", Data: nil}
 	}
+	addNodeRes := addNodeToGroups(req)
+	if len(addNodeRes.FailedInfos) != 0 {
+		return common.RespMsg{Status: common.ErrorAddUnManagedNode,
+			Msg: "add node to mef success, but node cannot join some group", Data: addNodeRes}
+	}
+	hwlog.RunLog.Info("add unmanaged node success")
+	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
+}
+
+func addNodeToGroups(req AddUnManagedNodeReq) types.BatchResp {
 	var addNodeRes types.BatchResp
 	failedMap := make(map[string]string)
 	addNodeRes.FailedInfos = failedMap
@@ -521,12 +535,7 @@ func addUnManagedNode(input interface{}) common.RespMsg {
 		}
 		addNodeRes.SuccessIDs = append(addNodeRes.SuccessIDs, id)
 	}
-	if len(addNodeRes.FailedInfos) != 0 {
-		return common.RespMsg{Status: common.ErrorAddUnManagedNode,
-			Msg: "add node to mef success, but node cannot join some group", Data: addNodeRes}
-	}
-	hwlog.RunLog.Info("add unmanaged node success")
-	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
+	return addNodeRes
 }
 
 func evalIpAddress(node *v1.Node) string {
