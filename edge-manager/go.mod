@@ -10,6 +10,7 @@ require (
 	gorm.io/gorm v1.22.3
 	huawei.com/mindx/common/checker v0.0.3
 	huawei.com/mindx/common/database v0.0.2
+	huawei.com/mindx/common/envutils v0.0.4
 	huawei.com/mindx/common/fileutils v0.0.1
 	huawei.com/mindx/common/httpsmgr v0.0.2
 	huawei.com/mindx/common/hwlog v0.10.5
@@ -27,7 +28,7 @@ require (
 
 replace (
 	huawei.com/mindx/common/cache => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/cache v0.0.2
-	huawei.com/mindx/common/checker => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/checker v0.0.3
+	huawei.com/mindx/common/checker => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/checker v0.0.5
 	huawei.com/mindx/common/database => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/database v0.0.2
 	huawei.com/mindx/common/envutils => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/envutils v0.0.8
 	huawei.com/mindx/common/fileutils => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/fileutils v0.0.1

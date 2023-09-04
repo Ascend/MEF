@@ -51,3 +51,11 @@ const (
 	// LogManagerName LogManagerName
 	LogManagerName = "LogManager"
 )
+
+// const for query interface
+const (
+	IdKey       = "id"
+	SnKey       = "sn"
+	KeySymbol   = "key"
+	ValueSymbol = "value"
+)

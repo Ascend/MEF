@@ -29,12 +29,13 @@ type NodeInfo struct {
 
 // AlarmBriefInfo the simple information for respond to User
 type AlarmBriefInfo struct {
-	ID        uint64    `json:"ID"`
-	Sn        string    `json:"SerialNumber"`
-	Severity  string    `json:"Severity"`
-	Resource  string    `json:"Resource"`
-	CreatedAt time.Time `json:"CreateAt"`
-	AlarmType string    `json:"AlarmType"`
+	ID        uint64    `json:"id"`
+	Sn        string    `json:"serialNumber"`
+	Ip        string    `json:"ip"`
+	Severity  string    `json:"severity"`
+	Resource  string    `json:"resource"`
+	CreatedAt time.Time `json:"createAt"`
+	AlarmType string    `json:"alarmType"`
 }
 
 func (dig AlarmBriefInfo) String() string {

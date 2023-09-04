@@ -15,6 +15,7 @@ import (
 	"huawei.com/mindx/common/modulemgr/model"
 
 	"edge-manager/pkg/constants"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -160,4 +161,5 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(common.Inner, common.UpdateResource):      innerUpdateNodeGroupResReq,
 	common.Combine(common.Inner, common.NodeList):            innerAllNodeInfos,
 	common.Combine(common.Inner, common.NodeID):              innerGetNodesByNodeGroupID,
+	common.Combine(common.Get, common.GetIpBySn):             innerGetIpBySn,
 }

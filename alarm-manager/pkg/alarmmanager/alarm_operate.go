@@ -25,11 +25,29 @@ func dealAlarmReq(input interface{}) (interface{}, error) {
 		return nil, errors.New("param convert failed")
 	}
 
-	snChecker := checker.GetRegChecker("", `^[a-zA-Z0-9]?([-_a-zA-Z0-9]{0,62}[a-zA-Z0-9])?$`, true)
+	snChecker := checker.GetOrChecker(
+		checker.GetSnChecker("", true),
+		checker.GetStringChoiceChecker("", []string{CenterSn}, true),
+	)
 	ret := snChecker.Check(reqs.Sn)
 	if !ret.Result {
 		hwlog.RunLog.Error("deaL alarm para check failed: unsupported serial number received")
 		return nil, errors.New("deal alarm para check failed")
+	}
+
+	ipChecker := checker.GetOrChecker(
+		checker.GetIpV4Checker("", true),
+		checker.GetStringChoiceChecker("", []string{CenterIp}, true),
+	)
+	ret = ipChecker.Check(reqs.Ip)
+	if !ret.Result {
+		hwlog.RunLog.Error("deaL alarm para check failed: unsupported Ip received")
+		return nil, errors.New("deal alarm para check failed")
+	}
+
+	if len(reqs.Alarms) > maxOneNodeAlarmCount {
+		hwlog.RunLog.Errorf("alarms request exceeds the max count limitation")
+		return nil, errors.New("alarm request exceeds the max count limitation")
 	}
 
 	for _, req := range reqs.Alarms {
@@ -38,7 +56,7 @@ func dealAlarmReq(input interface{}) (interface{}, error) {
 			return nil, errors.New("deal alarm para check failed")
 		}
 
-		dealer := GetAlarmReqDealer(&req, reqs.Sn)
+		dealer := GetAlarmReqDealer(&req, reqs.Sn, reqs.Ip)
 		if err := dealer.deal(); err != nil {
 			hwlog.RunLog.Errorf("deal alarm req failed: %s", err.Error())
 			return nil, errors.New("deal alarm req failed")
@@ -52,13 +70,15 @@ func dealAlarmReq(input interface{}) (interface{}, error) {
 type AlarmReqDealer struct {
 	req *requests.AlarmReq
 	sn  string
+	ip  string
 }
 
 // GetAlarmReqDealer is the func to create an AlarmReqDealer
-func GetAlarmReqDealer(req *requests.AlarmReq, sn string) *AlarmReqDealer {
+func GetAlarmReqDealer(req *requests.AlarmReq, sn string, ip string) *AlarmReqDealer {
 	return &AlarmReqDealer{
 		req: req,
 		sn:  sn,
+		ip:  ip,
 	}
 }
 
@@ -83,6 +103,7 @@ func (ard *AlarmReqDealer) getAlarmInfo() (*AlarmInfo, error) {
 		AlarmType:           ard.req.Type,
 		CreatedAt:           parsedTime,
 		SerialNumber:        ard.sn,
+		Ip:                  ard.ip,
 		AlarmId:             ard.req.AlarmId,
 		AlarmName:           ard.req.AlarmName,
 		PerceivedSeverity:   ard.req.PerceivedSeverity,

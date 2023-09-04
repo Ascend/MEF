@@ -6,6 +6,8 @@ package alarmmanager
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"time"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
@@ -74,7 +76,13 @@ func (am *alarmManager) forwardMsgToAlarmManager(msg *model.Message) {
 		return
 	}
 
+	ip, err := am.getIpBySn(sn)
+	if err != nil {
+		return
+	}
+
 	alarmReq.Sn = sn
+	alarmReq.Ip = ip
 	updatedContent, err := json.Marshal(alarmReq)
 	if err != nil {
 		hwlog.RunLog.Errorf("marshal alarm req failed: %s", err.Error())
@@ -87,4 +95,28 @@ func (am *alarmManager) forwardMsgToAlarmManager(msg *model.Message) {
 	if err := modulemgr.SendAsyncMessage(msg); err != nil {
 		hwlog.RunLog.Errorf("send msg to inner server failed: %s", err.Error())
 	}
+}
+
+func (am *alarmManager) getIpBySn(sn string) (string, error) {
+	const waitTime = 10 * time.Second
+
+	router := common.Router{
+		Source:      common.AlarmManagerName,
+		Destination: common.NodeManagerName,
+		Option:      common.Get,
+		Resource:    common.GetIpBySn,
+	}
+	resp := common.SendSyncMessageByRestful(sn, &router, waitTime)
+	if resp.Status != common.Success {
+		hwlog.RunLog.Errorf("send msg to node manager failed: %s", resp.Msg)
+		return "", errors.New("send msg to node manager failed")
+	}
+
+	ip, ok := resp.Data.(string)
+	if !ok {
+		hwlog.RunLog.Errorf("unsupported type of ip received")
+		return "", errors.New("unsupported type of ip received")
+	}
+
+	return ip, nil
 }

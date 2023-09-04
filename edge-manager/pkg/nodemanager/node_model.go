@@ -12,6 +12,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 
 	"edge-manager/pkg/kubeclient"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -39,6 +40,7 @@ type NodeService interface {
 	getNodeByUniqueName(string) (*NodeInfo, error)
 	getNodeInfoBySerialNumber(string) (*NodeInfo, error)
 	getNodeByID(uint64) (*NodeInfo, error)
+	getNodeBySn(string) (*NodeInfo, error)
 	getManagedNodeByID(uint64) (*NodeInfo, error)
 	countGroupsByNode(uint64) (int64, error)
 	getGroupsByNodeID(uint64) (*[]NodeGroup, error)
@@ -180,6 +182,11 @@ func (n *NodeServiceImpl) getNodeGroupByID(groupID uint64) (*NodeGroup, error) {
 func (n *NodeServiceImpl) getNodeByID(nodeID uint64) (*NodeInfo, error) {
 	var node NodeInfo
 	return &node, n.db.Model(NodeInfo{}).Where("id = ?", nodeID).First(&node).Error
+}
+
+func (n *NodeServiceImpl) getNodeBySn(sn string) (*NodeInfo, error) {
+	var node NodeInfo
+	return &node, n.db.Model(NodeInfo{}).Where("serial_number = ?", sn).First(&node).Error
 }
 
 func getNodeByLikeName(page, pageSize uint64, nodeName string) func(db *gorm.DB) *gorm.DB {
