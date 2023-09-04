@@ -42,6 +42,7 @@ type NodeService interface {
 	getManagedNodeByID(uint64) (*NodeInfo, error)
 	countGroupsByNode(uint64) (int64, error)
 	getGroupsByNodeID(uint64) (*[]NodeGroup, error)
+	checkNodeManagedStatus(uint64, int) error
 
 	createNodeGroup(*NodeGroup) error
 	getNodeGroupsByName(uint64, uint64, string) (*[]NodeGroup, error)
@@ -200,6 +201,19 @@ func (n *NodeServiceImpl) updateNode(id uint64, isManaged int, columns map[strin
 		Where("`id` = ? and `is_managed` = ? and `ip` != ''", id, isManaged).
 		UpdateColumns(columns)
 	return stmt.RowsAffected, stmt.Error
+}
+
+func (n *NodeServiceImpl) checkNodeManagedStatus(nodeId uint64, expected int) error {
+	expectedStatus := expected == managed
+	var node NodeInfo
+	if err := n.db.Model(NodeInfo{}).Where("id = ?", nodeId).First(&node).Error; err != nil {
+		return fmt.Errorf("failed to get node info from db")
+	}
+	statusMap := map[int]string{managed: "managed", unmanaged: "unmanaged"}
+	if node.IsManaged != expectedStatus {
+		return fmt.Errorf("node is not %s", statusMap[expected])
+	}
+	return nil
 }
 
 // UpdateGroup update group
