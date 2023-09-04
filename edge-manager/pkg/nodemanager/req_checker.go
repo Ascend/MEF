@@ -31,7 +31,7 @@ func newCreateEdgeNodeChecker() *checker.AndChecker {
 	)
 }
 
-func newGetNodeDetailChecker() *checker.UintChecker {
+func newGetNodeDetailIdChecker() *checker.UintChecker {
 	return idChecker("")
 }
 

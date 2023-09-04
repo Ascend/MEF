@@ -20,8 +20,8 @@ func NewDealAlarmChecker() *DealAlarmChecker {
 
 func (dac *DealAlarmChecker) init() {
 	alarmIdReg := "^0x0[0-9a-f]{7}$"
-	alarmNameReg := "[a-z0-9A-Z- _]{1,64}"
-	resourceReg := "[a-z0-9A-Z- _]{1,256}"
+	alarmNameReg := "^[a-z0-9A-Z- _]{0,64}$"
+	resourceReg := "^[a-z0-9A-Z- _]{0,256}$"
 	const (
 		detailedInformationLength = 256
 		suggestionLength          = 512
@@ -34,9 +34,9 @@ func (dac *DealAlarmChecker) init() {
 		checker.GetRegChecker("AlarmId", alarmIdReg, true),
 		checker.GetRegChecker("AlarmName", alarmNameReg, false),
 		checker.GetRegChecker("Resource", resourceReg, true),
-		checker.GetStringChoiceChecker("PerceivedSeverity", []string{MajorSeverity, MinorSeverity, CriticalSeverity},
-			true),
-		checker.GetStringChoiceChecker("NotificationType", []string{ClearFlag, AlarmFlag}, false),
+		checker.GetStringChoiceChecker("PerceivedSeverity",
+			[]string{MajorSeverity, MinorSeverity, CriticalSeverity, OkSeverity}, true),
+		checker.GetStringChoiceChecker("NotificationType", []string{ClearFlag, AlarmFlag, EventFlag}, false),
 		checker.GetStringLengthChecker("DetailedInformationLength", minLength, detailedInformationLength, false),
 		checker.GetStringLengthChecker("Suggestion", minLength, suggestionLength, false),
 		checker.GetStringLengthChecker("Reason", minLength, reasonLength, false),

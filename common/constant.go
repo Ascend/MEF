@@ -101,6 +101,8 @@ const (
 	NodeList = "nodeList"
 	// NodeID resource get node id by group id
 	NodeID = "nodeID"
+	// GetIpBySn is the route for inner msg that sent to nodemanager to get the node info by sn
+	GetIpBySn = "/inner/v1/getIpBySn"
 
 	// ResponseTimeout response timeout time
 	ResponseTimeout = 30 * time.Second

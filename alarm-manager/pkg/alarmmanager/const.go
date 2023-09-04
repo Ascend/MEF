@@ -14,11 +14,14 @@ const (
 	MinorSeverity    = "MINOR"
 	MajorSeverity    = "MAJOR"
 	CriticalSeverity = "CRITICAL"
+	OkSeverity       = "OK"
 	ClearFlag        = "clear"
 	AlarmFlag        = "alarm"
+	EventFlag        = ""
 	AlarmType        = "alarm"
 	EventType        = "event"
 	CenterSn         = ""
+	CenterIp         = ""
 )
 
 // consts for alarm manager module

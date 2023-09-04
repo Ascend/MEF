@@ -14,12 +14,14 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 
+	"edge-manager/pkg/constants"
 	"edge-manager/pkg/types"
 	"edge-manager/pkg/util"
 
@@ -30,48 +32,123 @@ var (
 	nodeNotFoundPattern = regexp.MustCompile(`nodes "([^"]+)" not found`)
 )
 
-const groupLabelLen = 4
-
 func getNodeDetail(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start get node detail")
-	id, ok := input.(uint64)
+	req, ok := input.(map[string]interface{})
 	if !ok {
 		hwlog.RunLog.Error("query node detail failed: para type not valid")
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "query node detail convert param failed"}
 	}
-	if checkResult := newGetNodeDetailChecker().Check(id); !checkResult.Result {
+
+	var handleFunc = map[string]func(interface{}) common.RespMsg{
+		constants.IdKey: getNodeDetailById,
+		constants.SnKey: getNodeDetailBySn,
+	}
+
+	identifier, ok := req[constants.KeySymbol]
+	if !ok {
+		hwlog.RunLog.Error("received unsupported key")
+		return common.RespMsg{Status: common.ErrorGetNode, Msg: "unsupported msg key received", Data: nil}
+	}
+
+	strIdentifier, ok := identifier.(string)
+	if !ok {
+		hwlog.RunLog.Error("received identifier type is not string")
+		return common.RespMsg{Status: common.ErrorGetNode, Msg: "received identifier type is not string", Data: nil}
+	}
+
+	dealer, ok := handleFunc[strIdentifier]
+	if !ok {
+		hwlog.RunLog.Error("received unsupported identifier")
+		return common.RespMsg{Status: common.ErrorGetNode, Msg: "unsupported identifier received", Data: nil}
+	}
+
+	return dealer(req[constants.ValueSymbol])
+}
+
+func getNodeDetailById(input interface{}) common.RespMsg {
+	id, ok := input.(uint64)
+	if !ok {
+		hwlog.RunLog.Error("query node detail failed: id para type not valid")
+		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "query node detail convert param failed"}
+	}
+
+	if checkResult := newGetNodeDetailIdChecker().Check(id); !checkResult.Result {
 		hwlog.RunLog.Errorf("query node detail parameters failed, %s", checkResult.Reason)
-		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
+		return common.RespMsg{Status: common.ErrorParamInvalid,
+			Msg: fmt.Sprintf("id check failed: %s", checkResult.Reason)}
 	}
 	var resp NodeInfoDetail
 	nodeInfo, err := NodeServiceInstance().getNodeByID(id)
 	if err != nil {
-		hwlog.RunLog.Error("get node detail db query error")
+		hwlog.RunLog.Error("get node detail by id db query error")
 		return common.RespMsg{Status: common.ErrorGetNode, Msg: "query node in db error", Data: nil}
 	}
 	resp.NodeInfo = *nodeInfo
-	resp.NodeGroup, err = evalNodeGroup(id)
+	extResp, err := setNodeExtInfos(resp)
 	if err != nil {
-		hwlog.RunLog.Errorf("get node detail db query error, %s", err.Error())
 		return common.RespMsg{Status: common.ErrorGetNode, Msg: err.Error(), Data: nil}
 	}
+
+	hwlog.RunLog.Info("node detail db query success")
+	return common.RespMsg{Status: common.Success, Msg: "", Data: extResp}
+}
+
+func getNodeDetailBySn(input interface{}) common.RespMsg {
+	sn, ok := input.(string)
+	if !ok {
+		hwlog.RunLog.Error("query node detail failed: sn para type not valid")
+		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "query node detail convert param failed"}
+	}
+
+	snChecker := checker.GetSnChecker("", true)
+	if checkResult := snChecker.Check(sn); !checkResult.Result {
+		hwlog.RunLog.Errorf("query node detail parameters failed, %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid,
+			Msg: fmt.Sprintf("sn check failed: %s", checkResult.Reason)}
+	}
+
+	var resp NodeInfoDetail
+	nodeInfo, err := NodeServiceInstance().getNodeBySn(sn)
+	if err != nil {
+		hwlog.RunLog.Error("get node detail by sn db query error")
+		return common.RespMsg{Status: common.ErrorGetNode, Msg: "query node in db error", Data: nil}
+	}
+	resp.NodeInfo = *nodeInfo
+	extResp, err := setNodeExtInfos(resp)
+	if err != nil {
+		return common.RespMsg{Status: common.ErrorGetNode, Msg: err.Error(), Data: nil}
+	}
+
+	hwlog.RunLog.Info("node detail db query success")
+	return common.RespMsg{Status: common.Success, Msg: "", Data: extResp}
+}
+
+func setNodeExtInfos(nodeInfo NodeInfoDetail) (NodeInfoDetail, error) {
+	var err error
+	nodeInfo.NodeGroup, err = evalNodeGroup(nodeInfo.ID)
+	if err != nil {
+		hwlog.RunLog.Errorf("get node detail by sn db query error, %s", err.Error())
+		return nodeInfo, err
+	}
+
 	nodeResource, err := NodeSyncInstance().GetAllocatableResource(nodeInfo.UniqueName)
 	if err != nil {
 		hwlog.RunLog.Warnf("get node detail query node resource error, %s", err.Error())
 		nodeResource = &NodeResource{}
 	}
-	resp.NodeResourceInfo = NodeResourceInfo{
+	nodeInfo.NodeResourceInfo = NodeResourceInfo{
 		Cpu:    nodeResource.Cpu.Value(),
 		Memory: nodeResource.Memory.Value(),
 		Npu:    nodeResource.Npu.Value(),
 	}
-	resp.Status, err = NodeSyncInstance().GetNodeStatus(nodeInfo.UniqueName)
+	nodeInfo.Status, err = NodeSyncInstance().GetNodeStatus(nodeInfo.UniqueName)
 	if err != nil {
 		hwlog.RunLog.Warnf("get node detail query node status error, %s", err.Error())
-		resp.Status = statusOffline
+		nodeInfo.Status = statusOffline
 	}
-	hwlog.RunLog.Info("node detail db query success")
-	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
+
+	return nodeInfo, nil
 }
 
 func modifyNode(input interface{}) common.RespMsg {
@@ -424,8 +501,8 @@ func addNodeRelation(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
 	}
 
-	checker := specificationChecker{nodeService: NodeServiceInstance()}
-	if err := checker.checkAddNodeToGroup(*req.NodeIDs, []uint64{*req.GroupID}); err != nil {
+	nodeServiceChecker := specificationChecker{nodeService: NodeServiceInstance()}
+	if err := nodeServiceChecker.checkAddNodeToGroup(*req.NodeIDs, []uint64{*req.GroupID}); err != nil {
 		hwlog.RunLog.Errorf("add node to group check spec error: %s", err.Error())
 		return common.RespMsg{Status: common.ErrorCheckNodeMrgSize, Msg: err.Error()}
 	}
@@ -493,8 +570,9 @@ func addUnManagedNode(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("add unmanaged node validate parameters error, %s", checkResult.Reason)
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
 	}
-	checker := specificationChecker{nodeService: NodeServiceInstance()}
-	if err := checker.checkAddNodeToGroup([]uint64{*req.NodeID}, req.GroupIDs); err != nil {
+
+	nodeServiceChecker := specificationChecker{nodeService: NodeServiceInstance()}
+	if err := nodeServiceChecker.checkAddNodeToGroup([]uint64{*req.NodeID}, req.GroupIDs); err != nil {
 		hwlog.RunLog.Errorf("add unmanaged node to group check spec error: %s", err.Error())
 		return common.RespMsg{Status: common.ErrorCheckNodeMrgSize, Msg: err.Error()}
 	}

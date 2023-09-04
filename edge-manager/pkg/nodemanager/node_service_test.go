@@ -23,8 +23,10 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"k8s.io/api/core/v1"
 
+	"edge-manager/pkg/constants"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -302,7 +304,10 @@ func testGetNodeDetail() {
 	convey.So(res, convey.ShouldBeNil)
 
 	convey.Convey("normal input", func() {
-		resp := getNodeDetail(node.ID)
+		resp := getNodeDetail(map[string]interface{}{
+			constants.KeySymbol:   constants.IdKey,
+			constants.ValueSymbol: node.ID,
+		})
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
 		nodeInfoDetail, ok := resp.Data.(NodeInfoDetail)
 		convey.So(ok, convey.ShouldBeTrue)
@@ -326,12 +331,16 @@ func testGetNodeDetailErrParam() {
 			return checkRes
 		})
 	defer p1.Reset()
-	resp := getNodeDetail(uint64(0))
+	resp := getNodeDetail(map[string]interface{}{constants.KeySymbol: constants.IdKey, constants.ValueSymbol: uint64(0)})
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 }
 
 func testGetNodeDetailErrGetNodeByID() {
-	resp := getNodeDetail(uint64(20))
+	const testNode = 20
+	resp := getNodeDetail(map[string]interface{}{
+		constants.KeySymbol:   constants.IdKey,
+		constants.ValueSymbol: uint64(testNode),
+	})
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorGetNode)
 }
 
@@ -343,7 +352,10 @@ func testGetNodeDetailErrEvalNodeGroup() {
 				return nil, testErr
 			})
 		defer p1.Reset()
-		resp := getNodeDetail(uint64(1))
+		resp := getNodeDetail(map[string]interface{}{
+			constants.KeySymbol:   constants.IdKey,
+			constants.ValueSymbol: uint64(1)},
+		)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorGetNode)
 	})
 }

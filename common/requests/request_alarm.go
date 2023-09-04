@@ -13,6 +13,7 @@ const (
 type AddAlarmReq struct {
 	Alarms []AlarmReq `json:"alarm"`
 	Sn     string     `json:"serialNumber"`
+	Ip     string     `json:"ip"`
 }
 
 // AlarmReq is the struct for one single alarm

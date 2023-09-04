@@ -235,6 +235,7 @@ func convertToDigestInfo(alarm AlarmInfo) types.AlarmBriefInfo {
 	return types.AlarmBriefInfo{
 		ID:        alarm.Id,
 		Sn:        alarm.SerialNumber,
+		Ip:        alarm.Ip,
 		Severity:  alarm.PerceivedSeverity,
 		Resource:  alarm.Resource,
 		CreatedAt: alarm.CreatedAt,

@@ -93,6 +93,22 @@ func innerGetNodesByNodeGroupID(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
+func innerGetIpBySn(input interface{}) common.RespMsg {
+	sn, ok := input.(string)
+	if !ok {
+		hwlog.RunLog.Error("parse inner message content failed")
+		return common.RespMsg{Status: "", Msg: "parse inner message content failed"}
+	}
+
+	node, err := NodeServiceInstance().getNodeBySn(sn)
+	if err != nil {
+		hwlog.RunLog.Errorf("inner message get node info by sn failed:%s", err.Error())
+		return common.RespMsg{Status: "", Msg: "inner message get node info by sn failed"}
+	}
+
+	return common.RespMsg{Status: common.Success, Msg: "", Data: node.IP}
+}
+
 func innerAllNodeInfos(input interface{}) common.RespMsg {
 	nodeInfos, err := NodeServiceInstance().listNodes()
 	if err != nil {

@@ -4,6 +4,7 @@
 package restfulservice
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -165,9 +166,9 @@ var nodeRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			RelativePath: "/stats",
 			Method:       http.MethodGet,
 			Destination:  common.NodeManagerName},
-		queryDispatcher{restfulmgr.GenericDispatcher{
+		queryNodeDispatcher{restfulmgr.GenericDispatcher{
 			Method:      http.MethodGet,
-			Destination: common.NodeManagerName}, "id", false},
+			Destination: common.NodeManagerName}},
 		restfulmgr.GenericDispatcher{
 			Method:      http.MethodPatch,
 			Destination: common.NodeManagerName},
@@ -325,4 +326,37 @@ type listDispatcher struct {
 
 func (list listDispatcher) ParseData(c *gin.Context) (interface{}, error) {
 	return pageUtil(c)
+}
+
+type queryNodeDispatcher struct {
+	restfulmgr.GenericDispatcher
+}
+
+func (qnd queryNodeDispatcher) ParseData(c *gin.Context) (interface{}, error) {
+	values := c.Request.URL.Query()
+	id := values.Get(constants.IdKey)
+	sn := values.Get(constants.SnKey)
+	if id == "" && sn == "" {
+		return nil, errors.New("id and sn cannot be empty at the same time")
+	}
+
+	if id != "" && sn != "" {
+		return nil, errors.New("id and sn cannot be not empty at the same time")
+	}
+
+	if id != "" {
+		intId, err := strconv.ParseUint(values.Get(constants.IdKey), common.BaseHex, common.BitSize64)
+		if err != nil {
+			return 0, fmt.Errorf("req int para [%s] is invalid", constants.IdKey)
+		}
+		return map[string]interface{}{
+			constants.KeySymbol:   constants.IdKey,
+			constants.ValueSymbol: intId,
+		}, nil
+	}
+
+	return map[string]interface{}{
+		constants.KeySymbol:   constants.SnKey,
+		constants.ValueSymbol: sn,
+	}, nil
 }
