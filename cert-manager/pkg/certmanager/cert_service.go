@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
@@ -255,29 +256,39 @@ func getImportedCertsInfo(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start to get imported certs info")
 	resp := requests.ImportedCertsInfo{}
 
+	const contentEmptyStr = "content is empty"
 	northCertPath := filepath.Join(util.RootCaMgrDir, common.NorthernCertName, util.RootCaFileName)
 	northCertInfo, err := x509.CheckCertsChainReturnContent(northCertPath)
-	if err != nil {
+	if err != nil && strings.Contains(err.Error(), contentEmptyStr) {
+		hwlog.RunLog.Warn("get north cert info failed, cert is nil")
+	} else if err != nil {
 		hwlog.RunLog.Errorf("get north cert info failed, error: %v", err)
-	} else {
+	}
+	if err == nil {
 		hwlog.RunLog.Info("get north cert info success")
 		resp.NorthCert = northCertInfo
 	}
 
 	softwareCertPath := filepath.Join(util.RootCaMgrDir, common.SoftwareCertName, util.RootCaFileName)
 	softwareCertInfo, err := x509.CheckCertsChainReturnContent(softwareCertPath)
-	if err != nil {
+	if err != nil && strings.Contains(err.Error(), contentEmptyStr) {
+		hwlog.RunLog.Warn("get software repository cert info failed, cert is nil")
+	} else if err != nil {
 		hwlog.RunLog.Errorf("get software repository cert info failed, error: %v", err)
-	} else {
+	}
+	if err == nil {
 		hwlog.RunLog.Info("get software repository cert info success")
 		resp.SoftwareCert = softwareCertInfo
 	}
 
 	imageCertPath := filepath.Join(util.RootCaMgrDir, common.ImageCertName, util.RootCaFileName)
 	imageCertInfo, err := x509.CheckCertsChainReturnContent(imageCertPath)
-	if err != nil {
+	if err != nil && strings.Contains(err.Error(), contentEmptyStr) {
+		hwlog.RunLog.Warn("get image repository cert info failed, cert is nil")
+	} else if err != nil {
 		hwlog.RunLog.Errorf("get image repository cert info failed, error: %v", err)
-	} else {
+	}
+	if err == nil {
 		hwlog.RunLog.Info("get image repository cert info success")
 		resp.ImageCert = imageCertInfo
 	}

@@ -15,6 +15,8 @@ import (
 	"huawei.com/mindx/common/x509/certutils"
 
 	"alarm-manager/pkg/utils"
+
+	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/requests"
 )
 
@@ -77,11 +79,16 @@ func SendAlarms(alarms ...*requests.AlarmReq) error {
 		alarmReqs = append(alarmReqs, *alm)
 	}
 
-	// center both sn and ip are ""
+	hostIp, err := common.GetHostIP()
+	if err != nil {
+		hwlog.RunLog.Errorf("get host ip failed, error: %v", err)
+		return errors.New("get host ip failed")
+	}
+
 	addAlarmReq := requests.AddAlarmReq{
 		Alarms: alarmReqs,
 		Sn:     "",
-		Ip:     "",
+		Ip:     hostIp,
 	}
 	content, err := json.Marshal(addAlarmReq)
 	if err != nil {
