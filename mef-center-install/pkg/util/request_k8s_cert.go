@@ -201,7 +201,7 @@ func (k *kubeConfig) prepareAuth() error {
 	}
 	if _, err := envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "create",
 		"clusterrolebinding", bindingName, fmt.Sprintf("--clusterrole=%s", clusterroleName),
-		"--user=edge-manager"); err != nil {
+		fmt.Sprintf("--user=%s", common.MefCertCommonNamePrefix)); err != nil {
 		return fmt.Errorf("set clusterrolebinding failed: %v", err)
 	}
 	return nil
