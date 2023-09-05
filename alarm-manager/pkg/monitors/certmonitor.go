@@ -70,6 +70,7 @@ func certReset() {
 }
 
 func isNorthCertOverdue() error {
+	hwlog.RunLog.Info("north cert overdue time check start...")
 	if !getCertsInfoFlag {
 		if err := updateImportedCertsInfo(); err != nil {
 			hwlog.RunLog.Errorf("get imported certs info failed, error: %v", err)
@@ -80,10 +81,17 @@ func isNorthCertOverdue() error {
 		hwlog.RunLog.Info("north cert is nil")
 		return nil
 	}
-	return x509.CheckCertsOverdue(importedCertsInfo.NorthCert, certOverdueThreshold)
+	if err := x509.CheckCertsOverdue(importedCertsInfo.NorthCert, certOverdueThreshold); err != nil {
+		hwlog.RunLog.Errorf("check north cert overdue failed, error: %v", err)
+		return errors.New("check north cert overdue failed")
+	}
+
+	hwlog.RunLog.Info("north cert overdue time check pass")
+	return nil
 }
 
 func isSoftwareCertOverdue() error {
+	hwlog.RunLog.Info("software repository cert overdue time check start...")
 	if !getCertsInfoFlag {
 		if err := updateImportedCertsInfo(); err != nil {
 			hwlog.RunLog.Errorf("get imported certs info failed, error: %v", err)
@@ -94,10 +102,17 @@ func isSoftwareCertOverdue() error {
 		hwlog.RunLog.Info("software repository cert is nil")
 		return nil
 	}
-	return x509.CheckCertsOverdue(importedCertsInfo.SoftwareCert, certOverdueThreshold)
+	if err := x509.CheckCertsOverdue(importedCertsInfo.SoftwareCert, certOverdueThreshold); err != nil {
+		hwlog.RunLog.Errorf("check software repository cert overdue failed, error: %v", err)
+		return errors.New("check software repository cert overdue failed")
+	}
+
+	hwlog.RunLog.Info("software repository cert overdue time check pass")
+	return nil
 }
 
 func isImageCertOverdue() error {
+	hwlog.RunLog.Info("image repository cert overdue time check start...")
 	if !getCertsInfoFlag {
 		if err := updateImportedCertsInfo(); err != nil {
 			hwlog.RunLog.Errorf("get imported certs info failed, error: %v", err)
@@ -108,5 +123,11 @@ func isImageCertOverdue() error {
 		hwlog.RunLog.Info("image repository cert is nil")
 		return nil
 	}
-	return x509.CheckCertsOverdue(importedCertsInfo.ImageCert, certOverdueThreshold)
+	if err := x509.CheckCertsOverdue(importedCertsInfo.ImageCert, certOverdueThreshold); err != nil {
+		hwlog.RunLog.Errorf("check image repository cert overdue failed, error: %v", err)
+		return errors.New("check image repository cert overdue failed")
+	}
+
+	hwlog.RunLog.Info("image repository cert overdue time check pass")
+	return nil
 }

@@ -115,12 +115,12 @@ func (acc *alarmCfgController) checkParam() error {
 		acc.certOverdueThreshold = threshold
 	}
 
-	var checkTasks = []func() error{
+	var checkFuncs = []func() error{
 		acc.checkThreshold,
 		acc.checkPeriod,
 	}
-	for _, function := range checkTasks {
-		if err = function(); err != nil {
+	for _, checkFunc := range checkFuncs {
+		if err = checkFunc(); err != nil {
 			return err
 		}
 	}
