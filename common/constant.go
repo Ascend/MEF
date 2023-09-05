@@ -274,3 +274,10 @@ const (
 const (
 	EdgeManagerInnerWsPort = 20000
 )
+
+// const for alarm config
+const (
+	AlarmConfigDBName      = "alarm-manager.db"
+	CertCheckPeriodDB      = "cert_check_period"
+	CertOverdueThresholdDB = "cert_overdue_threshold"
+)

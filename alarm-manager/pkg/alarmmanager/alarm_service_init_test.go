@@ -24,6 +24,7 @@ import (
 	"huawei.com/mindx/common/x509/certutils"
 
 	"alarm-manager/pkg/types"
+	"alarm-manager/pkg/utils"
 
 	"huawei.com/mindxedge/base/common"
 )
@@ -156,7 +157,7 @@ func randSetOneAlarm(alarm *AlarmInfo, idx int) {
 	defaultImpact := "ALARM DEFAULT Impact"
 	defaultAlarmName := "ALARM DEFAULT NAME"
 	defaultAlarmResource := "ALARM DEFAULT RESOURCE"
-	randType := AlarmType
+	randType := utils.AlarmType
 	var randNum, randNodeId, randTypeSe int
 	randNodeId, err1 := randIntn(NodeNums)
 	randTypeSe, err2 := randIntn(TypesOfSevirity - 1)
@@ -166,7 +167,7 @@ func randSetOneAlarm(alarm *AlarmInfo, idx int) {
 		return
 	}
 	if randNum < HalfPossibility {
-		randType = EventType
+		randType = utils.EventType
 	}
 	alarm.AlarmType = randType
 	alarm.CreatedAt = time.Now()
@@ -190,10 +191,10 @@ func randSetOneAlarm(alarm *AlarmInfo, idx int) {
 	alarm.Resource = defaultAlarmResource
 	// make sure first record is an alarm and second record is an event for testing get user interface
 	if idx == defaultAlarmId {
-		alarm.AlarmType = AlarmType
+		alarm.AlarmType = utils.AlarmType
 	}
 	if idx == defaultEventID {
-		alarm.AlarmType = EventType
+		alarm.AlarmType = utils.EventType
 	}
 }
 

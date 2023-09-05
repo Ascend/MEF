@@ -334,7 +334,7 @@ func postAlarmManager(pathMgr *ConfigPathMgr) error {
 		}
 	}
 
-	alarmDbMgr := common.NewDbMgr(alarmConfigDir, AlarmConfigDB)
+	alarmDbMgr := common.NewDbMgr(alarmConfigDir, common.AlarmConfigDBName)
 	if err := alarmDbMgr.InitDB(); err != nil {
 		return errors.New("init alarm manager database failed")
 	}

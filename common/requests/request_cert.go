@@ -16,15 +16,23 @@ import (
 )
 
 const (
-	reqSvrUrl     = "inner/v1/certificates/service"
-	getRootCaUrl  = "inner/v1/certificates/rootca"
-	getCrlUrl     = "inner/v1/certificates/crl"
-	updateCertUrl = "inner/v1/image/update"
+	reqSvrUrl               = "inner/v1/certificates/service"
+	getRootCaUrl            = "inner/v1/certificates/rootca"
+	getCrlUrl               = "inner/v1/certificates/crl"
+	getImportedCertsInfoUrl = "inner/v1/certificates/imported-certs"
+	updateCertUrl           = "inner/v1/image/update"
 )
 
 type reqIssueCertBody struct {
 	CertName string `json:"certName"`
 	Csr      string `json:"csr"`
+}
+
+// ImportedCertsInfo [struct] for getting imported certs info req params
+type ImportedCertsInfo struct {
+	NorthCert    []byte `json:"northCert"`
+	SoftwareCert []byte `json:"softwareCert"`
+	ImageCert    []byte `json:"imageCert"`
 }
 
 // ReqCertParams [struct] for req cert params
@@ -89,6 +97,17 @@ func (rcp *ReqCertParams) ReqIssueSvrCert(certName string, csr []byte) (string, 
 		return "", err
 	}
 	return rcp.parseResp(respBytes)
+}
+
+// GetImportedCertsInfo [method] for getting imported certs info
+func (rcp *ReqCertParams) GetImportedCertsInfo() (string, error) {
+	url := fmt.Sprintf("https://%s:%d/%s", common.CertMgrDns, common.CertMgrPort, getImportedCertsInfoUrl)
+	httpsReq := httpsmgr.GetHttpsReq(url, rcp.ClientTlsCert)
+	resp, err := httpsReq.Get(nil)
+	if err != nil {
+		return "", err
+	}
+	return rcp.parseResp(resp)
 }
 
 func (rcp *ReqCertParams) parseResp(respBytes []byte) (string, error) {

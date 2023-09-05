@@ -258,11 +258,8 @@ const (
 	CrlOnDeviceName = "ascendsip.crl"
 )
 
-// const for alarm config
+// const for cert alarm config
 const (
-	AlarmConfigDB           = "alarm-manager.db"
-	CertCheckPeriodDB       = "cert_check_period"
-	CertOverdueThresholdDB  = "cert_overdue_threshold"
 	DefaultCheckPeriod      = 7
 	MinCheckPeriod          = 1
 	DefaultOverdueThreshold = 90

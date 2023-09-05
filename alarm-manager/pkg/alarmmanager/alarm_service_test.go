@@ -11,6 +11,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 
 	"alarm-manager/pkg/types"
+	"alarm-manager/pkg/utils"
 
 	"huawei.com/mindxedge/base/common"
 )
@@ -27,51 +28,51 @@ const (
 
 func TestListAlarmByNodeId(t *testing.T) {
 	convey.Convey("normal input for listing alarms by nodeId with Normal Input", t, func() {
-		testListAlarmsOrEventsByNodeId(AlarmType)
+		testListAlarmsOrEventsByNodeId(utils.AlarmType)
 	})
 	convey.Convey("normal input for listing alarms by nodeId with abnormal input", t, testListAlarmAbNormalInput)
 }
 
 func TestListEventsByNodeId(t *testing.T) {
 	convey.Convey("normal input for listing events by nodeId with Normal Input", t, func() {
-		testListAlarmsOrEventsByNodeId(EventType)
+		testListAlarmsOrEventsByNodeId(utils.EventType)
 	})
 }
 
 func TestListAlarmsByNodeGroup(t *testing.T) {
 	convey.Convey("normal input for listing groupNodes alarms with Normal Input", t, func() {
-		testListAlarmsOrEventsOfNodeGroup(AlarmType)
+		testListAlarmsOrEventsOfNodeGroup(utils.AlarmType)
 	})
 }
 
 func TestListEventsByNodeGroup(t *testing.T) {
 	convey.Convey("normal input for listing groupNodes events with Normal Input", t, func() {
-		testListAlarmsOrEventsOfNodeGroup(EventType)
+		testListAlarmsOrEventsOfNodeGroup(utils.EventType)
 	})
 }
 
 func TestListAlarmsOfCenterNode(t *testing.T) {
 	convey.Convey("normal input for listing centerNode alarms with Normal Input", t, func() {
-		testListAlarmsOrEventsOfCenter(AlarmFlag)
+		testListAlarmsOrEventsOfCenter(utils.AlarmFlag)
 	})
 }
 
 func TestListEventsOfCenterNode(t *testing.T) {
 	convey.Convey("normal input for listing centerNode events with Normal Input", t, func() {
-		testListAlarmsOrEventsOfCenter(EventType)
+		testListAlarmsOrEventsOfCenter(utils.EventType)
 	})
 }
 
 func TestGetAlarm(t *testing.T) {
 	convey.Convey("normal input for getting alarm by id with Normal Input", t, func() {
-		testGetAlarmOrEventByInfoId(AlarmType)
+		testGetAlarmOrEventByInfoId(utils.AlarmType)
 	})
 	convey.Convey("abnormal input for getting alarm", t, testGetAlarmAbnormalInput)
 }
 
 func TestGetEvent(t *testing.T) {
 	convey.Convey("normal input for getting alarm by id with Normal Input", t, func() {
-		testGetAlarmOrEventByInfoId(EventType)
+		testGetAlarmOrEventByInfoId(utils.EventType)
 	})
 }
 
@@ -86,7 +87,7 @@ func testListAlarmsOrEventsByNodeId(queryType string) {
 		resp interface{}
 		err  error
 	)
-	if queryType == AlarmType {
+	if queryType == utils.AlarmType {
 		resp, err = listAlarms(reqData)
 	} else {
 		resp, err = listEvents(reqData)
@@ -126,7 +127,7 @@ func testListAlarmsOrEventsOfCenter(queryType string) {
 		resp interface{}
 		err  error
 	)
-	if queryType == AlarmType {
+	if queryType == utils.AlarmType {
 		resp, err = listAlarms(reqData)
 	} else {
 		resp, err = listEvents(reqData)
@@ -144,7 +145,7 @@ func testListAlarmsOrEventsOfCenter(queryType string) {
 	respData, ok := respMap[respDataKey].(map[uint64]types.AlarmBriefInfo)
 	convey.So(ok, convey.ShouldBeTrue)
 	for _, alarm := range respData {
-		res = res && (alarm.Sn == CenterSn) && (alarm.AlarmType == queryType)
+		res = res && (alarm.Sn == utils.CenterSn) && (alarm.AlarmType == queryType)
 	}
 	convey.So(res, convey.ShouldBeTrue)
 }
@@ -160,7 +161,7 @@ func testListAlarmsOrEventsOfNodeGroup(queryType string) {
 		resp interface{}
 		err  error
 	)
-	if queryType == AlarmType {
+	if queryType == utils.AlarmType {
 		resp, err = listAlarms(reqData)
 	} else {
 		resp, err = listEvents(reqData)
@@ -185,7 +186,7 @@ func testGetAlarmOrEventByInfoId(queryType string) {
 		resp interface{}
 		err  error
 	)
-	if queryType == AlarmType {
+	if queryType == utils.AlarmType {
 		resp, err = getAlarmDetail(DefaultAlarmID)
 	} else {
 		resp, err = getEventDetail(DefaultEventID)
@@ -297,7 +298,7 @@ func CallbackAllAlarms(resp common.RespMsg) bool {
 	}
 	res := true
 	for _, alarm := range respData {
-		res = res && alarm.AlarmType == AlarmType
+		res = res && alarm.AlarmType == utils.AlarmType
 	}
 	return res
 }
@@ -315,7 +316,7 @@ func CallbackAllCenterNodes(resp common.RespMsg) bool {
 	}
 	res := true
 	for _, alarm := range respData {
-		res = res && alarm.Sn == CenterSn
+		res = res && alarm.Sn == utils.CenterSn
 	}
 	return res
 }

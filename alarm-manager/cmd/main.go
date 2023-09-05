@@ -110,7 +110,7 @@ func register(ctx context.Context) error {
 	if err := modulemgr.Registry(websocket.NewAlarmWsClient(true, ctx)); err != nil {
 		return err
 	}
-	if err := modulemgr.Registry(alarmmanager.NewAlarmManager(true, ctx)); err != nil {
+	if err := modulemgr.Registry(alarmmanager.NewAlarmManager(dbPath, true, ctx)); err != nil {
 		return err
 	}
 	modulemgr.Start()

@@ -9,6 +9,8 @@ import (
 
 	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/hwlog"
+
+	"alarm-manager/pkg/utils"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/requests"
 )
@@ -27,7 +29,7 @@ func dealAlarmReq(input interface{}) (interface{}, error) {
 
 	snChecker := checker.GetOrChecker(
 		checker.GetSnChecker("", true),
-		checker.GetStringChoiceChecker("", []string{CenterSn}, true),
+		checker.GetStringChoiceChecker("", []string{utils.CenterSn}, true),
 	)
 	ret := snChecker.Check(reqs.Sn)
 	if !ret.Result {
@@ -37,7 +39,7 @@ func dealAlarmReq(input interface{}) (interface{}, error) {
 
 	ipChecker := checker.GetOrChecker(
 		checker.GetIpV4Checker("", true),
-		checker.GetStringChoiceChecker("", []string{CenterIp}, true),
+		checker.GetStringChoiceChecker("", []string{utils.CenterIp}, true),
 	)
 	ret = ipChecker.Check(reqs.Ip)
 	if !ret.Result {
@@ -87,7 +89,7 @@ func (ard *AlarmReqDealer) deal() error {
 		return errors.New("req is nil")
 	}
 
-	if ard.req.Type == AlarmType {
+	if ard.req.Type == utils.AlarmType {
 		return ard.dealAlarm()
 	} else {
 		return ard.dealEvent()
@@ -116,7 +118,7 @@ func (ard *AlarmReqDealer) getAlarmInfo() (*AlarmInfo, error) {
 }
 
 func (ard *AlarmReqDealer) dealAlarm() error {
-	if ard.req.NotificationType == ClearFlag {
+	if ard.req.NotificationType == utils.ClearFlag {
 		return ard.dealAlarmClear()
 	} else {
 		return ard.dealAlarmAdd()

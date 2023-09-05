@@ -63,7 +63,7 @@ func (acc *alarmCfgController) doControl() error {
 
 	configDir := pathMgr.GetConfigPath()
 	alarmDbDir := filepath.Join(configDir, util.AlarmManagerName)
-	acc.dbMgr = common.NewDbMgr(alarmDbDir, util.AlarmConfigDB)
+	acc.dbMgr = common.NewDbMgr(alarmDbDir, common.AlarmConfigDBName)
 
 	if err = acc.checkParam(); err != nil {
 		return fmt.Errorf("check param failed, error: %v", err)
@@ -99,17 +99,17 @@ func (acc *alarmCfgController) getName() string {
 
 func (acc *alarmCfgController) checkParam() error {
 	if !utils.IsFlagSet(CertCheckPeriodCmd) {
-		period, err := acc.dbMgr.GetAlarmConfig(util.CertCheckPeriodDB)
+		period, err := acc.dbMgr.GetAlarmConfig(common.CertCheckPeriodDB)
 		if err != nil {
-			hwlog.RunLog.Errorf("get alarm config %s failed, error: %v", util.CertCheckPeriodDB, err)
+			hwlog.RunLog.Errorf("get alarm config %s failed, error: %v", common.CertCheckPeriodDB, err)
 			return err
 		}
 		acc.certCheckPeriod = period
 	}
 	if !utils.IsFlagSet(CertOverdueThresholdCmd) {
-		threshold, err := acc.dbMgr.GetAlarmConfig(util.CertOverdueThresholdDB)
+		threshold, err := acc.dbMgr.GetAlarmConfig(common.CertOverdueThresholdDB)
 		if err != nil {
-			hwlog.RunLog.Errorf("get alarm config %s failed, error: %v", util.CertOverdueThresholdDB, err)
+			hwlog.RunLog.Errorf("get alarm config %s failed, error: %v", common.CertOverdueThresholdDB, err)
 			return err
 		}
 		acc.certOverdueThreshold = threshold
@@ -159,10 +159,10 @@ func (acc *alarmCfgController) checkPeriod() error {
 func (acc *alarmCfgController) updateConfig() error {
 	var alarmCfgMap = make(map[string]int)
 	if utils.IsFlagSet(CertOverdueThresholdCmd) {
-		alarmCfgMap[util.CertOverdueThresholdDB] = acc.certOverdueThreshold
+		alarmCfgMap[common.CertOverdueThresholdDB] = acc.certOverdueThreshold
 	}
 	if utils.IsFlagSet(CertCheckPeriodCmd) {
-		alarmCfgMap[util.CertCheckPeriodDB] = acc.certCheckPeriod
+		alarmCfgMap[common.CertCheckPeriodDB] = acc.certCheckPeriod
 	}
 
 	for name, value := range alarmCfgMap {
