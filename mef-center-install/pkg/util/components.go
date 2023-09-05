@@ -263,11 +263,11 @@ func (c *ComponentMgr) PrepareComponentCert(certMng *certutils.RootCertMgr, cert
 	kmcBackKeyPath := certPathMgr.GetComponentBackKmcPath(c.name)
 
 	componentCert := certutils.SelfSignCert{
-		RootCertMgr: certMng,
-		SvcCertPath: componentsCertPath,
-		SvcKeyPath:  componentPrivPath,
-		CommonName:  c.name,
-		KmcCfg:      kmc.GetKmcCfg(kmcKeyPath, kmcBackKeyPath),
+		RootCertMgr:      certMng,
+		SvcCertPath:      componentsCertPath,
+		SvcKeyPath:       componentPrivPath,
+		CommonNamePrefix: common.MefCertCommonNamePrefix,
+		KmcCfg:           kmc.GetKmcCfg(kmcKeyPath, kmcBackKeyPath),
 		San: certutils.CertSan{
 			DnsName: []string{getComponentDns(c.name)},
 		},

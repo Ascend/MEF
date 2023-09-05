@@ -101,7 +101,7 @@ func getServerCert(keyPath string, server string) (string, error) {
 		return "", err
 	}
 	san := certutils.CertSan{IpAddr: ips}
-	csr, err := certutils.CreateCsr(keyPath, server+"_server", nil, san)
+	csr, err := certutils.CreateCsr(keyPath, common.MefCertCommonNamePrefix, nil, san)
 	if err != nil {
 		hwlog.RunLog.Errorf("create %s service cert csr failed: %s", server, err.Error())
 		return "", err
