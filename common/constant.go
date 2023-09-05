@@ -281,3 +281,8 @@ const (
 	CertCheckPeriodDB      = "cert_check_period"
 	CertOverdueThresholdDB = "cert_overdue_threshold"
 )
+
+// MefCertCommonNamePrefix mef cert common name prefix
+const (
+	MefCertCommonNamePrefix = "MindXMEF"
+)

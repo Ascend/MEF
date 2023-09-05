@@ -87,7 +87,8 @@ func (usm *upgradeSmoothMgr) smoothSingleComponentConfig(component string) error
 		kmcBackKeyPath := usm.installPathMgr.ConfigPathMgr.GetRootBackKmcPath()
 
 		rootKmcCfg := kmc.GetKmcCfg(kmcKeyPath, kmcBackKeyPath)
-		rootCaMgr := certutils.InitRootCertMgr(rootCaFilePath, rootPrivFilePath, component, rootKmcCfg)
+		rootCaMgr := certutils.InitRootCertMgr(rootCaFilePath, rootPrivFilePath,
+			common.MefCertCommonNamePrefix, rootKmcCfg)
 		if err := componentMgr.PrepareComponentCert(rootCaMgr, usm.installPathMgr.ConfigPathMgr); err != nil {
 			return fmt.Errorf("prepare %s's cert failed: %s", component, err.Error())
 		}

@@ -82,7 +82,7 @@ func CreateCaIfNotExit() error {
 	}
 	keyFilePath := getRootKeyPath(common.WsCltName)
 	certFilePath := getRootCaPath(common.WsCltName)
-	initCertMgr := certutils.InitRootCertMgr(certFilePath, keyFilePath, common.WsCltName, nil)
+	initCertMgr := certutils.InitRootCertMgr(certFilePath, keyFilePath, common.MefCertCommonNamePrefix, nil)
 	_, err = initCertMgr.NewRootCa()
 	return err
 }

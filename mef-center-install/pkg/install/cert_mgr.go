@@ -192,7 +192,8 @@ func (cpc *certPrepareCtl) prepareCA() (*certutils.RootCertMgr, error) {
 	kmcBackKeyPath := cpc.certPathMgr.GetRootBackKmcPath()
 
 	rootKmcCfg := kmc.GetKmcCfg(kmcKeyPath, kmcBackKeyPath)
-	initCertMgr := certutils.InitRootCertMgr(rootCaFilePath, rootPrivFilePath, util.CaCommonName, rootKmcCfg)
+	initCertMgr := certutils.InitRootCertMgr(rootCaFilePath, rootPrivFilePath,
+		common.MefCertCommonNamePrefix, rootKmcCfg)
 	if _, err := initCertMgr.NewRootCa(); err != nil {
 		hwlog.RunLog.Errorf("init root ca info failed: %v", err)
 		return nil, errors.New("init root ca info failed")

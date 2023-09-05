@@ -94,7 +94,7 @@ func (k *kubeConfig) prepareCsr() ([]byte, error) {
 	san.IpAddr = ips
 
 	kubeConfigKeyPath := k.certPathMgr.GetKubeConfigKeyPath()
-	certBytes, err := certutils.CreateKubeConfigCsr(kubeConfigKeyPath, EdgeManagerName, kmcConfig, san)
+	certBytes, err := certutils.CreateKubeConfigCsr(kubeConfigKeyPath, common.MefCertCommonNamePrefix, kmcConfig, san)
 	if err != nil {
 		hwlog.RunLog.Errorf("create kubeconfig csr failed: %v", err)
 		return nil, err
