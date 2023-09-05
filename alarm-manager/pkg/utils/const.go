@@ -1,6 +1,7 @@
 // Copyright (c)  2023. Huawei Technologies Co., Ltd.  All rights reserved.
 
-package alarmmanager
+// Package utils alarm manager used constants
+package utils
 
 // consts for alarm manager path in container
 const (

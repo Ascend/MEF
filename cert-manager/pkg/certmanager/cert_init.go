@@ -105,9 +105,10 @@ func (cm *certManager) dispatch(req *model.Message) {
 }
 
 var (
-	certUrlRootPath      = "/certmanager/v1/certificates"
-	crlUrlRootPath       = "/certmanager/v1/crl"
-	innerCertUrlRootPath = "/inner/v1/certificates"
+	certUrlRootPath         = "/certmanager/v1/certificates"
+	crlUrlRootPath          = "/certmanager/v1/crl"
+	innerCertUrlRootPath    = "/inner/v1/certificates"
+	getImportedCertsInfoUrl = "/inner/v1/certificates/imported-certs"
 )
 
 var handlerFuncMap = map[string]handlerFunc{
@@ -119,6 +120,7 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodGet, filepath.Join(innerCertUrlRootPath, "rootca")):   queryRootCa,
 	common.Combine(http.MethodGet, filepath.Join(innerCertUrlRootPath, "crl")):      queryCrl,
 	common.Combine(http.MethodPost, filepath.Join(innerCertUrlRootPath, "service")): issueServiceCa,
+	common.Combine(http.MethodGet, getImportedCertsInfoUrl):                         getImportedCertsInfo,
 }
 
 func periodCheck() {

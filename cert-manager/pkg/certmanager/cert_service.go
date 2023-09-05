@@ -6,13 +6,18 @@ package certmanager
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509"
+
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/requests"
+	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 
 	"cert-manager/pkg/certmanager/certchecker"
 )
@@ -244,4 +249,45 @@ func queryCrl(input interface{}) common.RespMsg {
 	}
 	hwlog.RunLog.Infof("query [%s] crl success", crlName)
 	return common.RespMsg{Status: common.Success, Msg: "query crl success", Data: string(crlData)}
+}
+
+func getImportedCertsInfo(input interface{}) common.RespMsg {
+	hwlog.RunLog.Info("start to get imported certs info")
+	resp := requests.ImportedCertsInfo{}
+
+	northCertPath := filepath.Join(util.RootCaMgrDir, common.NorthernCertName, util.RootCaFileName)
+	northCertInfo, err := x509.CheckCertsChainReturnContent(northCertPath)
+	if err != nil {
+		hwlog.RunLog.Errorf("get north cert info failed, error: %v", err)
+	} else {
+		hwlog.RunLog.Info("get north cert info success")
+		resp.NorthCert = northCertInfo
+	}
+
+	softwareCertPath := filepath.Join(util.RootCaMgrDir, common.SoftwareCertName, util.RootCaFileName)
+	softwareCertInfo, err := x509.CheckCertsChainReturnContent(softwareCertPath)
+	if err != nil {
+		hwlog.RunLog.Errorf("get software repository cert info failed, error: %v", err)
+	} else {
+		hwlog.RunLog.Info("get software repository cert info success")
+		resp.SoftwareCert = softwareCertInfo
+	}
+
+	imageCertPath := filepath.Join(util.RootCaMgrDir, common.ImageCertName, util.RootCaFileName)
+	imageCertInfo, err := x509.CheckCertsChainReturnContent(imageCertPath)
+	if err != nil {
+		hwlog.RunLog.Errorf("get image repository cert info failed, error: %v", err)
+	} else {
+		hwlog.RunLog.Info("get image repository cert info success")
+		resp.ImageCert = imageCertInfo
+	}
+
+	respBytes, err := json.Marshal(resp)
+	if err != nil {
+		hwlog.RunLog.Errorf("marshal imported certs info failed, error: %v", err)
+		return common.RespMsg{Status: common.ErrorGetImportedCertsInfo, Msg: "get imported certs info failed", Data: nil}
+	}
+
+	hwlog.RunLog.Info("get imported certs info success")
+	return common.RespMsg{Status: common.Success, Msg: "get imported certs info success", Data: string(respBytes)}
 }

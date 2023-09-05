@@ -11,7 +11,7 @@ import (
 	"huawei.com/mindx/common/websocketmgr"
 	"huawei.com/mindx/common/x509/certutils"
 
-	"alarm-manager/pkg/alarmmanager"
+	"alarm-manager/pkg/utils"
 
 	"huawei.com/mindxedge/base/common"
 )
@@ -27,9 +27,9 @@ const (
 func initClient() error {
 	certInfo := certutils.TlsCertInfo{
 		KmcCfg:     kmc.GetDefKmcCfg(),
-		RootCaPath: alarmmanager.RootCaPath,
-		CertPath:   alarmmanager.ServerCertPath,
-		KeyPath:    alarmmanager.ServerKeyPath,
+		RootCaPath: utils.RootCaPath,
+		CertPath:   utils.ServerCertPath,
+		KeyPath:    utils.ServerKeyPath,
 		SvrFlag:    false,
 	}
 

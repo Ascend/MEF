@@ -15,6 +15,7 @@ import (
 	"huawei.com/mindx/common/x509/certutils"
 
 	"alarm-manager/pkg/types"
+	"alarm-manager/pkg/utils"
 
 	"huawei.com/mindxedge/base/common"
 )
@@ -160,9 +161,9 @@ func listGroupNodesAlarmsOrEvents(req types.ListAlarmOrEventReq, queryIdType str
 	url := fmt.Sprintf("https://%s:%d/%s?id=%d", common.EdgeMgrDns, common.EdgeMgrPort,
 		groupQueryRoute, req.GroupId)
 	clientSvcCert := certutils.TlsCertInfo{
-		RootCaPath: RootCaPath,
-		CertPath:   ServerCertPath,
-		KeyPath:    ServerKeyPath,
+		RootCaPath: utils.RootCaPath,
+		CertPath:   utils.ServerCertPath,
+		KeyPath:    utils.ServerKeyPath,
 		SvrFlag:    false,
 	}
 	httpsReq := httpsmgr.GetHttpsReq(url, clientSvcCert)
@@ -185,7 +186,7 @@ func listGroupNodesAlarmsOrEvents(req types.ListAlarmOrEventReq, queryIdType str
 		hwlog.RunLog.Error(err.Error())
 		return &common.RespMsg{Status: common.ErrorListEdgeNodeAlarm}
 	}
-	hwlog.RunLog.Infof("succeed listing group %s info", EventType)
+	hwlog.RunLog.Infof("succeed listing group %s info", utils.EventType)
 	return &common.RespMsg{Status: common.Success, Data: respMap}
 }
 

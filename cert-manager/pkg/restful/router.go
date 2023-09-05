@@ -51,6 +51,10 @@ var innerCertRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 			RelativePath: "/crl",
 			Method:       http.MethodGet,
 			Destination:  common.CertManagerName}, "crlName"},
+		restfulmgr.GenericDispatcher{
+			RelativePath: "/imported-certs",
+			Method:       http.MethodGet,
+			Destination:  common.CertManagerName},
 	},
 }
 

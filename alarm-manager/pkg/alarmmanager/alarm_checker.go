@@ -6,6 +6,8 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/checker"
+
+	"alarm-manager/pkg/utils"
 )
 
 // DealAlarmChecker is the checker for add alarm msg
@@ -30,13 +32,14 @@ func (dac *DealAlarmChecker) init() {
 		minLength                 = 0
 	)
 	dac.checker.Checker = checker.GetAndChecker(
-		checker.GetStringChoiceChecker("Type", []string{AlarmType, EventType}, true),
+		checker.GetStringChoiceChecker("Type", []string{utils.AlarmType, utils.EventType}, true),
 		checker.GetRegChecker("AlarmId", alarmIdReg, true),
 		checker.GetRegChecker("AlarmName", alarmNameReg, false),
 		checker.GetRegChecker("Resource", resourceReg, true),
 		checker.GetStringChoiceChecker("PerceivedSeverity",
-			[]string{MajorSeverity, MinorSeverity, CriticalSeverity, OkSeverity}, true),
-		checker.GetStringChoiceChecker("NotificationType", []string{ClearFlag, AlarmFlag, EventFlag}, false),
+			[]string{utils.MajorSeverity, utils.MinorSeverity, utils.CriticalSeverity, utils.OkSeverity}, true),
+		checker.GetStringChoiceChecker("NotificationType",
+			[]string{utils.ClearFlag, utils.AlarmFlag, utils.EventFlag}, false),
 		checker.GetStringLengthChecker("DetailedInformationLength", minLength, detailedInformationLength, false),
 		checker.GetStringLengthChecker("Suggestion", minLength, suggestionLength, false),
 		checker.GetStringLengthChecker("Reason", minLength, reasonLength, false),

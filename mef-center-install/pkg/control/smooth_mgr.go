@@ -126,8 +126,8 @@ func postSmoothAlarmManager(installPathMgr *util.InstallDirPathMgr) error {
 
 	configDir := installPathMgr.GetConfigPath()
 	alarmConfigDir := filepath.Join(configDir, util.AlarmManagerName)
-	alarmDbMgr := common.NewDbMgr(alarmConfigDir, util.AlarmConfigDB)
-	alarmDbPath := filepath.Join(alarmConfigDir, util.AlarmConfigDB)
+	alarmDbMgr := common.NewDbMgr(alarmConfigDir, common.AlarmConfigDBName)
+	alarmDbPath := filepath.Join(alarmConfigDir, common.AlarmConfigDBName)
 	if fileutils.IsExist(alarmDbPath) {
 		if err := alarmDbMgr.InitDB(); err != nil {
 			return errors.New("init alarm manager database failed")

@@ -8,7 +8,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/x509/certutils"
 
-	"alarm-manager/pkg/alarmmanager"
+	"alarm-manager/pkg/utils"
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -26,9 +26,9 @@ func NewRestfulService(enable bool, ip string, port int) *Service {
 			IP:   ip,
 			Port: port,
 			TlsCertPath: certutils.TlsCertInfo{
-				RootCaPath: alarmmanager.RootCaPath,
-				CertPath:   alarmmanager.ServerCertPath,
-				KeyPath:    alarmmanager.ServerKeyPath,
+				RootCaPath: utils.RootCaPath,
+				CertPath:   utils.ServerCertPath,
+				KeyPath:    utils.ServerKeyPath,
 				SvrFlag:    true,
 				KmcCfg:     nil,
 			},

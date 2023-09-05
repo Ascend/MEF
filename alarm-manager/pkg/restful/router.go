@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"alarm-manager/pkg/alarmmanager"
 	"alarm-manager/pkg/types"
+	"alarm-manager/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 
@@ -51,7 +51,7 @@ var edgeAlarmRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 		restfulmgr.GenericDispatcher{
 			RelativePath: "/report",
 			Method:       http.MethodPost,
-			Destination:  alarmmanager.AlarmModuleName,
+			Destination:  utils.AlarmModuleName,
 		},
 	},
 }
@@ -117,7 +117,7 @@ func (list listDispatcher) ParseData(c *gin.Context) (interface{}, error) {
 	}
 
 	if len(values[snKey]) == 0 {
-		snStr = alarmmanager.CenterSn
+		snStr = utils.CenterSn
 	}
 
 	groupId, err2 := strconv.ParseUint(groupIdStr, common.BaseHex, common.BitSize64)

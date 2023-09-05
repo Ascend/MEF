@@ -42,14 +42,14 @@ func (gcc *getAlarmCfgController) doControl() error {
 
 	configDir := pathMgr.GetConfigPath()
 	alarmDbDir := filepath.Join(configDir, util.AlarmManagerName)
-	dbMgr := common.NewDbMgr(alarmDbDir, util.AlarmConfigDB)
+	dbMgr := common.NewDbMgr(alarmDbDir, common.AlarmConfigDBName)
 	alarmCfgs := []struct {
 		cfgInDb string
 		cfgCmd  string
 		unit    string
 	}{
-		{util.CertCheckPeriodDB, CertCheckPeriodCmd, UnitDay},
-		{util.CertOverdueThresholdDB, CertOverdueThresholdCmd, UnitDay},
+		{common.CertCheckPeriodDB, CertCheckPeriodCmd, UnitDay},
+		{common.CertOverdueThresholdDB, CertOverdueThresholdCmd, UnitDay},
 	}
 	for _, alarmCfg := range alarmCfgs {
 		cfg, err := dbMgr.GetAlarmConfig(alarmCfg.cfgInDb)

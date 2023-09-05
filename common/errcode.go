@@ -219,6 +219,8 @@ const (
 	ErrorGetRootCaInfo = "60001010"
 	// ErrorSaveCrl failed to  save crl content
 	ErrorSaveCrl = "60001011"
+	// ErrorGetImportedCertsInfo failed to get imported certs info
+	ErrorGetImportedCertsInfo = "60001012"
 	// ErrorExportToken export token failed
 	ErrorExportToken = "60002001"
 )
@@ -373,6 +375,8 @@ var ErrorMap = map[string]string{
 	ErrorCreateSecret: "failed to create secret",
 	// ErrorExportRootCa failed to export root ca
 	ErrorExportRootCa: "failed to export root ca",
+	// ErrorGetImportedCertsInfo failed to get imported certs info
+	ErrorGetImportedCertsInfo: "failed to get imported certs info",
 
 	// ErrorCreateAppTemplate failed to create app template info
 	ErrorCreateAppTemplate: "failed to create app template",

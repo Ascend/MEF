@@ -8,6 +8,8 @@ import (
 
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/database"
+
+	"alarm-manager/pkg/utils"
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -37,13 +39,13 @@ func (adh *AlarmDbHandler) addAlarmInfo(data *AlarmInfo) error {
 
 func (adh *AlarmDbHandler) getNodeAlarmCount(sn string) (int, error) {
 	var count int64
-	return int(count), adh.db.Model(AlarmInfo{}).Where("serial_number = ? and alarm_type = ?", sn, AlarmType).
+	return int(count), adh.db.Model(AlarmInfo{}).Where("serial_number = ? and alarm_type = ?", sn, utils.AlarmType).
 		Count(&count).Error
 }
 
 func (adh *AlarmDbHandler) getNodeEventCount(sn string) (int, error) {
 	var count int64
-	return int(count), adh.db.Model(AlarmInfo{}).Where("serial_number = ? and alarm_type = ?", sn, EventType).
+	return int(count), adh.db.Model(AlarmInfo{}).Where("serial_number = ? and alarm_type = ?", sn, utils.EventType).
 		Count(&count).Error
 }
 
@@ -77,7 +79,7 @@ func (adh *AlarmDbHandler) DeleteAlarmTable() error {
 func (adh *AlarmDbHandler) listCenterAlarmsOrEventsDb(pageNum, pageSize uint64, queryType string) (
 	*[]AlarmInfo, error) {
 	var alarmInfo []AlarmInfo
-	return &alarmInfo, adh.db.Scopes(getAlarmNodeScopes(pageNum, pageSize, CenterSn, queryType)).
+	return &alarmInfo, adh.db.Scopes(getAlarmNodeScopes(pageNum, pageSize, utils.CenterSn, queryType)).
 		Find(&alarmInfo).Error
 }
 
@@ -100,7 +102,8 @@ func (adh *AlarmDbHandler) listAllEdgeAlarmsOrEventsDb(pageNum, pageSize uint64,
 
 func getPagedEdgeScopes(pageNum, pageSize uint64, queryType string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Scopes(common.Paginate(pageNum, pageSize)).Where("alarm_type=? and serial_number <> ?", queryType, CenterSn)
+		return db.Scopes(common.Paginate(pageNum, pageSize)).Where("alarm_type=? and serial_number <> ?",
+			queryType, utils.CenterSn)
 	}
 }
 

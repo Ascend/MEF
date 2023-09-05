@@ -12,6 +12,8 @@ import (
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 
+	"alarm-manager/pkg/monitors"
+	"alarm-manager/pkg/utils"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/requests"
 )
@@ -19,13 +21,15 @@ import (
 type handlerFunc func(req interface{}) (interface{}, error)
 
 type alarmManager struct {
+	dbPath string
 	enable bool
 	ctx    context.Context
 }
 
 // NewAlarmManager create cert manager
-func NewAlarmManager(enable bool, ctx context.Context) model.Module {
+func NewAlarmManager(dbPath string, enable bool, ctx context.Context) model.Module {
 	cm := &alarmManager{
+		dbPath: dbPath,
 		enable: enable,
 		ctx:    ctx,
 	}
@@ -33,7 +37,7 @@ func NewAlarmManager(enable bool, ctx context.Context) model.Module {
 }
 
 func (am *alarmManager) Name() string {
-	return AlarmModuleName
+	return utils.AlarmModuleName
 }
 
 func (am *alarmManager) Enable() bool {
@@ -51,6 +55,7 @@ func methodSelect(req *model.Message) (interface{}, error) {
 }
 
 func (am *alarmManager) Start() {
+	go am.startMonitoring()
 	for {
 		select {
 		case _, ok := <-am.ctx.Done():
@@ -109,4 +114,14 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodGet, getEventDetailRouter):            getEventDetail,
 	common.Combine(http.MethodPost, requests.ReportAlarmRouter):     dealAlarmReq,
 	common.Combine(common.Delete, requests.ClearOneNodeAlarmRouter): dealNodeClearReq,
+}
+
+func (am *alarmManager) startMonitoring() {
+	var alarmMangerList []monitors.AlarmMonitor
+	alarmMangerList = monitors.GetAlarmMonitorList(am.dbPath)
+	for _, alarm := range alarmMangerList {
+		if alarm != nil {
+			go alarm.Monitoring(am.ctx)
+		}
+	}
 }

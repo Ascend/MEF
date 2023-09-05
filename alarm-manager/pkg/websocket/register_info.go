@@ -3,7 +3,7 @@
 package websocket
 
 import (
-	"alarm-manager/pkg/alarmmanager"
+	"alarm-manager/pkg/utils"
 
 	"huawei.com/mindx/common/websocketmgr"
 
@@ -12,8 +12,8 @@ import (
 )
 
 var regInfoList = []websocketmgr.RegisterModuleInfo{
-	{MsgOpt: common.OptPost, MsgRes: requests.ReportAlarmRouter, ModuleName: alarmmanager.AlarmModuleName},
-	{MsgOpt: common.Delete, MsgRes: requests.ClearOneNodeAlarmRouter, ModuleName: alarmmanager.AlarmModuleName},
+	{MsgOpt: common.OptPost, MsgRes: requests.ReportAlarmRouter, ModuleName: utils.AlarmModuleName},
+	{MsgOpt: common.Delete, MsgRes: requests.ClearOneNodeAlarmRouter, ModuleName: utils.AlarmModuleName},
 }
 
 func getRegModuleInfoList() []websocketmgr.RegisterModuleInfo {

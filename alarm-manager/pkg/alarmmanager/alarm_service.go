@@ -3,6 +3,8 @@
 // Package alarmmanager for alarm-manager module handler
 package alarmmanager
 
+import "alarm-manager/pkg/utils"
+
 const (
 	centerNodeQueryType    = "CenterNodeQuery"
 	nodeIdQueryType        = "NodeIdQuery"
@@ -12,17 +14,17 @@ const (
 )
 
 func listAlarms(input interface{}) (interface{}, error) {
-	return dealRequest(input, AlarmType), nil
+	return dealRequest(input, utils.AlarmType), nil
 }
 
 func listEvents(input interface{}) (interface{}, error) {
-	return dealRequest(input, EventType), nil
+	return dealRequest(input, utils.EventType), nil
 }
 
 func getAlarmDetail(input interface{}) (interface{}, error) {
-	return getAlarmOrEventDbDetail(input, AlarmType), nil
+	return getAlarmOrEventDbDetail(input, utils.AlarmType), nil
 }
 
 func getEventDetail(input interface{}) (interface{}, error) {
-	return getAlarmOrEventDbDetail(input, EventType), nil
+	return getAlarmOrEventDbDetail(input, utils.EventType), nil
 }

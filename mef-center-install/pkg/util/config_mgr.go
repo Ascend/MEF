@@ -91,11 +91,11 @@ func InitAndSetAlarmCfgTable(configDir string) error {
 		return errors.New("create alarm config table failed")
 	}
 
-	dbMgr := common.NewDbMgr(configDir, AlarmConfigDB)
+	dbMgr := common.NewDbMgr(configDir, common.AlarmConfigDBName)
 	hasModified := GetBoolPointer(false)
 	var alarmConfigs = []common.AlarmConfig{
-		{CertCheckPeriodDB, DefaultCheckPeriod, hasModified},
-		{CertOverdueThresholdDB, DefaultOverdueThreshold, hasModified},
+		{common.CertCheckPeriodDB, DefaultCheckPeriod, hasModified},
+		{common.CertOverdueThresholdDB, DefaultOverdueThreshold, hasModified},
 	}
 
 	for _, cfg := range alarmConfigs {
