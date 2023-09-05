@@ -37,6 +37,7 @@ func InitServer() error {
 		RootCaPath: constants.RootCaPath,
 		CertPath:   constants.ServerCertPath,
 		KeyPath:    constants.ServerKeyPath,
+		SvrFlag:    true,
 	}
 	go authServer()
 
