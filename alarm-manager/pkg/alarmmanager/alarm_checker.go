@@ -34,16 +34,16 @@ func (dac *DealAlarmChecker) init() {
 	dac.checker.Checker = checker.GetAndChecker(
 		checker.GetStringChoiceChecker("Type", []string{utils.AlarmType, utils.EventType}, true),
 		checker.GetRegChecker("AlarmId", alarmIdReg, true),
-		checker.GetRegChecker("AlarmName", alarmNameReg, false),
+		checker.GetRegChecker("AlarmName", alarmNameReg, true),
 		checker.GetRegChecker("Resource", resourceReg, true),
 		checker.GetStringChoiceChecker("PerceivedSeverity",
 			[]string{utils.MajorSeverity, utils.MinorSeverity, utils.CriticalSeverity, utils.OkSeverity}, true),
 		checker.GetStringChoiceChecker("NotificationType",
-			[]string{utils.ClearFlag, utils.AlarmFlag, utils.EventFlag}, false),
-		checker.GetStringLengthChecker("DetailedInformationLength", minLength, detailedInformationLength, false),
-		checker.GetStringLengthChecker("Suggestion", minLength, suggestionLength, false),
-		checker.GetStringLengthChecker("Reason", minLength, reasonLength, false),
-		checker.GetStringLengthChecker("Impact", minLength, impactLength, false),
+			[]string{utils.ClearFlag, utils.AlarmFlag, utils.EventFlag}, true),
+		checker.GetStringLengthChecker("DetailedInformation", minLength, detailedInformationLength, true),
+		checker.GetStringLengthChecker("Suggestion", minLength, suggestionLength, true),
+		checker.GetStringLengthChecker("Reason", minLength, reasonLength, true),
+		checker.GetStringLengthChecker("Impact", minLength, impactLength, true),
 	)
 }
 
