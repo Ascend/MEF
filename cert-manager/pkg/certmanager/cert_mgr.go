@@ -63,10 +63,29 @@ func isCertImported(certName string) bool {
 func getCertByCertName(certName string) ([]byte, error) {
 	caFilePath := getRootCaPath(certName)
 	certData, err := utils.LoadFile(caFilePath)
-	if certData == nil {
+	if err != nil {
 		hwlog.RunLog.Errorf("load root cert failed: %v", err)
-		return nil, errors.New("load root cert failed")
+		return nil, fmt.Errorf("load root cert failed: %v", err)
 	}
+	if len(certData) == 0 {
+		hwlog.RunLog.Error("root cert file is empty")
+		return nil, errors.New("root cert file is empty")
+	}
+	tempCaFilePath := getTempRootCaPath(certName)
+	if !utils.IsExist(tempCaFilePath) {
+		return certData, nil
+	}
+	var tempCaData []byte
+	tempCaData, err = utils.LoadFile(tempCaFilePath)
+	if err != nil {
+		hwlog.RunLog.Errorf("load temp root cert failed: %v", err)
+		return nil, fmt.Errorf("load temp root cert failed: %v", err)
+	}
+	if len(tempCaData) == 0 {
+		hwlog.RunLog.Error("temp root cert file is empty")
+		return nil, errors.New("temp root cert file is empty")
+	}
+	certData = append(certData, tempCaData...)
 	return certData, nil
 }
 
@@ -87,6 +106,78 @@ func CreateCaIfNotExit() error {
 	return err
 }
 
+// CreateTempCaCert create temp ca certs with .tmp suffix, return cert bytes
+func CreateTempCaCert(caCertName string) (string, error) {
+	tempKeyPath := getTempRootKeyPath(caCertName)
+	tempCertPath := getTempRootCaPath(caCertName)
+	// if previously created certs exist, use them, otherwise create new certs.
+	if utils.IsExist(tempKeyPath) && utils.IsExist(tempCertPath) {
+		certData, err := utils.LoadFile(tempCertPath)
+		if err != nil {
+			return "", fmt.Errorf("load previously created temp root ca failed: %v", err)
+		}
+		return string(certData), nil
+	}
+
+	if _, err := certutils.InitRootCertMgr(tempCertPath, tempKeyPath, caCertName, nil).NewRootCa(); err != nil {
+		return "", fmt.Errorf("create new root ca [%v] failed: %v", caCertName, err)
+	}
+	certData, err := utils.LoadFile(tempCertPath)
+	if err != nil {
+		return "", fmt.Errorf("load new temp root ca failed: %v", err)
+	}
+	return string(certData), nil
+}
+
+// UpdateCaCertWithTemp replace old certs with temporary new certs
+func UpdateCaCertWithTemp(certName string) error {
+	oldKeyFilePath := getRootKeyPath(certName)
+	oldCertFilePath := getRootCaPath(certName)
+	tempKeyFilePath := getTempRootKeyPath(certName)
+	tempCertFilePath := getTempRootCaPath(certName)
+	if err := utils.SetPathPermission(oldCertFilePath, common.Mode600, false, false); err != nil {
+		return err
+	}
+	if err := utils.SetPathPermission(oldKeyFilePath, common.Mode600, false, false); err != nil {
+		return err
+	}
+	defer func() {
+		if err := utils.SetPathPermission(oldCertFilePath, common.Mode400, false, false); err != nil {
+			hwlog.RunLog.Errorf("set cert file [%v] permission to 400 error: %v", oldCertFilePath, err)
+		}
+		if err := utils.SetPathPermission(oldKeyFilePath, common.Mode400, false, false); err != nil {
+			hwlog.RunLog.Errorf("set key file [%v] permission to 400 error: %v", oldKeyFilePath, err)
+		}
+		if err := RemoveTempCaCert(certName); err != nil {
+			hwlog.RunLog.Errorf("delete temp ca cert error: %v", err)
+		}
+	}()
+	if err := utils.CopyFile(tempKeyFilePath, oldKeyFilePath); err != nil {
+		return err
+	}
+	if err := utils.CopyFile(tempCertFilePath, oldCertFilePath); err != nil {
+		return err
+	}
+	return nil
+}
+
+// RemoveTempCaCert delete all temporary ca certs
+func RemoveTempCaCert(certName string) error {
+	tempKeyFilePath := getTempRootKeyPath(certName)
+	tempCertFilePath := getTempRootCaPath(certName)
+	if utils.IsExist(tempKeyFilePath) {
+		if err := utils.DeleteFile(tempKeyFilePath); err != nil {
+			return err
+		}
+	}
+	if utils.IsExist(tempCertFilePath) {
+		if err := utils.DeleteFile(tempCertFilePath); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // issueServiceCert issue service certificate with csr file, only support pem type csr
 func issueServiceCert(certName string, serviceCsr string) ([]byte, error) {
 	csrByte, err := base64.StdEncoding.DecodeString(serviceCsr)
@@ -102,6 +193,15 @@ func issueServiceCert(certName string, serviceCsr string) ([]byte, error) {
 
 	keyFilePath := getRootKeyPath(certName)
 	caFilePath := getRootCaPath(certName)
+	// use hub_client new root ca to issue service certs when cert update is in process
+	if certName == common.WsCltName || certName == common.WsSerName {
+		tempKeyPath := getTempRootKeyPath(certName)
+		tempCertPath := getTempRootCaPath(certName)
+		if utils.IsExist(tempKeyPath) && utils.IsExist(tempCertPath) {
+			keyFilePath = tempKeyPath
+			caFilePath = tempCertPath
+		}
+	}
 	initCertMgr := certutils.InitRootCertMgr(caFilePath, keyFilePath, common.MefCertCommonNamePrefix, nil)
 	if _, err := initCertMgr.GetRootCaPair(); err != nil {
 		if _, err = initCertMgr.NewRootCa(); err != nil {

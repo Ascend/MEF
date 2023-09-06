@@ -5,25 +5,15 @@ package certmanager
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"net/http"
 	"path/filepath"
-	"sync"
 	"time"
 
-	"huawei.com/mindx/common/httpsmgr"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
-	"huawei.com/mindx/common/utils"
-	"huawei.com/mindx/common/x509"
-	"huawei.com/mindx/common/x509/certutils"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
-
-	"cert-manager/pkg/config"
 )
 
 type handlerFunc func(req interface{}) common.RespMsg
@@ -63,7 +53,7 @@ func methodSelect(req *model.Message) *common.RespMsg {
 }
 
 func (cm *certManager) Start() {
-	go periodCheck()
+	go certExpireCheck(cm.ctx)
 	for {
 		select {
 		case _, ok := <-cm.ctx.Done():
@@ -117,103 +107,70 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodGet, filepath.Join(certUrlRootPath, "info")):         getCertInfo,
 	common.Combine(http.MethodPost, filepath.Join(crlUrlRootPath, "import")):       importCrl,
 
-	common.Combine(http.MethodGet, filepath.Join(innerCertUrlRootPath, "rootca")):   queryRootCa,
-	common.Combine(http.MethodGet, filepath.Join(innerCertUrlRootPath, "crl")):      queryCrl,
-	common.Combine(http.MethodPost, filepath.Join(innerCertUrlRootPath, "service")): issueServiceCa,
-	common.Combine(http.MethodGet, getImportedCertsInfoUrl):                         getImportedCertsInfo,
+	common.Combine(http.MethodGet, filepath.Join(innerCertUrlRootPath, "rootca")):         queryRootCa,
+	common.Combine(http.MethodGet, filepath.Join(innerCertUrlRootPath, "crl")):            queryCrl,
+	common.Combine(http.MethodPost, filepath.Join(innerCertUrlRootPath, "service")):       issueServiceCa,
+	common.Combine(http.MethodPost, filepath.Join(innerCertUrlRootPath, "update-result")): certsUpdateResult,
+	common.Combine(http.MethodGet, getImportedCertsInfoUrl):                               getImportedCertsInfo,
 }
 
-func periodCheck() {
-	if err := checkCert(); err != nil {
-		hwlog.RunLog.Errorf("check cert overdue error:%v", err)
-	}
+func certExpireCheck(ctx context.Context) {
+	checkCaCerts()
+
 	ticker := time.NewTicker(common.OneDay)
 	defer ticker.Stop()
 	for {
 		select {
+		case <-ctx.Done():
+			hwlog.RunLog.Info("cert check operation is aborted")
+			return
 		case _, ok := <-ticker.C:
 			if !ok {
+				hwlog.RunLog.Error("cert check operation is stopped")
 				return
 			}
-			err := checkCert()
-			if err != nil {
-				hwlog.RunLog.Errorf("check cert overdue error:%v", err)
-				continue
-			}
+			checkCaCerts()
 		}
 	}
 }
 
-var certLock sync.RWMutex
+func checkCaCerts() {
+	go doCheckProcess(NewCertUpdater(CertTypeEdgeSvc))
+	go doCheckProcess(NewCertUpdater(CertTypeEdgeCa))
+}
 
-func checkCert() error {
-	certData, err := utils.LoadFile(getRootCaPath(common.WsCltName))
-	if err != nil {
-		return err
+func doCheckProcess(updater CertUpdater) {
+	if updater == nil {
+		hwlog.RunLog.Error("invalid cert updater instance")
+		return
 	}
-	if certData == nil {
-		return nil
-	}
-	crt, err := x509.LoadCertsFromPEM(certData)
-	if err != nil {
-		return err
-	}
-	overdueDay, err := x509.GetValidityPeriod(crt)
-	overdueData := config.GetCertConfig().CertExpireTime
-	if err == nil && (overdueDay > float64(overdueData)) {
-		return nil
-	}
-	if err := updateCert(); err != nil {
-		hwlog.RunLog.Error("update cert error, %v", err)
-		return err
-	}
-	if err := sendCertUpdateMsg(); err != nil {
+	if err := updater.CheckAndSetUpdateFlag(); err != nil {
 		hwlog.RunLog.Error(err)
-		return err
+		return
 	}
-	hwlog.RunLog.Info("websocket client cert will overdue, update success")
-	return nil
-}
-
-func updateCert() error {
-	certLock.Lock()
-	defer certLock.Unlock()
-	if err := utils.DeleteFile(getRootCaPath(common.WsCltName)); err != nil {
-		return err
-	}
-	if err := utils.DeleteFile(getRootKeyPath(common.WsCltName)); err != nil {
-		return err
-	}
-	hwlog.RunLog.Infof("Destroyed %s key file", getRootKeyPath(common.WsCltName))
-	if err := CreateCaIfNotExit(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func sendCertUpdateMsg() error {
-	tls := certutils.TlsCertInfo{
-		RootCaPath: util.RootCaPath,
-		CertPath:   util.ServerCertPath,
-		KeyPath:    util.ServerKeyPath,
-		SvrFlag:    false,
-	}
-
-	url := fmt.Sprintf("https://%s:%d/%s", common.EdgeMgrDns, common.EdgeMgrPort, "inner/v1/cert/update")
-	httpsReq := httpsmgr.GetHttpsReq(url, tls)
-	respByte, err := httpsReq.Get(nil)
+	go updater.ClearUpdateFlag()
+	needUpdate, needForceUpdate, err := updater.IsCertNeedUpdate()
 	if err != nil {
-		return err
+		hwlog.RunLog.Error(err)
+		return
 	}
-	var resp common.RespMsg
-	err = json.Unmarshal(respByte, &resp)
-	if err != nil {
-		return err
+	if !needUpdate {
+		return
 	}
-
-	status := resp.Status
-	if status != common.Success {
-		return fmt.Errorf("parse cert response failed: status=%s, msg=%s", status, resp.Msg)
+	if needForceUpdate {
+		if err = updater.DoForceUpdate(); err != nil {
+			hwlog.RunLog.Error(err)
+			return
+		}
 	}
-	return nil
+	if err = updater.PrepareCertUpdate(); err != nil {
+		hwlog.RunLog.Error(err)
+		return
+	}
+	if err = updater.NotifyCertUpdate(); err != nil {
+		hwlog.RunLog.Error(err)
+		return
+	}
+	go updater.PostCertUpdate()
+	go updater.ForceUpdateCheck()
 }
