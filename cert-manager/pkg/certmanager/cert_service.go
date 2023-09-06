@@ -42,7 +42,7 @@ func queryRootCa(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorGetRootCa,
 			Msg: fmt.Sprintf("%s is no imported yet", certName), Data: nil}
 	}
-
+	// if temp ca exists, sent to edge-manager with normal ca
 	ca, err := getCertByCertName(certName)
 	if err != nil {
 		hwlog.RunLog.Errorf("query cert [%s] root ca failed: %v", certName, err)
@@ -72,6 +72,35 @@ func issueServiceCa(input interface{}) common.RespMsg {
 	}
 	hwlog.RunLog.Infof("issue [%s] service certificate success", csrJsonData.CertName)
 	return common.RespMsg{Status: common.Success, Msg: "issue success", Data: string(cert)}
+}
+
+func certsUpdateResult(input interface{}) common.RespMsg {
+	var result certUpdateResult
+	data, ok := input.(string)
+	if !ok {
+		hwlog.RunLog.Errorf("message content type error")
+		return common.RespMsg{Status: common.ErrorContentTypeError, Msg: common.ErrorMap[common.ErrorContentTypeError]}
+	}
+	if err := json.Unmarshal([]byte(data), &result); err != nil {
+		errMsg := fmt.Sprintf("unmarshal json bytes error: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: errMsg}
+	}
+	switch result.CertType {
+	case CertTypeEdgeCa:
+		if edgeCaResultChan == nil {
+			edgeCaResultChan = make(chan certUpdateResult)
+		}
+		edgeCaResultChan <- result
+	case CertTypeEdgeSvc:
+		if edgeSvcResultChan == nil {
+			edgeSvcResultChan = make(chan certUpdateResult)
+		}
+		edgeSvcResultChan <- result
+	default:
+		hwlog.RunLog.Errorf("cert type error: %v", result.CertType)
+		return common.RespMsg{Status: common.ErrorCertTypeError, Msg: common.ErrorMap[common.ErrorCertTypeError]}
+	}
+	return common.RespMsg{Status: common.Success, Msg: ""}
 }
 
 func importRootCa(input interface{}) common.RespMsg {

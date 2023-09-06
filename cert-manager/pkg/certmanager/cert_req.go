@@ -3,6 +3,11 @@
 // Package certmanager cert manager module
 package certmanager
 
+const (
+	updateSuccessCode int64 = 1
+	updateFailedCode  int64 = 2
+)
+
 // importCertReq import ca req
 type importCertReq struct {
 	CertName string `json:"certName" binding:"required,oneof=software image res_file apig alarm edge_core device_plugin"`
@@ -22,4 +27,10 @@ type csrJson struct {
 type importCrlReq struct {
 	CrlName string `json:"crlName"`
 	Crl     string `json:"crl"`
+}
+
+type certUpdateResult struct {
+	CertType   string `json:"certType"`
+	ResultCode int64  `json:"resultCode"`
+	Desc       string `json:"desc"`
 }
