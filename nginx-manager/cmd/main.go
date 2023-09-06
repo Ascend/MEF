@@ -15,11 +15,12 @@ import (
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
-
+	"nginx-manager/pkg/certupdater"
 	"nginx-manager/pkg/nginxcom"
 	"nginx-manager/pkg/nginxlogrotate"
 	"nginx-manager/pkg/nginxmgr"
 	"nginx-manager/pkg/nginxmonitor"
+	"nginx-manager/pkg/restfulservice"
 )
 
 const (
@@ -30,6 +31,7 @@ const (
 )
 
 var (
+	ip            string
 	serverRunConf = &hwlog.LogConfig{OnlyToFile: true, LogFileName: runLogFile, BackupDirName: backupDirName}
 	serverOpConf  = &hwlog.LogConfig{OnlyToFile: true, LogFileName: operateLogFile, BackupDirName: backupDirName}
 )
@@ -60,16 +62,25 @@ func initResource() error {
 	if err := nginxcom.GetEnvManager().Load(); err != nil {
 		return err
 	}
-
 	err := kmc.InitKmcCfg(defaultKmcPath)
 	if err != nil {
 		hwlog.RunLog.Warnf("init kmc config from json failed: %v, use default kmc config", err)
+	}
+	ip, err = common.GetPodIP()
+	if err != nil {
+		return fmt.Errorf("get nginx manager pod ip failed: %v", err)
 	}
 	return nil
 }
 
 func register(ctx context.Context) error {
 	modulemgr.ModuleInit()
+	if err := modulemgr.Registry(restfulservice.NewNgxMgrServer(true, ip, common.NginxMgrPort)); err != nil {
+		return err
+	}
+	if err := modulemgr.Registry(certupdater.NewSouthCertUpdater(true, ctx)); err != nil {
+		return err
+	}
 	if err := modulemgr.Registry(nginxmgr.NewNginxManager(true, ctx)); err != nil {
 		return err
 	}

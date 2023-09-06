@@ -223,6 +223,12 @@ const (
 	ErrorGetImportedCertsInfo = "60001012"
 	// ErrorExportToken export token failed
 	ErrorExportToken = "60002001"
+	// ErrorContentTypeError message content type error
+	ErrorContentTypeError = "60002002"
+	// ErrorCertTypeError message content type error
+	ErrorCertTypeError = "60002003"
+	// ErrorNodeNotFound message content type error
+	ErrorNodeNotFound = "60002004"
 )
 
 // ErrorMap error code and error msg map
@@ -435,4 +441,10 @@ var ErrorMap = map[string]string{
 	ErrorGetAlarmDetail: "failed to get alarm detail in db",
 
 	ErrorExportToken: "export token failed",
+
+	ErrorContentTypeError: "message content type error",
+
+	ErrorCertTypeError: "cert type error",
+
+	ErrorNodeNotFound: "empty node found",
 }

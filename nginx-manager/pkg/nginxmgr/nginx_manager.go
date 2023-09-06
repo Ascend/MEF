@@ -95,14 +95,15 @@ func updateConf() error {
 	return updater.Update()
 }
 
-func loadCerts() error {
-	if err := WritePipe(nginxcom.ServerCertKeyFile, nginxcom.PipePath); err != nil {
+// LoadKeysDataToPipes decrypt cert keys then write them to pipes
+func LoadKeysDataToPipes(deletePipeAfterUse bool) error {
+	if err := WritePipe(nginxcom.ServerCertKeyFile, nginxcom.PipePath, deletePipeAfterUse); err != nil {
 		return err
 	}
-	if err := WritePipe(nginxcom.SouthAuthCertKeyFile, nginxcom.AuthPipePath); err != nil {
+	if err := WritePipe(nginxcom.SouthAuthCertKeyFile, nginxcom.AuthPipePath, deletePipeAfterUse); err != nil {
 		return err
 	}
-	if err := WritePipe(nginxcom.WebsocketCertKeyFile, nginxcom.WebsocketPipePath); err != nil {
+	if err := WritePipe(nginxcom.WebsocketCertKeyFile, nginxcom.WebsocketPipePath, deletePipeAfterUse); err != nil {
 		return err
 	}
 	updater, err := NewNginxConfUpdater(nil)
@@ -113,10 +114,11 @@ func loadCerts() error {
 	if err != nil {
 		return err
 	}
-	return WritePipeForClient(nginxcom.ClientCertKeyFile, nginxcom.ClientPipeDir, pipeCount)
+	return WritePipeForClient(nginxcom.ClientCertKeyFile, nginxcom.ClientPipeDir, pipeCount, deletePipeAfterUse)
 }
 
-func preparePipeCerts() error {
+// CreateKeyPipes create pipes for cert key files.
+func CreateKeyPipes() error {
 	if err := PreparePipe(nginxcom.PipePath); err != nil {
 		return err
 	}
@@ -263,16 +265,16 @@ func reqRestartNginx(req *model.Message) {
 }
 
 func startNginxCmd() bool {
-	if err := preparePipeCerts(); err != nil {
-		hwlog.RunLog.Errorf("prepare certs failed: %v", err)
+	if err := CreateKeyPipes(); err != nil {
+		hwlog.RunLog.Errorf("create key pipes failed: %v", err)
 		return false
 	}
 	if _, err := envutils.RunResidentCmd(startCommand); err != nil {
 		hwlog.RunLog.Errorf("start nginx failed: %v", err)
 		return false
 	}
-	if err := loadCerts(); err != nil {
-		hwlog.RunLog.Errorf("load certs failed: %v", err)
+	if err := LoadKeysDataToPipes(true); err != nil {
+		hwlog.RunLog.Errorf("load keys data to pipes failed: %v", err)
 		return false
 	}
 	if err := os.Chmod(accessLogFile, logFileMode); err != nil {

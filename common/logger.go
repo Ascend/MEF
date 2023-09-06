@@ -92,3 +92,8 @@ func ConstructResp(c *gin.Context, errorCode string, msg string, data interface{
 	}
 	c.JSON(http.StatusOK, result)
 }
+
+// NewOkRespMsg quickly construct OK response
+func NewOkRespMsg() *RespMsg {
+	return &RespMsg{Status: Success}
+}

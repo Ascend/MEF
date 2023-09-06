@@ -92,7 +92,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: ascend-nginx-manager
+  name: ascend-nginx-manager-external
   namespace: mef-center
   labels:
     app: ascend-nginx-manager
@@ -117,3 +117,21 @@ spec:
   selector:
     app: ascend-nginx-manager
   type: NodePort
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ascend-nginx-manager
+  namespace: mef-center
+  labels:
+    app: ascend-nginx-manager
+spec:
+  ports:
+    - name: nginx-manager-internal
+      port: 8104
+      targetPort: 8104
+      protocol: TCP
+  selector:
+    app: ascend-nginx-manager
+  type: ClusterIP

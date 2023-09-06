@@ -16,6 +16,8 @@ const (
 	CertMgrPort = 8103
 	// NginxMgrDns nginx manager dns name
 	NginxMgrDns = "ascend-nginx-manager.mef-center.svc.cluster.local"
+	// NginxMgrPort nginx manager inner RESTful server port
+	NginxMgrPort = 8104
 	// AlarmMgrPort alarm manager port
 	AlarmMgrPort = 8102
 	// AlarmMgrDns alarm manager dns name
@@ -57,6 +59,7 @@ const (
 	ConfigManagerName      = "ConfigManager"
 	LogManagerName         = "LogManager"
 	AlarmManagerName       = "AlarmManager"
+	CertUpdaterName        = "CertUpdater"
 )
 
 const (
@@ -159,6 +162,7 @@ const (
 	LockInterval           = 5 * time.Minute
 	CheckUnlockInterval    = 15 * time.Second
 	OneDay                 = 24 * time.Hour
+	HalfDay                = 12 * time.Hour
 )
 
 // field status
@@ -203,13 +207,20 @@ const (
 	ResDownLoadCert = "/cert/download_info"
 	// CertWillOverdue cert will overdue
 	CertWillOverdue = "/cert/update"
+	// CertWillExpired cert will expire
+	CertWillExpired = "/cert/update"
 	// ResEdgeCert resource for issuing cert for a csr from mef edge
 	ResEdgeCert = "/cert/edge"
 	// DeleteNodeMsg when delete node send msg to edgehub to stop connection
 	DeleteNodeMsg = "/edgemanager/delete/node"
-
 	// EdgeHubName edgehub name
 	EdgeHubName = "EdgeHub"
+	// ResNodeChanged when edge node added or deleted, nodemanager send notify to certupdater
+	ResNodeChanged = "/nodemanager/node/changed"
+	// ResCertUpdate cert update notify from cert-manager to certupdater, both ca and svc.
+	ResCertUpdate = "/inner/v1/cert/update"
+	// ResEdgeMgrCertUpdate cert update notify in nginx-manager
+	ResEdgeMgrCertUpdate = "/inner/cert/edge-manger"
 )
 
 // memory unit
@@ -237,7 +248,7 @@ const (
 	CommandCopy = "cp"
 )
 
-// consts for unpack zip file
+// const for unpack zip file
 const (
 	MaxPkgSizeTimes      = 100
 	MaxExtractFileCount  = 100
