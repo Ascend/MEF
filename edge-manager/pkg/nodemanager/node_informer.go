@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,8 +27,20 @@ import (
 )
 
 const (
-	halfMin = time.Second * 30
+	halfMin          = time.Second * 30
+	nodeActionAdd    = "add"
+	nodeActionDelete = "delete"
 )
+
+type simpleNodeInfo struct {
+	Sn string `json:"sn"`
+	Ip string `json:"ip"`
+}
+
+type changedNodeInfo struct {
+	AddedNodeInfo   []simpleNodeInfo
+	DeletedNodeInfo []simpleNodeInfo
+}
 
 var (
 	nodeSyncService      nodeSyncImpl
@@ -116,6 +130,7 @@ func (s *nodeSyncImpl) nodeAdded(obj interface{}) {
 	if node == nil {
 		return
 	}
+	reportChangedNodeInfo(nodeActionAdd, node)
 	s.handleAddNode(node)
 }
 
@@ -131,7 +146,12 @@ func (s *nodeSyncImpl) nodeUpdated(oldObj, newObj interface{}) {
 	s.handleUpdateNode(newNode)
 }
 
-func (s *nodeSyncImpl) nodeDeleted(Obj interface{}) {
+func (s *nodeSyncImpl) nodeDeleted(obj interface{}) {
+	node := transferNodeType(obj)
+	if node == nil {
+		return
+	}
+	reportChangedNodeInfo(nodeActionDelete, node)
 }
 
 func transferNodeType(Obj interface{}) *v1.Node {
@@ -312,4 +332,44 @@ func evalNodeStatus(node *v1.Node) string {
 		}
 	}
 	return statusOffline
+}
+
+// report node change info to cert-updater
+func reportChangedNodeInfo(action string, node *v1.Node) {
+	nodeSn := node.Labels[snNodeLabelKey]
+	// empty sn label means it's not a MEF managed node, skip report
+	if nodeSn == "" {
+		hwlog.RunLog.Infof("node [%v] is not managed by MEF, skip report change info", node.Name)
+		return
+	}
+	nodeIp := evalIpAddress(node)
+	var changedInfo changedNodeInfo
+	nodeInfo := simpleNodeInfo{
+		Sn: nodeSn,
+		Ip: nodeIp,
+	}
+	switch action {
+	case nodeActionDelete:
+		changedInfo.DeletedNodeInfo = append(changedInfo.DeletedNodeInfo, nodeInfo)
+	case nodeActionAdd:
+		changedInfo.AddedNodeInfo = append(changedInfo.AddedNodeInfo, nodeInfo)
+	default:
+		hwlog.RunLog.Errorf("invalid node action: %v", action)
+		return
+	}
+	reportMsg, err := model.NewMessage()
+	if err != nil {
+		hwlog.RunLog.Errorf("generate new report message error: %v", err)
+		return
+	}
+	reportMsg.SetRouter(common.NodeManagerName, common.CertUpdaterName, common.OptPost, common.ResNodeChanged)
+	jsonData, err := json.Marshal(changedInfo)
+	if err != nil {
+		hwlog.RunLog.Errorf("serialize changed node info error: %v", err)
+		return
+	}
+	reportMsg.FillContent(string(jsonData))
+	if err = modulemgr.SendMessage(reportMsg); err != nil {
+		hwlog.RunLog.Errorf("report node change info error: %v changed info:%+v", err, changedInfo)
+	}
 }

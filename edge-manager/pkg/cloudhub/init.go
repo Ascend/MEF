@@ -23,11 +23,25 @@ import (
 	"huawei.com/mindxedge/base/common/requests"
 )
 
+type messageHandler func(*model.Message) (*model.Message, bool, error)
+
+var messageHandlerMap = make(map[string]messageHandler)
+
+func getMsgHandler(msg *model.Message) (messageHandler, bool) {
+	handlerKey := msg.GetOption() + msg.GetResource()
+	handler, ok := messageHandlerMap[handlerKey]
+	return handler, ok
+}
+func initMsgHandler() {
+	messageHandlerMap[common.OptPost+common.ResEdgeCert] = issueCertForEdge
+}
+
 // CloudServer wraps the struct WebSocketServer
 type CloudServer struct {
 	wsPort       int
 	authPort     int
 	maxClientNum int
+	serverProxy  *websocketmgr.WsServerProxy
 	writeLock    sync.RWMutex
 	ctx          context.Context
 	enable       bool
@@ -71,11 +85,13 @@ func (c *CloudServer) Start() {
 		return
 	}
 	go periodCheck()
-	if err := InitServer(); err != nil {
+	var err error
+	c.serverProxy, err = InitServer()
+	if err != nil {
 		hwlog.RunLog.Errorf("init websocket server failed: %v", err)
 		return
 	}
-
+	initMsgHandler()
 	hwlog.RunLog.Info("init websocket server success")
 	for {
 		select {
@@ -99,16 +115,24 @@ func (c *CloudServer) Start() {
 }
 
 func (c *CloudServer) dispatch(message *model.Message) {
-	var err error
-	message, err = certProcess(message)
-	if err != nil {
-		hwlog.RunLog.Errorf("certProcess error: %v", err)
-		return
+	var retMsg = message
+	handler, ok := getMsgHandler(message)
+	if ok {
+		result, sentToEdge, err := handler(message)
+		if err != nil {
+			hwlog.RunLog.Errorf("process message [option: %v res: %v]error: %v",
+				message.GetOption(), message.GetResource(), err)
+			return
+		}
+		if !sentToEdge {
+			return
+		}
+		retMsg = result
 	}
-	if c.sendToClient(message) != nil {
-		c.response(message, common.FAIL)
+	if c.sendToEdge(retMsg) != nil {
+		c.response(retMsg, common.FAIL)
 	} else {
-		c.response(message, common.OK)
+		c.response(retMsg, common.OK)
 	}
 }
 
@@ -125,11 +149,11 @@ func (c *CloudServer) response(message *model.Message, content string) {
 
 	resp.FillContent(content)
 	if err = modulemgr.SendMessage(resp); err != nil {
-		hwlog.RunLog.Errorf("%s send response failed", c.Name())
+		hwlog.RunLog.Errorf("%s send response failed: %v", c.Name(), err)
 	}
 }
 
-func (c *CloudServer) sendToClient(msg *model.Message) error {
+func (c *CloudServer) sendToEdge(msg *model.Message) error {
 	sender, err := GetSvrSender()
 	if err != nil {
 		hwlog.RunLog.Errorf("send to client [%s] failed", msg.GetNodeId())
@@ -189,29 +213,16 @@ func unlockIP() {
 	}
 }
 
-func certProcess(msg *model.Message) (*model.Message, error) {
-	if isReqCertFromEdge(msg) {
-		return issueCertForEdge(msg)
-	}
-	return msg, nil
-}
-func isReqCertFromEdge(message *model.Message) bool {
-	if message == nil {
-		return false
-	}
-	return message.GetOption() == common.OptPost && message.GetResource() == common.ResEdgeCert
-}
-
-func issueCertForEdge(msg *model.Message) (*model.Message, error) {
+func issueCertForEdge(msg *model.Message) (*model.Message, bool, error) {
 	csrRawData := msg.GetContent()
 	csrBase64Str, ok := csrRawData.(string)
 	if !ok {
-		return nil, errors.New("csr data format error")
+		return nil, false, errors.New("csr data format error")
 	}
 	csrData, err := base64.StdEncoding.DecodeString(csrBase64Str)
 	if err != nil {
 		hwlog.RunLog.Errorf("decode base64 csr data error: %v", err)
-		return nil, errors.New("decode base64 csr data error")
+		return nil, false, errors.New("decode base64 csr data error")
 	}
 	reqCertParams := requests.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
@@ -224,11 +235,11 @@ func issueCertForEdge(msg *model.Message) (*model.Message, error) {
 	certStr, err := reqCertParams.ReqIssueSvrCert(common.WsCltName, csrData)
 	if err != nil {
 		hwlog.RunLog.Errorf("issue cert for edge error: %v", err)
-		return nil, errors.New("issue cert for edge error")
+		return nil, false, errors.New("issue cert for edge error")
 	}
 	respMsg, err := msg.NewResponse()
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	respMsg.SetRouter(
 		common.CloudHubName,
@@ -237,5 +248,5 @@ func issueCertForEdge(msg *model.Message) (*model.Message, error) {
 		common.ResEdgeCert)
 	respMsg.SetNodeId(msg.GetNodeId())
 	respMsg.FillContent(certStr)
-	return respMsg, nil
+	return respMsg, true, nil
 }
