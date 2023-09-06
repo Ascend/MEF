@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -141,7 +142,7 @@ func PreparePipe(pipePath string) error {
 }
 
 // WritePipe load the apigw secret key file and write into pipe
-func WritePipe(keyPath, pipePath string) error {
+func WritePipe(keyPath, pipePath string, deletePipeAfterUse bool) error {
 	var keyContent []byte
 	var err error
 	if keyContent, err = loadKey(keyPath); err != nil {
@@ -151,7 +152,7 @@ func WritePipe(keyPath, pipePath string) error {
 		common.ClearSliceByteMemory(keyContent)
 		return fmt.Errorf("The  file: %s does not exist." + pipePath)
 	}
-	go writeKeyToPipe(pipePath, keyContent)
+	go writeKeyToPipe(pipePath, keyContent, deletePipeAfterUse)
 	return nil
 }
 
@@ -177,7 +178,7 @@ func PrepareForClient(pipeDir string, pipeCount int) error {
 }
 
 // WritePipeForClient load the secret key file which used for inner communication and write into pipe
-func WritePipeForClient(keyPath, pipeDir string, pipeCount int) error {
+func WritePipeForClient(keyPath, pipeDir string, pipeCount int, deletePipeAfterUse bool) error {
 	var keyContent []byte
 	var err error
 	if keyContent, err = loadKey(keyPath); err != nil {
@@ -194,7 +195,7 @@ func WritePipeForClient(keyPath, pipeDir string, pipeCount int) error {
 			common.ClearSliceByteMemory(keyContent)
 			return fmt.Errorf("The  file: %s does not exist." + pipePath)
 		}
-		go writeKeyToPipe(pipePath, keyContent)
+		go writeKeyToPipe(pipePath, keyContent, deletePipeAfterUse)
 	}
 	return nil
 }
@@ -213,7 +214,7 @@ func loadKey(path string) ([]byte, error) {
 	return decryptKeyByte, nil
 }
 
-func writeKeyToPipe(pipeFile string, content []byte) {
+func writeKeyToPipe(pipeFile string, content []byte, deletePipeAfterUse bool) {
 	pipe, err := os.OpenFile(pipeFile, os.O_WRONLY|os.O_SYNC, os.ModeNamedPipe)
 	if err != nil {
 		hwlog.RunLog.Error("open pipe failed")
@@ -224,9 +225,11 @@ func writeKeyToPipe(pipeFile string, content []byte) {
 		if err != nil {
 			hwlog.RunLog.Error("pipe close error")
 		}
-		err = os.Remove(pipeFile)
-		if err != nil {
-			hwlog.RunLog.Error("pipe remove error")
+		if deletePipeAfterUse {
+			err = os.Remove(pipeFile)
+			if err != nil {
+				hwlog.RunLog.Error("pipe remove error")
+			}
 		}
 	}()
 	var nginxStatus bool
@@ -238,6 +241,7 @@ func writeKeyToPipe(pipeFile string, content []byte) {
 		time.Sleep(waitTime)
 	}
 	if !nginxStatus {
+		hwlog.RunLog.Warn("nginx is not running, skip writing tls cert key")
 		return
 	}
 	_, err = pipe.Write(content)
@@ -252,6 +256,7 @@ func writeKeyToPipe(pipeFile string, content []byte) {
 	}
 	hwlog.RunLog.Infof("write pipe %s success", pipeFile)
 }
+
 func isNginxRunning() bool {
 	pid, err := envutils.RunCommand("pgrep", envutils.DefCmdTimeoutSec, "-o", "-x", "nginx")
 	if err != nil || pid == "" {
@@ -282,5 +287,29 @@ func createPipe(pipeFile string) error {
 		return fmt.Errorf("make pipe %s error: %s", pipeFile, err.Error())
 	}
 	hwlog.RunLog.Infof("make pipe %v success", pipeFile)
+	return nil
+}
+
+// PrepareServiceCert prepare cert and key files with force flag: if true, delete them first then create new
+func PrepareServiceCert(keyPath string, certPath string, caName string, forceFlag bool, locker *sync.Mutex) error {
+	if forceFlag {
+		// key and cert files will be read when nginx conf is reloading
+		// try to get the lock before deleting them
+		// get the lock success means reload operation is finished, it will be safe to delete them
+		locker.Lock()
+		defer locker.Unlock()
+		if err := utils.DeleteFile(keyPath); err != nil {
+			return fmt.Errorf("remove old key file error: %v", err)
+		}
+		hwlog.RunLog.Infof("key file [%v] is deleted", keyPath)
+		if err := utils.DeleteFile(certPath); err != nil {
+			return fmt.Errorf("remove old cert file error: %v", err)
+		}
+		hwlog.RunLog.Infof("cert file [%v] is deleted", certPath)
+	}
+	if err := prepareServerCert(keyPath, certPath, caName); err != nil {
+		hwlog.RunLog.Errorf("prepare server cert failed:%v", err)
+		return err
+	}
 	return nil
 }
