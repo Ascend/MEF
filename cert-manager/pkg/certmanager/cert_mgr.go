@@ -102,7 +102,7 @@ func issueServiceCert(certName string, serviceCsr string) ([]byte, error) {
 
 	keyFilePath := getRootKeyPath(certName)
 	caFilePath := getRootCaPath(certName)
-	initCertMgr := certutils.InitRootCertMgr(caFilePath, keyFilePath, certName, nil)
+	initCertMgr := certutils.InitRootCertMgr(caFilePath, keyFilePath, common.MefCertCommonNamePrefix, nil)
 	if _, err := initCertMgr.GetRootCaPair(); err != nil {
 		if _, err = initCertMgr.NewRootCa(); err != nil {
 			hwlog.RunLog.Errorf("Init root ca info failed: %v", err)
