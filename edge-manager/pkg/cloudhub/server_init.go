@@ -31,7 +31,7 @@ var serverSender websocketmgr.WsSvrSender
 var initFlag bool
 
 // InitServer init server
-func InitServer() error {
+func InitServer() (*websocketmgr.WsServerProxy, error) {
 	certInfo := certutils.TlsCertInfo{
 		KmcCfg:     kmc.GetDefKmcCfg(),
 		RootCaPath: constants.RootCaPath,
@@ -44,12 +44,12 @@ func InitServer() error {
 	podIp, err := common.GetPodIP()
 	if err != nil {
 		hwlog.RunLog.Errorf("get edge manager pod ip failed: %s", err.Error())
-		return errors.New("get edge manager pod ip")
+		return nil, errors.New("get edge manager pod ip")
 	}
 	proxyConfig, err := websocketmgr.InitProxyConfig(name, podIp, server.wsPort, certInfo)
 	if err != nil {
 		hwlog.RunLog.Errorf("init proxy config failed: %v", err)
-		return errors.New("init proxy config failed")
+		return nil, errors.New("init proxy config failed")
 	}
 	proxyConfig.RegModInfos(getRegModuleInfoList())
 	proxyConfig.ReadTimeout = wsWriteTimeout
@@ -62,16 +62,16 @@ func InitServer() error {
 	proxy.SetDisconnCallback(clearAlarm)
 	if err = proxy.AddHandler(constants.LogUploadUrl, logmanager.HandleUpload); err != nil {
 		hwlog.RunLog.Error("add handler failed")
-		return errors.New("add handler failed")
+		return nil, errors.New("add handler failed")
 	}
 	serverSender.SetProxy(proxy)
 	if err = proxy.Start(); err != nil {
 		hwlog.RunLog.Errorf("proxy.Start failed: %v", err)
-		return errors.New("proxy.Start failed")
+		return nil, errors.New("proxy.Start failed")
 	}
 	hwlog.RunLog.Info("cloudhub server start success")
 	initFlag = true
-	return nil
+	return proxy, nil
 }
 
 func authServer() {
@@ -89,7 +89,7 @@ func authServer() {
 // GetSvrSender get server sender
 func GetSvrSender() (websocketmgr.WsSvrSender, error) {
 	if !initFlag {
-		if err := InitServer(); err != nil {
+		if _, err := InitServer(); err != nil {
 			hwlog.RunLog.Errorf("init websocket server failed before sending message to mef-edge, error: %v", err)
 			return websocketmgr.WsSvrSender{}, errors.New("init websocket server failed before sending message to mef-edge")
 		}

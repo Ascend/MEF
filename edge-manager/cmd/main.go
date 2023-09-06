@@ -20,6 +20,7 @@ import (
 
 	"edge-manager/pkg/alarmmanager"
 	"edge-manager/pkg/appmanager"
+	"edge-manager/pkg/certupdater"
 	"edge-manager/pkg/cloudhub"
 	"edge-manager/pkg/config"
 	"edge-manager/pkg/configmanager"
@@ -214,6 +215,9 @@ func initResource() error {
 
 func register(ctx context.Context) error {
 	modulemgr.ModuleInit()
+	if err := modulemgr.Registry(certupdater.NewEdgeCertUpdater(true)); err != nil {
+		return err
+	}
 	if err := modulemgr.Registry(restfulservice.NewRestfulService(true, ip, port)); err != nil {
 		return err
 	}

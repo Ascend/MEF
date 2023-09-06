@@ -112,8 +112,8 @@ var innerConfigRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 	"/inner/v1/cert": {
 		restfulmgr.GenericDispatcher{
 			RelativePath: "/update",
-			Method:       http.MethodGet,
-			Destination:  common.ConfigManagerName},
+			Method:       http.MethodPost,
+			Destination:  common.CertUpdaterName},
 	},
 }
 
