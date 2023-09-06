@@ -59,12 +59,12 @@ func (*edgeSvcCertStatus) TableName() string {
 	return TableEdgeSvcCertStatus
 }
 
-// NewEdgeSvcCertStatusDbMod get a model instance for edge service cert state
+// getEdgeSvcCertStatusModInstance get a model instance for edge service cert state
 func getEdgeSvcCertStatusModInstance() *edgeSvcCertStatus {
 	return &EdgeSvcCertStatusMod
 }
 
-// NewEdgeCaCertStatusDbMod get a model instance for edge root ca cert state
+// getEdgeCaCertStatusDbModInstance get a model instance for edge root ca cert state
 func getEdgeCaCertStatusDbModInstance() *edgeCaCertStatus {
 	return &EdgeCaCertStatusMod
 }
