@@ -122,7 +122,9 @@ func handleCertUpdate(msg *model.Message) error {
 	}
 	switch payload.CertType {
 	case CertTypeEdgeSvc:
+		go StartEdgeSvcCertUpdate(&payload)
 	case CertTypeEdgeCa:
+		go StartEdgeCaCertUpdate(&payload)
 	default:
 		updateErr = fmt.Errorf("cert [%v] update is not supported", payload.CertType)
 		return updateErr
