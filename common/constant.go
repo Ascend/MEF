@@ -281,6 +281,12 @@ const (
 	TransferEncoding   = "Transfer-Encoding"
 )
 
+// constants fo database backup
+const (
+	BackupDbSuffix = ".backup"
+	DbTestInterval = time.Minute
+)
+
 // consts for inner websocket Port
 const (
 	EdgeManagerInnerWsPort = 20000

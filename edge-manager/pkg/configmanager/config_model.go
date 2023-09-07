@@ -18,7 +18,6 @@ var (
 )
 
 type configRepositoryImpl struct {
-	db *gorm.DB
 }
 
 // ConfigRepository for config method to operate db
@@ -32,13 +31,17 @@ type ConfigRepository interface {
 // ConfigRepositoryInstance returns the singleton instance of config service
 func ConfigRepositoryInstance() ConfigRepository {
 	repositoryInitOnce.Do(func() {
-		configRepository = &configRepositoryImpl{db: database.GetDb()}
+		configRepository = &configRepositoryImpl{}
 	})
 	return configRepository
 }
 
+func (c *configRepositoryImpl) db() *gorm.DB {
+	return database.GetDb()
+}
+
 func (c *configRepositoryImpl) saveToken(info TokenInfo) error {
-	return c.db.Transaction(func(tx *gorm.DB) error {
+	return database.Transaction(c.db(), func(tx *gorm.DB) error {
 		if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&TokenInfo{}).Error; err != nil {
 			return errors.New("delete old token error")
 		}
@@ -59,7 +62,7 @@ func (c *configRepositoryImpl) GetToken() ([]byte, []byte, error) {
 
 func (c *configRepositoryImpl) getTokenInfo() (TokenInfo, error) {
 	var tokenInfo []TokenInfo
-	if err := c.db.Model(TokenInfo{}).Find(&tokenInfo).Error; err != nil {
+	if err := c.db().Model(TokenInfo{}).Find(&tokenInfo).Error; err != nil {
 		return TokenInfo{}, errors.New("get token from db error")
 	}
 	if len(tokenInfo) == 0 {
@@ -86,7 +89,7 @@ func (c *configRepositoryImpl) ifTokenExpire() (bool, error) {
 }
 
 func (c *configRepositoryImpl) revokeToken() error {
-	if err := c.db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&TokenInfo{}).Error; err != nil {
+	if err := c.db().Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&TokenInfo{}).Error; err != nil {
 		return errors.New("revoke token error")
 	}
 	return nil

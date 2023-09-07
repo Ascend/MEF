@@ -25,7 +25,6 @@ var (
 
 // CmRepositoryImpl configmap service struct
 type CmRepositoryImpl struct {
-	db *gorm.DB
 }
 
 // ConfigmapRepository for configmap method to operate db
@@ -46,41 +45,45 @@ type ConfigmapRepository interface {
 // CmRepositoryInstance returns the singleton instance of configmap service
 func CmRepositoryInstance() ConfigmapRepository {
 	configmapRepositoryInitOnce.Do(func() {
-		configmapRepository = &CmRepositoryImpl{db: database.GetDb()}
+		configmapRepository = &CmRepositoryImpl{}
 	})
 	return configmapRepository
 }
 
+func (ci *CmRepositoryImpl) db() *gorm.DB {
+	return database.GetDb()
+}
+
 func (ci *CmRepositoryImpl) createCmInDB(configmapInfo *ConfigmapInfo) error {
-	return ci.db.Model(ConfigmapInfo{}).Create(configmapInfo).Error
+	return ci.db().Model(ConfigmapInfo{}).Create(configmapInfo).Error
 }
 
 func (ci *CmRepositoryImpl) deleteCmByID(configmapID uint64) (int64, error) {
-	stmt := ci.db.Model(ConfigmapInfo{}).Where("id = ?", configmapID).Delete(&ConfigmapInfo{})
+	stmt := ci.db().Model(ConfigmapInfo{}).Where("id = ?", configmapID).Delete(&ConfigmapInfo{})
 	return stmt.RowsAffected, stmt.Error
 }
 
 func (ci *CmRepositoryImpl) updateCmByName(configmapName string, configmapInfo *ConfigmapInfo) (int64, error) {
-	stmt := ci.db.Model(&ConfigmapInfo{}).Where("configmap_name = ?", configmapName).Updates(&configmapInfo)
+	stmt := ci.db().Model(&ConfigmapInfo{}).Where("configmap_name = ?", configmapName).Updates(&configmapInfo)
 	return stmt.RowsAffected, stmt.Error
 }
 
 func (ci *CmRepositoryImpl) queryCmByID(configmapID uint64) (*ConfigmapInfo, error) {
 	var configmapInfo *ConfigmapInfo
 	return configmapInfo,
-		ci.db.Model(ConfigmapInfo{}).Where("id = ?", configmapID).First(&configmapInfo).Error
+		ci.db().Model(ConfigmapInfo{}).Where("id = ?", configmapID).First(&configmapInfo).Error
 }
 
 func (ci *CmRepositoryImpl) queryCmByName(configmapName string) (*ConfigmapInfo, error) {
 	var configmapInfo *ConfigmapInfo
 	return configmapInfo,
-		ci.db.Model(ConfigmapInfo{}).Where("configmap_name = ?", configmapName).First(&configmapInfo).Error
+		ci.db().Model(ConfigmapInfo{}).Where("configmap_name = ?", configmapName).First(&configmapInfo).Error
 }
 
 func (ci *CmRepositoryImpl) listCmInfo(page, pageSize uint64, name string) ([]ConfigmapInfo, error) {
 	var configmapsInfo []ConfigmapInfo
 	return configmapsInfo,
-		ci.db.Model(ConfigmapInfo{}).Scopes(getConfigmapInfoByLikeName(page, pageSize, name)).Find(&configmapsInfo).Error
+		ci.db().Model(ConfigmapInfo{}).Scopes(getConfigmapInfoByLikeName(page, pageSize, name)).Find(&configmapsInfo).Error
 }
 
 func getConfigmapInfoByLikeName(page, pageSize uint64, configmapName string) func(db *gorm.DB) *gorm.DB {
@@ -92,7 +95,7 @@ func getConfigmapInfoByLikeName(page, pageSize uint64, configmapName string) fun
 func (ci *CmRepositoryImpl) cmListCountByName(name string) (int64, error) {
 	var totalConfigmapInfo int64
 	return totalConfigmapInfo,
-		ci.db.Model(ConfigmapInfo{}).Where("INSTR(configmap_name, ?)", name).Count(&totalConfigmapInfo).Error
+		ci.db().Model(ConfigmapInfo{}).Where("INSTR(configmap_name, ?)", name).Count(&totalConfigmapInfo).Error
 }
 
 func (ci *CmRepositoryImpl) createCm(createCmReq *ConfigmapReq) (uint64, error) {
@@ -107,7 +110,7 @@ func (ci *CmRepositoryImpl) createCm(createCmReq *ConfigmapReq) (uint64, error) 
 		return 0, errors.New("convert cm request param to db failed")
 	}
 
-	return cm.ID, ci.db.Transaction(func(tx *gorm.DB) error {
+	return cm.ID, database.Transaction(ci.db(), func(tx *gorm.DB) error {
 		// create in db
 		if err = tx.Model(ConfigmapInfo{}).Create(cm).Error; err != nil {
 
@@ -147,7 +150,7 @@ func (ci *CmRepositoryImpl) updateCm(updateCmReq *ConfigmapReq) error {
 		return errors.New("update configmap req is nil")
 	}
 
-	return ci.db.Transaction(func(tx *gorm.DB) error {
+	return database.Transaction(ci.db(), func(tx *gorm.DB) error {
 
 		// query cm info by name
 		var configmapInfo ConfigmapInfo
@@ -214,7 +217,7 @@ func updateCmToK8S(updateCmReq *ConfigmapReq) error {
 }
 
 func (ci *CmRepositoryImpl) deleteSingleCm(cmID uint64) error {
-	return ci.db.Transaction(func(tx *gorm.DB) error {
+	return database.Transaction(ci.db(), func(tx *gorm.DB) error {
 
 		// query cm by id
 		var cmInfoFromDB ConfigmapInfo

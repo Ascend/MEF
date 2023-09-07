@@ -38,7 +38,6 @@ var (
 )
 
 type lockRepositoryImpl struct {
-	db *gorm.DB
 }
 
 // LockRepository for config method to operate db
@@ -60,14 +59,18 @@ type LockRepository interface {
 // LockRepositoryInstance returns the singleton instance of token lock service
 func LockRepositoryInstance() LockRepository {
 	repositoryInitOnce.Do(func() {
-		lockRepository = &lockRepositoryImpl{db: database.GetDb()}
+		lockRepository = &lockRepositoryImpl{}
 	})
 	return lockRepository
 }
 
+func (c *lockRepositoryImpl) db() *gorm.DB {
+	return database.GetDb()
+}
+
 func (c *lockRepositoryImpl) isLock(ip string) (bool, error) {
 	var lockInfo LockRecord
-	err := c.db.Model(LockRecord{}).Where("ip = ?", ip).First(&lockInfo).Error
+	err := c.db().Model(LockRecord{}).Where("ip = ?", ip).First(&lockInfo).Error
 	if err == gorm.ErrRecordNotFound {
 		return false, nil
 	} else if err != nil {
@@ -118,7 +121,7 @@ func (c *lockRepositoryImpl) authPass(ip string) error {
 
 func (c *lockRepositoryImpl) getFailedRecord(ip string) (*AuthFailedRecord, error) {
 	var lockInfo AuthFailedRecord
-	err := c.db.Model(AuthFailedRecord{}).Where("ip = ?", ip).First(&lockInfo).Error
+	err := c.db().Model(AuthFailedRecord{}).Where("ip = ?", ip).First(&lockInfo).Error
 	return &lockInfo, err
 }
 
@@ -127,7 +130,7 @@ func (c *lockRepositoryImpl) createFailedRecord(ip string) error {
 		IP:         ip,
 		ErrorTimes: 1,
 	}
-	if createErr := c.db.Model(AuthFailedRecord{}).Create(record).Error; createErr != nil {
+	if createErr := c.db().Model(AuthFailedRecord{}).Create(record).Error; createErr != nil {
 		return fmt.Errorf("create auth failed record to db error, ip(%s)", ip)
 	}
 	return nil
@@ -141,14 +144,14 @@ func (c *lockRepositoryImpl) updateFailedRecord(ip string) error {
 	record := map[string]interface{}{
 		"ErrorTimes": oldRecord.ErrorTimes + 1,
 	}
-	if err := c.db.Model(AuthFailedRecord{}).Where("ip = ?", ip).UpdateColumns(record).Error; err != nil {
+	if err := c.db().Model(AuthFailedRecord{}).Where("ip = ?", ip).UpdateColumns(record).Error; err != nil {
 		return fmt.Errorf("update auth failed record to db error, ip(%s)", ip)
 	}
 	return nil
 }
 
 func (c *lockRepositoryImpl) deleteFailedRecord(ip string) error {
-	if err := c.db.Model(AuthFailedRecord{}).Where("ip = ?", ip).Delete(&AuthFailedRecord{}).Error; err != nil {
+	if err := c.db().Model(AuthFailedRecord{}).Where("ip = ?", ip).Delete(&AuthFailedRecord{}).Error; err != nil {
 		return fmt.Errorf("delete failed record(%s) from db error", ip)
 	}
 	return nil
@@ -156,15 +159,15 @@ func (c *lockRepositoryImpl) deleteFailedRecord(ip string) error {
 
 func (c *lockRepositoryImpl) findUnlockRecords() ([]LockRecord, error) {
 	var unlockIP []LockRecord
-	return unlockIP, c.db.Model(LockRecord{}).Where("lock_time < ?", time.Now().Unix()).Find(&unlockIP).Error
+	return unlockIP, c.db().Model(LockRecord{}).Where("lock_time < ?", time.Now().Unix()).Find(&unlockIP).Error
 }
 
 func (c *lockRepositoryImpl) UnlockRecords(ip string) error {
-	return c.db.Model(LockRecord{}).Where("lock_time < ? and ip = ?", time.Now().Unix(), ip).Delete(LockRecord{}).Error
+	return c.db().Model(LockRecord{}).Where("lock_time < ? and ip = ?", time.Now().Unix(), ip).Delete(LockRecord{}).Error
 }
 
 func (c *lockRepositoryImpl) deleteOneLockRecord(ip string) error {
-	if err := c.db.Model(LockRecord{}).Where("ip = ?", ip).Delete(&LockRecord{}).Error; err != nil {
+	if err := c.db().Model(LockRecord{}).Where("ip = ?", ip).Delete(&LockRecord{}).Error; err != nil {
 		return fmt.Errorf("delete lock info from ip:%s error", ip)
 	}
 	return nil
@@ -174,7 +177,7 @@ func (c *lockRepositoryImpl) updateLockTime(ip string) error {
 	updatedColumns := map[string]interface{}{
 		"LockTime": time.Now().Add(common.LockInterval).Unix(),
 	}
-	return c.db.Model(LockRecord{}).Where("ip = ?", ip).UpdateColumns(updatedColumns).Error
+	return c.db().Model(LockRecord{}).Where("ip = ?", ip).UpdateColumns(updatedColumns).Error
 }
 
 func (c *lockRepositoryImpl) createLockRecord(ip string) error {
@@ -182,5 +185,5 @@ func (c *lockRepositoryImpl) createLockRecord(ip string) error {
 		IP:       ip,
 		LockTime: time.Now().Add(common.LockInterval).Unix(),
 	}
-	return c.db.Model(LockRecord{}).Create(record).Error
+	return c.db().Model(LockRecord{}).Create(record).Error
 }

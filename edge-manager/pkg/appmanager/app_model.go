@@ -27,7 +27,6 @@ var (
 
 // AppRepositoryImpl app service struct
 type AppRepositoryImpl struct {
-	db *gorm.DB
 }
 
 // AppRepository for app method to operate db
@@ -75,17 +74,21 @@ func GetTableCount(tb interface{}) (int, error) {
 // AppRepositoryInstance returns the singleton instance of application service
 func AppRepositoryInstance() AppRepository {
 	repositoryInitOnce.Do(func() {
-		appRepository = &AppRepositoryImpl{db: database.GetDb()}
+		appRepository = &AppRepositoryImpl{}
 	})
 	return appRepository
 }
 
+func (a *AppRepositoryImpl) db() *gorm.DB {
+	return database.GetDb()
+}
+
 func (a *AppRepositoryImpl) createApp(appInfo *AppInfo) error {
-	return a.db.Model(AppInfo{}).Create(appInfo).Error
+	return a.db().Model(AppInfo{}).Create(appInfo).Error
 }
 
 func (a *AppRepositoryImpl) updateApp(appInfo *AppInfo) error {
-	return a.db.Transaction(func(tx *gorm.DB) error {
+	return database.Transaction(a.db(), func(tx *gorm.DB) error {
 		if stmt := tx.Model(AppInfo{}).Where("id = ?", appInfo.ID).
 			Update("containers", appInfo.Containers); stmt.Error != nil {
 			return errors.New("update app to db failed")
@@ -112,7 +115,7 @@ func (a *AppRepositoryImpl) updateApp(appInfo *AppInfo) error {
 
 func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) ([]AppInfo, error) {
 	var appsInfo []AppInfo
-	if err := a.db.Model(AppInfo{}).Scopes(getAppInfoByLikeName(page, pageSize, name)).
+	if err := a.db().Model(AppInfo{}).Scopes(getAppInfoByLikeName(page, pageSize, name)).
 		Find(&appsInfo).Error; err != nil {
 		return nil, err
 	}
@@ -121,7 +124,7 @@ func (a *AppRepositoryImpl) listAppsInfo(page, pageSize uint64, name string) ([]
 
 func (a *AppRepositoryImpl) countListAppsInfo(name string) (int64, error) {
 	var totalAppInfo int64
-	if err := a.db.Model(AppInfo{}).Where("INSTR(app_name, ?)", name).Count(&totalAppInfo).Error; err != nil {
+	if err := a.db().Model(AppInfo{}).Where("INSTR(app_name, ?)", name).Count(&totalAppInfo).Error; err != nil {
 		return 0, err
 	}
 	return totalAppInfo, nil
@@ -129,10 +132,10 @@ func (a *AppRepositoryImpl) countListAppsInfo(name string) (int64, error) {
 
 func (a *AppRepositoryImpl) countDeployedApp() (int64, int64, error) {
 	var deployedAppNums, unDeployedAppNums, totalAppNums int64
-	if err := a.db.Model(AppDaemonSet{}).Distinct("app_id").Count(&deployedAppNums).Error; err != nil {
+	if err := a.db().Model(AppDaemonSet{}).Distinct("app_id").Count(&deployedAppNums).Error; err != nil {
 		return 0, 0, err
 	}
-	if err := a.db.Model(AppInfo{}).Distinct("id").Count(&totalAppNums).Error; err != nil {
+	if err := a.db().Model(AppInfo{}).Distinct("id").Count(&totalAppNums).Error; err != nil {
 		return 0, 0, err
 	}
 	unDeployedAppNums = totalAppNums - deployedAppNums
@@ -140,14 +143,14 @@ func (a *AppRepositoryImpl) countDeployedApp() (int64, int64, error) {
 }
 
 func (a *AppRepositoryImpl) deleteAppById(appId uint64) (int64, error) {
-	err := a.db.Model(AppDaemonSet{}).Where("app_id = ?", appId).First(&AppDaemonSet{}).Error
+	err := a.db().Model(AppDaemonSet{}).Where("app_id = ?", appId).First(&AppDaemonSet{}).Error
 	if err == nil {
 		return noneDealRecode, errors.New("app is referenced, can not be deleted")
 	}
 	if err != gorm.ErrRecordNotFound {
 		return noneDealRecode, errors.New("find app instance failed when deleting app")
 	}
-	rowsAffected := a.db.Model(AppInfo{}).Where("id = ?", appId).Delete(&AppInfo{})
+	rowsAffected := a.db().Model(AppInfo{}).Where("id = ?", appId).Delete(&AppInfo{})
 	if rowsAffected.Error != nil {
 		return rowsAffected.RowsAffected, errors.New("delete app info db error")
 	}
@@ -156,7 +159,7 @@ func (a *AppRepositoryImpl) deleteAppById(appId uint64) (int64, error) {
 
 func (a *AppRepositoryImpl) getAppInfoById(appId uint64) (*AppInfo, error) {
 	var appInfo *AppInfo
-	if err := a.db.Model(AppInfo{}).Where("id = ?", appId).First(&appInfo).Error; err != nil {
+	if err := a.db().Model(AppInfo{}).Where("id = ?", appId).First(&appInfo).Error; err != nil {
 		return nil, err
 	}
 	return appInfo, nil
@@ -164,7 +167,7 @@ func (a *AppRepositoryImpl) getAppInfoById(appId uint64) (*AppInfo, error) {
 
 func (a *AppRepositoryImpl) getNodeGroupInfosByAppID(appId uint64) ([]types.NodeGroupInfo, error) {
 	var nodeGroupInfo []types.NodeGroupInfo
-	if err := a.db.Model(AppDaemonSet{}).Where("app_id = ?", appId).Find(&nodeGroupInfo).Error; err != nil {
+	if err := a.db().Model(AppDaemonSet{}).Where("app_id = ?", appId).Find(&nodeGroupInfo).Error; err != nil {
 		return nil, err
 	}
 	return nodeGroupInfo, nil
@@ -172,7 +175,7 @@ func (a *AppRepositoryImpl) getNodeGroupInfosByAppID(appId uint64) ([]types.Node
 
 func (a *AppRepositoryImpl) getAppInfoByName(appName string) (*AppInfo, error) {
 	var appInfo *AppInfo
-	if err := a.db.Model(AppInfo{}).Where("app_name = ?", appName).First(&appInfo).Error; err != nil {
+	if err := a.db().Model(AppInfo{}).Where("app_name = ?", appName).First(&appInfo).Error; err != nil {
 		return nil, err
 	}
 	return appInfo, nil
@@ -186,7 +189,7 @@ func getAppInfoByLikeName(page, pageSize uint64, appName string) func(db *gorm.D
 
 func (a *AppRepositoryImpl) listAppInstancesById(appId uint64) ([]AppInstance, error) {
 	var deployedApps []AppInstance
-	if err := a.db.Model(AppInstance{}).Where("app_id = ?", appId).Find(&deployedApps).Error; err != nil {
+	if err := a.db().Model(AppInstance{}).Where("app_id = ?", appId).Find(&deployedApps).Error; err != nil {
 		return nil, err
 	}
 	return deployedApps, nil
@@ -194,7 +197,7 @@ func (a *AppRepositoryImpl) listAppInstancesById(appId uint64) ([]AppInstance, e
 
 func (a *AppRepositoryImpl) listAppInstancesByNode(nodeId uint64) ([]AppInstance, error) {
 	var deployedApps []AppInstance
-	if err := a.db.Model(AppInstance{}).Where("node_id = ?", nodeId).Find(&deployedApps).Error; err != nil {
+	if err := a.db().Model(AppInstance{}).Where("node_id = ?", nodeId).Find(&deployedApps).Error; err != nil {
 		return nil, err
 	}
 	return deployedApps, nil
@@ -202,7 +205,7 @@ func (a *AppRepositoryImpl) listAppInstancesByNode(nodeId uint64) ([]AppInstance
 
 func (a *AppRepositoryImpl) listAppInstances(page, pageSize uint64, name string) ([]AppInstance, error) {
 	var deployedApps []AppInstance
-	if err := a.db.Model(AppInstance{}).Scopes(getAppInfoByLikeName(page, pageSize, name)).
+	if err := a.db().Model(AppInstance{}).Scopes(getAppInfoByLikeName(page, pageSize, name)).
 		Find(&deployedApps).Error; err != nil {
 		return nil, err
 	}
@@ -211,7 +214,7 @@ func (a *AppRepositoryImpl) listAppInstances(page, pageSize uint64, name string)
 
 func (a *AppRepositoryImpl) countListAppInstances(name string) (int64, error) {
 	var totalAppInstances int64
-	if err := a.db.Model(AppInstance{}).Where("INSTR(app_name, ?)", name).
+	if err := a.db().Model(AppInstance{}).Where("INSTR(app_name, ?)", name).
 		Count(&totalAppInstances).Error; err != nil {
 		return 0, err
 	}
@@ -219,51 +222,51 @@ func (a *AppRepositoryImpl) countListAppInstances(name string) (int64, error) {
 }
 
 func (a *AppRepositoryImpl) deleteAllRemainingInstance() error {
-	return a.db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&AppInstance{}).Error
+	return a.db().Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&AppInstance{}).Error
 }
 
 func (a *AppRepositoryImpl) addPod(appInstance *AppInstance) error {
-	return a.db.Model(AppInstance{}).Create(appInstance).Error
+	return a.db().Model(AppInstance{}).Create(appInstance).Error
 }
 
 func (a *AppRepositoryImpl) updatePod(appInstance *AppInstance) error {
 	var eventInstance AppInstance
-	a.db.Model(AppInstance{}).Where("pod_name = ?", appInstance.PodName).First(&eventInstance)
+	a.db().Model(AppInstance{}).Where("pod_name = ?", appInstance.PodName).First(&eventInstance)
 	if eventInstance.ContainerInfo == appInstance.ContainerInfo &&
 		eventInstance.NodeName == appInstance.NodeName {
 		return nil
 	}
-	return a.db.Model(AppInstance{}).Where("pod_name = ?", appInstance.PodName).Updates(appInstance).Error
+	return a.db().Model(AppInstance{}).Where("pod_name = ?", appInstance.PodName).Updates(appInstance).Error
 }
 
 func (a *AppRepositoryImpl) deletePod(appInstance *AppInstance) error {
-	return a.db.Model(AppInstance{}).Where("pod_name = ?", appInstance.PodName).Delete(appInstance).Error
+	return a.db().Model(AppInstance{}).Where("pod_name = ?", appInstance.PodName).Delete(appInstance).Error
 }
 
 func (a *AppRepositoryImpl) deleteAllRemainingDaemonSet() error {
-	return a.db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&AppDaemonSet{}).Error
+	return a.db().Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&AppDaemonSet{}).Error
 }
 
 func (a *AppRepositoryImpl) addDaemonSet(set *AppDaemonSet) error {
-	return a.db.Model(AppDaemonSet{}).Create(set).Error
+	return a.db().Model(AppDaemonSet{}).Create(set).Error
 }
 
 func (a *AppRepositoryImpl) updateDaemonSet(set *AppDaemonSet) error {
 	var appDaemonSet AppDaemonSet
-	a.db.Model(AppDaemonSet{}).Where("daemon_set_name = ?", set.DaemonSetName).First(&appDaemonSet)
+	a.db().Model(AppDaemonSet{}).Where("daemon_set_name = ?", set.DaemonSetName).First(&appDaemonSet)
 	if appDaemonSet.NodeGroupName == set.NodeGroupName {
 		return nil
 	}
-	return a.db.Model(AppDaemonSet{}).Updates(set).Error
+	return a.db().Model(AppDaemonSet{}).Updates(set).Error
 }
 
 func (a *AppRepositoryImpl) deleteDaemonSet(name string) error {
-	return a.db.Model(AppDaemonSet{}).Where("daemon_set_name = ?", name).Delete(&AppDaemonSet{}).Error
+	return a.db().Model(AppDaemonSet{}).Where("daemon_set_name = ?", name).Delete(&AppDaemonSet{}).Error
 }
 
 func (a *AppRepositoryImpl) getNodeGroupName(appID uint64, nodeGroupID uint64) (string, error) {
 	var appDaemonSet AppDaemonSet
-	if err := a.db.Model(AppDaemonSet{}).Where("app_id = ? and node_group_id = ?", appID, nodeGroupID).
+	if err := a.db().Model(AppDaemonSet{}).Where("app_id = ? and node_group_id = ?", appID, nodeGroupID).
 		First(&appDaemonSet).Error; err != nil {
 		return "", err
 	}
@@ -272,7 +275,7 @@ func (a *AppRepositoryImpl) getNodeGroupName(appID uint64, nodeGroupID uint64) (
 
 func (a *AppRepositoryImpl) countDeployedAppByGroupID(nodeGroupID uint64) (int64, error) {
 	var deployedAppCount int64
-	if err := a.db.Model(AppDaemonSet{}).Where("node_group_id = ?", nodeGroupID).
+	if err := a.db().Model(AppDaemonSet{}).Where("node_group_id = ?", nodeGroupID).
 		Count(&deployedAppCount).Error; err != nil {
 		return 0, err
 	}
@@ -280,7 +283,7 @@ func (a *AppRepositoryImpl) countDeployedAppByGroupID(nodeGroupID uint64) (int64
 }
 
 func (a *AppRepositoryImpl) isAppReferenced(appId uint64) error {
-	err := a.db.Model(AppDaemonSet{}).Where("app_id = ?", appId).First(&AppDaemonSet{}).Error
+	err := a.db().Model(AppDaemonSet{}).Where("app_id = ?", appId).First(&AppDaemonSet{}).Error
 	if err == nil {
 		hwlog.RunLog.Error("app is referenced, can not be deleted")
 		return errors.New("app is referenced, can not be deleted")
@@ -304,7 +307,7 @@ func (a *AppRepositoryImpl) createAppAndUpdateCm(req *CreateAppReq) (uint64, err
 		return 0, errors.New("convert app request param to db failed")
 	}
 
-	return app.ID, a.db.Transaction(func(tx *gorm.DB) error {
+	return app.ID, database.Transaction(a.db(), func(tx *gorm.DB) error {
 		return createAppAndUpdateCm(tx, app, req)
 	})
 }
@@ -360,7 +363,7 @@ func createAppAndUpdateCm(tx *gorm.DB, app *AppInfo, req *CreateAppReq) error {
 }
 
 func (a *AppRepositoryImpl) deleteSingleApp(appId uint64) error {
-	return a.db.Transaction(func(tx *gorm.DB) error {
+	return database.Transaction(a.db(), func(tx *gorm.DB) error {
 		return deleteSingleApp(tx, appId)
 	})
 }
