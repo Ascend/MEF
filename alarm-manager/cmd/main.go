@@ -80,7 +80,13 @@ func init() {
 }
 
 func initResource() error {
-	if err := database.InitDB(dbPath); err != nil {
+	opts := database.Options{
+		EnableBackup:      true,
+		BackupDbPath:      dbPath + common.BackupDbSuffix,
+		TestInterval:      common.DbTestInterval,
+		EnableAutoRecover: true,
+	}
+	if err := database.InitDB(dbPath, opts); err != nil {
 		hwlog.RunLog.Error("init database failed")
 		return errors.New("init database failed")
 	}

@@ -87,12 +87,12 @@ func RebuildDBTable(model interface{}) error {
 	}
 	dbRebuildLock.Lock()
 	defer dbRebuildLock.Unlock()
-	if err := database.GetDb().Migrator().DropTable(model); err != nil {
+	if err := database.DropTableIfExist(model); err != nil {
 		optErr := fmt.Errorf("drop table [%v] failed: %v", modTypeName, err)
 		hwlog.RunLog.Error(optErr)
 		return optErr
 	}
-	if err := database.GetDb().Migrator().CreateTable(model); err != nil {
+	if err := database.CreateTableIfNotExist(model); err != nil {
 		optErr := fmt.Errorf("create table [%v] failed: %v", modTypeName, err)
 		hwlog.RunLog.Error(optErr)
 		return optErr
@@ -106,7 +106,7 @@ func DeleteDBTable(model interface{}) error {
 	if !isValidModel(model) {
 		return fmt.Errorf("invalid database model: %v", modTypeName)
 	}
-	if err := database.GetDb().Migrator().DropTable(model); err != nil {
+	if err := database.DropTableIfExist(model); err != nil {
 		optErr := fmt.Errorf("drop table [%v] failed: %v", modTypeName, err)
 		hwlog.RunLog.Error(optErr)
 		return optErr

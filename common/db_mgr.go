@@ -42,7 +42,12 @@ func (d *DbMgr) InitDB() error {
 		hwlog.RunLog.Errorf("make sure db path [%s] failed, error: %v", dbPath, err)
 		return errors.New("make sure db path failed")
 	}
-	if err := database.InitDB(dbPath); err != nil {
+	opts := database.Options{
+		EnableBackup: true,
+		BackupDbPath: dbPath + BackupDbSuffix,
+		TestInterval: DbTestInterval,
+	}
+	if err := database.InitDB(dbPath, opts); err != nil {
 		hwlog.RunLog.Errorf("init db failed, error: %v", err)
 		return errors.New("init db failed")
 	}

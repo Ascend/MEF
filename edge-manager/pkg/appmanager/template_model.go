@@ -39,20 +39,23 @@ type Repository interface {
 }
 
 type repositoryImpl struct {
-	db *gorm.DB
 }
 
 // RepositoryInstance get app template repository service instance
 func RepositoryInstance() Repository {
 	onceInit.Do(func() {
-		repository = &repositoryImpl{db: database.GetDb()}
+		repository = &repositoryImpl{}
 	})
 	return repository
 }
 
+func (r *repositoryImpl) db() *gorm.DB {
+	return database.GetDb()
+}
+
 // createTemplate create app template
 func (r *repositoryImpl) createTemplate(template *AppTemplateDb) error {
-	if err := r.db.Model(AppTemplateDb{}).Create(template).Error; err != nil {
+	if err := r.db().Model(AppTemplateDb{}).Create(template).Error; err != nil {
 		return err
 	}
 	return nil
@@ -61,10 +64,10 @@ func (r *repositoryImpl) createTemplate(template *AppTemplateDb) error {
 // DeleteTemplates batch delete app template
 func (r *repositoryImpl) deleteTemplates(ids []uint64) ([]uint64, error) {
 	var templates []AppTemplateDb
-	if err := r.db.Where("Id in (?)", ids).Find(&templates).Error; err != nil {
+	if err := r.db().Where("Id in (?)", ids).Find(&templates).Error; err != nil {
 		return []uint64{}, err
 	}
-	res := r.db.Where("Id in (?)", ids).Delete(&AppTemplateDb{})
+	res := r.db().Where("Id in (?)", ids).Delete(&AppTemplateDb{})
 	if err := res.Error; err != nil {
 		return []uint64{}, err
 	}
@@ -77,7 +80,7 @@ func (r *repositoryImpl) deleteTemplates(ids []uint64) ([]uint64, error) {
 
 // updateTemplate modify app template
 func (r *repositoryImpl) updateTemplate(template *AppTemplateDb) error {
-	if res := r.db.Model(AppTemplateDb{}).Where("id = ?", template.ID).Updates(template); res.Error != nil {
+	if res := r.db().Model(AppTemplateDb{}).Where("id = ?", template.ID).Updates(template); res.Error != nil {
 		if strings.Contains(res.Error.Error(), common.ErrDbUniqueFailed) {
 			return fmt.Errorf("update template failed,target updating name is duplicated,name:%v",
 				template.TemplateName)
@@ -93,7 +96,7 @@ func (r *repositoryImpl) updateTemplate(template *AppTemplateDb) error {
 // getTemplateByName get app template
 func (r *repositoryImpl) getTemplateByName(name string) (*AppTemplateDb, error) {
 	var template AppTemplateDb
-	if err := r.db.Model(AppTemplateDb{}).Where("template_name = ?", name).First(&template).Error; err != nil {
+	if err := r.db().Model(AppTemplateDb{}).Where("template_name = ?", name).First(&template).Error; err != nil {
 		return nil, fmt.Errorf("get db template with name %s failed,not found", name)
 	}
 	return &template, nil
@@ -109,7 +112,7 @@ func getTemplateByLikeName(page, pageSize uint64, appName string) func(db *gorm.
 func (r *repositoryImpl) getTemplates(name string, pageNum, pageSize uint64) ([]AppTemplateDb, error) {
 	var templates []AppTemplateDb
 
-	if err := r.db.Model(AppTemplateDb{}).Scopes(getTemplateByLikeName(pageNum,
+	if err := r.db().Model(AppTemplateDb{}).Scopes(getTemplateByLikeName(pageNum,
 		pageSize, name)).Find(&templates).Error; err != nil {
 		hwlog.RunLog.Error("list appInfo db failed")
 		return nil, err
@@ -121,7 +124,7 @@ func (r *repositoryImpl) getTemplates(name string, pageNum, pageSize uint64) ([]
 // GetTemplate get app template
 func (r *repositoryImpl) getTemplate(id uint64) (*AppTemplateDb, error) {
 	var template AppTemplateDb
-	if err := r.db.Model(AppTemplateDb{}).Where("id = ?", id).First(&template).Error; err != nil {
+	if err := r.db().Model(AppTemplateDb{}).Where("id = ?", id).First(&template).Error; err != nil {
 		hwlog.RunLog.Error("get db template failed")
 		return nil, err
 	}
@@ -130,7 +133,7 @@ func (r *repositoryImpl) getTemplate(id uint64) (*AppTemplateDb, error) {
 
 func (r *repositoryImpl) getTemplateCount(name string) (int64, error) {
 	var totalTemplateCount int64
-	if err := r.db.Model(AppTemplateDb{}).Where("INSTR(template_name, ?)",
+	if err := r.db().Model(AppTemplateDb{}).Where("INSTR(template_name, ?)",
 		name).Count(&totalTemplateCount).Error; err != nil {
 		hwlog.RunLog.Error("count list appInfo db failed")
 		return 0, err
