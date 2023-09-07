@@ -191,7 +191,12 @@ func (ea *edgeCaUpdater) notifyCertUpdateToEdgeNodes(payload *CertUpdatePayload)
 		hwlog.RunLog.Error("no nodes info found in database, cert update operation will be aborted")
 		return fmt.Errorf("no nodes info found in database, cert update operation will be aborted")
 	}
-	updatePayload, err := json.Marshal(payload)
+	// ignore redundancy field without define a new struct
+	payloadData := map[string]string{
+		"certType":  payload.CertType,
+		"caContent": payload.CaContent,
+	}
+	updatePayload, err := json.Marshal(payloadData)
 	if err != nil {
 		hwlog.RunLog.Errorf("serialize cert update payload error: %v", err)
 		return fmt.Errorf("serialize cert update payload error")

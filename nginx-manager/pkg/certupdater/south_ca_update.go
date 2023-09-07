@@ -41,7 +41,7 @@ func updateSouthCaCert(payload *CertUpdatePayload) error {
 		hwlog.RunLog.Error(optErr)
 		return optErr
 	}
-
+	hwlog.RunLog.Info("update south root ca certs success")
 	if err = reloadNginxConf(); err != nil {
 		optErr = fmt.Errorf("reload nginx configuration error: %v", err)
 		hwlog.RunLog.Error(optErr)
