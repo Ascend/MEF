@@ -21,7 +21,7 @@ const (
 	backupFileSuffix       = ".bak"
 	CertTypeEdgeCa         = "EdgeCa"
 	CertTypeEdgeSvc        = "EdgeSvc"
-	nginxReloadConfTimeout = time.Second * 30
+	nginxReloadConfTimeout = time.Second * 20
 )
 
 // CertUpdatePayload cert update payload from edge-manager

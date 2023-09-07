@@ -256,11 +256,11 @@ func (ca *EdgeCaCertUpdater) IsCertNeedUpdate() (bool, bool, error) {
 		return false, false, err
 	}
 	if needForceUpdate {
-		hwlog.RunLog.Errorf("cert [%v] will be force updated", ca.CaCertName)
+		hwlog.RunLog.Infof("cert [%v] will be force updated", ca.CaCertName)
 		return true, true, nil
 	}
 	if needUpdate {
-		hwlog.RunLog.Errorf("cert [%v] will be updated in normal way", ca.CaCertName)
+		hwlog.RunLog.Infof("cert [%v] will be updated in normal way", ca.CaCertName)
 		return true, false, nil
 	}
 	hwlog.RunLog.Infof("cert [%v] is no need to update. abort update operation", ca.CaCertName)
