@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 
+	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/logmgmt/logrotate"
@@ -59,11 +60,12 @@ func init() {
 }
 
 func initResource() error {
-	if err := nginxcom.GetEnvManager().Load(); err != nil {
+	var err error
+	if err = nginxcom.GetEnvManager().Load(); err != nil {
 		return err
 	}
-	err := kmc.InitKmcCfg(defaultKmcPath)
-	if err != nil {
+
+	if err = backuputils.InitConfig(defaultKmcPath, kmc.InitKmcCfg); err != nil {
 		hwlog.RunLog.Warnf("init kmc config from json failed: %v, use default kmc config", err)
 	}
 	ip, err = common.GetPodIP()

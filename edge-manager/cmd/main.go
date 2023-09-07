@@ -12,6 +12,7 @@ import (
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/database"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
@@ -134,8 +135,8 @@ func validateFlags() error {
 	return nil
 }
 
-func initPodConfig() error {
-	date, err := utils.LoadFile(defaultPodConfigPath)
+func initPodConfig(configPath string) error {
+	date, err := utils.LoadFile(configPath)
 	if err != nil {
 		return fmt.Errorf("load pod config file failed, %s", err.Error())
 	}
@@ -143,13 +144,12 @@ func initPodConfig() error {
 	if err = json.Unmarshal(date, &podConfig); err != nil {
 		return errors.New("unmarshal pod config failed")
 	}
-
 	config.PodConfig.HostPath = config.CheckAndModifyHostPath(podConfig.HostPath)
 	return nil
 }
 
-func initAuthConfig() error {
-	date, err := utils.LoadFile(defaultAuthConfigPath)
+func initAuthConfig(configPath string) error {
+	date, err := utils.LoadFile(configPath)
 	if err != nil {
 		return fmt.Errorf("load auth config file failed, %s", err.Error())
 	}
@@ -194,15 +194,15 @@ func initResource() error {
 		hwlog.RunLog.Errorf("init k8s failed: %v", err)
 		return err
 	}
-	if err := initPodConfig(); err != nil {
-		hwlog.RunLog.Errorf("init pod config failed")
+	if err := backuputils.InitConfig(defaultPodConfigPath, initPodConfig); err != nil {
+		hwlog.RunLog.Errorf("init pod config failed: %v", err)
 		return err
 	}
-	if err := initAuthConfig(); err != nil {
+	if err := backuputils.InitConfig(defaultAuthConfigPath, initAuthConfig); err != nil {
 		hwlog.RunLog.Errorf("init auth config error %v", err)
 		return err
 	}
-	if err := kmc.InitKmcCfg(defaultKmcPath); err != nil {
+	if err := backuputils.InitConfig(defaultKmcPath, kmc.InitKmcCfg); err != nil {
 		hwlog.RunLog.Warnf("init kmc config from json failed: %v, use default kmc config", err)
 	}
 	if err := initScheduler(); err != nil {

@@ -26,6 +26,7 @@ func queryCertInfo(certName string) (certutils.ClientCertResp, error) {
 			CertPath:   constants.ServerCertPath,
 			KeyPath:    constants.ServerKeyPath,
 			SvrFlag:    false,
+			WithBackup: true,
 		},
 	}
 	rootCaRes, err := reqCertParams.GetRootCa(certName)

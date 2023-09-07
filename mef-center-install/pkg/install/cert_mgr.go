@@ -11,7 +11,6 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
-	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509/certutils"
 
 	"huawei.com/mindxedge/base/common"
@@ -123,61 +122,7 @@ func (cpc *certPrepareCtl) doPrepareCerts(ch chan<- error) {
 		ch <- errors.New("prepare kube config cert failed")
 	}
 
-	if err = cpc.setCertsOwner(); err != nil {
-		ch <- err
-		return
-	}
 	ch <- nil
-}
-
-func (cpc *certPrepareCtl) setCertsOwner() error {
-	var err error
-	if cpc.certPathMgr == nil {
-		hwlog.RunLog.Error("pointer cpc.certPathMgr is nil")
-		return errors.New("pointer cpc.certPathMgr is nil")
-	}
-
-	mefUid, mefGid, err := util.GetMefId()
-	if err != nil {
-		hwlog.RunLog.Errorf("get mef uid or gid failed: %s", err.Error())
-		return errors.New("get mef uid or gid failed")
-	}
-
-	if err = utils.SetPathOwnerGroup(cpc.certPathMgr.GetConfigPath(), mefUid,
-		mefGid, true, false); err != nil {
-		hwlog.RunLog.Errorf("set path [%s] owner and group failed: %v",
-			cpc.certPathMgr.GetConfigPath(), err.Error())
-		return errors.New("set cert root path owner and group failed")
-	}
-
-	if err = utils.SetPathOwnerGroup(cpc.certPathMgr.GetConfigPath(), util.RootUid,
-		util.RootGid, false, false); err != nil {
-		hwlog.RunLog.Errorf("set path [%s] owner and group failed: %v",
-			cpc.certPathMgr.GetConfigPath(), err.Error())
-		return errors.New("set cert root path owner and group failed")
-	}
-
-	if err = utils.SetPathOwnerGroup(cpc.certPathMgr.GetRootKmcDirPath(), util.RootUid,
-		util.RootGid, true, false); err != nil {
-		hwlog.RunLog.Errorf("set path [%s] owner and group failed: %v",
-			cpc.certPathMgr.GetRootKmcDirPath(), err.Error())
-		return errors.New("set cert root path owner and group failed")
-	}
-
-	if err = utils.SetPathOwnerGroup(cpc.certPathMgr.GetRootCaKeyDirPath(), util.RootUid,
-		util.RootGid, true, false); err != nil {
-		hwlog.RunLog.Errorf("set path [%s] owner and group failed: %v",
-			cpc.certPathMgr.GetRootCaKeyDirPath(), err.Error())
-		return errors.New("set cert root path owner and group failed")
-	}
-
-	if err = utils.SetPathOwnerGroup(cpc.certPathMgr.GetRootCaDirPath(), util.RootUid,
-		util.RootGid, false, false); err != nil {
-		hwlog.RunLog.Errorf("set path [%s] owner and group failed: %v",
-			cpc.certPathMgr.GetRootCaDirPath(), err.Error())
-		return errors.New("set cert root path owner and group failed")
-	}
-	return nil
 }
 
 func (cpc *certPrepareCtl) prepareCA() (*certutils.RootCertMgr, error) {
@@ -194,7 +139,7 @@ func (cpc *certPrepareCtl) prepareCA() (*certutils.RootCertMgr, error) {
 	rootKmcCfg := kmc.GetKmcCfg(kmcKeyPath, kmcBackKeyPath)
 	initCertMgr := certutils.InitRootCertMgr(rootCaFilePath, rootPrivFilePath,
 		common.MefCertCommonNamePrefix, rootKmcCfg)
-	if _, err := initCertMgr.NewRootCa(); err != nil {
+	if _, err := initCertMgr.NewRootCaWithBackup(); err != nil {
 		hwlog.RunLog.Errorf("init root ca info failed: %v", err)
 		return nil, errors.New("init root ca info failed")
 	}

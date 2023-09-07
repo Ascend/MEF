@@ -34,6 +34,7 @@ func InitServer() error {
 		CertPath:   constants.ServerCertPath,
 		KeyPath:    constants.ServerKeyPath,
 		SvrFlag:    true,
+		WithBackup: true,
 	}
 
 	podIp, err := common.GetPodIP()

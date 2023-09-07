@@ -4,6 +4,8 @@
 package restfulservice
 
 import (
+	"time"
+
 	"huawei.com/mindx/common/httpsmgr"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/x509/certutils"
@@ -33,6 +35,7 @@ func NewRestfulService(enable bool, ip string, port int) *EdgeMgrService {
 				KeyPath:    constants.ServerKeyPath,
 				SvrFlag:    true,
 				KmcCfg:     nil,
+				WithBackup: true,
 			},
 		},
 	}
@@ -46,6 +49,15 @@ func (r *EdgeMgrService) Name() string {
 
 // Start for EdgeMgrService start
 func (r *EdgeMgrService) Start() {
+	for count := 0; count < constants.ServerInitRetryCount; count++ {
+		r.start()
+		hwlog.RunLog.Error("start restful server failed. Restart server later")
+		time.Sleep(constants.ServerInitRetryInterval)
+	}
+	hwlog.RunLog.Error("start restful server failed after maximum number of retry")
+}
+
+func (r *EdgeMgrService) start() {
 	err := r.httpsSvr.Init()
 	if err != nil {
 		hwlog.RunLog.Errorf("start restful at %d failed, init https server failed: %v", r.httpsSvr.Port, err)

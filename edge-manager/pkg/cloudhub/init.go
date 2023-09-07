@@ -230,6 +230,7 @@ func issueCertForEdge(msg *model.Message) (*model.Message, bool, error) {
 			CertPath:   constants.ServerCertPath,
 			KeyPath:    constants.ServerKeyPath,
 			SvrFlag:    false,
+			WithBackup: true,
 		},
 	}
 	certStr, err := reqCertParams.ReqIssueSvrCert(common.WsCltName, csrData)

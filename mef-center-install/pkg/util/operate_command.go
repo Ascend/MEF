@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
@@ -33,7 +34,7 @@ func (cc *CtlComponent) startComponent(yamlPath string) (bool, error) {
 		return true, nil
 	}
 
-	if _, err = envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "apply", "-f", yamlPath); err != nil {
+	if err = backuputils.InitConfig(yamlPath, cc.tryStartComponent); err != nil {
 		hwlog.RunLog.Errorf("exec kubectl apply failed: %s", err.Error())
 		return false, fmt.Errorf("exec kubectl apply failed: %s", err.Error())
 	}
@@ -42,6 +43,14 @@ func (cc *CtlComponent) startComponent(yamlPath string) (bool, error) {
 		return false, err
 	}
 	return false, nil
+}
+
+func (cc *CtlComponent) tryStartComponent(yamlPath string) error {
+	if _, err := envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "apply", "-f",
+		yamlPath); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (cc *CtlComponent) stopComponent() error {

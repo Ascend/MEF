@@ -165,6 +165,7 @@ func listGroupNodesAlarmsOrEvents(req types.ListAlarmOrEventReq, queryIdType str
 		CertPath:   utils.ServerCertPath,
 		KeyPath:    utils.ServerKeyPath,
 		SvrFlag:    false,
+		WithBackup: true,
 	}
 	httpsReq := httpsmgr.GetHttpsReq(url, clientSvcCert)
 	const timeout = 3 * time.Second

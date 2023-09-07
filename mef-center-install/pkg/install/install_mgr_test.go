@@ -13,6 +13,7 @@ import (
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
+	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/utils"
 
@@ -55,6 +56,8 @@ func DoInstallTest() {
 			ApplyPrivateMethod(ins, "setInstallJson", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "componentsInstall", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "prepareLogDumpDir", func(_ *SftInstallCtl) error { return nil }).
+			ApplyPrivateMethod(ins, "configBackup", func(_ *SftInstallCtl) error { return nil }).
+			ApplyPrivateMethod(ins, "setConfigOwner", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "setCenterMode", func(_ *SftInstallCtl) error { return nil })
 		defer p.Reset()
 		convey.So(ins.DoInstall(), convey.ShouldBeNil)
@@ -440,10 +443,10 @@ func PrepareYamlTest() {
 	var ins = GetSftInstallMgrIns([]string{"edge-manager"}, "", "", "")
 	var yamlMgrCtl *YamlMgr
 	convey.Convey("test prepareYaml func success", func() {
-		p := gomonkey.ApplyMethodReturn(yamlMgrCtl, "EditSingleYaml", nil)
-		p2 := gomonkey.ApplyFuncReturn(util.ModifyEndpointYaml, nil)
+		p := gomonkey.ApplyMethodReturn(yamlMgrCtl, "EditSingleYaml", nil).
+			ApplyFuncReturn(util.ModifyEndpointYaml, nil).
+			ApplyPrivateMethod(backuputils.NewBackupFileMgr(""), "BackUp", func() error { return nil })
 		defer p.Reset()
-		defer p2.Reset()
 		convey.So(ins.prepareYaml(), convey.ShouldBeNil)
 	})
 

@@ -9,6 +9,7 @@ import (
 	"flag"
 	"fmt"
 
+	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/checker/valid"
 	"huawei.com/mindx/common/database"
 	"huawei.com/mindx/common/hwlog"
@@ -94,8 +95,7 @@ func initResource() error {
 		return errors.New("create alarm info table failed")
 	}
 
-	err := kmc.InitKmcCfg(defaultKmcPath)
-	if err != nil {
+	if err := backuputils.InitConfig(defaultKmcPath, kmc.InitKmcCfg); err != nil {
 		hwlog.RunLog.Warnf("init kmc config from json failed: %v, use default kmc config", err)
 	}
 
