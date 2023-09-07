@@ -3,7 +3,11 @@
 // Package constants for edge-manager
 package constants
 
-import "huawei.com/mindxedge/base/common"
+import (
+	"time"
+
+	"huawei.com/mindxedge/base/common"
+)
 
 const (
 	// ServerCertPath server cert path
@@ -58,4 +62,10 @@ const (
 	SnKey       = "sn"
 	KeySymbol   = "key"
 	ValueSymbol = "value"
+)
+
+// const for init server
+const (
+	ServerInitRetryInterval = 5 * time.Second
+	ServerInitRetryCount    = 3
 )

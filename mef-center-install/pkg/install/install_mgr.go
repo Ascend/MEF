@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
@@ -41,6 +42,8 @@ func (sic *SftInstallCtl) DoInstall() error {
 		sic.prepareConfigDir,
 		sic.prepareCerts,
 		sic.prepareYaml,
+		sic.configBackup,
+		sic.setConfigOwner,
 		sic.componentsInstall,
 		sic.setCenterMode,
 	}
@@ -315,6 +318,33 @@ func (sic *SftInstallCtl) prepareYaml() error {
 		return err
 	}
 	hwlog.RunLog.Info("prepare components' yaml successful")
+	return nil
+}
+
+func (sic *SftInstallCtl) configBackup() error {
+	hwlog.RunLog.Info("start to back up config of mef-center")
+	configPath := sic.InstallPathMgr.ConfigPathMgr.GetConfigPath()
+	if err := backuputils.NewBackupDirMgr(configPath, backuputils.JsonFileType, backuputils.CrtFileType,
+		backuputils.CrlFileType, backuputils.KeyFileType).BackUp(); err != nil {
+		hwlog.RunLog.Errorf("back up mef-center config failed, %v", err)
+		return fmt.Errorf("back up mef-center config failed, %v", err)
+	}
+	workPath := sic.InstallPathMgr.WorkPathAMgr.GetWorkPath()
+	if err := backuputils.NewBackupDirMgr(workPath, backuputils.YamlFileType).BackUp(); err != nil {
+		hwlog.RunLog.Errorf("back up mef-center components' k8s config failed, %v", err)
+		return fmt.Errorf("back up mef-center components' k8s config failed, %v", err)
+	}
+	hwlog.RunLog.Info("create backup for mef-center config successful")
+	return nil
+}
+
+func (sic *SftInstallCtl) setConfigOwner() error {
+	hwlog.RunLog.Info("start to set owner for mef-center config")
+	if err := util.GetOwnerMgr(sic.InstallPathMgr.ConfigPathMgr).SetConfigOwner(); err != nil {
+		hwlog.RunLog.Errorf("set owner for mef-center config failed: %s", err.Error())
+		return fmt.Errorf("set owner for mef-center config faild, %v", err)
+	}
+	hwlog.RunLog.Info("set owner for mef-center config successful")
 	return nil
 }
 

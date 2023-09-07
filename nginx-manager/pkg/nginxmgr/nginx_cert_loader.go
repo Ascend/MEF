@@ -31,6 +31,9 @@ func prepareCert() error {
 	if err := prepareServerCert(nginxcom.ServerCertKeyFile, nginxcom.ServerCertFile, common.NginxCertName); err != nil {
 		return err
 	}
+	if err := prepareRootCert(nginxcom.NorthernCertFile, common.NorthernCertName, "NorthRoot"); err != nil {
+		return err
+	}
 	if err := prepareServerCert(nginxcom.SouthAuthCertKeyFile, nginxcom.SouthAuthCertFile, common.WsSerName); err != nil {
 		return err
 	}
@@ -38,9 +41,6 @@ func prepareCert() error {
 		return err
 	}
 	if err := prepareRootCert(nginxcom.SouthernCertFile, common.WsCltName, "SouthRoot"); err != nil {
-		return err
-	}
-	if err := prepareRootCert(nginxcom.NorthernCertFile, common.NorthernCertName, "NorthRoot"); err != nil {
 		return err
 	}
 	return nil
@@ -52,6 +52,7 @@ func prepareRootCert(certPath string, certName string, server string) error {
 			RootCaPath: nginxcom.RootCaPath,
 			CertPath:   nginxcom.ClientCertFile,
 			KeyPath:    nginxcom.ClientCertKeyFile,
+			WithBackup: true,
 		},
 	}
 	var rootCaStr string
@@ -78,11 +79,6 @@ func prepareRootCert(certPath string, certName string, server string) error {
 }
 
 func prepareServerCert(keyPath string, certPath string, server string) error {
-	if utils.IsExist(keyPath) && utils.IsExist(certPath) {
-		hwlog.RunLog.Infof("check %s server certs success", server)
-		return nil
-	}
-	hwlog.RunLog.Warnf("check %s server certs failed, start to create", server)
 	certStr, err := getServerCert(keyPath, server)
 	if err != nil {
 		return err
@@ -113,6 +109,7 @@ func getServerCert(keyPath string, server string) (string, error) {
 			CertPath:   nginxcom.ClientCertFile,
 			KeyPath:    nginxcom.ClientCertKeyFile,
 			SvrFlag:    false,
+			WithBackup: true,
 		},
 	}
 	var certStr string

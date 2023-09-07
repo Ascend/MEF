@@ -10,9 +10,10 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
-	"time"
 
 	"github.com/gin-gonic/gin"
+	"huawei.com/mindx/common/backuputils"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509/certutils"
@@ -26,64 +27,36 @@ import (
 
 var (
 	lock            sync.Mutex
-	certsToImported = map[string]*time.Timer{
-		common.ImageCertName:    nil,
-		common.SoftwareCertName: nil,
-		common.NorthernCertName: nil,
+	certsToImported = map[string]struct{}{
+		common.ImageCertName:    {},
+		common.SoftwareCertName: {},
+		common.NorthernCertName: {},
 	}
 )
 
 func isCertImported(certName string) bool {
-	const certQueryLogInterval = 60 * time.Second
-
 	caFilePath := getRootCaPath(certName)
-	timer, exist := certsToImported[certName]
-	if !exist || utils.IsExist(caFilePath) {
-		return true
-	}
-
-	if timer == nil {
-		timer = time.NewTimer(certQueryLogInterval)
-		certsToImported[certName] = timer
-		hwlog.RunLog.Warnf("%s cert is not be imported yet", certName)
-	}
-	select {
-	case _, ok := <-timer.C:
-		if !ok {
-			hwlog.RunLog.Error("cert query suppression timer's channel is unexpected closed")
-			return false
-		}
-		timer.Reset(certQueryLogInterval)
-	default:
-	}
-	return false
+	_, exist := certsToImported[certName]
+	return !exist || utils.IsExist(caFilePath) || utils.IsExist(caFilePath+backuputils.BackupSuffix)
 }
 
 // getCertByCertName query root ca with cert name
 func getCertByCertName(certName string) ([]byte, error) {
 	caFilePath := getRootCaPath(certName)
-	certData, err := utils.LoadFile(caFilePath)
+	certData, err := certutils.GetCertContentWithBackup(caFilePath)
 	if err != nil {
 		hwlog.RunLog.Errorf("load root cert failed: %v", err)
 		return nil, fmt.Errorf("load root cert failed: %v", err)
-	}
-	if len(certData) == 0 {
-		hwlog.RunLog.Error("root cert file is empty")
-		return nil, errors.New("root cert file is empty")
 	}
 	tempCaFilePath := getTempRootCaPath(certName)
 	if !utils.IsExist(tempCaFilePath) {
 		return certData, nil
 	}
 	var tempCaData []byte
-	tempCaData, err = utils.LoadFile(tempCaFilePath)
+	tempCaData, err = certutils.GetCertContent(caFilePath)
 	if err != nil {
 		hwlog.RunLog.Errorf("load temp root cert failed: %v", err)
 		return nil, fmt.Errorf("load temp root cert failed: %v", err)
-	}
-	if len(tempCaData) == 0 {
-		hwlog.RunLog.Error("temp root cert file is empty")
-		return nil, errors.New("temp root cert file is empty")
 	}
 	certData = append(certData, tempCaData...)
 	return certData, nil
@@ -91,18 +64,13 @@ func getCertByCertName(certName string) ([]byte, error) {
 
 // CreateCaIfNotExit [method] for check root ca
 func CreateCaIfNotExit() error {
-	caFilePath := getRootCaPath(common.WsCltName)
-	certData, err := utils.LoadFile(caFilePath)
-	if err != nil {
-		return err
-	}
-	if certData != nil {
-		return nil
-	}
 	keyFilePath := getRootKeyPath(common.WsCltName)
 	certFilePath := getRootCaPath(common.WsCltName)
+	if isRootCaFilesExist(certFilePath, keyFilePath) {
+		return nil
+	}
 	initCertMgr := certutils.InitRootCertMgr(certFilePath, keyFilePath, common.MefCertCommonNamePrefix, nil)
-	_, err = initCertMgr.NewRootCa()
+	_, err := initCertMgr.NewRootCaWithBackup()
 	return err
 }
 
@@ -158,6 +126,10 @@ func UpdateCaCertWithTemp(certName string) error {
 	if err := utils.CopyFile(tempCertFilePath, oldCertFilePath); err != nil {
 		return err
 	}
+	if err := backuputils.BackUpFiles(oldCertFilePath, oldKeyFilePath); err != nil {
+		hwlog.RunLog.Warnf("create backup files for upgraded cert failed, %v", err)
+	}
+
 	return nil
 }
 
@@ -203,14 +175,14 @@ func issueServiceCert(certName string, serviceCsr string) ([]byte, error) {
 		}
 	}
 	initCertMgr := certutils.InitRootCertMgr(caFilePath, keyFilePath, common.MefCertCommonNamePrefix, nil)
-	if _, err := initCertMgr.GetRootCaPair(); err != nil {
-		if _, err = initCertMgr.NewRootCa(); err != nil {
+	if !isRootCaFilesExist(caFilePath, keyFilePath) {
+		if _, err = initCertMgr.NewRootCaWithBackup(); err != nil {
 			hwlog.RunLog.Errorf("Init root ca info failed: %v", err)
 			return nil, err
 		}
 	}
 
-	certBytes, err := initCertMgr.IssueServiceCert(srvDer.Bytes)
+	certBytes, err := initCertMgr.IssueServiceCertWithBackup(srvDer.Bytes)
 	if err != nil {
 		hwlog.RunLog.Errorf("issue service cert info failed: %v", err)
 		return nil, err
@@ -219,6 +191,17 @@ func issueServiceCert(certName string, serviceCsr string) ([]byte, error) {
 	certPem := certutils.PemWrapCert(certBytes)
 	hwlog.RunLog.Info("issue service cert success")
 	return certPem, nil
+}
+
+func isRootCaFilesExist(caFilePath, keyFilePath string) bool {
+	paths := []string{caFilePath, caFilePath + backuputils.BackupSuffix,
+		keyFilePath, keyFilePath + backuputils.BackupSuffix}
+	for _, path := range paths {
+		if fileutils.IsLexist(path) {
+			return true
+		}
+	}
+	return false
 }
 
 // saveCaContent save ca content to File
@@ -232,6 +215,9 @@ func saveCaContent(certName string, caContent []byte) error {
 		hwlog.RunLog.Errorf("save %s cert file failed, error:%s", certName, err)
 		return fmt.Errorf("save %s ca file failed", certName)
 	}
+	if err := backuputils.BackUpFiles(caFilePath); err != nil {
+		hwlog.RunLog.Warnf("back up %s ca file failed, %v", err)
+	}
 	hwlog.RunLog.Infof("save %s ca file success", certName)
 	return nil
 }
@@ -239,9 +225,9 @@ func saveCaContent(certName string, caContent []byte) error {
 // removeCaFile delete ca File
 func removeCaFile(certName string) error {
 	caFilePath := getRootCaPath(certName)
-	if utils.IsExist(caFilePath) {
-		// remove the ca file
-		if err := common.DeleteFile(caFilePath); err != nil {
+	toDeleteFiles := []string{caFilePath, caFilePath + backuputils.BackupSuffix}
+	for _, filePath := range toDeleteFiles {
+		if err := fileutils.DeleteFile(filePath); err != nil {
 			hwlog.RunLog.Errorf("remove %s ca file failed, error: %v", certName, err)
 			return fmt.Errorf("remove %s ca file failed, error: %v", certName, err)
 		}

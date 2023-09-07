@@ -38,6 +38,7 @@ func InitServer() (*websocketmgr.WsServerProxy, error) {
 		CertPath:   constants.ServerCertPath,
 		KeyPath:    constants.ServerKeyPath,
 		SvrFlag:    true,
+		WithBackup: true,
 	}
 	go authServer()
 
@@ -82,8 +83,15 @@ func authServer() {
 		KeyPath:       constants.ServerKeyPath,
 		SvrFlag:       true,
 		IgnoreCltCert: true,
+		WithBackup:    true,
 	}
-	NewClientAuthService(server.authPort, authCertInfo).Start()
+
+	for count := 0; count < constants.ServerInitRetryCount; count++ {
+		NewClientAuthService(server.authPort, authCertInfo).Start()
+		hwlog.RunLog.Error("start auth server failed. Restart server later")
+		time.Sleep(constants.ServerInitRetryInterval)
+	}
+	hwlog.RunLog.Error("start auth server failed after maximum number of retry")
 }
 
 // GetSvrSender get server sender

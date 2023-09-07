@@ -72,11 +72,11 @@ type Client struct {
 
 // NewClientK8s create ClientK8s
 func NewClientK8s() (*Client, error) {
-	pemPair, err := certutils.GetCertPairForPem(kubeConfigCertPath, kubeConfigKeyPath, nil)
+	pemPair, err := certutils.GetCertPairForPemWithBackup(kubeConfigCertPath, kubeConfigKeyPath, nil)
 	if err != nil {
 		return nil, fmt.Errorf("get kubeconfig cert pair failed: %v", err)
 	}
-	rootCaPemBytes, err := utils.LoadFile(kubeConfigCaPath)
+	rootCaPemBytes, err := certutils.GetCertContentWithBackup(kubeConfigCaPath)
 	if err != nil || rootCaPemBytes == nil {
 		return nil, fmt.Errorf("load kube client ca failed")
 	}

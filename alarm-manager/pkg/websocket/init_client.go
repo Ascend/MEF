@@ -31,6 +31,7 @@ func initClient() error {
 		CertPath:   utils.ServerCertPath,
 		KeyPath:    utils.ServerKeyPath,
 		SvrFlag:    false,
+		WithBackup: true,
 	}
 
 	proxyConfig, err := websocketmgr.InitProxyConfig(common.AlarmManagerClientName, common.EdgeMgrDns,

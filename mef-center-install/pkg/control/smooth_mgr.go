@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/database"
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
@@ -51,6 +52,7 @@ type upgradeSmoothMgr struct {
 func (usm *upgradeSmoothMgr) smooth() error {
 	tasks := []func() error{
 		usm.smoothAlarmManager,
+		usm.smoothBackupConfig,
 	}
 
 	for _, task := range tasks {
@@ -204,5 +206,20 @@ func setSingleOwner(path string) error {
 		return errors.New("set alarm config right failed")
 	}
 
+	return nil
+}
+
+func (usm *upgradeSmoothMgr) smoothBackupConfig() error {
+	path := usm.installPathMgr.ConfigPathMgr.GetConfigPath()
+	if err := backuputils.NewBackupDirMgr(path, backuputils.JsonFileType, backuputils.CrtFileType,
+		backuputils.CrlFileType, backuputils.KeyFileType).BackUp(); err != nil {
+		hwlog.RunLog.Errorf("create mef backup dir failed: %s", err.Error())
+		return fmt.Errorf("create mef backup dir failed: %s", err.Error())
+	}
+
+	if err := util.GetOwnerMgr(usm.installPathMgr.ConfigPathMgr).SetConfigOwner(); err != nil {
+		hwlog.RunLog.Errorf("set owner for mef backup files failed: %s", err.Error())
+		return fmt.Errorf("set owner for mef backup files failed: %s", err.Error())
+	}
 	return nil
 }

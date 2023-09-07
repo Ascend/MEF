@@ -12,10 +12,10 @@ import (
 	"strings"
 	"time"
 
+	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/requests"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
@@ -230,7 +230,7 @@ func importCrl(input interface{}) common.RespMsg {
 			Msg: fmt.Sprintf("base64 decode ca content failed, error: %v", err)}
 	}
 
-	if err := saveCrlContent(common.NorthernCertName, bytes); err != nil {
+	if err := saveCrlContentWithBackup(common.NorthernCertName, bytes); err != nil {
 		return common.RespMsg{Status: common.ErrorSaveCrl,
 			Msg: fmt.Sprintf("save ca content to file failed, error: %v", err)}
 	}
@@ -239,15 +239,19 @@ func importCrl(input interface{}) common.RespMsg {
 }
 
 // saveCaContent save ca content to File
-func saveCrlContent(crlName string, crlContent []byte) error {
-	caFilePath := getCrlPath(crlName)
-	if err := utils.MakeSureDir(caFilePath); err != nil {
+func saveCrlContentWithBackup(crlName string, crlContent []byte) error {
+	crlFilePath := getCrlPath(crlName)
+	if err := utils.MakeSureDir(crlFilePath); err != nil {
 		hwlog.RunLog.Errorf("create %s crl folder failed, error: %v", crlName, err)
 		return fmt.Errorf("create %s crl folder failed, error: %v", crlName, err)
 	}
-	if err := common.WriteData(caFilePath, crlContent); err != nil {
-		hwlog.RunLog.Errorf("save %s cert file failed, error:%s", crlName, err)
+	if err := common.WriteData(crlFilePath, crlContent); err != nil {
+		hwlog.RunLog.Errorf("save %s crl file failed, error:%s", crlName, err)
 		return fmt.Errorf("save %s crl file failed", crlName)
+	}
+	if err := backuputils.BackUpFiles(crlFilePath); err != nil {
+		hwlog.RunLog.Errorf("create backup for %s crl file failed, error:%s", crlName, err)
+		return fmt.Errorf("create backup for %s crl file failed", crlName)
 	}
 	hwlog.RunLog.Infof("save %s crl file success", crlName)
 	return nil
@@ -264,21 +268,37 @@ func queryCrl(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "query crl failed parma is invalid", Data: nil}
 	}
 	crlPath := getCrlPath(crlName)
-	if !utils.IsExist(crlPath) {
+	if !utils.IsExist(crlPath) && !utils.IsExist(crlPath+backuputils.BackupSuffix) {
 		return common.RespMsg{Status: common.Success,
 			Msg: fmt.Sprintf("%s is no imported yet", crlName), Data: ""}
+	}
+	if err := checkCrlWithBackup(crlPath); err != nil {
+		hwlog.RunLog.Errorf("[%s] crl file is damaged", crlName)
+		return common.RespMsg{Status: common.ErrorGetRootCa, Msg: "query crl failed, crl file is damaged", Data: nil}
 	}
 	crlData, err := utils.LoadFile(crlPath)
 	if err != nil {
 		hwlog.RunLog.Errorf("query cert [%s] crl failed: %v", crlName, err)
 		return common.RespMsg{Status: common.ErrorGetRootCa, Msg: "query crl failed, load crl file failed", Data: nil}
 	}
-	if crlData == nil {
-		hwlog.RunLog.Errorf("[%s] crl file is empty", crlName)
-		return common.RespMsg{Status: common.ErrorGetRootCa, Msg: "query crl failed, crl file is empty", Data: nil}
-	}
 	hwlog.RunLog.Infof("query [%s] crl success", crlName)
 	return common.RespMsg{Status: common.Success, Msg: "query crl success", Data: string(crlData)}
+}
+
+func checkCrlWithBackup(path string) error {
+	_, err := x509.ParseCrls(path)
+	if err == nil {
+		if backupErr := backuputils.BackUpFiles(path); backupErr != nil {
+			hwlog.RunLog.Warnf("back up crl file [%s] failed", path)
+		}
+		return nil
+	}
+	if restoreErr := backuputils.RestoreFiles(path); restoreErr != nil {
+		hwlog.RunLog.Errorf("restore crl file [%s] failed", path)
+		return err
+	}
+	_, err = x509.ParseCrls(path)
+	return err
 }
 
 func getImportedCertsInfo(input interface{}) common.RespMsg {

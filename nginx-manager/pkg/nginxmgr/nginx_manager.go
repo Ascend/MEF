@@ -226,6 +226,7 @@ func getReqCertParams() requests.ReqCertParams {
 			CertPath:   nginxcom.ClientCertFile,
 			KeyPath:    nginxcom.ClientCertKeyFile,
 			SvrFlag:    false,
+			WithBackup: true,
 		},
 	}
 }

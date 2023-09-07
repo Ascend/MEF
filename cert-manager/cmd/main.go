@@ -10,6 +10,7 @@ import (
 	"flag"
 	"fmt"
 
+	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/modulemgr"
@@ -87,11 +88,10 @@ func init() {
 }
 
 func initResource() error {
-	err := kmc.InitKmcCfg(defaultKmcPath)
-	if err != nil {
+	if err := backuputils.InitConfig(defaultKmcPath, kmc.InitKmcCfg); err != nil {
 		hwlog.RunLog.Warnf("init kmc config from json failed: %v, use default kmc config", err)
 	}
-	if err := initCertConfig(); err != nil {
+	if err := backuputils.InitConfig(defaultCertConfigPath, initCertConfig); err != nil {
 		hwlog.RunLog.Errorf("init auth config error %v", err)
 		return err
 	}
@@ -110,8 +110,8 @@ func register(ctx context.Context) error {
 	return nil
 }
 
-func initCertConfig() error {
-	data, err := utils.LoadFile(defaultCertConfigPath)
+func initCertConfig(configPath string) error {
+	data, err := utils.LoadFile(configPath)
 	if err != nil {
 		return fmt.Errorf("load auth config file failed, %s", err.Error())
 	}

@@ -6,12 +6,15 @@ package innerserver
 import (
 	"context"
 	"sync"
+	"time"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 
 	"huawei.com/mindxedge/base/common"
+
+	"edge-manager/pkg/constants"
 )
 
 // WsInnerServer wraps the struct WebSocketServer
@@ -46,6 +49,15 @@ func (c *WsInnerServer) Enable() bool {
 
 // Start initializes the websocket server
 func (c *WsInnerServer) Start() {
+	for count := 0; count < constants.ServerInitRetryCount; count++ {
+		c.start()
+		hwlog.RunLog.Error("init websocket server failed. Restart server later")
+		time.Sleep(constants.ServerInitRetryInterval)
+	}
+	hwlog.RunLog.Error("init websocket server failed after maximum number of retry")
+}
+
+func (c *WsInnerServer) start() {
 	hwlog.RunLog.Info("----------------inner server start----------------")
 	if err := InitServer(); err != nil {
 		hwlog.RunLog.Errorf("init websocket server failed: %v", err)

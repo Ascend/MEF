@@ -31,6 +31,7 @@ func NewRestfulService(enable bool, ip string, port int) *Service {
 				KeyPath:    utils.ServerKeyPath,
 				SvrFlag:    true,
 				KmcCfg:     nil,
+				WithBackup: true,
 			},
 		},
 	}
