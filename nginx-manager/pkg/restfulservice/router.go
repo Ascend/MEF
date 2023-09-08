@@ -45,8 +45,7 @@ func updateEdgeMgrSouthCert(ctx *gin.Context) {
 		common.OptPost,
 		common.ResEdgeMgrCertUpdate)
 	msg.FillContent(bodyData)
-	// nginx reload conf timeout: nginxReloadConfTimeout (20s)
-	// this sync message timeout (1 minute) must be greater than nginxReloadConfTimeout
+	// this sync message timeout must be greater than nginxReloadConfTimeout
 	resp, err := modulemgr.SendSyncMessage(msg, time.Minute)
 	if err != nil {
 		hwlog.RunLog.Errorf("forward cert update message to module cert-updater error: %v", err)

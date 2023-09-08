@@ -50,7 +50,7 @@ func StartEdgeCaCertUpdate(payload *CertUpdatePayload) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer func() {
 		select {
-		case <-ctx.Done():
+		case _, _ = <-ctx.Done():
 			atomic.StoreInt64(&edgeCaCertUpdateFlag, NotRunning)
 			hwlog.RunLog.Info("MEF Edge ca certs update process is finished")
 		}

@@ -111,7 +111,7 @@ func (svc *EdgeSvcCertUpdater) CheckAndSetUpdateFlag() error {
 // ClearUpdateFlag clear updating flag when hub_client update operation is finished
 func (svc *EdgeSvcCertUpdater) ClearUpdateFlag() {
 	select {
-	case <-svc.ctx.Done():
+	case _, _ = <-svc.ctx.Done():
 		atomic.StoreInt64(&edgeSvcUpdatingFlag, NotUpdating)
 	}
 	hwlog.RunLog.Info("edge service cert update is finished")
@@ -169,7 +169,7 @@ func (svc *EdgeSvcCertUpdater) NotifyCertUpdate() error {
 // PostCertUpdate post process when hub_client update operation is finished
 func (svc *EdgeSvcCertUpdater) PostCertUpdate() {
 	select {
-	case <-svc.ctx.Done():
+	case _, _ = <-svc.ctx.Done():
 		hwlog.RunLog.Warnf("cert [%v] update post process is cancelled", svc.CaCertName)
 	case result := <-edgeSvcResultChan:
 		if result.ResultCode != updateSuccessCode {
@@ -241,7 +241,7 @@ func (ca *EdgeCaCertUpdater) CheckAndSetUpdateFlag() error {
 // ClearUpdateFlag clear updating flag when hub_svr update operation is finished
 func (ca *EdgeCaCertUpdater) ClearUpdateFlag() {
 	select {
-	case <-ca.ctx.Done():
+	case _, _ = <-ca.ctx.Done():
 		atomic.StoreInt64(&edgeCaUpdatingFlag, NotUpdating)
 	}
 	hwlog.RunLog.Info("edge root ca cert update is finished")
@@ -299,7 +299,7 @@ func (ca *EdgeCaCertUpdater) NotifyCertUpdate() error {
 // PostCertUpdate post process when hub_svr update operation is finished
 func (ca *EdgeCaCertUpdater) PostCertUpdate() {
 	select {
-	case <-ca.ctx.Done():
+	case _, _ = <-ca.ctx.Done():
 		hwlog.RunLog.Warnf("cert [%v] update post process is cancelled", ca.CaCertName)
 	case result := <-edgeCaResultChan:
 		if result.ResultCode != updateSuccessCode {
