@@ -50,7 +50,7 @@ func StartEdgeSvcCertUpdate(payload *CertUpdatePayload) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer func() {
 		select {
-		case <-ctx.Done():
+		case _, _ = <-ctx.Done():
 			atomic.StoreInt64(&edgeSvcCertUpdateFlag, NotRunning)
 			hwlog.RunLog.Info("MEF Edge service certs update process is finished")
 		}
