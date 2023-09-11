@@ -16,6 +16,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/requests"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
@@ -42,7 +43,6 @@ func queryRootCa(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorGetRootCa,
 			Msg: fmt.Sprintf("%s is no imported yet", certName), Data: nil}
 	}
-	// if temp ca exists, sent to edge-manager with normal ca
 	ca, err := getCertByCertName(certName)
 	if err != nil {
 		hwlog.RunLog.Errorf("query cert [%s] root ca failed: %v", certName, err)
