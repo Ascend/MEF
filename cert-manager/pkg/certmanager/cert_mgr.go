@@ -48,17 +48,6 @@ func getCertByCertName(certName string) ([]byte, error) {
 		hwlog.RunLog.Errorf("load root cert failed: %v", err)
 		return nil, fmt.Errorf("load root cert failed: %v", err)
 	}
-	tempCaFilePath := getTempRootCaPath(certName)
-	if !utils.IsExist(tempCaFilePath) {
-		return certData, nil
-	}
-	var tempCaData []byte
-	tempCaData, err = certutils.GetCertContent(caFilePath)
-	if err != nil {
-		hwlog.RunLog.Errorf("load temp root cert failed: %v", err)
-		return nil, fmt.Errorf("load temp root cert failed: %v", err)
-	}
-	certData = append(certData, tempCaData...)
 	return certData, nil
 }
 
@@ -272,19 +261,30 @@ func ExportRootCa(c *gin.Context) {
 		common.ConstructResp(c, common.ErrorExportRootCa, msg, nil)
 		return
 	}
-	ca, err := getCertByCertName(certName)
-	if err != nil {
-		msg := fmt.Sprintf("get cert [%s] root ca failed", certName)
-		hwlog.OpLog.Errorf("%s, error:%v", msg, err)
-		common.ConstructResp(c, common.ErrorExportRootCa, msg, nil)
-		return
+
+	var caBytes []byte
+	var err error
+	tempCaFilePath := getTempRootCaPath(certName)
+	if utils.IsExist(tempCaFilePath) {
+		if caBytes, err = certutils.GetCertContent(tempCaFilePath); err != nil {
+			hwlog.RunLog.Errorf("load new temp root cert failed: %v, old root cert will be used", err)
+		}
+	}
+	// if new temp ca exists, but get an error when load it, use old ca data.
+	if len(caBytes) == 0 {
+		if caBytes, err = getCertByCertName(certName); err != nil {
+			msg := fmt.Sprintf("get cert [%s] root ca failed", certName)
+			hwlog.OpLog.Errorf("%s, error:%v", msg, err)
+			common.ConstructResp(c, common.ErrorExportRootCa, msg, nil)
+			return
+		}
 	}
 	c.Writer.WriteHeader(http.StatusOK)
 	c.Header(common.ContentType, "text/plain; charset=utf-8")
 	c.Header(common.TransferEncoding, "chunked")
 	c.Header(common.ContentDisposition, fmt.Sprintf("attachment; filename=%s", util.RootCaFileName))
 	c.Writer.WriteHeaderNow()
-	if _, err := c.Writer.Write(ca); err != nil {
+	if _, err = c.Writer.Write(caBytes); err != nil {
 		msg := fmt.Sprintf("export cert [%s] root ca failed", certName)
 		hwlog.OpLog.Errorf("%s, error: %v", msg, err)
 		common.ConstructResp(c, common.ErrorExportRootCa, msg, nil)
