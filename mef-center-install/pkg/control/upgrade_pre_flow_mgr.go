@@ -22,10 +22,6 @@ import (
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
-type zipContent struct {
-	tarName, cmsName, crlName string
-}
-
 // UpgradePreFlowMgr is a struct that uses to do upgrade, it is executed in the old version
 type UpgradePreFlowMgr struct {
 	zipPath string
@@ -69,7 +65,7 @@ func (upf *UpgradePreFlowMgr) DoUpgrade() error {
 			continue
 		}
 
-		upf.clearEnv()
+		util.ClearPakEnv(upf.InstallPathMgr.WorkPathMgr.GetVarDirPath())
 		return err
 	}
 
@@ -153,28 +149,18 @@ func (upf *UpgradePreFlowMgr) unzipZipFile() error {
 
 func (upf *UpgradePreFlowMgr) verifyPackage() error {
 	fmt.Println("start to verify package")
-	unpackAbsPath, err := filepath.EvalSymlinks(upf.unpackZipPath)
-	if err != nil {
-		hwlog.RunLog.Errorf("get unpack abs path failed: %s", unpackAbsPath)
-		return errors.New("get unpack abs path failed")
-	}
-
-	zipContents, err := upf.getVerifyFileName()
+	zipContent, err := util.GetVerifyFileName(upf.unpackZipPath, common.MefCenterFlag)
 	if err != nil {
 		return err
 	}
-
-	upf.tarPath = filepath.Join(unpackAbsPath, zipContents.tarName)
-	cmsPath := filepath.Join(unpackAbsPath, zipContents.cmsName)
-	crlPath := filepath.Join(unpackAbsPath, zipContents.crlName)
-
-	updateCrlFlag, verifyCrl, err := prepareVerifyCrl(crlPath)
+	upf.tarPath = zipContent.TarPath
+	updateCrlFlag, verifyCrl, err := prepareVerifyCrl(zipContent.CrlPath)
 	if err != nil {
 		hwlog.RunLog.Errorf("prepare crl for verifying package failed, error: %v", err)
 		return err
 	}
 
-	if err = cmsverify.VerifyPackage(verifyCrl, cmsPath, upf.tarPath); err != nil {
+	if err = cmsverify.VerifyPackage(verifyCrl, zipContent.CmsPath, upf.tarPath); err != nil {
 		fmt.Println("verify package failed, the zip file might be tampered")
 		hwlog.RunLog.Errorf("verify package failed,error:%v", err)
 		return errors.New("verify package failed")
@@ -233,55 +219,6 @@ func (upf *UpgradePreFlowMgr) copyInstallJson() error {
 	return nil
 }
 
-func (upf *UpgradePreFlowMgr) getVerifyFileName() (*zipContent, error) {
-	var tarName, cmsName, crlName string
-	dir, err := common.ReadDir(upf.unpackZipPath)
-	if err != nil {
-		hwlog.RunLog.Errorf("traversal unpack path failed: %s", err.Error())
-		return nil, errors.New("traversal unpack path failed")
-	}
-
-	for _, file := range dir {
-		if !strings.Contains(file.Name(), common.MefCenterFlag) {
-			continue
-		}
-
-		if strings.HasSuffix(file.Name(), common.TarGzSuffix) {
-			if tarName != "" {
-				hwlog.RunLog.Errorf("more than 1 tar.gz file in zip file")
-				return nil, errors.New("more than 1 tar.gz file in zip file")
-			}
-			tarName = file.Name()
-		}
-
-		if strings.HasSuffix(file.Name(), common.CmsSuffix) {
-			if cmsName != "" {
-				hwlog.RunLog.Errorf("more than 1 cms file in zip file")
-				return nil, errors.New("more than 1 cms file in zip file")
-			}
-			cmsName = file.Name()
-		}
-
-		if strings.HasSuffix(file.Name(), common.CrlSuffix) {
-			if crlName != "" {
-				hwlog.RunLog.Errorf("more than 1 crl file in zip file")
-				return nil, errors.New("more than 1 crl file in zip file")
-			}
-			crlName = file.Name()
-		}
-	}
-
-	if tarName == "" || cmsName == "" || crlName == "" {
-		hwlog.RunLog.Errorf("the zip file does not contain all necessary file")
-		return nil, errors.New("the zip file does not contain all necessary file")
-	}
-
-	return &zipContent{
-		tarName: tarName,
-		cmsName: cmsName,
-		crlName: crlName}, nil
-}
-
 func (upf *UpgradePreFlowMgr) execNewSh() error {
 	cmd := exec.Command(filepath.Join(upf.unpackTarPath, util.InstallDirName, util.ScriptsDirName, util.UpgradeShName))
 	var stderr bytes.Buffer
@@ -318,7 +255,7 @@ func (upf *UpgradePreFlowMgr) newShErrDeal(returnErr error) {
 	if strings.Contains(returnErr.Error(), "invalid arch") {
 		fmt.Println("the upgrading zip is for another CPU architecture")
 		hwlog.RunLog.Error("upgrade failed: the upgrading zip is for another CPU architecture")
-		upf.clearEnv()
+		util.ClearPakEnv(upf.InstallPathMgr.WorkPathMgr.GetVarDirPath())
 		return
 	}
 
@@ -332,20 +269,6 @@ func (upf *UpgradePreFlowMgr) newShErrDeal(returnErr error) {
 	}
 }
 
-func (upf *UpgradePreFlowMgr) clearEnv() {
-	fmt.Println("install failed, start to clear environment")
-	hwlog.RunLog.Info("-----Start to clear environment-----")
-	if err := common.DeleteAllFile(upf.InstallPathMgr.WorkPathMgr.GetVarDirPath()); err != nil {
-		fmt.Println("clear environment failed, please clear manually")
-		hwlog.RunLog.Warnf("clear environment meets err:%s, need to do it manually", err.Error())
-		hwlog.RunLog.Info("-----End to clear environment-----")
-		return
-	}
-	fmt.Println("clear environment success")
-	hwlog.RunLog.Info("clear environment success")
-	hwlog.RunLog.Info("-----End to clear environment-----")
-}
-
 func prepareVerifyCrl(crlFile string) (bool, string, error) {
 	updateCrlFlag := true
 	verifyCrl := crlFile
@@ -354,9 +277,9 @@ func prepareVerifyCrl(crlFile string) (bool, string, error) {
 	// when two input parameters are the same, the function can be used to check whether the CRL file is valid
 	crlToUpdateValid, err := cmsverify.CompareCrls(verifyCrl, verifyCrl)
 	if err != nil || int(crlToUpdateValid) != util.CompareSame {
-		fmt.Println("new crl file is invalid")
-		hwlog.RunLog.Error("new crl file is invalid")
-		return true, "", errors.New("new crl file is invalid")
+		fmt.Println("crl file is invalid")
+		hwlog.RunLog.Error("crl file is invalid")
+		return true, "", errors.New("crl file is invalid")
 	}
 
 	crlOnDevicePath, err := getValidCrlOnDevice()

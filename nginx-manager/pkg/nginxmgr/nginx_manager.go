@@ -35,6 +35,7 @@ const (
 // initResource initial the resources needed by nginx
 func initResource() error {
 	if err := updateConf(); err != nil {
+		hwlog.RunLog.Errorf("update conf content error: %v", err)
 		return err
 	}
 
@@ -106,14 +107,12 @@ func LoadKeysDataToPipes(deletePipeAfterUse bool) error {
 	if err := WritePipe(nginxcom.WebsocketCertKeyFile, nginxcom.WebsocketPipePath, deletePipeAfterUse); err != nil {
 		return err
 	}
-	updater, err := NewNginxConfUpdater(nil)
+
+	pipeCount, err := calculatePipeCount()
 	if err != nil {
 		return err
 	}
-	pipeCount, err := updater.calculatePipeCount()
-	if err != nil {
-		return err
-	}
+
 	return WritePipeForClient(nginxcom.ClientCertKeyFile, nginxcom.ClientPipeDir, pipeCount, deletePipeAfterUse)
 }
 
@@ -128,11 +127,8 @@ func CreateKeyPipes() error {
 	if err := PreparePipe(nginxcom.WebsocketPipePath); err != nil {
 		return err
 	}
-	updater, err := NewNginxConfUpdater(nil)
-	if err != nil {
-		return err
-	}
-	pipeCount, err := updater.calculatePipeCount()
+
+	pipeCount, err := calculatePipeCount()
 	if err != nil {
 		return err
 	}

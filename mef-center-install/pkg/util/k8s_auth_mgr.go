@@ -48,7 +48,7 @@ rules:
     verbs: ["create","get"]
   - apiGroups: [""]
     resources: ["configmaps"]
-    verbs: ["create","update","delete"]
+    verbs: ["create","update","delete","get"]
   - apiGroups: ["apps"]
     resources: ["daemonsets"]
     verbs: ["create","update","watch","list","delete","get","patch"]

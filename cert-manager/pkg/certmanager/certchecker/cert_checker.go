@@ -143,6 +143,7 @@ var onlineImportMap = map[string]bool{
 	common.NginxCertName:    false,
 	common.InnerName:        false,
 	common.NorthernCertName: false,
+	common.IcsCertName:      false,
 }
 
 var certDeleteNames = []string{common.SoftwareCertName, common.ImageCertName}

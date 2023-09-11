@@ -43,6 +43,8 @@ const (
 	NginxCertSerName = "apig_server"
 	// NorthernCertName dir for northbound cert and crl
 	NorthernCertName = "north"
+	// IcsCertName for icsmanager cert name dir
+	IcsCertName = "ics"
 )
 
 // consts for ModuleName
@@ -255,10 +257,11 @@ const (
 	MaxSingleExtractSize = 200 * MB
 	MaxTotalExtractSize  = 200 * MB
 
-	MefCenterFlag = "mefcenter"
-	TarGzSuffix   = ".tar.gz"
-	CrlSuffix     = ".tar.gz.crl"
-	CmsSuffix     = ".tar.gz.cms"
+	MefCenterFlag  = "mefcenter"
+	IcsManagerFlag = "icsmanager"
+	TarGzSuffix    = ".tar.gz"
+	CrlSuffix      = ".tar.gz.crl"
+	CmsSuffix      = ".tar.gz.cms"
 )
 
 // node specification

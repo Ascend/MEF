@@ -68,7 +68,7 @@ func initLog(installParam *util.InstallParamJsonTemplate) error {
 func (uc upgradeController) doUpgrade() error {
 	installedComponents := util.GetCompulsorySlice()
 
-	controlMgr := control.GetUpgradePostMgr(installedComponents, uc.installParam.InstallDir, uc.logPath, uc.logBackPath)
+	controlMgr := control.GetUpgradePostMgr(installedComponents, uc.installParam)
 
 	if err := controlMgr.DoUpgrade(); err != nil {
 		return err
