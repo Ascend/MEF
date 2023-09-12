@@ -31,7 +31,8 @@ func prepareCert() error {
 	if err := prepareServerCert(nginxcom.ServerCertKeyFile, nginxcom.ServerCertFile, common.NginxCertName); err != nil {
 		return err
 	}
-	if err := prepareRootCert(nginxcom.NorthernCertFile, common.NorthernCertName, "NorthRoot"); err != nil {
+	if err := prepareRootCert(nginxcom.NorthernCertFile, common.NorthernCertName, false); err != nil {
+		hwlog.RunLog.Errorf("get root ca(%s) failed: %v", common.NorthernCertName, err)
 		return err
 	}
 	if err := prepareServerCert(nginxcom.SouthAuthCertKeyFile, nginxcom.SouthAuthCertFile, common.WsSerName); err != nil {
@@ -40,16 +41,17 @@ func prepareCert() error {
 	if err := prepareServerCert(nginxcom.WebsocketCertKeyFile, nginxcom.WebsocketCertFile, common.WsSerName); err != nil {
 		return err
 	}
-	if err := prepareRootCert(nginxcom.SouthernCertFile, common.WsCltName, "SouthRoot"); err != nil {
+	if err := prepareRootCert(nginxcom.SouthernCertFile, common.WsCltName, true); err != nil {
+		hwlog.RunLog.Errorf("get root ca(%s) failed: %v", common.WsCltName, err)
 		return err
 	}
-	if err := prepareRootCert(nginxcom.IcsCaPath, common.IcsCertName, "IcsRoot"); err != nil {
+	if err := prepareRootCert(nginxcom.IcsCaPath, common.IcsCertName, false); err != nil {
 		hwlog.RunLog.Warnf("cannot get icsmanager cert, maybe not import yet")
 	}
 	return nil
 }
 
-func prepareRootCert(certPath string, certName string, server string) error {
+func prepareRootCert(certPath, certName string, retry bool) error {
 	reqCertParams := requests.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
 			RootCaPath: nginxcom.RootCaPath,
@@ -62,20 +64,20 @@ func prepareRootCert(certPath string, certName string, server string) error {
 	var err error
 	for i := 0; i < maxRetry; i++ {
 		rootCaStr, err = reqCertParams.GetRootCa(certName)
-		if err == nil {
-			break
+		if err != nil && retry {
+			time.Sleep(waitTime)
+			continue
 		}
-		time.Sleep(waitTime)
+		break
 	}
 	if rootCaStr == "" {
-		hwlog.RunLog.Errorf("get valid root ca for %s service failed: %v", server, err)
 		return err
 	}
 
 	// To ensure the latest root certificate, overwritten root each restarted.
 	err = common.WriteData(certPath, []byte(rootCaStr))
 	if err != nil {
-		hwlog.RunLog.Errorf("save cert for %s service cert failed: %s", server, err.Error())
+		hwlog.RunLog.Errorf("save cert for %s service cert failed: %s", certName, err.Error())
 		return err
 	}
 	return nil

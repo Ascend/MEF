@@ -40,7 +40,7 @@ func NewNginxConfUpdater(confItems []nginxcom.NginxConfItem) (*nginxConfUpdater,
 		config.confPath = nginxDefaultConfigPath
 		config.icsConf = getIcsConfContent
 	}
-	if err := prepareRootCert(nginxcom.IcsCaPath, common.IcsCertName, "IcsRoot"); err != nil {
+	if err := prepareRootCert(nginxcom.IcsCaPath, common.IcsCertName, false); err != nil {
 		config.icsConf = func() string { return "" }
 	}
 	config.confItems = confItems
