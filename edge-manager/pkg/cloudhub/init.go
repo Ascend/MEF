@@ -38,6 +38,7 @@ func initMsgHandler() {
 
 // CloudServer wraps the struct WebSocketServer
 type CloudServer struct {
+	serverIp     string
 	wsPort       int
 	authPort     int
 	maxClientNum int

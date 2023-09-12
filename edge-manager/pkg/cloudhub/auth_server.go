@@ -38,9 +38,10 @@ type ClientAuthService struct {
 }
 
 // NewClientAuthService new mef edge client auth service
-func NewClientAuthService(port int, tlsCfg certutils.TlsCertInfo) *ClientAuthService {
+func NewClientAuthService(serverIp string, port int, tlsCfg certutils.TlsCertInfo) *ClientAuthService {
 	return &ClientAuthService{
 		httpsSvr: &httpsmgr.HttpsServer{
+			IP:          serverIp,
 			Port:        port,
 			TlsCertPath: tlsCfg,
 		},
