@@ -12,6 +12,7 @@ import (
 	"huawei.com/mindx/common/x509"
 
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/alarms"
 	"huawei.com/mindxedge/base/common/requests"
 )
 
@@ -35,9 +36,9 @@ var (
 
 func registerCertMonitor(dbPath string) error {
 	certTask.alarmIdFuncMap = make(map[string]func() error, importedCertsNum)
-	certTask.alarmIdFuncMap[NorthCertAbnormal] = isNorthCertOverdue
-	certTask.alarmIdFuncMap[SoftwareCertAbnormal] = isSoftwareCertOverdue
-	certTask.alarmIdFuncMap[ImageCertAbnormal] = isImageCertOverdue
+	certTask.alarmIdFuncMap[alarms.NorthCertAbnormal] = isNorthCertOverdue
+	certTask.alarmIdFuncMap[alarms.SoftwareCertAbnormal] = isSoftwareCertOverdue
+	certTask.alarmIdFuncMap[alarms.ImageCertAbnormal] = isImageCertOverdue
 
 	for i := 0; i < getConfigTimes; i++ {
 		alarmConfigDir := filepath.Dir(dbPath)

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+
 	"huawei.com/mindx/common/httpsmgr"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/x509/certutils"
@@ -18,6 +19,7 @@ import (
 	"alarm-manager/pkg/utils"
 
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/alarms"
 )
 
 const (
@@ -187,7 +189,7 @@ func listGroupNodesAlarmsOrEvents(req types.ListAlarmOrEventReq, queryIdType str
 		hwlog.RunLog.Error(err.Error())
 		return &common.RespMsg{Status: common.ErrorListEdgeNodeAlarm}
 	}
-	hwlog.RunLog.Infof("succeed listing group %s info", utils.EventType)
+	hwlog.RunLog.Infof("succeed listing group %s info", alarms.EventType)
 	return &common.RespMsg{Status: common.Success, Data: respMap}
 }
 

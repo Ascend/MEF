@@ -7,11 +7,11 @@ import (
 	"sync"
 
 	"gorm.io/gorm"
+
 	"huawei.com/mindx/common/database"
 
-	"alarm-manager/pkg/utils"
-
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/alarms"
 )
 
 var (
@@ -41,13 +41,13 @@ func (adh *AlarmDbHandler) addAlarmInfo(data *AlarmInfo) error {
 
 func (adh *AlarmDbHandler) getNodeAlarmCount(sn string) (int, error) {
 	var count int64
-	return int(count), adh.db().Model(AlarmInfo{}).Where("serial_number = ? and alarm_type = ?", sn, utils.AlarmType).
+	return int(count), adh.db().Model(AlarmInfo{}).Where("serial_number = ? and alarm_type = ?", sn, alarms.AlarmType).
 		Count(&count).Error
 }
 
 func (adh *AlarmDbHandler) getNodeEventCount(sn string) (int, error) {
 	var count int64
-	return int(count), adh.db().Model(AlarmInfo{}).Where("serial_number = ? and alarm_type = ?", sn, utils.EventType).
+	return int(count), adh.db().Model(AlarmInfo{}).Where("serial_number = ? and alarm_type = ?", sn, alarms.EventType).
 		Count(&count).Error
 }
 
@@ -77,13 +77,13 @@ func (adh *AlarmDbHandler) DeleteAlarmTable() error {
 
 // DeleteEdgeAlarm is the func to delete all alarm from MEFEdge
 func (adh *AlarmDbHandler) DeleteEdgeAlarm() error {
-	return adh.db().Model(AlarmInfo{}).Where("serial_number != ?", utils.CenterSn).Delete(AlarmInfo{}).Error
+	return adh.db().Model(AlarmInfo{}).Where("serial_number != ?", alarms.CenterSn).Delete(AlarmInfo{}).Error
 }
 
 func (adh *AlarmDbHandler) listCenterAlarmsOrEventsDb(pageNum, pageSize uint64, queryType string) (
 	*[]AlarmInfo, error) {
 	var alarmInfo []AlarmInfo
-	return &alarmInfo, adh.db().Scopes(getAlarmNodeScopes(pageNum, pageSize, utils.CenterSn, queryType)).
+	return &alarmInfo, adh.db().Scopes(getAlarmNodeScopes(pageNum, pageSize, alarms.CenterSn, queryType)).
 		Find(&alarmInfo).Error
 }
 
@@ -107,7 +107,7 @@ func (adh *AlarmDbHandler) listAllEdgeAlarmsOrEventsDb(pageNum, pageSize uint64,
 func getPagedEdgeScopes(pageNum, pageSize uint64, queryType string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Scopes(common.Paginate(pageNum, pageSize)).Where("alarm_type=? and serial_number <> ?",
-			queryType, utils.CenterSn)
+			queryType, alarms.CenterSn)
 	}
 }
 

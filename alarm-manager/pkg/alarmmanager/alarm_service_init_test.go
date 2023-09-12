@@ -18,15 +18,16 @@ import (
 	"github.com/agiledragon/gomonkey/v2"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+
 	"huawei.com/mindx/common/database"
 	"huawei.com/mindx/common/httpsmgr"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/x509/certutils"
 
 	"alarm-manager/pkg/types"
-	"alarm-manager/pkg/utils"
 
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/alarms"
 )
 
 var (
@@ -157,7 +158,7 @@ func randSetOneAlarm(alarm *AlarmInfo, idx int) {
 	defaultImpact := "ALARM DEFAULT Impact"
 	defaultAlarmName := "ALARM DEFAULT NAME"
 	defaultAlarmResource := "ALARM DEFAULT RESOURCE"
-	randType := utils.AlarmType
+	randType := alarms.AlarmType
 	var randNum, randNodeId, randTypeSe int
 	randNodeId, err1 := randIntn(NodeNums)
 	randTypeSe, err2 := randIntn(TypesOfSevirity - 1)
@@ -167,7 +168,7 @@ func randSetOneAlarm(alarm *AlarmInfo, idx int) {
 		return
 	}
 	if randNum < HalfPossibility {
-		randType = utils.EventType
+		randType = alarms.EventType
 	}
 	alarm.AlarmType = randType
 	alarm.CreatedAt = time.Now()
@@ -191,10 +192,10 @@ func randSetOneAlarm(alarm *AlarmInfo, idx int) {
 	alarm.Resource = defaultAlarmResource
 	// make sure first record is an alarm and second record is an event for testing get user interface
 	if idx == defaultAlarmId {
-		alarm.AlarmType = utils.AlarmType
+		alarm.AlarmType = alarms.AlarmType
 	}
 	if idx == defaultEventID {
-		alarm.AlarmType = utils.EventType
+		alarm.AlarmType = alarms.EventType
 	}
 }
 

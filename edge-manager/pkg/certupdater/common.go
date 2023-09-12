@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+	"sync/atomic"
 	"time"
 
 	"huawei.com/mindx/common/httpsmgr"
@@ -20,6 +22,7 @@ import (
 	"edge-manager/pkg/nodemanager"
 	"edge-manager/pkg/types"
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/alarms"
 	"huawei.com/mindxedge/base/common/requests"
 )
 
@@ -190,12 +193,22 @@ func edgeSvcUpdatePostProcess(payload *CertUpdatePayload, cancel context.CancelF
 		return
 	}
 	hwlog.RunLog.Infof("send cert [%v] force update notify to nginx manager success", payload.CertType)
-	// 2. delete temporary db table after use.
+
+	// 2. send an alarm if there are some edge nodes not successfully update theirs certs
+	if err := sendUpdateFailedAlarm(payload); err != nil {
+		// if there is an error, don't return, keep running step 3
+		hwlog.RunLog.Errorf("send cert [%v] update abnormal alarm failed: %v", payload.CertType, err)
+	} else {
+		hwlog.RunLog.Infof("send cert [%v] update abnormal alarm success", payload.CertType)
+	}
+
+	// 3. delete temporary db table after use.
 	if err := DeleteDBTable(edgeSvcCertStatus{}); err != nil {
 		hwlog.RunLog.Errorf("cleanup database table [%v] error: %v", TableEdgeSvcCertStatus, err)
 		return
 	}
 	hwlog.RunLog.Infof("cleanup database table [%v] success", TableEdgeSvcCertStatus)
+
 }
 
 // do some cleanup jobs when edge root ca cert update operation is finished
@@ -216,10 +229,137 @@ func edgeCaUpdatePostProcess(payload *CertUpdatePayload, cancel context.CancelFu
 		return
 	}
 	hwlog.RunLog.Infof("send cert [%v] force update notify to nginx manager success", payload.CertType)
-	// 2. delete temporary db table after use.
+
+	// 2. send an alarm if there are some edge nodes not successfully update theirs certs
+	if err := sendUpdateFailedAlarm(payload); err != nil {
+		// if there is an error, don't return, keep running step 3
+		hwlog.RunLog.Errorf("send cert [%v] update abnormal alarm failed: %v", payload.CertType, err)
+	} else {
+		hwlog.RunLog.Infof("send cert [%v] update abnormal alarm success", payload.CertType)
+	}
+
+	// 3. delete temporary db table after use.
 	if err := DeleteDBTable(edgeCaCertStatus{}); err != nil {
 		hwlog.RunLog.Errorf("cleanup database table [%v] error: %v", TableEdgeCaCertStatus, err)
 		return
 	}
 	hwlog.RunLog.Infof("cleanup database table [%v] success", TableEdgeCaCertStatus)
+}
+
+func sendAlarm(alarmId, notifyType string) error {
+	alarm, err := alarms.CreateAlarm(alarmId, common.CertUpdaterName, notifyType)
+	if err != nil {
+		hwlog.RunLog.Errorf("create alarm [%v] error: %v", alarmId, err)
+		return fmt.Errorf("create alarm [%v] error: %v", alarmId, err)
+	}
+
+	hostIp := os.Getenv("NODE_IP")
+	if hostIp == "" {
+		hwlog.RunLog.Error("get host ip error")
+		return fmt.Errorf("get host ip error")
+	}
+
+	alarmReq := requests.AddAlarmReq{
+		Alarms: []requests.AlarmReq{*alarm},
+		Ip:     hostIp,
+	}
+	jsonAlarmReq, err := json.Marshal(alarmReq)
+	if err != nil {
+		hwlog.RunLog.Errorf("marshal alarm request error: %v", err)
+		return fmt.Errorf("marshal alarm request error: %v", err)
+	}
+	msg, err := model.NewMessage()
+	if err != nil {
+		hwlog.RunLog.Errorf("create new message error: %v", err)
+		return fmt.Errorf("create new message error: %v", err)
+	}
+	msg.FillContent(string(jsonAlarmReq))
+	msg.SetNodeId(common.AlarmManagerClientName)
+	msg.SetRouter(common.CertUpdaterName, common.InnerServerName, common.OptPost, requests.ReportAlarmRouter)
+	if err = modulemgr.SendAsyncMessage(msg); err != nil {
+		hwlog.RunLog.Errorf("send msg to alarm inner server failed: %v", err)
+		return fmt.Errorf("send msg to alarm inner server failed: %v", err)
+	}
+	return nil
+}
+
+func sendUpdateFailedAlarm(payload *CertUpdatePayload) error {
+	var alarmId string
+	var needSendAlarm bool
+	failedSns := make([]string, 0)
+	switch payload.CertType {
+	case CertTypeEdgeSvc:
+		failedRecords, err := getEdgeSvcCertStatusModInstance().QueryUnsuccessfulRecords()
+		if err != nil {
+			return fmt.Errorf("query edge service cert update failed records error: %v", err)
+		}
+		if len(failedRecords) > 0 {
+			needSendAlarm = true
+			// edge service cert and south ca cert are verification pair
+			alarmId = alarms.MEFCenterCaCertUpdateAbnormal
+			for _, record := range failedRecords {
+				failedSns = append(failedSns, record.Sn)
+			}
+		}
+	case CertTypeEdgeCa:
+		failedRecords, err := getEdgeCaCertStatusDbModInstance().QueryUnsuccessfulRecords()
+		if err != nil {
+			return fmt.Errorf("query edge ca cert update failed records error: %v", err)
+		}
+		if len(failedRecords) > 0 {
+			needSendAlarm = true
+			// edge ca cert and south service cert are verification pair
+			alarmId = alarms.MEFCenterSvcCertUpdateAbnormal
+			for _, record := range failedRecords {
+				failedSns = append(failedSns, record.Sn)
+			}
+		}
+	default:
+		return fmt.Errorf("invalid cert type for alram: %v", payload.CertType)
+	}
+	if needSendAlarm {
+		hwlog.RunLog.Warnf("the following edge nodes are not successfully update certs, "+
+			"please do net-config operation on edge nodes as soon as possible\nnodes sn: [%v]", failedSns)
+		if err := sendAlarm(alarmId, alarms.AlarmFlag); err != nil {
+			return fmt.Errorf("send cert update abnormal alarm [id: %v] error: %v", alarmId, err)
+		}
+	}
+	return nil
+}
+
+// return bool indicate whether outer function need continue to run.
+// true: continue run, false: stop and return
+func sendForceUpdateSignal(payload *CertUpdatePayload) bool {
+	if payload == nil {
+		hwlog.RunLog.Errorf("invalid payload data")
+		return false
+	}
+	if !payload.ForceUpdate {
+		return true
+	}
+	switch payload.CertType {
+	case CertTypeEdgeCa:
+		if forceUpdateCaCertChan == nil {
+			forceUpdateCaCertChan = make(chan CertUpdatePayload)
+		}
+		forceUpdateCaCertChan <- *payload
+		if atomic.LoadInt64(&edgeCaCertUpdateFlag) == InRunning {
+			hwlog.RunLog.Info("MEF Edge ca cert will be updated by force way")
+			return false
+		}
+		return true
+	case CertTypeEdgeSvc:
+		if forceUpdateSvcCertChan == nil {
+			forceUpdateSvcCertChan = make(chan CertUpdatePayload)
+		}
+		forceUpdateSvcCertChan <- *payload
+		if atomic.LoadInt64(&edgeSvcCertUpdateFlag) == InRunning {
+			hwlog.RunLog.Info("MEF Edge service cert will be updated by force way")
+			return false
+		}
+		return true
+	default:
+		hwlog.RunLog.Errorf("invalid cert type: %v", payload.CertType)
+		return false
+	}
 }

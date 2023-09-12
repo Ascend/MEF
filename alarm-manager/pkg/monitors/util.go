@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"time"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
@@ -39,29 +38,6 @@ func GetAlarmMonitorList(dbPath string) []AlarmMonitor {
 	}
 
 	return alarmMonitor
-}
-
-// CreateAlarm creates an alarm
-func CreateAlarm(alarmId, resource, notifyType string) (*requests.AlarmReq, error) {
-	template, ok := alarmList[alarmId]
-	if !ok {
-		hwlog.RunLog.Errorf("unknown alarm type, alarm id: [%s]", alarmId)
-		return nil, errors.New("unknown alarm type")
-	}
-
-	return &requests.AlarmReq{
-		Type:                template.Type,
-		AlarmId:             alarmId,
-		AlarmName:           template.AlarmName,
-		Resource:            resource,
-		PerceivedSeverity:   template.PerceivedSeverity,
-		Timestamp:           time.Now().Format(time.RFC3339),
-		NotificationType:    notifyType,
-		DetailedInformation: template.DetailedInformation,
-		Suggestion:          template.Suggestion,
-		Reason:              template.Reason,
-		Impact:              template.Impact,
-	}, nil
 }
 
 // SendAlarms send alarms

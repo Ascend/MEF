@@ -8,12 +8,13 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gin-gonic/gin"
+
 	"alarm-manager/pkg/types"
 	"alarm-manager/pkg/utils"
 
-	"github.com/gin-gonic/gin"
-
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/alarms"
 	"huawei.com/mindxedge/base/common/restfulmgr"
 )
 
@@ -117,7 +118,7 @@ func (list listDispatcher) ParseData(c *gin.Context) (interface{}, error) {
 	}
 
 	if len(values[snKey]) == 0 {
-		snStr = utils.CenterSn
+		snStr = alarms.CenterSn
 	}
 
 	groupId, err2 := strconv.ParseUint(groupIdStr, common.BaseHex, common.BitSize64)

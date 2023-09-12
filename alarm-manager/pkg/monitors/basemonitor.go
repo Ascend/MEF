@@ -9,7 +9,7 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 
-	"alarm-manager/pkg/utils"
+	"huawei.com/mindxedge/base/common/alarms"
 	"huawei.com/mindxedge/base/common/requests"
 )
 
@@ -58,13 +58,13 @@ func (ct *cronTask) CollectOnce() {
 	var alarmReqs []*requests.AlarmReq
 	var notifyType string
 	for alarmId, checkFunc := range ct.alarmIdFuncMap {
-		notifyType = utils.ClearFlag
+		notifyType = alarms.ClearFlag
 		if err := checkFunc(); err != nil {
 			hwlog.RunLog.Warnf("%s task check failed, error: %v", ct.name, err)
-			notifyType = utils.AlarmFlag
+			notifyType = alarms.AlarmFlag
 		}
 
-		alarmReq, err := CreateAlarm(alarmId, ct.name, notifyType)
+		alarmReq, err := alarms.CreateAlarm(alarmId, ct.name, notifyType)
 		if err != nil {
 			hwlog.RunLog.Errorf("create alarm %s failed, error: %v", alarmId, err)
 			continue
