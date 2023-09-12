@@ -18,7 +18,7 @@ type TaskPhase string
 // phase constants
 const (
 	Waiting         TaskPhase = "waiting"
-	Progressing     TaskPhase = "progressing"
+	Processing      TaskPhase = "processing"
 	Aborting        TaskPhase = "aborting"
 	Succeed         TaskPhase = "succeed"
 	Failed          TaskPhase = "failed"

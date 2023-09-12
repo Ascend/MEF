@@ -43,7 +43,7 @@ func (p *goroutinePoolController) runWorker() {
 
 func (p *goroutinePoolController) handleTask(t *taskContextImpl) error {
 	// entering processing phase
-	status := TaskStatus{Phase: Progressing, StartedAt: time.Now()}
+	status := TaskStatus{Phase: Processing, StartedAt: time.Now()}
 	if err := t.updateStatus(status, false); err != nil {
 		if err == ErrNoRowsAffected {
 			return nil

@@ -78,7 +78,7 @@ func TestTaskExecuteTimeout(t *testing.T) {
 
 		status, err := ctx.GetStatus()
 		convey.So(err, convey.ShouldBeNil)
-		convey.So(status.Phase, convey.ShouldEqual, Progressing)
+		convey.So(status.Phase, convey.ShouldEqual, Processing)
 
 		time.Sleep(twoHundredsMs)
 
@@ -172,7 +172,7 @@ func TestTaskUpdateStatus(t *testing.T) {
 			success bool
 		}
 		testCases := []testCase{
-			{arg: TaskStatus{Phase: Progressing}, success: true},
+			{arg: TaskStatus{Phase: Processing}, success: true},
 			{arg: TaskStatus{Phase: Failed}, success: true},
 			{arg: TaskStatus{Phase: Waiting}, success: false},
 			{arg: TaskStatus{Phase: Succeed}, success: false},

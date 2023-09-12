@@ -84,7 +84,7 @@ func TestTaskConcurrentControl(t *testing.T) {
 		convey.So(err, convey.ShouldBeNil)
 		status, err := ctx.GetStatus()
 		convey.So(err, convey.ShouldBeNil)
-		convey.So(status.Phase, convey.ShouldEqual, Progressing)
+		convey.So(status.Phase, convey.ShouldEqual, Processing)
 
 		ctx, err = DefaultScheduler().GetTaskContext("TestTaskConcurrentControl-2")
 		convey.So(err, convey.ShouldBeNil)
