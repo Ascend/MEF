@@ -194,7 +194,7 @@ func (t *taskContextImpl) onProcessing() {
 	}
 
 	for {
-		if t.phase != Progressing {
+		if t.phase != Processing {
 			break
 		}
 
@@ -291,7 +291,7 @@ const (
 
 var phaseWeights = map[TaskPhase]int{
 	Waiting:         weight0,
-	Progressing:     weight1,
+	Processing:      weight1,
 	Aborting:        weight2,
 	Succeed:         weight3,
 	Failed:          weight3,

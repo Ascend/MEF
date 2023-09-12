@@ -46,7 +46,7 @@ var (
 	statusStartReceive = taskschedule.TaskStatus{
 		Message:  "start to receive file from edge",
 		Progress: progressBeginReceive,
-		Phase:    taskschedule.Progressing,
+		Phase:    taskschedule.Processing,
 	}
 	statusFinishReceive = taskschedule.TaskStatus{
 		Phase:    taskschedule.Succeed,
@@ -211,7 +211,7 @@ func doReceiveFile(
 		lastReportTime = time.Now()
 		lastReportCount = currentRead
 		progress := taskschedule.TaskStatus{
-			Phase:   taskschedule.Progressing,
+			Phase:   taskschedule.Processing,
 			Message: "receiving the file from edge",
 			Progress: uint(progressBeginReceive) +
 				uint(float64(common.ProgressMax-progressBeginReceive)*(float64(currentRead)/float64(totalSize))),

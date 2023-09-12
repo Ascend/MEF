@@ -51,7 +51,7 @@ func (r taskRepository) updateTaskStatus(id string, status TaskStatus) (Task, in
 
 func (r taskRepository) updateUnfinishedTasksToFailed() error {
 	return r.DB.Model(Task{}).
-		Where("phase IN (?)", []TaskPhase{Waiting, Progressing, Aborting}).
+		Where("phase IN (?)", []TaskPhase{Waiting, Processing, Aborting}).
 		Updates(Task{Status: TaskStatus{Phase: Failed}}).Error
 }
 

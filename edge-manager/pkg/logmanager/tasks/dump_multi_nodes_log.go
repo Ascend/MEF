@@ -39,7 +39,7 @@ var (
 	edgeNodesLogPublicPath = filepath.Join(constants.LogDumpPublicDir, constants.EdgeNodesTarGzFileName)
 
 	startCreateTarGzStatus = taskschedule.TaskStatus{
-		Phase:    taskschedule.Progressing,
+		Phase:    taskschedule.Processing,
 		Message:  "start to create tar gz",
 		Progress: progressStartCreateTarGz,
 	}
