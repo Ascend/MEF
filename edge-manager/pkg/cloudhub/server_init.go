@@ -105,7 +105,13 @@ func GetSvrSender() (websocketmgr.WsSvrSender, error) {
 	return serverSender, nil
 }
 
-func clearAlarm(sn string) {
+func clearAlarm(arg interface{}) {
+	sn, ok := arg.(string)
+	if !ok {
+		hwlog.RunLog.Error("clear alarm failed: sn is invalid type")
+		return
+	}
+
 	msg, err := model.NewMessage()
 	if err != nil {
 		hwlog.RunLog.Errorf("create new msg failed: %s", err.Error())

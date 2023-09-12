@@ -11,6 +11,7 @@ import (
 	"huawei.com/mindx/common/websocketmgr"
 	"huawei.com/mindx/common/x509/certutils"
 
+	"alarm-manager/pkg/alarmmanager"
 	"alarm-manager/pkg/utils"
 
 	"huawei.com/mindxedge/base/common"
@@ -46,6 +47,7 @@ func initClient() error {
 		ProxyCfg: proxyConfig,
 	}
 
+	proxy.SetDisconnCallback(clearAllAlarms)
 	clientSender.SetProxy(proxy)
 	if err = proxy.Start(); err != nil {
 		hwlog.RunLog.Errorf("init alarm-manager client failed: %v", err)
@@ -57,4 +59,12 @@ func initClient() error {
 	}
 
 	return nil
+}
+
+func clearAllAlarms(interface{}) {
+	if err := alarmmanager.AlarmDbInstance().DeleteEdgeAlarm(); err != nil {
+		hwlog.RunLog.Errorf("clear alarm info table failed: %s", err.Error())
+		return
+	}
+	hwlog.RunLog.Info("edge-manager disconnected, clear all alarms from edge-manager and MEFEdge success")
 }
