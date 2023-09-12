@@ -19,7 +19,8 @@ import (
 )
 
 func TestDoDumpSingleNodeLog(t *testing.T) {
-	taskSpec := taskschedule.TaskSpec{Args: map[string]interface{}{constants.NodeSerialNumber: "1"}}
+	taskSpec := taskschedule.TaskSpec{Args: map[string]interface{}{
+		constants.NodeSerialNumber: "1", constants.NodeID: 1}}
 	dummyValues := testutils.DummyTaskSchedule()
 
 	convey.Convey("test dump edge logs", t, func() {

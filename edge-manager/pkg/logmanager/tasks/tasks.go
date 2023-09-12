@@ -18,6 +18,7 @@ const (
 	dumpSingleNodeLogTaskCapacity                = 90
 
 	paramNameNodeSerialNumbers = "nodeSerialNumbers"
+	paramNameNodeIDs           = "nodeIDs"
 )
 
 // InitTasks init goroutine pools and tasks
@@ -40,12 +41,15 @@ func InitTasks() error {
 }
 
 // SubmitLogDumpTask submit log dump task, return task id
-func SubmitLogDumpTask(edgeNodes []string) (string, error) {
+func SubmitLogDumpTask(edgeNodeSNs []string, edgeNodeIDs []uint64) (string, error) {
 	masterTask := &taskschedule.TaskSpec{
-		Name:                    constants.DumpMultiNodesLogTaskName,
-		GoroutinePool:           constants.DumpMultiNodesLogTaskName,
-		Command:                 constants.DumpMultiNodesLogTaskName,
-		Args:                    map[string]interface{}{paramNameNodeSerialNumbers: edgeNodes},
+		Name:          constants.DumpMultiNodesLogTaskName,
+		GoroutinePool: constants.DumpMultiNodesLogTaskName,
+		Command:       constants.DumpMultiNodesLogTaskName,
+		Args: map[string]interface{}{
+			paramNameNodeSerialNumbers: edgeNodeSNs,
+			paramNameNodeIDs:           edgeNodeIDs,
+		},
 		ExecuteTimeout:          dumpMultiNodesLogTaskExecuteTimeout,
 		GracefulShutdownTimeout: dumpMultiNodesLogTaskGracefulShutdownTimeout,
 	}

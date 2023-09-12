@@ -34,7 +34,7 @@ func TestSubmitLogDumpTask(t *testing.T) {
 			ApplyMethodReturn(dummyObjs.Scheduler, "SubmitTask", nil)
 		defer patch.Reset()
 
-		_, err := SubmitLogDumpTask(nil)
+		_, err := SubmitLogDumpTask(nil, nil)
 		convey.So(err, convey.ShouldBeNil)
 	})
 }

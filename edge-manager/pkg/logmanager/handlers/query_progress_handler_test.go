@@ -20,8 +20,9 @@ import (
 func TestQueryProgressHandle(t *testing.T) {
 	convey.Convey("test queryProgressHandler.Handle", t, func() {
 		dummyObjs := testutils.DummyTaskSchedule()
+		taskTree := taskschedule.TaskTreeNode{Current: &taskschedule.Task{}}
 		patch := gomonkey.ApplyFuncReturn(taskschedule.DefaultScheduler, dummyObjs.Scheduler).
-			ApplyMethodReturn(dummyObjs.TaskCtx, "GetStatus", taskschedule.TaskStatus{}, nil).
+			ApplyMethodReturn(dummyObjs.TaskCtx, "GetSubTaskTree", taskTree, nil).
 			ApplyFuncReturn(modulemgr.SendMessage, nil)
 		defer patch.Reset()
 

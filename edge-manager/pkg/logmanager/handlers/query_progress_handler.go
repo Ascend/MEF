@@ -5,11 +5,14 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr/handler"
 	"huawei.com/mindx/common/modulemgr/model"
 
+	"edge-manager/pkg/constants"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/taskschedule"
 )
@@ -34,13 +37,13 @@ func (h *queryProgressHandler) Handle(msg *model.Message) error {
 		hwlog.RunLog.Errorf("failed to handle progress query, %v", err)
 		return sendRestfulResponse(common.RespMsg{Status: common.ErrorLogDumpBusiness, Msg: err.Error()}, msg)
 	}
-	status, err := taskCtx.GetStatus()
+	taskTree, err := taskCtx.GetSubTaskTree()
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to handle progress query, %v", err)
 		return sendRestfulResponse(common.RespMsg{Status: common.ErrorLogDumpBusiness, Msg: err.Error()}, msg)
 	}
 	hwlog.RunLog.Info("handle progress query successful")
-	return sendRestfulResponse(common.RespMsg{Status: common.Success, Data: getTaskRespProgress(req, status)}, msg)
+	return sendRestfulResponse(common.RespMsg{Status: common.Success, Data: getTaskRespProgress(taskTree)}, msg)
 }
 
 func (h *queryProgressHandler) parseAndCheckArgs(content interface{}) (string, error) {
@@ -51,15 +54,34 @@ func (h *queryProgressHandler) parseAndCheckArgs(content interface{}) (string, e
 	return req, nil
 }
 
-func getTaskRespProgress(taskId string, task taskschedule.TaskStatus) QueryProgressResp {
+func getTaskRespProgress(taskTree taskschedule.TaskTreeNode) QueryProgressResp {
+	masterTaskStatus := taskTree.Current.Status
+	reason := masterTaskStatus.Message
+	if masterTaskStatus.Phase.IsFinished() && masterTaskStatus.Phase != taskschedule.Succeed {
+		var subTaskReasons []string
+		for _, subTask := range taskTree.Children {
+			if !(subTask.Current.Status.Phase.IsFinished() && subTask.Current.Status.Phase != taskschedule.Succeed) {
+				continue
+			}
+			var nodeID uint64
+			if err := subTask.Current.Spec.Args.Get(constants.NodeID, &nodeID); err != nil {
+				hwlog.RunLog.Error("failed to get node id")
+			}
+			subTaskReasons = append(subTaskReasons,
+				fmt.Sprintf("(%d)%s", nodeID, subTask.Current.Status.Message))
+		}
+		if len(subTaskReasons) > 0 {
+			reason = "failed to dump log for following nodes:" + strings.Join(subTaskReasons, ";")
+		}
+	}
 	return QueryProgressResp{
-		TaskId:     taskId,
-		Status:     task.Phase,
-		Reason:     task.Message,
-		Progress:   task.Progress,
-		Data:       task.Data,
-		StartedAt:  NullableTime(task.StartedAt),
-		CreatedAt:  NullableTime(task.CreatedAt),
-		FinishedAt: NullableTime(task.FinishedAt),
+		TaskId:     taskTree.Current.Spec.Id,
+		Status:     masterTaskStatus.Phase,
+		Reason:     reason,
+		Progress:   masterTaskStatus.Progress,
+		Data:       masterTaskStatus.Data,
+		StartedAt:  NullableTime(masterTaskStatus.StartedAt),
+		CreatedAt:  NullableTime(masterTaskStatus.CreatedAt),
+		FinishedAt: NullableTime(masterTaskStatus.FinishedAt),
 	}
 }

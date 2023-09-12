@@ -53,6 +53,8 @@ const (
 const (
 	// NodeSerialNumber resource for serial number of node
 	NodeSerialNumber = "nodeSerialNumber"
+	// NodeID resource for node id
+	NodeID = "nodeID"
 	// LogManagerName LogManagerName
 	LogManagerName = "LogManager"
 )
