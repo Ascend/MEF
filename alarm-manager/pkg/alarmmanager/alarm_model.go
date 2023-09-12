@@ -75,6 +75,11 @@ func (adh *AlarmDbHandler) DeleteAlarmTable() error {
 	return database.DropTableIfExist(&AlarmInfo{})
 }
 
+// DeleteEdgeAlarm is the func to delete all alarm from MEFEdge
+func (adh *AlarmDbHandler) DeleteEdgeAlarm() error {
+	return adh.db().Model(AlarmInfo{}).Where("serial_number != ?", utils.CenterSn).Delete(AlarmInfo{}).Error
+}
+
 func (adh *AlarmDbHandler) listCenterAlarmsOrEventsDb(pageNum, pageSize uint64, queryType string) (
 	*[]AlarmInfo, error) {
 	var alarmInfo []AlarmInfo
