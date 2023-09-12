@@ -10,21 +10,6 @@ const (
 	RootCaPath     = "/home/data/inner-root-ca/RootCA.crt"
 )
 
-// consts for alarms
-const (
-	MinorSeverity    = "MINOR"
-	MajorSeverity    = "MAJOR"
-	CriticalSeverity = "CRITICAL"
-	OkSeverity       = "OK"
-	ClearFlag        = "clear"
-	AlarmFlag        = "alarm"
-	EventFlag        = ""
-	AlarmType        = "alarm"
-	EventType        = "event"
-	CenterSn         = ""
-	CenterIp         = ""
-)
-
 // consts for alarm manager module
 const (
 	AlarmModuleName = "AlarmManager"

@@ -14,6 +14,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/alarms"
 )
 
 type edgeSvcUpdater struct {
@@ -31,12 +32,8 @@ var edgeSvcUpdaterInstance edgeSvcUpdater
 // StartEdgeSvcCertUpdate  entry for edge service cert update operation
 func StartEdgeSvcCertUpdate(payload *CertUpdatePayload) {
 	// force update way: background updating jod gets the force signal, do force update process
-	if payload.ForceUpdate {
-		forceUpdateSvcCertChan <- *payload
-		hwlog.RunLog.Info("MEF Edge service certs will be updated by force way")
-		if atomic.LoadInt64(&edgeSvcCertUpdateFlag) == InRunning {
-			return
-		}
+	if continueRun := sendForceUpdateSignal(payload); !continueRun {
+		return
 	}
 
 	// if not a force update, go normal update way
@@ -45,6 +42,12 @@ func StartEdgeSvcCertUpdate(payload *CertUpdatePayload) {
 		return
 	}
 	hwlog.RunLog.Info("Start to update MEF Edge service certs")
+	// set an alarm when cert update process starts
+	// edge service cert and south ca cert are verification pair
+	if err := sendAlarm(alarms.MEFCenterCaCertAbnormal, alarms.AlarmFlag); err != nil {
+		hwlog.RunLog.Errorf("send cert [%v] update alarm error: %v", payload.CertType, err)
+	}
+
 	// reset exit flag to default state
 	edgeSvcNormalStopFlag = false
 	ctx, cancel := context.WithCancel(context.Background())
@@ -53,6 +56,11 @@ func StartEdgeSvcCertUpdate(payload *CertUpdatePayload) {
 		case _, _ = <-ctx.Done():
 			atomic.StoreInt64(&edgeSvcCertUpdateFlag, NotRunning)
 			hwlog.RunLog.Info("MEF Edge service certs update process is finished")
+			// clear the alarm when cert update process is finished
+			// edge service cert and south ca cert are verification pair
+			if err := sendAlarm(alarms.MEFCenterCaCertAbnormal, alarms.ClearFlag); err != nil {
+				hwlog.RunLog.Errorf("clear cert [%v] update alarm error: %v", payload.CertType, err)
+			}
 		}
 	}()
 
