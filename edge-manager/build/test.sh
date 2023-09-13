@@ -9,15 +9,15 @@ export GOPATH="/opt/buildtools/go"
 export PATH=$GOPATH/bin:$PATH
 
 function execute_edge_manager_ut() {
-  if ! (go test -gcflags=-l -v -mod=mod -coverprofile cov.out ${TOP_DIR}/... >./$file_input); then
+  if ! (go test -tags=TESTCODE -gcflags=-l -v -mod=mod -coverprofile cov.out "${TOP_DIR}/..." >"./$file_input"); then
     echo '****** edge-manager go test cases error! ******'
-    cat $file_input
+    cat "$file_input"
     exit 1
   else
-    echo ${file_detail_output}
+    echo "${file_detail_output}"
     gocov convert cov.out > gocov.json
-    gocov convert cov.out | gocov-html >${file_detail_output}
-    gotestsum --junitfile unit-tests.xml -- -gcflags=-l "${TOP_DIR}"/...
+    gocov convert cov.out | gocov-html > "${file_detail_output}"
+    gotestsum --junitfile unit-tests.xml -- -tags=TESTCODE -gcflags=-l "${TOP_DIR}"/...
   fi
 }
 
