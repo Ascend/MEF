@@ -6,6 +6,7 @@ package restful
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -14,7 +15,6 @@ import (
 	"alarm-manager/pkg/utils"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/alarms"
 	"huawei.com/mindxedge/base/common/restfulmgr"
 )
 
@@ -103,28 +103,31 @@ func (list listDispatcher) ParseData(c *gin.Context) (interface{}, error) {
 			c.Query(pageNumberKey), c.Query(pageSizeKey))
 	}
 	values := c.Request.URL.Query()
+	if isKeyAssignedToEmpty(values, ifCenterKey) || isKeyAssignedToEmpty(values, groupIdKey) ||
+		isKeyAssignedToEmpty(values, snKey) {
+		return nil, fmt.Errorf("params in[%s,%s,%s] cannot be assigned to empty string",
+			ifCenterKey, groupIdKey, snKey)
+	}
 	ifCenter := values.Get(ifCenterKey)
 	groupIdStr := values.Get(groupIdKey)
+	snStr := values.Get(snKey)
 	if groupIdStr == "0" {
-		return nil, fmt.Errorf("groupId cannot be 0")
+		return nil, fmt.Errorf("groupId cannot be assigned to 0")
 	}
+	// ensure construction of ListAlarmOrEventReq{},"" cannot parse to int
 	if groupIdStr == "" {
 		groupIdStr = "0"
 	}
-
-	snStr := values.Get(snKey)
-	if snStr == "" && len(values[snKey]) != 0 {
-		return nil, fmt.Errorf("sn cannot be empty string")
-	}
-
-	if len(values[snKey]) == 0 {
-		snStr = alarms.CenterSn
-	}
-
-	groupId, err2 := strconv.ParseUint(groupIdStr, common.BaseHex, common.BitSize64)
-	if err2 != nil {
+	groupId, err := strconv.ParseUint(groupIdStr, common.BaseHex, common.BitSize64)
+	if err != nil {
 		return nil, fmt.Errorf("groupId[%s] is invalid", c.Query(groupIdKey))
 	}
 	return types.ListAlarmOrEventReq{PageNum: pageNum, PageSize: pageSize, Sn: snStr, GroupId: groupId,
 		IfCenter: ifCenter}, nil
+}
+
+func isKeyAssignedToEmpty(values url.Values, keyName string) bool {
+	// values.Get returns the first result in []string or "" if key not found
+	// values[key] returns []string
+	return len(values[keyName]) != 0 && values.Get(keyName) == ""
 }

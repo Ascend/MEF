@@ -20,7 +20,6 @@ import (
 const (
 	normalPageSize = 15
 	OverPageSize   = 105
-	UnderPageSize  = 0
 	firstPageNum   = 1
 	testSn1        = "testSn1"
 	testSn2        = "testSn2"
@@ -94,7 +93,7 @@ func testListAlarmsOrEventsByNodeId(queryType string) {
 		resp, err = listEvents(reqData)
 	}
 	convey.So(err, convey.ShouldBeNil)
-	respContent, ok := resp.(common.RespMsg)
+	respContent, ok := resp.(*common.RespMsg)
 	convey.So(ok, convey.ShouldBeTrue)
 	res := true
 	if respContent.Data == nil {
@@ -134,7 +133,7 @@ func testListAlarmsOrEventsOfCenter(queryType string) {
 		resp, err = listEvents(reqData)
 	}
 	convey.So(err, convey.ShouldBeNil)
-	respContent, ok := resp.(common.RespMsg)
+	respContent, ok := resp.(*common.RespMsg)
 	convey.So(ok, convey.ShouldBeTrue)
 	res := true
 	if respContent.Data == nil {
@@ -168,7 +167,7 @@ func testListAlarmsOrEventsOfNodeGroup(queryType string) {
 		resp, err = listEvents(reqData)
 	}
 	convey.So(err, convey.ShouldBeNil)
-	respContent, ok := resp.(common.RespMsg)
+	respContent, ok := resp.(*common.RespMsg)
 	convey.So(ok, convey.ShouldBeTrue)
 	convey.So(respContent.Status, convey.ShouldEqual, common.Success)
 	res := true
@@ -193,7 +192,7 @@ func testGetAlarmOrEventByInfoId(queryType string) {
 		resp, err = getEventDetail(DefaultEventID)
 	}
 	convey.So(err, convey.ShouldBeNil)
-	respContent, ok := resp.(common.RespMsg)
+	respContent, ok := resp.(*common.RespMsg)
 	convey.So(ok, convey.ShouldBeTrue)
 	convey.So(respContent.Status, convey.ShouldEqual, common.Success)
 	alarms, ok := respContent.Data.(map[uint64]AlarmInfo)
@@ -207,8 +206,8 @@ func testListAlarmAbNormalInput() {
 
 	inputCase1 := types.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: normalPageSize,
 		Sn: testSn1, GroupId: groupIdFirst, IfCenter: "false"}
-	listAlarmsWithInput(inputCase1, false, "nodeId and groupId can't exist at the same time "+
-		"when ifCenter is not true", false,
+	listAlarmsWithInput(inputCase1, false, "sn and groupId can't exist at the same time when"+
+		" ifCenter is not true", false,
 		defaultTestCaseCallback)
 	// with IfCenter == true sn and groupId should be ignored
 	inputCase2 := types.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: normalPageSize, Sn: testSn1,
@@ -250,7 +249,7 @@ func testGetAlarmAbnormalInput() {
 func getAlarmWithInput(id uint64, expectRes bool) {
 	resp, err := getAlarmDetail(id)
 	convey.So(err, convey.ShouldBeNil)
-	respContent, ok := resp.(common.RespMsg)
+	respContent, ok := resp.(*common.RespMsg)
 	convey.So(ok, convey.ShouldBeTrue)
 	if expectRes {
 		convey.So(respContent.Status, convey.ShouldEqual, common.Success)
@@ -263,7 +262,7 @@ func listAlarmsWithInput(input interface{}, expectRes bool, expectMsg string, ig
 	callback func(msg common.RespMsg) bool) {
 	resp, err := listAlarms(input)
 	convey.So(err, convey.ShouldBeNil)
-	respContent, ok := resp.(common.RespMsg)
+	respContent, ok := resp.(*common.RespMsg)
 	convey.So(ok, convey.ShouldBeTrue)
 	if expectRes {
 		convey.So(respContent.Status, convey.ShouldEqual, common.Success)
@@ -274,7 +273,7 @@ func listAlarmsWithInput(input interface{}, expectRes bool, expectMsg string, ig
 		convey.So(respContent.Msg, convey.ShouldEqual, expectMsg)
 	}
 	if expectRes {
-		convey.So(callback(respContent), convey.ShouldEqual, true)
+		convey.So(callback(*respContent), convey.ShouldEqual, true)
 	}
 }
 
@@ -305,6 +304,10 @@ func CallbackAllAlarms(resp common.RespMsg) bool {
 }
 
 func CallbackAllCenterNodes(resp common.RespMsg) bool {
+	// empty list result return nil data
+	if resp.Data == nil {
+		return true
+	}
 	respMap, ok := resp.Data.(map[string]interface{})
 	if !ok {
 		hwlog.RunLog.Error("convert assertion failed")
