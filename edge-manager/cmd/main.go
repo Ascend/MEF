@@ -13,6 +13,7 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/backuputils"
+	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/database"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
@@ -33,7 +34,6 @@ import (
 	"edge-manager/pkg/restfulservice"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/checker"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
 	"huawei.com/mindxedge/base/common/taskschedule"
 )
@@ -75,12 +75,12 @@ func main() {
 		fmt.Printf("%s version: %s\n", config.BuildName, config.BuildVersion)
 		return
 	}
-	if err := validateFlags(); err != nil {
-		fmt.Printf("argument validation error: %s\n", err.Error())
-		return
-	}
 	if err := common.InitHwlogger(serverRunConf, serverOpConf); err != nil {
 		fmt.Printf("initialize hwlog failed, %s.\n", err.Error())
+		return
+	}
+	if err := validateFlags(); err != nil {
+		hwlog.RunLog.Errorf("argument validation error: %s", err.Error())
 		return
 	}
 	podIp, err := common.GetPodIP()
@@ -117,15 +117,16 @@ func init() {
 }
 
 func validateFlags() error {
-	if !checker.IsPortInRange(common.MinPort, common.MaxPort, port) {
+	if res := checker.GetIntChecker("", common.MinPort, common.MaxPort, true).Check(port); !res.Result {
 		return fmt.Errorf("port %d is not in [%d, %d]", port, common.MinPort, common.MaxPort)
 	}
-	if !checker.IsPortInRange(common.MinPort, common.MaxPort, wsPort) {
+	if res := checker.GetIntChecker("", common.MinPort, common.MaxPort, true).Check(wsPort); !res.Result {
 		return fmt.Errorf("wsPort %d is not in [%d, %d]", wsPort, common.MinPort, common.MaxPort)
 	}
-	if !checker.IsPortInRange(common.MinPort, common.MaxPort, authPort) {
+	if res := checker.GetIntChecker("", common.MinPort, common.MaxPort, true).Check(authPort); !res.Result {
 		return fmt.Errorf("authPort %d is not in [%d, %d]", authPort, common.MinPort, common.MaxPort)
 	}
+
 	if authPort == wsPort {
 		return fmt.Errorf("authPort can not equals to wsPort")
 	}

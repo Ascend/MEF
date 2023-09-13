@@ -10,9 +10,8 @@ import (
 	"os"
 	"strings"
 
-	checker2 "huawei.com/mindx/common/checker"
-
-	"huawei.com/mindxedge/base/common/checker"
+	"huawei.com/mindx/common/checker"
+	"huawei.com/mindx/common/checker/valid"
 )
 
 const (
@@ -81,7 +80,7 @@ func GetPodIP() (string, error) {
 		return "", errors.New("pod ip obtained from env is nil")
 	}
 
-	if valid, err := checker.IsIpValid(ip); !valid {
+	if valid, err := valid.IsIpValid(ip); !valid {
 		return "", fmt.Errorf("check pod ip failed: %v", err)
 	}
 	return ip, nil
@@ -94,7 +93,7 @@ func GetHostIP() (string, error) {
 		return "", errors.New("host ip obtained from env is nil")
 	}
 
-	ipChecker := checker2.GetIpV4Checker("", true)
+	ipChecker := checker.GetIpV4Checker("", true)
 	checkRes := ipChecker.Check(ip)
 	if !checkRes.Result {
 		return "", fmt.Errorf("host ip check failed: %s", checkRes.Reason)
