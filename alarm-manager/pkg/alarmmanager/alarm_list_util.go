@@ -19,7 +19,6 @@ import (
 	"alarm-manager/pkg/utils"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/alarms"
 )
 
 const (
@@ -30,7 +29,7 @@ const (
 	falseStr        = "false"
 )
 
-// getQueryType returns the query type is by nodeId or groupId,neither will return err
+// getQueryType returns the query type is by SerialNum or groupId,neither will return err
 func getQueryType(input interface{}) (string, types.ListAlarmOrEventReq, error) {
 	req, ok := input.(types.ListAlarmOrEventReq)
 	if !ok {
@@ -44,6 +43,7 @@ func getQueryType(input interface{}) (string, types.ListAlarmOrEventReq, error) 
 	if req.IfCenter == "" && req.Sn == "" && req.GroupId == 0 {
 		return fullNodesQueryType, req, nil
 	}
+
 	if req.IfCenter == falseStr && req.Sn == "" && req.GroupId == 0 {
 		return fullEdgeNodesQueryType, req, nil
 	}
@@ -51,7 +51,7 @@ func getQueryType(input interface{}) (string, types.ListAlarmOrEventReq, error) 
 		req.IfCenter = falseStr
 	}
 	if req.Sn != "" {
-		return nodeIdQueryType, req, nil
+		return serialNumQuery, req, nil
 	}
 	// groupId is not empty
 	return groupIdQueryType, req, nil
@@ -78,7 +78,7 @@ func dealRequest(input interface{}, AlarmOrEvent string) *common.RespMsg {
 	if queryIdType == centerNodeQueryType {
 		return listCenterAlarmOrEvents(req, AlarmOrEvent)
 	}
-	if queryIdType == nodeIdQueryType {
+	if queryIdType == serialNumQuery {
 		return listEdgeNodeAlarmsOrEvents(req, AlarmOrEvent)
 	}
 	if queryIdType == groupIdQueryType {
@@ -103,57 +103,57 @@ func getListResMap(alarms *[]AlarmInfo) map[string]interface{} {
 }
 
 func listAllEdgeNodesAlarmsOrEvents(req types.ListAlarmOrEventReq, AlarmOrEvent string) *common.RespMsg {
-	alarms, err := AlarmDbInstance().listAllEdgeAlarmsOrEventsDb(req.PageNum, req.PageSize, AlarmOrEvent)
+	alarmSlice, err := AlarmDbInstance().listAllEdgeAlarmsOrEventsDb(req.PageNum, req.PageSize, AlarmOrEvent)
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to get %s in db: %s", AlarmOrEvent, err.Error())
 		return &common.RespMsg{Status: common.ErrorListAlarm}
 	}
-	if len(*alarms) == 0 {
+	if len(*alarmSlice) == 0 {
 		return &common.RespMsg{Status: common.Success}
 	}
-	respMap := getListResMap(alarms)
+	respMap := getListResMap(alarmSlice)
 	hwlog.RunLog.Infof("succeed listing nodes %s info", AlarmOrEvent)
 	return &common.RespMsg{Status: common.Success, Data: respMap}
 }
 
 func listFullAlarmOrEvents(req types.ListAlarmOrEventReq, AlarmOrEvent string) *common.RespMsg {
-	alarms, err := AlarmDbInstance().listAllAlarmsOrEventsDb(req.PageNum, req.PageSize, AlarmOrEvent)
+	alarmSlice, err := AlarmDbInstance().listAllAlarmsOrEventsDb(req.PageNum, req.PageSize, AlarmOrEvent)
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to get %s in db", AlarmOrEvent)
 		return &common.RespMsg{Status: common.ErrorListAlarm}
 	}
-	if len(*alarms) == 0 {
+	if len(*alarmSlice) == 0 {
 		return &common.RespMsg{Status: common.Success}
 	}
-	respMap := getListResMap(alarms)
+	respMap := getListResMap(alarmSlice)
 	hwlog.RunLog.Infof("succeed listing nodes %s info", AlarmOrEvent)
 	return &common.RespMsg{Status: common.Success, Data: respMap}
 }
 
 func listCenterAlarmOrEvents(req types.ListAlarmOrEventReq, AlarmOrEvent string) *common.RespMsg {
-	alarms, err := AlarmDbInstance().listCenterAlarmsOrEventsDb(req.PageNum, req.PageSize, AlarmOrEvent)
+	alarmSlice, err := AlarmDbInstance().listCenterAlarmsOrEventsDb(req.PageNum, req.PageSize, AlarmOrEvent)
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to get center nodes %s in db", AlarmOrEvent)
 		return &common.RespMsg{Status: common.ErrorListCenterNodeAlarm}
 	}
-	if len(*alarms) == 0 {
+	if len(*alarmSlice) == 0 {
 		return &common.RespMsg{Status: common.Success}
 	}
-	respMap := getListResMap(alarms)
+	respMap := getListResMap(alarmSlice)
 	hwlog.RunLog.Infof("succeed listing center node %s info", AlarmOrEvent)
 	return &common.RespMsg{Status: common.Success, Data: respMap}
 }
 
 func listEdgeNodeAlarmsOrEvents(req types.ListAlarmOrEventReq, AlarmOrEvent string) *common.RespMsg {
-	alarms, err := AlarmDbInstance().listEdgeAlarmsOrEventsDb(req.PageNum, req.PageSize, req.Sn, AlarmOrEvent)
+	alarmSlice, err := AlarmDbInstance().listEdgeAlarmsOrEventsDb(req.PageNum, req.PageSize, req.Sn, AlarmOrEvent)
 	if err != nil {
-		hwlog.RunLog.Errorf("failed to list edge node[%d] %s in db,err:%s", req.Sn, AlarmOrEvent, err.Error())
+		hwlog.RunLog.Errorf("failed to list edge node[%s] %s in db,err:%s", req.Sn, AlarmOrEvent, err.Error())
 		return &common.RespMsg{Status: common.ErrorListEdgeNodeAlarm}
 	}
-	if len(*alarms) == 0 {
+	if len(*alarmSlice) == 0 {
 		return &common.RespMsg{Status: common.Success}
 	}
-	respMap := getListResMap(alarms)
+	respMap := getListResMap(alarmSlice)
 	hwlog.RunLog.Infof("succeed listing edge node %s info", AlarmOrEvent)
 	return &common.RespMsg{Status: common.Success, Data: respMap}
 }
@@ -181,15 +181,20 @@ func listGroupNodesAlarmsOrEvents(req types.ListAlarmOrEventReq, queryIdType str
 		hwlog.RunLog.Errorf("failed to unmarshal group node list from edge-manager,err:%s", err.Error())
 		return &common.RespMsg{Status: common.ErrorDecodeRespFromEdgeMgr, Msg: err.Error()}
 	}
-	if len(nodes) == 0 {
-		return &common.RespMsg{Status: common.Success}
-	}
 	respMap, err := getMapResult(nodes, queryIdType, req)
 	if err != nil {
 		hwlog.RunLog.Error(err.Error())
 		return &common.RespMsg{Status: common.ErrorListEdgeNodeAlarm}
 	}
-	hwlog.RunLog.Infof("succeed listing group %s info", alarms.EventType)
+	cnt, ok := respMap[totalRecordsKey].(int)
+	if !ok {
+		hwlog.RunLog.Errorf("failed to convert results count into int")
+		return &common.RespMsg{Status: common.ErrorParamConvert}
+	}
+	hwlog.RunLog.Infof("succeed listing group %s info", queryIdType)
+	if cnt == 0 {
+		return &common.RespMsg{Status: common.Success}
+	}
 	return &common.RespMsg{Status: common.Success, Data: respMap}
 }
 

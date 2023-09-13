@@ -9,7 +9,7 @@ import (
 
 const (
 	centerNodeQueryType    = "CenterNodeQuery"
-	nodeIdQueryType        = "NodeIdQuery"
+	serialNumQuery         = "SerialNumQuery"
 	groupIdQueryType       = "GroupIdQuery"
 	fullNodesQueryType     = "FullNodesQuery"
 	fullEdgeNodesQueryType = "FullEdgeNodesQuery"

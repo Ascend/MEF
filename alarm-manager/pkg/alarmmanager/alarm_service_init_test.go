@@ -36,6 +36,8 @@ var (
 	pachers       = make([]*gomonkey.Patches, 0)
 	groupNodes    = []string{"testSn", "testSn2"}
 	groupNodesMap = map[string]bool{}
+	// ensure testSn is in db
+	testSns = []string{testSn1, testSn2, ""}
 )
 
 const (
@@ -142,6 +144,9 @@ func genRandomAlarmStaticInfo(num int) {
 			return
 		}
 		randSetOneAlarm(&alarm, idx)
+		if idx < len(testSns) {
+			alarm.SerialNumber = testSns[idx]
+		}
 		err := AlarmDbInstance().addAlarmInfo(&alarm)
 		if err != nil {
 			hwlog.RunLog.Error(err.Error())
@@ -211,8 +216,8 @@ func randIntn(max int) (int, error) {
 func genNodeGroup() types.NodeGroupDetailFromEdgeManager {
 	var nodeGroup types.NodeGroupDetailFromEdgeManager
 	nodesList := make([]types.NodeInfo, len(groupNodes))
-	for i := 0; i < len(groupNodes); i++ {
-		sn := groupNodes[i]
+	for i := 0; i < len(testSns); i++ {
+		sn := testSns[i]
 		groupNodesMap[sn] = true
 		if i >= len(nodesList) {
 			break
