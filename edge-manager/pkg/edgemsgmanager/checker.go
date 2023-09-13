@@ -5,6 +5,7 @@ package edgemsgmanager
 
 import (
 	"fmt"
+	"math"
 
 	"huawei.com/mindx/common/checker"
 
@@ -49,12 +50,19 @@ type downloadInfoChecker struct {
 }
 
 func (d *downloadInfoChecker) init() {
+	const minPwdLength = 1
+	const maxPwdLength = 20
 	d.modelChecker.Checker = checker.GetAndChecker(
 		checker.GetHttpsUrlChecker("Package", true),
 		checker.GetHttpsUrlChecker("SignFile", true),
 		checker.GetHttpsUrlChecker("CrlFile", true),
 		checker.GetRegChecker("UserName", "^[a-zA-Z0-9]{6,32}$", true),
-		checker.GetExistChecker("Password"),
+		checker.GetListChecker("Password",
+			checker.GetUintChecker("", 0, math.MaxUint8, true),
+			minPwdLength,
+			maxPwdLength,
+			true,
+		),
 	)
 }
 
