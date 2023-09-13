@@ -27,6 +27,7 @@ import (
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509"
 	"huawei.com/mindx/common/x509/certutils"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -343,7 +344,11 @@ func (ki *Client) GetToken() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return secret.Data[tokenDataName], nil
+	token, ok := secret.Data[tokenDataName]
+	if !ok {
+		return nil, errors.New("token obtained from secret is not found")
+	}
+	return token, nil
 }
 
 // CreateConfigMap create configmap
