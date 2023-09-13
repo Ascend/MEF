@@ -94,12 +94,30 @@ func getIcsConfContent() string {
             proxy_pass_request_headers on;
             proxy_pass_request_body on;
             proxy_request_buffering off;
+			proxy_ssl_certificate /home/data/config/mef-certs/nginx-manager.crt;
+			proxy_ssl_certificate_key /home/MEFCenter/pipe/client_pipe_5;
             proxy_ssl_trusted_certificate /home/data/config/mef-certs/ics-root.crt;
             proxy_ssl_verify on;
             proxy_ssl_session_reuse on;
             proxy_ssl_protocols TLSv1.2 TLSv1.3;
             proxy_ssl_ciphers "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384";
             proxy_pass https://ascend-ics-manager.mef-center.svc.cluster.local:8111;
+			
+			location /icsmanager/v1/inclearning/label/upload {
+                limit_conn per_addr_upload_conn_zone 1;
+                limit_conn global_upload_conn_zone 10;
+                client_max_body_size 500m;
+                client_body_timeout   600;
+                proxy_http_version 1.1;
+                proxy_request_buffering off;
+
+                proxy_pass https://ascend-ics-manager.mef-center.svc.cluster.local:8111;
+            }
+            location /icsmanager/v1/inclearning/label/download {
+                limit_conn global_download_conn_zone 1;
+                proxy_send_timeout 7200;
+                proxy_pass https://ascend-ics-manager.mef-center.svc.cluster.local:8111;
+            }
         }
 
         location /icscertmgnt {
@@ -108,6 +126,8 @@ func getIcsConfContent() string {
             proxy_pass_request_headers on;
             proxy_pass_request_body on;
             proxy_request_buffering off;
+			proxy_ssl_certificate /home/data/config/mef-certs/nginx-manager.crt;
+			proxy_ssl_certificate_key /home/MEFCenter/pipe/client_pipe_6;
             proxy_ssl_trusted_certificate /home/data/config/mef-certs/ics-root.crt;
             proxy_ssl_verify on;
             proxy_ssl_session_reuse on;
@@ -124,6 +144,8 @@ func getIcsResolverConfContent() string {
             proxy_pass_request_headers on;
             proxy_pass_request_body on;
             proxy_request_buffering off;
+			proxy_ssl_certificate /home/data/config/mef-certs/nginx-manager.crt;
+			proxy_ssl_certificate_key /home/MEFCenter/pipe/client_pipe_5;
             proxy_ssl_trusted_certificate /home/data/config/mef-certs/ics-root.crt;
             proxy_ssl_verify on;
             proxy_ssl_session_reuse on;
@@ -131,6 +153,22 @@ func getIcsResolverConfContent() string {
             proxy_ssl_ciphers "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384";
 			set $IcsMgrSvc https://ascend-ics-manager.mef-center.svc.cluster.local:8111;
             proxy_pass https://$IcsMgrSvc:8111;
+			location /icsmanager/v1/inclearning/label/upload {
+                limit_conn per_addr_upload_conn_zone 1;
+                limit_conn global_upload_conn_zone 10;
+                client_max_body_size 500m;
+                client_body_timeout   600;
+                proxy_http_version 1.1;
+                proxy_request_buffering off;
+				set $IcsMgrSvc https://ascend-ics-manager.mef-center.svc.cluster.local:8111;
+                proxy_pass https://$IcsMgrSvc:8111;
+            }
+			location /icsmanager/v1/inclearning/label/download {
+                limit_conn global_download_conn_zone 1;
+                proxy_send_timeout 7200;
+				set $IcsMgrSvc https://ascend-ics-manager.mef-center.svc.cluster.local:8111;
+                proxy_pass https://$IcsMgrSvc:8111;
+            }
         }
 
         location /icscertmgnt {
@@ -139,6 +177,8 @@ func getIcsResolverConfContent() string {
             proxy_pass_request_headers on;
             proxy_pass_request_body on;
             proxy_request_buffering off;
+			proxy_ssl_certificate /home/data/config/mef-certs/nginx-manager.crt;
+			proxy_ssl_certificate_key /home/MEFCenter/pipe/client_pipe_6;
             proxy_ssl_trusted_certificate /home/data/config/mef-certs/ics-root.crt;
             proxy_ssl_verify on;
             proxy_ssl_session_reuse on;
