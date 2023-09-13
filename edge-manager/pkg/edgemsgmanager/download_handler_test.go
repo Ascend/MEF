@@ -22,7 +22,8 @@ func TestDownloadInfo(t *testing.T) {
 		func(m *model.Message, duration time.Duration) (*model.Message, error) {
 			rspMsg, err := model.NewMessage()
 			if err != nil {
-				hwlog.RunLog.Error("create message failed")
+				hwlog.RunLog.Errorf("create message failed, error: %v", err)
+				return nil, err
 			}
 			rspMsg.FillContent(common.OK)
 			return rspMsg, nil
@@ -36,6 +37,7 @@ func TestDownloadInfo(t *testing.T) {
 	convey.Convey("test download software should be failed, invalid softWareName", t, testDownloadSfwErrSfwName)
 	convey.Convey("test download software should be failed, invalid Package", t, testDownloadSfwErrPkg)
 	convey.Convey("test download software should be failed, invalid SignFile", t, testDownloadSfwErrSignFile)
+	convey.Convey("test download software should be failed, invalid CrlFile", t, testDownloadSfwErrCrlFile)
 	convey.Convey("test download software should be failed, invalid UserName", t, testDownloadSfwErrUserName)
 	convey.Convey("test download software should be failed, invalid Password", t, testDownloadSfwErrPwd)
 	convey.Convey("test download software should be failed, new msg error", t, testDownloadErrNewMsg)
@@ -70,11 +72,13 @@ func createDownloadSfwRightMsg() *model.Message {
 	content, err := json.Marshal(req)
 	if err != nil {
 		hwlog.RunLog.Errorf("marshal failed, error: %v", err)
+		return nil
 	}
 
 	msg, err := model.NewMessage()
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
+		return nil
 	}
 	msg.FillContent(string(content))
 	return msg
@@ -100,6 +104,7 @@ func testDownloadSfwErrParam() {
 	msg, err := model.NewMessage()
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
+		return
 	}
 	msg.FillContent(common.OK)
 	resp := downloadSoftware(msg)
@@ -110,6 +115,7 @@ func testDownloadSfwErrSn() {
 	msg, err := model.NewMessage()
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
+		return
 	}
 
 	req := createDownloadSfwBaseData()
@@ -128,6 +134,7 @@ func testDownloadSfwErrSn() {
 		content, err := json.Marshal(req)
 		if err != nil {
 			hwlog.RunLog.Errorf("marshal failed, error: %v", err)
+			return
 		}
 		msg.FillContent(string(content))
 
@@ -140,6 +147,7 @@ func testDownloadSfwErrSfwName() {
 	msg, err := model.NewMessage()
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
+		return
 	}
 
 	req := createDownloadSfwBaseData()
@@ -152,6 +160,7 @@ func testDownloadSfwErrSfwName() {
 		content, err := json.Marshal(req)
 		if err != nil {
 			hwlog.RunLog.Errorf("marshal failed, error: %v", err)
+			return
 		}
 		msg.FillContent(string(content))
 
@@ -164,6 +173,7 @@ func testDownloadSfwErrPkg() {
 	msg, err := model.NewMessage()
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
+		return
 	}
 
 	req := createDownloadSfwBaseData()
@@ -180,12 +190,15 @@ func testDownloadSfwErrPkg() {
 		"GET https://A<scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
 		"GET https://A>scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
 		"GET https://Ascend -mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
+		"GET https://A|scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
+		"GET https://A`scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
 	}
 	for _, dataCase := range dataCases {
 		req.DownloadInfo.Package = dataCase
 		content, err := json.Marshal(req)
 		if err != nil {
 			hwlog.RunLog.Errorf("marshal failed, error: %v", err)
+			return
 		}
 		msg.FillContent(string(content))
 
@@ -198,26 +211,30 @@ func testDownloadSfwErrSignFile() {
 	msg, err := model.NewMessage()
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
+		return
 	}
 
 	req := createDownloadSfwBaseData()
 	failDataCases := []string{
 		"GET ",
-		"https://Ascend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
-		"GET https://A!scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
-		"GET https://A\nscend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
-		"GET https://A$scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
-		"GET https://A\\scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
-		"GET https://A;scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
-		"GET https://A<scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
-		"GET https://A>scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
-		"GET https://Ascend -mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
+		"https://Ascend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
+		"GET https://A!scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
+		"GET https://A\nscend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
+		"GET https://A$scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
+		"GET https://A\\scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
+		"GET https://A;scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
+		"GET https://A<scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
+		"GET https://A>scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
+		"GET https://Ascend -mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
+		"GET https://A|scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
+		"GET https://A`scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
 	}
 	for _, dataCase := range failDataCases {
 		req.DownloadInfo.SignFile = dataCase
 		content, err := json.Marshal(req)
 		if err != nil {
 			hwlog.RunLog.Errorf("marshal failed, error: %v", err)
+			return
 		}
 		msg.FillContent(string(content))
 
@@ -226,10 +243,46 @@ func testDownloadSfwErrSignFile() {
 	}
 }
 
+func testDownloadSfwErrCrlFile() {
+	msg, err := model.NewMessage()
+	if err != nil {
+		hwlog.RunLog.Errorf("create message failed, error: %v", err)
+		return
+	}
+
+	req := createDownloadSfwBaseData()
+	failDataCases := []string{
+		"GET ",
+		"https://Ascend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
+		"GET https://A!scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
+		"GET https://A\nscend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
+		"GET https://A$scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
+		"GET https://A\\scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
+		"GET https://A;scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
+		"GET https://A<scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
+		"GET https://A>scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
+		"GET https://Ascend -mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
+		"GET https://A|scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
+		"GET https://A`scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
+	}
+	for _, dataCase := range failDataCases {
+		req.DownloadInfo.CrlFile = dataCase
+		content, err := json.Marshal(req)
+		if err != nil {
+			hwlog.RunLog.Errorf("marshal failed, error: %v", err)
+			return
+		}
+		msg.FillContent(string(content))
+		resp := downloadSoftware(msg)
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
+	}
+}
+
 func testDownloadSfwErrUserName() {
 	msg, err := model.NewMessage()
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
+		return
 	}
 
 	req := createDownloadSfwBaseData()
@@ -244,6 +297,7 @@ func testDownloadSfwErrUserName() {
 		content, err := json.Marshal(req)
 		if err != nil {
 			hwlog.RunLog.Errorf("marshal failed, error: %v", err)
+			return
 		}
 		msg.FillContent(string(content))
 
@@ -256,24 +310,15 @@ func testDownloadSfwErrPwd() {
 	msg, err := model.NewMessage()
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
+		return
 	}
-
-	var p1 = gomonkey.ApplyFunc(modulemgr.SendSyncMessage,
-		func(m *model.Message, duration time.Duration) (*model.Message, error) {
-			rspMsg, err := model.NewMessage()
-			if err != nil {
-				hwlog.RunLog.Errorf("create message failed, error: %v", err)
-			}
-			rspMsg.FillContent(common.OK)
-			return rspMsg, nil
-		})
-	defer p1.Reset()
 
 	req := createDownloadSfwBaseData()
 	req.DownloadInfo.Password = nil
 	content, err := json.Marshal(req)
 	if err != nil {
 		hwlog.RunLog.Errorf("marshal failed, error: %v", err)
+		return
 	}
 	msg.FillContent(string(content))
 
@@ -303,12 +348,8 @@ func testDownloadErrSendSyncMsg() {
 		return
 	}
 
-	var p1 = gomonkey.ApplyFunc(modulemgr.SendSyncMessage,
-		func(m *model.Message, duration time.Duration) (*model.Message, error) {
-			return nil, testErr
-		})
-	defer p1.Reset()
-
+	var p = gomonkey.ApplyFuncReturn(modulemgr.SendSyncMessage, nil, testErr)
+	defer p.Reset()
 	resp := downloadSoftware(msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorSendMsgToNode)
 }
