@@ -6,6 +6,7 @@ package edgemsgmanager
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"strconv"
 
 	"huawei.com/mindxedge/base/common"
@@ -57,13 +58,13 @@ func (p Password) MarshalJSON() ([]byte, error) {
 func (p *Password) UnmarshalJSON(data []byte) error {
 	var pArr []json.RawMessage
 	if err := json.Unmarshal(data, &pArr); err != nil {
-		return err
+		return errors.New("unmarshal pwd data failed")
 	}
 	pBytes := make([]byte, len(pArr))
 	for i := range pArr {
 		num, err := strconv.ParseUint(string(pArr[i]), common.BaseHex, common.BitSize8)
 		if err != nil {
-			return err
+			return errors.New("parse pwd to uint failed")
 		}
 		pBytes[i] = byte(num)
 	}
