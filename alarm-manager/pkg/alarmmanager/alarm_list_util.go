@@ -34,7 +34,7 @@ func getQueryType(input interface{}) (string, types.ListAlarmOrEventReq, error) 
 	req, ok := input.(types.ListAlarmOrEventReq)
 	if !ok {
 		hwlog.RunLog.Error("failed to convert params")
-		return "", types.ListAlarmOrEventReq{}, fmt.Errorf("failed to convert params")
+		return "", types.ListAlarmOrEventReq{}, errors.New("failed to convert params")
 	}
 	if req.IfCenter == trueStr {
 		return centerNodeQueryType, req, nil
@@ -188,7 +188,7 @@ func listGroupNodesAlarmsOrEvents(req types.ListAlarmOrEventReq, queryIdType str
 	}
 	cnt, ok := respMap[totalRecordsKey].(int)
 	if !ok {
-		hwlog.RunLog.Errorf("failed to convert results count into int")
+		hwlog.RunLog.Error("failed to convert results count into int")
 		return &common.RespMsg{Status: common.ErrorParamConvert}
 	}
 	hwlog.RunLog.Infof("succeed listing group %s info", queryIdType)
@@ -227,15 +227,15 @@ func parseEdgeManagerResp(respBytes []byte) ([]types.NodeInfo, error) {
 	}
 	status := resp.Status
 	if status != common.Success {
-		return []types.NodeInfo{}, fmt.Errorf(common.ErrorMap[resp.Status])
+		return []types.NodeInfo{}, errors.New(common.ErrorMap[resp.Status])
 	}
 	dataBytes, err := json.Marshal(resp.Data)
 	if err != nil {
-		return []types.NodeInfo{}, fmt.Errorf("decode nodeGroup information failed")
+		return []types.NodeInfo{}, errors.New("decode nodeGroup information failed")
 	}
 	var nodes types.NodeGroupDetailFromEdgeManager
 	if err := json.Unmarshal(dataBytes, &nodes); err != nil {
-		return []types.NodeInfo{}, fmt.Errorf("nodeGroup information convert failed")
+		return []types.NodeInfo{}, errors.New("nodeGroup information convert failed")
 	}
 	return nodes.Nodes, nil
 }

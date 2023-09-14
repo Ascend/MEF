@@ -103,6 +103,7 @@ func (list listDispatcher) ParseData(c *gin.Context) (interface{}, error) {
 			c.Query(pageNumberKey), c.Query(pageSizeKey))
 	}
 	values := c.Request.URL.Query()
+	// don't allow empty values
 	if isKeyAssignedToEmpty(values, ifCenterKey) || isKeyAssignedToEmpty(values, groupIdKey) ||
 		isKeyAssignedToEmpty(values, snKey) {
 		return nil, fmt.Errorf("params in[%s,%s,%s] cannot be assigned to empty string",

@@ -48,7 +48,7 @@ func dealAlarmReq(input interface{}) (interface{}, error) {
 	}
 
 	if len(reqs.Alarms) > maxOneNodeAlarmCount {
-		hwlog.RunLog.Errorf("alarms request exceeds the max count limitation")
+		hwlog.RunLog.Error("alarms request exceeds the max count limitation")
 		return nil, errors.New("alarm request exceeds the max count limitation")
 	}
 
