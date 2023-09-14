@@ -143,7 +143,7 @@ func (ard *AlarmReqDealer) dealAlarmClear() error {
 		return nil
 	}
 
-	if err := AlarmDbInstance().deleteAlarmInfo(alarmInfoData); err != nil {
+	if err := AlarmDbInstance().deleteAlarmInfo(&[]AlarmInfo{*alarmInfoData}); err != nil {
 		hwlog.RunLog.Errorf("delete alarm data failed: %s", err.Error())
 		return errors.New("delete alarm data failed")
 	}
@@ -197,7 +197,7 @@ func (ard *AlarmReqDealer) dealEvent() error {
 	}
 
 	if count >= maxOneNodeEventCount {
-		oldestEvent, err := AlarmDbInstance().getNodeOldestEvent(ard.sn)
+		oldestEvent, err := AlarmDbInstance().getNodeOldEvent(ard.sn, maxOneNodeEventCount-1)
 		if err != nil {
 			hwlog.RunLog.Errorf("get node oldest event failed: %s", err.Error())
 			return errors.New("get node oldest event failed")

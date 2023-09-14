@@ -51,9 +51,10 @@ func (adh *AlarmDbHandler) getNodeEventCount(sn string) (int, error) {
 		Count(&count).Error
 }
 
-func (adh *AlarmDbHandler) getNodeOldestEvent(sn string) (*AlarmInfo, error) {
-	var ret AlarmInfo
-	return &ret, adh.db().Model(AlarmInfo{}).Where("serial_number = ?", sn).Order("created_at").First(&ret).Error
+func (adh *AlarmDbHandler) getNodeOldEvent(sn string, offset int) (*[]AlarmInfo, error) {
+	var ret []AlarmInfo
+	return &ret, adh.db().Model(AlarmInfo{}).Where("serial_number = ? and alarm_type = ?",
+		sn, alarms.EventType).Order("created_at").Offset(offset).Find(&ret).Error
 }
 
 func (adh *AlarmDbHandler) getAlarmInfo(alarmId string, sn string) (*[]AlarmInfo, error) {
@@ -61,9 +62,8 @@ func (adh *AlarmDbHandler) getAlarmInfo(alarmId string, sn string) (*[]AlarmInfo
 	return &ret, adh.db().Model(AlarmInfo{}).Where("alarm_id = ? and serial_number = ?", alarmId, sn).Find(&ret).Error
 }
 
-func (adh *AlarmDbHandler) deleteAlarmInfo(data *AlarmInfo) error {
-	return adh.db().Model(AlarmInfo{}).Where("alarm_id = ? and serial_number = ?", data.AlarmId, data.SerialNumber).
-		Delete(&data).Error
+func (adh *AlarmDbHandler) deleteAlarmInfo(data *[]AlarmInfo) error {
+	return adh.db().Model(AlarmInfo{}).Delete(&data).Error
 }
 
 func (adh *AlarmDbHandler) deleteBySn(sn string) error {
