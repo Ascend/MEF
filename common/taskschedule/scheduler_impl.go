@@ -207,7 +207,7 @@ func (s *schedulerImpl) doRemoveHistoryTasks() {
 			deletedCount++
 		}
 	}
-	for i := 0; deletedCount < int(s.MaxHistoryMasterTasks)-len(tasks) && i < len(tasks); i++ {
+	for i := 0; deletedCount < len(tasks)-int(s.MaxHistoryMasterTasks) && i < len(tasks); i++ {
 		if err := s.walkTaskTree(tasks[i].Spec.Id, deleteTaskFromDb); err != nil {
 			hwlog.RunLog.Errorf("failed to clean tasks from database, %v", err)
 		}
