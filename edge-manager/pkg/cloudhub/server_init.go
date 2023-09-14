@@ -40,14 +40,16 @@ func InitServer() (*websocketmgr.WsServerProxy, error) {
 		SvrFlag:    true,
 		WithBackup: true,
 	}
-	go authServer()
 
 	podIp, err := common.GetPodIP()
 	if err != nil {
 		hwlog.RunLog.Errorf("get edge manager pod ip failed: %s", err.Error())
 		return nil, errors.New("get edge manager pod ip")
 	}
-	proxyConfig, err := websocketmgr.InitProxyConfig(name, podIp, server.wsPort, certInfo)
+	server.serverIp = podIp
+	go authServer()
+
+	proxyConfig, err := websocketmgr.InitProxyConfig(name, server.serverIp, server.wsPort, certInfo)
 	if err != nil {
 		hwlog.RunLog.Errorf("init proxy config failed: %v", err)
 		return nil, errors.New("init proxy config failed")
@@ -87,7 +89,7 @@ func authServer() {
 	}
 
 	for count := 0; count < constants.ServerInitRetryCount; count++ {
-		NewClientAuthService(server.authPort, authCertInfo).Start()
+		NewClientAuthService(server.serverIp, server.authPort, authCertInfo).Start()
 		hwlog.RunLog.Error("start auth server failed. Restart server later")
 		time.Sleep(constants.ServerInitRetryInterval)
 	}
