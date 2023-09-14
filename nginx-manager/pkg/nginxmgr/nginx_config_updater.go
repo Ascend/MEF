@@ -99,7 +99,7 @@ func getIcsConfContent() string {
             proxy_ssl_trusted_certificate /home/data/config/mef-certs/ics-root.crt;
             proxy_ssl_verify on;
             proxy_ssl_session_reuse on;
-            proxy_ssl_protocols TLSv1.2 TLSv1.3;
+            proxy_ssl_protocols TLSv1.3;
             proxy_ssl_ciphers "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384";
             proxy_pass https://ascend-ics-manager.mef-center.svc.cluster.local:8111;
 			
@@ -131,7 +131,7 @@ func getIcsConfContent() string {
             proxy_ssl_trusted_certificate /home/data/config/mef-certs/ics-root.crt;
             proxy_ssl_verify on;
             proxy_ssl_session_reuse on;
-            proxy_ssl_protocols TLSv1.2 TLSv1.3;
+            proxy_ssl_protocols TLSv1.3;
             proxy_ssl_ciphers "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384";
             proxy_pass https://ascend-ics-cert-manager.mef-center.svc.cluster.local:8112;
         }`
@@ -149,7 +149,7 @@ func getIcsResolverConfContent() string {
             proxy_ssl_trusted_certificate /home/data/config/mef-certs/ics-root.crt;
             proxy_ssl_verify on;
             proxy_ssl_session_reuse on;
-            proxy_ssl_protocols TLSv1.2 TLSv1.3;
+            proxy_ssl_protocols TLSv1.3;
             proxy_ssl_ciphers "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384";
 			set $IcsMgrSvc https://ascend-ics-manager.mef-center.svc.cluster.local:8111;
             proxy_pass https://$IcsMgrSvc:8111;
@@ -182,7 +182,7 @@ func getIcsResolverConfContent() string {
             proxy_ssl_trusted_certificate /home/data/config/mef-certs/ics-root.crt;
             proxy_ssl_verify on;
             proxy_ssl_session_reuse on;
-            proxy_ssl_protocols TLSv1.2 TLSv1.3;
+            proxy_ssl_protocols TLSv1.3;
             proxy_ssl_ciphers "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384";
             set $IcsMgrSvc https://ascend-ics-cert-manager.mef-center.svc.cluster.local:8112;
             proxy_pass https://$IcsMgrSvc:8112;
