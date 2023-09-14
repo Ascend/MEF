@@ -256,13 +256,11 @@ func innerGetNodeUniqueNameByID(input interface{}) common.RespMsg {
 		nodeInfo, err := NodeServiceInstance().getNodeByID(id)
 		if err == gorm.ErrRecordNotFound {
 			hwlog.RunLog.Errorf("get node info, id %v do no exist", id)
-			return common.RespMsg{Status: "",
-				Msg: fmt.Sprintf("get node info, id %v do no exist", id), Data: nil}
+			continue
 		}
 		if err != nil {
 			hwlog.RunLog.Errorf("get node id %v, db failed", id)
-			return common.RespMsg{Status: "",
-				Msg: fmt.Sprintf("get node info id %v, db failed", id), Data: nil}
+			continue
 		}
 		nodeInfos = append(nodeInfos, types.NodeInfo{
 			NodeID:       nodeInfo.ID,

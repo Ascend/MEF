@@ -6,6 +6,8 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr/handler"
@@ -76,9 +78,18 @@ func getNodeSerialNumbersByID(nodeIds []uint64) ([]string, error) {
 	if err := utils.ObjectConvert(resp.Data, &nodeInfos); err != nil {
 		return nil, errors.New("convert internal response error")
 	}
+	notFoundIdSet := utils.NewSet()
+	for _, nodeId := range nodeIds {
+		notFoundIdSet.Add(strconv.FormatUint(nodeId, common.BaseHex))
+	}
 	var serialNumbers []string
 	for _, info := range nodeInfos.NodeInfos {
 		serialNumbers = append(serialNumbers, info.SerialNumber)
+		notFoundIdSet.Delete(strconv.FormatUint(info.NodeID, common.BaseHex))
+	}
+	notFoundIdList := notFoundIdSet.List()
+	if len(notFoundIdList) > 0 {
+		return nil, fmt.Errorf("node (%s) not found", strings.Join(notFoundIdList, ","))
 	}
 	return serialNumbers, nil
 }
