@@ -30,9 +30,12 @@ func (alc *AlarmListerChecker) init() {
 	alc.modelChecker.Checker = checker.GetAndChecker(
 		checker.GetUintChecker("PageNum", common.DefaultPage, math.MaxInt64, true),
 		checker.GetUintChecker("PageSize", common.DefaultMinPageSize, common.DefaultMaxPageSize, true),
-		checker.GetUintChecker("NodeId", 0, math.MaxInt64, false),
-		checker.GetUintChecker("GroupId", 0, math.MaxInt64, false),
-		checker.GetStringChoiceChecker("IfCenter", []string{"true", "false", ""}, false),
+		checker.GetOrChecker(
+			checker.GetSnChecker("Sn", true),
+			checker.GetStringChoiceChecker("Sn", []string{""}, true),
+		),
+		checker.GetUintChecker("GroupId", 0, math.MaxInt64, true),
+		checker.GetStringChoiceChecker("IfCenter", []string{"true", "false", ""}, true),
 	)
 }
 
