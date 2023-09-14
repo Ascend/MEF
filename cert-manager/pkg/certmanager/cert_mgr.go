@@ -253,11 +253,11 @@ func updateClientCert(certName, certOpt string, certContent []byte) error {
 
 // ExportRootCa export cert file
 func ExportRootCa(c *gin.Context) {
-	hwlog.OpLog.Info("export cert file start")
+	hwlog.RunLog.Info("export cert file start")
 	certName := c.Query("certName")
 	if !certchecker.CheckIfCanExport(certName) {
 		msg := fmt.Sprintf("export cert [%s] root ca not support", certName)
-		hwlog.OpLog.Errorf(msg)
+		hwlog.RunLog.Error(msg)
 		common.ConstructResp(c, common.ErrorExportRootCa, msg, nil)
 		return
 	}
@@ -291,5 +291,5 @@ func ExportRootCa(c *gin.Context) {
 		return
 	}
 	c.Writer.Flush()
-	hwlog.OpLog.Infof("export cert [%s] root ca success", certName)
+	hwlog.RunLog.Infof("export cert [%s] root ca success", certName)
 }
