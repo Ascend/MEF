@@ -104,7 +104,7 @@ func certsUpdateResult(input interface{}) common.RespMsg {
 }
 
 func importRootCa(input interface{}) common.RespMsg {
-	hwlog.OpLog.Info("import cert item start")
+	hwlog.RunLog.Info("import cert item start")
 	var req importCertReq
 	if err := common.ParamConvert(input, &req); err != nil {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
@@ -132,7 +132,7 @@ func importRootCa(input interface{}) common.RespMsg {
 				"but distribute cert file to client failed", Data: nil}
 		}
 	}
-	hwlog.OpLog.Infof("import %s certificate success", req.CertName)
+	hwlog.RunLog.Infof("import %s certificate success", req.CertName)
 	return common.RespMsg{Status: common.Success, Msg: "import certificate success", Data: nil}
 }
 
