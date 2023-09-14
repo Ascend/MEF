@@ -10,22 +10,25 @@ import (
 
 // Command constant for command
 const (
-	CommandKubectl     = "kubectl"
-	CommandDocker      = "docker"
-	CommandNamespace   = "namespace"
-	Haveged            = "haveged"
-	ArchCommand        = "uname"
-	Arch64             = "aarch64"
-	X86                = "x86_64"
-	ActiveFlag         = "Active"
-	ReadyFlag          = "1/1"
-	StopFlag           = "0/0"
-	StopReplicasNum    = 0
-	StartReplicasNum   = 1
-	DockerImageExist   = 2
-	NamespaceStatusLoc = 1
-	SplitStringCount   = -1
-	DeleteNsTimeoutSec = 300
+	CommandKubectl        = "kubectl"
+	CommandDocker         = "docker"
+	CommandNamespace      = "namespace"
+	Haveged               = "haveged"
+	ArchCommand           = "uname"
+	Arch64                = "aarch64"
+	X86                   = "x86_64"
+	ActiveFlag            = "Active"
+	Systemctl             = "systemctl"
+	SystemctlIsActive     = "is-active"
+	SystemctlStatusActive = "active"
+	ReadyFlag             = "1/1"
+	StopFlag              = "0/0"
+	StopReplicasNum       = 0
+	StartReplicasNum      = 1
+	DockerImageExist      = 2
+	NamespaceStatusLoc    = 1
+	SplitStringCount      = -1
+	DeleteNsTimeoutSec    = 300
 )
 
 // MEF-Center Dir constant

@@ -6,6 +6,7 @@ package control
 import (
 	"errors"
 	"fmt"
+
 	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
@@ -117,6 +118,7 @@ func (scm *SftOperateMgr) prepareComponentLogBackupDir() error {
 func (scm *SftOperateMgr) check() error {
 	var checkTasks = []func() error{
 		scm.checkUser,
+		scm.checkCloudCoreIsRunning,
 	}
 
 	for _, function := range checkTasks {
@@ -136,6 +138,26 @@ func (scm *SftOperateMgr) checkUser() error {
 		return err
 	}
 	hwlog.RunLog.Info("check user successful")
+	return nil
+}
+
+func (scm *SftOperateMgr) checkCloudCoreIsRunning() error {
+	if scm.operate == util.StopOperateFlag {
+		return nil
+	}
+	hwlog.RunLog.Info("start to check cloudcore is running")
+	output, err := envutils.RunCommand(util.Systemctl, envutils.DefCmdTimeoutSec,
+		util.SystemctlIsActive, "cloudcore")
+	if err != nil {
+		hwlog.RunLog.Errorf("runCommand failed, error:%s", err.Error())
+		return err
+	}
+	if output != util.SystemctlStatusActive {
+		fmt.Println("cloudcore service is not running")
+		hwlog.RunLog.Error("cloudcore service is not running")
+		return errors.New("cloudcore service is not running")
+	}
+	hwlog.RunLog.Info("check cloudcore successfully")
 	return nil
 }
 
