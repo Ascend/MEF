@@ -11,13 +11,13 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/backuputils"
+	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/utils"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/checker"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
 
 	"cert-manager/pkg/certmanager"
@@ -56,7 +56,7 @@ func main() {
 		fmt.Printf("initialize hwlog failed, %s.\n", err.Error())
 		return
 	}
-	if inRange := checker.IsPortInRange(common.MinPort, common.MaxPort, port); !inRange {
+	if res := checker.GetIntChecker("", common.MinPort, common.MaxPort, true).Check(port); !res.Result {
 		hwlog.RunLog.Errorf("port %d is not in [%d, %d]", port, common.MinPort, common.MaxPort)
 		return
 	}
