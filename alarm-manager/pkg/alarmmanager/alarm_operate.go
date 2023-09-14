@@ -236,5 +236,6 @@ func dealNodeClearReq(input interface{}) (interface{}, error) {
 		return common.FAIL, nil
 	}
 
+	hwlog.RunLog.Infof("clear all alarms from node %s success", reqs.Sn)
 	return common.OK, nil
 }

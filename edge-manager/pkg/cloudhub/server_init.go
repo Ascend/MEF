@@ -147,6 +147,7 @@ func clearAlarm(arg interface{}) {
 			time.Sleep(clearWaitTime)
 			continue
 		}
+		hwlog.RunLog.Infof("clear alarm for node %s success", sn)
 		break
 	}
 }
