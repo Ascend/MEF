@@ -91,13 +91,13 @@ func dealRequest(input interface{}, AlarmOrEvent string) *common.RespMsg {
 	return listFullAlarmOrEvents(req, AlarmOrEvent)
 }
 
-func getListResMap(alarms *[]AlarmInfo) map[string]interface{} {
+func getListResMap(alarms []AlarmInfo) map[string]interface{} {
 	respMap := make(map[string]interface{})
 	alarmsMap := make(map[uint64]types.AlarmBriefInfo)
-	for _, alarm := range *alarms {
+	for _, alarm := range alarms {
 		alarmsMap[alarm.Id] = convertToDigestInfo(alarm)
 	}
-	respMap[totalRecordsKey] = len(*alarms)
+	respMap[totalRecordsKey] = len(alarms)
 	respMap[respDataKey] = alarmsMap
 	return respMap
 }
@@ -108,7 +108,7 @@ func listAllEdgeNodesAlarmsOrEvents(req types.ListAlarmOrEventReq, AlarmOrEvent 
 		hwlog.RunLog.Errorf("failed to get %s in db: %s", AlarmOrEvent, err.Error())
 		return &common.RespMsg{Status: common.ErrorListAlarm}
 	}
-	if len(*alarmSlice) == 0 {
+	if len(alarmSlice) == 0 {
 		return &common.RespMsg{Status: common.Success}
 	}
 	respMap := getListResMap(alarmSlice)
@@ -122,7 +122,7 @@ func listFullAlarmOrEvents(req types.ListAlarmOrEventReq, AlarmOrEvent string) *
 		hwlog.RunLog.Errorf("failed to get %s in db", AlarmOrEvent)
 		return &common.RespMsg{Status: common.ErrorListAlarm}
 	}
-	if len(*alarmSlice) == 0 {
+	if len(alarmSlice) == 0 {
 		return &common.RespMsg{Status: common.Success}
 	}
 	respMap := getListResMap(alarmSlice)
@@ -136,7 +136,7 @@ func listCenterAlarmOrEvents(req types.ListAlarmOrEventReq, AlarmOrEvent string)
 		hwlog.RunLog.Errorf("failed to get center nodes %s in db", AlarmOrEvent)
 		return &common.RespMsg{Status: common.ErrorListCenterNodeAlarm}
 	}
-	if len(*alarmSlice) == 0 {
+	if len(alarmSlice) == 0 {
 		return &common.RespMsg{Status: common.Success}
 	}
 	respMap := getListResMap(alarmSlice)
@@ -150,7 +150,7 @@ func listEdgeNodeAlarmsOrEvents(req types.ListAlarmOrEventReq, AlarmOrEvent stri
 		hwlog.RunLog.Errorf("failed to list edge node[%s] %s in db,err:%s", req.Sn, AlarmOrEvent, err.Error())
 		return &common.RespMsg{Status: common.ErrorListEdgeNodeAlarm}
 	}
-	if len(*alarmSlice) == 0 {
+	if len(alarmSlice) == 0 {
 		return &common.RespMsg{Status: common.Success}
 	}
 	respMap := getListResMap(alarmSlice)
@@ -208,7 +208,7 @@ func getMapResult(nodes []types.NodeInfo, queryIdType string, req types.ListAlar
 		if err != nil {
 			return nil, fmt.Errorf("faild to list alarms of node[%s] in db while list group alarms", node.Sn)
 		}
-		for _, alarmOfNode := range *alarmsNode {
+		for _, alarmOfNode := range alarmsNode {
 			count++
 			alarmMap[alarmOfNode.Id] = convertToDigestInfo(alarmOfNode)
 		}
