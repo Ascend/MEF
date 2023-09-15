@@ -104,11 +104,12 @@ func (ics icsManager) operateIcsManager(args SubParam) error {
 
 func (ics icsManager) install(tarPath, cmsPath, crlPath string) error {
 	fmt.Printf("start to install %s\n", ics.name)
+	icsExist := fileutils.IsExist(ics.pathMgr.GetIcsPath())
 	exist, err := util.OptionComponentExist(util.IcsManagerName)
 	if err != nil {
 		return err
 	}
-	if exist {
+	if exist && icsExist {
 		fmt.Printf("%s has already been installed\n", ics.name)
 		return fmt.Errorf("%s has already been installed", ics.name)
 	}
@@ -184,6 +185,23 @@ func (ics icsManager) uninstall() error {
 		}
 		return err
 	}
+	if exist := fileutils.IsExist(ics.pathMgr.GetIcsPath()); !exist {
+		fmt.Printf("%s has uninstalled by others, start to clean residual files\n", ics.name)
+		hwlog.RunLog.Infof("%s has uninstalled by others, start to clean residual files", ics.name)
+		if err := fileutils.DeleteAllFileWithConfusion(ics.pathMgr.ConfigPathMgr.GetIcsCertDir()); err != nil {
+			hwlog.RunLog.Errorf("when uninstall ics-manager, delete inner root failed: %v", err)
+			return err
+		}
+		fmt.Println("clean residual files success")
+		hwlog.RunLog.Info("clean residual files success")
+		return nil
+	}
+	defer func() {
+		if err := util.AddComponentToInstallInfo(util.IcsManagerName,
+			ics.pathMgr.WorkPathMgr.GetInstallParamJsonPath()); err != nil {
+			hwlog.RunLog.Errorf("%s uninstall failed, rollback failed", ics.name)
+		}
+	}()
 	if err := fileutils.DeleteAllFileWithConfusion(ics.pathMgr.ConfigPathMgr.GetIcsCertDir()); err != nil {
 		hwlog.RunLog.Errorf("when uninstall ics-manager, delete inner root failed: %v", err)
 		return err
@@ -193,9 +211,14 @@ func (ics icsManager) uninstall() error {
 
 // Operate use to operate ics manager in start, stop, restart
 func (ics icsManager) Operate() error {
+	if exist := fileutils.IsExist(ics.pathMgr.GetIcsPath()); !exist {
+		fmt.Printf("%s has uninstalled by others, cannot %s\n", ics.name, ics.operate)
+		hwlog.RunLog.Warnf("%s has uninstalled by others, cannot %s", ics.name, ics.operate)
+		return nil
+	}
+
 	hwlog.RunLog.Infof("start to %s module %s", ics.operate, ics.name)
 	fmt.Printf("start to %s module %s\n", ics.operate, ics.name)
-
 	switch ics.operate {
 	case util.StartOperateFlag:
 		if err := ics.exchange(); err != nil {
