@@ -28,8 +28,7 @@ type AuthFailedRecord struct {
 
 // LockRecord lock ip record
 type LockRecord struct {
-	IP       string `gorm:"type:char(32);unique;not null"`
-	LockTime int64  `gorm:"type:integer"`
+	LockTime int64 `gorm:"type:integer"`
 }
 
 var (
@@ -43,17 +42,15 @@ type lockRepositoryImpl struct {
 // LockRepository for config method to operate db
 type LockRepository interface {
 	recordFailed(string) error
-	isLock(string) (bool, error)
-	deleteOneLockRecord(string) error
-	findUnlockRecords() ([]LockRecord, error)
-	UnlockRecords(string) error
-	updateLockTime(string) error
+	isLock() (bool, error)
+	deleteLockRecord() error
+	UnlockRecords() (int64, error)
+	updateLockTime() error
 	getFailedRecord(string) (*AuthFailedRecord, error)
 	createFailedRecord(string) error
 	updateFailedRecord(string) error
-	createLockRecord(string) error
-	deleteFailedRecord(string) error
-	authPass(string) error
+	deleteOneFailedRecord(string) error
+	deleteAllFailedRecord() error
 }
 
 // LockRepositoryInstance returns the singleton instance of token lock service
@@ -68,26 +65,40 @@ func (c *lockRepositoryImpl) db() *gorm.DB {
 	return database.GetDb()
 }
 
-func (c *lockRepositoryImpl) isLock(ip string) (bool, error) {
-	var lockInfo LockRecord
-	err := c.db().Model(LockRecord{}).Where("ip = ?", ip).First(&lockInfo).Error
-	if err == gorm.ErrRecordNotFound {
-		return false, nil
-	} else if err != nil {
-		hwlog.RunLog.Error(err)
-		return true, fmt.Errorf("get lock info from ip %s error", ip)
+func (c *lockRepositoryImpl) isLock() (bool, error) {
+	lockInfo, err := c.getLockRecord()
+	if err != nil {
+		return true, err
 	}
-	if time.Now().Unix() > lockInfo.LockTime {
-		if err := c.deleteOneLockRecord(ip); err != nil {
+	if lockInfo == nil {
+		return false, nil
+	}
+	if lockInfo.LockTime < time.Now().Unix() {
+		if err := c.deleteLockRecord(); err != nil {
 			return false, err
 		}
-		hwlog.OpLog.Infof("edge (%s) is unlock", ip)
+		hwlog.RunLog.Info("token is unlock")
+		hwlog.OpLog.Info("token is unlock")
 		return false, nil
 	}
-	if err := c.updateLockTime(ip); err != nil {
-		return true, fmt.Errorf("update %s lock time error", ip)
+
+	if err := c.updateLockTime(); err != nil {
+		return true, fmt.Errorf("update lock time error")
 	}
 	return true, nil
+}
+
+func (c *lockRepositoryImpl) getLockRecord() (*LockRecord, error) {
+	var lockInfo []LockRecord
+	err := c.db().Model(LockRecord{}).Find(&lockInfo).Error
+	if err != nil || len(lockInfo) > 1 {
+		hwlog.RunLog.Errorf("get lock record error %v", err)
+		return nil, errors.New("get lock record error")
+	}
+	if len(lockInfo) == 0 {
+		return nil, nil
+	}
+	return &lockInfo[0], nil
 }
 
 func (c *lockRepositoryImpl) recordFailed(ip string) error {
@@ -102,21 +113,41 @@ func (c *lockRepositoryImpl) recordFailed(ip string) error {
 	if record.ErrorTimes < lockTime {
 		return c.updateFailedRecord(ip)
 	}
-	if err := c.createLockRecord(ip); err != nil {
-		return fmt.Errorf("create lock record to db error ip(%s)", ip)
-	}
-	hwlog.OpLog.Warnf("%s has too much auth failed record, lock this edge device", ip)
-	if err := c.deleteFailedRecord(ip); err != nil {
-		return err
+	if err := c.lock(ip); err != nil {
+		return fmt.Errorf("lock %s failed", ip)
 	}
 	return nil
 }
 
-func (c *lockRepositoryImpl) authPass(ip string) error {
-	if err := c.deleteFailedRecord(ip); err != nil {
-		return err
-	}
-	return c.deleteOneLockRecord(ip)
+func (c *lockRepositoryImpl) lock(ip string) error {
+	recordTime := time.Now().Add(common.LockInterval).Unix()
+
+	return database.Transaction(c.db(), func(tx *gorm.DB) error {
+		var lockInfo []LockRecord
+		if err := tx.Model(LockRecord{}).Find(&lockInfo).Error; err != nil {
+			hwlog.RunLog.Error("get lock info error")
+			return err
+		}
+		if len(lockInfo) == 0 {
+			if err := tx.Model(LockRecord{}).Create(LockRecord{LockTime: recordTime}).Error; err != nil {
+				hwlog.RunLog.Error("create lock info error")
+				return err
+			}
+			hwlog.OpLog.Warnf("%s has too much token auth failed record, lock token auth function", ip)
+			hwlog.RunLog.Warnf("%s has too much token auth failed record, lock token auth function", ip)
+		} else {
+			if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Model(LockRecord{}).
+				Updates(map[string]interface{}{"LockTime": recordTime}).Error; err != nil {
+				hwlog.RunLog.Error("update lock info error")
+				return err
+			}
+		}
+		if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&AuthFailedRecord{}).Error; err != nil {
+			hwlog.RunLog.Error("delete failed record error")
+			return err
+		}
+		return nil
+	})
 }
 
 func (c *lockRepositoryImpl) getFailedRecord(ip string) (*AuthFailedRecord, error) {
@@ -150,40 +181,36 @@ func (c *lockRepositoryImpl) updateFailedRecord(ip string) error {
 	return nil
 }
 
-func (c *lockRepositoryImpl) deleteFailedRecord(ip string) error {
+func (c *lockRepositoryImpl) deleteOneFailedRecord(ip string) error {
 	if err := c.db().Model(AuthFailedRecord{}).Where("ip = ?", ip).Delete(&AuthFailedRecord{}).Error; err != nil {
-		return fmt.Errorf("delete failed record(%s) from db error", ip)
+		return fmt.Errorf("delete one failed record(%s) from db error", ip)
 	}
 	return nil
 }
 
-func (c *lockRepositoryImpl) findUnlockRecords() ([]LockRecord, error) {
-	var unlockIP []LockRecord
-	return unlockIP, c.db().Model(LockRecord{}).Where("lock_time < ?", time.Now().Unix()).Find(&unlockIP).Error
-}
-
-func (c *lockRepositoryImpl) UnlockRecords(ip string) error {
-	return c.db().Model(LockRecord{}).Where("lock_time < ? and ip = ?", time.Now().Unix(), ip).Delete(LockRecord{}).Error
-}
-
-func (c *lockRepositoryImpl) deleteOneLockRecord(ip string) error {
-	if err := c.db().Model(LockRecord{}).Where("ip = ?", ip).Delete(&LockRecord{}).Error; err != nil {
-		return fmt.Errorf("delete lock info from ip:%s error", ip)
+func (c *lockRepositoryImpl) deleteAllFailedRecord() error {
+	if err := c.db().Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&AuthFailedRecord{}).Error; err != nil {
+		return errors.New("delete failed record from db error")
 	}
 	return nil
 }
 
-func (c *lockRepositoryImpl) updateLockTime(ip string) error {
+func (c *lockRepositoryImpl) UnlockRecords() (int64, error) {
+	stmt := c.db().Model(LockRecord{}).Where("lock_time < ?", time.Now().Unix()).Delete(LockRecord{})
+	return stmt.RowsAffected, stmt.Error
+}
+
+func (c *lockRepositoryImpl) deleteLockRecord() error {
+	if err := c.db().Session(&gorm.Session{AllowGlobalUpdate: true}).
+		Model(LockRecord{}).Delete(&LockRecord{}).Error; err != nil {
+		return fmt.Errorf("delete lock info error")
+	}
+	return nil
+}
+
+func (c *lockRepositoryImpl) updateLockTime() error {
 	updatedColumns := map[string]interface{}{
 		"LockTime": time.Now().Add(common.LockInterval).Unix(),
 	}
-	return c.db().Model(LockRecord{}).Where("ip = ?", ip).UpdateColumns(updatedColumns).Error
-}
-
-func (c *lockRepositoryImpl) createLockRecord(ip string) error {
-	record := LockRecord{
-		IP:       ip,
-		LockTime: time.Now().Add(common.LockInterval).Unix(),
-	}
-	return c.db().Model(LockRecord{}).Create(record).Error
+	return c.db().Session(&gorm.Session{AllowGlobalUpdate: true}).Model(LockRecord{}).Updates(updatedColumns).Error
 }
