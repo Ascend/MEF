@@ -139,11 +139,11 @@ func (ard *AlarmReqDealer) dealAlarmClear() error {
 	}
 
 	// do not record log when alarm does not exist
-	if len(*ret) == 0 {
+	if len(ret) == 0 {
 		return nil
 	}
 
-	if err := AlarmDbInstance().deleteAlarmInfo(&[]AlarmInfo{*alarmInfoData}); err != nil {
+	if err := AlarmDbInstance().deleteAlarmInfo([]AlarmInfo{*alarmInfoData}); err != nil {
 		hwlog.RunLog.Errorf("delete alarm data failed: %s", err.Error())
 		return errors.New("delete alarm data failed")
 	}
@@ -170,7 +170,7 @@ func (ard *AlarmReqDealer) dealAlarmAdd() error {
 		return errors.New("get alarm info from db failed")
 	}
 
-	if len(*ret) != 0 {
+	if len(ret) != 0 {
 		return nil
 	}
 

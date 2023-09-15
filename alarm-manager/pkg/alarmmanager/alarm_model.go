@@ -51,18 +51,18 @@ func (adh *AlarmDbHandler) getNodeEventCount(sn string) (int, error) {
 		Count(&count).Error
 }
 
-func (adh *AlarmDbHandler) getNodeOldEvent(sn string, offset int) (*[]AlarmInfo, error) {
+func (adh *AlarmDbHandler) getNodeOldEvent(sn string, offset int) ([]AlarmInfo, error) {
 	var ret []AlarmInfo
-	return &ret, adh.db().Model(AlarmInfo{}).Where("serial_number = ? and alarm_type = ?",
+	return ret, adh.db().Model(AlarmInfo{}).Where("serial_number = ? and alarm_type = ?",
 		sn, alarms.EventType).Order("created_at").Offset(offset).Find(&ret).Error
 }
 
-func (adh *AlarmDbHandler) getAlarmInfo(alarmId string, sn string) (*[]AlarmInfo, error) {
+func (adh *AlarmDbHandler) getAlarmInfo(alarmId string, sn string) ([]AlarmInfo, error) {
 	var ret []AlarmInfo
-	return &ret, adh.db().Model(AlarmInfo{}).Where("alarm_id = ? and serial_number = ?", alarmId, sn).Find(&ret).Error
+	return ret, adh.db().Model(AlarmInfo{}).Where("alarm_id = ? and serial_number = ?", alarmId, sn).Find(&ret).Error
 }
 
-func (adh *AlarmDbHandler) deleteAlarmInfo(data *[]AlarmInfo) error {
+func (adh *AlarmDbHandler) deleteAlarmInfo(data []AlarmInfo) error {
 	return adh.db().Model(AlarmInfo{}).Delete(&data).Error
 }
 
@@ -81,27 +81,27 @@ func (adh *AlarmDbHandler) DeleteEdgeAlarm() error {
 }
 
 func (adh *AlarmDbHandler) listCenterAlarmsOrEventsDb(pageNum, pageSize uint64, queryType string) (
-	*[]AlarmInfo, error) {
+	[]AlarmInfo, error) {
 	var alarmInfo []AlarmInfo
-	return &alarmInfo, adh.db().Scopes(getAlarmNodeScopes(pageNum, pageSize, alarms.CenterSn, queryType)).
+	return alarmInfo, adh.db().Scopes(getAlarmNodeScopes(pageNum, pageSize, alarms.CenterSn, queryType)).
 		Find(&alarmInfo).Error
 }
 
 func (adh *AlarmDbHandler) listEdgeAlarmsOrEventsDb(pageNum, pageSize uint64, sn string, queryType string) (
-	*[]AlarmInfo, error) {
+	[]AlarmInfo, error) {
 	var alarmInfo []AlarmInfo
-	return &alarmInfo, adh.db().Scopes(getAlarmNodeScopes(pageNum, pageSize, sn, queryType)).Find(&alarmInfo).Error
+	return alarmInfo, adh.db().Scopes(getAlarmNodeScopes(pageNum, pageSize, sn, queryType)).Find(&alarmInfo).Error
 }
 
-func (adh *AlarmDbHandler) listAllAlarmsOrEventsDb(pageNum, pageSize uint64, queryType string) (*[]AlarmInfo, error) {
+func (adh *AlarmDbHandler) listAllAlarmsOrEventsDb(pageNum, pageSize uint64, queryType string) ([]AlarmInfo, error) {
 	var alarmInfo []AlarmInfo
-	return &alarmInfo, adh.db().Scopes(getPagedScopes(pageNum, pageSize, queryType)).Find(&alarmInfo).Error
+	return alarmInfo, adh.db().Scopes(getPagedScopes(pageNum, pageSize, queryType)).Find(&alarmInfo).Error
 }
 
 func (adh *AlarmDbHandler) listAllEdgeAlarmsOrEventsDb(pageNum, pageSize uint64, queryType string) (
-	*[]AlarmInfo, error) {
+	[]AlarmInfo, error) {
 	var alarmInfo []AlarmInfo
-	return &alarmInfo, adh.db().Scopes(getPagedEdgeScopes(pageNum, pageSize, queryType)).Find(&alarmInfo).Error
+	return alarmInfo, adh.db().Scopes(getPagedEdgeScopes(pageNum, pageSize, queryType)).Find(&alarmInfo).Error
 }
 
 func getPagedEdgeScopes(pageNum, pageSize uint64, queryType string) func(db *gorm.DB) *gorm.DB {

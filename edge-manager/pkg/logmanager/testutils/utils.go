@@ -7,10 +7,12 @@ package testutils
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 
 	"github.com/pkg/errors"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 
 	"huawei.com/mindxedge/base/common"
@@ -29,6 +31,9 @@ func PrepareHwlog() error {
 
 // PrepareTempDirs prepares temp dirs
 func PrepareTempDirs() error {
+	if err := fileutils.DeleteAllFileWithConfusion("/home/MEFCenter"); err != nil {
+		return fmt.Errorf("delete /home/MEFCenter failed: %s", err.Error())
+	}
 	dirs := []string{constants.LogDumpTempDir, constants.LogDumpPublicDir}
 	for _, dir := range dirs {
 		if err := os.RemoveAll(dir); err != nil && !errors.Is(err, os.ErrNotExist) {
