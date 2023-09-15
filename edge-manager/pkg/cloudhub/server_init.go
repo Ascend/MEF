@@ -133,15 +133,15 @@ func clearAlarm(arg interface{}) {
 	msg.SetRouter(common.CloudHubName, common.InnerServerName, common.Delete, requests.ClearOneNodeAlarmRouter)
 
 	const (
-		clearWaitTime = 60 * time.Second
-		maxRetryTimes = 20
+		clearWaitTime = 30 * time.Second
+		maxRetryTimes = 10
 	)
 
 	for i := 0; i < maxRetryTimes; i++ {
 		ret, err := modulemgr.SendSyncMessage(msg, common.ResponseTimeout)
 		if err != nil {
 			hwlog.RunLog.Errorf("send clear node alarm msg to alarm-manager failed: %s", err.Error())
-			return
+			continue
 		}
 
 		if content, ok := ret.GetContent().(string); !ok || content != common.OK {
