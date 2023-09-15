@@ -185,12 +185,14 @@ func (cc *CtlComponent) Operate() error {
 		return errors.New("pointer WorkPathItf is nil or invalid")
 	}
 
-	yamlPath := cc.InstallPathMgr.GetComponentYamlPath(cc.Name)
-	yamlRealPath, err := filepath.EvalSymlinks(yamlPath)
+	// real yaml path could not exist when testing backup, use image-config dir to evaluate real path
+	imageConfigPath := cc.InstallPathMgr.GetImageConfigPath(cc.Name)
+	imageConfigRealPath, err := filepath.EvalSymlinks(imageConfigPath)
 	if err != nil {
 		hwlog.RunLog.Errorf("get real path of component [%s]'s yaml failed: %s", cc.Name, err.Error())
 		return fmt.Errorf("get real path of component [%s]'s yaml failed", cc.Name)
 	}
+	yamlRealPath := filepath.Join(imageConfigRealPath, fmt.Sprintf("%s.yaml", cc.Name))
 
 	filePath, err := utils.CheckPath(yamlRealPath)
 	if err != nil {
