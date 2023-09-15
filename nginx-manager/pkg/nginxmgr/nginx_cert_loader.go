@@ -150,10 +150,12 @@ func WritePipe(keyPath, pipePath string, deletePipeAfterUse bool) error {
 	if keyContent, err = loadKey(keyPath); err != nil {
 		return err
 	}
+
 	if !utils.IsExist(pipePath) {
 		common.ClearSliceByteMemory(keyContent)
-		return fmt.Errorf("The  file: %s does not exist." + pipePath)
+		return fmt.Errorf("the file: %s does not exist", pipePath)
 	}
+
 	go writeKeyToPipe(pipePath, keyContent, deletePipeAfterUse)
 	return nil
 }
@@ -186,6 +188,8 @@ func WritePipeForClient(keyPath, pipeDir string, pipeCount int, deletePipeAfterU
 	if keyContent, err = loadKey(keyPath); err != nil {
 		return err
 	}
+	defer common.ClearSliceByteMemory(keyContent)
+
 	var pipePaths []string
 	for i := 0; i < pipeCount; i++ {
 		pipePath := fmt.Sprintf("%s%s_%d", pipeDir, nginxcom.ClientPipePrefix, i)
@@ -194,10 +198,11 @@ func WritePipeForClient(keyPath, pipeDir string, pipeCount int, deletePipeAfterU
 
 	for _, pipePath := range pipePaths {
 		if !utils.IsExist(pipePath) {
-			common.ClearSliceByteMemory(keyContent)
-			return fmt.Errorf("The  file: %s does not exist." + pipePath)
+			return fmt.Errorf("the file: %s does not exist", pipePath)
 		}
-		go writeKeyToPipe(pipePath, keyContent, deletePipeAfterUse)
+		content := make([]byte, len(keyContent))
+		copy(content, keyContent)
+		go writeKeyToPipe(pipePath, content, deletePipeAfterUse)
 	}
 	return nil
 }
@@ -205,25 +210,26 @@ func WritePipeForClient(keyPath, pipeDir string, pipeCount int, deletePipeAfterU
 func loadKey(path string) ([]byte, error) {
 	encryptKeyContent, err := utils.LoadFile(path)
 	if encryptKeyContent == nil {
-		hwlog.RunLog.Errorf("load key file failed: %s" + err.Error())
-		return nil, fmt.Errorf("load key file failed: %s" + err.Error())
+		hwlog.RunLog.Errorf("load key file failed: %s", err.Error())
+		return nil, fmt.Errorf("load key file failed: %s", err.Error())
 	}
 	decryptKeyByte, err := kmc.DecryptContent(encryptKeyContent, kmc.GetDefKmcCfg())
 	if err != nil {
-		hwlog.RunLog.Errorf("decrypt key content failed: %s" + err.Error())
-		return nil, fmt.Errorf("decrypt key content failed: %s" + err.Error())
+		hwlog.RunLog.Errorf("decrypt key content failed: %s", err.Error())
+		return nil, fmt.Errorf("decrypt key content failed: %s", err.Error())
 	}
 	return decryptKeyByte, nil
 }
 
 func writeKeyToPipe(pipeFile string, content []byte, deletePipeAfterUse bool) {
+	defer common.ClearSliceByteMemory(content)
 	pipe, err := os.OpenFile(pipeFile, os.O_WRONLY|os.O_SYNC, os.ModeNamedPipe)
 	if err != nil {
 		hwlog.RunLog.Error("open pipe failed")
 		return
 	}
 	defer func() {
-		err := pipe.Close()
+		err = pipe.Close()
 		if err != nil {
 			hwlog.RunLog.Error("pipe close error")
 		}
@@ -248,12 +254,12 @@ func writeKeyToPipe(pipeFile string, content []byte, deletePipeAfterUse bool) {
 	}
 	_, err = pipe.Write(content)
 	if err != nil {
-		hwlog.RunLog.Errorf("pass key to pipe failed:%v", err)
+		hwlog.RunLog.Errorf("write key to pipe failed: %v", err)
 		return
 	}
 	_, err = pipe.WriteString("\n")
 	if err != nil {
-		hwlog.RunLog.Errorf("pass key to pipe failed:%v", err)
+		hwlog.RunLog.Errorf("write `\\n` to pipe failed: %v", err)
 		return
 	}
 	hwlog.RunLog.Infof("write pipe %s success", pipeFile)
