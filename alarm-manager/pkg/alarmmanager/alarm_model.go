@@ -54,7 +54,7 @@ func (adh *AlarmDbHandler) getNodeEventCount(sn string) (int, error) {
 func (adh *AlarmDbHandler) getNodeOldEvent(sn string, offset int) ([]AlarmInfo, error) {
 	var ret []AlarmInfo
 	return ret, adh.db().Model(AlarmInfo{}).Where("serial_number = ? and alarm_type = ?",
-		sn, alarms.EventType).Order("created_at").Offset(offset).Find(&ret).Error
+		sn, alarms.EventType).Order("created_at DESC").Offset(offset).Find(&ret).Error
 }
 
 func (adh *AlarmDbHandler) getAlarmInfo(alarmId string, sn string) ([]AlarmInfo, error) {
