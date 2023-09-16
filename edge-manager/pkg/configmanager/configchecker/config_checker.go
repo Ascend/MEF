@@ -8,7 +8,10 @@ import (
 	"math"
 
 	"huawei.com/mindx/common/checker"
+	"huawei.com/mindx/common/checker/valuer"
 )
+
+const invalidChar = ':'
 
 type configChecker struct {
 	configCheck checker.ModelChecker
@@ -23,17 +26,17 @@ func (cc *configChecker) init() {
 	cc.configCheck.Checker = checker.GetAndChecker(
 		checker.GetRegChecker("Account", nameReg, true),
 		checker.GetOrChecker(
-			checker.GetAndChecker(
-				checker.GetRegChecker("Domain", dnsLenReg, true),
-				checker.GetRegChecker("Domain", dnsReg, true),
-			),
+			checker.GetRegChecker("Domain", domainReg, true),
 			checker.GetAndChecker(
 				checker.GetStringChoiceChecker("Domain", []string{""}, true),
 				checker.GetIpV4Checker("IP", true),
 			),
 		),
 		checker.GetListChecker("Password",
-			checker.GetUintChecker("", 0, math.MaxUint8, true),
+			checker.GetAndChecker(
+				checker.GetUintChecker("", 0, math.MaxUint8, true),
+				&invalidCharChecker{},
+			),
 			minPwdCount,
 			maxPwdCount,
 			true,
@@ -47,6 +50,20 @@ func (cc *configChecker) Check(data interface{}) checker.CheckResult {
 	checkResult := cc.configCheck.Check(data)
 	if !checkResult.Result {
 		return checker.NewFailedResult(fmt.Sprintf("image config checker check failed: %s", checkResult.Reason))
+	}
+	return checker.NewSuccessResult()
+}
+
+type invalidCharChecker struct{}
+
+func (i *invalidCharChecker) Check(data interface{}) checker.CheckResult {
+	uintValuer := valuer.UintValuer{}
+	value, err := uintValuer.GetValue(data, "")
+	if err != nil {
+		return checker.NewFailedResult(fmt.Sprintf("get uint value failed, error: %v", err))
+	}
+	if value == invalidChar {
+		return checker.NewFailedResult("password contains invalid character")
 	}
 	return checker.NewSuccessResult()
 }
