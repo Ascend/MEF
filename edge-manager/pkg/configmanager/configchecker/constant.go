@@ -9,6 +9,5 @@ const (
 	minPwdCount = 1
 	maxPwdCount = 20
 	nameReg     = "^[a-zA-Z0-9]([a-zA-Z0-9-_]{0,254}[a-zA-Z0-9]){0,1}$"
-	dnsLenReg   = `^.{3,255}$`
-	dnsReg      = `^[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+$`
+	domainReg   = "^[a-zA-Z0-9][a-zA-Z0-9.-]{1,61}[a-zA-Z0-9]$"
 )
