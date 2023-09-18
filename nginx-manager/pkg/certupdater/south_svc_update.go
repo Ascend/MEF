@@ -39,11 +39,6 @@ func updateSouthSvcCert(payload *CertUpdatePayload) error {
 		hwlog.RunLog.Error(optErr)
 		return optErr
 	}
-	defer func() {
-		if err := processFiles(updateFilePaths, clearWritePermission); err != nil {
-			hwlog.RunLog.Errorf("clear file write permission error: %v", err)
-		}
-	}()
 	if err := nginxmgr.PrepareServiceCert(nginxcom.SouthAuthCertKeyFile, nginxcom.SouthAuthCertFile,
 		common.WsSerName, true, &nginxReloadLocker); err != nil {
 		optErr = fmt.Errorf("prepare service cert [%v] error: %v", nginxcom.SouthAuthCertFile, err)

@@ -24,8 +24,10 @@ import (
 )
 
 const (
-	maxRetry = 10
-	waitTime = 5 * time.Second
+	maxRetry           = 10
+	waitTime           = 5 * time.Second
+	httpReqTryInterval = time.Minute
+	httpReqTryMaxTime  = 5
 )
 
 func prepareCert() error {
@@ -320,9 +322,18 @@ func PrepareServiceCert(keyPath string, certPath string, caName string, forceFla
 		}
 		hwlog.RunLog.Infof("cert file [%v] is deleted", certPath)
 	}
-	if err := prepareServerCert(keyPath, certPath, caName); err != nil {
-		hwlog.RunLog.Errorf("prepare server cert failed:%v", err)
-		return err
+	var tryCnt int
+	// try multiple times until cert-manager https server is ready
+	for tryCnt = 0; tryCnt < httpReqTryMaxTime; tryCnt++ {
+		if err := prepareServerCert(keyPath, certPath, caName); err != nil {
+			hwlog.RunLog.Errorf("retrieve service cert [%v], get error: %v, try request for next time", certPath, err)
+			time.Sleep(httpReqTryInterval)
+			continue
+		}
+		break
+	}
+	if tryCnt == httpReqTryMaxTime {
+		return fmt.Errorf("retrieve service cert [%v] failed, please check network connection", certPath)
 	}
 	return nil
 }

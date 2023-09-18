@@ -28,13 +28,15 @@ import (
 
 // common definition for cert update operation
 const (
-	CertTypeEdgeCa          = "EdgeCa"
-	CertTypeEdgeSvc         = "EdgeSvc"
-	NotRunning        int64 = 0
-	InRunning         int64 = 1
-	notifyInterval          = time.Second * 3
-	updateCertTimeout       = time.Minute * 10
-	workingQueueSize        = common.MaxNode
+	CertTypeEdgeCa           = "EdgeCa"
+	CertTypeEdgeSvc          = "EdgeSvc"
+	NotRunning         int64 = 0
+	InRunning          int64 = 1
+	httpReqTryInterval       = time.Minute
+	httpReqTryMaxTime        = 5
+	notifyInterval           = time.Second * 3
+	updateCertTimeout        = time.Minute * 10
+	workingQueueSize         = common.MaxNode
 )
 
 const (
@@ -161,13 +163,24 @@ func notifyCertUpdateToNginxMgr(payload *CertUpdatePayload) error {
 	if err != nil {
 		return err
 	}
-	respBytes, err := httpsReq.PostJson(jsonBody)
-	if err != nil {
-		return err
-	}
+	var tryCnt int
 	var resp common.RespMsg
-	if err = json.Unmarshal(respBytes, &resp); err != nil {
-		return err
+	for tryCnt = 0; tryCnt < httpReqTryMaxTime; tryCnt++ {
+		respBytes, err := httpsReq.PostJson(jsonBody)
+		if err != nil {
+			hwlog.RunLog.Errorf("do http post request error: %v, try request for next time", err)
+			time.Sleep(httpReqTryInterval)
+			continue
+		}
+		if err := json.Unmarshal(respBytes, &resp); err != nil {
+			hwlog.RunLog.Errorf("unmarshal http body error: %v, try request for netx time", err)
+			time.Sleep(httpReqTryInterval)
+			continue
+		}
+		break
+	}
+	if tryCnt == httpReqTryMaxTime {
+		return fmt.Errorf("send cert update notify to nginx manager error, please check network connection")
 	}
 	if resp.Status != common.Success {
 		return fmt.Errorf("report cert update result error: %v", resp.Msg)
@@ -319,7 +332,7 @@ func sendUpdateFailedAlarm(payload *CertUpdatePayload) error {
 	}
 	if needSendAlarm {
 		hwlog.RunLog.Warnf("the following edge nodes are not successfully update certs, "+
-			"please do net-config operation on edge nodes as soon as possible\nnodes sn: [%v]", failedSns)
+			"please do net-config operation on edge nodes as soon as possible. nodes sn: [%v]", failedSns)
 		if err := sendAlarm(alarmId, alarms.AlarmFlag); err != nil {
 			return fmt.Errorf("send cert update abnormal alarm [id: %v] error: %v", alarmId, err)
 		}
