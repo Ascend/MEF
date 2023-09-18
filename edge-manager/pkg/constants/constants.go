@@ -38,13 +38,14 @@ const (
 	LogDumpTempDir = "/home/MEFCenter/mef_logcollect/temp"
 	// LogDumpPublicDir the public dir for dumping log
 	LogDumpPublicDir = "/home/MEFCenter/mef_logcollect/public"
-	// TaskIdRegexpStr task id regexp
-	TaskIdRegexpStr = `[-_a-zA-Z0-9.]{1,128}`
+	// taskIdRegexpStr task id regexp
+	taskIdRegexpStr = `[-_a-zA-Z0-9.]{1,128}`
 	// DumpMultiNodesLogTaskName the single node task name
 	DumpMultiNodesLogTaskName = `dumpMultiNodesLog`
 	// DumpSingleNodeLogTaskName the multiple nodes task name
 	DumpSingleNodeLogTaskName = `dumpSingleNodeLog`
-
+	// SingleNodeTaskIdRegexpStr the single node task regexp
+	SingleNodeTaskIdRegexpStr = "^" + DumpSingleNodeLogTaskName + taskIdRegexpStr + "$"
 	// LogUploadMaxSize max size for single node uploading log
 	LogUploadMaxSize = 200 * common.MB
 )

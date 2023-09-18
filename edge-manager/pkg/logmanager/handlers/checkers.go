@@ -30,7 +30,7 @@ func newCreateTaskReqChecker() *checker.AndChecker {
 
 func newTaskErrorChecker() *checker.AndChecker {
 	return checker.GetAndChecker(
-		checker.GetRegChecker("Id", constants.DumpSingleNodeLogTaskName+constants.TaskIdRegexpStr, true),
+		checker.GetRegChecker("Id", constants.SingleNodeTaskIdRegexpStr, true),
 		checker.GetRegChecker("Reason", genericStringRegexp, false),
 		checker.GetRegChecker("Message", genericStringRegexp, false),
 	)

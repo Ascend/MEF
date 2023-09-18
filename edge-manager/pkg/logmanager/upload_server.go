@@ -227,8 +227,7 @@ func createUploadProcess(w http.ResponseWriter, r *http.Request) (*uploadProcess
 	taskId := r.Header.Get(headerTaskId)
 	pkgSizeStr := r.Header.Get(headerPackageSize)
 	sha256Checksum := r.Header.Get(headerSha256Checksum)
-	if matched, err := regexp.MatchString(
-		constants.DumpSingleNodeLogTaskName+constants.TaskIdRegexpStr, taskId); err != nil || !matched {
+	if matched, err := regexp.MatchString(constants.SingleNodeTaskIdRegexpStr, taskId); err != nil || !matched {
 		return nil, errors.New("invalid task id")
 	}
 	pkgSize, err := strconv.ParseInt(pkgSizeStr, common.BaseHex, common.BitSize64)
