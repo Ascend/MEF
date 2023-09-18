@@ -205,15 +205,15 @@ func main() {
 	}
 	defer envutils.GetFlock(util.MefCenterLock).Unlock()
 
-	hwlog.OpLog.Infof("%s: %s, start to install MEF Center", ip, user)
+	hwlog.OpLog.Infof("[%s@%s] start to install MEF Center", user, ip)
 	hwlog.RunLog.Info("--------------------Start to install MEF-Center--------------------")
 	if err = doInstall(); err != nil {
 		hwlog.RunLog.Errorf("install failed: %s", err.Error())
-		hwlog.OpLog.Errorf("%s: %s, install MEF Center failed", ip, user)
+		hwlog.OpLog.Errorf("[%s@%s] install MEF Center failed", user, ip)
 		os.Exit(util.ErrorExitCode)
 	}
 	hwlog.RunLog.Info("--------------------Install MEF_Center success--------------------")
-	hwlog.OpLog.Infof("%s: %s, install MEF Center successfully", ip, user)
+	hwlog.OpLog.Infof("[%s@%s], install MEF Center successfully", user, ip)
 }
 
 func preCheck() int {

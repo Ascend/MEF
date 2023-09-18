@@ -116,19 +116,19 @@ func (oc *operateController) bindFlag() bool {
 func (oc *operateController) printExecutingLog(ip, user string) {
 	fmt.Printf("start to %s %s component\n", oc.operate, componentType)
 	hwlog.RunLog.Infof("-------------------start to %s %s component-------------------", oc.operate, componentType)
-	hwlog.OpLog.Infof("%s: %s, start to %s %s component", ip, user, oc.operate, componentType)
+	hwlog.OpLog.Infof("[%s@%s] start to %s %s component", user, ip, oc.operate, componentType)
 }
 
 func (oc *operateController) printFailedLog(ip, user string) {
 	fmt.Printf("%s %s component failed\n", oc.operate, componentType)
 	hwlog.RunLog.Errorf("-------------------%s %s component failed-------------------", oc.operate, componentType)
-	hwlog.OpLog.Errorf("%s: %s, %s %s component failed", ip, user, oc.operate, componentType)
+	hwlog.OpLog.Errorf("[%s@%s] %s %s component failed", user, ip, oc.operate, componentType)
 }
 
 func (oc *operateController) printSuccessLog(ip, user string) {
 	fmt.Printf("%s %s component successful\n", oc.operate, componentType)
 	hwlog.RunLog.Infof("-------------------%s %s component successful-------------------", oc.operate, componentType)
-	hwlog.OpLog.Infof("%s: %s, %s %s component successful", ip, user, oc.operate, componentType)
+	hwlog.OpLog.Infof("[%s@%s] %s %s component successful", user, ip, oc.operate, componentType)
 }
 
 func (oc *operateController) getName() string {
@@ -155,19 +155,19 @@ func (uc *uninstallController) bindFlag() bool {
 
 func (uc *uninstallController) printExecutingLog(ip, user string) {
 	hwlog.RunLog.Info("-------------------start to uninstall MEF-Center-------------------")
-	hwlog.OpLog.Infof("%s: %s, start to uninstall MEF-Center", ip, user)
+	hwlog.OpLog.Infof("[%s@%s] start to uninstall MEF-Center", user, ip)
 	fmt.Println("start to uninstall MEF-Center")
 }
 
 func (uc *uninstallController) printFailedLog(ip, user string) {
 	hwlog.RunLog.Error("-------------------uninstall MEF-Center failed-------------------")
-	hwlog.OpLog.Errorf("%s: %s, uninstall MEF-Center failed", ip, user)
+	hwlog.OpLog.Errorf("[%s@%s] uninstall MEF-Center failed", user, ip)
 	fmt.Println("uninstall MEF-Center failed")
 }
 
 func (uc *uninstallController) printSuccessLog(ip, user string) {
 	hwlog.RunLog.Info("-------------------uninstall MEF-Center successful-------------------")
-	hwlog.OpLog.Infof("%s: %s, uninstall MEF-Center successful", ip, user)
+	hwlog.OpLog.Infof("[%s@%s] uninstall MEF-Center successful", user, ip)
 	fmt.Println("uninstall MEF-Center successful")
 }
 
@@ -213,19 +213,19 @@ func (uc *upgradeController) bindFlag() bool {
 
 func (uc *upgradeController) printExecutingLog(ip, user string) {
 	hwlog.RunLog.Info("-------------------start to upgrade MEF-Center-------------------")
-	hwlog.OpLog.Infof("%s: %s, start to upgrade MEF-Center", ip, user)
+	hwlog.OpLog.Infof("[%s@%s] start to upgrade MEF-Center", user, ip)
 	fmt.Println(" start to upgrade MEF-Center")
 }
 
 func (uc *upgradeController) printFailedLog(ip, user string) {
 	hwlog.RunLog.Error("-------------------upgrade MEF-Center failed-------------------")
-	hwlog.OpLog.Errorf("%s: %s, upgrade MEF-Center failed", ip, user)
+	hwlog.OpLog.Errorf("[%s@%s] upgrade MEF-Center failed", user, ip)
 	fmt.Println("upgrade MEF-Center failed")
 }
 
 func (uc *upgradeController) printSuccessLog(ip, user string) {
 	hwlog.RunLog.Info("-------------------upgrade MEF-Center successful-------------------")
-	hwlog.OpLog.Infof("%s: %s, upgrade MEF-Center successful", ip, user)
+	hwlog.OpLog.Infof("[%s@%s] upgrade MEF-Center successful", user, ip)
 	fmt.Println("upgrade MEF-Center successful")
 }
 
@@ -274,19 +274,19 @@ func (ecc *exchangeCertsController) doControl() error {
 
 func (ecc *exchangeCertsController) printExecutingLog(ip, user string) {
 	hwlog.RunLog.Info("-------------------start to exchange certs-------------------")
-	hwlog.OpLog.Infof("%s: %s, start to exchange certs", ip, user)
+	hwlog.OpLog.Infof("[%s@%s] start to exchange certs", user, ip)
 	fmt.Println("start to exchange certs")
 }
 
 func (ecc *exchangeCertsController) printSuccessLog(user, ip string) {
 	hwlog.RunLog.Info("-------------------exchange certs successful-------------------")
-	hwlog.OpLog.Infof("%s: %s, exchange certs successful", ip, user)
+	hwlog.OpLog.Infof("[%s@%s] exchange certs successful", user, ip)
 	fmt.Println("exchange certs successful")
 }
 
 func (ecc *exchangeCertsController) printFailedLog(user, ip string) {
 	hwlog.RunLog.Error("-------------------exchange certs failed-------------------")
-	hwlog.OpLog.Errorf("%s: %s, exchange certs failed", ip, user)
+	hwlog.OpLog.Errorf("[%s@%s] exchange certs failed", user, ip)
 	fmt.Println("exchange certs failed")
 }
 
@@ -321,19 +321,19 @@ func (ukc *updateKmcController) doControl() error {
 
 func (ukc *updateKmcController) printExecutingLog(ip, user string) {
 	hwlog.RunLog.Info("-------------------start to update kmc keys-------------------")
-	hwlog.OpLog.Infof("%s: %s, start to update kmc keys", ip, user)
+	hwlog.OpLog.Infof("[%s@%s] start to update kmc keys", user, ip)
 	fmt.Println(" start to update kmc keys")
 }
 
 func (ukc *updateKmcController) printSuccessLog(user, ip string) {
 	hwlog.RunLog.Info("-------------------update kmc keys successful-------------------")
-	hwlog.OpLog.Infof("%s: %s, update kmc keys successful", ip, user)
+	hwlog.OpLog.Infof("[%s@%s] update kmc keys successful", user, ip)
 	fmt.Println("update kmc keys successful")
 }
 
 func (ukc *updateKmcController) printFailedLog(user, ip string) {
 	hwlog.RunLog.Error("-------------------update kmc keys failed-------------------")
-	hwlog.OpLog.Errorf("%s: %s, update kmc keys failed", ip, user)
+	hwlog.OpLog.Errorf("[%s@%s] update kmc keys failed", user, ip)
 	fmt.Println("update kmc keys failed")
 }
 
@@ -382,19 +382,19 @@ func (mtc *manageThridComponent) doControl() error {
 
 func (mtc *manageThridComponent) printExecutingLog(ip, user string) {
 	hwlog.RunLog.Info("-------------------start to manage third component-------------------")
-	hwlog.OpLog.Infof("%s: %s, start to manage third component", ip, user)
+	hwlog.OpLog.Infof("[%s@%s] start to manage third component", user, ip)
 	fmt.Println("start to manage third component")
 }
 
 func (mtc *manageThridComponent) printSuccessLog(user, ip string) {
 	hwlog.RunLog.Info("-------------------manage third component successful-------------------")
-	hwlog.OpLog.Infof("%s: %s, manage third component successful", ip, user)
+	hwlog.OpLog.Infof("[%s@%s] manage third component successful", user, ip)
 	fmt.Println("manage third component successful")
 }
 
 func (mtc *manageThridComponent) printFailedLog(user, ip string) {
 	hwlog.RunLog.Error("-------------------manage third component failed-------------------")
-	hwlog.OpLog.Errorf("%s: %s, manage third component failed", ip, user)
+	hwlog.OpLog.Errorf("[%s@%s] manage third component failed", user, ip)
 	fmt.Println("manage third component failed")
 }
 

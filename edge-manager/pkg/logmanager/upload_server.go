@@ -272,8 +272,8 @@ func HandleUpload(w http.ResponseWriter, r *http.Request) {
 		if _, err := w.Write([]byte(template.HTMLEscapeString(err.Error()))); err != nil {
 			hwlog.RunLog.Errorf("failed to respond error to edge: %v", err)
 		}
-		hwlog.OpLog.Errorf("edge(%s,ip:%s) %s %s failed", p.serialNumber, p.clientIP, r.Method, r.URL.Path)
+		hwlog.OpLog.Errorf("[edge(%s)@%s] %s %s failed", p.serialNumber, p.clientIP, r.Method, r.URL.Path)
 		return
 	}
-	hwlog.OpLog.Infof("edge(%s:ip:%s) %s %s success", p.serialNumber, p.clientIP, r.Method, r.URL.Path)
+	hwlog.OpLog.Infof("[edge(%s)@%s] %s %s success", p.serialNumber, p.clientIP, r.Method, r.URL.Path)
 }

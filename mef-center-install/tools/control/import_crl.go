@@ -66,19 +66,19 @@ func (icc *importCrlController) doControl() error {
 
 func (icc *importCrlController) printExecutingLog(ip, user string) {
 	hwlog.RunLog.Info("-------------------start to import crl-------------------")
-	hwlog.OpLog.Infof("%s: %s, start to import crl", ip, user)
+	hwlog.OpLog.Infof("[%s@%s] start to import crl", user, ip)
 	fmt.Println("start to import crl")
 }
 
 func (icc *importCrlController) printSuccessLog(user, ip string) {
 	hwlog.RunLog.Info("-------------------import crl successful-------------------")
-	hwlog.OpLog.Infof("%s: %s, import crl successful", ip, user)
+	hwlog.OpLog.Infof("[%s@%s] import crl successful", user, ip)
 	fmt.Println("import crl successful")
 }
 
 func (icc *importCrlController) printFailedLog(user, ip string) {
 	hwlog.RunLog.Error("-------------------import crl failed-------------------")
-	hwlog.OpLog.Errorf("%s: %s, import crl failed", ip, user)
+	hwlog.OpLog.Errorf("[%s@%s] import crl failed", user, ip)
 	fmt.Println("import crl failed")
 }
 
