@@ -8,6 +8,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"huawei.com/mindx/common/envutils"
@@ -283,5 +285,21 @@ func startNginxCmd() bool {
 		return false
 	}
 	hwlog.RunLog.Info("run nginx success")
+	go childWaitProcess()
 	return true
+}
+
+func childWaitProcess() {
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGCHLD)
+	for {
+		sig := <-sigCh
+		if sig != syscall.SIGCHLD {
+			return
+		}
+		if _, err := syscall.Wait4(-1, nil, syscall.WNOHANG, nil); err != nil {
+			hwlog.RunLog.Errorf("recycle subprocess resources failed, error:%s", err.Error())
+		}
+		return
+	}
 }
