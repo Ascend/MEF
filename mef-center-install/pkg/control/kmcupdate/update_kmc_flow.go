@@ -122,6 +122,12 @@ func (muk *UpdateKmcFlow) getEncryptMap() map[string][]kmc.ReEncryptParam {
 				SuffixList: []string{kmc.KeySuffix},
 			},
 		},
+		util.AlarmManagerName: {
+			kmc.ReEncryptParam{
+				Path:       muk.pathMgr.ConfigPathMgr.GetComponentConfigPath(util.AlarmManagerName),
+				SuffixList: []string{kmc.KeySuffix},
+			},
+		},
 		util.MefCenterRootName: {
 			kmc.ReEncryptParam{
 				Path: muk.pathMgr.ConfigPathMgr.GetRootCaKeyPath(),
