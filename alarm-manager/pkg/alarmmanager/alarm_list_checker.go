@@ -28,7 +28,7 @@ func (alc *AlarmListerChecker) init() {
 	alc.modelChecker.Required = true
 
 	alc.modelChecker.Checker = checker.GetAndChecker(
-		checker.GetUintChecker("PageNum", common.DefaultPage, math.MaxInt64, true),
+		checker.GetUintChecker("PageNum", common.DefaultPage, math.MaxInt32, true),
 		checker.GetUintChecker("PageSize", common.DefaultMinPageSize, common.DefaultMaxPageSize, true),
 		checker.GetOrChecker(
 			checker.GetSnChecker("Sn", true),
