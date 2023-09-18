@@ -125,7 +125,9 @@ func checkEdgeToken(c *gin.Context) (int, error) {
 	if lock {
 		return http.StatusLocked, fmt.Errorf("edge(%s) is lock", ip)
 	}
+
 	token := c.GetHeader(headerToken)
+	defer common.ClearStringMemory(token)
 
 	if match := regexp.MustCompile(common.PassWordRegex).MatchString(token); !match {
 		if err := LockRepositoryInstance().recordFailed(ip); err != nil {
@@ -149,7 +151,6 @@ func checkEdgeToken(c *gin.Context) (int, error) {
 		}
 		return http.StatusUnauthorized, fmt.Errorf("edge ip %v send an incorrect token", ip)
 	}
-	defer common.ClearStringMemory(token)
 	if err := LockRepositoryInstance().authPass(ip); err != nil {
 		return http.StatusBadRequest, err
 	}
