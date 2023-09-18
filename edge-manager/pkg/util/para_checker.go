@@ -23,7 +23,7 @@ type paginationQueryChecker struct {
 func (pqc *paginationQueryChecker) init() {
 	pqc.modelChecker.Required = true
 	pqc.modelChecker.Checker = checker.GetAndChecker(
-		checker.GetUintChecker("PageNum", common.DefaultPage, math.MaxInt64, true),
+		checker.GetUintChecker("PageNum", common.DefaultPage, math.MaxInt32, true),
 		checker.GetUintChecker("PageSize", common.DefaultMinPageSize, common.DefaultMaxPageSize, true),
 		checker.GetRegChecker("Name", common.PaginationNameReg, false),
 	)
