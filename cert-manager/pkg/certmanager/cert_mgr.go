@@ -68,8 +68,8 @@ func CreateTempCaCert(caCertName string) (string, error) {
 	tempKeyPath := getTempRootKeyPath(caCertName)
 	tempCertPath := getTempRootCaPath(caCertName)
 	// if previously created certs exist, use them, otherwise create new certs.
-	if utils.IsExist(tempKeyPath) && utils.IsExist(tempCertPath) {
-		certData, err := utils.LoadFile(tempCertPath)
+	if fileutils.IsExist(tempKeyPath) && fileutils.IsExist(tempCertPath) {
+		certData, err := fileutils.LoadFile(tempCertPath)
 		if err != nil {
 			return "", fmt.Errorf("load previously created temp root ca failed: %v", err)
 		}
@@ -79,7 +79,7 @@ func CreateTempCaCert(caCertName string) (string, error) {
 	if _, err := certutils.InitRootCertMgr(tempCertPath, tempKeyPath, caCertName, nil).NewRootCa(); err != nil {
 		return "", fmt.Errorf("create new root ca [%v] failed: %v", caCertName, err)
 	}
-	certData, err := utils.LoadFile(tempCertPath)
+	certData, err := fileutils.LoadFile(tempCertPath)
 	if err != nil {
 		return "", fmt.Errorf("load new temp root ca failed: %v", err)
 	}
@@ -92,27 +92,27 @@ func UpdateCaCertWithTemp(certName string) error {
 	oldCertFilePath := getRootCaPath(certName)
 	tempKeyFilePath := getTempRootKeyPath(certName)
 	tempCertFilePath := getTempRootCaPath(certName)
-	if err := utils.SetPathPermission(oldCertFilePath, common.Mode600, false, false); err != nil {
+	if err := fileutils.SetPathPermission(oldCertFilePath, common.Mode600, false, false); err != nil {
 		return err
 	}
-	if err := utils.SetPathPermission(oldKeyFilePath, common.Mode600, false, false); err != nil {
+	if err := fileutils.SetPathPermission(oldKeyFilePath, common.Mode600, false, false); err != nil {
 		return err
 	}
 	defer func() {
-		if err := utils.SetPathPermission(oldCertFilePath, common.Mode400, false, false); err != nil {
+		if err := fileutils.SetPathPermission(oldCertFilePath, common.Mode400, false, false); err != nil {
 			hwlog.RunLog.Errorf("set cert file [%v] permission to 400 error: %v", oldCertFilePath, err)
 		}
-		if err := utils.SetPathPermission(oldKeyFilePath, common.Mode400, false, false); err != nil {
+		if err := fileutils.SetPathPermission(oldKeyFilePath, common.Mode400, false, false); err != nil {
 			hwlog.RunLog.Errorf("set key file [%v] permission to 400 error: %v", oldKeyFilePath, err)
 		}
 		if err := RemoveTempCaCert(certName); err != nil {
 			hwlog.RunLog.Errorf("delete temp ca cert error: %v", err)
 		}
 	}()
-	if err := utils.CopyFile(tempKeyFilePath, oldKeyFilePath); err != nil {
+	if err := fileutils.CopyFile(tempKeyFilePath, oldKeyFilePath); err != nil {
 		return err
 	}
-	if err := utils.CopyFile(tempCertFilePath, oldCertFilePath); err != nil {
+	if err := fileutils.CopyFile(tempCertFilePath, oldCertFilePath); err != nil {
 		return err
 	}
 	if err := backuputils.BackUpFiles(oldCertFilePath, oldKeyFilePath); err != nil {
@@ -126,13 +126,13 @@ func UpdateCaCertWithTemp(certName string) error {
 func RemoveTempCaCert(certName string) error {
 	tempKeyFilePath := getTempRootKeyPath(certName)
 	tempCertFilePath := getTempRootCaPath(certName)
-	if utils.IsExist(tempKeyFilePath) {
-		if err := utils.DeleteFile(tempKeyFilePath); err != nil {
+	if fileutils.IsExist(tempKeyFilePath) {
+		if err := fileutils.DeleteAllFileWithConfusion(tempKeyFilePath); err != nil {
 			return err
 		}
 	}
-	if utils.IsExist(tempCertFilePath) {
-		if err := utils.DeleteFile(tempCertFilePath); err != nil {
+	if fileutils.IsExist(tempCertFilePath) {
+		if err := fileutils.DeleteFile(tempCertFilePath); err != nil {
 			return err
 		}
 	}
@@ -158,7 +158,7 @@ func issueServiceCert(certName string, serviceCsr string) ([]byte, error) {
 	if certName == common.WsCltName || certName == common.WsSerName {
 		tempKeyPath := getTempRootKeyPath(certName)
 		tempCertPath := getTempRootCaPath(certName)
-		if utils.IsExist(tempKeyPath) && utils.IsExist(tempCertPath) {
+		if fileutils.IsExist(tempKeyPath) && fileutils.IsExist(tempCertPath) {
 			keyFilePath = tempKeyPath
 			caFilePath = tempCertPath
 		}
@@ -196,7 +196,7 @@ func isRootCaFilesExist(caFilePath, keyFilePath string) bool {
 // saveCaContent save ca content to File
 func saveCaContent(certName string, caContent []byte) error {
 	caFilePath := getRootCaPath(certName)
-	if err := utils.MakeSureDir(caFilePath); err != nil {
+	if err := fileutils.MakeSureDir(caFilePath); err != nil {
 		hwlog.RunLog.Errorf("create %s ca folder failed, error: %v", certName, err)
 		return fmt.Errorf("create %s ca folder failed, error: %v", certName, err)
 	}
@@ -265,7 +265,7 @@ func ExportRootCa(c *gin.Context) {
 	var caBytes []byte
 	var err error
 	tempCaFilePath := getTempRootCaPath(certName)
-	if utils.IsExist(tempCaFilePath) {
+	if fileutils.IsExist(tempCaFilePath) {
 		if caBytes, err = certutils.GetCertContent(tempCaFilePath); err != nil {
 			hwlog.RunLog.Errorf("load new temp root cert failed: %v, old root cert will be used", err)
 		}

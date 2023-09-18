@@ -93,7 +93,8 @@ func doBackup(filePath string) error {
 // delete backup file when operation is finished
 func removeBackup(filePath string) error {
 	backupPath := filePath + backupFileSuffix
-	if err := fileutils.DeleteFile(backupPath); err != nil {
+	// file list contains key files, use DeleteAllFileWithConfusion instead of DeleteFile
+	if err := fileutils.DeleteAllFileWithConfusion(backupPath); err != nil {
 		return fmt.Errorf("remove backup file [%v] failed: %v", backupPath, err)
 	}
 	return nil
@@ -102,9 +103,4 @@ func removeBackup(filePath string) error {
 // set file mode to 600 (rw) for writing new data to it
 func setWritePermission(filePath string) error {
 	return fileutils.SetPathPermission(filePath, fileutils.Mode600, false, false)
-}
-
-// reset file mode to 400 (read only) for safety after writing operation
-func clearWritePermission(filePath string) error {
-	return fileutils.SetPathPermission(filePath, fileutils.Mode400, false, false)
 }
