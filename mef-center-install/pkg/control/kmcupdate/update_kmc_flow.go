@@ -25,7 +25,8 @@ func NewUpdateKmcFlow(pathMgr *util.InstallDirPathMgr) *UpdateKmcFlow {
 }
 
 func (muk *UpdateKmcFlow) getModules() []string {
-	return []string{util.CertManagerName, util.NginxManagerName, util.EdgeManagerName, util.MefCenterRootName}
+	components := util.GetCompulsorySlice()
+	return append(components, util.MefCenterRootName)
 }
 
 // RunFlow is the main func to start a task
