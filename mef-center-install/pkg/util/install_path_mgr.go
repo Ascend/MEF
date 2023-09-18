@@ -120,11 +120,6 @@ func (idm *InstallDirPathMgr) GetRealVarDirPath() string {
 	return filepath.Join(idm.GetWorkAPath(), MefVarDir)
 }
 
-// GetIcsTempZipPath returns ics zip package file path
-func (idm *InstallDirPathMgr) GetIcsTempZipPath() string {
-	return filepath.Join(idm.GetRealVarDirPath(), IcsZip)
-}
-
 // GetIcsTempTarPath returns the path to tar file in ics-manager install operate
 func (idm *InstallDirPathMgr) GetIcsTempTarPath() string {
 	return filepath.Join(idm.GetRealVarDirPath(), IcsTar)
@@ -150,11 +145,6 @@ func (wpm *WorkPathMgr) GetWorkLibDirPath() string {
 // the var dir is a temporary path that used to storage temp files
 func (wpm *WorkPathMgr) GetVarDirPath() string {
 	return filepath.Join(wpm.workPath, MefVarDir)
-}
-
-// GetTempZipPath returns the path to unzip zip file in mef-center softlink
-func (wpm *WorkPathMgr) GetTempZipPath() string {
-	return filepath.Join(wpm.GetVarDirPath(), MefZipDir)
 }
 
 // GetTempTarPath returns the path to unzip tar file in mef-center softlink

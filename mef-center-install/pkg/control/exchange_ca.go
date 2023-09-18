@@ -19,14 +19,15 @@ import (
 
 // ExchangeCaFlow is used to exchange root ca with north module
 type ExchangeCaFlow struct {
-	pathMgr    *util.InstallDirPathMgr
-	importPath string
-	exportPath string
-	savePath   string
-	srcPath    string
-	component  string
-	uid        uint32
-	gid        uint32
+	pathMgr          *util.InstallDirPathMgr
+	importPath       string
+	exportPath       string
+	savePath         string
+	srcPath          string
+	component        string
+	uid              uint32
+	gid              uint32
+	printFingerprint bool
 }
 
 // NewExchangeCaFlow an ExchangeCaFlow struct
@@ -38,27 +39,33 @@ func NewExchangeCaFlow(importPath, exportPath, component string,
 		return nil, errors.New("get MEF uid/gid failed")
 	}
 
-	var savePath, srcPath string
+	var (
+		savePath, srcPath string
+		printFingerprint  bool
+	)
 	switch component {
 	case util.IcsManagerName:
 		savePath = pathMgr.ConfigPathMgr.GetIcsCertPath()
 		srcPath = pathMgr.ConfigPathMgr.GetRootCaCertPath()
+		printFingerprint = false
 	case util.NginxManagerName:
 		savePath = pathMgr.ConfigPathMgr.GetNorthernCertPath()
 		srcPath = pathMgr.ConfigPathMgr.GetApigRootPath()
+		printFingerprint = true
 	default:
 		return nil, errors.New("not support component to exchange ca")
 	}
 
 	return &ExchangeCaFlow{
-		pathMgr:    pathMgr,
-		importPath: importPath,
-		exportPath: exportPath,
-		component:  component,
-		gid:        gid,
-		uid:        uid,
-		srcPath:    srcPath,
-		savePath:   savePath,
+		pathMgr:          pathMgr,
+		importPath:       importPath,
+		exportPath:       exportPath,
+		component:        component,
+		gid:              gid,
+		uid:              uid,
+		srcPath:          srcPath,
+		savePath:         savePath,
+		printFingerprint: printFingerprint,
 	}, nil
 }
 
@@ -122,7 +129,9 @@ func (ecf *ExchangeCaFlow) checkCa() error {
 		hwlog.RunLog.Errorf("get file sha256 sum failed: %s", err.Error())
 		return errors.New("get file sha256 sum failed")
 	}
-	fmt.Printf("the sha256sum of the importing cert file is: %s\n", hash)
+	if ecf.printFingerprint {
+		fmt.Printf("the sha256sum of the importing cert file is: %s\n", hash)
+	}
 	hwlog.RunLog.Infof("the sha256sum of the importing cert file is: %s\n", hash)
 
 	hwlog.RunLog.Infof("check [%s] cert success", ecf.component)
