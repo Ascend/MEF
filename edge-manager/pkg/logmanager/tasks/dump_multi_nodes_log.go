@@ -14,7 +14,6 @@ import (
 	"sync"
 	"time"
 
-	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 
@@ -91,7 +90,7 @@ func dumpMultiNodesLog(ctx taskschedule.TaskContext) error {
 	}
 
 	// 3. check disk space
-	if err := envutils.CheckDiskSpace(
+	if err := utils.CheckDiskSpace(
 		constants.LogDumpTempDir, uint64(len(serialNumbers))*constants.LogUploadMaxSize); err != nil {
 		hwlog.RunLog.Errorf("temp dir has no enough disk space, %v", err)
 		return errors.New("temp dir has no enough disk space")

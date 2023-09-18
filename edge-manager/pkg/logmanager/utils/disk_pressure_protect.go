@@ -43,24 +43,8 @@ type diskPressureProtectWriter struct {
 func (w *diskPressureProtectWriter) Write(buffer []byte) (int, error) {
 	var checked bool
 	if w.currentPos == 0 || (uint64(len(buffer))+w.currentPos)-w.lastCheckPos > common.MB {
-		fileStat := syscall.Statfs_t{}
-		if err := syscall.Statfs(w.filePath, &fileStat); err != nil {
+		if err := checkDiskSpace(w.filePath, uint64(len(buffer)), w.reservedBytes, w.reservedRate); err != nil {
 			return 0, err
-		}
-
-		diskFree := fileStat.Bavail * uint64(fileStat.Bsize)
-		freeBytes := diskFree - uint64(len(buffer))
-		if w.reservedBytes != 0 && freeBytes <= w.reservedBytes {
-			return 0, ErrDiskPressure
-		}
-
-		diskTotal := fileStat.Blocks * uint64(fileStat.Bsize)
-		if diskTotal == 0 {
-			return 0, ErrDiskPressure
-		}
-		freeRate := float64(freeBytes) / float64(diskTotal)
-		if w.reservedRate != 0 && freeRate <= w.reservedRate {
-			return 0, ErrDiskPressure
 		}
 		checked = true
 	}
@@ -74,4 +58,32 @@ func (w *diskPressureProtectWriter) Write(buffer []byte) (int, error) {
 		w.lastCheckPos = w.currentPos
 	}
 	return nRead, err
+}
+
+// CheckDiskSpace checks whether disk space is enough
+func CheckDiskSpace(filePath string, requiredSpace uint64) error {
+	return checkDiskSpace(filePath, requiredSpace, defaultReservedBytes, defaultReservedRate)
+}
+
+func checkDiskSpace(filePath string, requiredSpace, reservedBytes uint64, reservedRate float64) error {
+	fileStat := syscall.Statfs_t{}
+	if err := syscall.Statfs(filePath, &fileStat); err != nil {
+		return err
+	}
+
+	diskFree := fileStat.Bavail * uint64(fileStat.Bsize)
+	freeBytes := diskFree - requiredSpace
+	if reservedBytes != 0 && freeBytes <= reservedBytes {
+		return ErrDiskPressure
+	}
+
+	diskTotal := fileStat.Blocks * uint64(fileStat.Bsize)
+	if diskTotal == 0 {
+		return ErrDiskPressure
+	}
+	freeRate := float64(freeBytes) / float64(diskTotal)
+	if reservedRate != 0 && freeRate <= reservedRate {
+		return ErrDiskPressure
+	}
+	return nil
 }
