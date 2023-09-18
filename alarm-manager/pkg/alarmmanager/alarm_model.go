@@ -7,9 +7,9 @@ import (
 	"sync"
 
 	"gorm.io/gorm"
-
 	"huawei.com/mindx/common/database"
 
+	"alarm-manager/pkg/types"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/alarms"
 )
@@ -109,6 +109,24 @@ func (adh *AlarmDbHandler) listAllEdgeAlarmsOrEventsDb(pageNum, pageSize uint64,
 	return alarmInfo, adh.db().Scopes(getPagedEdgeScopes(pageNum, pageSize, queryType)).Find(&alarmInfo).Error
 }
 
+func (adh *AlarmDbHandler) getAlarmOrEventInfoByAlarmInfoId(Id uint64) (*AlarmInfo, error) {
+	var alarm AlarmInfo
+	return &alarm, adh.db().Model(AlarmInfo{}).Where("id=?", Id).First(&alarm).Error
+}
+
+func (adh *AlarmDbHandler) listAlarmsOrEventsOfGroup(pageNum, pageSize uint64, nodes []types.NodeInfo,
+	queryType string) ([]AlarmInfo, error) {
+	var alarmInfo []AlarmInfo
+	if len(nodes) == 0 {
+		return alarmInfo, nil
+	}
+	sns := make([]string, len(nodes))
+	for idx, node := range nodes {
+		sns[idx] = node.Sn
+	}
+	return alarmInfo, adh.db().Scopes(getAlarmGroupScopes(pageNum, pageSize, sns, queryType)).Find(&alarmInfo).Error
+}
+
 func getPagedEdgeScopes(pageNum, pageSize uint64, queryType string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Scopes(common.Paginate(pageNum, pageSize)).Where("alarm_type=? and serial_number <> ?",
@@ -116,6 +134,7 @@ func getPagedEdgeScopes(pageNum, pageSize uint64, queryType string) func(db *gor
 	}
 }
 
+// scopes
 func getPagedScopes(pageNum, pageSize uint64, queryType string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Scopes(common.Paginate(pageNum, pageSize)).Where("alarm_type=?", queryType)
@@ -128,19 +147,39 @@ func getAlarmNodeScopes(page, pageSize uint64, sn string, queryType string) func
 	}
 }
 
-func (adh *AlarmDbHandler) getAlarmOrEventInfoByAlarmInfoId(Id uint64) (*AlarmInfo, error) {
-	var alarm AlarmInfo
-	return &alarm, adh.db().Model(AlarmInfo{}).Where("id=?", Id).First(&alarm).Error
-}
-
-func (adh *AlarmDbHandler) listGroupAlarmsOrEventsDb(pageNum, pageSize uint64, sns []string, queryType string) (
-	*[]AlarmInfo, error) {
-	var alarmInfo []AlarmInfo
-	return &alarmInfo, adh.db().Scopes(getAlarmGroupScopes(pageNum, pageSize, sns, queryType)).Find(&alarmInfo).Error
-}
-
 func getAlarmGroupScopes(page, pageSize uint64, sns []string, queryType string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Scopes(common.Paginate(page, pageSize)).Where("alarm_type=? and sn in (?)", queryType, sns)
+		return db.Scopes(common.Paginate(page, pageSize)).Where("alarm_type=? and serial_number in (?)", queryType, sns)
 	}
+}
+
+// counters
+func (adh *AlarmDbHandler) countAlarmsOrEventsBySn(sn string, queryType string) (int64, error) {
+	count := int64(0)
+	return count, adh.db().Model(AlarmInfo{}).Where("serial_number = ? and alarm_type=?", sn,
+		queryType).Count(&count).Error
+}
+
+func (adh *AlarmDbHandler) countAlarmsOrEventsOfNodes(nodes []types.NodeInfo, queryType string) (int64, error) {
+	if len(nodes) == 0 {
+		return 0, nil
+	}
+	sns := make([]string, len(nodes))
+	for idx, node := range nodes {
+		sns[idx] = node.Sn
+	}
+	count := int64(0)
+	return count, adh.db().Model(AlarmInfo{}).Where("serial_number in (?) and alarm_type=?", sns,
+		queryType).Count(&count).Error
+}
+
+func (adh *AlarmDbHandler) countAlarmsOrEventsOfEdgeNodes(queryType string) (int64, error) {
+	count := int64(0)
+	return count, adh.db().Model(AlarmInfo{}).Where("serial_number != ? and alarm_type=?", alarms.CenterSn,
+		queryType).Count(&count).Error
+}
+
+func (adh *AlarmDbHandler) countAlarmsOrEventsFullNodes(queryType string) (int64, error) {
+	count := int64(0)
+	return count, adh.db().Model(AlarmInfo{}).Where("alarm_type=?", queryType).Count(&count).Error
 }
