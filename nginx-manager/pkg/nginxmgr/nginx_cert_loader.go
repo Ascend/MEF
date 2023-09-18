@@ -4,6 +4,7 @@
 package nginxmgr
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -209,9 +210,13 @@ func WritePipeForClient(keyPath, pipeDir string, pipeCount int, deletePipeAfterU
 
 func loadKey(path string) ([]byte, error) {
 	encryptKeyContent, err := utils.LoadFile(path)
-	if encryptKeyContent == nil {
+	if err != nil {
 		hwlog.RunLog.Errorf("load key file failed: %s", err.Error())
 		return nil, fmt.Errorf("load key file failed: %s", err.Error())
+	}
+	if encryptKeyContent == nil {
+		hwlog.RunLog.Error("load key file returns empty content")
+		return nil, errors.New("load key file returns empty content")
 	}
 	decryptKeyByte, err := kmc.DecryptContent(encryptKeyContent, kmc.GetDefKmcCfg())
 	if err != nil {
