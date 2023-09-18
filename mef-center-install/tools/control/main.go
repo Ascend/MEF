@@ -38,11 +38,6 @@ type uninstallController struct {
 	installParam *util.InstallParamJsonTemplate
 }
 
-type upgradeController struct {
-	operate      string
-	installParam *util.InstallParamJsonTemplate
-}
-
 var (
 	// BuildName the program name
 	BuildName string
@@ -51,14 +46,15 @@ var (
 
 	componentType string
 	version       bool
-	zipPath       string
 	help          bool
 	curController controller
 )
 
 const (
 	componentFlag = "component"
-	pathFlag      = "pkg_path"
+	tarPathFlag   = "file"
+	cmsPathFlag   = "cms"
+	crlPathFlag   = "crl"
 )
 
 func checkComponent(components []string) error {
@@ -175,29 +171,23 @@ func (uc *uninstallController) getName() string {
 	return uc.operate
 }
 
+type upgradeController struct {
+	operate      string
+	installParam *util.InstallParamJsonTemplate
+	tarPath      string
+	cmsPath      string
+	crlPath      string
+}
+
 func (uc *upgradeController) doControl() error {
 	installedComponents := util.GetCompulsorySlice()
 
-	if err := uc.checkZipPath(); err != nil {
-		hwlog.RunLog.Errorf("check zip path failed: %s", err.Error())
-		return err
-	}
-	controlMgr := control.GetUpgradePreMgr(zipPath, installedComponents, uc.installParam.InstallDir)
+	controlMgr := control.GetUpgradePreMgr(uc.tarPath, uc.cmsPath, uc.crlPath,
+		installedComponents, uc.installParam.InstallDir)
 
 	if err := controlMgr.DoUpgrade(); err != nil {
 		return err
 	}
-	return nil
-}
-
-func (uc *upgradeController) checkZipPath() error {
-	pathMgr := util.InitInstallDirPathMgr(uc.installParam.InstallDir)
-	unpackPath := pathMgr.WorkPathMgr.GetVarDirPath()
-	if err := util.CheckZipFile(unpackPath, zipPath); err != nil {
-		fmt.Println(err)
-		return err
-	}
-
 	return nil
 }
 
@@ -206,8 +196,12 @@ func (uc *upgradeController) setInstallParam(installParam *util.InstallParamJson
 }
 
 func (uc *upgradeController) bindFlag() bool {
-	flag.StringVar(&zipPath, pathFlag, "", "the path of the zip file to upgrade MEF Center")
-	utils.MarkFlagRequired(pathFlag)
+	flag.StringVar(&(uc.tarPath), tarPathFlag, "", "path of the software upgrade tar.gz file")
+	flag.StringVar(&(uc.cmsPath), cmsPathFlag, "", "path of the software upgrade tar.gz.cms file")
+	flag.StringVar(&(uc.crlPath), crlPathFlag, "", "path of the software upgrade tar.gz.crl file")
+	utils.MarkFlagRequired(tarPathFlag)
+	utils.MarkFlagRequired(cmsPathFlag)
+	utils.MarkFlagRequired(crlPathFlag)
 	return true
 }
 
@@ -351,14 +345,20 @@ type manageThridComponent struct {
 
 const (
 	operateFlag            = "operate"
-	installPackagePathFlag = "install_zip_file"
+	installPackagePathFlag = "install_tar_file"
+	installCmsPathFlag     = "install_cms_file"
+	installCrlPathFlag     = "install_crl_file"
 )
 
 func (mtc *manageThridComponent) bindFlag() bool {
 	flag.StringVar(&(mtc.component), componentFlag, "", "component name, only support [ics-manager]")
 	flag.StringVar(&(mtc.operate), operateFlag, "", "manage third component operate, only support [install, uninstall]")
 	flag.StringVar(&(mtc.InstallPackagePath), installPackagePathFlag, "",
-		"install package zip file path, install operate necessary parameter")
+		"install package tar.gz file path, install operate necessary parameter")
+	flag.StringVar(&(mtc.InstallCmsPath), installCmsPathFlag, "",
+		"install package cms file path, install operate necessary parameter")
+	flag.StringVar(&(mtc.InstallCrlPath), installCrlPathFlag, "",
+		"install package crl file path, install operate necessary parameter")
 	utils.MarkFlagRequired(componentFlag)
 	utils.MarkFlagRequired(operateFlag)
 	return true

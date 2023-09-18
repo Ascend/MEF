@@ -27,6 +27,8 @@ type ManageThridComponentFlow struct {
 // SubParam sub parameter of manage third component
 type SubParam struct {
 	InstallPackagePath string
+	InstallCmsPath     string
+	InstallCrlPath     string
 }
 
 // NewThirdComponentManageFlow an ManageThridComponentFlow struct
@@ -54,13 +56,13 @@ func operateThirdComponent() []string {
 }
 
 // DoManage is the main func to manage third component
-func (ecf *ManageThridComponentFlow) DoManage() error {
-	if err := ecf.checkParam(); err != nil {
+func (mtc *ManageThridComponentFlow) DoManage() error {
+	if err := mtc.checkParam(); err != nil {
 		return err
 	}
-	if ecf.component == util.IcsManagerName {
-		ics := icsManager{pathMgr: ecf.pathMgr, name: util.IcsManagerName, operate: ecf.operate}
-		return ics.operateIcsManager(ecf.SubParam)
+	if mtc.component == util.IcsManagerName {
+		ics := icsManager{pathMgr: mtc.pathMgr, name: util.IcsManagerName, operate: mtc.operate}
+		return ics.operateIcsManager(mtc.SubParam)
 	}
 
 	return nil
@@ -88,7 +90,7 @@ type icsManager struct {
 func (ics icsManager) operateIcsManager(args SubParam) error {
 	switch ics.operate {
 	case util.OperateInstall:
-		if err := ics.install(args.InstallPackagePath); err != nil {
+		if err := ics.install(args.InstallPackagePath, args.InstallCmsPath, args.InstallCrlPath); err != nil {
 			util.ClearPakEnv(ics.pathMgr.WorkPathMgr.GetVarDirPath())
 			return err
 		}
@@ -100,7 +102,7 @@ func (ics icsManager) operateIcsManager(args SubParam) error {
 	}
 }
 
-func (ics icsManager) install(zipPath string) error {
+func (ics icsManager) install(tarPath, cmsPath, crlPath string) error {
 	fmt.Printf("start to install %s\n", ics.name)
 	exist, err := util.OptionComponentExist(util.IcsManagerName)
 	if err != nil {
@@ -110,7 +112,7 @@ func (ics icsManager) install(zipPath string) error {
 		fmt.Printf("%s has already been installed\n", ics.name)
 		return fmt.Errorf("%s has already been installed", ics.name)
 	}
-	unpackTarPath, err := ics.prepareFile(zipPath)
+	unpackTarPath, err := ics.prepareFile(tarPath, cmsPath, crlPath)
 	if err != nil {
 		return err
 	}
@@ -150,30 +152,16 @@ func (ics icsManager) install(zipPath string) error {
 	return nil
 }
 
-func (ics icsManager) prepareFile(zipPath string) (string, error) {
+func (ics icsManager) prepareFile(tarPath, cmsPath, crlPath string) (string, error) {
 	fmt.Println("start to verify ics-manager package")
-	unpackPath := ics.pathMgr.GetRealVarDirPath()
-	if err := util.CheckZipFile(unpackPath, zipPath); err != nil {
-		hwlog.RunLog.Errorf("check %s zip path error: %v", ics.name, err)
-		return "", fmt.Errorf("check %s zip path error: %v", ics.name, err)
-	}
-	unpackZipPath := ics.pathMgr.GetIcsTempZipPath()
-	if err := common.ExtraUpgradeZipFile(zipPath, unpackZipPath); err != nil {
-		hwlog.RunLog.Errorf("unzip zip file failed: %s", err.Error())
-		return "", errors.New("unzip zip file failed")
-	}
-	zipContent, err := util.GetVerifyFileName(unpackZipPath, common.IcsManagerFlag)
-	if err != nil {
-		return "", err
-	}
 	// when two input parameters are the same, the function can be used to check whether the CRL file is valid
-	crlToUpdateValid, err := cmsverify.CompareCrls(zipContent.CrlPath, zipContent.CrlPath)
+	crlToUpdateValid, err := cmsverify.CompareCrls(crlPath, crlPath)
 	if err != nil || int(crlToUpdateValid) != util.CompareSame {
 		fmt.Println("crl file is invalid")
 		hwlog.RunLog.Error("crl file is invalid")
 		return "", errors.New("crl file is invalid")
 	}
-	if err = cmsverify.VerifyPackage(zipContent.CrlPath, zipContent.CmsPath, zipContent.TarPath); err != nil {
+	if err = cmsverify.VerifyPackage(crlPath, cmsPath, tarPath); err != nil {
 		fmt.Println("verify package failed, the zip file might be tampered")
 		hwlog.RunLog.Errorf("verify package failed,error:%v", err)
 		return "", errors.New("verify package failed")
@@ -181,7 +169,7 @@ func (ics icsManager) prepareFile(zipPath string) (string, error) {
 
 	hwlog.RunLog.Infof("verify %s package success", ics.name)
 	unpackTarPath := ics.pathMgr.GetIcsTempTarPath()
-	if err := common.ExtraTarGzFile(zipContent.TarPath, unpackTarPath, true); err != nil {
+	if err := common.ExtraTarGzFile(tarPath, unpackTarPath, true); err != nil {
 		hwlog.RunLog.Errorf("unzip tar file failed: %s", err.Error())
 		return "", errors.New("unzip tar file failed")
 	}
