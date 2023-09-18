@@ -84,11 +84,11 @@ func (g GenericDispatcher) dispatch(c *gin.Context) {
 			return
 		}
 		if res.Status != common.Success {
-			hwlog.OpLog.Errorf("%s %s %s %s failed\n", c.ClientIP(), c.Request.Header["user"],
+			hwlog.OpLog.Errorf("[%s@%s] %s %s failed\n", c.Request.Header["user"], c.ClientIP(),
 				g.getMethod(), c.FullPath())
 			return
 		}
-		hwlog.OpLog.Infof("%s %s %s %s success\n", c.ClientIP(), c.Request.Header["user"],
+		hwlog.OpLog.Infof("[%s@%s] %s %s success\n", c.Request.Header["user"], c.ClientIP(),
 			g.getMethod(), c.FullPath())
 	}()
 

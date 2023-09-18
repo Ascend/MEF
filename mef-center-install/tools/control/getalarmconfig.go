@@ -64,19 +64,19 @@ func (gcc *getAlarmCfgController) doControl() error {
 
 func (gcc *getAlarmCfgController) printExecutingLog(ip, user string) {
 	hwlog.RunLog.Info("-------------------start to get alarm config-------------------")
-	hwlog.OpLog.Infof("%s: %s, start to get alarm config", ip, user)
+	hwlog.OpLog.Infof("[%s@%s] start to get alarm config", user, ip)
 	fmt.Println("start to get alarm config")
 }
 
 func (gcc *getAlarmCfgController) printSuccessLog(user, ip string) {
 	hwlog.RunLog.Info("-------------------get alarm config successful-------------------")
-	hwlog.OpLog.Infof("%s: %s, get alarm config successful", ip, user)
+	hwlog.OpLog.Infof("[%s@%s] get alarm config successful", user, ip)
 	fmt.Println("get alarm config successful")
 }
 
 func (gcc *getAlarmCfgController) printFailedLog(user, ip string) {
 	hwlog.RunLog.Error("-------------------get alarm config failed-------------------")
-	hwlog.OpLog.Errorf("%s: %s, get alarm config failed", ip, user)
+	hwlog.OpLog.Errorf("[%s@%s] get alarm config failed", user, ip)
 	fmt.Println("get alarm config failed")
 }
 

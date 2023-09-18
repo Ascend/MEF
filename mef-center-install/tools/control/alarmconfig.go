@@ -77,19 +77,19 @@ func (acc *alarmCfgController) doControl() error {
 
 func (acc *alarmCfgController) printExecutingLog(ip, user string) {
 	hwlog.RunLog.Info("-------------------start to update alarm config-------------------")
-	hwlog.OpLog.Infof("%s: %s, start to update alarm config", ip, user)
+	hwlog.OpLog.Infof("[%s@%s] start to update alarm config", user, ip)
 	fmt.Println("start to update alarm config")
 }
 
 func (acc *alarmCfgController) printSuccessLog(user, ip string) {
 	hwlog.RunLog.Info("-------------------update alarm config successful-------------------")
-	hwlog.OpLog.Infof("%s: %s, update alarm config successful", ip, user)
+	hwlog.OpLog.Infof("[%s@%s] update alarm config successful", user, ip)
 	fmt.Println("update alarm config successful")
 }
 
 func (acc *alarmCfgController) printFailedLog(user, ip string) {
 	hwlog.RunLog.Error("-------------------update alarm config failed-------------------")
-	hwlog.OpLog.Errorf("%s: %s, update alarm config failed", ip, user)
+	hwlog.OpLog.Errorf("[%s@%s] update alarm config failed", user, ip)
 	fmt.Println("update alarm config failed")
 }
 
