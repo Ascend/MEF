@@ -44,15 +44,21 @@ func GetImageAddress() (string, error) {
 		return "", nil
 	}
 
-	defer func() {
-		common.ClearSliceByteMemory(secretByte)
-	}()
 	authSli := strings.Split(secretStr, secretSplit)
+	defer func() {
+		common.ClearStringMemory(secretStr)
+		common.ClearSliceByteMemory(secretByte)
+		for i := 0; i < len(authSli); i++ {
+			common.ClearStringMemory(authSli[i])
+		}
+	}()
 	if len(authSli) < secretLen {
 		hwlog.RunLog.Error("parse secret content failed")
 		return "", errors.New("parse secret content failed")
 	}
-	return strings.Trim(authSli[authPosition], secretTrim), nil
+	resBytes := make([]byte, len(authSli[authPosition]))
+	copy(resBytes, authSli[authPosition])
+	return strings.Trim(string(resBytes), secretTrim), nil
 }
 
 // GetCertContent get cert content
