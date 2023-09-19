@@ -25,7 +25,8 @@ func NewUpdateKmcFlow(pathMgr *util.InstallDirPathMgr) *UpdateKmcFlow {
 }
 
 func (muk *UpdateKmcFlow) getModules() []string {
-	return []string{util.CertManagerName, util.NginxManagerName, util.EdgeManagerName, util.MefCenterRootName}
+	components := util.GetCompulsorySlice()
+	return append(components, util.MefCenterRootName)
 }
 
 // RunFlow is the main func to start a task
@@ -118,6 +119,12 @@ func (muk *UpdateKmcFlow) getEncryptMap() map[string][]kmc.ReEncryptParam {
 		util.EdgeManagerName: {
 			kmc.ReEncryptParam{
 				Path:       muk.pathMgr.ConfigPathMgr.GetComponentConfigPath(util.EdgeManagerName),
+				SuffixList: []string{kmc.KeySuffix},
+			},
+		},
+		util.AlarmManagerName: {
+			kmc.ReEncryptParam{
+				Path:       muk.pathMgr.ConfigPathMgr.GetComponentConfigPath(util.AlarmManagerName),
 				SuffixList: []string{kmc.KeySuffix},
 			},
 		},
