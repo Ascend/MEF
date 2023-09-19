@@ -200,18 +200,16 @@ func periodCheck() {
 }
 
 func unlockIP() {
-	records, err := LockRepositoryInstance().findUnlockRecords()
+	rowsAffected, err := LockRepositoryInstance().UnlockRecords()
 	if err != nil {
-		hwlog.RunLog.Error(err)
+		hwlog.RunLog.Error("unlock edge failed")
 		return
 	}
-	for _, record := range records {
-		if err := LockRepositoryInstance().deleteOneLockRecord(record.IP); err != nil {
-			hwlog.RunLog.Warnf("unlock edge(%s) failed", record.IP)
-			continue
-		}
-		hwlog.OpLog.Infof("edge (%s) is unlock", record.IP)
+	if rowsAffected == 0 {
+		return
 	}
+	hwlog.RunLog.Info("time expired, automatically unlock token")
+	hwlog.OpLog.Info("time expired, automatically unlock token")
 }
 
 func issueCertForEdge(msg *model.Message) (*model.Message, bool, error) {

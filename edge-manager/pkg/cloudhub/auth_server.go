@@ -118,12 +118,12 @@ func EdgeConnTest(c *gin.Context) {
 
 func checkEdgeToken(c *gin.Context) (int, error) {
 	ip := c.ClientIP()
-	lock, err := LockRepositoryInstance().isLock(ip)
+	lock, err := LockRepositoryInstance().isLock()
 	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("check edge(%s) is lock failed: %v", ip, err)
+		return http.StatusBadRequest, fmt.Errorf("%s check lock status failed: %v", ip, err)
 	}
 	if lock {
-		return http.StatusLocked, fmt.Errorf("edge(%s) is lock", ip)
+		return http.StatusLocked, errors.New("token is locked")
 	}
 
 	token := c.GetHeader(headerToken)
@@ -151,7 +151,7 @@ func checkEdgeToken(c *gin.Context) (int, error) {
 		}
 		return http.StatusUnauthorized, fmt.Errorf("edge ip %v send an incorrect token", ip)
 	}
-	if err := LockRepositoryInstance().authPass(ip); err != nil {
+	if err := LockRepositoryInstance().deleteOneFailedRecord(ip); err != nil {
 		return http.StatusBadRequest, err
 	}
 	return 0, nil
