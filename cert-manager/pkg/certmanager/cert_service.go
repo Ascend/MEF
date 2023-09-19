@@ -13,9 +13,11 @@ import (
 	"time"
 
 	"huawei.com/mindx/common/backuputils"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509"
+	"huawei.com/mindx/common/x509/certutils"
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/requests"
@@ -51,6 +53,18 @@ func queryRootCa(input interface{}) common.RespMsg {
 	if ca == nil {
 		hwlog.RunLog.Errorf("cert [%s] root ca not exist", certName)
 		return common.RespMsg{Status: common.ErrorGetRootCa, Msg: "Query root ca file not exist", Data: nil}
+	}
+	// if cert update is in process, return both old and new hub_client ca certs
+	if certName == common.WsCltName {
+		tempCaFilePath := getTempRootCaPath(certName)
+		if fileutils.IsExist(tempCaFilePath) {
+			tempCaBytes, err := certutils.GetCertContent(tempCaFilePath)
+			if err != nil {
+				hwlog.RunLog.Errorf("load new temp root cert failed: %v, only old root cert will be used", err)
+				return common.RespMsg{Status: common.ErrorGetRootCa, Msg: "failed to load new temp root ca", Data: nil}
+			}
+			ca = append(ca, tempCaBytes...)
+		}
 	}
 	hwlog.RunLog.Infof("query [%s] root ca success", certName)
 	return common.RespMsg{Status: common.Success, Msg: "query ca success", Data: string(ca)}

@@ -114,6 +114,8 @@ func (svc *EdgeSvcCertUpdater) ClearUpdateFlag() {
 	case _, _ = <-svc.ctx.Done():
 		atomic.StoreInt64(&edgeSvcUpdatingFlag, NotUpdating)
 	}
+	// reset context
+	svc.ctx, svc.cancel = context.WithCancel(context.Background())
 	hwlog.RunLog.Info("edge service cert update is finished")
 }
 
@@ -244,6 +246,8 @@ func (ca *EdgeCaCertUpdater) ClearUpdateFlag() {
 	case _, _ = <-ca.ctx.Done():
 		atomic.StoreInt64(&edgeCaUpdatingFlag, NotUpdating)
 	}
+	// reset context
+	ca.ctx, ca.cancel = context.WithCancel(context.Background())
 	hwlog.RunLog.Info("edge root ca cert update is finished")
 }
 
