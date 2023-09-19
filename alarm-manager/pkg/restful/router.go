@@ -24,6 +24,7 @@ const (
 	snKey         = "sn"
 	groupIdKey    = "groupId"
 	ifCenterKey   = "ifCenter"
+	trueStr       = "true"
 )
 
 var northAlarmDispatchers = map[string][]restfulmgr.DispatcherItf{
@@ -110,6 +111,9 @@ func (list listDispatcher) ParseData(c *gin.Context) (interface{}, error) {
 			ifCenterKey, groupIdKey, snKey)
 	}
 	ifCenter := values.Get(ifCenterKey)
+	if ifCenter == trueStr {
+		return types.ListAlarmOrEventReq{PageNum: pageNum, PageSize: pageSize, IfCenter: ifCenter}, nil
+	}
 	groupIdStr := values.Get(groupIdKey)
 	snStr := values.Get(snKey)
 	if groupIdStr == "0" {
