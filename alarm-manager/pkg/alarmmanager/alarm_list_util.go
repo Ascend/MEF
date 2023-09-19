@@ -109,17 +109,10 @@ func listAllEdgeNodesAlarmsOrEvents(req types.ListAlarmOrEventReq, AlarmOrEvent 
 		hwlog.RunLog.Errorf("failed to count %s", AlarmOrEvent)
 		return &common.RespMsg{Status: common.ErrorListAlarm}
 	}
-	if count == 0 {
-		hwlog.RunLog.Infof("succeed listing nodes %s info", AlarmOrEvent)
-		return &common.RespMsg{Status: common.Success}
-	}
 	alarmSlice, err := AlarmDbInstance().listAllEdgeAlarmsOrEventsDb(req.PageNum, req.PageSize, AlarmOrEvent)
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to get %s in db: %s", AlarmOrEvent, err.Error())
 		return &common.RespMsg{Status: common.ErrorListAlarm}
-	}
-	if len(alarmSlice) == 0 {
-		return &common.RespMsg{Status: common.Success}
 	}
 	respMsg := getListResp(alarmSlice, count)
 	hwlog.RunLog.Infof("succeed listing nodes %s info", AlarmOrEvent)
@@ -131,10 +124,6 @@ func listFullAlarmOrEvents(req types.ListAlarmOrEventReq, AlarmOrEvent string) *
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to count %s", AlarmOrEvent)
 		return &common.RespMsg{Status: common.ErrorListAlarm}
-	}
-	if count == 0 {
-		hwlog.RunLog.Infof("succeed listing nodes %s info", AlarmOrEvent)
-		return &common.RespMsg{Status: common.Success}
 	}
 	alarmSlice, err := AlarmDbInstance().listAllAlarmsOrEventsDb(req.PageNum, req.PageSize, AlarmOrEvent)
 	if err != nil {
@@ -152,10 +141,6 @@ func listCenterAlarmOrEvents(req types.ListAlarmOrEventReq, AlarmOrEvent string)
 		hwlog.RunLog.Errorf("failed to count %s", AlarmOrEvent)
 		return &common.RespMsg{Status: common.ErrorListCenterNodeAlarm}
 	}
-	if count == 0 {
-		hwlog.RunLog.Infof("succeed listing center node %s info", AlarmOrEvent)
-		return &common.RespMsg{Status: common.Success}
-	}
 	alarmSlice, err := AlarmDbInstance().listCenterAlarmsOrEventsDb(req.PageNum, req.PageSize, AlarmOrEvent)
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to get center nodes %s in db", AlarmOrEvent)
@@ -171,10 +156,6 @@ func listEdgeNodeAlarmsOrEvents(req types.ListAlarmOrEventReq, AlarmOrEvent stri
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to count %s", AlarmOrEvent)
 		return &common.RespMsg{Status: common.ErrorListEdgeNodeAlarm, Msg: fmt.Sprintf("failed to count %s", AlarmOrEvent)}
-	}
-	if count == 0 {
-		hwlog.RunLog.Infof("succeed listing edge node %s info", AlarmOrEvent)
-		return &common.RespMsg{Status: common.Success}
 	}
 	alarmSlice, err := AlarmDbInstance().listEdgeAlarmsOrEventsDb(req.PageNum, req.PageSize, req.Sn, AlarmOrEvent)
 	if err != nil {
@@ -214,11 +195,7 @@ func listGroupNodesAlarmsOrEvents(req types.ListAlarmOrEventReq, queryIdType str
 		hwlog.RunLog.Error(err.Error())
 		return &common.RespMsg{Status: common.ErrorListEdgeNodeAlarm}
 	}
-	cnt := respMsg.Total
 	hwlog.RunLog.Infof("succeed listing group %s info", queryIdType)
-	if cnt == 0 {
-		return &common.RespMsg{Status: common.Success}
-	}
 	return &common.RespMsg{Status: common.Success, Data: respMsg}
 }
 
