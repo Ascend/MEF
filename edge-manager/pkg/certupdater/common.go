@@ -37,6 +37,9 @@ const (
 	notifyInterval           = time.Second * 3
 	updateCertTimeout        = time.Minute * 10
 	workingQueueSize         = common.MaxNode
+
+	failedTaskCheckInterval = time.Minute * 15
+	stopCondCheckInterval   = time.Hour
 )
 
 const (
@@ -94,13 +97,24 @@ func reportUpdateResult(result *FinalUpdateResult) error {
 	if err != nil {
 		return err
 	}
-	respBytes, err := httpsReq.PostJson(jsonBody)
-	if err != nil {
-		return err
-	}
+	var tryCnt int
 	var resp common.RespMsg
-	if err = json.Unmarshal(respBytes, &resp); err != nil {
-		return err
+	for tryCnt = 0; tryCnt < httpReqTryMaxTime; tryCnt++ {
+		respBytes, err := httpsReq.PostJson(jsonBody)
+		if err != nil {
+			hwlog.RunLog.Errorf("do http post request error: %v, try request for next time", err)
+			time.Sleep(httpReqTryInterval)
+			continue
+		}
+		if err := json.Unmarshal(respBytes, &resp); err != nil {
+			hwlog.RunLog.Errorf("unmarshal http body error: %v, try request for netx time", err)
+			time.Sleep(httpReqTryInterval)
+			continue
+		}
+		break
+	}
+	if tryCnt == httpReqTryMaxTime {
+		return fmt.Errorf("report cert update result to cert manager error, please check network connection")
 	}
 	if resp.Status != common.Success {
 		return fmt.Errorf("report cert update result error: %v", resp.Msg)

@@ -206,11 +206,10 @@ func (updater *edgeCaCertStatus) QueryInitRecords() ([]edgeCaCertStatus, error) 
 	return updater.queryRecords(queryCond, nil)
 }
 
-// QueryUnsuccessfulRecords query unsuccessful records
+// QueryUnsuccessfulRecords query unsuccessful records, including init and failed records
 func (updater *edgeCaCertStatus) QueryUnsuccessfulRecords() ([]edgeCaCertStatus, error) {
 	notCond := map[string]interface{}{
-		"status":           UpdateStatusSuccess,
-		"notify_timestamp": 0,
+		"status": UpdateStatusSuccess,
 	}
 	return updater.queryRecords(nil, notCond)
 }

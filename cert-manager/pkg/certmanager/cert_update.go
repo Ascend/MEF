@@ -201,7 +201,7 @@ func (svc *EdgeSvcCertUpdater) ForceUpdateCheck() {
 		hwlog.RunLog.Infof("cert [%v] force update operation success", svc.CaCertName)
 		return
 	}
-	ticker := time.NewTicker(common.HalfDay)
+	ticker := time.NewTicker(time.Hour)
 	defer ticker.Stop()
 	for {
 		select {
@@ -333,7 +333,7 @@ func (ca *EdgeCaCertUpdater) ForceUpdateCheck() {
 		hwlog.RunLog.Infof("cert [%v] force update operation success", ca.CaCertName)
 		return
 	}
-	ticker := time.NewTicker(common.HalfDay)
+	ticker := time.NewTicker(time.Hour)
 	defer ticker.Stop()
 	for {
 		select {
