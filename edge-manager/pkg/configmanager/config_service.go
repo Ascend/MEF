@@ -5,7 +5,6 @@ package configmanager
 
 import (
 	"bytes"
-	"edge-manager/pkg/config"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -21,13 +20,15 @@ import (
 	"huawei.com/mindx/common/x509"
 	"huawei.com/mindx/common/x509/certutils"
 	"huawei.com/mindx/common/xcrypto"
-	"huawei.com/mindxedge/base/common"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"edge-manager/pkg/config"
 	"edge-manager/pkg/configmanager/configchecker"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/util"
+
+	"huawei.com/mindxedge/base/common"
 )
 
 const (
@@ -264,7 +265,7 @@ func checkAndUpdateToken() {
 		hwlog.RunLog.Errorf("token is expire, error :%v", err)
 		return
 	}
-	hwlog.OpLog.Info("token is expire, system auto revoke token")
+	hwlog.RunLog.Info("token is expire, system auto revoke token")
 }
 
 func certWillOverdue(input interface{}) common.RespMsg {

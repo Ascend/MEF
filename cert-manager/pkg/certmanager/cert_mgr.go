@@ -274,7 +274,7 @@ func ExportRootCa(c *gin.Context) {
 	if len(caBytes) == 0 {
 		if caBytes, err = getCertByCertName(certName); err != nil {
 			msg := fmt.Sprintf("get cert [%s] root ca failed", certName)
-			hwlog.OpLog.Errorf("%s, error:%v", msg, err)
+			hwlog.RunLog.Errorf("%s, error: %v", msg, err)
 			common.ConstructResp(c, common.ErrorExportRootCa, msg, nil)
 			return
 		}
@@ -286,7 +286,7 @@ func ExportRootCa(c *gin.Context) {
 	c.Writer.WriteHeaderNow()
 	if _, err = c.Writer.Write(caBytes); err != nil {
 		msg := fmt.Sprintf("export cert [%s] root ca failed", certName)
-		hwlog.OpLog.Errorf("%s, error: %v", msg, err)
+		hwlog.RunLog.Errorf("%s, error: %v", msg, err)
 		common.ConstructResp(c, common.ErrorExportRootCa, msg, nil)
 		return
 	}

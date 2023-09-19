@@ -213,7 +213,7 @@ func main() {
 		os.Exit(util.ErrorExitCode)
 	}
 	hwlog.RunLog.Info("--------------------Install MEF_Center success--------------------")
-	hwlog.OpLog.Infof("[%s@%s], install MEF Center successfully", user, ip)
+	hwlog.OpLog.Infof("[%s@%s] install MEF Center successfully", user, ip)
 }
 
 func preCheck() int {
