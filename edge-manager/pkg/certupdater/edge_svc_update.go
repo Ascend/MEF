@@ -237,7 +237,7 @@ func (es *edgeSvcUpdater) handleFailedTask(ctx context.Context) {
 		hwlog.RunLog.Errorf("process failed operation nodes error: %v", err)
 	}
 
-	ticker := time.NewTicker(time.Hour)
+	ticker := time.NewTicker(failedTaskCheckInterval)
 	defer ticker.Stop()
 	for {
 		select {
@@ -266,27 +266,13 @@ func (es *edgeSvcUpdater) processFailedRecords() error {
 	if len(failedRecords) == 0 {
 		return nil
 	}
-	dbFields := map[string]interface{}{
-		"status": UpdateStatusFail,
-	}
 	for _, info := range failedRecords {
-		checkTime := time.Now().Unix()
-		duration := checkTime - info.NotifyTimestamp
-		if duration < 0 {
-			hwlog.RunLog.Errorf("node [%v] timeout check exception. "+
-				"check time: %v, notify time: %v", info.Sn, checkTime, info.NotifyTimestamp)
-			continue
-		}
-		if time.Duration(duration)*time.Second < updateCertTimeout {
-			continue
-		}
-		// if duration is >= timeout( 10min), then re-send update notify to edge, then update notify timestamp
 		if err = sendCertUpdateNotifyToNode(info.Sn, CertTypeEdgeSvc); err != nil {
 			hwlog.RunLog.Errorf("re-send update notify to node [%s] error: %v", info.Sn, err)
-		}
-		dbFields["notify_timestamp"] = time.Now().Unix()
-		if err = getEdgeSvcCertStatusModInstance().UpdateRecordsBySns([]string{info.Sn}, dbFields); err != nil {
-			hwlog.RunLog.Errorf("update node [%s] notify time error: %v", info.Sn, err)
+			dbFields := map[string]interface{}{"status": UpdateStatusFail}
+			if err = getEdgeSvcCertStatusModInstance().UpdateRecordsBySns([]string{info.Sn}, dbFields); err != nil {
+				hwlog.RunLog.Errorf("update node [%s] status error: %v", info.Sn, err)
+			}
 		}
 	}
 	return nil
@@ -298,7 +284,7 @@ func (es *edgeSvcUpdater) exitConditionCheck(ctx context.Context, cf context.Can
 		ResultCode: updateSuccessCode,
 	}
 	finalCertPayload := payload
-	ticker := time.NewTicker(common.HalfDay)
+	ticker := time.NewTicker(stopCondCheckInterval)
 	defer func() {
 		ticker.Stop()
 		edgeSvcUpdatePostProcess(finalCertPayload, cf)
