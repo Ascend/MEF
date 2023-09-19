@@ -144,6 +144,7 @@ func (cmm *CenterModeMgr) getWorkMode500Dir() modeMgr {
 		fileList: []string{
 			cmm.pathMgr.WorkPathMgr.GetBinDirPath(),
 			cmm.pathMgr.WorkPathMgr.GetWorkLibDirPath(),
+			filepath.Join(cmm.pathMgr.WorkPathMgr.GetWorkLibDirPath(), "lib"),
 			cmm.pathMgr.WorkPathMgr.GetKmcLibDirPath(),
 			cmm.pathMgr.WorkPathMgr.GetWorkLibDirPath(),
 			filepath.Join(cmm.pathMgr.WorkPathMgr.GetWorkPath(), imageDirPattern),
@@ -225,6 +226,7 @@ func (cmm *CenterModeMgr) getConfigMode400File() modeMgr {
 		ignoreFile:  false,
 		fileList: []string{
 			filepath.Join(cmm.pathMgr.GetConfigPath(), "**/**/*.crt"),
+			filepath.Join(cmm.pathMgr.GetConfigPath(), "**/**/**/*.crt"),
 			filepath.Join(cmm.pathMgr.GetConfigPath(), "**/**/*.key"),
 		},
 	}
