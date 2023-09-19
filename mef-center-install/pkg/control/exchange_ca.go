@@ -5,9 +5,11 @@ package control
 import (
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"huawei.com/mindx/common/backuputils"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509"
@@ -187,8 +189,13 @@ func (ecf *ExchangeCaFlow) copyCaToCertManager() error {
 		return errors.New("create backup of cert failed")
 	}
 
+	if err := ecf.setDirOwnerAndPermission(common.Mode400, true, ecf.savePath); err != nil {
+		hwlog.RunLog.Errorf("failed to set import root.crt permissions mode and owner,err:%s", err.Error())
+		return fmt.Errorf("failed to set import root.crt permissions mode and owner,err:%s", err.Error())
+	}
+
 	saveBackupPath := ecf.savePath + backuputils.BackupSuffix
-	if err := ecf.setDirOwnerAndPermission(ecf.savePath, saveBackupPath); err != nil {
+	if err := ecf.setDirOwnerAndPermission(common.Mode600, true, saveBackupPath); err != nil {
 		hwlog.RunLog.Errorf("set save crt right failed: %s", err.Error())
 		if err = common.DeleteFile(ecf.savePath); err != nil {
 			hwlog.RunLog.Warnf("delete crt [%s] failed: %s", ecf.component, err.Error())
@@ -206,8 +213,8 @@ func (ecf *ExchangeCaFlow) exportCa() error {
 
 	srcBackupPath := ecf.srcPath + backuputils.BackupSuffix
 	if !utils.IsExist(ecf.srcPath) {
-		fmt.Println("the root ca has not yet generated, plz start cert manager first")
-		hwlog.RunLog.Errorf("the root ca has not yet generated, plz start cert manager first")
+		fmt.Println("the root ca has not yet generated, please start cert manager first")
+		hwlog.RunLog.Errorf("the root ca has not yet generated, please start cert manager first")
 		return errors.New(util.NotGenCertErrorStr)
 	}
 
@@ -220,12 +227,16 @@ func (ecf *ExchangeCaFlow) exportCa() error {
 		hwlog.RunLog.Errorf("check cert [%s] failed: %s, cannot export", ecf.srcPath, err.Error())
 		return fmt.Errorf("check cert [%s] failed", ecf.srcPath)
 	}
-	if err := ecf.setDirOwnerAndPermission(ecf.srcPath, srcBackupPath); err != nil {
+	if err := ecf.setDirOwnerAndPermission(common.Mode400, true, ecf.srcPath); err != nil {
+		hwlog.RunLog.Errorf("reset apig crt file right failed: %s", err.Error())
+		return errors.New("reset apig crt file right failed")
+	}
+	if err := ecf.setDirOwnerAndPermission(common.Mode600, true, srcBackupPath); err != nil {
 		hwlog.RunLog.Errorf("reset apig crt file right failed: %s", err.Error())
 		return errors.New("reset apig crt file right failed")
 	}
 
-	if err := utils.CopyFile(ecf.srcPath, ecf.exportPath); err != nil {
+	if err := fileutils.CopyFile(ecf.srcPath, ecf.exportPath); err != nil {
 		hwlog.RunLog.Errorf("export ca failed: %s", err.Error())
 		return errors.New("export ca failed")
 	}
@@ -234,12 +245,20 @@ func (ecf *ExchangeCaFlow) exportCa() error {
 	return nil
 }
 
-func (ecf *ExchangeCaFlow) setDirOwnerAndPermission(paths ...string) error {
+func (ecf *ExchangeCaFlow) setDirOwnerAndPermission(mode os.FileMode, recursive bool, paths ...string) error {
 	for _, path := range paths {
-		if err := utils.SetPathOwnerGroup(path, ecf.uid, ecf.gid, true, false); err != nil {
+		ownerParam := fileutils.SetOwnerParam{
+			Path:         path,
+			Uid:          ecf.uid,
+			Gid:          ecf.gid,
+			Recursive:    recursive,
+			IgnoreFile:   false,
+			CheckerParam: nil,
+		}
+		if err := fileutils.SetPathOwnerGroup(ownerParam); err != nil {
 			return err
 		}
-		if err := utils.SetPathPermission(path, common.Mode600, true, false); err != nil {
+		if err := fileutils.SetPathPermission(path, mode, recursive, false); err != nil {
 			return err
 		}
 	}

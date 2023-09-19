@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509"
@@ -82,17 +83,24 @@ func (icf *ImportCrlFlow) importCrl() error {
 		}
 	}
 
-	if err := utils.CopyFile(icf.crlPath, icf.savePath); err != nil {
+	if err := fileutils.CopyFile(icf.crlPath, icf.savePath); err != nil {
 		hwlog.RunLog.Errorf("copy temp crl to dst failed: %s", err.Error())
 		return errors.New("copy temp crl to dst failed")
 	}
-
-	if err := utils.SetPathOwnerGroup(icf.savePath, icf.uid, icf.gid, false, false); err != nil {
+	ownerPram := fileutils.SetOwnerParam{
+		Path:         icf.savePath,
+		Uid:          icf.uid,
+		Gid:          icf.gid,
+		Recursive:    false,
+		IgnoreFile:   false,
+		CheckerParam: nil,
+	}
+	if err := fileutils.SetPathOwnerGroup(ownerPram); err != nil {
 		hwlog.RunLog.Errorf("set crl owner failed: %s", err.Error())
 		return errors.New("set crl owner failed")
 	}
 
-	if err := utils.SetPathPermission(icf.savePath, common.Mode600, false, false); err != nil {
+	if err := fileutils.SetPathPermission(icf.savePath, common.Mode400, false, false); err != nil {
 		hwlog.RunLog.Errorf("set save crl right failed: %s", err.Error())
 		if err = common.DeleteFile(icf.savePath); err != nil {
 			hwlog.RunLog.Warnf("delete crl [%s] failed: %s", filepath.Base(icf.savePath), err.Error())
