@@ -117,7 +117,7 @@ var handlerFuncMap = map[string]handlerFunc{
 func certExpireCheck(ctx context.Context) {
 	checkCaCerts()
 
-	ticker := time.NewTicker(common.OneDay)
+	ticker := time.NewTicker(time.Hour)
 	defer ticker.Stop()
 	for {
 		select {
