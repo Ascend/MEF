@@ -169,6 +169,9 @@ func listTemplates(param interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("list app templates,failed,error:%v", err)
 		return common.RespMsg{Status: common.ErrorGetAppTemplates}
 	}
+	if totalCount == 0 {
+		return common.RespMsg{Status: common.Success}
+	}
 	var result ListTemplatesResp
 	result.AppTemplates = appTemplates
 	result.Total = totalCount
