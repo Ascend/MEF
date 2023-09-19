@@ -4,6 +4,8 @@
 package logmanager
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"fmt"
 	"io"
 	"net/http"
@@ -85,10 +87,20 @@ func TestVerifyFile(t *testing.T) {
 			ApplyMethodReturn(env.TaskCtx, "Spec", taskschedule.TaskSpec{Id: "1"})
 		defer patch.Reset()
 		filePath := filepath.Join(constants.LogDumpTempDir, "1"+common.TarGzSuffix)
+
 		file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, common.Mode600)
 		convey.So(err, convey.ShouldBeNil)
-		data := []byte(gzipHeader + "hello")
-		_, err = file.Write(data)
+		gw := gzip.NewWriter(file)
+		tw := tar.NewWriter(gw)
+		const data = "hello"
+		err = tw.WriteHeader(&tar.Header{Name: "a.log", Size: int64(len(data)), Mode: common.Mode400})
+		convey.So(err, convey.ShouldBeNil)
+		_, err = tw.Write([]byte(data))
+		convey.So(err, convey.ShouldBeNil)
+		convey.So(tw.Close(), convey.ShouldBeNil)
+		convey.So(gw.Close(), convey.ShouldBeNil)
+		convey.So(file.Close(), convey.ShouldBeNil)
+
 		convey.So(err, convey.ShouldBeNil)
 		sha256Checksum, err := utils2.GetFileSha256(filePath)
 		convey.So(err, convey.ShouldBeNil)
