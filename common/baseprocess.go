@@ -90,7 +90,7 @@ func ParamConvert(input interface{}, reqType interface{}) error {
 	}
 	dec := json.NewDecoder(strings.NewReader(inputStr))
 	if err := dec.Decode(reqType); err != nil {
-		hwlog.RunLog.Errorf("param decode failed: %s", err.Error())
+		hwlog.RunLog.Error("param decode failed")
 		return errors.New("param decode error")
 	}
 	return nil
