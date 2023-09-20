@@ -549,7 +549,9 @@ func handle() int {
 	}
 	err = envutils.GetFlock(util.MefCenterLock).Lock(curController.getName())
 	if err != nil {
-		fmt.Println("execute command failed: lock file fail")
+		fmt.Println("execute command failed: the last is not complete")
+		hwlog.RunLog.Error("execute command failed: the last is not complete, has not been unlocked yet")
+		hwlog.OpLog.Errorf("[%s@%s] execute command failed", user, ip)
 		return util.ErrorExitCode
 	}
 	defer envutils.GetFlock(util.MefCenterLock).Unlock()

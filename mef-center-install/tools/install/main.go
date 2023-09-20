@@ -200,7 +200,10 @@ func main() {
 
 	err = envutils.GetFlock(util.MefCenterLock).Lock("install")
 	if err != nil {
-		fmt.Println("execute command failed: lock file fail")
+		fmt.Println("the last installation is not complete")
+		hwlog.RunLog.Error("install MEF Center failed: " +
+			"the last installation is not complete, has not been unlocked yet")
+		hwlog.OpLog.Errorf("[%s@%s] install MEF Center failed", user, ip)
 		os.Exit(util.ErrorExitCode)
 	}
 	defer envutils.GetFlock(util.MefCenterLock).Unlock()
