@@ -43,9 +43,9 @@ func createApp(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("get app table num failed")
 		return common.RespMsg{Status: common.ErrorCheckAppMrgSize, Msg: "get app table num failed", Data: nil}
 	}
-	if total+1 >= MaxApp {
-		hwlog.RunLog.Error("app number is enough, can not create")
-		return common.RespMsg{Status: common.ErrorCheckAppMrgSize, Msg: "app number is enough, can not create"}
+	if total >= MaxApp {
+		hwlog.RunLog.Error("app number is enough, can not be created")
+		return common.RespMsg{Status: common.ErrorCheckAppMrgSize, Msg: "app number is enough, can not be created"}
 	}
 
 	id, err := AppRepositoryInstance().createAppAndUpdateCm(&req)
