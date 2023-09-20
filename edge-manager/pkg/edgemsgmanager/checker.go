@@ -122,7 +122,7 @@ func newCertNameChecker() *certNameChecker {
 }
 
 func (c *certNameChecker) Check(certName string) bool {
-	certSupportList := []string{common.WsCltName, common.SoftwareCertName, common.ImageCertName, common.NginxCertName}
+	certSupportList := []string{common.SoftwareCertName, common.ImageCertName}
 	for _, certSupport := range certSupportList {
 		if certName == certSupport {
 			return true
