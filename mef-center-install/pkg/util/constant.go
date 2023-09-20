@@ -15,8 +15,6 @@ const (
 	CommandNamespace      = "namespace"
 	Haveged               = "haveged"
 	ArchCommand           = "uname"
-	Arch64                = "aarch64"
-	X86                   = "x86_64"
 	ActiveFlag            = "Active"
 	Systemctl             = "systemctl"
 	SystemctlIsActive     = "is-active"
@@ -43,7 +41,6 @@ const (
 	InstallPackageDir = "install-package"
 	MefCenterLock     = "mef-center.lock"
 	IcsSoftLink       = "ics-manager"
-	IcsWorkA          = "ics-manager-A"
 )
 
 // MEF-Center File constant
@@ -61,7 +58,6 @@ const (
 	MefLibDir           = "lib"
 	OtherLibDir         = "lib"
 	MefVarDir           = "var"
-	MefZipDir           = "zip"
 	MefTarDir           = "tar"
 	ComponentLibDir     = "lib"
 	MefKmcLibDir        = "kmc-lib"
@@ -74,31 +70,27 @@ const (
 	NginxDirName        = "nginx"
 	ImageTarNamePattern = "Ascend-mef-%s-linux-%s.tar.gz"
 	ImagePrefix         = "ascend-"
-	IcsZip              = "ics-zip"
 	IcsTar              = "ics-tar"
 )
 
 // MEF-Config constant
 const (
-	KmcDir           = "kmc"
-	PubCfgDir        = "public-config"
-	RootCaDir        = "root-ca"
-	RootCaFileDir    = "cert"
-	RootCaKeyDir     = "key"
-	RootCaFile       = "RootCA.crt"
-	RootKeyFile      = "RootCA.key"
-	MasterKeyFile    = "master.ks"
-	BackUpKeyFile    = "backup.ks"
-	CertsDir         = "mef-certs"
-	KubeCertsDir     = "kube-config"
-	CertSuffix       = ".crt"
-	CrlSuffix        = ".crl"
-	KeySuffix        = ".key"
-	CaCommonName     = "MindX MEF"
-	PubConfigDir     = "public-config"
-	NorthernRootName = "northern-root"
-	ApigDirName      = "apig"
-	RootCrtName      = "root.crt"
+	KmcDir        = "kmc"
+	PubCfgDir     = "public-config"
+	RootCaDir     = "root-ca"
+	RootCaFileDir = "cert"
+	RootCaKeyDir  = "key"
+	RootCaFile    = "RootCA.crt"
+	RootKeyFile   = "RootCA.key"
+	MasterKeyFile = "master.ks"
+	BackUpKeyFile = "backup.ks"
+	CertsDir      = "mef-certs"
+	KubeCertsDir  = "kube-config"
+	CertSuffix    = ".crt"
+	KeySuffix     = ".key"
+	PubConfigDir  = "public-config"
+	ApigDirName   = "apig"
+	RootCrtName   = "root.crt"
 )
 
 // log constant
@@ -123,22 +115,20 @@ const (
 
 // install constant
 const (
-	AllInstallFlag      = "install_all"
-	LogPathFlag         = "log_path"
-	LogBackupPathFlag   = "log_backup_path"
-	InstallPathFlag     = "install_path"
-	CloudCoreCaPathFlag = "cloud_core_ca_path"
-	HelpFlag            = "help"
-	HelpShortFlag       = "h"
-	VersionFlag         = "version"
-	MefCenterUid        = 8000
-	RootUid             = 0
-	MefCenterGid        = 8000
-	RootGid             = 0
-	MefCenterName       = "MEFCenter"
-	MefCenterGroup      = "MEFCenter"
-	DockerTag           = "v1"
-	ModeUmask0277       = 0277
+	LogPathFlag       = "log_path"
+	LogBackupPathFlag = "log_backup_path"
+	InstallPathFlag   = "install_path"
+	HelpFlag          = "help"
+	HelpShortFlag     = "h"
+	VersionFlag       = "version"
+	MefCenterUid      = 8000
+	RootUid           = 0
+	MefCenterGid      = 8000
+	RootGid           = 0
+	MefCenterName     = "MEFCenter"
+	MefCenterGroup    = "MEFCenter"
+	DockerTag         = "v1"
+	ModeUmask0277     = 0277
 )
 
 // yaml editor constant
@@ -156,7 +146,6 @@ const (
 // constant for install
 const (
 	MefNamespace        = "mef-center"
-	RootUserName        = "root"
 	AscendPrefix        = "ascend-"
 	HelpExitCode        = 3
 	VersionExitCode     = 3

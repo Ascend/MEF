@@ -18,8 +18,6 @@ const (
 	NginxMgrDns = "ascend-nginx-manager.mef-center.svc.cluster.local"
 	// NginxMgrPort nginx manager inner RESTful server port
 	NginxMgrPort = 8104
-	// AlarmMgrPort alarm manager port
-	AlarmMgrPort = 8102
 	// AlarmMgrDns alarm manager dns name
 	AlarmMgrDns = "ascend-alarm-manager.mef-center.svc.cluster.local"
 )
@@ -29,8 +27,6 @@ const (
 	InnerName = "inner_cert"
 	// WsSerName websocket server cert name
 	WsSerName = "hub_svr"
-	// WsSerSerName websocket server cert CN
-	WsSerSerName = "hub_srv_server"
 	// WsCltName websocket client cert name
 	WsCltName = "hub_client"
 	// SoftwareCertName software manager cert name
@@ -39,8 +35,6 @@ const (
 	ImageCertName = "image"
 	// NginxCertName nginx apig cert name
 	NginxCertName = "apig"
-	// NginxCertSerName nginx apig cert CN
-	NginxCertSerName = "apig_server"
 	// NorthernCertName dir for northbound cert and crl
 	NorthernCertName = "north"
 	// IcsCertName for icsmanager cert name dir
@@ -59,7 +53,6 @@ const (
 	NodeMsgManagerName     = "NodeMsgManager"
 	CertManagerName        = "CertManager"
 	ConfigManagerName      = "ConfigManager"
-	LogManagerName         = "LogManager"
 	AlarmManagerName       = "AlarmManager"
 	CertUpdaterName        = "CertUpdater"
 )
@@ -71,18 +64,8 @@ const (
 	Delete = "delete"
 	// Update option update
 	Update = "update"
-	// Upgrade option upgrade
-	Upgrade = "upgrade"
-	// Download option download
-	Download = "download"
-	// Query option query
-	Query = "query"
-	// Issue option issue
-	Issue = "issue"
 	// Get option get
 	Get = "get"
-	// List option get resource list
-	List = "list"
 	// Add option add
 	Add = "add"
 	// Inner option for inner message
@@ -124,8 +107,6 @@ const (
 	MinPort = 1025
 	// BaseHex  Base Parse integer need params
 	BaseHex = 10
-	// BitSize32 Base Parse integer need params
-	BitSize32 = 32
 	// BitSize64 Base Parse integer need params
 	BitSize64 = 64
 	// BitSize8 Base Parse integer need params
@@ -164,7 +145,6 @@ const (
 	LockInterval           = 5 * time.Minute
 	CheckUnlockInterval    = 15 * time.Second
 	OneDay                 = 24 * time.Hour
-	HalfDay                = 12 * time.Hour
 )
 
 // field status
@@ -187,24 +167,16 @@ const (
 	OptResp = "response"
 	// OptReport option for report
 	OptReport = "REPORT"
-	// OptDelete option for delete
-	OptDelete = "OptDelete"
 	// ResEdgeDownloadInfo resource for download software
 	ResEdgeDownloadInfo = "/edge/download"
 	// ResEdgeUpgradeInfo resource for effect software
 	ResEdgeUpgradeInfo = "/edge/upgrade"
-	// ResEdgeConfigInfo resource for edge config info
-	ResEdgeConfigInfo = "/edge/config"
 	// ResDownloadProgress resource progress report
 	ResDownloadProgress = "/edge/download-progress"
 	// ResSoftwareInfo resource software info
 	ResSoftwareInfo = "/edge/version-info"
-	// ResDownLoadSoftware resource for downloading software
-	ResDownLoadSoftware = "/software/download_info"
 	// ResConfig resource config
 	ResConfig = "/config"
-	// ResSetEdgeAccount resource for setting edge account
-	ResSetEdgeAccount = "/edgemanager/v1/edgeAccount"
 	// ResDownLoadCert resource for downloading cert
 	ResDownLoadCert = "/cert/download_info"
 	// CertWillOverdue cert will overdue
@@ -230,7 +202,6 @@ const (
 	B  = 1
 	KB = 1024 * B
 	MB = 1024 * KB
-	GB = 1024 * MB
 )
 
 // mode constant
@@ -240,7 +211,6 @@ const (
 	Mode600  = 0600
 	Mode644  = 0644
 	Mode500  = 0500
-	Mode444  = 0444
 	Mode400  = 0400
 	Umask077 = 0077
 )
@@ -250,18 +220,9 @@ const (
 	CommandCopy = "cp"
 )
 
-// const for unpack zip file
+// TarGzSuffix is the suffix of tar.gz file
 const (
-	MaxPkgSizeTimes      = 100
-	MaxExtractFileCount  = 100
-	MaxSingleExtractSize = 200 * MB
-	MaxTotalExtractSize  = 200 * MB
-
-	MefCenterFlag  = "mefcenter"
-	IcsManagerFlag = "icsmanager"
-	TarGzSuffix    = ".tar.gz"
-	CrlSuffix      = ".tar.gz.crl"
-	CmsSuffix      = ".tar.gz.cms"
+	TarGzSuffix = ".tar.gz"
 )
 
 // node specification
