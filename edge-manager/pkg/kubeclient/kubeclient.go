@@ -165,11 +165,11 @@ func setupClientConfig(clientConfig *rest.Config) error {
 	)
 	decoder := json.NewDecoder(strings.NewReader(os.Getenv(configKeyQps)))
 	if err := decoder.Decode(&qps); err != nil {
-		return err
+		return fmt.Errorf("decode %s failed", configKeyQps)
 	}
 	decoder = json.NewDecoder(strings.NewReader(os.Getenv(configKeyBurst)))
 	if err := decoder.Decode(&burst); err != nil {
-		return err
+		return fmt.Errorf("decode %s failed", configKeyBurst)
 	}
 	clientConfig.QPS = qps
 	clientConfig.Burst = burst
