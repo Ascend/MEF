@@ -124,10 +124,6 @@ func listAppInfo(input interface{}) common.RespMsg {
 	}
 
 	apps, err := getListReturnInfo(req)
-	if err == gorm.ErrRecordNotFound {
-		hwlog.RunLog.Info("dont have any apps")
-		return common.RespMsg{Status: common.Success, Msg: "dont have any apps", Data: nil}
-	}
 	if err != nil {
 		hwlog.RunLog.Error("get apps Infos list failed")
 		return common.RespMsg{Status: common.ErrorListApp, Msg: "get apps Infos list failed", Data: nil}
@@ -467,8 +463,11 @@ func listAppInstancesById(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorListAppInstancesByID,
 			Msg: "get app instance response from app instances failed", Data: nil}
 	}
-
-	return common.RespMsg{Status: common.Success, Msg: "", Data: appInstanceResp}
+	resp := &ListAppInstancesResp{
+		AppInstances: appInstanceResp,
+		Total:        int64(len(appInstanceResp)),
+	}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
 func getAppInstanceRespFromAppInstances(appInstances []AppInstance) ([]AppInstanceResp, error) {
@@ -538,8 +537,11 @@ func listAppInstancesByNode(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorListAppInstancesByNode,
 			Msg: "get app instance of node response from app instances failed", Data: nil}
 	}
-
-	return common.RespMsg{Status: common.Success, Msg: "", Data: appList}
+	resp := &ListAppInstancesResp{
+		AppInstances: appList,
+		Total:        int64(len(appList)),
+	}
+	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
 func listAppInstances(input interface{}) common.RespMsg {

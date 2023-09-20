@@ -285,10 +285,6 @@ func listUnmanagedNode(input interface{}) common.RespMsg {
 		hwlog.RunLog.Info("list node unmanaged success")
 		return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 	}
-	if err == gorm.ErrRecordNotFound {
-		hwlog.RunLog.Info("dont have any unmanaged node")
-		return common.RespMsg{Status: common.Success, Msg: "dont have any unmanaged node", Data: nil}
-	}
 	hwlog.RunLog.Error("list unmanaged node failed")
 	return common.RespMsg{Status: common.ErrorListUnManagedNode, Msg: "", Data: nil}
 }
