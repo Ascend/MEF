@@ -6,7 +6,10 @@ package nginxmgr
 import (
 	"bytes"
 	"fmt"
+	"os"
+	"strconv"
 
+	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 
@@ -77,7 +80,8 @@ func (n *nginxConfUpdater) updateUrl(content []byte) error {
 	for _, conf := range n.confItems {
 		content = bytes.ReplaceAll(content, []byte(conf.From), []byte(conf.To))
 	}
-	content = bytes.ReplaceAll(content, []byte("$icsConf"), []byte(n.icsConf()))
+	icsContent := n.icsConf()
+	content = bytes.ReplaceAll(content, []byte("$icsConf"), []byte(icsContent))
 
 	err := common.WriteData(nginxcom.NginxConfigPath, content)
 	if err != nil {
@@ -88,7 +92,11 @@ func (n *nginxConfUpdater) updateUrl(content []byte) error {
 }
 
 func getIcsConfContent() string {
-	return `location /icsmanager {
+	data, err := getIcsData()
+	if err != nil {
+		return ""
+	}
+	res := fmt.Sprintf(`location /icsmanager {
             proxy_set_header X-Forwarded-For $remote_addr;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_pass_request_headers on;
@@ -101,7 +109,7 @@ func getIcsConfContent() string {
             proxy_ssl_session_reuse on;
             proxy_ssl_protocols TLSv1.3;
             proxy_ssl_ciphers "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384";
-            proxy_pass https://ascend-ics-manager.mef-center.svc.cluster.local:8111;
+            proxy_pass https://ascend-ics-manager.ics-center.svc.cluster.local:%v;
 			
 			location /icsmanager/v1/inclearning/label/upload {
                 limit_conn per_addr_upload_conn_zone 1;
@@ -111,12 +119,12 @@ func getIcsConfContent() string {
                 proxy_http_version 1.1;
                 proxy_request_buffering off;
 
-                proxy_pass https://ascend-ics-manager.mef-center.svc.cluster.local:8111;
+                proxy_pass https://ascend-ics-manager.ics-center.svc.cluster.local:%v;
             }
             location /icsmanager/v1/inclearning/label/download {
                 limit_conn global_download_conn_zone 1;
                 proxy_send_timeout 7200;
-                proxy_pass https://ascend-ics-manager.mef-center.svc.cluster.local:8111;
+                proxy_pass https://ascend-ics-manager.ics-center.svc.cluster.local:%v;
             }
         }
 
@@ -133,12 +141,17 @@ func getIcsConfContent() string {
             proxy_ssl_session_reuse on;
             proxy_ssl_protocols TLSv1.3;
             proxy_ssl_ciphers "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384";
-            proxy_pass https://ascend-ics-cert-manager.mef-center.svc.cluster.local:8112;
-        }`
+            proxy_pass https://ascend-ics-cert-manager.ics-center.svc.cluster.local:%v;
+        }`, data.icsPort, data.icsPort, data.icsPort, data.icsCertPort)
+	return res
 }
 
 func getIcsResolverConfContent() string {
-	return `location /icsmanager {
+	data, err := getIcsData()
+	if err != nil {
+		return ""
+	}
+	return fmt.Sprintf(`location /icsmanager {
             proxy_set_header X-Forwarded-For $remote_addr;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_pass_request_headers on;
@@ -151,8 +164,8 @@ func getIcsResolverConfContent() string {
             proxy_ssl_session_reuse on;
             proxy_ssl_protocols TLSv1.3;
             proxy_ssl_ciphers "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384";
-			set $IcsMgrSvc https://ascend-ics-manager.mef-center.svc.cluster.local:8111;
-            proxy_pass https://$IcsMgrSvc:8111;
+			set $IcsMgrSvc https://ascend-ics-manager.ics-center.svc.cluster.local;
+            proxy_pass https://$IcsMgrSvc:%v;
 			location /icsmanager/v1/inclearning/label/upload {
                 limit_conn per_addr_upload_conn_zone 1;
                 limit_conn global_upload_conn_zone 10;
@@ -160,17 +173,14 @@ func getIcsResolverConfContent() string {
                 client_body_timeout   600;
                 proxy_http_version 1.1;
                 proxy_request_buffering off;
-				set $IcsMgrSvc https://ascend-ics-manager.mef-center.svc.cluster.local:8111;
-                proxy_pass https://$IcsMgrSvc:8111;
-            }
+				set $IcsMgrSvc https://ascend-ics-manager.ics-center.svc.cluster.local;
+                proxy_pass https://$IcsMgrSvc:%v;}
 			location /icsmanager/v1/inclearning/label/download {
                 limit_conn global_download_conn_zone 1;
                 proxy_send_timeout 7200;
-				set $IcsMgrSvc https://ascend-ics-manager.mef-center.svc.cluster.local:8111;
-                proxy_pass https://$IcsMgrSvc:8111;
-            }
+				set $IcsMgrSvc https://ascend-ics-manager.ics-center.svc.cluster.local;
+                proxy_pass https://$IcsMgrSvc:%v;}
         }
-
         location /icscertmgnt {
             proxy_set_header X-Forwarded-For $remote_addr;
             proxy_set_header X-Real-IP $remote_addr;
@@ -184,7 +194,36 @@ func getIcsResolverConfContent() string {
             proxy_ssl_session_reuse on;
             proxy_ssl_protocols TLSv1.3;
             proxy_ssl_ciphers "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384";
-            set $IcsMgrSvc https://ascend-ics-cert-manager.mef-center.svc.cluster.local:8112;
-            proxy_pass https://$IcsMgrSvc:8112;
-        }`
+            set $IcsMgrSvc https://ascend-ics-cert-manager.ics-center.svc.cluster.local;
+            proxy_pass https://$IcsMgrSvc:%v;}`, data.icsPort, data.icsPort, data.icsPort, data.icsCertPort)
+}
+
+type icsData struct {
+	icsPort     int
+	icsCertPort int
+}
+
+func getIcsData() (icsData, error) {
+	port, err := strconv.Atoi(os.Getenv("IcsPort"))
+	if err != nil {
+		hwlog.RunLog.Error("cannot convert ics port")
+		return icsData{}, err
+	}
+	if res := checker.GetIntChecker("", common.MinPort, common.MaxPort, true).Check(port); !res.Result {
+		hwlog.RunLog.Errorf("ics port %d is not in [%d, %d]", port, common.MinPort, common.MaxPort)
+		return icsData{}, err
+	}
+	certPort, err := strconv.Atoi(os.Getenv("IcsCertPort"))
+	if err != nil {
+		hwlog.RunLog.Error("cannot convert ics cert port")
+		return icsData{}, err
+	}
+	if res := checker.GetIntChecker("", common.MinPort, common.MaxPort, true).Check(certPort); !res.Result {
+		hwlog.RunLog.Errorf("ics cert port %d is not in [%d, %d]", certPort, common.MinPort, common.MaxPort)
+		return icsData{}, err
+	}
+	return icsData{
+		icsCertPort: certPort,
+		icsPort:     port,
+	}, nil
 }

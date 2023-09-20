@@ -42,6 +42,10 @@ spec:
               value: "10001"
             - name: WebsocketPort
               value: "10000"
+            - name: IcsPort
+              value: "8111"
+            - name: IcsCertPort
+              value: "8112"
             - name: EnableResolver
               value: "false"
             - name: installed-module

@@ -65,6 +65,11 @@ func AddComponentToInstallInfo(component, jsonPath string) error {
 	if err != nil {
 		return err
 	}
+	for _, c := range installInfo.OptionComponent {
+		if c == component {
+			return nil
+		}
+	}
 	installInfo.OptionComponent = append(installInfo.OptionComponent, component)
 	if err := installInfo.SetInstallParamJsonInfo(jsonPath); err != nil {
 		return err
