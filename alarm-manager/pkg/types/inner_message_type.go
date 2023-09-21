@@ -17,16 +17,6 @@ type ListAlarmOrEventReq struct {
 	IfCenter string `json:"ifCenter,omitempty"`
 }
 
-// NodeGroupDetailFromEdgeManager should be exactly same as NodeGroupDetail in edge-manager/node-manager for marshall
-type NodeGroupDetailFromEdgeManager struct {
-	Nodes []NodeInfo `json:"nodes"`
-}
-
-// NodeInfo query results from edge-manager
-type NodeInfo struct {
-	Sn string `json:"serialNumber"`
-}
-
 // AlarmBriefInfo the simple information for respond to User
 type AlarmBriefInfo struct {
 	ID        uint64    `json:"id"`

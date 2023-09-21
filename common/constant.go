@@ -91,6 +91,8 @@ const (
 	NodeID = "nodeID"
 	// GetIpBySn is the route for inner msg that sent to nodemanager to get the node info by sn
 	GetIpBySn = "/inner/v1/getIpBySn"
+	// GetSnsByGroup deal request from alarm manager query sns in a group
+	GetSnsByGroup = "/inner/v1/getNodeSnsByGroupId"
 
 	// ResponseTimeout response timeout time
 	ResponseTimeout = 30 * time.Second

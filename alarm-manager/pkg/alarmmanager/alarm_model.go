@@ -9,7 +9,6 @@ import (
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/database"
 
-	"alarm-manager/pkg/types"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/alarms"
 )
@@ -114,15 +113,11 @@ func (adh *AlarmDbHandler) getAlarmOrEventInfoByAlarmInfoId(Id uint64) (*AlarmIn
 	return &alarm, adh.db().Model(AlarmInfo{}).Where("id=?", Id).First(&alarm).Error
 }
 
-func (adh *AlarmDbHandler) listAlarmsOrEventsOfGroup(pageNum, pageSize uint64, nodes []types.NodeInfo,
+func (adh *AlarmDbHandler) listAlarmsOrEventsOfGroup(pageNum, pageSize uint64, sns []string,
 	queryType string) ([]AlarmInfo, error) {
 	var alarmInfo []AlarmInfo
-	if len(nodes) == 0 {
+	if len(sns) == 0 {
 		return alarmInfo, nil
-	}
-	sns := make([]string, len(nodes))
-	for idx, node := range nodes {
-		sns[idx] = node.Sn
 	}
 	return alarmInfo, adh.db().Scopes(getAlarmGroupScopes(pageNum, pageSize, sns, queryType)).Find(&alarmInfo).Error
 }
@@ -160,13 +155,9 @@ func (adh *AlarmDbHandler) countAlarmsOrEventsBySn(sn string, queryType string) 
 		queryType).Count(&count).Error
 }
 
-func (adh *AlarmDbHandler) countAlarmsOrEventsOfNodes(nodes []types.NodeInfo, queryType string) (int64, error) {
-	if len(nodes) == 0 {
+func (adh *AlarmDbHandler) countAlarmsOrEventsOfNodes(sns []string, queryType string) (int64, error) {
+	if len(sns) == 0 {
 		return 0, nil
-	}
-	sns := make([]string, len(nodes))
-	for idx, node := range nodes {
-		sns[idx] = node.Sn
 	}
 	count := int64(0)
 	return count, adh.db().Model(AlarmInfo{}).Where("serial_number in (?) and alarm_type=?", sns,

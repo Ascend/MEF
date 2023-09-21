@@ -22,9 +22,8 @@ import (
 	"huawei.com/mindx/common/database"
 	"huawei.com/mindx/common/httpsmgr"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/x509/certutils"
-
-	"alarm-manager/pkg/types"
+	"huawei.com/mindx/common/modulemgr"
+	"huawei.com/mindx/common/modulemgr/model"
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/alarms"
@@ -34,8 +33,7 @@ var (
 	gormInstance  *gorm.DB
 	dbPath        = "./test.db"
 	pachers       = make([]*gomonkey.Patches, 0)
-	groupNodes    = []string{"testSn", "testSn2"}
-	groupNodesMap = map[string]bool{}
+	groupNodesMap = map[string]bool{testSn1: true}
 	// ensure testSn is in db
 	testSns = []string{testSn1, testSn2, ""}
 )
@@ -90,9 +88,15 @@ func teardown() {
 
 func setupPachers() {
 	p1 := gomonkey.ApplyFunc(database.GetDb, mockGetDb)
-	p2 := gomonkey.ApplyFunc(httpsmgr.GetHttpsReq, func(url string, tlsCert certutils.TlsCertInfo,
-		headers ...map[string]interface{}) *httpsmgr.HttpsRequest {
-		return &httpsmgr.HttpsRequest{}
+	p2 := gomonkey.ApplyFunc(modulemgr.SendSyncMessage, func(m *model.Message, duration time.Duration) (*model.Message,
+		error) {
+		resp := common.RespMsg{
+			Status: common.Success,
+			Data:   []string{testSn1},
+		}
+		return &model.Message{
+			Content: resp,
+		}, nil
 	})
 	p3 := gomonkey.ApplyMethod(&httpsmgr.HttpsRequest{}, "GetWithTimeout",
 		func(req *httpsmgr.HttpsRequest, body io.Reader, timeout time.Duration) ([]byte, error) {
@@ -144,9 +148,9 @@ func genRandomAlarmStaticInfo(num int) {
 			return
 		}
 		randSetOneAlarm(&alarm, idx)
-		if idx < len(testSns) {
-			alarm.SerialNumber = testSns[idx]
-		}
+
+		alarm.SerialNumber = testSns[idx%len(testSns)]
+
 		err := AlarmDbInstance().addAlarmInfo(&alarm)
 		if err != nil {
 			hwlog.RunLog.Error(err.Error())
@@ -213,19 +217,6 @@ func randIntn(max int) (int, error) {
 	return randNum, nil
 }
 
-func genNodeGroup() types.NodeGroupDetailFromEdgeManager {
-	var nodeGroup types.NodeGroupDetailFromEdgeManager
-	nodesList := make([]types.NodeInfo, len(groupNodes))
-	for i := 0; i < len(testSns); i++ {
-		sn := testSns[i]
-		groupNodesMap[sn] = true
-		if i >= len(nodesList) {
-			break
-		}
-		nodesList[i] = types.NodeInfo{
-			Sn: sn,
-		}
-	}
-	nodeGroup.Nodes = nodesList
-	return nodeGroup
+func genNodeGroup() []string {
+	return []string{testSn1}
 }
