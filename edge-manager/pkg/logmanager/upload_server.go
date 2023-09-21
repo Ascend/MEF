@@ -4,8 +4,6 @@
 package logmanager
 
 import (
-	"bytes"
-	"crypto/sha256"
 	"errors"
 	"fmt"
 	"html/template"
@@ -32,8 +30,6 @@ const (
 	headerPackageSize    = "Package-Size"
 	headerTaskId         = "Task-Id"
 	headerSha256Checksum = "Sha256-Checksum"
-
-	gzipHeader = "\x1F\x8B\x08"
 
 	ioBufferSize            = common.MB
 	reportSizeThreshold     = common.MB
@@ -150,24 +146,12 @@ func (p uploadProcess) verifyFile(taskCtx taskschedule.TaskContext) error {
 		}
 	}()
 
-	hash := sha256.New()
-	if _, err := io.Copy(hash, localFile); err != nil {
-		return fmt.Errorf("failed to calculate sha256 checksum, %v", err)
+	checker := utils.UploadFileChecker{
+		Sha256Checksum: p.sha256Checksum,
+		File:           localFile,
 	}
-	if fmt.Sprintf("%x", hash.Sum(nil)) != p.sha256Checksum {
-		return errors.New("sha256 checksum error")
-	}
-
-	if _, err := localFile.Seek(0, io.SeekStart); err != nil {
+	if err := checker.Check(); err != nil {
 		return err
-	}
-	const headerBytesLen = 3
-	fileHeader := make([]byte, headerBytesLen)
-	if _, err := localFile.Read(fileHeader); err != nil {
-		return err
-	}
-	if bytes.Compare(fileHeader, []byte(gzipHeader)) != 0 {
-		return errors.New("format error")
 	}
 	hwlog.RunLog.Infof("verify file from edge(%s) successful", p.serialNumber)
 	return nil
