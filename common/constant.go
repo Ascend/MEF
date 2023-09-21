@@ -51,6 +51,7 @@ const (
 	InnerServerName        = "InnerServer"
 	AlarmManagerClientName = "AlarmManagerClient"
 	NodeMsgManagerName     = "NodeMsgManager"
+	WebsocketName          = "websocket"
 	CertManagerName        = "CertManager"
 	ConfigManagerName      = "ConfigManager"
 	AlarmManagerName       = "AlarmManager"
@@ -191,8 +192,6 @@ const (
 	DeleteNodeMsg = "/edgemanager/delete/node"
 	// EdgeHubName edgehub name
 	EdgeHubName = "EdgeHub"
-	// CloudCoreName cloud core name
-	CloudCoreName = "CloudCore"
 	// ResNodeChanged when edge node added or deleted, nodemanager send notify to certupdater
 	ResNodeChanged = "/nodemanager/node/changed"
 	// ResCertUpdate cert update notify from cert-manager to certupdater, both ca and svc.

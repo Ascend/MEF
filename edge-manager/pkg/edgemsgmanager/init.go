@@ -76,7 +76,7 @@ func (nm *NodeMsgDealer) dispatch(req *model.Message) {
 		return
 	}
 
-	if !req.GetIsSync() || req.GetSource() == common.CloudCoreName {
+	if !req.GetIsSync() || req.GetSource() == common.WebsocketName {
 		hwlog.RunLog.Infof(
 			"ignore response for async/websocket message, header: %+v, router: %+v", req.Header, req.Router)
 		hwlog.RunLog.Infof(
