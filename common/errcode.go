@@ -62,6 +62,8 @@ const (
 	ErrorCountNodeGroup = "40012005"
 	// ErrorDeleteNodeGroup failed to delete node groups
 	ErrorDeleteNodeGroup = "40012006"
+	// ErrorNodeGroupNotFound node group not found
+	ErrorNodeGroupNotFound = "40012019"
 
 	// ErrorGetNode failed to get node detail
 	ErrorGetNode = "40012007"
@@ -295,6 +297,8 @@ var ErrorMap = map[string]string{
 	ErrorGetNodeSoftwareVersion: "failed to get node version",
 	// ErrorGetConfigData failed to get token
 	ErrorGetConfigData: "failed to get token",
+	// ErrorNodeGroupNotFound node group not found
+	ErrorNodeGroupNotFound: "node group not found",
 
 	// ErrorGetNode failed to get node detail
 	ErrorGetNode: "failed to get node detail",

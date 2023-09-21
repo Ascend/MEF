@@ -23,7 +23,7 @@ type BatchResp struct {
 
 // ListAlarmsResp return list of resp for list alarms
 type ListAlarmsResp struct {
-	// AppTemplates app template info
+	// Records alarm or events records info
 	Records []AlarmBriefInfo `json:"records"`
 	// Total is num of appInfos
 	Total int64 `json:"total"`

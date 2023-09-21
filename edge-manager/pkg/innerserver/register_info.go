@@ -4,9 +4,13 @@ package innerserver
 
 import (
 	"huawei.com/mindx/common/websocketmgr"
+
+	"huawei.com/mindxedge/base/common"
 )
 
-var regInfoList = []websocketmgr.RegisterModuleInfo{}
+var regInfoList = []websocketmgr.RegisterModuleInfo{
+	{MsgOpt: common.Get, MsgRes: common.GetSnsByGroup, ModuleName: common.NodeManagerName},
+}
 
 func getRegModuleInfoList() []websocketmgr.RegisterModuleInfo {
 	return regInfoList

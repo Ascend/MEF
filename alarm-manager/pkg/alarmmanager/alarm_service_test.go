@@ -100,17 +100,12 @@ func testListAlarmsOrEventsByNodeId(queryType string) {
 		convey.So(respContent.Status, convey.ShouldEqual, common.Success)
 		return
 	}
-	respMap, ok := respContent.Data.(map[string]interface{})
+	respData, ok := respContent.Data.(types.ListAlarmsResp)
 	if !ok {
 		hwlog.RunLog.Error("convert assertion failed")
 		return
 	}
-	respData, ok := respMap[respDataKey].(map[uint64]types.AlarmBriefInfo)
-	if !ok {
-		hwlog.RunLog.Error("convert assertion failed")
-		return
-	}
-	for _, alarm := range respData {
+	for _, alarm := range respData.Records {
 		res = res && alarm.Sn == reqData.Sn && (alarm.AlarmType == queryType)
 	}
 	convey.So(res, convey.ShouldBeTrue)
@@ -140,11 +135,10 @@ func testListAlarmsOrEventsOfCenter(queryType string) {
 		convey.So(respContent.Status, convey.ShouldEqual, common.Success)
 		return
 	}
-	respMap, ok := respContent.Data.(map[string]interface{})
 	convey.So(ok, convey.ShouldBeTrue)
-	respData, ok := respMap[respDataKey].(map[uint64]types.AlarmBriefInfo)
+	respData, ok := respContent.Data.(types.ListAlarmsResp)
 	convey.So(ok, convey.ShouldBeTrue)
-	for _, alarm := range respData {
+	for _, alarm := range respData.Records {
 		res = res && (alarm.Sn == alarms.CenterSn) && (alarm.AlarmType == queryType)
 	}
 	convey.So(res, convey.ShouldBeTrue)
@@ -171,11 +165,9 @@ func testListAlarmsOrEventsOfNodeGroup(queryType string) {
 	convey.So(ok, convey.ShouldBeTrue)
 	convey.So(respContent.Status, convey.ShouldEqual, common.Success)
 	res := true
-	respMap, ok := respContent.Data.(map[string]interface{})
+	respData, ok := respContent.Data.(types.ListAlarmsResp)
 	convey.So(ok, convey.ShouldBeTrue)
-	respData, ok := respMap[respDataKey].(map[uint64]types.AlarmBriefInfo)
-	convey.So(ok, convey.ShouldBeTrue)
-	for _, alarm := range respData {
+	for _, alarm := range respData.Records {
 		res = res && (groupNodesMap[alarm.Sn]) && (alarm.AlarmType == queryType)
 	}
 	convey.So(res, convey.ShouldBeTrue)
@@ -195,11 +187,10 @@ func testGetAlarmOrEventByInfoId(queryType string) {
 	respContent, ok := resp.(*common.RespMsg)
 	convey.So(ok, convey.ShouldBeTrue)
 	convey.So(respContent.Status, convey.ShouldEqual, common.Success)
-	alarms, ok := respContent.Data.(map[uint64]AlarmInfo)
+	alarm, ok := respContent.Data.(*AlarmInfo)
 	convey.So(ok, convey.ShouldBeTrue)
-	for _, alarm := range alarms {
-		convey.So(alarm.AlarmType, convey.ShouldEqual, queryType)
-	}
+	convey.So(alarm.AlarmType, convey.ShouldEqual, queryType)
+
 }
 
 func testListAlarmAbNormalInput() {
@@ -286,18 +277,13 @@ func CallBackStringsContains(resp common.RespMsg) bool {
 }
 
 func CallbackAllAlarms(resp common.RespMsg) bool {
-	respMap, ok := resp.Data.(map[string]interface{})
-	if !ok {
-		hwlog.RunLog.Error("convert assertion failed")
-		return false
-	}
-	respData, ok := respMap[respDataKey].(map[uint64]types.AlarmBriefInfo)
+	respData, ok := resp.Data.(types.ListAlarmsResp)
 	if !ok {
 		hwlog.RunLog.Error("failed to marshal alarm info")
 		return false
 	}
 	res := true
-	for _, alarm := range respData {
+	for _, alarm := range respData.Records {
 		res = res && alarm.AlarmType == alarms.AlarmType
 	}
 	return res
@@ -308,18 +294,13 @@ func CallbackAllCenterNodes(resp common.RespMsg) bool {
 	if resp.Data == nil {
 		return true
 	}
-	respMap, ok := resp.Data.(map[string]interface{})
-	if !ok {
-		hwlog.RunLog.Error("convert assertion failed")
-		return false
-	}
-	respData, ok := respMap[respDataKey].(map[uint64]types.AlarmBriefInfo)
+	respData, ok := resp.Data.(types.ListAlarmsResp)
 	if !ok {
 		hwlog.RunLog.Error("failed to marshal alarm info")
 		return false
 	}
 	res := true
-	for _, alarm := range respData {
+	for _, alarm := range respData.Records {
 		res = res && alarm.Sn == alarms.CenterSn
 	}
 	return res

@@ -162,4 +162,5 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(common.Inner, common.NodeList):            innerAllNodeInfos,
 	common.Combine(common.Inner, common.NodeID):              innerGetNodesByNodeGroupID,
 	common.Combine(common.Get, common.GetIpBySn):             innerGetIpBySn,
+	common.Combine(common.Get, common.GetSnsByGroup):         innerGetNodeSnsByGroupId,
 }

@@ -6,12 +6,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
 	"k8s.io/api/core/v1"
 
 	"edge-manager/pkg/types"
+	"huawei.com/mindxedge/base/common/requests"
 
 	"huawei.com/mindxedge/base/common"
 )
@@ -91,6 +93,49 @@ func innerGetNodesByNodeGroupID(input interface{}) common.RespMsg {
 		NodeIDs: nodeIDs,
 	}
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
+}
+
+func innerGetNodeSnsByGroupId(input interface{}) common.RespMsg {
+	var reqInfo requests.NodeGroupReq
+	inputInfo, ok := input.(string)
+	if !ok {
+		hwlog.RunLog.Error("failed to convert param into string")
+		return common.RespMsg{Status: common.ErrorParamConvert}
+	}
+	decoder := json.NewDecoder(strings.NewReader(inputInfo))
+	decoder.UseNumber()
+	err := decoder.Decode(&reqInfo)
+	if err != nil {
+		hwlog.RunLog.Error("failed to decode param into string")
+		return common.RespMsg{Status: common.ErrorParamConvert}
+	}
+
+	gpId := reqInfo.GroupId
+	_, err = NodeServiceInstance().getNodeGroupByID(gpId)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		hwlog.RunLog.Error("node group with specific id not found")
+		return common.RespMsg{Status: common.ErrorNodeGroupNotFound, Data: nil}
+	}
+	if err != nil {
+		hwlog.RunLog.Errorf("failed to get node group,err:%v", err)
+		return common.RespMsg{Status: common.ErrorGetNodeGroup}
+	}
+	relations, err := NodeServiceInstance().listNodeRelationsByGroupId(gpId)
+	if err != nil {
+		hwlog.RunLog.Error("node group db query failed")
+		return common.RespMsg{Status: common.ErrorGetNodeGroup, Msg: "list nodes by group in db failed", Data: nil}
+	}
+	nodeSns := make([]string, 0)
+	for _, relation := range *relations {
+		node, err := NodeServiceInstance().getNodeByID(relation.NodeID)
+		if err != nil {
+			hwlog.RunLog.Errorf("query node group db by id(%d) failed", relation.NodeID)
+			return common.RespMsg{Status: common.ErrorGetNodeGroup, Msg: "query node by relations failed", Data: nil}
+		}
+		nodeSns = append(nodeSns, node.SerialNumber)
+	}
+	hwlog.RunLog.Info("node group Sns query success")
+	return common.RespMsg{Status: common.Success, Msg: "", Data: nodeSns}
 }
 
 func innerGetIpBySn(input interface{}) common.RespMsg {

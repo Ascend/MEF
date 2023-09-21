@@ -10,24 +10,18 @@ import (
 	"time"
 
 	"gorm.io/gorm"
-
-	"huawei.com/mindx/common/httpsmgr"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/x509/certutils"
 
 	"alarm-manager/pkg/types"
-	"alarm-manager/pkg/utils"
 	"huawei.com/mindxedge/base/common/alarms"
+	"huawei.com/mindxedge/base/common/requests"
 
 	"huawei.com/mindxedge/base/common"
 )
 
 const (
-	totalRecordsKey = "total"
-	respDataKey     = "records"
-	groupQueryRoute = "edgemanager/v1/nodegroup"
-	trueStr         = "true"
-	falseStr        = "false"
+	trueStr  = "true"
+	falseStr = "false"
 )
 
 // getQueryType returns the query type is by SerialNum or groupId,neither will return err
@@ -168,29 +162,26 @@ func listEdgeNodeAlarmsOrEvents(req types.ListAlarmOrEventReq, AlarmOrEvent stri
 }
 
 func listGroupNodesAlarmsOrEvents(req types.ListAlarmOrEventReq, queryIdType string) *common.RespMsg {
-	// ask edgemanager for node list in a specific group
-	url := fmt.Sprintf("https://%s:%d/%s?id=%d", common.EdgeMgrDns, common.EdgeMgrPort,
-		groupQueryRoute, req.GroupId)
-	clientSvcCert := certutils.TlsCertInfo{
-		RootCaPath: utils.RootCaPath,
-		CertPath:   utils.ServerCertPath,
-		KeyPath:    utils.ServerKeyPath,
-		SvrFlag:    false,
-		WithBackup: true,
+	router := common.Router{
+		Source:      common.AlarmManagerClientName,
+		Destination: common.AlarmManagerClientName,
+		Option:      common.Get,
+		Resource:    common.GetSnsByGroup,
 	}
-	httpsReq := httpsmgr.GetHttpsReq(url, clientSvcCert)
-	const timeout = 3 * time.Second
-	resp, err := httpsReq.GetWithTimeout(nil, timeout)
+
+	edgeReq := requests.NodeGroupReq{GroupId: req.GroupId}
+	bytes, err := json.Marshal(edgeReq)
 	if err != nil {
-		hwlog.RunLog.Errorf("failed to get group node list from edge-manager,err:%s", err.Error())
-		return &common.RespMsg{Status: common.ErrorListGroupNodeFromEdgeMgr}
+		hwlog.RunLog.Error("failed to marshal")
+		return &common.RespMsg{Status: common.ErrorParamInvalid}
 	}
-	nodes, err := parseEdgeManagerResp(resp)
+	resp := common.SendSyncMessageByRestful(string(bytes), &router, time.Second)
+	nodeSns, err := parseEdgeManagerResp(resp, req.GroupId)
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to unmarshal group node list from edge-manager,err:%s", err.Error())
 		return &common.RespMsg{Status: common.ErrorDecodeRespFromEdgeMgr, Msg: err.Error()}
 	}
-	respMsg, err := getGroupAlarmsOrEvents(nodes, queryIdType, req)
+	respMsg, err := getGroupAlarmsOrEvents(nodeSns, queryIdType, req)
 	if err != nil {
 		hwlog.RunLog.Error(err.Error())
 		return &common.RespMsg{Status: common.ErrorListEdgeNodeAlarm}
@@ -199,13 +190,13 @@ func listGroupNodesAlarmsOrEvents(req types.ListAlarmOrEventReq, queryIdType str
 	return &common.RespMsg{Status: common.Success, Data: respMsg}
 }
 
-func getGroupAlarmsOrEvents(nodes []types.NodeInfo, queryIdType string, req types.ListAlarmOrEventReq) (
+func getGroupAlarmsOrEvents(nodeSns []string, queryIdType string, req types.ListAlarmOrEventReq) (
 	types.ListAlarmsResp, error) {
 	resp := types.ListAlarmsResp{
 		Records: make([]types.AlarmBriefInfo, 0),
 		Total:   0,
 	}
-	count, err := AlarmDbInstance().countAlarmsOrEventsOfNodes(nodes, queryIdType)
+	count, err := AlarmDbInstance().countAlarmsOrEventsOfNodes(nodeSns, queryIdType)
 	if err != nil {
 		return resp, fmt.Errorf("failed to count %s", queryIdType)
 	}
@@ -215,7 +206,7 @@ func getGroupAlarmsOrEvents(nodes []types.NodeInfo, queryIdType string, req type
 		return resp, nil
 	}
 
-	alarmsNode, err := AlarmDbInstance().listAlarmsOrEventsOfGroup(req.PageNum, req.PageSize, nodes, queryIdType)
+	alarmsNode, err := AlarmDbInstance().listAlarmsOrEventsOfGroup(req.PageNum, req.PageSize, nodeSns, queryIdType)
 	if err != nil {
 		return resp, errors.New("faild to list alarms of in db while list group alarms")
 	}
@@ -225,25 +216,25 @@ func getGroupAlarmsOrEvents(nodes []types.NodeInfo, queryIdType string, req type
 	return resp, nil
 }
 
-func parseEdgeManagerResp(respBytes []byte) ([]types.NodeInfo, error) {
-	var resp common.RespMsg
-	err := json.Unmarshal(respBytes, &resp)
-	if err != nil {
-		return []types.NodeInfo{}, err
-	}
+func parseEdgeManagerResp(resp common.RespMsg, groupId uint64) ([]string, error) {
 	status := resp.Status
+	if status == common.ErrorNodeGroupNotFound {
+		// unify with list alarms by sn,None existing sn or groupId will return Success code empty data
+		hwlog.RunLog.Warnf("node group with id[%d] not found", groupId)
+		return []string{}, nil
+	}
 	if status != common.Success {
-		return []types.NodeInfo{}, errors.New(common.ErrorMap[resp.Status])
+		return []string{}, errors.New(common.ErrorMap[resp.Status])
 	}
 	dataBytes, err := json.Marshal(resp.Data)
 	if err != nil {
-		return []types.NodeInfo{}, errors.New("decode nodeGroup information failed")
+		return []string{}, errors.New("decode nodeGroup information failed")
 	}
-	var nodes types.NodeGroupDetailFromEdgeManager
-	if err := json.Unmarshal(dataBytes, &nodes); err != nil {
-		return []types.NodeInfo{}, errors.New("nodeGroup information convert failed")
+	var nodeSns []string
+	if err := json.Unmarshal(dataBytes, &nodeSns); err != nil {
+		return []string{}, errors.New("nodeGroup information convert failed")
 	}
-	return nodes.Nodes, nil
+	return nodeSns, nil
 }
 
 func convertToDigestInfo(alarm AlarmInfo) types.AlarmBriefInfo {
