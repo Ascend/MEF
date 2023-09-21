@@ -25,6 +25,11 @@ import (
 	"huawei.com/mindxedge/base/common"
 )
 
+const (
+	maxPodNum       = 21000
+	maxDaemonsetNum = 21000
+)
+
 type appStatusServiceImpl struct {
 	podInformer          cache.SharedIndexInformer
 	daemonSetInformer    cache.SharedIndexInformer
@@ -179,6 +184,15 @@ func (a *appStatusServiceImpl) addPod(obj interface{}) {
 	appInstance, err := parsePodToInstance(pod)
 	if err != nil {
 		hwlog.RunLog.Errorf("recovered add pod, parse pod to app instance error: %v", err)
+		return
+	}
+	count, err := GetTableCount(AppInstance{})
+	if err != nil {
+		hwlog.RunLog.Errorf("get pod table count error:%v", err)
+		return
+	}
+	if count > maxPodNum {
+		hwlog.RunLog.Errorf("pod count cannot exceed %d, please delete no need pod", maxPodNum)
 		return
 	}
 	if err = AppRepositoryInstance().addPod(appInstance); err != nil {
@@ -392,6 +406,15 @@ func (a *appStatusServiceImpl) addDaemonSet(obj interface{}) {
 	appDaemonSet, err := parseDaemonSetToDB(daemonSet)
 	if err != nil {
 		hwlog.RunLog.Errorf("recovered add daemon set, generate app daemon set error: %v", err)
+		return
+	}
+	count, err := GetTableCount(AppDaemonSet{})
+	if err != nil {
+		hwlog.RunLog.Errorf("get daemonSet table count error:%v", err)
+		return
+	}
+	if count > maxDaemonsetNum {
+		hwlog.RunLog.Errorf("daemonSet count cannot exceed %d, please delete no need daemonSet", maxDaemonsetNum)
 		return
 	}
 	if err = updateAllocatedNodeRes(daemonSet, appDaemonSet.NodeGroupID, false); err != nil {

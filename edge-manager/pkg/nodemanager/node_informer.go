@@ -30,6 +30,7 @@ const (
 	halfMin          = time.Second * 30
 	nodeActionAdd    = "add"
 	nodeActionDelete = "delete"
+	maxNodeSize      = 2048
 )
 
 type simpleNodeInfo struct {
@@ -186,7 +187,16 @@ func (s *nodeSyncImpl) handleAddNode(node *v1.Node) {
 		hwlog.RunLog.Errorf("node info check failed: %s", checkResult.Reason)
 		return
 	}
-	err := NodeServiceInstance().createNode(nodeInfo)
+	count, err := GetTableCount(NodeInfo{})
+	if err != nil {
+		hwlog.RunLog.Error("get node info table count error")
+		return
+	}
+	if count > maxNodeSize {
+		hwlog.RunLog.Errorf("node count cannot exceed %d, please delete no need node", maxNodeSize)
+		return
+	}
+	err = NodeServiceInstance().createNode(nodeInfo)
 	if err != nil && !strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
 		hwlog.RunLog.Errorf("automatically adding node(%s) failed, db add node error", node.Name)
 		return

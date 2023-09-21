@@ -18,7 +18,8 @@ import (
 )
 
 const (
-	lockTime = 5
+	lockTime        = 5
+	maxAuthFiledNum = 5000
 )
 
 // AuthFailedRecord token error then record ip
@@ -105,9 +106,23 @@ func (c *lockRepositoryImpl) getLockRecord() (*LockRecord, error) {
 func (c *lockRepositoryImpl) recordFailed(ip string) error {
 	record, err := c.getFailedRecord(ip)
 	if err != nil && err != gorm.ErrRecordNotFound {
+		hwlog.RunLog.Error("get auth failed record from db error")
 		return errors.New("get auth failed record from db error")
 	}
 	if err == gorm.ErrRecordNotFound {
+		count, err := common.GetItemCount(AuthFailedRecord{})
+		if err != nil {
+			hwlog.RunLog.Error("get auth failed record num error")
+			return errors.New("get auth failed record num error")
+		}
+		if count > maxAuthFiledNum {
+			hwlog.RunLog.Errorf("auth failed ip record has exceed %d, lock token auth function", maxAuthFiledNum)
+			if err := c.lock(ip); err != nil {
+				return fmt.Errorf("lock failed trigger by %s", ip)
+			}
+			return nil
+		}
+
 		return c.createFailedRecord(ip)
 	}
 
@@ -115,7 +130,7 @@ func (c *lockRepositoryImpl) recordFailed(ip string) error {
 		return c.updateFailedRecord(ip)
 	}
 	if err := c.lock(ip); err != nil {
-		return fmt.Errorf("lock %s failed", ip)
+		return fmt.Errorf("lock failed trigger by %s", ip)
 	}
 	return nil
 }
