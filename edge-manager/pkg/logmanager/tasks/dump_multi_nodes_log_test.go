@@ -13,11 +13,12 @@ import (
 	"github.com/smartystreets/goconvey/convey"
 	"huawei.com/mindx/common/envutils"
 
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/taskschedule"
+
 	"edge-manager/pkg/constants"
 	"edge-manager/pkg/logmanager/testutils"
 	"edge-manager/pkg/logmanager/utils"
-	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/taskschedule"
 )
 
 // TestMain sets up the environment
@@ -51,7 +52,7 @@ func TestDumpEdgeLogs(t *testing.T) {
 			ApplyMethodSeq(dummyObjs.SubTaskSelector, "Select", outputs)
 		defer patch.Reset()
 
-		tasks, err := dumpEdgeLogs(dummyObjs.TaskCtx, []string{"1"})
+		tasks, err := dumpEdgeLogs(dummyObjs.TaskCtx, []string{"1"}, []uint64{1})
 		convey.So(err, convey.ShouldBeNil)
 		convey.So(len(tasks), convey.ShouldEqual, 1)
 	})
@@ -62,8 +63,10 @@ func TestCreateTarGz(t *testing.T) {
 	convey.Convey("test createTarGz", t, func() {
 		dummyObjs := testutils.DummyTaskSchedule()
 		tasks := []taskschedule.Task{
-			{Spec: taskschedule.TaskSpec{Id: "1", Args: map[string]interface{}{constants.NodeSerialNumber: "1"}}},
-			{Spec: taskschedule.TaskSpec{Id: "2", Args: map[string]interface{}{constants.NodeSerialNumber: "2"}}},
+			{Spec: taskschedule.TaskSpec{Id: "1", Args: map[string]interface{}{
+				constants.NodeSerialNumber: "1", constants.NodeID: 1}}},
+			{Spec: taskschedule.TaskSpec{Id: "2", Args: map[string]interface{}{
+				constants.NodeSerialNumber: "2", constants.NodeID: 2}}},
 		}
 		for _, task := range tasks {
 			filePath := filepath.Join(constants.LogDumpTempDir, task.Spec.Id+common.TarGzSuffix)
@@ -94,7 +97,9 @@ func TestDumpMultiNodesLog(t *testing.T) {
 	}
 
 	convey.Convey("test dump multiNodesLog", t, func() {
-		taskSpec := taskschedule.TaskSpec{Args: map[string]interface{}{paramNameNodeSerialNumbers: []string{"1"}}}
+
+		taskSpec := taskschedule.TaskSpec{Args: map[string]interface{}{
+			paramNameNodeSerialNumbers: []string{"1"}, paramNameNodeIDs: []uint64{1}}}
 		dummyObjs := testutils.DummyTaskSchedule()
 		patch := gomonkey.ApplyFuncReturn(taskschedule.DefaultScheduler, dummyObjs.Scheduler).
 			ApplyMethodReturn(dummyObjs.TaskCtx, "UpdateStatus", nil).

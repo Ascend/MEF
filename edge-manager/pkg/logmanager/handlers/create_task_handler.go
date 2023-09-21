@@ -37,13 +37,13 @@ func (h *createTaskHandler) Handle(msg *model.Message) error {
 		return sendRestfulResponse(common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error()}, msg)
 	}
 
-	edgeNodes, err := getNodeSerialNumbersByID(req.EdgeNodes)
+	edgeNodeSNs, err := getNodeSerialNumbersByID(req.EdgeNodes)
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to get serial number of edge node, %v", err)
 		return sendRestfulResponse(common.RespMsg{Status: common.ErrorLogDumpNodeInfoError, Msg: err.Error()}, msg)
 	}
 
-	taskId, err := tasks.SubmitLogDumpTask(edgeNodes)
+	taskId, err := tasks.SubmitLogDumpTask(edgeNodeSNs, req.EdgeNodes)
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to create master task, %v", err)
 		return sendRestfulResponse(common.RespMsg{Status: common.ErrorLogDumpBusiness, Msg: err.Error()}, msg)

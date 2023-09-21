@@ -75,12 +75,12 @@ func dumpMultiNodesLog(ctx taskschedule.TaskContext) error {
 	packLock.Lock()
 	defer packLock.Unlock()
 
-	// 1. parse serial number
-	var serialNumbers []string
-	if err := ctx.Spec().Args.Get(paramNameNodeSerialNumbers, &serialNumbers); err != nil {
-		hwlog.RunLog.Errorf("failed to parse serial number, %v", err)
+	// 1. parse serial number & node ids
+	serialNumbers, nodeIDs, err := parseArgs(ctx)
+	if err != nil {
 		return errors.New("failed to parse serial number")
 	}
+
 	hwlog.RunLog.Info("start to dump logs of edge nodes")
 
 	// 2. ensure temp dirs
@@ -96,7 +96,7 @@ func dumpMultiNodesLog(ctx taskschedule.TaskContext) error {
 		return errors.New("temp dir has no enough disk space")
 	}
 	// 4. dump edge logs
-	succeedTasks, err := dumpEdgeLogs(ctx, serialNumbers)
+	succeedTasks, err := dumpEdgeLogs(ctx, serialNumbers, nodeIDs)
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to dump edge logs, %v", err)
 		return errors.New("failed to dump edge logs")
@@ -129,6 +129,20 @@ func cleanTempFiles() {
 	}
 }
 
+func parseArgs(ctx taskschedule.TaskContext) ([]string, []uint64, error) {
+	var serialNumbers []string
+	var nodeIDs []uint64
+	if err := ctx.Spec().Args.Get(paramNameNodeSerialNumbers, &serialNumbers); err != nil {
+		hwlog.RunLog.Errorf("failed to parse serial number, %v", err)
+		return nil, nil, err
+	}
+	if err := ctx.Spec().Args.Get(paramNameNodeIDs, &nodeIDs); err != nil {
+		hwlog.RunLog.Errorf("failed to parse node id, %v", err)
+		return nil, nil, err
+	}
+	return serialNumbers, nodeIDs, nil
+}
+
 func prepareDirs() error {
 	exists, err := utils.CleanTempFiles()
 	if err != nil {
@@ -158,14 +172,22 @@ func updateMasterTaskStatus(ctx taskschedule.TaskContext, success bool) {
 	hwlog.RunLog.Info("dump log successful")
 }
 
-func createSubTasks(masterTaskCtx taskschedule.TaskContext, serialNumbers []string) {
-	for _, serialNumber := range serialNumbers {
+func createSubTasks(masterTaskCtx taskschedule.TaskContext, serialNumbers []string, nodeIDs []uint64) {
+	for idx := range serialNumbers {
+		if len(nodeIDs) <= idx {
+			continue
+		}
+		serialNumber := serialNumbers[idx]
+		nodeID := nodeIDs[idx]
 		subTask := taskschedule.TaskSpec{
-			Name:             fmt.Sprintf("%s.%s", constants.DumpSingleNodeLogTaskName, serialNumber),
-			ParentId:         masterTaskCtx.Spec().Id,
-			GoroutinePool:    constants.DumpSingleNodeLogTaskName,
-			Command:          constants.DumpSingleNodeLogTaskName,
-			Args:             map[string]interface{}{constants.NodeSerialNumber: serialNumber},
+			Name:          fmt.Sprintf("%s.%s", constants.DumpSingleNodeLogTaskName, serialNumber),
+			ParentId:      masterTaskCtx.Spec().Id,
+			GoroutinePool: constants.DumpSingleNodeLogTaskName,
+			Command:       constants.DumpSingleNodeLogTaskName,
+			Args: map[string]interface{}{
+				constants.NodeSerialNumber: serialNumber,
+				constants.NodeID:           nodeID,
+			},
 			HeartbeatTimeout: dumpSingleNodeLogTaskHeartbeatTimeout,
 			ExecuteTimeout:   dumpSingleNodeLogTaskExecuteTimeout,
 		}
@@ -176,11 +198,12 @@ func createSubTasks(masterTaskCtx taskschedule.TaskContext, serialNumbers []stri
 	}
 }
 
-func dumpEdgeLogs(masterTaskCtx taskschedule.TaskContext, serialNumbers []string) ([]taskschedule.Task, error) {
+func dumpEdgeLogs(
+	masterTaskCtx taskschedule.TaskContext, serialNumbers []string, nodeIDs []uint64) ([]taskschedule.Task, error) {
 	if len(serialNumbers) == 0 {
 		return nil, errors.New("no edge node to dump logs")
 	}
-	createSubTasks(masterTaskCtx, serialNumbers)
+	createSubTasks(masterTaskCtx, serialNumbers, nodeIDs)
 	var (
 		succeedTasks []taskschedule.Task
 		err          error
