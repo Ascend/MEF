@@ -23,29 +23,6 @@ const (
 	// ErrorNewMsg new msg error
 	ErrorNewMsg = "00001008"
 
-	// ErrorCreateUser fail to create user
-	ErrorCreateUser = "10001001"
-	// ErrorCreateUserToDb fail to insert user to db
-	ErrorCreateUserToDb = "10001002"
-	// ErrorChangePassword fail to modify password
-	ErrorChangePassword = "10001003"
-	// ErrorLogin fail to login
-	ErrorLogin = "10001004"
-	// ErrorNeedFirstLogin need first login
-	ErrorNeedFirstLogin = "10001005"
-	// ErrorLockState in lock state
-	ErrorLockState = "10001006"
-	// ErrorPasswordRepeat pass repeat in history
-	ErrorPasswordRepeat = "10001008"
-	// ErrorUserAlreadyFirstLogin user already first login
-	ErrorUserAlreadyFirstLogin = "10001009"
-	// ErrorPassOrUser username or password error
-	ErrorPassOrUser = "10001010"
-	// ErrorQueryLock query lock info error
-	ErrorQueryLock = "10001011"
-	// ErrorQueryHisPassword query history pass error
-	ErrorQueryHisPassword = "10001012"
-
 	// ErrorCheckNodeMrgSize failed to check data size while creating
 	ErrorCheckNodeMrgSize = "40011000"
 	// ErrorNodeMrgDuplicate failed to create/update data cause of duplicate
@@ -249,31 +226,8 @@ var ErrorMap = map[string]string{
 	ErrorParamInvalid: "parameter invalid",
 	// ErrorTypeAssert parameter type assert error
 	ErrorTypeAssert: "parameter type assert error",
-
-	// ErrorCreateUser fail to create user
-	ErrorCreateUser: "failed to create user",
-	// ErrorCreateUserToDb fail to insert user to db
-	ErrorCreateUserToDb: "fail to insert user to db",
-	// ErrorModifyPassword fail to modify password
-	ErrorChangePassword: "fail to modify password",
-	// ErrorLogin fail to login
-	ErrorLogin: "fail to login",
-	// ErrorNeedFirstLogin need first login
-	ErrorNeedFirstLogin: "need first login",
-	// ErrorLockState in lock state
-	ErrorLockState: "user or ip in lock state",
-	// ErrorPasswordRepeat password same with history
-	ErrorPasswordRepeat: "password cannot be the same within recent 5 times",
-	// ErrorUserAlreadyFirstLogin user already first login
-	ErrorUserAlreadyFirstLogin: "user already first login",
-	// ErrorPassOrUser username or password error
-	ErrorPassOrUser: "username or password error",
 	// ErrorParamConvert convert request error
 	ErrorParamConvert: "convert request error",
-	// ErrorQueryLock query lock info error
-	ErrorQueryLock: "query lock info error",
-	// ErrorQueryHisPassword query history password error
-	ErrorQueryHisPassword: "query history password error",
 
 	// ErrorCheckNodeMrgSize failed to check data size while creating
 	ErrorCheckNodeMrgSize: "failed to check data size while creating",
