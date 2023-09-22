@@ -9,9 +9,11 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	appv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
@@ -73,22 +75,27 @@ type Client struct {
 
 // NewClientK8s create ClientK8s
 func NewClientK8s() (*Client, error) {
-	pemPair, err := certutils.GetCertPairForPemWithBackup(kubeConfigCertPath, kubeConfigKeyPath, nil)
-	if err != nil {
-		return nil, fmt.Errorf("get kubeconfig cert pair failed: %v", err)
+	const handshakeTimeOut = 10 * time.Second
+	var tlsCertInfo = certutils.TlsCertInfo{
+		CertPath:   kubeConfigCertPath,
+		KeyPath:    kubeConfigKeyPath,
+		RootCaPath: kubeConfigCaPath,
+		WithBackup: true,
 	}
-	rootCaPemBytes, err := certutils.GetCertContentWithBackup(kubeConfigCaPath)
-	if err != nil || rootCaPemBytes == nil {
-		return nil, fmt.Errorf("load kube client ca failed")
+
+	tlsCfg, err := certutils.GetTlsCfgWithPath(tlsCertInfo)
+	if err != nil {
+		return nil, fmt.Errorf("get tls config failed")
 	}
 
 	selfCreateConfig := rest.Config{
+		Transport: &http.Transport{
+			TLSClientConfig:     tlsCfg,
+			TLSHandshakeTimeout: handshakeTimeOut,
+		},
 		TLSClientConfig: rest.TLSClientConfig{
 			Insecure:   false,
 			ServerName: "",
-			CertData:   pemPair.CertPem,
-			KeyData:    pemPair.KeyPem,
-			CAData:     rootCaPemBytes,
 			NextProtos: []string(nil),
 		},
 	}
