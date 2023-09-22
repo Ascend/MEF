@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
@@ -106,6 +107,27 @@ func (icf *ImportCrlFlow) importCrl() error {
 			hwlog.RunLog.Warnf("delete crl [%s] failed: %s", filepath.Base(icf.savePath), err.Error())
 		}
 		return errors.New("set save crl right failed")
+	}
+
+	if err := icf.backupCrlWithMEFUser(); err != nil {
+		hwlog.RunLog.Warnf("create crl backup file failed: %s", err.Error())
+	}
+
+	return nil
+}
+
+func (icf *ImportCrlFlow) backupCrlWithMEFUser() error {
+	if err := backuputils.BackUpFiles(icf.savePath); err != nil {
+		return fmt.Errorf("back up crl failed: %s", err.Error())
+	}
+	ownerPram := fileutils.SetOwnerParam{
+		Path: icf.savePath + backuputils.BackupSuffix,
+		Uid:  icf.uid,
+		Gid:  icf.gid,
+	}
+	if err := fileutils.SetPathOwnerGroup(ownerPram); err != nil {
+		hwlog.RunLog.Errorf("set crl backup file owner failed: %s", err.Error())
+		return errors.New("set crl backup file owner failed")
 	}
 	return nil
 }
