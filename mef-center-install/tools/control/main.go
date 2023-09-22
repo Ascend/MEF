@@ -520,7 +520,6 @@ func handle() int {
 	if !initInstallParam() {
 		return util.ErrorExitCode
 	}
-
 	if err = initLog(installParam); err != nil {
 		fmt.Println(err.Error())
 		return util.ErrorExitCode

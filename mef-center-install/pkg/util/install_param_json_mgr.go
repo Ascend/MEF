@@ -7,7 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 
+	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 
@@ -24,19 +26,36 @@ type InstallParamJsonTemplate struct {
 
 // GetInstallParamJsonInfo is used to get infos from install_param.json
 func GetInstallParamJsonInfo(jsonPath string) (*InstallParamJsonTemplate, error) {
-	var componentsIns InstallParamJsonTemplate
+	installParam := InstallParamJsonTemplate{}
+	if err := installParam.initFromFilePath(jsonPath); err == nil {
+		if err := backuputils.NewBackupFileMgr(jsonPath).BackUp(); err != nil {
+			fmt.Println("warning: create backup of install-param.json failed")
+		}
+		return &installParam, nil
+	}
+	fmt.Println("get install param json failed, try restore from backup")
+	if err := backuputils.NewBackupFileMgr(jsonPath).Restore(); err != nil {
+		return nil, fmt.Errorf("restore install-param.json from backup failed, %s", err.Error())
+	}
+	if err := installParam.initFromFilePath(jsonPath); err != nil {
+		return nil, err
+	}
+	return &installParam, nil
+}
+
+func (ins *InstallParamJsonTemplate) initFromFilePath(jsonPath string) error {
 	if !utils.IsExist(jsonPath) {
-		return nil, errors.New("install_param.json not exist")
+		return errors.New("install_param.json not exist")
 	}
 	file, err := utils.LoadFile(jsonPath)
 	if err != nil {
-		return nil, fmt.Errorf("read component json failed: %s", err.Error())
+		return fmt.Errorf("read component json failed: %s", err.Error())
 	}
-	err = json.Unmarshal(file, &componentsIns)
+	err = json.Unmarshal(file, ins)
 	if err != nil {
-		return nil, fmt.Errorf("parse json file failed: %s", err.Error())
+		return fmt.Errorf("parse json file failed: %s", err.Error())
 	}
-	return &componentsIns, nil
+	return nil
 }
 
 // SetInstallParamJsonInfo is used to save infos into install_param.json
@@ -56,6 +75,21 @@ func (ins *InstallParamJsonTemplate) SetInstallParamJsonInfo(jsonPath string) er
 		return fmt.Errorf("write content into %s failed: %s", InstallParamJson, err.Error())
 	}
 
+	if err = ins.backupInstallParamJson(jsonPath); err != nil {
+		hwlog.RunLog.Warnf("back up %s failed, %v", InstallParamJson, err.Error())
+	}
+
+	return nil
+}
+
+func (ins *InstallParamJsonTemplate) backupInstallParamJson(jsonPath string) error {
+	realJsonPath, err := filepath.EvalSymlinks(jsonPath)
+	if err != nil {
+		return fmt.Errorf("get real path failed: %s", err.Error())
+	}
+	if err = backuputils.BackUpFiles(realJsonPath); err != nil {
+		return fmt.Errorf("create backup file failed: %s", err.Error())
+	}
 	return nil
 }
 
