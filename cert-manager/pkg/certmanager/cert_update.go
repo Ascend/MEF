@@ -10,13 +10,14 @@ import (
 	"sync/atomic"
 	"time"
 
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/httpsmgr"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509"
 	"huawei.com/mindx/common/x509/certutils"
 
 	"cert-manager/pkg/config"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
@@ -419,7 +420,7 @@ func execForceUpdate(caCertName, caCertType string) (string, error) {
 // 1st return true means it need to be updated in normal way.
 // 2nd return true means it need to be force updated as soon as possible
 func checkCertValidity(certName string) (bool, bool, error) {
-	certData, err := utils.LoadFile(getRootCaPath(certName))
+	certData, err := fileutils.LoadFile(getRootCaPath(certName))
 	if err != nil {
 		hwlog.RunLog.Errorf("load cert file [%v] error: %v", getRootCaPath(certName), err)
 		return false, false, err

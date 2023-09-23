@@ -47,7 +47,9 @@ spec:
 
 func testGetYamlPath() {
 	yamlPath := "./test.yaml"
-	var yamlDealer = GetYamlDealer(util.InitInstallDirPathMgr("./test.yaml"), "edge-manager", "", "", yamlPath)
+	pathMgr, err := util.InitInstallDirPathMgr(yamlPath)
+	So(err, ShouldBeNil)
+	var yamlDealer = GetYamlDealer(pathMgr, "edge-manager", "", "", yamlPath)
 	yamlContent := getTestYaml()
 	writer, err := os.OpenFile(yamlPath, os.O_WRONLY|os.O_CREATE, common.Mode700)
 	So(err, ShouldBeNil)

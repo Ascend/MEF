@@ -74,11 +74,11 @@ func (sum *SftUninstallMgr) checkCurrentPath() error {
 }
 
 // GetSftUninstallMgrIns is used to init a SftUninstallMgrIns struct
-func GetSftUninstallMgrIns(components []string, installPath string) SftUninstallMgr {
+func GetSftUninstallMgrIns(components []string, installPathMgr *util.InstallDirPathMgr) SftUninstallMgr {
 	return SftUninstallMgr{
 		SoftwareMgr: util.SoftwareMgr{
 			Components:     components,
-			InstallPathMgr: util.InitInstallDirPathMgr(installPath),
+			InstallPathMgr: installPathMgr,
 		},
 	}
 }

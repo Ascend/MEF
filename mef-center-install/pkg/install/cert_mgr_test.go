@@ -4,14 +4,12 @@ package install
 
 import (
 	"errors"
-	"os"
-	"path/filepath"
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/x509/certutils"
 
-	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
@@ -41,9 +39,8 @@ func CertMgrDoPrepareTest() {
 
 func PrepareCertsDirTest() {
 	convey.Convey("test prepareCertDir", func() {
-		currentPath, err := filepath.Abs(filepath.Dir(os.Args[0]))
+		InstallDirPathMgrIns, err := util.InitInstallDirPathMgr()
 		convey.So(err, convey.ShouldBeNil)
-		InstallDirPathMgrIns := util.InitInstallDirPathMgr(currentPath)
 		var ins = &certPrepareCtl{
 			certPathMgr: InstallDirPathMgrIns.ConfigPathMgr,
 			components:  []string{"edge-manager"},
@@ -55,20 +52,20 @@ func PrepareCertsDirTest() {
 		})
 
 		convey.Convey("test prepareCertDir func makesure root cert path failed", func() {
-			p := gomonkey.ApplyFuncReturn(common.MakeSurePath, ErrTest)
+			p := gomonkey.ApplyFuncReturn(fileutils.CreateDir, ErrTest)
 			defer ResetAndClearDir(p, InstallDirPathMgrIns.GetMefPath())
 			convey.So(ins.prepareCertsDir(), convey.ShouldResemble, errors.New("create root certs path failed"))
 		})
 
 		convey.Convey("test prepareCertDir func makesure root key path failed", func() {
-			p := gomonkey.ApplyFuncSeq(common.MakeSurePath,
+			p := gomonkey.ApplyFuncSeq(fileutils.CreateDir,
 				[]gomonkey.OutputCell{{Values: gomonkey.Params{nil}}, {Values: gomonkey.Params{ErrTest}}})
 			defer ResetAndClearDir(p, InstallDirPathMgrIns.GetMefPath())
 			convey.So(ins.prepareCertsDir(), convey.ShouldResemble, errors.New("create root key path failed"))
 		})
 
 		convey.Convey("test prepareCertDir func makesure component's cert path failed", func() {
-			p := gomonkey.ApplyFuncSeq(common.MakeSurePath,
+			p := gomonkey.ApplyFuncSeq(fileutils.CreateDir,
 				[]gomonkey.OutputCell{
 					{Values: gomonkey.Params{nil}},
 					{Values: gomonkey.Params{nil}},
@@ -83,9 +80,8 @@ func PrepareCertsDirTest() {
 
 func CertMgrPrepareCertTest() {
 	convey.Convey("test prepareCertDir", func() {
-		currentPath, err := filepath.Abs(filepath.Dir(os.Args[0]))
+		InstallDirPathMgrIns, err := util.InitInstallDirPathMgr()
 		convey.So(err, convey.ShouldBeNil)
-		InstallDirPathMgrIns := util.InitInstallDirPathMgr(currentPath)
 		var initCertMgrIns *certutils.RootCertMgr
 		var selfSignCertIns *certutils.SelfSignCert
 		var componentMgrIns *util.ComponentMgr

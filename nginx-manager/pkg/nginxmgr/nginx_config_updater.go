@@ -12,8 +12,6 @@ import (
 	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/utils"
-
 	"huawei.com/mindxedge/base/common"
 
 	"nginx-manager/pkg/nginxcom"
@@ -52,7 +50,7 @@ func NewNginxConfUpdater(confItems []nginxcom.NginxConfItem) (*nginxConfUpdater,
 }
 
 func loadConf(path string) ([]byte, error) {
-	b, err := utils.LoadFile(path)
+	b, err := fileutils.LoadFile(path)
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to read file. error:%s", err.Error())
 		return nil, fmt.Errorf("failed to read file. error:%s", err.Error())

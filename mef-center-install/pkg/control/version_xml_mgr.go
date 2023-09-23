@@ -6,8 +6,8 @@ import (
 	"encoding/xml"
 	"errors"
 
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/utils"
 )
 
 // VersionXmlTemplate is the struct to deal with version.xml
@@ -32,7 +32,7 @@ type Package struct {
 
 func unmarshalXml(xmlPath string) (*VersionXmlTemplate, error) {
 	xmlIns := new(VersionXmlTemplate)
-	content, err := utils.LoadFile(xmlPath)
+	content, err := fileutils.LoadFile(xmlPath)
 	if err != nil {
 		hwlog.RunLog.Errorf("read version.xml failed: %s", err.Error())
 		return nil, errors.New("read version.xml failed")

@@ -15,8 +15,7 @@ import (
 	"github.com/smartystreets/goconvey/convey"
 	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/envutils"
-	"huawei.com/mindx/common/utils"
-
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
@@ -41,7 +40,8 @@ func DoInstallMgrTest() {
 }
 
 func DoInstallTest() {
-	ins := GetSftInstallMgrIns([]string{}, "", "", "")
+	ins, err := GetSftInstallMgrIns([]string{}, "", "", "")
+	convey.So(err, convey.ShouldBeNil)
 	convey.Convey("test doInstall func success", func() {
 		p := gomonkey.ApplyPrivateMethod(ins, "checkInstalled", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "preCheck", func(_ *SftInstallCtl) error { return nil }).
@@ -93,7 +93,8 @@ func DoInstallTest() {
 
 func CheckInstalledTest() {
 	k8sMgr := &util.K8sLabelMgr{}
-	ins := GetSftInstallMgrIns([]string{}, "", "", "")
+	ins, err := GetSftInstallMgrIns([]string{}, "", "", "")
+	convey.So(err, convey.ShouldBeNil)
 	convey.Convey("checkInstalled func success", func() {
 		p := gomonkey.ApplyMethodReturn(k8sMgr, "CheckK8sLabel", false, nil)
 		defer p.Reset()
@@ -116,7 +117,8 @@ func CheckInstalledTest() {
 }
 
 func PreCheckTest() {
-	ins := GetSftInstallMgrIns([]string{}, "", "", "")
+	ins, err := GetSftInstallMgrIns([]string{}, "", "", "")
+	convey.So(err, convey.ShouldBeNil)
 	convey.Convey("test preCheck func success", func() {
 		p := gomonkey.ApplyPrivateMethod(ins, "checkUser", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "checkDiskSpace", func(_ *SftInstallCtl) error { return nil }).
@@ -134,7 +136,8 @@ func PreCheckTest() {
 }
 
 func CheckUserTest() {
-	ins := GetSftInstallMgrIns([]string{}, "", "", "")
+	ins, err := GetSftInstallMgrIns([]string{}, "", "", "")
+	convey.So(err, convey.ShouldBeNil)
 	convey.Convey("test CheckUser func check user failed", func() {
 		p := gomonkey.ApplyFuncReturn(user.Current, nil, ErrTest)
 		defer p.Reset()
@@ -161,7 +164,8 @@ func CheckUserTest() {
 }
 
 func CheckDiskSpaceTest() {
-	ins := GetSftInstallMgrIns([]string{}, "", "", "")
+	ins, err := GetSftInstallMgrIns([]string{}, "", "", "")
+	convey.So(err, convey.ShouldBeNil)
 	convey.Convey("test Check Disk Space func get disk free failed", func() {
 		p := gomonkey.ApplyFunc(syscall.Statfs, func(_ string, _ *syscall.Statfs_t) error {
 			return ErrTest
@@ -194,7 +198,8 @@ func CheckDiskSpaceTest() {
 }
 
 func CheckNecessaryToolsTest() {
-	ins := GetSftInstallMgrIns([]string{}, "", "", "")
+	ins, err := GetSftInstallMgrIns([]string{}, "", "", "")
+	convey.So(err, convey.ShouldBeNil)
 	convey.Convey("test CheckNecessaryTools func failed", func() {
 		p := gomonkey.ApplyFuncReturn(exec.LookPath, "", ErrTest)
 		defer p.Reset()
@@ -209,12 +214,13 @@ func CheckNecessaryToolsTest() {
 }
 
 func PrepareMefUserSuccessTest() {
-	ins := GetSftInstallMgrIns([]string{}, "", "", "")
+	ins, err := GetSftInstallMgrIns([]string{}, "", "", "")
+	convey.So(err, convey.ShouldBeNil)
 	convey.Convey("test PrepareMefUser func create user 8000 uid success", func() {
 		p := gomonkey.ApplyFuncReturn(exec.LookPath, "", nil).
 			ApplyFuncReturn(user.Lookup, nil, ErrTest).
 			ApplyFuncReturn(user.LookupGroup, nil, ErrTest).
-			ApplyFuncReturn(utils.IsExist, false).
+			ApplyFuncReturn(fileutils.IsExist, false).
 			ApplyFuncReturn(user.LookupId, nil, nil).
 			ApplyFuncReturn(envutils.RunCommand, "", nil)
 		defer p.Reset()
@@ -225,7 +231,7 @@ func PrepareMefUserSuccessTest() {
 		p := gomonkey.ApplyFuncReturn(exec.LookPath, "", nil).
 			ApplyFuncReturn(user.Lookup, nil, ErrTest).
 			ApplyFuncReturn(user.LookupGroup, nil, ErrTest).
-			ApplyFuncReturn(utils.IsExist, false).
+			ApplyFuncReturn(fileutils.IsExist, false).
 			ApplyFuncReturn(user.LookupId, nil, errors.New("user: unknown userid")).
 			ApplyFuncReturn(envutils.RunCommand, "", nil)
 		defer p.Reset()
@@ -234,12 +240,13 @@ func PrepareMefUserSuccessTest() {
 }
 
 func PrepareMefUserCreateUserFailedTest() {
-	ins := GetSftInstallMgrIns([]string{}, "", "", "")
+	ins, err := GetSftInstallMgrIns([]string{}, "", "", "")
+	convey.So(err, convey.ShouldBeNil)
 	convey.Convey("test PrepareMefUser func create user command exec failed", func() {
 		p := gomonkey.ApplyFuncReturn(exec.LookPath, "", nil).
 			ApplyFuncReturn(user.Lookup, nil, ErrTest).
 			ApplyFuncReturn(user.LookupGroup, nil, ErrTest).
-			ApplyFuncReturn(utils.IsExist, false).
+			ApplyFuncReturn(fileutils.IsExist, false).
 			ApplyFuncReturn(user.LookupId, nil, errors.New("user: unknown userid")).
 			ApplyFuncReturn(envutils.RunCommand, "", ErrTest)
 		defer p.Reset()
@@ -256,7 +263,7 @@ func PrepareMefUserCreateUserFailedTest() {
 		p := gomonkey.ApplyFuncReturn(exec.LookPath, "", nil).
 			ApplyFuncReturn(user.Lookup, nil, ErrTest).
 			ApplyFuncReturn(user.LookupGroup, nil, ErrTest).
-			ApplyFuncReturn(utils.IsExist, true)
+			ApplyFuncReturn(fileutils.IsExist, true)
 		defer p.Reset()
 		convey.So(ins.prepareMefUser(), convey.ShouldResemble, errors.New("user home dir exists"))
 	})
@@ -272,13 +279,14 @@ func PrepareMefUserCreateUserFailedTest() {
 }
 
 func PrePareMefUserUserCheckFailedTest() {
-	ins := GetSftInstallMgrIns([]string{}, "", "", "")
+	ins, err := GetSftInstallMgrIns([]string{}, "", "", "")
+	convey.So(err, convey.ShouldBeNil)
 	applyFunc := func(_ *envutils.UserMgr) error { return ErrTest }
 	convey.Convey("test PrepareMefUser func get groupIds failed", func() {
 		p := gomonkey.ApplyFuncReturn(exec.LookPath, "", nil).
 			ApplyFuncReturn(user.Lookup, &user.User{}, nil).
 			ApplyFuncReturn(user.LookupGroup, &user.Group{Gid: "8000"}, nil).
-			ApplyFuncReturn(utils.IsExist, false).
+			ApplyFuncReturn(fileutils.IsExist, false).
 			ApplyMethodReturn(&user.User{}, "GroupIds", nil, ErrTest)
 		defer p.Reset()
 		convey.So(ins.prepareMefUser(), convey.ShouldNotBeNil)
@@ -288,7 +296,7 @@ func PrePareMefUserUserCheckFailedTest() {
 		p := gomonkey.ApplyFuncReturn(exec.LookPath, "", nil).
 			ApplyFuncReturn(user.Lookup, &user.User{}, nil).
 			ApplyFuncReturn(user.LookupGroup, &user.Group{Gid: "8000"}, nil).
-			ApplyFuncReturn(utils.IsExist, false).
+			ApplyFuncReturn(fileutils.IsExist, false).
 			ApplyMethodReturn(&user.User{}, "GroupIds", []string{"9000"}, nil)
 		defer p.Reset()
 		convey.So(ins.prepareMefUser(), convey.ShouldNotBeNil)
@@ -298,7 +306,7 @@ func PrePareMefUserUserCheckFailedTest() {
 		p := gomonkey.ApplyFuncReturn(exec.LookPath, "", nil).
 			ApplyFuncReturn(user.Lookup, &user.User{}, nil).
 			ApplyFuncReturn(user.LookupGroup, &user.Group{Gid: "8000"}, nil).
-			ApplyFuncReturn(utils.IsExist, false).
+			ApplyFuncReturn(fileutils.IsExist, false).
 			ApplyMethodReturn(&user.User{}, "GroupIds", []string{"8000"}, nil).
 			ApplyPrivateMethod(&envutils.UserMgr{}, "checkNoLogin", applyFunc)
 		defer p.Reset()
@@ -309,7 +317,7 @@ func PrePareMefUserUserCheckFailedTest() {
 		p := gomonkey.ApplyFuncReturn(exec.LookPath, "", nil).
 			ApplyFuncReturn(user.Lookup, &user.User{}, nil).
 			ApplyFuncReturn(user.LookupGroup, &user.Group{Gid: "8000"}, nil).
-			ApplyFuncReturn(utils.IsExist, false).
+			ApplyFuncReturn(fileutils.IsExist, false).
 			ApplyMethodReturn(&user.User{}, "GroupIds", []string{"8000"}, nil).
 			ApplyPrivateMethod(&envutils.UserMgr{}, "checkNoLogin", applyFunc)
 		defer p.Reset()
@@ -318,7 +326,8 @@ func PrePareMefUserUserCheckFailedTest() {
 }
 
 func PrepareK8sLabelTest() {
-	ins := GetSftInstallMgrIns([]string{}, "", "", "")
+	ins, err := GetSftInstallMgrIns([]string{}, "", "", "")
+	convey.So(err, convey.ShouldBeNil)
 
 	k8sMgr := &util.K8sLabelMgr{}
 	convey.Convey("test prepareK8sLabel func success", func() {
@@ -338,7 +347,9 @@ func PrepareComponentLogDirTest() {
 	convey.Convey("test prepareComponentLogDir", func() {
 		currentPath, err := filepath.Abs(filepath.Dir(os.Args[0]))
 		convey.So(err, convey.ShouldBeNil)
-		var ins = GetSftInstallMgrIns([]string{"edge-manager"}, "", currentPath, "")
+		ins, err := GetSftInstallMgrIns([]string{"edge-manager"}, "", currentPath, "")
+		convey.So(err, convey.ShouldBeNil)
+
 		convey.Convey("test prepareComponentLogDir func success", func() {
 			p := gomonkey.ApplyFuncReturn(envutils.GetUid, uint32(8000), nil).
 				ApplyFuncReturn(envutils.GetGid, uint32(8000), nil).
@@ -375,7 +386,8 @@ func PrepareComponentLogDirRightCheckTest() {
 	convey.Convey("test prepareComponentLogDir", func() {
 		currentPath, err := filepath.Abs(filepath.Dir(os.Args[0]))
 		convey.So(err, convey.ShouldBeNil)
-		var ins = GetSftInstallMgrIns([]string{"edge-manager"}, "", currentPath, "")
+		ins, err := GetSftInstallMgrIns([]string{"edge-manager"}, "", currentPath, "")
+		convey.So(err, convey.ShouldBeNil)
 		convey.Convey("test prepareComponentLogDir func get mef-center uid failed", func() {
 			p := gomonkey.ApplyFuncReturn(user.Lookup, nil, ErrTest)
 			defer ResetAndClearDir(p, ins.logPathMgr.GetComponentLogPath("edge-manager"))
@@ -405,7 +417,8 @@ func PrepareComponentLogDirRightCheckTest() {
 }
 
 func PrepareCertsTest() {
-	var ins = GetSftInstallMgrIns([]string{"edge-manager"}, "", "", "")
+	ins, err := GetSftInstallMgrIns([]string{"edge-manager"}, "", "", "")
+	convey.So(err, convey.ShouldBeNil)
 	var certCtlIns *certPrepareCtl
 	convey.Convey("test prepareCerts func success", func() {
 		p := gomonkey.ApplyPrivateMethod(certCtlIns, "doPrepare", func(_ *certPrepareCtl) error { return nil })
@@ -422,7 +435,8 @@ func PrepareCertsTest() {
 }
 
 func PrepareWorkingDirTest() {
-	var ins = GetSftInstallMgrIns([]string{"edge-manager"}, "", "", "")
+	ins, err := GetSftInstallMgrIns([]string{"edge-manager"}, "", "", "")
+	convey.So(err, convey.ShouldBeNil)
 	var workDirMgtCtl *WorkingDirCtl
 	convey.Convey("test prepareWorkingDir func success", func() {
 		p := gomonkey.ApplyPrivateMethod(workDirMgtCtl, "DoInstallPrepare",
@@ -440,7 +454,8 @@ func PrepareWorkingDirTest() {
 }
 
 func PrepareYamlTest() {
-	var ins = GetSftInstallMgrIns([]string{"edge-manager"}, "", "", "")
+	ins, err := GetSftInstallMgrIns([]string{"edge-manager"}, "", "", "")
+	convey.So(err, convey.ShouldBeNil)
 	var yamlMgrCtl *YamlMgr
 	convey.Convey("test prepareYaml func success", func() {
 		p := gomonkey.ApplyMethodReturn(yamlMgrCtl, "EditSingleYaml", nil).
@@ -458,7 +473,8 @@ func PrepareYamlTest() {
 }
 
 func SetInstallJsonTest() {
-	var ins = GetSftInstallMgrIns([]string{"edge-manager"}, "", "", "")
+	ins, err := GetSftInstallMgrIns([]string{"edge-manager"}, "", "", "")
+	convey.So(err, convey.ShouldBeNil)
 	var jsonHandlerIns *util.InstallParamJsonTemplate
 	convey.Convey("test setInstallJson func success", func() {
 		p := gomonkey.ApplyMethodReturn(jsonHandlerIns, "SetInstallParamJsonInfo", nil)
@@ -474,7 +490,8 @@ func SetInstallJsonTest() {
 }
 
 func ComponentsInstallTest() {
-	var ins = GetSftInstallMgrIns([]string{"edge-manager"}, "", "", "")
+	ins, err := GetSftInstallMgrIns([]string{"edge-manager"}, "", "", "")
+	convey.So(err, convey.ShouldBeNil)
 	var componentMgrIns *util.ComponentMgr
 	convey.Convey("test componentsInstall func success", func() {
 		p := gomonkey.ApplyMethodReturn(componentMgrIns, "LoadAndSaveImage", nil).

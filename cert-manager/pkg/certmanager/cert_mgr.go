@@ -15,7 +15,6 @@ import (
 	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509/certutils"
 
 	"huawei.com/mindxedge/base/common"
@@ -37,7 +36,7 @@ var (
 func isCertImported(certName string) bool {
 	caFilePath := getRootCaPath(certName)
 	_, exist := certsToImported[certName]
-	return !exist || utils.IsExist(caFilePath) || utils.IsExist(caFilePath+backuputils.BackupSuffix)
+	return !exist || fileutils.IsExist(caFilePath) || fileutils.IsExist(caFilePath+backuputils.BackupSuffix)
 }
 
 // getCertByCertName query root ca with cert name
@@ -200,7 +199,7 @@ func saveCaContent(certName string, caContent []byte) error {
 		hwlog.RunLog.Errorf("create %s ca folder failed, error: %v", certName, err)
 		return fmt.Errorf("create %s ca folder failed, error: %v", certName, err)
 	}
-	if err := common.WriteData(caFilePath, caContent); err != nil {
+	if err := fileutils.WriteData(caFilePath, caContent); err != nil {
 		hwlog.RunLog.Errorf("save %s cert file failed, error:%s", certName, err)
 		return fmt.Errorf("save %s ca file failed", certName)
 	}

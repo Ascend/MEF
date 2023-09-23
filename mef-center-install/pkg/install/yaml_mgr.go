@@ -7,10 +7,8 @@ import (
 	"path"
 	"strings"
 
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/utils"
-
-	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
@@ -154,7 +152,7 @@ func (yd *YamlMgr) modifyContent(content string, installedModule []string) (stri
 // EditSingleYaml is used to edit a single yaml file on installation
 func (yd *YamlMgr) EditSingleYaml(installedModule []string) error {
 	hwlog.RunLog.Infof("start to modify %s's yaml", yd.component)
-	ret, err := utils.LoadFile(yd.yamlPath)
+	ret, err := fileutils.LoadFile(yd.yamlPath)
 	if err != nil {
 		hwlog.RunLog.Errorf("reading yaml [%s] meets error: %v", yd.yamlPath, err)
 		return err
@@ -166,7 +164,7 @@ func (yd *YamlMgr) EditSingleYaml(installedModule []string) error {
 		return err
 	}
 
-	err = common.WriteData(yd.yamlPath, []byte(content))
+	err = fileutils.WriteData(yd.yamlPath, []byte(content))
 	if err != nil {
 		hwlog.RunLog.Errorf("write yaml [%s] meets error: %v", yd.yamlPath, err)
 		return err

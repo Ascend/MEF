@@ -4,8 +4,10 @@ package util
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -552,11 +554,36 @@ func (cpm *ConfigPathMgr) GetIcsCertDir() string {
 
 // InitInstallDirPathMgr returns the InstallDirPathMgr construct by the root path
 // Each call to this func returns a distinct mgr value even if the root path is identical
-func InitInstallDirPathMgr(rootPath string) *InstallDirPathMgr {
-	mgrIns := InstallDirPathMgr{rootPath: rootPath}
-	mgrIns.WorkPathMgr = &WorkPathMgr{workPath: mgrIns.GetWorkPath()}
+func InitInstallDirPathMgr(rootPath ...string) (*InstallDirPathMgr, error) {
+	var rootDir string
+	if len(rootPath) == 0 {
+		execPath, err := os.Executable()
+		if err != nil {
+			return nil, fmt.Errorf("get excutable path failed: %v", err)
+		}
+		rootDir = filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(execPath))))
+	} else {
+		rootDir = rootPath[0]
+	}
+	mgrIns := InstallDirPathMgr{rootPath: rootDir}
+	workPath := mgrIns.GetWorkPath()
+
+	var (
+		workAbsPath string
+		err         error
+	)
+	if fileutils.IsExist(workPath) {
+		workAbsPath, err = fileutils.EvalSymlinks(workPath)
+		if err != nil {
+			return nil, fmt.Errorf("get work abs path failed: %v", err)
+		}
+	} else {
+		workAbsPath = mgrIns.GetWorkAPath()
+	}
+
+	mgrIns.WorkPathMgr = &WorkPathMgr{workPath: workAbsPath}
 	mgrIns.WorkPathAMgr = &WorkPathAMgr{workAPath: mgrIns.GetWorkAPath()}
 	mgrIns.TmpPathMgr = &TmpUpgradeMgr{tempUpgradePath: mgrIns.GetTmpUpgradePath()}
 	mgrIns.ConfigPathMgr = &ConfigPathMgr{configPath: mgrIns.GetConfigPath()}
-	return &mgrIns
+	return &mgrIns, nil
 }

@@ -8,9 +8,8 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/envutils"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/utils"
-
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
@@ -162,7 +161,7 @@ func (scm *SftOperateMgr) checkCloudCoreIsRunning() error {
 }
 
 func (scm *SftOperateMgr) dealUpgradeFlag() error {
-	if !utils.IsExist(scm.installPathMgr.WorkPathMgr.GetUpgradeFlagPath()) {
+	if !fileutils.IsExist(scm.installPathMgr.WorkPathMgr.GetUpgradeFlagPath()) {
 		return nil
 	}
 

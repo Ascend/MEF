@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"huawei.com/mindx/common/envutils"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/utils"
 )
 
 // DockerDealer is a struct to handle docker images
@@ -30,7 +30,7 @@ func GetDockerDealer(componentName string, tag string) DockerDealer {
 
 // LoadImage is used to build a docker image by Dockerfile
 func (dd *DockerDealer) LoadImage(buildPath string) error {
-	absPath, err := utils.CheckPath(buildPath)
+	absPath, err := fileutils.CheckOriginPath(buildPath)
 	if err != nil {
 		return err
 	}

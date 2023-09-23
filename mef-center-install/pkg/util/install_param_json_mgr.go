@@ -10,9 +10,8 @@ import (
 	"path/filepath"
 
 	"huawei.com/mindx/common/backuputils"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/utils"
-
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -44,10 +43,10 @@ func GetInstallParamJsonInfo(jsonPath string) (*InstallParamJsonTemplate, error)
 }
 
 func (ins *InstallParamJsonTemplate) initFromFilePath(jsonPath string) error {
-	if !utils.IsExist(jsonPath) {
+	if !fileutils.IsExist(jsonPath) {
 		return errors.New("install_param.json not exist")
 	}
-	file, err := utils.LoadFile(jsonPath)
+	file, err := fileutils.LoadFile(jsonPath)
 	if err != nil {
 		return fmt.Errorf("read component json failed: %s", err.Error())
 	}

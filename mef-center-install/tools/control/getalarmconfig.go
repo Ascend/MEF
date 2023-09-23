@@ -4,6 +4,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -30,7 +31,11 @@ func (gcc *getAlarmCfgController) setInstallParam(installParam *util.InstallPara
 }
 
 func (gcc *getAlarmCfgController) doControl() error {
-	pathMgr := util.InitInstallDirPathMgr(gcc.installParam.InstallDir)
+	pathMgr, err := util.InitInstallDirPathMgr()
+	if err != nil {
+		hwlog.RunLog.Errorf("init path mgr failed: %v", err)
+		return errors.New("init path mgr failed")
+	}
 	defer func() {
 		if err = util.ResetCfgPathPermAfterReducePriv(pathMgr); err != nil {
 			hwlog.RunLog.Errorf("reset config path permission after reducing privilege failed, error: %v", err)

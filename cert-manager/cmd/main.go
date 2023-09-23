@@ -12,11 +12,10 @@ import (
 
 	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/checker"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/modulemgr"
-	"huawei.com/mindx/common/utils"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
 
@@ -111,7 +110,7 @@ func register(ctx context.Context) error {
 }
 
 func initCertConfig(configPath string) error {
-	data, err := utils.LoadFile(configPath)
+	data, err := fileutils.LoadFile(configPath)
 	if err != nil {
 		return fmt.Errorf("load auth config file failed, %s", err.Error())
 	}

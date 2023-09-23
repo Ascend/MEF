@@ -12,8 +12,8 @@ import (
 
 	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/envutils"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/utils"
 )
 
 // CtlComponent is a struct used to do a specific command to a single component
@@ -194,7 +194,7 @@ func (cc *CtlComponent) Operate() error {
 	}
 	yamlRealPath := filepath.Join(imageConfigRealPath, fmt.Sprintf("%s.yaml", cc.Name))
 
-	filePath, err := utils.CheckPath(yamlRealPath)
+	filePath, err := fileutils.CheckOriginPath(yamlRealPath)
 	if err != nil {
 		hwlog.RunLog.Errorf("check real path of component [%s]'s yaml failed: %s", cc.Name, err.Error())
 		return fmt.Errorf("check real path of component [%s]'s yaml failed", cc.Name)

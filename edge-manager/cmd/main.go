@@ -15,10 +15,10 @@ import (
 	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/database"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/modulemgr"
-	"huawei.com/mindx/common/utils"
 
 	"edge-manager/pkg/alarmmanager"
 	"edge-manager/pkg/appmanager"
@@ -130,14 +130,14 @@ func validateFlags() error {
 	if authPort == wsPort {
 		return fmt.Errorf("authPort can not equals to wsPort")
 	}
-	if _, err := utils.CheckPath(dbPath); err != nil {
+	if _, err := fileutils.CheckOriginPath(dbPath); err != nil {
 		return err
 	}
 	return nil
 }
 
 func initPodConfig(configPath string) error {
-	date, err := utils.LoadFile(configPath)
+	date, err := fileutils.LoadFile(configPath)
 	if err != nil {
 		return fmt.Errorf("load pod config file failed, %s", err.Error())
 	}
@@ -150,7 +150,7 @@ func initPodConfig(configPath string) error {
 }
 
 func initAuthConfig(configPath string) error {
-	date, err := utils.LoadFile(configPath)
+	date, err := fileutils.LoadFile(configPath)
 	if err != nil {
 		return fmt.Errorf("load auth config file failed, %s", err.Error())
 	}

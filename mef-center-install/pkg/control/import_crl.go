@@ -10,10 +10,7 @@ import (
 	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509"
-
-	"huawei.com/mindxedge/base/common"
 )
 
 // ImportCrlFlow [struct] for import crl from north
@@ -55,12 +52,12 @@ func (icf *ImportCrlFlow) DoImportCrl() error {
 func (icf *ImportCrlFlow) checkParam() error {
 	const maxCrlSizeInMb = 1
 
-	if !utils.IsExist(icf.caPath) {
+	if !fileutils.IsExist(icf.caPath) {
 		hwlog.RunLog.Error("import crl check failed: ca is not be imported")
 		return errors.New("ca is not be imported")
 	}
 
-	if _, err := utils.RealFileChecker(icf.crlPath, false, false, maxCrlSizeInMb); err != nil {
+	if _, err := fileutils.RealFileCheck(icf.crlPath, false, false, maxCrlSizeInMb); err != nil {
 		hwlog.RunLog.Errorf("crl path [%s] check failed: %s", icf.crlPath, err.Error())
 		return errors.New("crl path check failed")
 	}
@@ -77,8 +74,8 @@ func (icf *ImportCrlFlow) checkCrl() error {
 }
 
 func (icf *ImportCrlFlow) importCrl() error {
-	if utils.IsLexist(icf.savePath) {
-		if err := common.DeleteFile(icf.savePath); err != nil {
+	if fileutils.IsLexist(icf.savePath) {
+		if err := fileutils.DeleteFile(icf.savePath); err != nil {
 			hwlog.RunLog.Errorf("delete original crl [%s] failed: %s", icf.savePath, err.Error())
 			return errors.New("delete original crl failed")
 		}
@@ -101,9 +98,9 @@ func (icf *ImportCrlFlow) importCrl() error {
 		return errors.New("set crl owner failed")
 	}
 
-	if err := fileutils.SetPathPermission(icf.savePath, common.Mode400, false, false); err != nil {
+	if err := fileutils.SetPathPermission(icf.savePath, fileutils.Mode400, false, false); err != nil {
 		hwlog.RunLog.Errorf("set save crl right failed: %s", err.Error())
-		if err = common.DeleteFile(icf.savePath); err != nil {
+		if err = fileutils.DeleteFile(icf.savePath); err != nil {
 			hwlog.RunLog.Warnf("delete crl [%s] failed: %s", filepath.Base(icf.savePath), err.Error())
 		}
 		return errors.New("set save crl right failed")

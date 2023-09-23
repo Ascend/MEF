@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	"huawei.com/mindx/common/envutils"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
-	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509/certutils"
 
 	"huawei.com/mindxedge/base/common"
@@ -124,7 +124,7 @@ func (k *kubeConfig) signCertFormK8s(csr []byte) error {
 		}
 	}()
 
-	if err := common.DeleteFile(csrPath); err != nil {
+	if err := fileutils.DeleteFile(csrPath); err != nil {
 		hwlog.RunLog.Warnf("delete tmp yaml to sign cert from k8s error :%v", err)
 	}
 
@@ -166,7 +166,7 @@ func (k *kubeConfig) prepareApiServerInfo() error {
 		return err
 	}
 	caPath := k.certPathMgr.GetKubeConfigCa()
-	if err := utils.CopyFile(srcCaPath, caPath); err != nil {
+	if err := fileutils.CopyFile(srcCaPath, caPath); err != nil {
 		hwlog.RunLog.Errorf("copy kubeclient ca cert failed: %v", err)
 		return err
 	}
@@ -191,7 +191,7 @@ func (k *kubeConfig) prepareAuth() error {
 		"-f", configPath); err != nil {
 		return fmt.Errorf("delete clusterrole failed: %v", err)
 	}
-	if err := utils.DeleteFile(configPath); err != nil {
+	if err := fileutils.DeleteFile(configPath); err != nil {
 		return err
 	}
 
@@ -223,10 +223,10 @@ func checkAndSaveCert(rawCertData, certPath string) error {
 		return fmt.Errorf("decode kubeconfig cert failed: %v", err)
 	}
 
-	if err := utils.WriteData(certPath, cert); err != nil {
+	if err := fileutils.WriteData(certPath, cert); err != nil {
 		return fmt.Errorf("save kubeconfig cert failed: %v", err)
 	}
-	if err := utils.SetPathPermission(certPath, utils.Mode400, false, false); err != nil {
+	if err := fileutils.SetPathPermission(certPath, fileutils.Mode400, false, false); err != nil {
 		return err
 	}
 	return nil
@@ -256,10 +256,10 @@ func modifyCsrYaml(csr string, yamlPath string) error {
 		return err
 	}
 
-	if err = common.WriteData(yamlPath, []byte(content)); err != nil {
+	if err = fileutils.WriteData(yamlPath, []byte(content)); err != nil {
 		return fmt.Errorf("cannot save yaml content: %v", err)
 	}
-	if err := utils.SetPathPermission(yamlPath, utils.Mode400, false, false); err != nil {
+	if err := fileutils.SetPathPermission(yamlPath, fileutils.Mode400, false, false); err != nil {
 		return fmt.Errorf("set yaml permission error: %v", err)
 	}
 	return nil

@@ -12,7 +12,6 @@ import (
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
-	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509/certutils"
 
 	"huawei.com/mindxedge/base/common"
@@ -92,7 +91,7 @@ func (c *ComponentMgr) loadImage(dealer *DockerDealer, imageConfigPath string) e
 		return fmt.Errorf("get absolute component path failed: %s", err.Error())
 	}
 
-	if !utils.IsExist(imageConfigAbsPath) {
+	if !fileutils.IsExist(imageConfigAbsPath) {
 		return fmt.Errorf("failed to build [%s] component's docker, the docker path does not exist", c.name)
 	}
 
@@ -110,7 +109,7 @@ func (c *ComponentMgr) saveImage(dealer *DockerDealer, savePath string) error {
 		return errors.New("pointer dealer is nil")
 	}
 
-	if !utils.IsExist(savePath) {
+	if !fileutils.IsExist(savePath) {
 		return fmt.Errorf("failed to save [%s] component's image, the save path does not exist", c.name)
 	}
 
@@ -135,13 +134,13 @@ func (c *ComponentMgr) ClearDockerFile(pathMgr WorkPathItf) error {
 		return fmt.Errorf("get [%s]'s Dockerfile's abs path failed", c.name)
 	}
 
-	if err = common.DeleteAllFile(componentAbsPath); err != nil {
+	if err = fileutils.DeleteAllFileWithConfusion(componentAbsPath); err != nil {
 		hwlog.RunLog.Errorf("delete component [%s]'s Dockerfile failed: %s", c.name, err.Error())
 		return fmt.Errorf("delete component [%s]'s Dockerfile's failed", c.name)
 	}
 
 	if c.name == NginxManagerName {
-		err = common.DeleteAllFile(pathMgr.GetNginxDirPath())
+		err = fileutils.DeleteAllFileWithConfusion(pathMgr.GetNginxDirPath())
 		if err != nil {
 			hwlog.RunLog.Errorf("delete nginx's dir failed: %s", err.Error())
 			return errors.New("delete nginx's dir failed")
@@ -149,7 +148,7 @@ func (c *ComponentMgr) ClearDockerFile(pathMgr WorkPathItf) error {
 		return nil
 	}
 
-	err = common.DeleteAllFile(pathMgr.GetComponentBinaryPath(c.name))
+	err = fileutils.DeleteAllFileWithConfusion(pathMgr.GetComponentBinaryPath(c.name))
 	if err != nil {
 		hwlog.RunLog.Errorf("delete component [%s]'s binary file failed: %s", c.name, err.Error())
 		return fmt.Errorf("delete component [%s]'s binary file failed", c.name)
@@ -160,7 +159,7 @@ func (c *ComponentMgr) ClearDockerFile(pathMgr WorkPathItf) error {
 // PrepareComponentCertDir is used to create the cert dir for a single component
 func (c *ComponentMgr) PrepareComponentCertDir(rootPath string) error {
 	certPath := path.Join(rootPath, c.name, CertsDir)
-	if err := common.MakeSurePath(certPath); err != nil {
+	if err := fileutils.CreateDir(certPath, fileutils.Mode700); err != nil {
 		return fmt.Errorf("create cert path [%s] failed", certPath)
 	}
 
@@ -193,14 +192,14 @@ func (c *ComponentMgr) prepareComponentDir(pathMgr WorkPathItf) error {
 	}
 
 	imageConfigPath := pathMgr.GetImageConfigPath(c.name)
-	if err := common.MakeSurePath(imageConfigPath); err != nil {
+	if err := fileutils.CreateDir(imageConfigPath, fileutils.Mode700); err != nil {
 		hwlog.RunLog.Errorf(
 			"create component [%s] cert path [%s] failed: %s", c.name, imageConfigPath, err.Error())
 		return errors.New("create component cert path failed")
 	}
 
 	imagePath := pathMgr.GetImagePath(c.name)
-	if err := common.MakeSurePath(imagePath); err != nil {
+	if err := fileutils.CreateDir(imagePath, fileutils.Mode700); err != nil {
 		hwlog.RunLog.Errorf(
 			"create component [%s] image path [%s] failed: %s", c.name, imageConfigPath, err.Error())
 		return errors.New("create component image path failed")
@@ -227,11 +226,16 @@ func (c *ComponentMgr) copyComponentFiles(pathMgr WorkPathItf) error {
 	// copy ComponentMgr files to ComponentMgr directory
 	filesDst := pathMgr.GetImageConfigPath(c.name)
 
-	files, err := common.ReadDir(componentPath)
+	handle, files, err := fileutils.ReadDir(componentPath)
 	if err != nil {
 		hwlog.RunLog.Errorf("read component [%s]'s dir failed: %s", c.name, err.Error())
 		return fmt.Errorf("read component [%s]'s dir failed", c.name)
 	}
+	defer func() {
+		if err = handle.Close(); err != nil {
+			hwlog.RunLog.Errorf("closer dir %s's handle failed: %v", componentPath, err)
+		}
+	}()
 
 	for _, f := range files {
 		if f.Name() == ConfigInPkg {
@@ -298,14 +302,14 @@ func (c *ComponentMgr) PrepareComponentConfig(pathMgr *ConfigPathMgr) error {
 
 	installRootDir := path.Dir(path.Dir(currentDir))
 	configPath := filepath.Join(installRootDir, c.name, ConfigInPkg)
-	if !utils.IsExist(configPath) {
+	if !fileutils.IsExist(configPath) {
 		return nil
 	}
 
 	filesDst := pathMgr.GetComponentConfigPath(c.name)
 
-	if !utils.IsExist(filesDst) {
-		if err = common.MakeSurePath(filesDst); err != nil {
+	if !fileutils.IsExist(filesDst) {
+		if err = fileutils.CreateDir(filesDst, fileutils.Mode700); err != nil {
 			hwlog.RunLog.Errorf("make sure component [%s]'s config dir failed: %s", c.name, err.Error())
 			return fmt.Errorf("make sure component [%s]'s config dir failed", c.name)
 		}
@@ -331,7 +335,7 @@ var postDealFuncMap = map[string]postDealFunc{
 
 func postAlarmManager(pathMgr *ConfigPathMgr) error {
 	alarmConfigDir := pathMgr.GetComponentConfigPath(AlarmManagerName)
-	if !utils.IsExist(alarmConfigDir) {
+	if !fileutils.IsExist(alarmConfigDir) {
 		if err := fileutils.MakeSureDir(alarmConfigDir); err != nil {
 			hwlog.RunLog.Errorf("make sure alarm config dir failed, error: %v", err)
 			return errors.New("make sure alarm config dir failed")
@@ -359,12 +363,12 @@ func (c *ComponentMgr) PrepareLogDir(pathMgr *LogDirPathMgr) error {
 	}
 
 	logDir := pathMgr.GetComponentLogPath(c.name)
-	if err := common.MakeSurePath(logDir); err != nil {
+	if err := fileutils.CreateDir(logDir, fileutils.Mode700); err != nil {
 		hwlog.RunLog.Errorf("prepare component [%s] Log Dir failed: %s", c.name, err.Error())
 		return fmt.Errorf("prepare component [%s] log dir failed", c.name)
 	}
 
-	if _, err := utils.CheckPath(logDir); err != nil {
+	if _, err := fileutils.CheckOriginPath(logDir); err != nil {
 		hwlog.RunLog.Errorf("check component [%s] Log Dir failed: %s", c.name, err.Error())
 		return fmt.Errorf("check component [%s] log dir failed", c.name)
 	}
@@ -390,12 +394,12 @@ func (c *ComponentMgr) PrepareLogBackupDir(pathMgr *LogDirPathMgr) error {
 	}
 
 	logDir := pathMgr.GetComponentBackupLogPath(c.name)
-	if err := common.MakeSurePath(logDir); err != nil {
+	if err := fileutils.CreateDir(logDir, fileutils.Mode700); err != nil {
 		hwlog.RunLog.Errorf("prepare component [%s] Log Backup Dir failed: %s", c.name, err.Error())
 		return fmt.Errorf("prepare component [%s] log dir failed", c.name)
 	}
 
-	if _, err := utils.CheckPath(logDir); err != nil {
+	if _, err := fileutils.CheckOriginPath(logDir); err != nil {
 		hwlog.RunLog.Errorf("check component [%s] Log Backup Dir failed: %s", c.name, err.Error())
 		return fmt.Errorf("check component [%s] log dir failed", c.name)
 	}
@@ -421,7 +425,7 @@ func (c *ComponentMgr) PrepareLibDir(libSrcPath string, pathMgr WorkPathItf) err
 	}
 
 	libDir := pathMgr.GetComponentLibPath(c.name)
-	if err := common.MakeSurePath(libDir); err != nil {
+	if err := fileutils.CreateDir(libDir, fileutils.Mode700); err != nil {
 		hwlog.RunLog.Errorf("prepare component [%s] lib Dir failed: %s", c.name, err.Error())
 		return fmt.Errorf("prepare component [%s] lib dir failed", c.name)
 	}
@@ -459,7 +463,7 @@ func (c *ComponentMgr) ClearLibDir(pathMgr WorkPathItf) error {
 		return fmt.Errorf("get [%s]'s lib dir's abs path failed", c.name)
 	}
 
-	if err = common.DeleteAllFile(absPath); err != nil {
+	if err = fileutils.DeleteAllFileWithConfusion(absPath); err != nil {
 		hwlog.RunLog.Errorf("delete component [%s]'s lib dir failed: %s", c.name, err.Error())
 		return fmt.Errorf("delete component [%s]'s lib dir failed", c.name)
 	}

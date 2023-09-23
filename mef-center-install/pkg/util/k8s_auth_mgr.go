@@ -12,8 +12,8 @@ import (
 
 	"huawei.com/mindx/common/checker/valid"
 	"huawei.com/mindx/common/envutils"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509"
 
 	"huawei.com/mindxedge/base/common"
@@ -53,11 +53,11 @@ rules:
     resources: ["daemonsets"]
     verbs: ["create","update","watch","list","delete","get","patch"]
 `
-	if err := utils.WriteData(path, []byte(content)); err != nil {
+	if err := fileutils.WriteData(path, []byte(content)); err != nil {
 		hwlog.RunLog.Errorf("write yaml meets error: %v", err)
 		return err
 	}
-	if err := utils.SetPathPermission(path, utils.Mode400, false, false); err != nil {
+	if err := fileutils.SetPathPermission(path, fileutils.Mode400, false, false); err != nil {
 		return err
 	}
 	return nil
@@ -101,10 +101,10 @@ func getKubeClientCA(podCommand string) (string, error) {
 		return "", errors.New("ca path parse failed")
 	}
 
-	if _, err := utils.RealFileChecker(kubeclientCaPathArr[1], false, false, 1); err != nil {
+	if _, err := fileutils.RealFileCheck(kubeclientCaPathArr[1], false, false, 1); err != nil {
 		return "", fmt.Errorf("ca path [%s] check failed: %v", kubeclientCaPathArr[1], err)
 	}
-	caContent, err := utils.LoadFile(kubeclientCaPathArr[1])
+	caContent, err := fileutils.LoadFile(kubeclientCaPathArr[1])
 	if err != nil {
 		return "", fmt.Errorf("load file failed: %s", err.Error())
 	}
@@ -175,7 +175,7 @@ func ModifyEndpointYaml(endpoint string, yamlPath string) error {
 	yamlDealer := &kubeconfigYamlMgr{
 		apiserverEndpoint: endpoint,
 	}
-	ret, err := utils.LoadFile(yamlPath)
+	ret, err := fileutils.LoadFile(yamlPath)
 	if err != nil {
 		hwlog.RunLog.Errorf("reading yaml [%s] meets error: %v", yamlPath, err)
 		return err
@@ -186,7 +186,7 @@ func ModifyEndpointYaml(endpoint string, yamlPath string) error {
 		return err
 	}
 
-	if err = common.WriteData(yamlPath, []byte(content)); err != nil {
+	if err = fileutils.WriteData(yamlPath, []byte(content)); err != nil {
 		return fmt.Errorf("cannot save yaml content: %v", err)
 	}
 	return nil

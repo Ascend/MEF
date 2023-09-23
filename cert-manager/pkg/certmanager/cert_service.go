@@ -255,11 +255,11 @@ func importCrl(input interface{}) common.RespMsg {
 // saveCaContent save ca content to File
 func saveCrlContentWithBackup(crlName string, crlContent []byte) error {
 	crlFilePath := getCrlPath(crlName)
-	if err := utils.MakeSureDir(crlFilePath); err != nil {
+	if err := fileutils.MakeSureDir(crlFilePath); err != nil {
 		hwlog.RunLog.Errorf("create %s crl folder failed, error: %v", crlName, err)
 		return fmt.Errorf("create %s crl folder failed, error: %v", crlName, err)
 	}
-	if err := common.WriteData(crlFilePath, crlContent); err != nil {
+	if err := fileutils.WriteData(crlFilePath, crlContent); err != nil {
 		hwlog.RunLog.Errorf("save %s crl file failed, error:%s", crlName, err)
 		return fmt.Errorf("save %s crl file failed", crlName)
 	}
@@ -282,7 +282,7 @@ func queryCrl(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "query crl failed parma is invalid", Data: nil}
 	}
 	crlPath := getCrlPath(crlName)
-	if !utils.IsExist(crlPath) && !utils.IsExist(crlPath+backuputils.BackupSuffix) {
+	if !fileutils.IsExist(crlPath) && !fileutils.IsExist(crlPath+backuputils.BackupSuffix) {
 		return common.RespMsg{Status: common.Success,
 			Msg: fmt.Sprintf("%s is no imported yet", crlName), Data: ""}
 	}
@@ -290,7 +290,7 @@ func queryCrl(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("[%s] crl file is damaged", crlName)
 		return common.RespMsg{Status: common.ErrorGetRootCa, Msg: "query crl failed, crl file is damaged", Data: nil}
 	}
-	crlData, err := utils.LoadFile(crlPath)
+	crlData, err := fileutils.LoadFile(crlPath)
 	if err != nil {
 		hwlog.RunLog.Errorf("query cert [%s] crl failed: %v", crlName, err)
 		return common.RespMsg{Status: common.ErrorGetRootCa, Msg: "query crl failed, load crl file failed", Data: nil}

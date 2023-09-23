@@ -13,16 +13,17 @@ import (
 	"time"
 
 	"huawei.com/mindx/common/envutils"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
-	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509/certutils"
+
+	"nginx-manager/pkg/msgutil"
+	"nginx-manager/pkg/nginxcom"
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/requests"
-	"nginx-manager/pkg/msgutil"
-	"nginx-manager/pkg/nginxcom"
 )
 
 const (
@@ -57,7 +58,7 @@ func prepareCrlFile() error {
 		crlConfig = "ssl_crl /home/data/config/mef-certs/northern-root.crl;"
 	)
 	// remove old 3rd north crl
-	if err := utils.DeleteFile(nginxcom.NorthernCrlFile); err != nil {
+	if err := fileutils.DeleteFile(nginxcom.NorthernCrlFile); err != nil {
 		return err
 	}
 	hwlog.RunLog.Info("start to get north crl from cert manager")
@@ -78,7 +79,7 @@ func prepareCrlFile() error {
 		hwlog.RunLog.Info("get north crl was not imported, nginx with run without ssl crl")
 	}
 	content = bytes.ReplaceAll(content, []byte(nginxcom.KeyPrefix+nginxcom.CrlConfigKey), []byte(modifiedCrlConfig))
-	if err := common.WriteData(nginxcom.NginxConfigPath, content); err != nil {
+	if err := fileutils.WriteData(nginxcom.NginxConfigPath, content); err != nil {
 		hwlog.RunLog.Errorf("writeFile failed. error:%s", err.Error())
 		return fmt.Errorf("writeFile failed. error:%s", err.Error())
 	}
@@ -211,7 +212,7 @@ func getNorthCrl() (bool, error) {
 		return false, nil
 	}
 
-	if err = utils.WriteData(nginxcom.NorthernCrlFile, []byte(crlStr)); err != nil {
+	if err = fileutils.WriteData(nginxcom.NorthernCrlFile, []byte(crlStr)); err != nil {
 		return false, err
 	}
 	return true, nil

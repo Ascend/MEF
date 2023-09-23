@@ -5,15 +5,15 @@ package util
 import (
 	"fmt"
 
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
 )
 
 // ClearPakEnv if install failed ,need to clear package file
 func ClearPakEnv(path string) {
 	fmt.Println("install failed, start to clear environment")
 	hwlog.RunLog.Info("-----Start to clear environment-----")
-	if err := common.DeleteAllFile(path); err != nil {
+	if err := fileutils.DeleteAllFileWithConfusion(path); err != nil {
 		fmt.Println("clear environment failed, please clear manually")
 		hwlog.RunLog.Warnf("clear environment meets err:%s, need to do it manually", err.Error())
 		hwlog.RunLog.Info("-----End to clear environment-----")

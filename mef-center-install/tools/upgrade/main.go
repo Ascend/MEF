@@ -7,9 +7,8 @@ import (
 	"fmt"
 	"os"
 
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/utils"
-
 	"huawei.com/mindxedge/base/mef-center-install/pkg/control"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
@@ -50,11 +49,11 @@ func initLog(installParam *util.InstallParamJsonTemplate) error {
 	logDirPath := installParam.LogDir
 	logBackupDirPath := installParam.LogBackupDir
 	logPathMgr := util.InitLogDirPathMgr(logDirPath, logBackupDirPath)
-	logPath, err := utils.CheckPath(logPathMgr.GetInstallLogPath())
+	logPath, err := fileutils.CheckOriginPath(logPathMgr.GetInstallLogPath())
 	if err != nil {
 		return fmt.Errorf("check log path %s failed:%s", logPath, err.Error())
 	}
-	logBackupPath, err := utils.CheckPath(logPathMgr.GetInstallLogBackupPath())
+	logBackupPath, err := fileutils.CheckOriginPath(logPathMgr.GetInstallLogBackupPath())
 	if err != nil {
 		return fmt.Errorf("check log backup path %s failed:%s", logBackupPath, err.Error())
 	}
@@ -68,7 +67,11 @@ func initLog(installParam *util.InstallParamJsonTemplate) error {
 func (uc upgradeController) doUpgrade() error {
 	installedComponents := util.GetCompulsorySlice()
 
-	controlMgr := control.GetUpgradePostMgr(installedComponents, uc.installParam)
+	controlMgr, err := control.GetUpgradePostMgr(installedComponents, uc.installParam)
+	if err != nil {
+		hwlog.RunLog.Errorf("get upgrade path mgr failed: %v", err)
+		return err
+	}
 
 	if err := controlMgr.DoUpgrade(); err != nil {
 		return err

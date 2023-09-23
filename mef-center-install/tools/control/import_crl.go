@@ -46,7 +46,11 @@ func (icc *importCrlController) doControl() error {
 		return fmt.Errorf("crl name is in valid, [%s] is only value supported", common.NorthernCertName)
 	}
 
-	pathMgr := util.InitInstallDirPathMgr(icc.installParam.InstallDir)
+	pathMgr, err := util.InitInstallDirPathMgr()
+	if err != nil {
+		hwlog.RunLog.Errorf("init path mgr failed: %v", err)
+		return errors.New("init path mgr failed")
+	}
 	uid, gid, err := util.GetMefId()
 	if err != nil {
 		hwlog.RunLog.Errorf("get MEF uid/gid failed: %s", err.Error())
