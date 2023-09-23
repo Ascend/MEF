@@ -79,7 +79,7 @@ func StartEdgeSvcCertUpdate(payload *CertUpdatePayload) {
 	}
 
 	//  [ASYNC] listen and sync nodes info from node-manager with local database
-	go edgeSvcUpdaterInstance.syncNodesInfo(ctx)
+	go edgeSvcUpdaterInstance.syncNodesInfo(ctx, payload)
 
 	// notify nginx-manager to update it's south tls cert config
 	if err := notifyCertUpdateToNginxMgr(payload); err != nil {
@@ -99,7 +99,7 @@ func StartEdgeSvcCertUpdate(payload *CertUpdatePayload) {
 	}
 
 	// [ASYNC] process failed update operation
-	go edgeSvcUpdaterInstance.handleFailedTask(ctx)
+	go edgeSvcUpdaterInstance.handleFailedTask(ctx, payload)
 
 	// [ASYNC] check and stop update operation when stop condition is satisfied
 	go edgeSvcUpdaterInstance.exitConditionCheck(ctx, cancel, payload)
@@ -133,7 +133,7 @@ func (es *edgeSvcUpdater) initEdgeNodesInfo() error {
 }
 
 // track node changes from node-manager
-func (es *edgeSvcUpdater) syncNodesInfo(ctx context.Context) {
+func (es *edgeSvcUpdater) syncNodesInfo(ctx context.Context, payload *CertUpdatePayload) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -146,7 +146,7 @@ func (es *edgeSvcUpdater) syncNodesInfo(ctx context.Context) {
 				continue
 			}
 			edgeSvcWorkingLocker.Lock()
-			if err := es.processAddedNodesInfo(changedData.AddedNodeInfo); err != nil {
+			if err := es.processAddedNodesInfo(changedData.AddedNodeInfo, payload); err != nil {
 				hwlog.RunLog.Errorf("sync added node info error: %v", err)
 			}
 			if err := es.processDeletedNodesInfo(changedData.DeletedNodeInfo); err != nil {
@@ -158,9 +158,17 @@ func (es *edgeSvcUpdater) syncNodesInfo(ctx context.Context) {
 	}
 }
 
-func (es *edgeSvcUpdater) processAddedNodesInfo(nodesInfo []NodeInfo) error {
+func (es *edgeSvcUpdater) processAddedNodesInfo(nodesInfo []NodeInfo, payload *CertUpdatePayload) error {
 	if len(nodesInfo) == 0 {
 		return nil
+	}
+	payloadData := map[string]string{
+		"certType": payload.CertType,
+	}
+	updatePayload, err := json.Marshal(payloadData)
+	if err != nil {
+		hwlog.RunLog.Errorf("serialize cert update payload error: %v", err)
+		return fmt.Errorf("serialize cert update payload error")
 	}
 	addedNodeData := make([]edgeSvcCertStatus, 0)
 	for _, info := range nodesInfo {
@@ -170,7 +178,7 @@ func (es *edgeSvcUpdater) processAddedNodesInfo(nodesInfo []NodeInfo) error {
 			Status:          UpdateStatusInit,
 			NotifyTimestamp: time.Now().Unix(),
 		}
-		if err := sendCertUpdateNotifyToNode(info.Sn, CertTypeEdgeSvc); err != nil {
+		if err := sendCertUpdateNotifyToNode(info.Sn, string(updatePayload)); err != nil {
 			tempNodeInfo.Status = UpdateStatusFail
 			hwlog.RunLog.Errorf("send cert update notify to edge [%v] error: %v", info.Sn, err)
 		}
@@ -224,7 +232,7 @@ func (es *edgeSvcUpdater) notifyCertUpdateToEdgeNodes(payload *CertUpdatePayload
 	return nil
 }
 
-func (es *edgeSvcUpdater) handleFailedTask(ctx context.Context) {
+func (es *edgeSvcUpdater) handleFailedTask(ctx context.Context, payload *CertUpdatePayload) {
 	// wait for all nodes are notified at least one time
 	initStateNodes, err := getEdgeSvcCertStatusModInstance().QueryInitRecords()
 	if err != nil {
@@ -233,7 +241,7 @@ func (es *edgeSvcUpdater) handleFailedTask(ctx context.Context) {
 	waitDuration := time.Duration(len(initStateNodes)) * notifyInterval
 	time.Sleep(waitDuration)
 
-	if err = es.processFailedRecords(); err != nil {
+	if err = es.processFailedRecords(payload); err != nil {
 		hwlog.RunLog.Errorf("process failed operation nodes error: %v", err)
 	}
 
@@ -249,7 +257,7 @@ func (es *edgeSvcUpdater) handleFailedTask(ctx context.Context) {
 				hwlog.RunLog.Warnf("failed-records check job timer is stopped")
 				return
 			}
-			if err = es.processFailedRecords(); err != nil {
+			if err = es.processFailedRecords(payload); err != nil {
 				hwlog.RunLog.Errorf("process failed operation nodes error: %v", err)
 			}
 		}
@@ -257,7 +265,7 @@ func (es *edgeSvcUpdater) handleFailedTask(ctx context.Context) {
 }
 
 // processFailedRecords:  re-send update notify, update database records
-func (es *edgeSvcUpdater) processFailedRecords() error {
+func (es *edgeSvcUpdater) processFailedRecords(payload *CertUpdatePayload) error {
 	failedRecords, err := getEdgeSvcCertStatusModInstance().QueryUnsuccessfulRecords()
 	if err != nil {
 		hwlog.RunLog.Errorf("query failed cert update records error: %v", err)
@@ -266,8 +274,16 @@ func (es *edgeSvcUpdater) processFailedRecords() error {
 	if len(failedRecords) == 0 {
 		return nil
 	}
+	payloadData := map[string]string{
+		"certType": payload.CertType,
+	}
+	updatePayload, err := json.Marshal(payloadData)
+	if err != nil {
+		hwlog.RunLog.Errorf("serialize cert update payload error: %v", err)
+		return fmt.Errorf("serialize cert update payload error")
+	}
 	for _, info := range failedRecords {
-		if err = sendCertUpdateNotifyToNode(info.Sn, CertTypeEdgeSvc); err != nil {
+		if err = sendCertUpdateNotifyToNode(info.Sn, string(updatePayload)); err != nil {
 			hwlog.RunLog.Errorf("re-send update notify to node [%s] error: %v", info.Sn, err)
 			dbFields := map[string]interface{}{"status": UpdateStatusFail}
 			if err = getEdgeSvcCertStatusModInstance().UpdateRecordsBySns([]string{info.Sn}, dbFields); err != nil {

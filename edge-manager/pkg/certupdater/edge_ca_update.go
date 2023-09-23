@@ -79,7 +79,7 @@ func StartEdgeCaCertUpdate(payload *CertUpdatePayload) {
 	}
 
 	//  [ASYNC] listen and sync nodes info from node-manager with local database
-	go edgeCaUpdaterInstance.syncNodesInfo(ctx)
+	go edgeCaUpdaterInstance.syncNodesInfo(ctx, payload)
 
 	// notify nginx-manager to update it's south tls cert config
 	if err := notifyCertUpdateToNginxMgr(payload); err != nil {
@@ -99,7 +99,7 @@ func StartEdgeCaCertUpdate(payload *CertUpdatePayload) {
 	}
 
 	// [ASYNC] process failed update operation
-	go edgeCaUpdaterInstance.handleFailedTask(ctx)
+	go edgeCaUpdaterInstance.handleFailedTask(ctx, payload)
 
 	// [ASYNC] check and stop update operation when stop condition is satisfied
 	go edgeCaUpdaterInstance.exitConditionCheck(ctx, cancel, payload)
@@ -132,7 +132,7 @@ func (ea *edgeCaUpdater) initEdgeNodesInfo() error {
 }
 
 // track node changes from node-manager
-func (ea *edgeCaUpdater) syncNodesInfo(ctx context.Context) {
+func (ea *edgeCaUpdater) syncNodesInfo(ctx context.Context, payload *CertUpdatePayload) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -145,7 +145,7 @@ func (ea *edgeCaUpdater) syncNodesInfo(ctx context.Context) {
 			}
 			hwlog.RunLog.Info("start to sync node info")
 			edgeCaWorkingLocker.Lock()
-			if err := ea.processAddedNodesInfo(changedData.AddedNodeInfo); err != nil {
+			if err := ea.processAddedNodesInfo(changedData.AddedNodeInfo, payload); err != nil {
 				hwlog.RunLog.Errorf("sync added node info error: %v", err)
 			}
 			if err := ea.processDeletedNodesInfo(changedData.DeletedNodeInfo); err != nil {
@@ -157,9 +157,18 @@ func (ea *edgeCaUpdater) syncNodesInfo(ctx context.Context) {
 	}
 }
 
-func (ea *edgeCaUpdater) processAddedNodesInfo(nodesInfo []NodeInfo) error {
+func (ea *edgeCaUpdater) processAddedNodesInfo(nodesInfo []NodeInfo, payload *CertUpdatePayload) error {
 	if len(nodesInfo) == 0 {
 		return nil
+	}
+	payloadData := map[string]string{
+		"certType":  payload.CertType,
+		"caContent": payload.CaContent,
+	}
+	updatePayload, err := json.Marshal(payloadData)
+	if err != nil {
+		hwlog.RunLog.Errorf("serialize cert update payload error: %v", err)
+		return fmt.Errorf("serialize cert update payload error")
 	}
 	addedNodeData := make([]edgeCaCertStatus, 0)
 	for _, info := range nodesInfo {
@@ -169,7 +178,7 @@ func (ea *edgeCaUpdater) processAddedNodesInfo(nodesInfo []NodeInfo) error {
 			Status:          UpdateStatusInit,
 			NotifyTimestamp: time.Now().Unix(),
 		}
-		if err := sendCertUpdateNotifyToNode(info.Sn, CertTypeEdgeCa); err != nil {
+		if err = sendCertUpdateNotifyToNode(info.Sn, string(updatePayload)); err != nil {
 			tempNodeInfo.Status = UpdateStatusFail
 			hwlog.RunLog.Errorf("send cert update notify to edge [%v] error: %v", info.Sn, err)
 		}
@@ -224,7 +233,7 @@ func (ea *edgeCaUpdater) notifyCertUpdateToEdgeNodes(payload *CertUpdatePayload)
 	return nil
 }
 
-func (ea *edgeCaUpdater) handleFailedTask(ctx context.Context) {
+func (ea *edgeCaUpdater) handleFailedTask(ctx context.Context, payload *CertUpdatePayload) {
 	// wait for all nodes are notified at least one time
 	initStateNodes, err := getEdgeCaCertStatusDbModInstance().QueryInitRecords()
 	if err != nil {
@@ -233,7 +242,7 @@ func (ea *edgeCaUpdater) handleFailedTask(ctx context.Context) {
 	waitDuration := time.Duration(len(initStateNodes)) * notifyInterval
 	time.Sleep(waitDuration)
 
-	if err = ea.processFailedRecords(); err != nil {
+	if err = ea.processFailedRecords(payload); err != nil {
 		hwlog.RunLog.Errorf("process failed operation nodes error: %v", err)
 	}
 
@@ -249,7 +258,7 @@ func (ea *edgeCaUpdater) handleFailedTask(ctx context.Context) {
 				hwlog.RunLog.Warnf("failed-records check job timer is stopped")
 				return
 			}
-			if err = ea.processFailedRecords(); err != nil {
+			if err = ea.processFailedRecords(payload); err != nil {
 				hwlog.RunLog.Errorf("process failed operation nodes error: %v", err)
 			}
 		}
@@ -257,7 +266,7 @@ func (ea *edgeCaUpdater) handleFailedTask(ctx context.Context) {
 }
 
 // processFailedRecords:  re-send update notify, update database records
-func (ea *edgeCaUpdater) processFailedRecords() error {
+func (ea *edgeCaUpdater) processFailedRecords(payload *CertUpdatePayload) error {
 	failedRecords, err := getEdgeCaCertStatusDbModInstance().QueryUnsuccessfulRecords()
 	if err != nil {
 		hwlog.RunLog.Errorf("query failed cert update records error: %v", err)
@@ -266,8 +275,17 @@ func (ea *edgeCaUpdater) processFailedRecords() error {
 	if len(failedRecords) == 0 {
 		return nil
 	}
+	payloadData := map[string]string{
+		"certType":  payload.CertType,
+		"caContent": payload.CaContent,
+	}
+	updatePayload, err := json.Marshal(payloadData)
+	if err != nil {
+		hwlog.RunLog.Errorf("serialize cert update payload error: %v", err)
+		return fmt.Errorf("serialize cert update payload error")
+	}
 	for _, info := range failedRecords {
-		if err = sendCertUpdateNotifyToNode(info.Sn, CertTypeEdgeCa); err != nil {
+		if err = sendCertUpdateNotifyToNode(info.Sn, string(updatePayload)); err != nil {
 			hwlog.RunLog.Errorf("re-send update notify to node [%s] error: %v", info.Sn, err)
 			dbFields := map[string]interface{}{"status": UpdateStatusFail}
 			if err = getEdgeCaCertStatusDbModInstance().UpdateRecordsBySns([]string{info.Sn}, dbFields); err != nil {
