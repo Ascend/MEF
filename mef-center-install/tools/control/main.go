@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"huawei.com/mindx/common/envutils"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 
@@ -91,8 +92,12 @@ func (oc *operateController) doControl() error {
 		return err
 	}
 
-	controlMgr := control.InitSftOperateMgr(componentType, oc.operate,
-		components, util.InitInstallDirPathMgr(oc.installParam.InstallDir),
+	installPathMgr, err := util.InitInstallDirPathMgr()
+	if err != nil {
+		hwlog.RunLog.Errorf("init install path mgr failed: %v", err)
+		return errors.New("init install path mgr failed")
+	}
+	controlMgr := control.InitSftOperateMgr(componentType, oc.operate, components, installPathMgr,
 		util.InitLogDirPathMgr(oc.installParam.LogDir, oc.installParam.LogBackupDir))
 	if err := controlMgr.DoOperate(); err != nil {
 		return err
@@ -134,7 +139,12 @@ func (oc *operateController) getName() string {
 func (uc *uninstallController) doControl() error {
 	installedComponents := util.GetCompulsorySlice()
 
-	controlMgr := control.GetSftUninstallMgrIns(installedComponents, uc.installParam.InstallDir)
+	installPathMgr, err := util.InitInstallDirPathMgr()
+	if err != nil {
+		hwlog.RunLog.Errorf("init install path mgr failed: %v", err)
+		return errors.New("init install path mgr failed")
+	}
+	controlMgr := control.GetSftUninstallMgrIns(installedComponents, installPathMgr)
 	if err := controlMgr.DoUninstall(); err != nil {
 		return err
 	}
@@ -182,8 +192,11 @@ type upgradeController struct {
 func (uc *upgradeController) doControl() error {
 	installedComponents := util.GetCompulsorySlice()
 
-	controlMgr := control.GetUpgradePreMgr(uc.tarPath, uc.cmsPath, uc.crlPath,
-		installedComponents, uc.installParam.InstallDir)
+	controlMgr, err := control.GetUpgradePreMgr(uc.tarPath, uc.cmsPath, uc.crlPath, installedComponents)
+	if err != nil {
+		hwlog.RunLog.Errorf("get upgrade pre mgr failed: %v", err)
+		return err
+	}
 
 	if err := controlMgr.DoUpgrade(); err != nil {
 		return err
@@ -253,7 +266,11 @@ func (ecc *exchangeCertsController) setInstallParam(installParam *util.InstallPa
 }
 
 func (ecc *exchangeCertsController) doControl() error {
-	pathMgr := util.InitInstallDirPathMgr(ecc.installParam.InstallDir)
+	pathMgr, err := util.InitInstallDirPathMgr()
+	if err != nil {
+		hwlog.RunLog.Errorf("init install path mgr failed: %v", err)
+		return errors.New("init install path mgr failed")
+	}
 	exchangeFlow, err := control.NewExchangeCaFlow(ecc.importPath, ecc.exportPath, util.NginxManagerName, pathMgr)
 	if err != nil {
 		return err
@@ -302,7 +319,11 @@ func (ukc *updateKmcController) setInstallParam(installParam *util.InstallParamJ
 }
 
 func (ukc *updateKmcController) doControl() error {
-	pathMgr := util.InitInstallDirPathMgr(ukc.installParam.InstallDir)
+	pathMgr, err := util.InitInstallDirPathMgr()
+	if err != nil {
+		hwlog.RunLog.Errorf("init install path mgr failed: %v", err)
+		return errors.New("init install path mgr failed")
+	}
 
 	updateFlow := kmcupdate.NewUpdateKmcFlow(pathMgr)
 	if err := updateFlow.RunFlow(); err != nil {
@@ -369,7 +390,11 @@ func (mtc *manageThridComponent) setInstallParam(installParam *util.InstallParam
 }
 
 func (mtc *manageThridComponent) doControl() error {
-	pathMgr := util.InitInstallDirPathMgr(mtc.installParam.InstallDir)
+	pathMgr, err := util.InitInstallDirPathMgr()
+	if err != nil {
+		hwlog.RunLog.Errorf("init install path mgr failed: %v", err)
+		return errors.New("init install path mgr failed")
+	}
 
 	exchangeFlow := control.NewThirdComponentManageFlow(mtc.component, mtc.operate, mtc.SubParam, pathMgr)
 	if err = exchangeFlow.DoManage(); err != nil {
@@ -540,7 +565,11 @@ func handle() int {
 		return util.ErrorExitCode
 	}
 
-	pathMgr := util.InitInstallDirPathMgr(installParam.InstallDir)
+	pathMgr, err := util.InitInstallDirPathMgr()
+	if err != nil {
+		hwlog.RunLog.Errorf("init install path mgr failed: %v", err)
+		return util.ErrorExitCode
+	}
 	if err = util.CheckCurrentPath(pathMgr.GetWorkPath()); err != nil {
 		fmt.Println("execute command failed")
 		hwlog.RunLog.Error(err)
@@ -574,11 +603,11 @@ func initLog(installParam *util.InstallParamJsonTemplate) error {
 	logDirPath := installParam.LogDir
 	logBackupDirPath := installParam.LogBackupDir
 	logPathMgr := util.InitLogDirPathMgr(logDirPath, logBackupDirPath)
-	logPath, err := utils.CheckPath(logPathMgr.GetInstallLogPath())
+	logPath, err := fileutils.CheckOriginPath(logPathMgr.GetInstallLogPath())
 	if err != nil {
 		return fmt.Errorf("check log path %s failed:%s", logPath, err.Error())
 	}
-	logBackupPath, err := utils.CheckPath(logPathMgr.GetInstallLogBackupPath())
+	logBackupPath, err := fileutils.CheckOriginPath(logPathMgr.GetInstallLogBackupPath())
 	if err != nil {
 		return fmt.Errorf("check log backup path %s failed:%s", logBackupPath, err.Error())
 	}

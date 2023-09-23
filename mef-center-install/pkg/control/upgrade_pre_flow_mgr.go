@@ -16,7 +16,6 @@ import (
 	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/mef/common/cmsverify"
 
 	"huawei.com/mindxedge/base/common"
@@ -33,18 +32,23 @@ type UpgradePreFlowMgr struct {
 }
 
 // GetUpgradePreMgr is a func to init an UpgradePreFlowMgr
-func GetUpgradePreMgr(tarPath, cmsPath, crlPath string, components []string, installPath string) *UpgradePreFlowMgr {
+func GetUpgradePreMgr(tarPath, cmsPath, crlPath string, components []string) (*UpgradePreFlowMgr, error) {
+	pathMgr, err := util.InitInstallDirPathMgr()
+	if err != nil {
+		return nil, fmt.Errorf("init upgrade pre mgr failed: %v", err)
+	}
 	mgr := &UpgradePreFlowMgr{
 		SoftwareMgr: util.SoftwareMgr{
 			Components:     components,
-			InstallPathMgr: util.InitInstallDirPathMgr(installPath),
+			InstallPathMgr: pathMgr,
 		},
 		tarPath: tarPath,
 		cmsPath: cmsPath,
 		crlPath: crlPath,
 	}
 	mgr.unpackPath = mgr.InstallPathMgr.WorkPathMgr.GetTempTarPath()
-	return mgr
+
+	return mgr, nil
 }
 
 // DoUpgrade is the main func that to upgrade mef-center
@@ -149,7 +153,7 @@ func (upf *UpgradePreFlowMgr) checkUpgradePaths() error {
 }
 
 func (upf *UpgradePreFlowMgr) prepareUnpackDir() error {
-	if err := common.MakeSurePath(upf.unpackPath); err != nil {
+	if err := fileutils.CreateDir(upf.unpackPath, fileutils.Mode700); err != nil {
 		hwlog.RunLog.Errorf("create unpack tar dir failed: %s", err.Error())
 		return errors.New("create unpack tar dir failed")
 	}
@@ -216,7 +220,7 @@ func (upf *UpgradePreFlowMgr) copyInstallJson() error {
 		return errors.New("get install_param.json's abs path failed")
 	}
 
-	if err = utils.CopyFile(srcAbsPath, tgtAbsPath); err != nil {
+	if err = fileutils.CopyFile(srcAbsPath, tgtAbsPath); err != nil {
 		hwlog.RunLog.Errorf("copy install_param.json failed: %s", err.Error())
 		return errors.New("copy install_param.json failed")
 	}
@@ -264,8 +268,8 @@ func (upf *UpgradePreFlowMgr) newShErrDeal(returnErr error) {
 	}
 
 	tempVarDir := upf.InstallPathMgr.WorkPathMgr.GetVarDirPath()
-	if utils.IsExist(tempVarDir) {
-		if err := common.DeleteAllFile(upf.InstallPathMgr.WorkPathMgr.GetVarDirPath()); err != nil {
+	if fileutils.IsExist(tempVarDir) {
+		if err := fileutils.DeleteAllFileWithConfusion(upf.InstallPathMgr.WorkPathMgr.GetVarDirPath()); err != nil {
 			hwlog.RunLog.Warnf("delete temp dir %s failed, need to clear it manually", err.Error())
 			return
 		}
@@ -307,7 +311,7 @@ func prepareVerifyCrl(crlFile string) (bool, string, error) {
 
 func getValidCrlOnDevice() (string, error) {
 	crlOnDevicePath := filepath.Join(util.CrlOnDeviceDir, util.CrlOnDeviceName)
-	if utils.IsExist(crlOnDevicePath) {
+	if fileutils.IsExist(crlOnDevicePath) {
 
 		crlOnDeviceValid, err := cmsverify.CompareCrls(crlOnDevicePath, crlOnDevicePath)
 		if err != nil || int(crlOnDeviceValid) != util.CompareSame {
@@ -319,12 +323,12 @@ func getValidCrlOnDevice() (string, error) {
 		return crlOnDevicePath, nil
 	}
 
-	if err := utils.CreateDir(util.CrlOnDeviceDir, common.Mode755); err != nil {
+	if err := fileutils.CreateDir(util.CrlOnDeviceDir, common.Mode755); err != nil {
 		hwlog.RunLog.Errorf("create crl dir [%s] failed, error: %v", util.CrlOnDeviceDir, err)
 		return crlOnDevicePath, fmt.Errorf("create crl dir [%s] failed", util.CrlOnDeviceDir)
 	}
 
-	if _, err := utils.RealDirChecker(util.CrlOnDeviceDir, true, false); err != nil {
+	if _, err := fileutils.RealDirCheck(util.CrlOnDeviceDir, true, false); err != nil {
 		hwlog.RunLog.Errorf("check dir [%s] failed, error: %v", util.CrlOnDeviceDir, err)
 		return crlOnDevicePath, fmt.Errorf("check dir [%s] failed", util.CrlOnDeviceDir)
 	}
@@ -370,17 +374,17 @@ func getUpdateCrlFlag(crlToUpdate, crlOnDevice string) (bool, string, error) {
 }
 
 func updateLocalCrlFile(verifyCrl string) error {
-	if err := utils.CreateDir(util.CrlOnDeviceDir, common.Mode755); err != nil {
+	if err := fileutils.CreateDir(util.CrlOnDeviceDir, common.Mode755); err != nil {
 		hwlog.RunLog.Errorf("create crl dir [%s] failed, error: %v", util.CrlOnDeviceDir, err)
 		return fmt.Errorf("create crl dir [%s] failed", util.CrlOnDeviceDir)
 	}
 
 	crlOnDevicePath := filepath.Join(util.CrlOnDeviceDir, util.CrlOnDeviceName)
-	if err := utils.CopyFile(verifyCrl, crlOnDevicePath); err != nil {
+	if err := fileutils.CopyFile(verifyCrl, crlOnDevicePath); err != nil {
 		hwlog.RunLog.Errorf("copy crl file [%s] failed, error: %v", verifyCrl, err)
 		return errors.New("copy crl file failed")
 	}
-	if err := utils.SetPathPermission(crlOnDevicePath, common.Mode644, false, false); err != nil {
+	if err := fileutils.SetPathPermission(crlOnDevicePath, common.Mode644, false, false); err != nil {
 		hwlog.RunLog.Errorf("set new crl permission failed, error: %v", err)
 		return errors.New("set new crl permission failed")
 	}

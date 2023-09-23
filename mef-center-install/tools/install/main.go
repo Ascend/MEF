@@ -14,10 +14,10 @@ import (
 	"syscall"
 
 	"huawei.com/mindx/common/envutils"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 
-	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/install"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
@@ -50,7 +50,10 @@ func setFlag() {
 
 func doInstall() error {
 	fullComponents := util.GetCompulsorySlice()
-	installCtlIns := install.GetSftInstallMgrIns(fullComponents, installPath, logRootPath, logBackupRootPath)
+	installCtlIns, err := install.GetSftInstallMgrIns(fullComponents, installPath, logRootPath, logBackupRootPath)
+	if err != nil {
+		return err
+	}
 
 	if err := installCtlIns.DoInstall(); err != nil {
 		return err
@@ -81,7 +84,7 @@ func checkPath() error {
 }
 
 func checkSinglePath(singlePath string) (string, error) {
-	if singlePath == "" || !utils.IsExist(singlePath) {
+	if singlePath == "" || !fileutils.IsExist(singlePath) {
 		return "", fmt.Errorf("path [%s] does not exist", singlePath)
 	}
 
@@ -89,7 +92,7 @@ func checkSinglePath(singlePath string) (string, error) {
 		return "", fmt.Errorf("path [%s] is not abs path", singlePath)
 	}
 
-	absPath, err := utils.RealDirChecker(singlePath, true, false)
+	absPath, err := fileutils.RealDirCheck(singlePath, true, false)
 	if err != nil {
 		return "", err
 	}
@@ -105,8 +108,8 @@ func checkInsideLogPath(logPath, logBackUpPath string) error {
 	logPathMgr := util.InitLogDirPathMgr(logPath, logBackUpPath)
 	logModuleDir := logPathMgr.GetModuleLogPath()
 
-	if utils.IsExist(logModuleDir) {
-		if _, err := utils.RealDirChecker(logModuleDir, false, false); err != nil {
+	if fileutils.IsExist(logModuleDir) {
+		if _, err := fileutils.RealDirCheck(logModuleDir, false, false); err != nil {
 			return fmt.Errorf("check log dir failed: %s", err.Error())
 		}
 		if err := filepath.Walk(logModuleDir, checkLogPath); err != nil {
@@ -115,8 +118,8 @@ func checkInsideLogPath(logPath, logBackUpPath string) error {
 	}
 
 	logBackModuleDir := logPathMgr.GetModuleLogBackupPath()
-	if utils.IsExist(logBackModuleDir) {
-		if _, err := utils.RealDirChecker(logBackModuleDir, false, false); err != nil {
+	if fileutils.IsExist(logBackModuleDir) {
+		if _, err := fileutils.RealDirCheck(logBackModuleDir, false, false); err != nil {
 			return fmt.Errorf("check log dir failed: %s", err.Error())
 		}
 		if err := filepath.Walk(logBackModuleDir, checkLogPath); err != nil {
@@ -246,7 +249,7 @@ func preCheck() int {
 	logPathMgr := util.InitLogDirPathMgr(logRootPath, logBackupRootPath)
 	installLogPath := logPathMgr.GetInstallLogPath()
 	installLogBackupPath := logPathMgr.GetInstallLogBackupPath()
-	if err := common.MakeSurePath(installLogPath); err != nil {
+	if err := fileutils.CreateDir(installLogPath, fileutils.Mode700); err != nil {
 		// install log has not initialized yet
 		fmt.Printf("create log path [%s] failed\n", installLogPath)
 		return util.ErrorExitCode

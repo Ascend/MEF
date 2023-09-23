@@ -12,9 +12,8 @@ import (
 	"strconv"
 	"strings"
 
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/utils"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/install"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
@@ -32,16 +31,20 @@ type UpgradePostFlowMgr struct {
 }
 
 // GetUpgradePostMgr is a func to init an UpgradePostFlowMgr struct
-func GetUpgradePostMgr(components []string, installInfo *util.InstallParamJsonTemplate) *UpgradePostFlowMgr {
+func GetUpgradePostMgr(components []string, installInfo *util.InstallParamJsonTemplate) (*UpgradePostFlowMgr, error) {
+	pathMgr, err := util.InitInstallDirPathMgr(installInfo.InstallDir)
+	if err != nil {
+		return nil, fmt.Errorf("init upgrade post mgr failed: %v", err)
+	}
 	return &UpgradePostFlowMgr{
 		SoftwareMgr: util.SoftwareMgr{
 			Components:     components,
-			InstallPathMgr: util.InitInstallDirPathMgr(installInfo.InstallDir),
+			InstallPathMgr: pathMgr,
 		},
 		optionComponent: installInfo.OptionComponent,
 		logPathMgr:      util.InitLogDirPathMgr(installInfo.LogDir, installInfo.LogBackupDir),
 		step:            util.ClearUnpackPathStep,
-	}
+	}, nil
 }
 
 // DoUpgrade is the main flow-control func to exec upgrade flow on the new package
@@ -178,7 +181,7 @@ func (upf *UpgradePostFlowMgr) prepareK8sLabel() error {
 }
 
 func (upf *UpgradePostFlowMgr) createFlag() error {
-	if err := common.CreateFile(upf.InstallPathMgr.WorkPathMgr.GetUpgradeFlagPath(), common.Mode400); err != nil {
+	if err := fileutils.CreateFile(upf.InstallPathMgr.WorkPathMgr.GetUpgradeFlagPath(), fileutils.Mode400); err != nil {
 		hwlog.RunLog.Errorf("create upgrade-flag failed: %s", err.Error())
 		return errors.New("create upgrade-flag failed")
 	}
@@ -187,7 +190,7 @@ func (upf *UpgradePostFlowMgr) createFlag() error {
 
 func (upf *UpgradePostFlowMgr) prepareWorkCDir() error {
 	upf.step = util.ClearTempUpgradePathStep
-	if err := common.MakeSurePath(upf.InstallPathMgr.TmpPathMgr.GetWorkPath()); err != nil {
+	if err := fileutils.CreateDir(upf.InstallPathMgr.TmpPathMgr.GetWorkPath(), fileutils.Mode700); err != nil {
 		hwlog.RunLog.Errorf("make sure temp upgrade dir failed: %s", err.Error())
 		return errors.New("make sure temp upgrade dir failed")
 	}
@@ -200,7 +203,7 @@ func (upf *UpgradePostFlowMgr) prepareWorkCDir() error {
 		return errors.New("prepare working dir failed")
 	}
 
-	if err := common.DeleteAllFile(upf.InstallPathMgr.WorkPathMgr.GetVarDirPath()); err != nil {
+	if err := fileutils.DeleteAllFileWithConfusion(upf.InstallPathMgr.WorkPathMgr.GetVarDirPath()); err != nil {
 		hwlog.RunLog.Errorf("delete unpack dir failed: %s", err.Error())
 		return errors.New("delete unpack dir failed")
 	}
@@ -254,8 +257,8 @@ func (upf *UpgradePostFlowMgr) prepareCerts() error {
 	hwlog.RunLog.Info("-----start to prepare certs-----")
 	originalDir := upf.InstallPathMgr.ConfigPathMgr.GetKubeConfigCertDirPath()
 	backupDir := originalDir + "_bak"
-	if utils.IsLexist(originalDir) {
-		if err := utils.RenameFile(originalDir, backupDir); err != nil {
+	if fileutils.IsLexist(originalDir) {
+		if err := fileutils.RenameFile(originalDir, backupDir); err != nil {
 			hwlog.RunLog.Errorf("rename kube config cert dir failed, %v", err)
 			return err
 		}
@@ -266,14 +269,14 @@ func (upf *UpgradePostFlowMgr) prepareCerts() error {
 		if successFlag {
 			dirtToClean = backupDir
 		}
-		if err := utils.DeleteAllFileWithConfusion(dirtToClean); err != nil {
+		if err := fileutils.DeleteAllFileWithConfusion(dirtToClean); err != nil {
 			hwlog.RunLog.Errorf("clean kube config cert dir failed, %v", err)
 		}
 		if successFlag {
 			return
 		}
-		if utils.IsLexist(backupDir) {
-			if err := utils.RenameFile(backupDir, originalDir); err != nil {
+		if fileutils.IsLexist(backupDir) {
+			if err := fileutils.RenameFile(backupDir, originalDir); err != nil {
 				hwlog.RunLog.Errorf("restore kube config cert dir failed, %v", err)
 			}
 		}
@@ -288,8 +291,14 @@ func (upf *UpgradePostFlowMgr) prepareCerts() error {
 		return errors.New("get mef uid or gid failed")
 	}
 
-	if err = utils.SetPathOwnerGroup(originalDir, mefUid,
-		mefGid, true, false); err != nil {
+	param := fileutils.SetOwnerParam{
+		Path:       originalDir,
+		Uid:        mefUid,
+		Gid:        mefGid,
+		Recursive:  true,
+		IgnoreFile: false,
+	}
+	if err = fileutils.SetPathOwnerGroup(param); err != nil {
 		hwlog.RunLog.Errorf("set path [%s] owner and group failed: %v", originalDir, err.Error())
 		return errors.New("set kube config cert root path owner and group failed")
 	}
@@ -447,17 +456,17 @@ func (upf *UpgradePostFlowMgr) resetSoftLink() error {
 		return err
 	}
 
-	if err = common.DeleteAllFile(backPath); err != nil {
+	if err = fileutils.DeleteAllFileWithConfusion(backPath); err != nil {
 		hwlog.RunLog.Errorf("delete backUp path failed: %s", err.Error())
 		return err
 	}
 
-	if err = common.RenameFile(upf.InstallPathMgr.GetTmpUpgradePath(), backPath); err != nil {
+	if err = fileutils.RenameFile(upf.InstallPathMgr.GetTmpUpgradePath(), backPath); err != nil {
 		hwlog.RunLog.Errorf("rename temp-upgrade dir failed: %s", err.Error())
 		return err
 	}
 
-	if utils.IsExist(upf.InstallPathMgr.GetWorkPath()) {
+	if fileutils.IsExist(upf.InstallPathMgr.GetWorkPath()) {
 		if err = os.Remove(upf.InstallPathMgr.GetWorkPath()); err != nil {
 			hwlog.RunLog.Errorf("remove old software dir symlink failed, error: %s", err.Error())
 			return errors.New("remove old software dir symlink failed")
@@ -492,7 +501,7 @@ func (upf *UpgradePostFlowMgr) clearFlag() error {
 	}
 
 	flagPath := filepath.Join(tgtPath, util.UpgradeFlagFile)
-	if err = common.DeleteFile(flagPath); err != nil {
+	if err = fileutils.DeleteFile(flagPath); err != nil {
 		hwlog.RunLog.Errorf("delete upgrade-flag failed: %s", err.Error())
 		return errors.New("delete upgrade-flag failed")
 	}

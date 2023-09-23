@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"huawei.com/mindx/common/database"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 
 	"huawei.com/mindxedge/base/common"
@@ -47,7 +48,7 @@ func (cm *ConfigMgr) DoPrepare() error {
 
 func (cm *ConfigMgr) prepareConfigDir() error {
 	configPath := cm.cfgPathMgr.GetConfigPath()
-	if err := common.MakeSurePath(configPath); err != nil {
+	if err := fileutils.CreateDir(configPath, fileutils.Mode700); err != nil {
 		hwlog.RunLog.Errorf("create config path [%s] failed: %v", configPath, err.Error())
 		return errors.New("create config path failed")
 	}

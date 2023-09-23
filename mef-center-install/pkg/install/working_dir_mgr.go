@@ -9,9 +9,8 @@ import (
 	"path"
 	"path/filepath"
 
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/utils"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
@@ -85,7 +84,7 @@ func (wdc *WorkingDirCtl) prepareRootWorkDir() error {
 	hwlog.RunLog.Info("start to prepare root work directories")
 
 	mefWorkPath := wdc.pathMgr.GetWorkPath()
-	if err := common.MakeSurePath(mefWorkPath); err != nil {
+	if err := fileutils.CreateDir(mefWorkPath, fileutils.Mode700); err != nil {
 		hwlog.RunLog.Errorf("create mef root work path failed: %v", err.Error())
 		return errors.New("create mef root work path failed")
 	}
@@ -102,7 +101,7 @@ func (wdc *WorkingDirCtl) prepareLibDir() error {
 	}
 
 	libDst := wdc.pathMgr.GetWorkLibDirPath()
-	if err = common.MakeSurePath(libDst); err != nil {
+	if err = fileutils.CreateDir(libDst, fileutils.Mode700); err != nil {
 		hwlog.RunLog.Errorf("create lib path failed: %v", err.Error())
 		return errors.New("create lib path failed")
 	}
@@ -132,7 +131,7 @@ func (wdc *WorkingDirCtl) prepareRunSh() error {
 	}
 
 	scriptSrc := path.Join(currentPath, util.MefScriptsDir, util.MefRunScript)
-	if err = utils.CopyFile(scriptSrc, wdc.pathMgr.GetRunShPath()); err != nil {
+	if err = fileutils.CopyFile(scriptSrc, wdc.pathMgr.GetRunShPath()); err != nil {
 		hwlog.RunLog.Errorf("copy run scripts dir failed, error: %v", err.Error())
 		return errors.New("copy run scripts dir failed")
 	}
@@ -155,14 +154,14 @@ func (wdc *WorkingDirCtl) prepareBinDir() error {
 	}
 
 	sbinDst := wdc.pathMgr.GetBinDirPath()
-	if err = common.MakeSurePath(sbinDst); err != nil {
+	if err = fileutils.CreateDir(sbinDst, fileutils.Mode700); err != nil {
 		hwlog.RunLog.Errorf("create sbin work path failed: %v", err.Error())
 		return errors.New("create sbin work path failed")
 	}
 
 	sbinSrc := filepath.Join(currentPath, util.MefBinDir, util.ControllerBin)
 	controllerPath := wdc.pathMgr.GetControllerBinPath()
-	if err = utils.CopyFile(sbinSrc, controllerPath); err != nil {
+	if err = fileutils.CopyFile(sbinSrc, controllerPath); err != nil {
 		hwlog.RunLog.Errorf("copy mef controller failed, error: %v", err.Error())
 		return errors.New("copy mef controller failed")
 	}
@@ -179,7 +178,7 @@ func (wdc *WorkingDirCtl) prepareVersionXml() error {
 	}
 
 	srcFile := path.Join(currentPath, util.VersionXml)
-	if err = utils.CopyFile(srcFile, wdc.pathMgr.GetVersionXmlPath()); err != nil {
+	if err = fileutils.CopyFile(srcFile, wdc.pathMgr.GetVersionXmlPath()); err != nil {
 		hwlog.RunLog.Errorf("copy version.xml failed, error: %v", err.Error())
 		return errors.New("copy version.xml failed")
 	}
@@ -208,7 +207,7 @@ func (wdc *WorkingDirCtl) getCurrentPath() (string, error) {
 func (wdc *WorkingDirCtl) prepareComponentWorkDir() error {
 	hwlog.RunLog.Info("start to prepare component work directories")
 	workPath := wdc.pathMgr.GetImagesDirPath()
-	if err := common.MakeSurePath(workPath); err != nil {
+	if err := fileutils.CreateDir(workPath, fileutils.Mode700); err != nil {
 		hwlog.RunLog.Errorf("create component root work path [%s] failed: %v", workPath, err.Error())
 		return errors.New("create component root work path failed")
 	}
@@ -248,7 +247,7 @@ func (wdc *WorkingDirCtl) prepareInstallParamJson() error {
 
 	srcPath := path.Join(curDirPath, util.InstallParamJson)
 	dstPath := wdc.pathMgr.GetInstallParamJsonPath()
-	if err = utils.CopyFile(srcPath, dstPath); err != nil {
+	if err = fileutils.CopyFile(srcPath, dstPath); err != nil {
 		hwlog.RunLog.Errorf("prepare install-param.json failed: %s", err.Error())
 		return errors.New("prepare install-param.json failed")
 	}

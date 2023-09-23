@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/agiledragon/gomonkey/v2"
@@ -16,8 +15,6 @@ import (
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
-	"huawei.com/mindx/common/utils"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
@@ -68,20 +65,16 @@ func TestUpdateKmc(t *testing.T) {
 }
 
 func doUpdateKmcEntireTest() {
-	curPath, err := filepath.Abs("./")
+	pathMgr, err := util.InitInstallDirPathMgr()
 	convey.So(err, convey.ShouldBeNil)
-
-	pathMgr := util.InitInstallDirPathMgr(curPath)
 	flow := NewUpdateKmcFlow(pathMgr)
 	err = flow.RunFlow()
 	convey.So(err, convey.ShouldBeNil)
 }
 
 func doUpdateKmcWithKeyTest() {
-	curPath, err := filepath.Abs("./")
+	pathMgr, err := util.InitInstallDirPathMgr()
 	convey.So(err, convey.ShouldBeNil)
-
-	pathMgr := util.InitInstallDirPathMgr(curPath)
 	ctx, err := initKmcCtx(pathMgr)
 	convey.So(err, convey.ShouldBeNil)
 
@@ -104,7 +97,7 @@ func doUpdateKmcWithKeyTest() {
 
 func prepareKey(keyPath string, ctx kmc.Context) error {
 
-	err := utils.MakeSureDir(keyPath)
+	err := fileutils.MakeSureDir(keyPath)
 	if err != nil {
 		return err
 	}
@@ -115,7 +108,7 @@ func prepareKey(keyPath string, ctx kmc.Context) error {
 		return fmt.Errorf("encrypt data failed: %s", err.Error())
 	}
 
-	if err := os.WriteFile(keyPath, cipherData, common.Mode600); err != nil {
+	if err := fileutils.WriteData(keyPath, cipherData); err != nil {
 		return fmt.Errorf("write cipher data failed: %s", err.Error())
 	}
 

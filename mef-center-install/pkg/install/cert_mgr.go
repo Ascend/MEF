@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"time"
 
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/x509/certutils"
@@ -47,13 +48,13 @@ func (cpc *certPrepareCtl) prepareCertsDir() error {
 
 	certPath := cpc.certPathMgr.GetConfigPath()
 	rootCertPath := cpc.certPathMgr.GetRootCaCertDirPath()
-	if err := common.MakeSurePath(rootCertPath); err != nil {
+	if err := fileutils.CreateDir(rootCertPath, fileutils.Mode700); err != nil {
 		hwlog.RunLog.Errorf("create root certs path [%s] failed: %v", rootCertPath, err.Error())
 		return errors.New("create root certs path failed")
 	}
 
 	rootKeyPath := cpc.certPathMgr.GetRootCaKeyDirPath()
-	if err := common.MakeSurePath(rootKeyPath); err != nil {
+	if err := fileutils.CreateDir(rootKeyPath, fileutils.Mode700); err != nil {
 		hwlog.RunLog.Errorf("create root key path [%s] failed: %v", rootKeyPath, err.Error())
 		return errors.New("create root key path failed")
 	}

@@ -12,6 +12,7 @@ import (
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
 	"huawei.com/mindx/common/envutils"
+	"huawei.com/mindx/common/fileutils"
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/taskschedule"
@@ -70,6 +71,8 @@ func TestCreateTarGz(t *testing.T) {
 		}
 		for _, task := range tasks {
 			filePath := filepath.Join(constants.LogDumpTempDir, task.Spec.Id+common.TarGzSuffix)
+			err := fileutils.CreateDir(constants.LogDumpTempDir, fileutils.Mode700)
+			convey.So(err, convey.ShouldBeNil)
 			pkgFile, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, common.Mode600)
 			convey.So(err, convey.ShouldBeNil)
 			err = pkgFile.Close()

@@ -11,9 +11,8 @@ import (
 
 	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/envutils"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/utils"
-
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
@@ -256,7 +255,7 @@ func (sic *SftInstallCtl) prepareLogDumpDir() error {
 func (sic *SftInstallCtl) prepareInstallPkgDir() error {
 	hwlog.RunLog.Info("start to prepare install_package dir")
 	installPkgDir := sic.InstallPathMgr.GetInstallPkgDir() + "/"
-	if err := utils.MakeSureDir(installPkgDir); err != nil {
+	if err := fileutils.MakeSureDir(installPkgDir); err != nil {
 		hwlog.RunLog.Errorf("prepare install_package dir failed: %s", err.Error())
 		return errors.New("prepare install_package dir failed")
 	}
@@ -417,12 +416,16 @@ func (sic *SftInstallCtl) clearAll() {
 
 // GetSftInstallMgrIns is used to init a SftInstallCtl struct
 func GetSftInstallMgrIns(components []string,
-	installPath, logRootPath, logBackupRootPath string) *SftInstallCtl {
+	installPath, logRootPath, logBackupRootPath string) (*SftInstallCtl, error) {
+	pathMgr, err := util.InitInstallDirPathMgr(installPath)
+	if err != nil {
+		return nil, fmt.Errorf("init install path mgr failed: %v", err)
+	}
 	return &SftInstallCtl{
 		SoftwareMgr: util.SoftwareMgr{
 			Components:     components,
-			InstallPathMgr: util.InitInstallDirPathMgr(installPath),
+			InstallPathMgr: pathMgr,
 		},
 		logPathMgr: util.InitLogDirPathMgr(logRootPath, logBackupRootPath),
-	}
+	}, nil
 }

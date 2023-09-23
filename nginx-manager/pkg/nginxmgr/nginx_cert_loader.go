@@ -13,14 +13,15 @@ import (
 	"time"
 
 	"huawei.com/mindx/common/envutils"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
-	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509/certutils"
+
+	"nginx-manager/pkg/nginxcom"
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/requests"
-	"nginx-manager/pkg/nginxcom"
 )
 
 const (
@@ -78,7 +79,7 @@ func prepareRootCert(certPath, certName string, retry bool) error {
 	}
 
 	// To ensure the latest root certificate, overwritten root each restarted.
-	err = common.WriteData(certPath, []byte(rootCaStr))
+	err = fileutils.WriteData(certPath, []byte(rootCaStr))
 	if err != nil {
 		hwlog.RunLog.Errorf("save cert for %s service cert failed: %s", certName, err.Error())
 		return err
@@ -91,7 +92,7 @@ func prepareServerCert(keyPath string, certPath string, server string) error {
 	if err != nil {
 		return err
 	}
-	err = common.WriteData(certPath, []byte(certStr))
+	err = fileutils.WriteData(certPath, []byte(certStr))
 	if err != nil {
 		hwlog.RunLog.Errorf("save cert for %s service cert failed: %s", server, err.Error())
 		return err
@@ -132,11 +133,11 @@ func getServerCert(keyPath string, server string) (string, error) {
 // PreparePipe Check and create a pipeline file
 func PreparePipe(pipePath string) error {
 	var err error
-	err = utils.MakeSureDir(pipePath)
+	err = fileutils.MakeSureDir(pipePath)
 	if err != nil {
 		return err
 	}
-	if utils.IsExist(pipePath) {
+	if fileutils.IsExist(pipePath) {
 		return nil
 	}
 	err = createPipe(pipePath)
@@ -153,8 +154,7 @@ func WritePipe(keyPath, pipePath string, deletePipeAfterUse bool) error {
 	if keyContent, err = loadKey(keyPath); err != nil {
 		return err
 	}
-
-	if !utils.IsExist(pipePath) {
+	if !fileutils.IsExist(pipePath) {
 		common.ClearSliceByteMemory(keyContent)
 		return fmt.Errorf("the file: %s does not exist", pipePath)
 	}
@@ -173,7 +173,7 @@ func PrepareForClient(pipeDir string, pipeCount int) error {
 	}
 
 	for _, pipePath := range pipePaths {
-		if utils.IsExist(pipePath) {
+		if fileutils.IsExist(pipePath) {
 			return nil
 		}
 		err = createPipe(pipePath)
@@ -200,7 +200,7 @@ func WritePipeForClient(keyPath, pipeDir string, pipeCount int, deletePipeAfterU
 	}
 
 	for _, pipePath := range pipePaths {
-		if !utils.IsExist(pipePath) {
+		if !fileutils.IsExist(pipePath) {
 			return fmt.Errorf("the file: %s does not exist", pipePath)
 		}
 		content := make([]byte, len(keyContent))
@@ -211,7 +211,7 @@ func WritePipeForClient(keyPath, pipeDir string, pipeCount int, deletePipeAfterU
 }
 
 func loadKey(path string) ([]byte, error) {
-	encryptKeyContent, err := utils.LoadFile(path)
+	encryptKeyContent, err := fileutils.LoadFile(path)
 	if err != nil {
 		hwlog.RunLog.Errorf("load key file failed: %s", err.Error())
 		return nil, fmt.Errorf("load key file failed: %s", err.Error())
@@ -313,11 +313,11 @@ func PrepareServiceCert(keyPath string, certPath string, caName string, forceFla
 		// get the lock success means reload operation is finished, it will be safe to delete them
 		locker.Lock()
 		defer locker.Unlock()
-		if err := utils.DeleteAllFileWithConfusion(keyPath); err != nil {
+		if err := fileutils.DeleteAllFileWithConfusion(keyPath); err != nil {
 			return fmt.Errorf("remove old key file error: %v", err)
 		}
 		hwlog.RunLog.Infof("key file [%v] is deleted", keyPath)
-		if err := utils.DeleteFile(certPath); err != nil {
+		if err := fileutils.DeleteFile(certPath); err != nil {
 			return fmt.Errorf("remove old cert file error: %v", err)
 		}
 		hwlog.RunLog.Infof("cert file [%v] is deleted", certPath)
