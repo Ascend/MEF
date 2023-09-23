@@ -313,7 +313,7 @@ func PrepareServiceCert(keyPath string, certPath string, caName string, forceFla
 		// get the lock success means reload operation is finished, it will be safe to delete them
 		locker.Lock()
 		defer locker.Unlock()
-		if err := utils.DeleteFile(keyPath); err != nil {
+		if err := utils.DeleteAllFileWithConfusion(keyPath); err != nil {
 			return fmt.Errorf("remove old key file error: %v", err)
 		}
 		hwlog.RunLog.Infof("key file [%v] is deleted", keyPath)
