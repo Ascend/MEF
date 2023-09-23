@@ -27,7 +27,7 @@ import (
 const (
 	maxRetry           = 10
 	waitTime           = 5 * time.Second
-	httpReqTryInterval = time.Minute
+	httpReqTryInterval = time.Second * 30
 	httpReqTryMaxTime  = 5
 )
 

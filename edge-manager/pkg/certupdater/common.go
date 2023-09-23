@@ -32,8 +32,10 @@ const (
 	CertTypeEdgeSvc          = "EdgeSvc"
 	NotRunning         int64 = 0
 	InRunning          int64 = 1
-	httpReqTryInterval       = time.Minute
+	httpReqTryInterval       = time.Second * 30
 	httpReqTryMaxTime        = 5
+	sendAlarmTryMax          = 6
+	sendAlarmInterval        = time.Second * 10
 	notifyInterval           = time.Second * 3
 	updateCertTimeout        = time.Minute * 10
 	workingQueueSize         = common.MaxNode
@@ -303,9 +305,18 @@ func sendAlarm(alarmId, notifyType string) error {
 	msg.FillContent(string(jsonAlarmReq))
 	msg.SetNodeId(common.AlarmManagerClientName)
 	msg.SetRouter(common.CertUpdaterName, common.InnerServerName, common.OptPost, requests.ReportAlarmRouter)
-	if err = modulemgr.SendAsyncMessage(msg); err != nil {
-		hwlog.RunLog.Errorf("send msg to alarm inner server failed: %v", err)
-		return fmt.Errorf("send msg to alarm inner server failed: %v", err)
+	var tryCnt int
+	for tryCnt = 0; tryCnt < sendAlarmTryMax; tryCnt++ {
+		if err = modulemgr.SendAsyncMessage(msg); err != nil {
+			hwlog.RunLog.Errorf("send msg to alarm inner server failed: %v, try for next time", err)
+			time.Sleep(sendAlarmInterval)
+			continue
+		}
+		break
+	}
+	if tryCnt == sendAlarmTryMax {
+		hwlog.RunLog.Errorf("send alarm [%v] failed, please check service status", alarmId)
+		return fmt.Errorf("send alarm [%v] failed, please check service status", alarmId)
 	}
 	return nil
 }
