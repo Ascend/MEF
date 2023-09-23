@@ -80,7 +80,7 @@ func doBackup(filePath string) error {
 		return fmt.Errorf("source file path [%v] not exists", filePath)
 	}
 	backupPath := filePath + backupFileSuffix
-	if err := fileutils.DeleteFile(backupPath); err != nil {
+	if err := fileutils.DeleteAllFileWithConfusion(backupPath); err != nil {
 		return fmt.Errorf("remove previously created backup file [%v] error: %v", backupPath, err)
 	}
 
