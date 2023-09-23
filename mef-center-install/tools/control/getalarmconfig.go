@@ -30,18 +30,19 @@ func (gcc *getAlarmCfgController) setInstallParam(installParam *util.InstallPara
 	gcc.installParam = installParam
 }
 
-func (gcc *getAlarmCfgController) doControl() error {
+func (gcc *getAlarmCfgController) doControl() (err error) {
 	pathMgr, err := util.InitInstallDirPathMgr()
 	if err != nil {
 		hwlog.RunLog.Errorf("init path mgr failed: %v", err)
 		return errors.New("init path mgr failed")
 	}
 	defer func() {
-		if err = util.ResetCfgPathPermAfterReducePriv(pathMgr); err != nil {
-			hwlog.RunLog.Errorf("reset config path permission after reducing privilege failed, error: %v", err)
+		if resetErr := util.ResetPriv(); resetErr != nil {
+			err = resetErr
+			hwlog.RunLog.Errorf("reset euid/gid back to root failed: %v", err)
 		}
 	}()
-	if err = util.SetCfgPathPermAndReducePriv(pathMgr); err != nil {
+	if err = util.ReducePriv(); err != nil {
 		return err
 	}
 

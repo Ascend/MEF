@@ -51,6 +51,7 @@ type upgradeSmoothMgr struct {
 
 func (usm *upgradeSmoothMgr) smooth() error {
 	tasks := []func() error{
+		usm.setPriv,
 		usm.smoothAlarmManager,
 		usm.smoothBackupConfig,
 	}
@@ -61,6 +62,18 @@ func (usm *upgradeSmoothMgr) smooth() error {
 		}
 	}
 
+	return nil
+}
+
+func (usm *upgradeSmoothMgr) setPriv() error {
+	configPath := usm.installPathMgr.GetConfigPath()
+	ownerChecker := fileutils.NewFileOwnerChecker(true, false, fileutils.RootUid, fileutils.RootGid)
+	linkChecker := fileutils.NewFileLinkChecker(false)
+	ownerChecker.SetNext(linkChecker)
+	if err := fileutils.SetParentPathPermission(configPath, common.Mode755, ownerChecker); err != nil {
+		hwlog.RunLog.Errorf("set install parent path permission failed: %s", err.Error())
+		return errors.New("set install parent path permission failed")
+	}
 	return nil
 }
 
@@ -117,13 +130,14 @@ var postSmoothFuncMap = map[string]postSmoothFunc{
 	util.AlarmManagerName: postSmoothAlarmManager,
 }
 
-func postSmoothAlarmManager(installPathMgr *util.InstallDirPathMgr) error {
+func postSmoothAlarmManager(installPathMgr *util.InstallDirPathMgr) (err error) {
 	defer func() {
-		if err := util.ResetCfgPathPermAfterReducePriv(installPathMgr); err != nil {
-			hwlog.RunLog.Errorf("reset config path permission after reducing privilege failed, error: %v", err)
+		if resetErr := util.ResetPriv(); resetErr != nil {
+			err = resetErr
+			hwlog.RunLog.Errorf("reset euid/gid back to root failed: %v", err)
 		}
 	}()
-	if err := util.SetCfgPathPermAndReducePriv(installPathMgr); err != nil {
+	if err := util.ReducePriv(); err != nil {
 		return err
 	}
 

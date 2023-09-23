@@ -229,7 +229,7 @@ func (ecf *ExchangeCaFlow) setBackupPathPermission() error {
 	return errors.New("set save crt right failed")
 }
 
-func (ecf *ExchangeCaFlow) exportCa() error {
+func (ecf *ExchangeCaFlow) exportCa() (err error) {
 	hwlog.RunLog.Info("start to export ca")
 
 	srcBackupPath := ecf.srcPath + backuputils.BackupSuffix
@@ -239,25 +239,42 @@ func (ecf *ExchangeCaFlow) exportCa() error {
 		return errors.New(util.NotGenCertErrorStr)
 	}
 
-	if err := fileutils.IsSoftLink(ecf.srcPath); err != nil {
+	if err = fileutils.IsSoftLink(ecf.srcPath); err != nil {
 		hwlog.RunLog.Errorf("check path [%s] failed: %s, cannot export", ecf.srcPath, err.Error())
 		return fmt.Errorf("check path [%s] failed", ecf.srcPath)
 	}
 
-	if _, err := certutils.GetCertContentWithBackup(ecf.srcPath); err != nil {
+	if err = util.ReducePriv(); err != nil {
+		hwlog.RunLog.Errorf("reduce euid/gid to MEFCenter failed: %s", err.Error())
+		return errors.New("reduce priv failed")
+	}
+
+	defer func() {
+		if resetErr := util.ResetPriv(); resetErr != nil {
+			err = resetErr
+			hwlog.RunLog.Errorf("reset euid/gid back to root failed: %s", err.Error())
+		}
+	}()
+
+	if _, err = certutils.GetCertContentWithBackup(ecf.srcPath); err != nil {
 		hwlog.RunLog.Errorf("check cert [%s] failed: %s, cannot export", ecf.srcPath, err.Error())
 		return fmt.Errorf("check cert [%s] failed", ecf.srcPath)
 	}
-	if err := ecf.setDirOwnerAndPermission(common.Mode400, true, ecf.srcPath); err != nil {
+	if err = ecf.setDirOwnerAndPermission(common.Mode400, true, ecf.srcPath); err != nil {
 		hwlog.RunLog.Errorf("reset apig crt file right failed: %s", err.Error())
 		return errors.New("reset apig crt file right failed")
 	}
-	if err := ecf.setDirOwnerAndPermission(common.Mode600, true, srcBackupPath); err != nil {
+	if err = ecf.setDirOwnerAndPermission(common.Mode600, true, srcBackupPath); err != nil {
 		hwlog.RunLog.Errorf("reset apig crt file right failed: %s", err.Error())
 		return errors.New("reset apig crt file right failed")
 	}
 
-	if err := fileutils.CopyFile(ecf.srcPath, ecf.exportPath); err != nil {
+	if err = util.ResetPriv(); err != nil {
+		hwlog.RunLog.Errorf("reset euid/gid back to root failed: %s", err.Error())
+		return errors.New("reset euid/gid back to root failed")
+	}
+
+	if err = fileutils.CopyFile(ecf.srcPath, ecf.exportPath); err != nil {
 		hwlog.RunLog.Errorf("export ca failed: %s", err.Error())
 		return errors.New("export ca failed")
 	}
