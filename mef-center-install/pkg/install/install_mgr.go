@@ -389,6 +389,11 @@ func (sic *SftInstallCtl) setCenterMode() error {
 		hwlog.RunLog.Errorf("set config dir mode failed: %s", err.Error())
 		return errors.New("set config dir mode failed")
 	}
+
+	if err := modeMgr.SetOutter755Mode(); err != nil {
+		fmt.Println("set path mode failed")
+		return err
+	}
 	hwlog.RunLog.Info("-----set mef-center mode success-----")
 	return nil
 }

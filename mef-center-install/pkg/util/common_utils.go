@@ -13,10 +13,7 @@ import (
 	"syscall"
 
 	"huawei.com/mindx/common/envutils"
-	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
-
-	"huawei.com/mindxedge/base/common"
 )
 
 // GetArch is used to get the arch info
@@ -131,14 +128,8 @@ func GetBoolPointer(value bool) *bool {
 	return pointer
 }
 
-// SetCfgPathPermAndReducePriv set MEF-Center and mef-config dir permission and reduce privilege
-func SetCfgPathPermAndReducePriv(installPathMgr *InstallDirPathMgr) error {
-	configDir := installPathMgr.GetConfigPath()
-	if err := fileutils.SetParentPathPermission(configDir, common.Mode755); err != nil {
-		hwlog.RunLog.Errorf("set config dir and parent dir permission failed, error: %v", err)
-		return errors.New("set config dir and parent dir permission failed")
-	}
-
+// ReducePriv reduce privilege
+func ReducePriv() error {
 	mefUid, mefGid, err := GetMefId()
 	if err != nil {
 		hwlog.RunLog.Errorf("get mef uid and gid failed, error: %v", err)
@@ -156,8 +147,8 @@ func SetCfgPathPermAndReducePriv(installPathMgr *InstallDirPathMgr) error {
 	return nil
 }
 
-// ResetCfgPathPermAfterReducePriv reset privilege and reset MEF-Center and mef-config dir permission
-func ResetCfgPathPermAfterReducePriv(installPathMgr *InstallDirPathMgr) error {
+// ResetPriv reset privilege
+func ResetPriv() error {
 	if err := syscall.Setegid(RootGid); err != nil {
 		hwlog.RunLog.Errorf("set egid failed, error: %v", err)
 		return errors.New("set egid failed")
@@ -165,18 +156,6 @@ func ResetCfgPathPermAfterReducePriv(installPathMgr *InstallDirPathMgr) error {
 	if err := syscall.Seteuid(RootUid); err != nil {
 		hwlog.RunLog.Errorf("set euid failed, error: %v", err)
 		return errors.New("set euid failed")
-	}
-
-	configDir := installPathMgr.GetConfigPath()
-	if err := fileutils.SetPathPermission(configDir, common.Mode700, false, false); err != nil {
-		hwlog.RunLog.Errorf("set config dir permission failed, error: %v", err)
-		return errors.New("set config dir permission failed")
-	}
-
-	mefCenterDir := installPathMgr.GetMefPath()
-	if err := fileutils.SetPathPermission(mefCenterDir, common.Mode700, false, false); err != nil {
-		hwlog.RunLog.Errorf("set mef center dir permission failed, error: %v", err)
-		return errors.New("set mef center dir permission failed")
 	}
 
 	return nil

@@ -249,6 +249,19 @@ func (cmm *CenterModeMgr) getConfigDirModeMgrs() []modeMgr {
 	}
 }
 
+// SetOutter755Mode is the func to set mode mef-config dir and its all parent dir mode to 755
+func (cmm *CenterModeMgr) SetOutter755Mode() error {
+	configPath := cmm.pathMgr.GetConfigPath()
+	ownerChecker := fileutils.NewFileOwnerChecker(true, false, fileutils.RootUid, fileutils.RootGid)
+	linkChecker := fileutils.NewFileLinkChecker(false)
+	ownerChecker.SetNext(linkChecker)
+	if err := fileutils.SetParentPathPermission(configPath, common.Mode755, ownerChecker); err != nil {
+		hwlog.RunLog.Errorf("set install parent path permission failed: %s", err.Error())
+		return errors.New("set install parent path permission failed")
+	}
+	return nil
+}
+
 // SetWorkDirMode is the func to set the mode of MEF-Center work Dir
 func (cmm *CenterModeMgr) SetWorkDirMode() error {
 	for _, sigModeMgr := range cmm.getWorkDirModeMgrs() {
@@ -256,6 +269,7 @@ func (cmm *CenterModeMgr) SetWorkDirMode() error {
 			return err
 		}
 	}
+
 	return nil
 }
 
