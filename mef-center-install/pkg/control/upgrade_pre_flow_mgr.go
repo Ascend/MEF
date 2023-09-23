@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"huawei.com/mindx/common/envutils"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/mef/common/cmsverify"
@@ -53,6 +54,7 @@ func (upf *UpgradePreFlowMgr) DoUpgrade() error {
 	}
 
 	var upgradeTasks = []func() error{
+		upf.checkUpgradePaths,
 		upf.prepareUnpackDir,
 		upf.verifyPackage,
 		upf.unzipTarFile,
@@ -119,6 +121,30 @@ func (upf *UpgradePreFlowMgr) checkDiskSpace() error {
 		hwlog.RunLog.Errorf("check upgrade disk space failed: %s", err.Error())
 		return errors.New("check upgrade disk space failed")
 	}
+	return nil
+}
+
+func (upf *UpgradePreFlowMgr) checkUpgradePaths() error {
+	const maxFileSize = 512 * common.MB
+	pathMap := map[string]string{
+		"tar file": upf.tarPath,
+		"cms file": upf.cmsPath,
+		"crl file": upf.crlPath,
+	}
+	for fileTag, filePath := range pathMap {
+		if !fileutils.IsExist(filePath) {
+			hwlog.RunLog.Errorf("%s does not exist", fileTag)
+			fmt.Printf("%s does not exist\n", fileTag)
+			return fmt.Errorf("%s does not exist", fileTag)
+		}
+
+		if _, err := fileutils.RealFileCheck(filePath, true, false, maxFileSize); err != nil {
+			hwlog.RunLog.Errorf("check %s failed: %v", fileTag, err)
+			fmt.Printf("check %s failed\n", fileTag)
+			return fmt.Errorf("check %s failed", fileTag)
+		}
+	}
+
 	return nil
 }
 

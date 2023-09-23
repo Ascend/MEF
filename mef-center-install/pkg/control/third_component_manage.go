@@ -155,6 +155,16 @@ func (ics icsManager) install(tarPath, cmsPath, crlPath string) error {
 
 func (ics icsManager) prepareFile(tarPath, cmsPath, crlPath string) (string, error) {
 	fmt.Println("start to verify ics-manager package")
+	pathMap := map[string]string{
+		"tar file": tarPath,
+		"cms file": cmsPath,
+		"crl file": crlPath,
+	}
+	for fileTag, filePath := range pathMap {
+		if err := ics.checkInstallPaths(fileTag, filePath); err != nil {
+			return "", err
+		}
+	}
 	// when two input parameters are the same, the function can be used to check whether the CRL file is valid
 	crlToUpdateValid, err := cmsverify.CompareCrls(crlPath, crlPath)
 	if err != nil || int(crlToUpdateValid) != util.CompareSame {
@@ -175,6 +185,22 @@ func (ics icsManager) prepareFile(tarPath, cmsPath, crlPath string) (string, err
 		return "", errors.New("unzip tar file failed")
 	}
 	return unpackTarPath, nil
+}
+
+func (ics icsManager) checkInstallPaths(fileTag, filePath string) error {
+	const maxFileSize = 512 * common.MB
+
+	if !fileutils.IsExist(filePath) {
+		hwlog.RunLog.Errorf("%s does not exist", fileTag)
+		return fmt.Errorf("%s does not exist", fileTag)
+	}
+
+	if _, err := fileutils.RealFileCheck(filePath, true, false, maxFileSize); err != nil {
+		hwlog.RunLog.Errorf("check %s failed: %v", fileTag, err)
+		return fmt.Errorf("check %s failed", fileTag)
+	}
+
+	return nil
 }
 
 func (ics icsManager) uninstall() error {
