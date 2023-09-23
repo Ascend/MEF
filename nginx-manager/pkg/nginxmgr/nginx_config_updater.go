@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	"huawei.com/mindx/common/checker"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
 
@@ -73,17 +74,13 @@ func (n *nginxConfUpdater) Update() error {
 	if err != nil {
 		return err
 	}
-	return n.updateUrl(content)
-}
-
-func (n *nginxConfUpdater) updateUrl(content []byte) error {
 	for _, conf := range n.confItems {
 		content = bytes.ReplaceAll(content, []byte(conf.From), []byte(conf.To))
 	}
 	icsContent := n.icsConf()
 	content = bytes.ReplaceAll(content, []byte("$icsConf"), []byte(icsContent))
 
-	err := common.WriteData(nginxcom.NginxConfigPath, content)
+	err = fileutils.WriteData(nginxcom.NginxConfigPath, content)
 	if err != nil {
 		hwlog.RunLog.Errorf("writeFile failed. error:%s", err.Error())
 		return fmt.Errorf("writeFile failed. error:%s", err.Error())
