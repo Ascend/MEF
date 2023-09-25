@@ -23,8 +23,6 @@ var regInfoList = []websocketmgr.RegisterModuleInfo{
 	{MsgOpt: common.OptReport, MsgRes: common.ResSoftwareInfo, ModuleName: common.NodeManagerName},
 	{MsgOpt: common.OptGet, MsgRes: common.ResDownLoadCert, ModuleName: common.NodeMsgManagerName},
 	{MsgOpt: common.OptPost, MsgRes: common.ResEdgeCert, ModuleName: common.CloudHubName},
-	{MsgOpt: common.OptResp, MsgRes: common.ResEdgeCert, ModuleName: common.CloudHubName},
-	{MsgOpt: common.OptGet, MsgRes: common.CertWillExpired, ModuleName: common.CloudHubName},
 	{MsgOpt: common.OptResp, MsgRes: common.CertWillExpired, ModuleName: common.CertUpdaterName},
 	{MsgOpt: common.Delete, MsgRes: common.DeleteNodeMsg, ModuleName: common.NodeManagerName},
 	{MsgOpt: common.OptPost, MsgRes: requests.ReportAlarmRouter, ModuleName: common.AlarmManagerName,
