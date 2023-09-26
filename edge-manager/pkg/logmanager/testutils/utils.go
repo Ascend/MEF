@@ -7,11 +7,11 @@ package testutils
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 
-	"github.com/pkg/errors"
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 

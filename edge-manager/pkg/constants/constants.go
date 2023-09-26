@@ -57,6 +57,10 @@ const (
 	NodeID = "nodeID"
 	// LogManagerName LogManagerName
 	LogManagerName = "LogManager"
+	// MefCenterUserName user name
+	MefCenterUserName = "MEFCenter"
+	// LocalHost ip
+	LocalHost = "localhost"
 )
 
 // const for query interface
