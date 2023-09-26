@@ -4,11 +4,11 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
 	"github.com/agiledragon/gomonkey/v2"
-	"github.com/pkg/errors"
 	"github.com/smartystreets/goconvey/convey"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"

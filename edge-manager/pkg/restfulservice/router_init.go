@@ -22,12 +22,11 @@ type EdgeMgrService struct {
 }
 
 // NewRestfulService new restful service
-func NewRestfulService(enable bool, ip string, port int) *EdgeMgrService {
+func NewRestfulService(enable bool, conf *httpsmgr.ServerParam) *EdgeMgrService {
 	nm := &EdgeMgrService{
 		enable: enable,
 		httpsSvr: &httpsmgr.HttpsServer{
-			IP:           ip,
-			Port:         port,
+			ServerParam:  *conf,
 			WriteTimeout: common.EdgeManagerRestfulWriteTimeout,
 			TlsCertPath: certutils.TlsCertInfo{
 				RootCaPath: constants.RootCaPath,

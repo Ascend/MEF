@@ -12,8 +12,9 @@ import (
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/database"
 	"huawei.com/mindx/common/hwlog"
-
 	"huawei.com/mindxedge/base/common"
+
+	"edge-manager/pkg/constants"
 )
 
 const (
@@ -78,7 +79,7 @@ func (c *lockRepositoryImpl) isLock() (bool, error) {
 			return false, err
 		}
 		hwlog.RunLog.Info("token is unlock")
-		hwlog.OpLog.Info("token is unlock")
+		hwlog.OpLog.Infof("[%s@%s] token is unlock", constants.MefCenterUserName, constants.LocalHost)
 		return false, nil
 	}
 
@@ -133,7 +134,8 @@ func (c *lockRepositoryImpl) lock(ip string) error {
 				hwlog.RunLog.Error("create lock info error")
 				return err
 			}
-			hwlog.OpLog.Warnf("%s has too much token auth failed record, lock token auth function", ip)
+			hwlog.OpLog.Warnf("[%s@%s] %s has too much token auth failed record, lock token auth function",
+				constants.MefCenterUserName, constants.LocalHost, ip)
 			hwlog.RunLog.Warnf("%s has too much token auth failed record, lock token auth function", ip)
 		} else {
 			if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Model(LockRecord{}).

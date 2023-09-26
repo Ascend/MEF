@@ -28,8 +28,10 @@ const (
 	edgeAuthUrl     = "/token"
 	edgeConnTestUrl = "/token-check"
 	headerToken     = "token"
-	maxBodyBytes    = 100 * 1024 * 1024
+	dataSize        = 1024 * 1024
 	maxCsrBytes     = 4096
+	connSize        = 100
+	limitIP         = "2/1"
 )
 
 // ClientAuthService [struct] for mef edge client auth
@@ -41,8 +43,17 @@ type ClientAuthService struct {
 func NewClientAuthService(serverIp string, port int, tlsCfg certutils.TlsCertInfo) *ClientAuthService {
 	return &ClientAuthService{
 		httpsSvr: &httpsmgr.HttpsServer{
-			IP:          serverIp,
-			Port:        port,
+			ServerParam: httpsmgr.ServerParam{
+				IP:             serverIp,
+				Port:           port,
+				Concurrency:    connSize,
+				LimitIPReq:     limitIP,
+				BodySizeLimit:  dataSize,
+				LimitIPConn:    1,
+				LimitTotalConn: connSize,
+				CacheSize:      dataSize,
+			},
+
 			TlsCertPath: tlsCfg,
 		},
 	}

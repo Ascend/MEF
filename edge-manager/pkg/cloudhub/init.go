@@ -209,7 +209,7 @@ func unlockIP() {
 		return
 	}
 	hwlog.RunLog.Info("time expired, automatically unlock token")
-	hwlog.OpLog.Info("time expired, automatically unlock token")
+	hwlog.OpLog.Infof("[%s@%s] time expired, automatically unlock token", constants.MefCenterUserName, constants.LocalHost)
 }
 
 func issueCertForEdge(msg *model.Message) (*model.Message, bool, error) {
