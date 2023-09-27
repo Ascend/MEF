@@ -223,6 +223,11 @@ func main() {
 }
 
 func preCheck() int {
+	if len(os.Args) <= util.NoArgCount {
+		fmt.Println("the required parameter is missing")
+		return util.ErrorExitCode
+	}
+
 	flag.Parse()
 
 	if help {

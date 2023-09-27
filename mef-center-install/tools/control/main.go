@@ -429,8 +429,13 @@ func (mtc *manageThridComponent) getName() string {
 
 func dealArgs() bool {
 	flag.Usage = printUseHelp
-	if len(os.Args) == util.NoArgCount {
+	if len(os.Args) <= util.NoArgCount {
 		printUseHelp()
+		return false
+	}
+
+	if len(os.Args[util.CtlArgIndex]) == 0 {
+		fmt.Println("the required parameter is missing")
 		return false
 	}
 	if os.Args[util.CtlArgIndex][0] == '-' {
