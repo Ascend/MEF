@@ -20,6 +20,11 @@ type upgradeController struct {
 }
 
 func main() {
+	if len(os.Args) <= util.NoArgCount {
+		fmt.Println("the required parameter is missing")
+		os.Exit(util.ErrorExitCode)
+	}
+
 	installParam, err := util.GetInstallInfo()
 	if err != nil {
 		fmt.Printf("get info from install-param.json failed:%s\n", err.Error())
