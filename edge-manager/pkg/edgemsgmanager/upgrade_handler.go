@@ -10,8 +10,9 @@ import (
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 
-	"edge-manager/pkg/types"
 	"huawei.com/mindxedge/base/common"
+
+	"edge-manager/pkg/types"
 )
 
 func upgradeEdgeSoftware(input interface{}) common.RespMsg {
@@ -32,38 +33,19 @@ func upgradeEdgeSoftware(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("check software upgrade para failed: %s", checkResult.Reason)
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
 	}
+	upgradeConfig := message.GetContent()
 
-	msg, err := model.NewMessage()
-	if err != nil {
-		hwlog.RunLog.Error("create message failed")
-		return common.RespMsg{Status: common.ErrorNewMsg, Msg: "create message failed", Data: nil}
-	}
-
-	msg.SetRouter(common.NodeMsgManagerName, common.CloudHubName, common.OptPost, common.ResEdgeUpgradeInfo)
-	msg.FillContent(message.GetContent())
 	var batchResp types.BatchResp
 	failedMap := make(map[string]string)
 	batchResp.FailedInfos = failedMap
 	for _, sn := range req.SerialNumbers {
-		msg.SetNodeId(sn)
-
-		rsp, err := modulemgr.SendSyncMessage(msg, common.ResponseTimeout)
-		if err != nil {
-			errInfo := fmt.Sprintf("send software upgrade info to %s failed", sn)
-			hwlog.RunLog.Error(errInfo)
-			failedMap[sn] = errInfo
-			continue
-		}
-
-		if content, ok := rsp.GetContent().(string); !ok || content != common.OK {
-			errInfo := fmt.Sprintf("mef edge process software upgrade info in %s failed", sn)
-			hwlog.RunLog.Error(errInfo)
-			failedMap[sn] = errInfo
+		if err := sendUpgradeConfigToEdge(sn, upgradeConfig); err != nil {
+			hwlog.RunLog.Error(err.Error())
+			failedMap[sn] = err.Error()
 			continue
 		}
 
 		batchResp.SuccessIDs = append(batchResp.SuccessIDs, sn)
-		nodesProgress[sn] = types.ProgressInfo{}
 	}
 
 	if len(batchResp.FailedInfos) != 0 {
@@ -73,4 +55,30 @@ func upgradeEdgeSoftware(input interface{}) common.RespMsg {
 		hwlog.RunLog.Info("deal edge software upgrade info success")
 		return common.RespMsg{Status: common.Success, Msg: "", Data: batchResp}
 	}
+}
+
+func sendUpgradeConfigToEdge(sn string, upgradeConfig interface{}) error {
+	msg, err := model.NewMessage()
+	if err != nil {
+		return fmt.Errorf("create message for %s failed", sn)
+	}
+
+	msg.SetRouter(common.NodeMsgManagerName, common.CloudHubName, common.OptPost, common.ResEdgeUpgradeInfo)
+	msg.FillContent(upgradeConfig)
+	msg.SetNodeId(sn)
+
+	rsp, err := modulemgr.SendSyncMessage(msg, common.ResponseTimeout)
+	if err != nil {
+		return fmt.Errorf("send software upgrade info to %s failed", sn)
+	}
+
+	if content, ok := rsp.GetContent().(string); !ok || content != common.OK {
+		return fmt.Errorf("mef edge process software upgrade info in %s failed", sn)
+	}
+
+	if err := nodesProgress.Set(sn, types.ProgressInfo{}, neverOverdue); err != nil {
+		return fmt.Errorf("reset software download progress for %s failed: %v", sn, err)
+	}
+
+	return nil
 }

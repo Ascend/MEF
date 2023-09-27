@@ -163,7 +163,7 @@ func testUpgradeSfwErrNewMsg() {
 	defer p1.Reset()
 
 	resp := upgradeEdgeSoftware(msg)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorNewMsg)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorSendMsgToNode)
 }
 
 func testUpgradeSfwErrSendSyncMsg() {

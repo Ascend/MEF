@@ -9,7 +9,6 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 
-	"edge-manager/pkg/types"
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -21,8 +20,6 @@ func setup() {
 	if err = common.InitHwlogger(logConfig, logConfig); err != nil {
 		hwlog.RunLog.Errorf("init hwlog failed, %v", err)
 	}
-
-	nodesProgress = make(map[string]types.ProgressInfo, 0)
 }
 
 func teardown() {

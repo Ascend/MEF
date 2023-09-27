@@ -34,9 +34,16 @@ func queryEdgeDownloadProgress(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: res.Reason, Data: nil}
 	}
 
-	var processInfo types.ProgressInfo
-	if nodeProgress, ok := nodesProgress[serialNumber]; ok {
-		processInfo = nodeProgress
+	value, err := nodesProgress.Get(serialNumber)
+	if err != nil {
+		hwlog.RunLog.Errorf("get download progress for %s failed: %v", serialNumber, err)
+		return common.RespMsg{Status: common.ErrorGetSoftwareDownloadProgress, Msg: "cache error", Data: nil}
+	}
+
+	processInfo, ok := value.(types.ProgressInfo)
+	if !ok {
+		hwlog.RunLog.Errorf("convert download progress for %s failed", serialNumber)
+		return common.RespMsg{Status: common.ErrorGetSoftwareDownloadProgress, Msg: "type convert error", Data: nil}
 	}
 
 	return common.RespMsg{Status: common.Success, Msg: "", Data: processInfo}

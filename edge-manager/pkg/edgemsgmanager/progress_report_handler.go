@@ -7,8 +7,9 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr/model"
 
-	"edge-manager/pkg/types"
 	"huawei.com/mindxedge/base/common"
+
+	"edge-manager/pkg/types"
 )
 
 // UpdateEdgeDownloadProgress [method] edge report the software upgrade progress to center
@@ -26,6 +27,9 @@ func UpdateEdgeDownloadProgress(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "convert request error", Data: nil}
 	}
 
-	nodesProgress[req.SerialNumber] = req.ProgressInfo
+	if err := nodesProgress.Set(req.SerialNumber, req.ProgressInfo, neverOverdue); err != nil {
+		hwlog.RunLog.Errorf("set software download progress for %s failed: %v", req.SerialNumber, err)
+		return common.RespMsg{Status: common.ErrorUpdateSoftwareDownloadProgress, Msg: "set cache error", Data: nil}
+	}
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }

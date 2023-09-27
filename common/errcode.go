@@ -161,6 +161,11 @@ const (
 	// ErrorLogDumpNodeInfoError parameter error
 	ErrorLogDumpNodeInfoError = "40051002"
 
+	// ErrorUpdateSoftwareDownloadProgress update software download progress error
+	ErrorUpdateSoftwareDownloadProgress = "40062001"
+	// ErrorGetSoftwareDownloadProgress get software download progress error
+	ErrorGetSoftwareDownloadProgress = "40062002"
+
 	// ErrorListCenterNodeAlarm failed to list center node alarm info
 	ErrorListCenterNodeAlarm = "50011001"
 	// ErrorListEdgeNodeAlarm  failed to list edge node alarm info

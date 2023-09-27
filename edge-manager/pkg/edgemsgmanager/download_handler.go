@@ -71,8 +71,13 @@ func sendDownloadInfo(req SoftwareDownloadInfo, msg *model.Message) types.BatchR
 			failedMap[sn] = errInfo
 			continue
 		}
+		if err := nodesProgress.Set(sn, types.ProgressInfo{}, neverOverdue); err != nil {
+			errInfo := fmt.Sprintf("set software download progress for %s failed: %v", sn, err)
+			hwlog.RunLog.Error(errInfo)
+			failedMap[sn] = errInfo
+			continue
+		}
 		batchResp.SuccessIDs = append(batchResp.SuccessIDs, sn)
-		nodesProgress[sn] = types.ProgressInfo{}
 	}
 	return batchResp
 }
