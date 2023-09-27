@@ -38,6 +38,7 @@ func newLogConfig(LogFileName string, logBackupDir string, maxBackups int) *hwlo
 // InitLogPath initialize logger
 func InitLogPath(logPath string, logBackupPath string) error {
 	runLogConf := newLogConfig(filepath.Join(logPath, RunLogFile), logBackupPath, runLogMaxBackups)
+	runLogConf.DisableRotationIfSwitchUser = true
 	opLogConf := newLogConfig(filepath.Join(logPath, OperateLogFile), logBackupPath, opLogMaxBackups)
 
 	if err := initHwLogger(runLogConf, opLogConf); err != nil {
