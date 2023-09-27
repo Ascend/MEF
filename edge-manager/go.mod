@@ -9,6 +9,7 @@ require (
 	gorm.io/driver/sqlite v1.4.2
 	gorm.io/gorm v1.22.3
 	huawei.com/mindx/common/backuputils v0.0.1
+	huawei.com/mindx/common/cache v0.0.2
 	huawei.com/mindx/common/checker v0.0.3
 	huawei.com/mindx/common/database v0.0.2
 	huawei.com/mindx/common/envutils v0.0.4

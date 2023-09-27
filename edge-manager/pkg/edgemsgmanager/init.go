@@ -8,16 +8,20 @@ import (
 	"net/http"
 	"path/filepath"
 
+	"huawei.com/mindx/common/cache"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 
 	"huawei.com/mindxedge/base/common"
-
-	"edge-manager/pkg/types"
 )
 
-var nodesProgress map[string]types.ProgressInfo
+const (
+	maxEntries   = 2048
+	neverOverdue = -1
+)
+
+var nodesProgress = cache.New(maxEntries)
 
 // NodeMsgDealer [struct] to deal node msg
 type NodeMsgDealer struct {
@@ -46,7 +50,6 @@ func NewNodeMsgManager(enable bool) *NodeMsgDealer {
 
 // Start receives and sends message
 func (nm *NodeMsgDealer) Start() {
-	nodesProgress = make(map[string]types.ProgressInfo, 0)
 	for {
 		select {
 		case _, ok := <-nm.ctx.Done():
