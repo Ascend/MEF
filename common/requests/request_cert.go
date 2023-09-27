@@ -42,7 +42,7 @@ type ReqCertParams struct {
 
 // GetRootCa [method] for get root ca with certName
 func (rcp *ReqCertParams) GetRootCa(certName string) (string, error) {
-	url := fmt.Sprintf("https://%s:%d/%s/?certName=%s", common.CertMgrDns, common.CertMgrPort,
+	url := fmt.Sprintf("https://%s:%d/%s?certName=%s", common.CertMgrDns, common.CertMgrPort,
 		getRootCaUrl, certName)
 	httpsReq := httpsmgr.GetHttpsReq(url, rcp.ClientTlsCert)
 	resp, err := httpsReq.Get(nil)
@@ -54,7 +54,7 @@ func (rcp *ReqCertParams) GetRootCa(certName string) (string, error) {
 
 // GetCrl [method] for get crl with crlName
 func (rcp *ReqCertParams) GetCrl(crlName string) (string, error) {
-	url := fmt.Sprintf("https://%s:%d/%s/?crlName=%s", common.CertMgrDns, common.CertMgrPort,
+	url := fmt.Sprintf("https://%s:%d/%s?crlName=%s", common.CertMgrDns, common.CertMgrPort,
 		getCrlUrl, crlName)
 	httpsReq := httpsmgr.GetHttpsReq(url, rcp.ClientTlsCert)
 	const timeout = 3 * time.Second
