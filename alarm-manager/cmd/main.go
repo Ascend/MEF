@@ -8,6 +8,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"os"
 
 	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/checker/valid"
@@ -22,6 +23,7 @@ import (
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
+	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
 var (
@@ -42,6 +44,11 @@ const (
 )
 
 func main() {
+	if len(os.Args) <= util.NoArgCount {
+		fmt.Println("the required parameter is missing")
+		os.Exit(util.ErrorExitCode)
+	}
+
 	flag.Parse()
 	if err := common.InitHwlogger(serverRunConf, serverOpConf); err != nil {
 		fmt.Printf("initialize hwlog failed, %s.\n", err.Error())

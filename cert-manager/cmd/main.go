@@ -9,6 +9,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"os"
 
 	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/checker"
@@ -16,8 +17,10 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/modulemgr"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
+	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 
 	"cert-manager/pkg/certmanager"
 	"cert-manager/pkg/config"
@@ -46,6 +49,11 @@ var (
 )
 
 func main() {
+	if len(os.Args) <= util.NoArgCount {
+		fmt.Println("the required parameter is missing")
+		os.Exit(util.ErrorExitCode)
+	}
+
 	flag.Parse()
 	if version {
 		fmt.Printf("%s version: %s\n", BuildName, BuildVersion)

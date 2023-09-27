@@ -9,6 +9,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"os"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -38,6 +39,7 @@ import (
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
 	"huawei.com/mindxedge/base/common/taskschedule"
+	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
 const (
@@ -84,6 +86,11 @@ var (
 )
 
 func main() {
+	if len(os.Args) <= util.NoArgCount {
+		fmt.Println("the required parameter is missing")
+		os.Exit(util.ErrorExitCode)
+	}
+
 	flag.Parse()
 	if version {
 		fmt.Printf("%s version: %s\n", config.BuildName, config.BuildVersion)
