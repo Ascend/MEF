@@ -7,6 +7,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os"
 
 	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/hwlog"
@@ -16,6 +17,8 @@ import (
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/logmgmt/hwlogconfig"
+	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
+
 	"nginx-manager/pkg/certupdater"
 	"nginx-manager/pkg/nginxcom"
 	"nginx-manager/pkg/nginxlogrotate"
@@ -38,6 +41,11 @@ var (
 )
 
 func main() {
+	if len(os.Args) <= util.NoArgCount {
+		fmt.Println("the required parameter is missing")
+		os.Exit(util.ErrorExitCode)
+	}
+
 	flag.Parse()
 	if err := common.InitHwlogger(serverRunConf, serverOpConf); err != nil {
 		fmt.Printf("initialize hwlog failed, %s.\n", err.Error())
