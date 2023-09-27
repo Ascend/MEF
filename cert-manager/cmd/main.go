@@ -49,7 +49,7 @@ var (
 )
 
 func main() {
-	if len(os.Args) <= util.NoArgCount {
+	if len(os.Args) < util.NoArgCount {
 		fmt.Println("the required parameter is missing")
 		os.Exit(util.ErrorExitCode)
 	}
