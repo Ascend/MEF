@@ -160,6 +160,11 @@ func (c *CloudServer) sendToEdge(msg *model.Message) error {
 		hwlog.RunLog.Errorf("send to client [%s] failed", msg.GetNodeId())
 		return fmt.Errorf("send to client [%s] failed", msg.GetNodeId())
 	}
+
+	originalSync := msg.GetIsSync()
+	msg.SetIsSync(false)
+	defer msg.SetIsSync(originalSync)
+
 	if err = sender.Send(msg.GetNodeId(), msg); err != nil {
 		hwlog.RunLog.Errorf("cloud hub send msg to edge node error: %v, operation is [%s], resource is [%s]",
 			err, msg.GetOption(), msg.GetResource())
