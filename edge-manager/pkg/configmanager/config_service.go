@@ -267,24 +267,3 @@ func checkAndUpdateToken() {
 	}
 	hwlog.RunLog.Info("token is expire, system auto revoke token")
 }
-
-func certWillOverdue(input interface{}) common.RespMsg {
-	nodes, err := getAllNodeInfo()
-	if err != nil {
-		hwlog.RunLog.Errorf("get all nodes failed %v", err)
-		return common.RespMsg{Status: ""}
-	}
-	router := common.Router{
-		Source:      common.ConfigManagerName,
-		Destination: common.CloudHubName,
-		Option:      common.OptGet,
-		Resource:    common.CertWillOverdue,
-	}
-	for _, node := range nodes {
-		if err := sendMessageToNode(node.SerialNumber, "", router); err != nil {
-			hwlog.RunLog.Warnf("send message to node [%s], error: %v", node.SerialNumber, err)
-			continue
-		}
-	}
-	return common.RespMsg{Status: common.Success}
-}
