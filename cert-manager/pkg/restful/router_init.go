@@ -20,12 +20,11 @@ type Service struct {
 }
 
 // NewRestfulService new restful service
-func NewRestfulService(enable bool, ip string, port int) *Service {
+func NewRestfulService(enable bool, conf *httpsmgr.ServerParam) *Service {
 	nm := &Service{
 		enable: enable,
 		httpsSvr: &httpsmgr.HttpsServer{
-			IP:   ip,
-			Port: port,
+			ServerParam: *conf,
 			TlsCertPath: certutils.TlsCertInfo{
 				RootCaPath: util.RootCaPath,
 				CertPath:   util.ServerCertPath,

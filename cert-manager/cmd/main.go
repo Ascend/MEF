@@ -14,8 +14,10 @@ import (
 	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/fileutils"
+	"huawei.com/mindx/common/httpsmgr"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
+	"huawei.com/mindx/common/limiter"
 	"huawei.com/mindx/common/modulemgr"
 
 	"huawei.com/mindxedge/base/common"
@@ -34,6 +36,13 @@ const (
 	backupDirName         = "/var/log_backup/mindx-edge/cert-manager"
 	defaultKmcPath        = "/home/data/public-config/kmc-config.json"
 	defaultCertConfigPath = "/home/data/config/cert-config.json"
+	maxIPConnLimit        = 128
+	maxConcurrency        = 512
+	defaultConnection     = 50
+	defaultConcurrency    = 20
+	defaultConnPerIP      = 20
+	defaultDataLimit      = 1024 * 1024
+	defaultCachSize       = 1024 * 1024 * 10
 )
 
 var (
@@ -42,10 +51,16 @@ var (
 	// BuildName cert-manager's build name
 	BuildName string
 	// BuildVersion cert-manager's build version
-	BuildVersion string
-	port         int
-	ip           string
-	version      bool
+	BuildVersion   string
+	port           int
+	ip             string
+	version        bool
+	limitIPReq     string
+	concurrency    int
+	cacheSize      int
+	limitIPConn    int
+	limitTotalConn int
+	dataLimit      int64
 )
 
 func main() {
@@ -63,10 +78,11 @@ func main() {
 		fmt.Printf("initialize hwlog failed, %s.\n", err.Error())
 		return
 	}
-	if res := checker.GetIntChecker("", common.MinPort, common.MaxPort, true).Check(port); !res.Result {
-		hwlog.RunLog.Errorf("port %d is not in [%d, %d]", port, common.MinPort, common.MaxPort)
+	if err := checkParam(); err != nil {
+		hwlog.RunLog.Errorf("parameter validation error: %v", err)
 		return
 	}
+
 	podIp, err := common.GetPodIP()
 	if err != nil {
 		hwlog.RunLog.Errorf("get edge manager pod ip failed: %s", err.Error())
@@ -86,10 +102,45 @@ func main() {
 	common.GracefulShutDown(cancel)
 }
 
+func checkParam() error {
+	if res := checker.GetIntChecker("", common.MinPort, common.MaxPort, true).Check(port); !res.Result {
+		return fmt.Errorf("port %d is not in [%d, %d]", port, common.MinPort, common.MaxPort)
+	}
+	if res := checker.GetRegChecker("", limiter.IPReqLimitReg, true).Check(limitIPReq); !res.Result {
+		return fmt.Errorf("limitIPReq is invalid")
+	}
+	if res := checker.GetIntChecker("", 1, maxConcurrency, true).Check(limitTotalConn); !res.Result {
+		return fmt.Errorf("limitTotalConn %d is not in [%d, %d]", limitTotalConn, 1, maxConcurrency)
+	}
+	if res := checker.GetIntChecker("", 1, limiter.DefaultDataLimit, true).Check(cacheSize); !res.Result {
+		return fmt.Errorf("cacheSize %d is not in [%d, %d]", cacheSize, 1, limiter.DefaultDataLimit)
+	}
+	if res := checker.GetIntChecker("", 1, maxConcurrency, true).Check(concurrency); !res.Result {
+		return fmt.Errorf("concurrency %d is not in [%d, %d]", concurrency, 1, maxConcurrency)
+	}
+	if res := checker.GetIntChecker("", 1, maxIPConnLimit, true).Check(limitIPConn); !res.Result {
+		return fmt.Errorf("limitIPConn %d is not in [%d, %d]", limitIPConn, 1, maxIPConnLimit)
+	}
+	if res := checker.GetIntChecker("", 1, limiter.DefaultDataLimit, true).Check(dataLimit); !res.Result {
+		return fmt.Errorf("dataLimit %d is not in [%d, %d]", dataLimit, 1, limiter.DefaultDataLimit)
+	}
+	return nil
+}
+
 func init() {
 	flag.IntVar(&port, "port", portConst,
 		"The server port of the http service,range[1025-40000]")
 	flag.BoolVar(&version, "version", false, "Output the program version")
+	flag.IntVar(&cacheSize, "cacheSize", defaultCachSize, "the cacheSize for ip limit,"+
+		"keep default normally")
+	flag.IntVar(&limitIPConn, "limitIPConn", defaultConnPerIP, "the tcp connection limit for each Ip")
+	flag.IntVar(&limitTotalConn, "limitTotalConn", defaultConnection, "the tcp connection limit for all request")
+	flag.StringVar(&limitIPReq, "limitIPReq", "10/1",
+		"the http request limit counts for each Ip, 10/1 means allow 10 request in 1 seconds")
+	flag.IntVar(&concurrency, "concurrency", defaultConcurrency,
+		"The max concurrency of the http server, range is [1-512]")
+	flag.Int64Var(&dataLimit, "dataLimit", defaultDataLimit,
+		"bytes, limit the data size of request's body, the default value is 1MB")
 
 	hwlogconfig.BindFlags(serverOpConf, serverRunConf)
 }
@@ -107,7 +158,7 @@ func initResource() error {
 
 func register(ctx context.Context) error {
 	modulemgr.ModuleInit()
-	if err := modulemgr.Registry(restful.NewRestfulService(true, ip, port)); err != nil {
+	if err := modulemgr.Registry(restful.NewRestfulService(true, limitConf())); err != nil {
 		return err
 	}
 	if err := modulemgr.Registry(certmanager.NewCertManager(true)); err != nil {
@@ -132,4 +183,17 @@ func initCertConfig(configPath string) error {
 
 	config.SetConfig(certConfig)
 	return nil
+}
+
+func limitConf() *httpsmgr.ServerParam {
+	return &httpsmgr.ServerParam{
+		IP:             ip,
+		Port:           port,
+		Concurrency:    concurrency,
+		BodySizeLimit:  dataLimit,
+		LimitIPReq:     limitIPReq,
+		LimitIPConn:    limitIPConn,
+		LimitTotalConn: limitTotalConn,
+		CacheSize:      cacheSize,
+	}
 }
