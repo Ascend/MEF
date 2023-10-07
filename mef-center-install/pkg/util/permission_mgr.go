@@ -251,7 +251,7 @@ func (cmm *CenterModeMgr) getConfigDirModeMgrs() []modeMgr {
 
 // SetOutter755Mode is the func to set mode mef-config dir and its all parent dir mode to 755
 func (cmm *CenterModeMgr) SetOutter755Mode() error {
-	configPath := cmm.pathMgr.GetConfigPath()
+	configPath := cmm.pathMgr.ConfigPathMgr.GetRootCaDirPath()
 	ownerChecker := fileutils.NewFileOwnerChecker(true, false, fileutils.RootUid, fileutils.RootGid)
 	linkChecker := fileutils.NewFileLinkChecker(false)
 	ownerChecker.SetNext(linkChecker)
