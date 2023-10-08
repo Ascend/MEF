@@ -20,20 +20,18 @@ type Service struct {
 }
 
 // NewRestfulService new restful service
-func NewRestfulService(enable bool, conf *httpsmgr.ServerParam) *Service {
+func NewRestfulService(enable bool, conf *httpsmgr.HttpsServer) *Service {
+	conf.TlsCertPath = certutils.TlsCertInfo{
+		RootCaPath: util.RootCaPath,
+		CertPath:   util.ServerCertPath,
+		KeyPath:    util.ServerKeyPath,
+		SvrFlag:    true,
+		KmcCfg:     nil,
+		WithBackup: true,
+	}
 	nm := &Service{
-		enable: enable,
-		httpsSvr: &httpsmgr.HttpsServer{
-			ServerParam: *conf,
-			TlsCertPath: certutils.TlsCertInfo{
-				RootCaPath: util.RootCaPath,
-				CertPath:   util.ServerCertPath,
-				KeyPath:    util.ServerKeyPath,
-				SvrFlag:    true,
-				KmcCfg:     nil,
-				WithBackup: true,
-			},
-		},
+		enable:   enable,
+		httpsSvr: conf,
 	}
 	return nm
 }

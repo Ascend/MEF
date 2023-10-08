@@ -43,9 +43,10 @@ type ClientAuthService struct {
 func NewClientAuthService(serverIp string, port int, tlsCfg certutils.TlsCertInfo) *ClientAuthService {
 	return &ClientAuthService{
 		httpsSvr: &httpsmgr.HttpsServer{
+			IP:          serverIp,
+			Port:        port,
+			SwitchLimit: true,
 			ServerParam: httpsmgr.ServerParam{
-				IP:             serverIp,
-				Port:           port,
 				Concurrency:    connSize,
 				LimitIPReq:     limitIP,
 				BodySizeLimit:  dataSize,

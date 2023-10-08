@@ -38,9 +38,9 @@ const (
 	defaultCertConfigPath = "/home/data/config/cert-config.json"
 	maxIPConnLimit        = 128
 	maxConcurrency        = 512
-	defaultConnection     = 50
-	defaultConcurrency    = 20
-	defaultConnPerIP      = 20
+	defaultConnection     = 100
+	defaultConcurrency    = 100
+	defaultConnPerIP      = 100
 	defaultDataLimit      = 1024 * 1024
 	defaultCachSize       = 1024 * 1024 * 10
 )
@@ -185,15 +185,19 @@ func initCertConfig(configPath string) error {
 	return nil
 }
 
-func limitConf() *httpsmgr.ServerParam {
-	return &httpsmgr.ServerParam{
-		IP:             ip,
-		Port:           port,
+func limitConf() *httpsmgr.HttpsServer {
+	server := httpsmgr.ServerParam{
 		Concurrency:    concurrency,
 		BodySizeLimit:  dataLimit,
 		LimitIPReq:     limitIPReq,
 		LimitIPConn:    limitIPConn,
 		LimitTotalConn: limitTotalConn,
 		CacheSize:      cacheSize,
+	}
+	return &httpsmgr.HttpsServer{
+		IP:          ip,
+		Port:        port,
+		SwitchLimit: true,
+		ServerParam: server,
 	}
 }

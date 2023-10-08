@@ -148,7 +148,7 @@ func (scm *SftOperateMgr) checkCloudCoreIsRunning() error {
 	output, err := envutils.RunCommand(util.Systemctl, envutils.DefCmdTimeoutSec,
 		util.SystemctlIsActive, "cloudcore")
 	if err != nil {
-		hwlog.RunLog.Errorf("runCommand failed, error:%s", err.Error())
+		hwlog.RunLog.Errorf("check cloudcore is running failed, error:%s", err.Error())
 		return err
 	}
 	if output != util.SystemctlStatusActive {
