@@ -8,7 +8,6 @@ import (
 	"math"
 
 	"huawei.com/mindx/common/checker"
-
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -129,4 +128,61 @@ func (c *certNameChecker) Check(certName string) bool {
 		}
 	}
 	return false
+}
+
+type downloadResChecker struct {
+	modelChecker checker.ModelChecker
+}
+
+func newDownloadResChecker() *downloadResChecker {
+	return &downloadResChecker{}
+}
+
+func (u *downloadResChecker) init() {
+	u.modelChecker.Checker = checker.GetAndChecker(
+		checker.GetRegChecker("SerialNumber", `^[a-zA-Z0-9]([-_a-zA-Z0-9]{0,62}[a-zA-Z0-9])?$`, true),
+		getProgressInfoChecker("ProgressInfo", true),
+	)
+}
+
+func (u *downloadResChecker) Check(data interface{}) checker.CheckResult {
+	u.init()
+
+	checkResult := u.modelChecker.Check(data)
+	if !checkResult.Result {
+		return checker.NewFailedResult(fmt.Sprintf("software download res check failed: %s", checkResult.Reason))
+	}
+
+	return checker.NewSuccessResult()
+}
+
+type progressInfoChecker struct {
+	modelChecker checker.ModelChecker
+}
+
+func getProgressInfoChecker(field string, required bool) *progressInfoChecker {
+	return &progressInfoChecker{
+		modelChecker: checker.ModelChecker{Field: field, Required: required},
+	}
+}
+
+func (u *progressInfoChecker) init() {
+	const maxProgress = 100
+	u.modelChecker.Checker = checker.GetAndChecker(
+		checker.GetUintChecker("Progress", 0, maxProgress, true),
+		checker.GetStringChoiceChecker("Res", []string{"failed", "success"}, true),
+		checker.GetRegChecker("Msg", "^[\\S ]{0,512}$", true),
+	)
+}
+
+// Check [method] check main function
+func (d *progressInfoChecker) Check(data interface{}) checker.CheckResult {
+	d.init()
+
+	checkResult := d.modelChecker.Check(data)
+	if !checkResult.Result {
+		return checker.NewFailedResult(fmt.Sprintf("progress info check failed: %s", checkResult.Reason))
+	}
+
+	return checker.NewSuccessResult()
 }
