@@ -84,18 +84,18 @@ type SoftwareInfo struct {
 // EdgeReportSoftwareInfoReq [struct] to report edge software info
 type EdgeReportSoftwareInfoReq struct {
 	SerialNumber string         `json:"serialNumber"`
-	SoftwareInfo []SoftwareInfo `json:"SoftwareInfo"`
+	SoftwareInfo []SoftwareInfo `json:"softwareInfo"`
 }
 
-// ProgressInfo [struct] to report edge software upgrade result info
+// ProgressInfo [struct] to report edge software download result info
 type ProgressInfo struct {
 	Progress uint64 `json:"progress"`
 	Res      string `json:"res"`
 	Msg      string `json:"msg"`
 }
 
-// EdgeReportUpgradeResInfoReq [struct] to report edge software upgrade progress
-type EdgeReportUpgradeResInfoReq struct {
+// EdgeDownloadResInfo [struct] to report edge software download result info
+type EdgeDownloadResInfo struct {
 	SerialNumber string       `json:"serialNumber"`
 	ProgressInfo ProgressInfo `json:"upgradeResInfo"`
 }

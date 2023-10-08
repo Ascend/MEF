@@ -12,6 +12,7 @@ import (
 	"huawei.com/mindx/common/modulemgr/model"
 
 	"edge-manager/pkg/types"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -23,15 +24,15 @@ func TestUpdateEdgeDownloadProgress(t *testing.T) {
 
 func testUpdateEdgeDownloadProgress() {
 	baseContent := `{
-    "serialNumbers": "2102312NSF10K8000130",
+    "serialNumber": "2102312NSF10K8000130",
     "upgradeResInfo": {
-        "progress": 50,
+        "progress": 100,
         "res": "success",
-        "msg": ""
+        "msg": "aaaaasssss"
     	}
 	}`
 
-	var req types.EdgeReportSoftwareInfoReq
+	var req types.EdgeDownloadResInfo
 	err := json.Unmarshal([]byte(baseContent), &req)
 	if err != nil {
 		hwlog.RunLog.Errorf("unmarshal failed, error: %v", err)

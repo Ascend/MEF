@@ -21,12 +21,15 @@ func UpdateEdgeDownloadProgress(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "get message failed", Data: nil}
 	}
 
-	var req types.EdgeReportUpgradeResInfoReq
+	var req types.EdgeDownloadResInfo
 	if err := common.ParamConvert(message.GetContent(), &req); err != nil {
 		hwlog.RunLog.Errorf("update node upgrade progress info error: %v", err)
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "convert request error", Data: nil}
 	}
-
+	if checkResult := newDownloadResChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("check software download result failed: %s", checkResult.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
+	}
 	if err := nodesProgress.Set(req.SerialNumber, req.ProgressInfo, neverOverdue); err != nil {
 		hwlog.RunLog.Errorf("set software download progress for %s failed: %v", req.SerialNumber, err)
 		return common.RespMsg{Status: common.ErrorUpdateSoftwareDownloadProgress, Msg: "set cache error", Data: nil}
