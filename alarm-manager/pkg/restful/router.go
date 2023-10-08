@@ -11,7 +11,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"alarm-manager/pkg/types"
 	"alarm-manager/pkg/utils"
 
 	"huawei.com/mindxedge/base/common"
@@ -53,7 +52,7 @@ var edgeAlarmRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 		restfulmgr.GenericDispatcher{
 			RelativePath: "/report",
 			Method:       http.MethodPost,
-			Destination:  utils.AlarmModuleName,
+			Destination:  common.AlarmManagerName,
 		},
 	},
 }
@@ -107,15 +106,15 @@ func (list listDispatcher) ParseData(c *gin.Context) (interface{}, error) {
 	// don't allow empty values
 	if isKeyAssignedToEmpty(values, ifCenterKey) || isKeyAssignedToEmpty(values, groupIdKey) ||
 		isKeyAssignedToEmpty(values, snKey) {
-		return nil, fmt.Errorf("params in[%s,%s,%s] cannot be assigned to empty string",
+		return nil, fmt.Errorf("params in [%s,%s,%s] cannot be assigned to empty string",
 			ifCenterKey, groupIdKey, snKey)
 	}
 	ifCenter := values.Get(ifCenterKey)
 	if ifCenter == trueStr {
-		return types.ListAlarmOrEventReq{PageNum: pageNum, PageSize: pageSize, IfCenter: ifCenter}, nil
+		return utils.ListAlarmOrEventReq{PageNum: pageNum, PageSize: pageSize, IfCenter: ifCenter}, nil
 	}
+
 	groupIdStr := values.Get(groupIdKey)
-	snStr := values.Get(snKey)
 	if groupIdStr == "0" {
 		return nil, fmt.Errorf("groupId cannot be assigned to 0")
 	}
@@ -127,7 +126,9 @@ func (list listDispatcher) ParseData(c *gin.Context) (interface{}, error) {
 	if err != nil {
 		return nil, fmt.Errorf("groupId[%s] is invalid", c.Query(groupIdKey))
 	}
-	return types.ListAlarmOrEventReq{PageNum: pageNum, PageSize: pageSize, Sn: snStr, GroupId: groupId,
+
+	snStr := values.Get(snKey)
+	return utils.ListAlarmOrEventReq{PageNum: pageNum, PageSize: pageSize, Sn: snStr, GroupId: groupId,
 		IfCenter: ifCenter}, nil
 }
 

@@ -15,7 +15,6 @@ const (
 	AlarmType        = "alarm"
 	EventType        = "event"
 	CenterSn         = ""
-	CenterIp         = ""
 )
 
 // alarms id

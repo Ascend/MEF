@@ -37,11 +37,7 @@ func dealAlarmReq(input interface{}) (interface{}, error) {
 		return nil, errors.New("deal alarm para check failed")
 	}
 
-	ipChecker := checker.GetOrChecker(
-		checker.GetIpV4Checker("", true),
-		checker.GetStringChoiceChecker("", []string{alarms.CenterIp}, true),
-	)
-	ret = ipChecker.Check(reqs.Ip)
+	ret = checker.GetIpV4Checker("", true).Check(reqs.Ip)
 	if !ret.Result {
 		hwlog.RunLog.Error("deaL alarm para check failed: unsupported Ip received")
 		return nil, errors.New("deal alarm para check failed")

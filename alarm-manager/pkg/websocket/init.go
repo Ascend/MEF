@@ -1,6 +1,6 @@
 // Copyright (c)  2023. Huawei Technologies Co., Ltd.  All rights reserved.
 
-// Package websocket init restful service
+// Package websocket init websocket service for communicating with edge-manager
 package websocket
 
 import (
@@ -29,12 +29,10 @@ type alarmWsClient struct {
 
 // NewAlarmWsClient new edge hub
 func NewAlarmWsClient(enable bool, ctx context.Context) model.Module {
-	module := &alarmWsClient{
+	return &alarmWsClient{
 		enable: enable,
 		ctx:    ctx,
 	}
-
-	return module
 }
 
 // Name module name

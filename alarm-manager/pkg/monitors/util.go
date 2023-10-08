@@ -77,8 +77,7 @@ func SendAlarms(alarms ...*requests.AlarmReq) error {
 		hwlog.RunLog.Errorf("new alarm msg failed, error: %v", err)
 		return errors.New("new alarm msg failed")
 	}
-	msg.Header.ID = msg.Header.Id
-	msg.SetRouter(utils.AlarmModuleName, utils.AlarmModuleName, http.MethodPost, requests.ReportAlarmRouter)
+	msg.SetRouter(common.AlarmManagerName, common.AlarmManagerName, http.MethodPost, requests.ReportAlarmRouter)
 	msg.FillContent(string(content))
 
 	if err = modulemgr.SendAsyncMessage(msg); err != nil {

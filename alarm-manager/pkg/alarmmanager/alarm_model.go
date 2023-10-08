@@ -1,6 +1,6 @@
 // Copyright (c)  2023. Huawei Technologies Co., Ltd.  All rights reserved.
 
-// Package alarmmanager for alarm-manager module db opreation
+// Package alarmmanager for alarm-manager module db operation
 package alarmmanager
 
 import (
@@ -155,7 +155,7 @@ func (adh *AlarmDbHandler) countAlarmsOrEventsBySn(sn string, queryType string) 
 		queryType).Count(&count).Error
 }
 
-func (adh *AlarmDbHandler) countAlarmsOrEventsOfNodes(sns []string, queryType string) (int64, error) {
+func (adh *AlarmDbHandler) countAlarmsOrEventsBySns(sns []string, queryType string) (int64, error) {
 	if len(sns) == 0 {
 		return 0, nil
 	}
@@ -164,7 +164,7 @@ func (adh *AlarmDbHandler) countAlarmsOrEventsOfNodes(sns []string, queryType st
 		queryType).Count(&count).Error
 }
 
-func (adh *AlarmDbHandler) countAlarmsOrEventsOfEdgeNodes(queryType string) (int64, error) {
+func (adh *AlarmDbHandler) countEdgeAlarmsOrEvents(queryType string) (int64, error) {
 	count := int64(0)
 	return count, adh.db().Model(AlarmInfo{}).Where("serial_number != ? and alarm_type=?", alarms.CenterSn,
 		queryType).Count(&count).Error

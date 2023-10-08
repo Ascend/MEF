@@ -9,7 +9,7 @@ import (
 
 	"huawei.com/mindx/common/checker"
 
-	"alarm-manager/pkg/types"
+	"alarm-manager/pkg/utils"
 
 	"huawei.com/mindxedge/base/common"
 )
@@ -40,7 +40,7 @@ func (alc *AlarmListerChecker) init() {
 }
 
 // Check checking all params
-func (alc *AlarmListerChecker) Check(data types.ListAlarmOrEventReq) checker.CheckResult {
+func (alc *AlarmListerChecker) Check(data utils.ListAlarmOrEventReq) checker.CheckResult {
 	alc.init()
 
 	if data.IfCenter != trueStr {

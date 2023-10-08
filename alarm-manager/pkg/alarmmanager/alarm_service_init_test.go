@@ -32,7 +32,7 @@ import (
 var (
 	gormInstance  *gorm.DB
 	dbPath        = "./test.db"
-	pachers       = make([]*gomonkey.Patches, 0)
+	patchers      = make([]*gomonkey.Patches, 0)
 	groupNodesMap = map[string]bool{testSn1: true}
 	// ensure testSn is in db
 	testSns = []string{testSn1, testSn2, ""}
@@ -86,7 +86,7 @@ func teardown() {
 	}
 }
 
-func setupPachers() {
+func setupPatchers() {
 	p1 := gomonkey.ApplyFunc(database.GetDb, mockGetDb)
 	p2 := gomonkey.ApplyFunc(modulemgr.SendSyncMessage, func(m *model.Message, duration time.Duration) (*model.Message,
 		error) {
@@ -111,7 +111,7 @@ func setupPachers() {
 			}
 			return bytes, nil
 		})
-	pachers = append(pachers, p1, p2, p3)
+	patchers = append(patchers, p1, p2, p3)
 }
 
 func mockGetDb() *gorm.DB {
@@ -119,13 +119,13 @@ func mockGetDb() *gorm.DB {
 }
 
 func TestMain(m *testing.M) {
-	setupPachers()
+	setupPatchers()
 	setup()
 	code := m.Run()
 	hwlog.RunLog.Infof("exit_code=%d\n", code)
 	defer func() {
 		teardown()
-		for _, p := range pachers {
+		for _, p := range patchers {
 			p.Reset()
 		}
 	}()

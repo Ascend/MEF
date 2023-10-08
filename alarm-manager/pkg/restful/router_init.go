@@ -21,7 +21,7 @@ type Service struct {
 
 // NewRestfulService new restful service
 func NewRestfulService(enable bool, ip string, port int) *Service {
-	nm := &Service{
+	return &Service{
 		enable: enable,
 		httpsSvr: &httpsmgr.HttpsServer{
 			IP:   ip,
@@ -36,7 +36,6 @@ func NewRestfulService(enable bool, ip string, port int) *Service {
 			},
 		},
 	}
-	return nm
 }
 
 // Name for RestfulService name
@@ -46,21 +45,18 @@ func (r *Service) Name() string {
 
 // Start for RestfulService start
 func (r *Service) Start() {
-	err := r.httpsSvr.Init()
-	if err != nil {
+	if err := r.httpsSvr.Init(); err != nil {
 		hwlog.RunLog.Errorf("start restful at %d failed, init https server failed: %v", r.httpsSvr.Port, err)
 		return
 	}
 	hwlog.RunLog.Info("init alarm manager https server success")
-	err = r.httpsSvr.RegisterRoutes(setRouter)
-	if err != nil {
+	if err := r.httpsSvr.RegisterRoutes(setRouter); err != nil {
 		hwlog.RunLog.Errorf("start restful at %d failed, set routers failed: %v", r.httpsSvr.Port, err)
 		return
 	}
 	hwlog.RunLog.Info("set alarm manager https routers success")
 	hwlog.RunLog.Info("start alarm manager https server ......")
-	err = r.httpsSvr.Start()
-	if err != nil {
+	if err := r.httpsSvr.Start(); err != nil {
 		hwlog.RunLog.Errorf("start restful at %d failed, listen failed: %v", r.httpsSvr.Port, err)
 	}
 }

@@ -36,7 +36,7 @@ type ClearNodeAlarmReq struct {
 	Sn string `json:"serialNumber"`
 }
 
-// NodeGroupReq is struct for requesting edge-manager for nodegroup contain nodes sns
-type NodeGroupReq struct {
+// GetSnsReq request for alarm-manager to get sns by nodegroup id
+type GetSnsReq struct {
 	GroupId uint64 `json:"groupId"`
 }
