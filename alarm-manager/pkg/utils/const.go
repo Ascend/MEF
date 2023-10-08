@@ -9,8 +9,3 @@ const (
 	ServerKeyPath  = "/home/data/config/mef-certs/alarm-manager.key"
 	RootCaPath     = "/home/data/inner-root-ca/RootCA.crt"
 )
-
-// consts for alarm manager module
-const (
-	AlarmModuleName = "AlarmManager"
-)

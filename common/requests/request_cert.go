@@ -1,6 +1,6 @@
 // Copyright (c) 2023. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package httpsmgr for https manager
+// Package requests for https requests about cert
 package requests
 
 import (

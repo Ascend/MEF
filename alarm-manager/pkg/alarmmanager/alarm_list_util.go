@@ -12,24 +12,30 @@ import (
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
 
-	"alarm-manager/pkg/types"
-	"huawei.com/mindxedge/base/common/alarms"
-	"huawei.com/mindxedge/base/common/requests"
+	"alarm-manager/pkg/utils"
 
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/alarms"
+	"huawei.com/mindxedge/base/common/requests"
 )
 
 const (
 	trueStr  = "true"
 	falseStr = "false"
+
+	centerNodeQueryType    = "CenterNodeQuery"
+	serialNumQuery         = "SerialNumQuery"
+	groupIdQueryType       = "GroupIdQuery"
+	fullNodesQueryType     = "FullNodesQuery"
+	fullEdgeNodesQueryType = "FullEdgeNodesQuery"
 )
 
 // getQueryType returns the query type is by SerialNum or groupId,neither will return err
-func getQueryType(input interface{}) (string, types.ListAlarmOrEventReq, error) {
-	req, ok := input.(types.ListAlarmOrEventReq)
+func getQueryType(input interface{}) (string, utils.ListAlarmOrEventReq, error) {
+	req, ok := input.(utils.ListAlarmOrEventReq)
 	if !ok {
 		hwlog.RunLog.Error("failed to convert params")
-		return "", types.ListAlarmOrEventReq{}, errors.New("failed to convert params")
+		return "", utils.ListAlarmOrEventReq{}, errors.New("failed to convert params")
 	}
 	if req.IfCenter == trueStr {
 		return centerNodeQueryType, req, nil
@@ -64,7 +70,7 @@ func dealRequest(input interface{}, AlarmOrEvent string) *common.RespMsg {
 		return &common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkRes.Reason}
 	}
 
-	req, ok := input.(types.ListAlarmOrEventReq)
+	req, ok := input.(utils.ListAlarmOrEventReq)
 	if !ok {
 		hwlog.RunLog.Error("failed to convert list center alarms/events inputs")
 		return &common.RespMsg{Status: common.ErrorParamConvert}
@@ -74,22 +80,22 @@ func dealRequest(input interface{}, AlarmOrEvent string) *common.RespMsg {
 		return listCenterAlarmOrEvents(req, AlarmOrEvent)
 	}
 	if queryIdType == serialNumQuery {
-		return listEdgeNodeAlarmsOrEvents(req, AlarmOrEvent)
+		return listEdgeAlarmsOrEventsBySn(req, AlarmOrEvent)
 	}
 	if queryIdType == groupIdQueryType {
-		return listGroupNodesAlarmsOrEvents(req, AlarmOrEvent)
+		return listEdgeAlarmsOrEventsByGroupId(req, AlarmOrEvent)
 	}
 	if queryIdType == fullEdgeNodesQueryType {
-		return listAllEdgeNodesAlarmsOrEvents(req, AlarmOrEvent)
+		return listEdgeAlarmsOrEvents(req, AlarmOrEvent)
 	}
 	// fullNodesQueryType
 	return listFullAlarmOrEvents(req, AlarmOrEvent)
 }
 
-func getListResp(alarms []AlarmInfo, total int64) types.ListAlarmsResp {
-	resp := types.ListAlarmsResp{
+func getListResp(alarms []AlarmInfo, total int64) utils.ListAlarmsResp {
+	resp := utils.ListAlarmsResp{
 		Total:   total,
-		Records: make([]types.AlarmBriefInfo, 0),
+		Records: make([]utils.AlarmBriefInfo, 0),
 	}
 	for _, alarm := range alarms {
 		resp.Records = append(resp.Records, convertToDigestInfo(alarm))
@@ -97,8 +103,8 @@ func getListResp(alarms []AlarmInfo, total int64) types.ListAlarmsResp {
 	return resp
 }
 
-func listAllEdgeNodesAlarmsOrEvents(req types.ListAlarmOrEventReq, AlarmOrEvent string) *common.RespMsg {
-	count, err := AlarmDbInstance().countAlarmsOrEventsOfEdgeNodes(AlarmOrEvent)
+func listEdgeAlarmsOrEvents(req utils.ListAlarmOrEventReq, AlarmOrEvent string) *common.RespMsg {
+	count, err := AlarmDbInstance().countEdgeAlarmsOrEvents(AlarmOrEvent)
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to count %s", AlarmOrEvent)
 		return &common.RespMsg{Status: common.ErrorListAlarm}
@@ -113,7 +119,7 @@ func listAllEdgeNodesAlarmsOrEvents(req types.ListAlarmOrEventReq, AlarmOrEvent 
 	return &common.RespMsg{Status: common.Success, Data: respMsg}
 }
 
-func listFullAlarmOrEvents(req types.ListAlarmOrEventReq, AlarmOrEvent string) *common.RespMsg {
+func listFullAlarmOrEvents(req utils.ListAlarmOrEventReq, AlarmOrEvent string) *common.RespMsg {
 	count, err := AlarmDbInstance().countAlarmsOrEventsFullNodes(AlarmOrEvent)
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to count %s", AlarmOrEvent)
@@ -129,7 +135,7 @@ func listFullAlarmOrEvents(req types.ListAlarmOrEventReq, AlarmOrEvent string) *
 	return &common.RespMsg{Status: common.Success, Data: respMsg}
 }
 
-func listCenterAlarmOrEvents(req types.ListAlarmOrEventReq, AlarmOrEvent string) *common.RespMsg {
+func listCenterAlarmOrEvents(req utils.ListAlarmOrEventReq, AlarmOrEvent string) *common.RespMsg {
 	count, err := AlarmDbInstance().countAlarmsOrEventsBySn(alarms.CenterSn, AlarmOrEvent)
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to count %s", AlarmOrEvent)
@@ -145,7 +151,7 @@ func listCenterAlarmOrEvents(req types.ListAlarmOrEventReq, AlarmOrEvent string)
 	return &common.RespMsg{Status: common.Success, Data: respMsg}
 }
 
-func listEdgeNodeAlarmsOrEvents(req types.ListAlarmOrEventReq, AlarmOrEvent string) *common.RespMsg {
+func listEdgeAlarmsOrEventsBySn(req utils.ListAlarmOrEventReq, AlarmOrEvent string) *common.RespMsg {
 	count, err := AlarmDbInstance().countAlarmsOrEventsBySn(req.Sn, AlarmOrEvent)
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to count %s", AlarmOrEvent)
@@ -161,7 +167,7 @@ func listEdgeNodeAlarmsOrEvents(req types.ListAlarmOrEventReq, AlarmOrEvent stri
 	return &common.RespMsg{Status: common.Success, Data: respMsg}
 }
 
-func listGroupNodesAlarmsOrEvents(req types.ListAlarmOrEventReq, queryIdType string) *common.RespMsg {
+func listEdgeAlarmsOrEventsByGroupId(req utils.ListAlarmOrEventReq, queryType string) *common.RespMsg {
 	router := common.Router{
 		Source:      common.AlarmManagerClientName,
 		Destination: common.AlarmManagerClientName,
@@ -169,46 +175,45 @@ func listGroupNodesAlarmsOrEvents(req types.ListAlarmOrEventReq, queryIdType str
 		Resource:    common.GetSnsByGroup,
 	}
 
-	edgeReq := requests.NodeGroupReq{GroupId: req.GroupId}
-	bytes, err := json.Marshal(edgeReq)
+	getSnsReq := requests.GetSnsReq{GroupId: req.GroupId}
+	bytes, err := json.Marshal(getSnsReq)
 	if err != nil {
-		hwlog.RunLog.Error("failed to marshal")
+		hwlog.RunLog.Errorf("marshal req for getting sns by group id failed, error: %v", err)
 		return &common.RespMsg{Status: common.ErrorParamInvalid}
 	}
 	resp := common.SendSyncMessageByRestful(string(bytes), &router, time.Second)
 	nodeSns, err := parseEdgeManagerResp(resp, req.GroupId)
 	if err != nil {
-		hwlog.RunLog.Errorf("failed to unmarshal group node list from edge-manager,err:%s", err.Error())
+		hwlog.RunLog.Errorf("unmarshal resp for getting sns by group id failed, error: %v", err)
 		return &common.RespMsg{Status: common.ErrorDecodeRespFromEdgeMgr, Msg: err.Error()}
 	}
-	respMsg, err := getGroupAlarmsOrEvents(nodeSns, queryIdType, req)
+	respMsg, err := getGroupAlarmsOrEvents(nodeSns, queryType, req)
 	if err != nil {
 		hwlog.RunLog.Error(err.Error())
 		return &common.RespMsg{Status: common.ErrorListEdgeNodeAlarm}
 	}
-	hwlog.RunLog.Infof("succeed listing group %s info", queryIdType)
+	hwlog.RunLog.Infof("succeed listing group %s info", queryType)
 	return &common.RespMsg{Status: common.Success, Data: respMsg}
 }
 
-func getGroupAlarmsOrEvents(nodeSns []string, queryIdType string, req types.ListAlarmOrEventReq) (
-	types.ListAlarmsResp, error) {
-	resp := types.ListAlarmsResp{
-		Records: make([]types.AlarmBriefInfo, 0),
+func getGroupAlarmsOrEvents(nodeSns []string, queryType string, req utils.ListAlarmOrEventReq) (
+	utils.ListAlarmsResp, error) {
+	resp := utils.ListAlarmsResp{
+		Records: make([]utils.AlarmBriefInfo, 0),
 		Total:   0,
 	}
-	count, err := AlarmDbInstance().countAlarmsOrEventsOfNodes(nodeSns, queryIdType)
+	count, err := AlarmDbInstance().countAlarmsOrEventsBySns(nodeSns, queryType)
 	if err != nil {
-		return resp, fmt.Errorf("failed to count %s", queryIdType)
+		return resp, fmt.Errorf("failed to count %s", queryType)
 	}
 	resp.Total = count
 	if count == 0 {
-		hwlog.RunLog.Infof("succeed listing nodes %s info", queryIdType)
 		return resp, nil
 	}
 
-	alarmsNode, err := AlarmDbInstance().listAlarmsOrEventsOfGroup(req.PageNum, req.PageSize, nodeSns, queryIdType)
+	alarmsNode, err := AlarmDbInstance().listAlarmsOrEventsOfGroup(req.PageNum, req.PageSize, nodeSns, queryType)
 	if err != nil {
-		return resp, errors.New("faild to list alarms of in db while list group alarms")
+		return resp, errors.New("failed to list alarms of in db while list group alarms")
 	}
 	for _, alarmOfNode := range alarmsNode {
 		resp.Records = append(resp.Records, convertToDigestInfo(alarmOfNode))
@@ -228,17 +233,17 @@ func parseEdgeManagerResp(resp common.RespMsg, groupId uint64) ([]string, error)
 	}
 	dataBytes, err := json.Marshal(resp.Data)
 	if err != nil {
-		return []string{}, errors.New("decode nodeGroup information failed")
+		return []string{}, errors.New("marshal sns information failed")
 	}
 	var nodeSns []string
-	if err := json.Unmarshal(dataBytes, &nodeSns); err != nil {
-		return []string{}, errors.New("nodeGroup information convert failed")
+	if err = json.Unmarshal(dataBytes, &nodeSns); err != nil {
+		return []string{}, errors.New("unmarshal sns information failed")
 	}
 	return nodeSns, nil
 }
 
-func convertToDigestInfo(alarm AlarmInfo) types.AlarmBriefInfo {
-	return types.AlarmBriefInfo{
+func convertToDigestInfo(alarm AlarmInfo) utils.AlarmBriefInfo {
+	return utils.AlarmBriefInfo{
 		ID:        alarm.Id,
 		Sn:        alarm.SerialNumber,
 		Ip:        alarm.Ip,
@@ -257,17 +262,17 @@ func getAlarmOrEventDbDetail(input interface{}, queryType string) *common.RespMs
 		return &common.RespMsg{Status: common.ErrorTypeAssert, Msg: "failed to convert input to int"}
 	}
 	if chkRes := NewGetAlarmChecker().Check(inputId); !chkRes.Result {
-		hwlog.RunLog.Errorf("failed to check alarmInfoId[%d],err:%s", inputId, chkRes.Reason)
+		hwlog.RunLog.Errorf("check input id [%d] failed, error: %s", inputId, chkRes.Reason)
 		return &common.RespMsg{Status: common.ErrorParamInvalid, Msg: chkRes.Reason}
 	}
 	alarmInfo, err := AlarmDbInstance().getAlarmOrEventInfoByAlarmInfoId(inputId)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		hwlog.RunLog.Errorf("alarmId[%d] not found", inputId)
+		hwlog.RunLog.Errorf("id [%d] not found", inputId)
 		return &common.RespMsg{Status: common.ErrorGetAlarmDetail,
-			Msg: fmt.Sprintf("alarmId[%d] not found", inputId)}
+			Msg: fmt.Sprintf("id [%d] not found", inputId)}
 	}
 	if err != nil {
-		hwlog.RunLog.Errorf("failed to get alarm[alarmId:%d],err:%s", inputId, err.Error())
+		hwlog.RunLog.Errorf("failed to get alarm[id:%d], error: %s", inputId, err.Error())
 		return &common.RespMsg{Status: common.ErrorGetAlarmDetail}
 	}
 	// judge the type of alarm is alarm instead of event
@@ -277,6 +282,6 @@ func getAlarmOrEventDbDetail(input interface{}, queryType string) *common.RespMs
 			Msg: fmt.Sprintf("the inputID[%d] is not an ID of %s", inputId, queryType)}
 	}
 
-	hwlog.RunLog.Infof("succeeded to get %s detail[alarmInfoId:%d]", queryType, inputId)
+	hwlog.RunLog.Infof("succeeded to get %s detail [id:%d]", queryType, inputId)
 	return &common.RespMsg{Status: common.Success, Data: alarmInfo}
 }

@@ -12,6 +12,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/requests"
 )
@@ -23,11 +24,10 @@ type alarmManager struct {
 
 // NewAlarmManager create config manager
 func NewAlarmManager(enable bool) model.Module {
-	im := &alarmManager{
+	return &alarmManager{
 		enable: enable,
 		ctx:    context.Background(),
 	}
-	return im
 }
 
 func (am *alarmManager) Name() string {

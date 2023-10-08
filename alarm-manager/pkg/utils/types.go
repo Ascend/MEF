@@ -1,14 +1,13 @@
 // Copyright (c) 2023. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package types for
-package types
+// Package utils for alarm manager
+package utils
 
 import (
-	"fmt"
 	"time"
 )
 
-// ListAlarmOrEventReq can not have both GroupId and NodeId
+// ListAlarmOrEventReq can not have both GroupId and Sn
 type ListAlarmOrEventReq struct {
 	PageNum  uint64 `json:"pageNum"`
 	PageSize uint64 `json:"pageSize"`
@@ -28,7 +27,10 @@ type AlarmBriefInfo struct {
 	AlarmType string    `json:"alarmType"`
 }
 
-func (dig AlarmBriefInfo) String() string {
-	return fmt.Sprintf("DigestInfo  ID: %d,SerialNumber:%s,Severity:%s,Resource:%s,CreateTime:%v", dig.ID,
-		dig.Sn, dig.Severity, dig.Resource, dig.CreatedAt)
+// ListAlarmsResp return list of resp for list alarms
+type ListAlarmsResp struct {
+	// Records alarm or events records info
+	Records []AlarmBriefInfo `json:"records"`
+	// Total is num of alarmInfos
+	Total int64 `json:"total"`
 }

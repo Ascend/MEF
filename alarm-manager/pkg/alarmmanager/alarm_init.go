@@ -13,7 +13,6 @@ import (
 	"huawei.com/mindx/common/modulemgr/model"
 
 	"alarm-manager/pkg/monitors"
-	"alarm-manager/pkg/utils"
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/requests"
@@ -29,16 +28,15 @@ type alarmManager struct {
 
 // NewAlarmManager create cert manager
 func NewAlarmManager(dbPath string, enable bool, ctx context.Context) model.Module {
-	cm := &alarmManager{
+	return &alarmManager{
 		dbPath: dbPath,
 		enable: enable,
 		ctx:    ctx,
 	}
-	return cm
 }
 
 func (am *alarmManager) Name() string {
-	return utils.AlarmModuleName
+	return common.AlarmManagerName
 }
 
 func (am *alarmManager) Enable() bool {

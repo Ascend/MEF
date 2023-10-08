@@ -11,7 +11,7 @@ import (
 
 	"huawei.com/mindx/common/hwlog"
 
-	"alarm-manager/pkg/types"
+	"alarm-manager/pkg/utils"
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/alarms"
@@ -77,7 +77,7 @@ func TestGetEvent(t *testing.T) {
 }
 
 func testListAlarmsOrEventsByNodeId(queryType string) {
-	var reqData = types.ListAlarmOrEventReq{
+	var reqData = utils.ListAlarmOrEventReq{
 		PageNum:  firstPageNum,
 		PageSize: normalPageSize,
 		Sn:       testSn2,
@@ -100,7 +100,7 @@ func testListAlarmsOrEventsByNodeId(queryType string) {
 		convey.So(respContent.Status, convey.ShouldEqual, common.Success)
 		return
 	}
-	respData, ok := respContent.Data.(types.ListAlarmsResp)
+	respData, ok := respContent.Data.(utils.ListAlarmsResp)
 	if !ok {
 		hwlog.RunLog.Error("convert assertion failed")
 		return
@@ -112,7 +112,7 @@ func testListAlarmsOrEventsByNodeId(queryType string) {
 }
 
 func testListAlarmsOrEventsOfCenter(queryType string) {
-	var reqData = types.ListAlarmOrEventReq{
+	var reqData = utils.ListAlarmOrEventReq{
 		PageNum:  firstPageNum,
 		PageSize: normalPageSize,
 		Sn:       testSn2,
@@ -136,7 +136,7 @@ func testListAlarmsOrEventsOfCenter(queryType string) {
 		return
 	}
 	convey.So(ok, convey.ShouldBeTrue)
-	respData, ok := respContent.Data.(types.ListAlarmsResp)
+	respData, ok := respContent.Data.(utils.ListAlarmsResp)
 	convey.So(ok, convey.ShouldBeTrue)
 	for _, alarm := range respData.Records {
 		res = res && (alarm.Sn == alarms.CenterSn) && (alarm.AlarmType == queryType)
@@ -145,7 +145,7 @@ func testListAlarmsOrEventsOfCenter(queryType string) {
 }
 
 func testListAlarmsOrEventsOfNodeGroup(queryType string) {
-	var reqData = types.ListAlarmOrEventReq{
+	var reqData = utils.ListAlarmOrEventReq{
 		PageNum:  firstPageNum,
 		PageSize: normalPageSize,
 		GroupId:  groupIdFirst,
@@ -165,7 +165,7 @@ func testListAlarmsOrEventsOfNodeGroup(queryType string) {
 	convey.So(ok, convey.ShouldBeTrue)
 	convey.So(respContent.Status, convey.ShouldEqual, common.Success)
 	res := true
-	respData, ok := respContent.Data.(types.ListAlarmsResp)
+	respData, ok := respContent.Data.(utils.ListAlarmsResp)
 	convey.So(ok, convey.ShouldBeTrue)
 	for _, alarm := range respData.Records {
 		res = res && (groupNodesMap[alarm.Sn]) && (alarm.AlarmType == queryType)
@@ -195,39 +195,39 @@ func testGetAlarmOrEventByInfoId(queryType string) {
 
 func testListAlarmAbNormalInput() {
 
-	inputCase1 := types.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: normalPageSize,
+	inputCase1 := utils.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: normalPageSize,
 		Sn: testSn1, GroupId: groupIdFirst, IfCenter: "false"}
 	listAlarmsWithInput(inputCase1, false, "sn and groupId can't exist at the same time when"+
 		" ifCenter is not true", false,
 		defaultTestCaseCallback)
 	// with IfCenter == true sn and groupId should be ignored
-	inputCase2 := types.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: normalPageSize, Sn: testSn1,
+	inputCase2 := utils.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: normalPageSize, Sn: testSn1,
 		GroupId: 1, IfCenter: "true"}
 	listAlarmsWithInput(inputCase2, true, "", false, CallbackAllCenterNodes)
-	inputCase3 := types.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: OverPageSize,
+	inputCase3 := utils.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: OverPageSize,
 		Sn: testSn1, IfCenter: "false"}
 	listAlarmsWithInput(inputCase3, false, "", true, CallBackStringsContains)
 	// with IfCenter == true sn and groupId should be ignored
-	inputCase4 := types.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: normalPageSize,
+	inputCase4 := utils.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: normalPageSize,
 		Sn: testSn1, IfCenter: "true"}
 	listAlarmsWithInput(inputCase4, true, "", false, CallbackAllCenterNodes)
-	inputCase5 := types.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: normalPageSize, IfCenter: "true"}
+	inputCase5 := utils.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: normalPageSize, IfCenter: "true"}
 	listAlarmsWithInput(inputCase5, true, "", false, CallbackAllCenterNodes)
-	inputCase6 := types.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: normalPageSize, IfCenter: "false"}
+	inputCase6 := utils.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: normalPageSize, IfCenter: "false"}
 	listAlarmsWithInput(inputCase6, true, "", true, CallbackAllAlarms)
-	inputCase7 := types.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: normalPageSize}
+	inputCase7 := utils.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: normalPageSize}
 	listAlarmsWithInput(inputCase7, true, "", true, CallbackAllAlarms)
-	inputCase8 := types.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: normalPageSize, GroupId: groupIdFirst,
+	inputCase8 := utils.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: normalPageSize, GroupId: groupIdFirst,
 		IfCenter: "true"}
 	listAlarmsWithInput(inputCase8, true, "", true, CallbackAllCenterNodes)
-	inputCase9 := types.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: OverPageSize, IfCenter: "true"}
+	inputCase9 := utils.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: OverPageSize, IfCenter: "true"}
 	listAlarmsWithInput(inputCase9, false, "", true, defaultTestCaseCallback)
-	inputCase10 := types.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: OverPageSize, GroupId: groupIdFirst,
+	inputCase10 := utils.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: OverPageSize, GroupId: groupIdFirst,
 		IfCenter: "false"}
 	listAlarmsWithInput(inputCase10, false, "", true, defaultTestCaseCallback)
-	inputCase11 := types.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: normalPageSize, IfCenter: ""}
+	inputCase11 := utils.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: normalPageSize, IfCenter: ""}
 	listAlarmsWithInput(inputCase11, true, "", true, CallbackAllAlarms)
-	inputCase12 := types.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: normalPageSize, IfCenter: ""}
+	inputCase12 := utils.ListAlarmOrEventReq{PageNum: firstPageNum, PageSize: normalPageSize, IfCenter: ""}
 	listAlarmsWithInput(inputCase12, true, "", true, CallbackAllAlarms)
 }
 
@@ -277,7 +277,7 @@ func CallBackStringsContains(resp common.RespMsg) bool {
 }
 
 func CallbackAllAlarms(resp common.RespMsg) bool {
-	respData, ok := resp.Data.(types.ListAlarmsResp)
+	respData, ok := resp.Data.(utils.ListAlarmsResp)
 	if !ok {
 		hwlog.RunLog.Error("failed to marshal alarm info")
 		return false
@@ -294,7 +294,7 @@ func CallbackAllCenterNodes(resp common.RespMsg) bool {
 	if resp.Data == nil {
 		return true
 	}
-	respData, ok := resp.Data.(types.ListAlarmsResp)
+	respData, ok := resp.Data.(utils.ListAlarmsResp)
 	if !ok {
 		hwlog.RunLog.Error("failed to marshal alarm info")
 		return false

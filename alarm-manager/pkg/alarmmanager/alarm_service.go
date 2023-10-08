@@ -7,14 +7,6 @@ import (
 	"huawei.com/mindxedge/base/common/alarms"
 )
 
-const (
-	centerNodeQueryType    = "CenterNodeQuery"
-	serialNumQuery         = "SerialNumQuery"
-	groupIdQueryType       = "GroupIdQuery"
-	fullNodesQueryType     = "FullNodesQuery"
-	fullEdgeNodesQueryType = "FullEdgeNodesQuery"
-)
-
 func listAlarms(input interface{}) (interface{}, error) {
 	return dealRequest(input, alarms.AlarmType), nil
 }

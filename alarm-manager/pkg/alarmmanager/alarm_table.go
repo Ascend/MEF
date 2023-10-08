@@ -4,7 +4,6 @@
 package alarmmanager
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -23,9 +22,4 @@ type AlarmInfo struct {
 	Reason              string    `gorm:"type:varchar(256)"                                json:"reason"`
 	Impact              string    `gorm:"type:varchar(256)"                                json:"impact"`
 	Resource            string    `gorm:"type:varchar(256)"                                json:"resource"`
-}
-
-func (ai *AlarmInfo) String() string {
-	return fmt.Sprintf("AlarmInfo:  AlarmID:%d,AlarmType:%s,SerialNumber:%s,AlarmName:%s,PerceivedSeverity:%s,"+
-		"Resource:%s", ai.Id, ai.AlarmType, ai.SerialNumber, ai.AlarmName, ai.PerceivedSeverity, ai.Resource)
 }

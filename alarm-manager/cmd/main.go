@@ -1,6 +1,6 @@
 // Copyright (c)  2023. Huawei Technologies Co., Ltd.  All rights reserved.
 
-// Package main to start cert-manager server
+// Package main to start alarm-manager
 package main
 
 import (

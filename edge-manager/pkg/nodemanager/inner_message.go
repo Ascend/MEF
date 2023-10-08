@@ -96,7 +96,7 @@ func innerGetNodesByNodeGroupID(input interface{}) common.RespMsg {
 }
 
 func innerGetNodeSnsByGroupId(input interface{}) common.RespMsg {
-	var reqInfo requests.NodeGroupReq
+	var reqInfo requests.GetSnsReq
 	inputInfo, ok := input.(string)
 	if !ok {
 		hwlog.RunLog.Error("failed to convert param into string")
