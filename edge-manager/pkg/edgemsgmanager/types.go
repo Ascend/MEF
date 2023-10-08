@@ -22,8 +22,8 @@ type SoftwareDownloadInfo struct {
 // DownloadInfo [struct] to software download info
 type DownloadInfo struct {
 	Package  string    `json:"package"`
-	SignFile string    `json:"signFile,omitempty"`
-	CrlFile  string    `json:"crlFile,omitempty"`
+	SignFile string    `json:"signFile"`
+	CrlFile  string    `json:"crlFile"`
 	UserName string    `json:"username"`
 	Password *Password `json:"password"`
 }
