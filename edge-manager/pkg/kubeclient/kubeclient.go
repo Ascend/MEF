@@ -391,16 +391,15 @@ func (ki *Client) GetCloudCoreCa() ([]byte, error) {
 		return nil, err
 	}
 
-	caData, ok := caSecret.Data[caDataName]
-	if !ok {
-		return nil, errors.New("cloud ca data not exist")
-	}
-
 	if _, ok := caSecret.Data[caKeyDataName]; !ok {
 		return nil, errors.New("cloud ca key data not exist")
 	}
 
 	utils.ClearSliceByteMemory(caSecret.Data[caKeyDataName])
+	caData, ok := caSecret.Data[caDataName]
+	if !ok {
+		return nil, errors.New("cloud ca data not exist")
+	}
 
 	if err = x509.CheckDerCertChain(caData); err != nil {
 		return nil, fmt.Errorf("parse cloudcore cert failed: %s", err.Error())
