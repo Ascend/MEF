@@ -47,18 +47,7 @@ var northAlarmDispatchers = map[string][]restfulmgr.DispatcherItf{
 	},
 }
 
-var edgeAlarmRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
-	"/edge/alarm": {
-		restfulmgr.GenericDispatcher{
-			RelativePath: "/report",
-			Method:       http.MethodPost,
-			Destination:  common.AlarmManagerName,
-		},
-	},
-}
-
 func setRouter(engine *gin.Engine) {
-	restfulmgr.InitRouter(engine, edgeAlarmRouterDispatchers)
 	restfulmgr.InitRouter(engine, northAlarmDispatchers)
 }
 
