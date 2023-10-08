@@ -23,14 +23,23 @@ func CleanTempFiles() (bool, error) {
 		if !fileutils.IsLexist(dir) {
 			return false, nil
 		}
-		_, entries, err := fileutils.ReadDir(dir,
+		fileHandle, entries, err := fileutils.ReadDir(dir,
 			fileutils.NewFileModeChecker(false, common.Umask077, false, false),
 			fileutils.NewFileOwnerChecker(false, true, 0, 0))
 		if err != nil {
 			return false, fmt.Errorf("failed to read dir %s, %v", dir, err)
 		}
+		defer func() {
+			if fileHandle == nil {
+				return
+			}
+
+			if err = fileHandle.Close(); err != nil {
+				hwlog.RunLog.Errorf("closer dir %s's handle failed: %v", dir, err)
+			}
+		}()
 		for _, entry := range entries {
-			if err := fileutils.DeleteFile(filepath.Join(dir, entry.Name())); err != nil {
+			if err = fileutils.DeleteFile(filepath.Join(dir, entry.Name())); err != nil {
 				return false, fmt.Errorf("failed to delete file %s, %v", entry.Name(), err)
 			}
 		}
