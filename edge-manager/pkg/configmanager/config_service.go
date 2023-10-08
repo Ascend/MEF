@@ -85,7 +85,7 @@ func createSecret(config ImageConfig) (string, error) {
 		Data: map[string][]byte{apiv1.DockerConfigJsonKey: data},
 	}
 	if _, err := kubeclient.GetKubeClient().CreateOrUpdateSecret(userSecret); err != nil {
-		hwlog.RunLog.Errorf("create or update secret failed, error: %#v", err)
+		hwlog.RunLog.Error("create or update secret failed")
 		return "", err
 	}
 	return registryPath, nil
