@@ -46,6 +46,8 @@ const (
 	DumpSingleNodeLogTaskName = `dumpSingleNodeLog`
 	// SingleNodeTaskIdRegexpStr the single node task regexp
 	SingleNodeTaskIdRegexpStr = "^" + DumpSingleNodeLogTaskName + taskIdRegexpStr + "$"
+	// MultiNodesTaskIdRegexpStr the multi nodes task regexp
+	MultiNodesTaskIdRegexpStr = "^" + DumpMultiNodesLogTaskName + taskIdRegexpStr + "$"
 	// LogUploadMaxSize max size for single node uploading log
 	LogUploadMaxSize = 200 * common.MB
 )

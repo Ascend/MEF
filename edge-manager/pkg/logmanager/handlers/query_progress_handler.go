@@ -6,6 +6,7 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"huawei.com/mindx/common/hwlog"
@@ -27,12 +28,12 @@ type queryProgressHandler struct {
 
 func (h *queryProgressHandler) Handle(msg *model.Message) error {
 	hwlog.RunLog.Info("start to handle progress query")
-	req, err := h.parseAndCheckArgs(msg.Content)
+	taskId, err := h.parseAndCheckArgs(msg.Content)
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to handle progress query, %v", err)
 		return sendRestfulResponse(common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error()}, msg)
 	}
-	taskCtx, err := taskschedule.DefaultScheduler().GetTaskContext(req)
+	taskCtx, err := taskschedule.DefaultScheduler().GetTaskContext(taskId)
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to handle progress query, %v", err)
 		return sendRestfulResponse(common.RespMsg{Status: common.ErrorLogDumpBusiness, Msg: err.Error()}, msg)
@@ -47,11 +48,14 @@ func (h *queryProgressHandler) Handle(msg *model.Message) error {
 }
 
 func (h *queryProgressHandler) parseAndCheckArgs(content interface{}) (string, error) {
-	req, ok := content.(string)
+	taskId, ok := content.(string)
 	if !ok {
 		return "", errors.New("type error")
 	}
-	return req, nil
+	if matched, err := regexp.MatchString(constants.MultiNodesTaskIdRegexpStr, taskId); err != nil || !matched {
+		return "", errors.New("invalid task id")
+	}
+	return taskId, nil
 }
 
 func getTaskRespProgress(taskTree taskschedule.TaskTreeNode) QueryProgressResp {
