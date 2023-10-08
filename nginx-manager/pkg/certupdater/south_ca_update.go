@@ -8,6 +8,7 @@ import (
 
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/x509"
 
 	"nginx-manager/pkg/nginxcom"
 )
@@ -20,7 +21,11 @@ func updateSouthCaCert(payload *CertUpdatePayload) error {
 		hwlog.RunLog.Error(optErr)
 		return optErr
 	}
-
+	if err := x509.CheckPemCertChain([]byte(newCaCert)); err != nil {
+		optErr = fmt.Errorf("root ca cert check failed: %v", err)
+		hwlog.RunLog.Error(optErr)
+		return optErr
+	}
 	certData, err := fileutils.LoadFile(nginxcom.SouthernCertFile)
 	if err != nil {
 		optErr = fmt.Errorf("load south ca cert error: %v", err)
