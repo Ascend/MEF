@@ -661,6 +661,19 @@ func checkNodeResource(req v1.ResourceList, nodeId uint64) error {
 
 func updateNodeSoftwareInfo(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start to update node software info")
+	const maxPayloadSize = 1024
+
+	inputStr, ok := input.(string)
+	if !ok {
+		hwlog.RunLog.Error("update node software info failed: para type not valid")
+		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "update node software info convert param failed"}
+	}
+
+	if len(inputStr) > maxPayloadSize {
+		hwlog.RunLog.Error("software info size exceeded")
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "software info size exceeded", Data: nil}
+	}
+
 	var req types.EdgeReportSoftwareInfoReq
 	if err := common.ParamConvert(input, &req); err != nil {
 		hwlog.RunLog.Errorf("update node software info error, %v", err)
