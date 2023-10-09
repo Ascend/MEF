@@ -28,6 +28,8 @@ import (
 	"huawei.com/mindxedge/base/common"
 )
 
+const maxNodeInfos = 2048
+
 var (
 	nodeNotFoundPattern = regexp.MustCompile(`nodes "([^"]+)" not found`)
 )
@@ -690,6 +692,17 @@ func updateNodeSoftwareInfo(input interface{}) common.RespMsg {
 	if err != nil && err != gorm.ErrRecordNotFound {
 		hwlog.RunLog.Errorf("get node info [%s] failed:%v", req.SerialNumber, err)
 		return common.RespMsg{Status: "", Msg: "get node info failed", Data: nil}
+	}
+
+	count, err := NodeServiceInstance().countNodeBySn(req.SerialNumber)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		hwlog.RunLog.Errorf("get nodes count failed: %v", err)
+		return common.RespMsg{Status: "", Msg: "get node info failed", Data: nil}
+	}
+
+	if count > maxNodeInfos {
+		hwlog.RunLog.Error("nodes count exceeds the limitation")
+		return common.RespMsg{Status: "", Msg: "nodes count exceeds the limitation", Data: nil}
 	}
 
 	nodeInfo.SoftwareInfo = string(softwareInfo)
