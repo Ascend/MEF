@@ -81,7 +81,7 @@ func main() {
 }
 
 func init() {
-	flag.IntVar(&port, "port", defaultPort, "The server port of the http service,range[1025-40000]")
+	flag.IntVar(&port, "port", defaultPort, "The server port of the http service,range[1025-65535]")
 	flag.StringVar(&dbPath, "dbPath", defaultDbPath, "sqlite database path")
 	hwlogconfig.BindFlags(serverOpConf, serverRunConf)
 }
