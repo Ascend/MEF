@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync/atomic"
+	"time"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
@@ -19,17 +20,27 @@ import (
 
 type messageHandler func(*model.Message) error
 
-var messageHandlerMap = make(map[string]messageHandler)
+var (
+	messageHandlerMap          = make(map[string]messageHandler)
+	messageHandlerWithOpLogMap = make(map[string]messageHandler)
+)
 
 func getMsgHandler(msg *model.Message) (messageHandler, bool) {
 	handlerKey := msg.GetOption() + msg.GetResource()
 	handler, ok := messageHandlerMap[handlerKey]
 	return handler, ok
 }
+
+func getMsgHandlerWithOpLog(msg *model.Message) (messageHandler, bool) {
+	handlerKey := msg.GetOption() + msg.GetResource()
+	handler, ok := messageHandlerWithOpLogMap[handlerKey]
+	return handler, ok
+}
+
 func initMsgHandler() {
 	messageHandlerMap[common.OptPost+common.ResCertUpdate] = handleCertUpdate
 	messageHandlerMap[common.OptPost+common.ResNodeChanged] = handleNodeChange
-	messageHandlerMap[common.OptResp+common.CertWillExpired] = handleUpdateResult
+	messageHandlerWithOpLogMap[common.OptResp+common.CertWillExpired] = handleUpdateResult
 }
 
 // EdgeCertUpdater dynamic update tls certs
@@ -81,13 +92,31 @@ func (updater *EdgeCertUpdater) Start() {
 
 func (updater *EdgeCertUpdater) dispatch(msg *model.Message) {
 	msgHandler, ok := getMsgHandler(msg)
-	if !ok {
-		hwlog.RunLog.Errorf("no handler found for message:%v %v", msg.GetOption(), msg.GetResource())
+	if ok {
+		if err := msgHandler(msg); err != nil {
+			hwlog.RunLog.Errorf("handle message:%v %v error: %v", msg.GetOption(), msg.GetResource(), err)
+		}
 		return
 	}
+	msgHandler, ok = getMsgHandlerWithOpLog(msg)
+	if !ok {
+		hwlog.RunLog.Error("unsupported msg")
+		return
+	}
+
+	sn := msg.GetNodeId()
+	ip := msg.GetIp()
+
+	hwlog.RunLog.Infof("%v [%v:%v] %v %v start", time.Now().Format(time.RFC3339),
+		ip, sn, msg.GetOption(), msg.GetResource())
 	if err := msgHandler(msg); err != nil {
 		hwlog.RunLog.Errorf("handle message:%v %v error: %v", msg.GetOption(), msg.GetResource(), err)
+		hwlog.RunLog.Errorf("%v [%v:%v] %v %v failed", time.Now().Format(time.RFC3339),
+			ip, sn, msg.GetOption(), msg.GetResource())
+		return
 	}
+	hwlog.RunLog.Infof("%v [%v:%v] %v %v success", time.Now().Format(time.RFC3339),
+		ip, sn, msg.GetOption(), msg.GetResource())
 }
 
 func handleCertUpdate(msg *model.Message) error {

@@ -19,6 +19,7 @@ import (
 	"huawei.com/mindx/common/x509/certutils"
 
 	"edge-manager/pkg/constants"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/requests"
 )
@@ -119,12 +120,22 @@ func (c *CloudServer) dispatch(message *model.Message) {
 	var retMsg = message
 	handler, ok := getMsgHandler(message)
 	if ok {
+		sn := message.GetNodeId()
+		ip := message.GetIp()
+
+		hwlog.RunLog.Infof("%v[%v:%v] %v %v start", time.Now().Format(time.RFC3339),
+			ip, sn, message.GetOption(), message.GetResource())
 		result, sentToEdge, err := handler(message)
 		if err != nil {
+			hwlog.RunLog.Errorf("%v [%v:%v] %v %v failed", time.Now().Format(time.RFC3339),
+				ip, sn, message.GetOption(), message.GetResource())
 			hwlog.RunLog.Errorf("process message [option: %v res: %v]error: %v",
 				message.GetOption(), message.GetResource(), err)
 			return
 		}
+
+		hwlog.RunLog.Infof("%v [%v:%v] %v %v success", time.Now().Format(time.RFC3339),
+			ip, sn, message.GetOption(), message.GetResource())
 		if !sentToEdge {
 			return
 		}
