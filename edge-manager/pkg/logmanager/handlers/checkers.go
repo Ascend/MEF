@@ -22,7 +22,7 @@ func newCreateTaskReqChecker() *checker.AndChecker {
 	return checker.GetAndChecker(
 		checker.GetUniqueListChecker(
 			"EdgeNodes",
-			checker.GetUintChecker("", 1, math.MaxInt64, true),
+			checker.GetUintChecker("", 1, math.MaxUint32, true),
 			minNodes, maxNodes, true),
 		checker.GetStringChoiceChecker("Module", []string{"edgeNode"}, true),
 	)

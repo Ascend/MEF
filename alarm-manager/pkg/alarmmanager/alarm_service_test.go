@@ -4,6 +4,8 @@
 package alarmmanager
 
 import (
+	"math"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -21,10 +23,28 @@ const (
 	normalPageSize = 15
 	OverPageSize   = 105
 	firstPageNum   = 1
+	firstPageSize  = 10
 	testSn1        = "testSn1"
 	testSn2        = "testSn2"
 	groupIdFirst   = 1
 )
+
+func TestAddAlarm(t *testing.T) {
+	convey.Convey("normal input for add alarm", t, func() {
+		testAddAlarm()
+	})
+}
+
+func testAddAlarm() {
+	for i := 0; i < 200; i++ {
+		var alarm AlarmInfo
+		randSetOneAlarm(&alarm)
+		sn, _ := randIntn(math.MaxUint32)
+		alarm.SerialNumber = strconv.Itoa(sn)
+		err := AlarmDbInstance().addAlarmInfo(&alarm)
+		convey.So(err, convey.ShouldBeNil)
+	}
+}
 
 func TestListAlarmByNodeId(t *testing.T) {
 	convey.Convey("normal input for listing alarms by nodeId with Normal Input", t, func() {
@@ -179,9 +199,9 @@ func testGetAlarmOrEventByInfoId(queryType string) {
 		err  error
 	)
 	if queryType == alarms.AlarmType {
-		resp, err = getAlarmDetail(DefaultAlarmID)
+		resp, err = getAlarmDetail(defaultAlarmID)
 	} else {
-		resp, err = getEventDetail(DefaultEventID)
+		resp, err = getEventDetail(defaultEventID)
 	}
 	convey.So(err, convey.ShouldBeNil)
 	respContent, ok := resp.(*common.RespMsg)
@@ -233,7 +253,7 @@ func testListAlarmAbNormalInput() {
 
 func testGetAlarmAbnormalInput() {
 	// use an event id[2] to look for alarm
-	getAlarmWithInput(DefaultEventID, false)
+	getAlarmWithInput(defaultEventID, false)
 	getAlarmWithInput(0, false)
 }
 

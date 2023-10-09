@@ -39,7 +39,7 @@ func descriptionChecker(fieldName string) *checker.RegChecker {
 }
 
 func idChecker(fieldName string) *checker.UintChecker {
-	return checker.GetUintChecker(fieldName, 1, math.MaxInt64, true)
+	return checker.GetUintChecker(fieldName, 1, math.MaxUint32, true)
 }
 
 func idListChecker(fieldName string, elemChecker *checker.UintChecker) *checker.UniqueListChecker {

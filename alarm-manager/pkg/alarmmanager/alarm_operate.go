@@ -33,7 +33,7 @@ func dealAlarmReq(input interface{}) (interface{}, error) {
 	)
 	ret := snChecker.Check(reqs.Sn)
 	if !ret.Result {
-		hwlog.RunLog.Error("deaL alarm para check failed: unsupported serial number received")
+		hwlog.RunLog.Error("deal alarm para check failed: unsupported serial number received")
 		return nil, errors.New("deal alarm para check failed")
 	}
 
