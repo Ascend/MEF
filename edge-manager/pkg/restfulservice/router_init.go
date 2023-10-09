@@ -22,21 +22,19 @@ type EdgeMgrService struct {
 }
 
 // NewRestfulService new restful service
-func NewRestfulService(enable bool, conf *httpsmgr.ServerParam) *EdgeMgrService {
+func NewRestfulService(enable bool, conf *httpsmgr.HttpsServer) *EdgeMgrService {
+	conf.TlsCertPath = certutils.TlsCertInfo{
+		RootCaPath: constants.RootCaPath,
+		CertPath:   constants.ServerCertPath,
+		KeyPath:    constants.ServerKeyPath,
+		SvrFlag:    true,
+		KmcCfg:     nil,
+		WithBackup: true,
+	}
+	conf.WriteTimeout = common.EdgeManagerRestfulWriteTimeout
 	nm := &EdgeMgrService{
-		enable: enable,
-		httpsSvr: &httpsmgr.HttpsServer{
-			ServerParam:  *conf,
-			WriteTimeout: common.EdgeManagerRestfulWriteTimeout,
-			TlsCertPath: certutils.TlsCertInfo{
-				RootCaPath: constants.RootCaPath,
-				CertPath:   constants.ServerCertPath,
-				KeyPath:    constants.ServerKeyPath,
-				SvrFlag:    true,
-				KmcCfg:     nil,
-				WithBackup: true,
-			},
-		},
+		enable:   enable,
+		httpsSvr: conf,
 	}
 	return nm
 }

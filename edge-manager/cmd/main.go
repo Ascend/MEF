@@ -304,15 +304,19 @@ func register(ctx context.Context) error {
 	return nil
 }
 
-func limitConf() *httpsmgr.ServerParam {
-	return &httpsmgr.ServerParam{
-		IP:             ip,
-		Port:           port,
+func limitConf() *httpsmgr.HttpsServer {
+	server := httpsmgr.ServerParam{
 		Concurrency:    concurrency,
 		BodySizeLimit:  dataLimit,
 		LimitIPReq:     limitIPReq,
 		LimitIPConn:    limitIPConn,
 		LimitTotalConn: limitTotalConn,
 		CacheSize:      cacheSize,
+	}
+	return &httpsmgr.HttpsServer{
+		IP:          ip,
+		Port:        port,
+		SwitchLimit: true,
+		ServerParam: server,
 	}
 }

@@ -24,8 +24,9 @@ func NewRestfulService(enable bool, ip string, port int) *Service {
 	return &Service{
 		enable: enable,
 		httpsSvr: &httpsmgr.HttpsServer{
-			IP:   ip,
-			Port: port,
+			SwitchLimit: false,
+			IP:          ip,
+			Port:        port,
 			TlsCertPath: certutils.TlsCertInfo{
 				RootCaPath: utils.RootCaPath,
 				CertPath:   utils.ServerCertPath,

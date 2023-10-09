@@ -24,8 +24,9 @@ func NewNgxMgrServer(enable bool, ip string, port int) *NgxMgrServer {
 	nm := &NgxMgrServer{
 		enable: enable,
 		httpsSvr: &httpsmgr.HttpsServer{
-			IP:   ip,
-			Port: port,
+			IP:          ip,
+			Port:        port,
+			SwitchLimit: false,
 			TlsCertPath: certutils.TlsCertInfo{
 				RootCaPath: nginxcom.RootCaPath,
 				CertPath:   nginxcom.ClientCertFile,

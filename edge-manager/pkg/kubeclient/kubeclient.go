@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"huawei.com/mindx/common/checker"
 	"net"
 	"net/http"
 	"os"
@@ -16,7 +17,7 @@ import (
 	"time"
 
 	appv1 "k8s.io/api/apps/v1"
-	v1 "k8s.io/api/core/v1"
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -64,6 +65,9 @@ const (
 	kubeConfigCertPath = "/home/data/config/kube-config/server.crt"
 	kubeConfigKeyPath  = "/home/data/config/kube-config/server.key"
 	kubeConfigCaPath   = "/home/data/config/kube-config/root.crt"
+
+	maxClientQps   = 2000
+	maxClientBurst = 500
 )
 
 var k8sClient *Client
@@ -178,6 +182,13 @@ func setupClientConfig(clientConfig *rest.Config) error {
 	if err := decoder.Decode(&burst); err != nil {
 		return fmt.Errorf("decode %s failed", configKeyBurst)
 	}
+	if res := checker.GetFloatChecker("", 1, maxClientQps, true).Check(qps); !res.Result {
+		return fmt.Errorf("KUBE_CLIENT_QPS is not in [%d, %d]", 1, maxClientQps)
+	}
+	if res := checker.GetIntChecker("", 1, maxClientBurst, true).Check(burst); !res.Result {
+		return fmt.Errorf("KUBE_CLIENT_BURST is not in [%d, %d]", 1, maxClientBurst)
+	}
+
 	clientConfig.QPS = qps
 	clientConfig.Burst = burst
 
