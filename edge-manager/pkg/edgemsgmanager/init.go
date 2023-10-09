@@ -5,8 +5,10 @@ package edgemsgmanager
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	"huawei.com/mindx/common/cache"
 	"huawei.com/mindx/common/hwlog"
@@ -73,10 +75,14 @@ func (nm *NodeMsgDealer) Start() {
 }
 
 func (nm *NodeMsgDealer) dispatch(req *model.Message) {
+	var err error
 	msg := methodSelect(req)
 	if msg == nil {
-		hwlog.RunLog.Errorf("%s get method by option and resource failed", nm.Name())
-		return
+		msg, err = methodWithOpLogSelect(handlerWithOpLogFuncMap, req)
+		if err != nil {
+			hwlog.RunLog.Error(err)
+			return
+		}
 	}
 
 	if !req.GetIsSync() || req.GetSource() == common.WebsocketName {
@@ -105,12 +111,32 @@ func methodSelect(req *model.Message) *common.RespMsg {
 	var res common.RespMsg
 	method, ok := handlerFuncMap[common.Combine(req.GetOption(), req.GetResource())]
 	if !ok {
-		hwlog.RunLog.Errorf("handler func is not exist, option: %s, resource: %s", req.GetOption(),
-			req.GetResource())
 		return nil
 	}
 	res = method(req)
 	return &res
+}
+
+func methodWithOpLogSelect(funcMap map[string]handlerFunc, req *model.Message) (*common.RespMsg, error) {
+	sn := req.GetNodeId()
+	ip := req.GetIp()
+	var res common.RespMsg
+	method, ok := funcMap[common.Combine(req.GetOption(), req.GetResource())]
+	if !ok {
+		return nil, fmt.Errorf("handler func is not exist, option: %s, resource: %s", req.GetOption(),
+			req.GetResource())
+	}
+	hwlog.RunLog.Infof("%v [%v:%v] %v %v start", time.Now().Format(time.RFC3339), ip, sn, req.GetOption(),
+		req.GetResource())
+	res = method(req)
+	if res.Status == common.Success {
+		hwlog.RunLog.Infof("%v [%v:%v] %v %v success", time.Now().Format(time.RFC3339),
+			ip, sn, req.GetOption(), req.GetResource())
+	} else {
+		hwlog.RunLog.Errorf("%v [%v:%v] %v %v failed", time.Now().Format(time.RFC3339),
+			ip, sn, req.GetOption(), req.GetResource())
+	}
+	return &res, nil
 }
 
 var (
@@ -123,7 +149,10 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodGet, filepath.Join(edgeSoftwareRootPath, "/version-info")):      queryEdgeSoftwareVersion,
 	common.Combine(http.MethodGet, filepath.Join(edgeSoftwareRootPath, "/download-progress")): queryEdgeDownloadProgress,
 
-	common.Combine(common.OptGet, common.ResConfig):              GetConfigInfo,
-	common.Combine(common.OptGet, common.ResDownLoadCert):        GetCertInfo,
+	common.Combine(common.OptGet, common.ResConfig):       GetConfigInfo,
+	common.Combine(common.OptGet, common.ResDownLoadCert): GetCertInfo,
+}
+
+var handlerWithOpLogFuncMap = map[string]handlerFunc{
 	common.Combine(common.OptReport, common.ResDownloadProgress): UpdateEdgeDownloadProgress,
 }

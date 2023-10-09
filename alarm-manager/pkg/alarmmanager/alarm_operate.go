@@ -5,6 +5,7 @@ package alarmmanager
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"huawei.com/mindx/common/checker"
@@ -140,11 +141,14 @@ func (ard *AlarmReqDealer) dealAlarmClear() error {
 	}
 
 	if err := AlarmDbInstance().deleteOneAlarm(alarmInfoData); err != nil {
-		hwlog.RunLog.Errorf("delete alarm data failed: %s", err.Error())
+		hwlog.RunLog.Errorf("%v [%s:%s] %v %v: clear alarm %v from db failed: %s",
+			time.Now().Format(time.RFC3339), ard.ip, ard.sn,
+			http.MethodPost, requests.ReportAlarmRouter, ard.req.AlarmId, err.Error())
 		return errors.New("delete alarm data failed")
 	}
 
-	hwlog.RunLog.Infof("clear alarm:%s from node:%s success", ard.req.AlarmId, ard.sn)
+	hwlog.RunLog.Infof("%v [%s:%s] %v %v: clear alarm %v from db success", time.Now().Format(time.RFC3339),
+		ard.ip, ard.sn, http.MethodPost, requests.ReportAlarmRouter, ard.req.AlarmId)
 	return nil
 }
 
@@ -177,11 +181,13 @@ func (ard *AlarmReqDealer) dealAlarmAdd() error {
 	}
 
 	if err = AlarmDbInstance().addAlarmInfo(alarmInfoData); err != nil {
-		hwlog.RunLog.Errorf("add alarm into db failed: %s", err.Error())
+		hwlog.RunLog.Errorf("%v [%s:%s] %v %v: add alarm %v into db failed: %s", time.Now().Format(time.RFC3339),
+			ard.ip, ard.sn, http.MethodPost, requests.ReportAlarmRouter, ard.req.AlarmId, err.Error())
 		return errors.New("add alarm into db failed")
 	}
 
-	hwlog.RunLog.Infof("add alarm:%s from node:%s success", ard.req.AlarmId, ard.sn)
+	hwlog.RunLog.Infof("%v [%s:%s] %v %v: add alarm %v into db success",
+		time.Now().Format(time.RFC3339), ard.ip, ard.sn, http.MethodPost, requests.ReportAlarmRouter, ard.req.AlarmId)
 	return nil
 }
 
@@ -200,9 +206,13 @@ func (ard *AlarmReqDealer) dealEvent() error {
 		}
 
 		if err = AlarmDbInstance().deleteAlarmInfos(oldestEvent); err != nil {
-			hwlog.RunLog.Errorf("delete oldest event failed: %s", err.Error())
+			hwlog.RunLog.Errorf("%v [%s:%s] %v %v: delete oldest event failed: %s",
+				time.Now().Format(time.RFC3339), ard.ip, ard.sn, http.MethodPost,
+				requests.ReportAlarmRouter, ard.req.AlarmId, err.Error())
 			return errors.New("delete oldest event failed")
 		}
+		hwlog.RunLog.Infof("%v [%s:%s] %v %v: delete oldest event success", time.Now().Format(time.RFC3339),
+			ard.ip, ard.sn, http.MethodPost, requests.ReportAlarmRouter, ard.req.AlarmId)
 	}
 
 	eventData, err := ard.getAlarmInfo()
@@ -212,11 +222,13 @@ func (ard *AlarmReqDealer) dealEvent() error {
 	}
 
 	if err = AlarmDbInstance().addAlarmInfo(eventData); err != nil {
-		hwlog.RunLog.Errorf("add new event into db failed: %s", err.Error())
+		hwlog.RunLog.Errorf("%v [%s:%s] %v %v: add event %v into db failed: %s", time.Now().Format(time.RFC3339),
+			ard.ip, ard.sn, http.MethodPost, requests.ReportAlarmRouter, ard.req.AlarmId, err.Error())
 		return errors.New("add new event into db failed")
 	}
 
-	hwlog.RunLog.Infof("add event:%s from node:%s success", ard.req.AlarmId, ard.sn)
+	hwlog.RunLog.Infof("%v [%s:%s] %v %v: add event %v into db success",
+		time.Now().Format(time.RFC3339), ard.ip, ard.sn, http.MethodPost, requests.ReportAlarmRouter, ard.req.AlarmId)
 	return nil
 }
 

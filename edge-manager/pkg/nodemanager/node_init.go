@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	"huawei.com/mindx/common/database"
 	"huawei.com/mindx/common/hwlog"
@@ -78,10 +79,14 @@ func (node *nodeManager) Start() {
 }
 
 func (node *nodeManager) dispatch(req *model.Message) {
+	var err error
 	msg, err := selectMethod(req)
 	if err != nil {
-		hwlog.RunLog.Errorf("%s get method by option and resource failed", node.Name())
-		return
+		msg, err = methodWithOpLogSelect(handlerWithOpLogFuncMap, req)
+		if err != nil {
+			hwlog.RunLog.Error(err)
+			return
+		}
 	}
 	if !req.GetIsSync() {
 		return
@@ -125,6 +130,28 @@ func selectMethod(req *model.Message) (*common.RespMsg, error) {
 	return &res, nil
 }
 
+func methodWithOpLogSelect(funcMap map[string]handlerFunc, req *model.Message) (*common.RespMsg, error) {
+	sn := req.GetNodeId()
+	ip := req.GetIp()
+	var res common.RespMsg
+	method, ok := funcMap[common.Combine(req.GetOption(), req.GetResource())]
+	if !ok {
+		return nil, fmt.Errorf("handler func is not exist, option: %s, resource: %s", req.GetOption(),
+			req.GetResource())
+	}
+	hwlog.RunLog.Infof("%v [%v:%v] %v %v start",
+		time.Now().Format(time.RFC3339), ip, sn, req.GetOption(), req.GetResource())
+	res = method(req.GetContent())
+	if res.Status == common.Success {
+		hwlog.RunLog.Infof("%v [%v:%v] %v %v success",
+			time.Now().Format(time.RFC3339), ip, sn, req.GetOption(), req.GetResource())
+	} else {
+		hwlog.RunLog.Errorf("%v [%v:%v] %v %v failed",
+			time.Now().Format(time.RFC3339), ip, sn, req.GetOption(), req.GetResource())
+	}
+	return &res, nil
+}
+
 var (
 	nodeUrlRootPath   = "/edgemanager/v1/node"
 	nodeGroupRootPath = "/edgemanager/v1/nodegroup"
@@ -151,7 +178,6 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodPost, filepath.Join(nodeGroupRootPath, "node/batch-delete")): deleteNodeFromGroup,
 	common.Combine(http.MethodPost, filepath.Join(nodeGroupRootPath, "pod/batch-delete")):  batchDeleteNodeRelation,
 
-	common.Combine(common.OptReport, common.ResSoftwareInfo): updateNodeSoftwareInfo,
 	common.Combine(common.Inner, common.Node):                innerGetNodeInfoByUniqueName,
 	common.Combine(common.Inner, constants.NodeSerialNumber): innerGetNodeUniqueNameByID,
 	common.Combine(common.Inner, common.NodeGroup):           innerGetNodeGroupInfosByIds,
@@ -163,4 +189,8 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(common.Inner, common.NodeID):              innerGetNodesByNodeGroupID,
 	common.Combine(common.Get, common.GetIpBySn):             innerGetIpBySn,
 	common.Combine(common.Get, common.GetSnsByGroup):         innerGetNodeSnsByGroupId,
+}
+
+var handlerWithOpLogFuncMap = map[string]handlerFunc{
+	common.Combine(common.OptReport, common.ResSoftwareInfo): updateNodeSoftwareInfo,
 }
