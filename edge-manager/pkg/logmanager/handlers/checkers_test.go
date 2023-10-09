@@ -26,7 +26,7 @@ func TestCreateTaskChecker(t *testing.T) {
 			{input: CreateTaskReq{Module: "", EdgeNodes: []uint64{1}}},
 			{input: CreateTaskReq{Module: "badModule", EdgeNodes: []uint64{1}}},
 			{input: CreateTaskReq{Module: "edgeNode", EdgeNodes: []uint64{0}}},
-			{input: CreateTaskReq{Module: "edgeNode", EdgeNodes: []uint64{math.MaxInt64 + 1}}},
+			{input: CreateTaskReq{Module: "edgeNode", EdgeNodes: []uint64{math.MaxUint32 + 1}}},
 			{input: CreateTaskReq{Module: "edgeNode", EdgeNodes: []uint64{1, 1}}},
 			{input: CreateTaskReq{Module: "edgeNode"}},
 			{input: CreateTaskReq{Module: "edgeNode", EdgeNodes: longEdgeNodeIdSlice}},

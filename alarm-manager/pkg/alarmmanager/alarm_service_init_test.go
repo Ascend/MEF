@@ -35,22 +35,20 @@ var (
 	patchers      = make([]*gomonkey.Patches, 0)
 	groupNodesMap = map[string]bool{testSn1: true}
 	// ensure testSn is in db
-	testSns = []string{testSn1, testSn2, ""}
+	testSns        = []string{testSn1, testSn2, ""}
+	defaultAlarmID uint64
+	defaultEventID uint64
 )
 
 const (
 	InitDbFlag        = true
 	NodeNums          = 4
 	InitialRecordNums = 100
-	MaxAlarmNum       = 1000
+	MaxAlarmNum       = 200
 	MinAlarmNum       = 3
 	TypesOfSevirity   = 3
-	DefaultAlarmID    = uint64(1)
-	DefaultEventID    = uint64(2)
 	Possibility       = 10
 	HalfPossibility   = 5
-	defaultAlarmId    = 0
-	defaultEventID    = 1
 )
 
 func setup() {
@@ -121,6 +119,17 @@ func mockGetDb() *gorm.DB {
 func TestMain(m *testing.M) {
 	setupPatchers()
 	setup()
+	alarmSlice, err := AlarmDbInstance().listAllAlarmsOrEventsDb(firstPageNum, firstPageSize, alarms.AlarmType)
+	if err != nil {
+		return
+	}
+	defaultAlarmID = alarmSlice[0].Id
+	eventSlice, err := AlarmDbInstance().listAllAlarmsOrEventsDb(firstPageNum, firstPageSize, alarms.EventType)
+	if err != nil {
+		return
+	}
+	defaultEventID = eventSlice[0].Id
+
 	code := m.Run()
 	hwlog.RunLog.Infof("exit_code=%d\n", code)
 	defer func() {
@@ -143,11 +152,12 @@ func genRandomAlarmStaticInfo(num int) {
 	res := make([]AlarmInfo, num)
 
 	for idx, alarm := range res {
+		hwlog.RunLog.Infof("========== %d  ==========", idx)
 		if num < MinAlarmNum {
 			hwlog.RunLog.Errorf("testing db alarms should be more than %d records", MinAlarmNum)
 			return
 		}
-		randSetOneAlarm(&alarm, idx)
+		randSetOneAlarm(&alarm)
 
 		alarm.SerialNumber = testSns[idx%len(testSns)]
 
@@ -159,7 +169,7 @@ func genRandomAlarmStaticInfo(num int) {
 	}
 }
 
-func randSetOneAlarm(alarm *AlarmInfo, idx int) {
+func randSetOneAlarm(alarm *AlarmInfo) {
 	severities := []string{"MINOR", "MAJOR", "CRITICAL"}
 	defaultInfo := "ALARM DEFAULT INFO"
 	defaultSuggest := "ALARM DEFAULT SUGGESTION"
@@ -182,7 +192,7 @@ func randSetOneAlarm(alarm *AlarmInfo, idx int) {
 	alarm.AlarmType = randType
 	alarm.CreatedAt = time.Now()
 	alarm.SerialNumber = strconv.Itoa(randNodeId)
-	alarmId, err := randIntn(math.MaxInt64)
+	alarmId, err := randIntn(math.MaxUint32)
 	if err != nil {
 		hwlog.RunLog.Error("failed to generate alarm id")
 		return
@@ -199,13 +209,6 @@ func randSetOneAlarm(alarm *AlarmInfo, idx int) {
 	alarm.Reason = defaultReason
 	alarm.Impact = defaultImpact
 	alarm.Resource = defaultAlarmResource
-	// make sure first record is an alarm and second record is an event for testing get user interface
-	if idx == defaultAlarmId {
-		alarm.AlarmType = alarms.AlarmType
-	}
-	if idx == defaultEventID {
-		alarm.AlarmType = alarms.EventType
-	}
 }
 
 func randIntn(max int) (int, error) {

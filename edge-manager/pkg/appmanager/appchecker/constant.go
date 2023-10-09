@@ -46,11 +46,11 @@ const (
 	envValueReg            = "^[a-zA-Z0-9 _./:-]{1,512}$"
 
 	minAppId       = 1
-	maxAppId       = math.MaxInt64
+	maxAppId       = math.MaxUint32
 	minTemplateId  = 1
-	maxTemplateId  = math.MaxInt64
+	maxTemplateId  = math.MaxUint32
 	minNodeGroupId = 1
-	maxNodeGroupId = math.MaxInt64
+	maxNodeGroupId = math.MaxUint32
 	minList        = 1
 	maxList        = 1024
 )

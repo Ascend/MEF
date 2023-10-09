@@ -5,10 +5,12 @@ package appmanager
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 
 	"gorm.io/gorm"
+	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/hwlog"
 
 	"edge-manager/pkg/appmanager/appchecker"
@@ -183,6 +185,10 @@ func getTemplate(param interface{}) common.RespMsg {
 	if !ok || id == 0 {
 		hwlog.RunLog.Error("get app template failed")
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "get app template failed", Data: nil}
+	}
+	if result := checker.GetUintChecker("", 1, math.MaxUint32, true).Check(id); !result.Result {
+		hwlog.RunLog.Errorf("get template detail para check failed: %s", result.Reason)
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: result.Reason, Data: nil}
 	}
 	template, err := RepositoryInstance().getTemplate(id)
 	if err == gorm.ErrRecordNotFound {

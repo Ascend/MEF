@@ -4,10 +4,16 @@
 package alarmmanager
 
 import (
+	"crypto/rand"
+	"errors"
+	"math"
+	"math/big"
+	"strings"
 	"sync"
 
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/database"
+	"huawei.com/mindx/common/hwlog"
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/alarms"
@@ -16,6 +22,11 @@ import (
 var (
 	alarmSingleton sync.Once
 	alarmDb        *AlarmDbHandler
+)
+
+const (
+	// obtainIdRetryTime max retry times for generating random id for alarm
+	obtainIdRetryTime = 5
 )
 
 // AlarmDbHandler is the struct to deal with alarm db
@@ -34,8 +45,30 @@ func (adh *AlarmDbHandler) db() *gorm.DB {
 	return database.GetDb()
 }
 
+func (adh *AlarmDbHandler) setAlarmId() {
+
+}
+
 func (adh *AlarmDbHandler) addAlarmInfo(data *AlarmInfo) error {
-	return adh.db().Model(AlarmInfo{}).Create(data).Error
+	// add records with random id to avoid collisions and overflow uint32,
+	for i := 0; i < obtainIdRetryTime; i++ {
+		randId, err := rand.Int(rand.Reader, big.NewInt(math.MaxUint32))
+		if err != nil {
+			return errors.New("failed to generate available id for new alarm")
+		}
+		// rand.Int returns a uniform random value in [0, max). It panics if max <= 0.
+		newId := (*randId).Uint64() + 1
+		data.Id = newId
+		if err := adh.db().Model(AlarmInfo{}).Create(data).Error; err == nil {
+			return nil
+		} else if strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
+			// if id was taken already,try again
+			hwlog.RunLog.Warnf("random id has already been taken,will retry")
+			continue
+		}
+		return errors.New("failed to create new alarm")
+	}
+	return nil
 }
 
 func (adh *AlarmDbHandler) getNodeAlarmCount(sn string) (int, error) {

@@ -15,7 +15,7 @@ const (
 	regexpCmContentKey = "^[a-zA-Z-]([a-zA-Z0-9-_]){0,62}$"
 
 	minCmId           = 1
-	maxCmId           = math.MaxInt64
+	maxCmId           = math.MaxUint32
 	minCmContentCount = 0
 	maxCmContentCount = 64
 	minCmListSize     = 1

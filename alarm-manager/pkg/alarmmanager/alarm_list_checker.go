@@ -34,7 +34,7 @@ func (alc *AlarmListerChecker) init() {
 			checker.GetSnChecker("Sn", true),
 			checker.GetStringChoiceChecker("Sn", []string{""}, true),
 		),
-		checker.GetUintChecker("GroupId", 0, math.MaxInt64, true),
+		checker.GetUintChecker("GroupId", 0, math.MaxUint32, true),
 		checker.GetStringChoiceChecker("IfCenter", []string{"true", "false", ""}, true),
 	)
 }
@@ -59,5 +59,5 @@ func (alc *AlarmListerChecker) Check(data utils.ListAlarmOrEventReq) checker.Che
 
 // NewGetAlarmChecker gen new checker
 func NewGetAlarmChecker() *checker.UintChecker {
-	return checker.GetUintChecker("", 1, math.MaxInt64, true)
+	return checker.GetUintChecker("", 1, math.MaxUint32, true)
 }
