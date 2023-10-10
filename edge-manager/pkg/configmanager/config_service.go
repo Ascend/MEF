@@ -54,7 +54,7 @@ func downloadConfig(input interface{}) common.RespMsg {
 
 	imageAddress, err := createSecret(req)
 	if err != nil {
-		hwlog.RunLog.Errorf("create k8s secret failed, %v", err)
+		hwlog.RunLog.Error("create k8s secret failed")
 		return common.RespMsg{Status: common.ErrorCreateSecret, Msg: "create k8s secret failed", Data: nil}
 	}
 	if err := fetchCertToClient(imageAddress); err != nil {
