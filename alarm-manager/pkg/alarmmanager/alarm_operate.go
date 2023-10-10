@@ -40,7 +40,7 @@ func dealAlarmReq(input interface{}) (interface{}, error) {
 
 	ret = checker.GetIpV4Checker("", true).Check(reqs.Ip)
 	if !ret.Result {
-		hwlog.RunLog.Error("deaL alarm para check failed: unsupported Ip received")
+		hwlog.RunLog.Error("deal alarm para check failed: unsupported Ip received")
 		return nil, errors.New("deal alarm para check failed")
 	}
 
@@ -51,7 +51,7 @@ func dealAlarmReq(input interface{}) (interface{}, error) {
 
 	for _, req := range reqs.Alarms {
 		if checkResult := NewDealAlarmChecker().Check(req); !checkResult.Result {
-			hwlog.RunLog.Errorf("deaL alarm para check failed: %s", checkResult.Reason)
+			hwlog.RunLog.Errorf("deal alarm para check failed: %s", checkResult.Reason)
 			return nil, errors.New("deal alarm para check failed")
 		}
 
@@ -142,12 +142,12 @@ func (ard *AlarmReqDealer) dealAlarmClear() error {
 
 	if err := AlarmDbInstance().deleteOneAlarm(alarmInfoData); err != nil {
 		hwlog.RunLog.Errorf("%v [%s:%s] %v %v: clear alarm %v from db failed: %s",
-			time.Now().Format(time.RFC3339), ard.ip, ard.sn,
+			time.Now().Format(time.RFC3339Nano), ard.ip, ard.sn,
 			http.MethodPost, requests.ReportAlarmRouter, ard.req.AlarmId, err.Error())
 		return errors.New("delete alarm data failed")
 	}
 
-	hwlog.RunLog.Infof("%v [%s:%s] %v %v: clear alarm %v from db success", time.Now().Format(time.RFC3339),
+	hwlog.RunLog.Infof("%v [%s:%s] %v %v: clear alarm %v from db success", time.Now().Format(time.RFC3339Nano),
 		ard.ip, ard.sn, http.MethodPost, requests.ReportAlarmRouter, ard.req.AlarmId)
 	return nil
 }
@@ -181,13 +181,14 @@ func (ard *AlarmReqDealer) dealAlarmAdd() error {
 	}
 
 	if err = AlarmDbInstance().addAlarmInfo(alarmInfoData); err != nil {
-		hwlog.RunLog.Errorf("%v [%s:%s] %v %v: add alarm %v into db failed: %s", time.Now().Format(time.RFC3339),
-			ard.ip, ard.sn, http.MethodPost, requests.ReportAlarmRouter, ard.req.AlarmId, err.Error())
+		hwlog.RunLog.Errorf("%v [%s:%s] %v %v: add alarm %v into db failed: %s", time.Now().
+			Format(time.RFC3339Nano), ard.ip, ard.sn,
+			http.MethodPost, requests.ReportAlarmRouter, ard.req.AlarmId, err.Error())
 		return errors.New("add alarm into db failed")
 	}
 
 	hwlog.RunLog.Infof("%v [%s:%s] %v %v: add alarm %v into db success",
-		time.Now().Format(time.RFC3339), ard.ip, ard.sn, http.MethodPost, requests.ReportAlarmRouter, ard.req.AlarmId)
+		time.Now().Format(time.RFC3339Nano), ard.ip, ard.sn, http.MethodPost, requests.ReportAlarmRouter, ard.req.AlarmId)
 	return nil
 }
 
@@ -207,11 +208,11 @@ func (ard *AlarmReqDealer) dealEvent() error {
 
 		if err = AlarmDbInstance().deleteAlarmInfos(oldestEvent); err != nil {
 			hwlog.RunLog.Errorf("%v [%s:%s] %v %v: delete oldest event failed: %s",
-				time.Now().Format(time.RFC3339), ard.ip, ard.sn, http.MethodPost,
+				time.Now().Format(time.RFC3339Nano), ard.ip, ard.sn, http.MethodPost,
 				requests.ReportAlarmRouter, ard.req.AlarmId, err.Error())
 			return errors.New("delete oldest event failed")
 		}
-		hwlog.RunLog.Infof("%v [%s:%s] %v %v: delete oldest event success", time.Now().Format(time.RFC3339),
+		hwlog.RunLog.Infof("%v [%s:%s] %v %v: delete oldest event success", time.Now().Format(time.RFC3339Nano),
 			ard.ip, ard.sn, http.MethodPost, requests.ReportAlarmRouter, ard.req.AlarmId)
 	}
 
@@ -222,13 +223,14 @@ func (ard *AlarmReqDealer) dealEvent() error {
 	}
 
 	if err = AlarmDbInstance().addAlarmInfo(eventData); err != nil {
-		hwlog.RunLog.Errorf("%v [%s:%s] %v %v: add event %v into db failed: %s", time.Now().Format(time.RFC3339),
-			ard.ip, ard.sn, http.MethodPost, requests.ReportAlarmRouter, ard.req.AlarmId, err.Error())
+		hwlog.RunLog.Errorf("%v [%s:%s] %v %v: add event %v into db failed: %s",
+			time.Now().Format(time.RFC3339Nano), ard.ip, ard.sn,
+			http.MethodPost, requests.ReportAlarmRouter, ard.req.AlarmId, err.Error())
 		return errors.New("add new event into db failed")
 	}
 
 	hwlog.RunLog.Infof("%v [%s:%s] %v %v: add event %v into db success",
-		time.Now().Format(time.RFC3339), ard.ip, ard.sn, http.MethodPost, requests.ReportAlarmRouter, ard.req.AlarmId)
+		time.Now().Format(time.RFC3339Nano), ard.ip, ard.sn, http.MethodPost, requests.ReportAlarmRouter, ard.req.AlarmId)
 	return nil
 }
 

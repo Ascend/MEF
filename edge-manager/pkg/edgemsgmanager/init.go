@@ -126,14 +126,14 @@ func methodWithOpLogSelect(funcMap map[string]handlerFunc, req *model.Message) (
 		return nil, fmt.Errorf("handler func is not exist, option: %s, resource: %s", req.GetOption(),
 			req.GetResource())
 	}
-	hwlog.RunLog.Infof("%v [%v:%v] %v %v start", time.Now().Format(time.RFC3339), ip, sn, req.GetOption(),
+	hwlog.RunLog.Infof("%v [%v:%v] %v %v start", time.Now().Format(time.RFC3339Nano), ip, sn, req.GetOption(),
 		req.GetResource())
 	res = method(req)
 	if res.Status == common.Success {
-		hwlog.RunLog.Infof("%v [%v:%v] %v %v success", time.Now().Format(time.RFC3339),
+		hwlog.RunLog.Infof("%v [%v:%v] %v %v success", time.Now().Format(time.RFC3339Nano),
 			ip, sn, req.GetOption(), req.GetResource())
 	} else {
-		hwlog.RunLog.Errorf("%v [%v:%v] %v %v failed", time.Now().Format(time.RFC3339),
+		hwlog.RunLog.Errorf("%v [%v:%v] %v %v failed", time.Now().Format(time.RFC3339Nano),
 			ip, sn, req.GetOption(), req.GetResource())
 	}
 	return &res, nil
