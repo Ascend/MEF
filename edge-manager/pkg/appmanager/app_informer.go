@@ -89,7 +89,7 @@ func initDefaultImagePullSecret() error {
 		return nil
 	}
 	if !strings.Contains(err.Error(), kubeclient.K8sNotFoundErrorFragment) {
-		return fmt.Errorf("check image pull secret fialed: %s", err.Error())
+		return fmt.Errorf("check image pull secret fialed")
 	}
 	defaultImagePullSecret := &corev1.Secret{
 		TypeMeta: metav1.TypeMeta{},
@@ -100,7 +100,7 @@ func initDefaultImagePullSecret() error {
 		Data: map[string][]byte{corev1.DockerConfigJsonKey: []byte(kubeclient.DefaultImagePullSecretValue)},
 	}
 	if _, err := kubeclient.GetKubeClient().CreateOrUpdateSecret(defaultImagePullSecret); err != nil {
-		return fmt.Errorf("create default image pull secret fialed: %s", err.Error())
+		return fmt.Errorf("create default image pull secret fialed")
 	}
 	return nil
 }
