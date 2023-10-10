@@ -107,15 +107,15 @@ func (updater *EdgeCertUpdater) dispatch(msg *model.Message) {
 	sn := msg.GetNodeId()
 	ip := msg.GetIp()
 
-	hwlog.RunLog.Infof("%v [%v:%v] %v %v start", time.Now().Format(time.RFC3339),
+	hwlog.RunLog.Infof("%v [%v:%v] %v %v start", time.Now().Format(time.RFC3339Nano),
 		ip, sn, msg.GetOption(), msg.GetResource())
 	if err := msgHandler(msg); err != nil {
 		hwlog.RunLog.Errorf("handle message:%v %v error: %v", msg.GetOption(), msg.GetResource(), err)
-		hwlog.RunLog.Errorf("%v [%v:%v] %v %v failed", time.Now().Format(time.RFC3339),
+		hwlog.RunLog.Errorf("%v [%v:%v] %v %v failed", time.Now().Format(time.RFC3339Nano),
 			ip, sn, msg.GetOption(), msg.GetResource())
 		return
 	}
-	hwlog.RunLog.Infof("%v [%v:%v] %v %v success", time.Now().Format(time.RFC3339),
+	hwlog.RunLog.Infof("%v [%v:%v] %v %v success", time.Now().Format(time.RFC3339Nano),
 		ip, sn, msg.GetOption(), msg.GetResource())
 }
 
