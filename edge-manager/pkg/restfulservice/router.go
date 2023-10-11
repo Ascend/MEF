@@ -117,28 +117,6 @@ var innerConfigRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 	},
 }
 
-var templateRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
-	"/edgemanager/v1/apptemplate": {
-		restfulmgr.GenericDispatcher{
-			Method:      http.MethodPost,
-			Destination: common.AppManagerName},
-		restfulmgr.GenericDispatcher{
-			RelativePath: "/batch-delete",
-			Method:       http.MethodPost,
-			Destination:  common.AppManagerName},
-		restfulmgr.GenericDispatcher{
-			Method:      http.MethodPatch,
-			Destination: common.AppManagerName},
-		queryDispatcher{restfulmgr.GenericDispatcher{
-			Method:      http.MethodGet,
-			Destination: common.AppManagerName}, "id", false},
-		listDispatcher{restfulmgr.GenericDispatcher{
-			RelativePath: "/list",
-			Method:       http.MethodGet,
-			Destination:  common.AppManagerName}},
-	},
-}
-
 func setRouter(engine *gin.Engine) {
 	engine.GET("/edgemanager/v1/version", versionQuery)
 	engine.GET(filepath.Join(constants.LogDumpUrlPrefix, constants.ResDownload, constants.EdgeNodesTarGzFileName),
@@ -146,7 +124,6 @@ func setRouter(engine *gin.Engine) {
 	restfulmgr.InitRouter(engine, nodeRouterDispatchers)
 	restfulmgr.InitRouter(engine, nodeGroupRouterDispatchers)
 	restfulmgr.InitRouter(engine, appRouterDispatchers)
-	restfulmgr.InitRouter(engine, templateRouterDispatchers)
 	restfulmgr.InitRouter(engine, configRouterDispatchers)
 	restfulmgr.InitRouter(engine, innerConfigRouterDispatchers)
 	restfulmgr.InitRouter(engine, softwareRouterDispatchers)
