@@ -17,6 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"edge-manager/pkg/kubeclient"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -96,9 +97,7 @@ func initDaemonSet(appInfo *AppInfo, nodeGroupId uint64) (*appv1.DaemonSet, erro
 
 func getVolumes(containerInfos []Container) []v1.Volume {
 	// containers内挂载卷名称相同，也只算一个
-	hostPathVols := getHostPathVols(containerInfos)
-	cmVols := getCmVols(containerInfos)
-	return append(hostPathVols, cmVols...)
+	return getHostPathVols(containerInfos)
 }
 
 func getHostPathVols(containerInfos []Container) []v1.Volume {
@@ -123,36 +122,6 @@ func getHostPathVols(containerInfos []Container) []v1.Volume {
 		}
 	}
 	return hostPathVols
-}
-
-func getCmVols(containerInfos []Container) []v1.Volume {
-	var cmVolumes []v1.Volume
-	var nameMap = make(map[string]struct{}) // key: configmap name
-	for _, containerInfo := range containerInfos {
-		for _, configmapVolume := range containerInfo.ConfigmapVolumes {
-			if _, ok := nameMap[configmapVolume.Name]; ok {
-				continue
-			}
-			nameMap[configmapVolume.Name] = struct{}{}
-
-			// configmap volume
-			var localObjectRef = v1.LocalObjectReference{
-				Name: configmapVolume.ConfigmapName,
-			}
-
-			var cmVolumeSource = &v1.ConfigMapVolumeSource{
-				LocalObjectReference: localObjectRef,
-			}
-
-			cmVolumes = append(cmVolumes, v1.Volume{
-				Name: configmapVolume.Name,
-				VolumeSource: v1.VolumeSource{
-					ConfigMap: cmVolumeSource,
-				},
-			})
-		}
-	}
-	return cmVolumes
 }
 
 func getContainers(containerInfos []Container) ([]v1.Container, error) {
@@ -203,15 +172,6 @@ func getVolumeMounts(container Container) []v1.VolumeMount {
 			Name:      hostPathVolume.Name,
 			ReadOnly:  true,
 			MountPath: hostPathVolume.MountPath,
-		})
-	}
-
-	// configmap volume
-	for _, volumeMount := range container.ConfigmapVolumes {
-		mounts = append(mounts, v1.VolumeMount{
-			Name:      volumeMount.Name,
-			ReadOnly:  true,
-			MountPath: volumeMount.MountPath,
 		})
 	}
 

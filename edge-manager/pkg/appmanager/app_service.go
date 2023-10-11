@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
@@ -17,6 +18,7 @@ import (
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
 	"edge-manager/pkg/util"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -48,16 +50,23 @@ func createApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorCheckAppMrgSize, Msg: "app number is enough, can not be created"}
 	}
 
-	id, err := AppRepositoryInstance().createAppAndUpdateCm(&req)
+	app, err := req.toDb()
 	if err != nil {
-		if err.Error() == common.ErrDbUniqueFailed {
-			return common.RespMsg{Status: common.ErrorAppMrgDuplicate, Msg: "app name is duplicate", Data: nil}
-		}
-		return common.RespMsg{Status: common.ErrorCreateApp, Msg: err.Error(), Data: nil}
+		hwlog.RunLog.Error("create app request convert to db failed")
+		return common.RespMsg{Status: common.ErrorAppParamConvertDb, Msg: "get app info failed", Data: nil}
+	}
+	err = AppRepositoryInstance().createApp(app)
+	if err != nil && strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
+		hwlog.RunLog.Error("app name is duplicate")
+		return common.RespMsg{Status: common.ErrorAppMrgDuplicate, Msg: "app name is duplicate", Data: nil}
+	}
+	if err != nil {
+		hwlog.RunLog.Errorf("create app in db failed, error: %v", err)
+		return common.RespMsg{Status: common.ErrorCreateApp, Msg: "create app in db failed", Data: nil}
 	}
 
-	hwlog.RunLog.Info("app db create success")
-	return common.RespMsg{Status: common.Success, Msg: "", Data: id}
+	hwlog.RunLog.Info("create app in db success")
+	return common.RespMsg{Status: common.Success, Msg: "", Data: app.ID}
 }
 
 // queryApp app info
@@ -417,16 +426,19 @@ func deleteApp(input interface{}) common.RespMsg {
 	deleteRes.FailedInfos = failedMap
 
 	for _, appId := range req.AppIDs {
-		if err := AppRepositoryInstance().isAppReferenced(appId); err != nil {
-			failedMap[strconv.Itoa(int(appId))] = err.Error()
+		rowsAffected, err := AppRepositoryInstance().deleteAppById(appId)
+		if err != nil {
+			errInfo := fmt.Sprintf("delete app [%d] failed: %v", appId, err)
+			hwlog.RunLog.Error(errInfo)
+			failedMap[strconv.Itoa(int(appId))] = errInfo
 			continue
 		}
-
-		if err := AppRepositoryInstance().deleteSingleApp(appId); err != nil {
-			failedMap[strconv.Itoa(int(appId))] = err.Error()
+		if rowsAffected != 1 {
+			errInfo := fmt.Sprintf("delete app [%d] failed: id does not exist", appId)
+			hwlog.RunLog.Error(errInfo)
+			failedMap[strconv.Itoa(int(appId))] = errInfo
 			continue
 		}
-
 		deleteRes.SuccessIDs = append(deleteRes.SuccessIDs, appId)
 	}
 	if len(deleteRes.FailedInfos) != 0 {

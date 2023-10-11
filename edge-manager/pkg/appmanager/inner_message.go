@@ -8,10 +8,11 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindxedge/base/common"
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+
+	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/types"
 )

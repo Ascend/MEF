@@ -15,6 +15,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 
 	"edge-manager/pkg/types"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -54,9 +55,6 @@ type AppRepository interface {
 	deleteDaemonSet(string) error
 	getNodeGroupName(appID uint64, nodeGroupID uint64) (string, error)
 	countDeployedAppByGroupID(uint64) (int64, error)
-
-	createAppAndUpdateCm(req *CreateAppReq) (uint64, error)
-	deleteSingleApp(appId uint64) error
 
 	isAppReferenced(appId uint64) error
 }
@@ -293,135 +291,6 @@ func (a *AppRepositoryImpl) isAppReferenced(appId uint64) error {
 		return errors.New("find app instance failed when deleting app")
 	}
 	return nil
-}
-
-func (a *AppRepositoryImpl) createAppAndUpdateCm(req *CreateAppReq) (uint64, error) {
-	if req == nil {
-		hwlog.RunLog.Error("create app req is nil")
-		return 0, errors.New("create app req is nil")
-	}
-
-	app, err := req.toDb()
-	if err != nil {
-		hwlog.RunLog.Errorf("convert app request param to db failed, error: %v", err)
-		return 0, errors.New("convert app request param to db failed")
-	}
-
-	return app.ID, database.Transaction(a.db(), func(tx *gorm.DB) error {
-		return createAppAndUpdateCm(tx, app, req)
-	})
-}
-
-func createAppAndUpdateCm(tx *gorm.DB, app *AppInfo, req *CreateAppReq) error {
-	// create app
-	if err := tx.Model(AppInfo{}).Create(app).Error; err != nil {
-		if strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
-			hwlog.RunLog.Error("app name is duplicate")
-			return errors.New(common.ErrDbUniqueFailed)
-		}
-		hwlog.RunLog.Errorf("create app [%s] in db failed, error: %v", app.AppName, err)
-		return errors.New("create app in db failed")
-	}
-
-	for _, cmName := range getCmsInApp(req.Containers) {
-		// query configmap
-		var cmInfo ConfigmapInfo
-		if err := tx.Model(ConfigmapInfo{}).Where("configmap_name = ?", cmName).First(&cmInfo).Error; err != nil {
-			hwlog.RunLog.Errorf("query configmap name failed, error: %v", err)
-			return errors.New("query configmap name failed")
-		}
-
-		// update configmap associated app list
-		var appList []uint64
-		if cmInfo.AssociatedAppList != "" { // 此处若直接对空切片进行反序列化：unexpected end of JSON input
-			if err := json.Unmarshal([]byte(cmInfo.AssociatedAppList), &appList); err != nil {
-				hwlog.RunLog.Errorf("unmarshal associated app list failed, error: %v", err)
-				return errors.New("unmarshal associated app list failed")
-			}
-		}
-
-		appList = append(appList, app.ID)
-		appByte, err := json.Marshal(appList)
-		if err != nil {
-			hwlog.RunLog.Errorf("marshal associated app list failed, error: %v", err)
-			return errors.New("marshal associated app list failed")
-		}
-		cmInfo.AssociatedAppList = string(appByte)
-
-		stmt := tx.Model(&ConfigmapInfo{}).Where("configmap_name = ?", cmName).Updates(&cmInfo)
-		if stmt.Error != nil { // 此处不可能出现“UNIQUE constraint failed”，因此无需判断
-			hwlog.RunLog.Errorf("update configmap [%d] to db failed, error: %v", cmInfo.ID, stmt.Error)
-			return errors.New("update configmap to db failed")
-		}
-		if stmt.RowsAffected != 1 {
-			hwlog.RunLog.Errorf("update configmap [%d] to db failed, rows affected wrong", cmInfo.ID)
-			return errors.New("update configmap to db failed")
-		}
-	}
-
-	return nil
-}
-
-func (a *AppRepositoryImpl) deleteSingleApp(appId uint64) error {
-	return database.Transaction(a.db(), func(tx *gorm.DB) error {
-		return deleteSingleApp(tx, appId)
-	})
-}
-
-func deleteSingleApp(tx *gorm.DB, appId uint64) error {
-	var appInfo AppInfo
-	if err := tx.Model(AppInfo{}).Where("id = ?", appId).First(&appInfo).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			hwlog.RunLog.Errorf("app [%d] does not exist", appId)
-			return fmt.Errorf("app [%d] does not exist", appId)
-		}
-		hwlog.RunLog.Errorf("query app [%d] from db failed, error: %v", appId, err)
-		return fmt.Errorf("query app [%d] from db failed", appId)
-	}
-
-	// delete app
-	stmt := tx.Model(AppInfo{}).Where("id = ?", appId).Delete(&AppInfo{})
-	if stmt.Error != nil {
-		hwlog.RunLog.Errorf("delete app info from db error, error: %v", stmt.Error)
-		return errors.New("delete app info from db error")
-	}
-	if stmt.RowsAffected != 1 {
-		hwlog.RunLog.Errorf("app id [%d] does not exist", appId)
-		return fmt.Errorf("app id [%d] does not exist", appId)
-	}
-
-	var containerList []Container
-	if err := json.Unmarshal([]byte(appInfo.Containers), &containerList); err != nil {
-		hwlog.RunLog.Errorf("unmarshal app containers failed, error: %v", err)
-		return errors.New("unmarshal app containers failed")
-	}
-
-	for _, cmName := range getCmsInApp(containerList) {
-		// query configmap and delete app from list
-		if err := updateSingleCm(tx, cmName, appInfo.ID); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func getCmsInApp(containerList []Container) []string {
-	// 一个app内不同容器使用同一个configmap挂载卷，也只算一个
-	cmNamesMap := make(map[string]struct{})
-	var cmNames []string
-
-	for _, container := range containerList {
-		for _, cmVolume := range container.ConfigmapVolumes {
-			if _, ok := cmNamesMap[cmVolume.ConfigmapName]; !ok {
-				cmNamesMap[cmVolume.ConfigmapName] = struct{}{}
-				cmNames = append(cmNames, cmVolume.ConfigmapName)
-				continue
-			}
-		}
-	}
-
-	return cmNames
 }
 
 func updateSingleCm(tx *gorm.DB, cmName string, appId uint64) error {
