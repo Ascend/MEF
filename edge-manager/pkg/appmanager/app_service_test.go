@@ -22,6 +22,7 @@ import (
 
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
+
 	"huawei.com/mindxedge/base/common"
 )
 

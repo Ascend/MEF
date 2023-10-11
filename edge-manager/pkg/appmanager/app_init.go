@@ -137,19 +137,12 @@ func initAppTable() error {
 		hwlog.RunLog.Error("create app daemon set database table failed")
 		return err
 	}
-	if err := database.CreateTableIfNotExist(ConfigmapInfo{}); err != nil {
-		hwlog.RunLog.Error("create configmap database table failed")
-		return err
-	}
 
 	return nil
 }
 
 var (
 	appUrlRootPath = "/edgemanager/v1/app"
-	cmRootUrl      = "/edgemanager/v1/app/configmap"
-	deleteCmUrl    = "/edgemanager/v1/app/configmap/batch-delete"
-	listCmUrl      = "/edgemanager/v1/app/configmap/list"
 )
 
 var handlerFuncMap = map[string]handlerFunc{
@@ -165,11 +158,4 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodGet, filepath.Join(appUrlRootPath, "deployment/list")):          listAppInstances,
 
 	common.Combine(common.Get, common.AppInstanceByNodeGroup): getAppInstanceCountByNodeGroup,
-
-	// configmap related methods
-	common.Combine(http.MethodPost, cmRootUrl):   createConfigmap,
-	common.Combine(http.MethodPost, deleteCmUrl): deleteConfigmap,
-	common.Combine(http.MethodPatch, cmRootUrl):  updateConfigmap,
-	common.Combine(http.MethodGet, cmRootUrl):    queryConfigmap,
-	common.Combine(http.MethodGet, listCmUrl):    listConfigmap,
 }

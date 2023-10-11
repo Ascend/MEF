@@ -45,8 +45,6 @@ func (cc *ContainerChecker) init() {
 		checker.GetIntChecker("GroupID", minGroupId, maxGroupId, false),
 		checker.GetListChecker("HostPathVolumes", GetHostPathVolumeChecker(""),
 			minVolumeMountsCount, maxVolumeMountsCount, true),
-		checker.GetListChecker("ConfigmapVolumes", GetCmVolumeChecker(""),
-			minCmMountsCount, maxCmMountsCount, false),
 	)
 }
 
