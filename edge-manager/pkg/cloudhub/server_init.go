@@ -25,6 +25,9 @@ import (
 const (
 	name           = "server_edge_ctl"
 	wsWriteTimeout = 10 * time.Minute
+
+	wsMaxThroughput    = 100 * common.MB
+	wsThroughputPeriod = 30 * time.Second
 )
 
 var serverSender websocketmgr.WsSvrSender
@@ -57,6 +60,8 @@ func InitServer() (*websocketmgr.WsServerProxy, error) {
 	proxyConfig.RegModInfos(getRegModuleInfoList())
 	proxyConfig.ReadTimeout = wsWriteTimeout
 	proxyConfig.WriteTimeout = wsWriteTimeout
+	proxyConfig.MaxThroughputPerPeriod = wsMaxThroughput
+	proxyConfig.ThroughputPeriod = wsThroughputPeriod
 	proxy := &websocketmgr.WsServerProxy{
 		ProxyCfg: proxyConfig,
 	}
