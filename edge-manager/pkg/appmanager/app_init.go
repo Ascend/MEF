@@ -76,19 +76,17 @@ func (app *appManager) Start() {
 }
 
 func (app *appManager) housekeeper() {
+	tick := time.NewTicker(houseKeepingInterval)
+	defer tick.Stop()
 	for {
-		delay := time.NewTimer(houseKeepingInterval)
 		select {
 		case _, ok := <-app.ctx.Done():
 			if !ok {
 				hwlog.RunLog.Info("catch stop signal channel is closed")
 			}
 			hwlog.RunLog.Info("has listened stop signal")
-			if !delay.Stop() {
-				<-delay.C
-			}
 			return
-		case <-delay.C:
+		case <-tick.C:
 			appStatusService.deleteTerminatingPod()
 		}
 	}
