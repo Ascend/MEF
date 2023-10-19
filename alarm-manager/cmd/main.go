@@ -13,6 +13,7 @@ import (
 	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/checker/valid"
 	"huawei.com/mindx/common/database"
+	"huawei.com/mindx/common/httpsmgr"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/modulemgr"
@@ -27,11 +28,17 @@ import (
 )
 
 var (
-	serverRunConf = &hwlog.LogConfig{OnlyToFile: true, LogFileName: runLogFile, BackupDirName: backupDirName}
-	serverOpConf  = &hwlog.LogConfig{OnlyToFile: true, LogFileName: operateLogFile, BackupDirName: backupDirName}
-	port          int
-	ip            string
-	dbPath        string
+	serverRunConf  = &hwlog.LogConfig{OnlyToFile: true, LogFileName: runLogFile, BackupDirName: backupDirName}
+	serverOpConf   = &hwlog.LogConfig{OnlyToFile: true, LogFileName: operateLogFile, BackupDirName: backupDirName}
+	port           int
+	ip             string
+	dbPath         string
+	limitIPReq     string
+	concurrency    int
+	cacheSize      int
+	limitIPConn    int
+	limitTotalConn int
+	dataLimit      int64
 )
 
 const (
@@ -41,6 +48,13 @@ const (
 	backupDirName  = "/var/log_backup/mindx-edge/alarm-manager"
 	defaultKmcPath = "/home/data/public-config/kmc-config.json"
 	defaultDbPath  = "/home/data/config/alarm-manager.db"
+
+	maxIPConnLimit     = 128
+	maxConcurrency     = 512
+	defaultConnection  = 3
+	defaultConcurrency = 3
+	defaultDataLimit   = 1024 * 1024
+	defaultCachSize    = 1024 * 1024 * 10
 )
 
 func main() {
@@ -55,8 +69,8 @@ func main() {
 		return
 	}
 
-	if inRange := valid.IsPortInRange(common.MinPort, common.MaxPort, port); !inRange {
-		hwlog.RunLog.Errorf("port %d is not in [%d, %d]", port, common.MinPort, common.MaxPort)
+	if err := checker(); err != nil {
+		hwlog.RunLog.Errorf("parameter check error: %v", err)
 		return
 	}
 
@@ -83,6 +97,16 @@ func main() {
 func init() {
 	flag.IntVar(&port, "port", defaultPort, "The server port of the http service,range[1025-65535]")
 	flag.StringVar(&dbPath, "dbPath", defaultDbPath, "sqlite database path")
+	flag.IntVar(&cacheSize, "cacheSize", defaultCachSize, "the cacheSize for ip limit,"+
+		"keep default normally")
+	flag.IntVar(&limitIPConn, "limitIPConn", defaultConcurrency, "the tcp connection limit for each Ip")
+	flag.IntVar(&limitTotalConn, "limitTotalConn", defaultConnection, "the tcp connection limit for all request")
+	flag.StringVar(&limitIPReq, "limitIPReq", "2/1",
+		"the http request limit counts for each Ip,2/1 means allow 2 request in 1 seconds")
+	flag.IntVar(&concurrency, "concurrency", defaultConcurrency,
+		"The max concurrency of the http server, range is [1-512]")
+	flag.Int64Var(&dataLimit, "dataLimit", defaultDataLimit,
+		"bytes, limit the data size of request's body, the default value is 1MB")
 	hwlogconfig.BindFlags(serverOpConf, serverRunConf)
 }
 
@@ -115,9 +139,25 @@ func initResource() error {
 	return nil
 }
 
+func checker() error {
+	if inRange := valid.IsPortInRange(common.MinPort, common.MaxPort, port); !inRange {
+		return fmt.Errorf("port %d is not in [%d, %d]", port, common.MinPort, common.MaxPort)
+	}
+	if err := common.LimitChecker(getLimitParam(), maxConcurrency, maxIPConnLimit); err != nil {
+		return err
+	}
+	return nil
+}
+
 func register(ctx context.Context) error {
 	modulemgr.ModuleInit()
-	if err := modulemgr.Registry(restful.NewRestfulService(true, ip, port)); err != nil {
+	if err := modulemgr.Registry(restful.NewRestfulService(true,
+		&httpsmgr.HttpsServer{
+			IP:          ip,
+			Port:        port,
+			SwitchLimit: true,
+			ServerParam: getLimitParam(),
+		})); err != nil {
 		return err
 	}
 	if err := modulemgr.Registry(websocket.NewAlarmWsClient(true, ctx)); err != nil {
@@ -128,4 +168,15 @@ func register(ctx context.Context) error {
 	}
 	modulemgr.Start()
 	return nil
+}
+
+func getLimitParam() httpsmgr.ServerParam {
+	return httpsmgr.ServerParam{
+		Concurrency:    concurrency,
+		BodySizeLimit:  dataLimit,
+		LimitIPReq:     limitIPReq,
+		LimitIPConn:    limitIPConn,
+		LimitTotalConn: limitTotalConn,
+		CacheSize:      cacheSize,
+	}
 }
