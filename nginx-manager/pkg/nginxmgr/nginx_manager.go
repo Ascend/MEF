@@ -277,11 +277,11 @@ func startNginxCmd() bool {
 		hwlog.RunLog.Errorf("load keys data to pipes failed: %v", err)
 		return false
 	}
-	if err := os.Chmod(accessLogFile, logFileMode); err != nil {
+	if err := fileutils.SetPathPermission(accessLogFile, logFileMode, false, false); err != nil {
 		hwlog.RunLog.Errorf("chmod access.log failed, cause by: {%s}", err.Error())
 		return false
 	}
-	if err := os.Chmod(errorLogFile, logFileMode); err != nil {
+	if err := fileutils.SetPathPermission(errorLogFile, logFileMode, false, false); err != nil {
 		hwlog.RunLog.Errorf("chmod error.log failed, cause by: {%v}", err.Error())
 		return false
 	}
