@@ -5,7 +5,6 @@ package nginxmonitor
 
 import (
 	"context"
-	"io/ioutil"
 	"strconv"
 	"strings"
 	"time"
@@ -13,6 +12,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindx/common/utils"
 	"huawei.com/mindxedge/base/common"
 
 	"nginx-manager/pkg/msgutil"
@@ -121,7 +121,7 @@ func startMonitor(ctx context.Context) {
 }
 
 func isNginxUp(targetPort int) bool {
-	data, err := ioutil.ReadFile(tcpFilePath)
+	data, err := utils.ReadFile(tcpFilePath)
 	if err != nil {
 		hwlog.RunLog.Error(err)
 		return false
