@@ -15,7 +15,10 @@ import (
 	"time"
 	"unsafe"
 
+	"huawei.com/mindx/common/checker"
+	"huawei.com/mindx/common/httpsmgr"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/limiter"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/rand"
@@ -125,4 +128,27 @@ func GracefulShutDown(cancelFunc context.CancelFunc) {
 		}
 	}
 	cancelFunc()
+}
+
+// LimitChecker check limit parameter
+func LimitChecker(param httpsmgr.ServerParam, maxConcurrency, maxIPConnLimit int64) error {
+	if res := checker.GetRegChecker("", limiter.IPReqLimitReg, true).Check(param.LimitIPReq); !res.Result {
+		return fmt.Errorf("limitIPReq is invalid")
+	}
+	if res := checker.GetIntChecker("", 1, maxConcurrency, true).Check(param.LimitTotalConn); !res.Result {
+		return fmt.Errorf("limitTotalConn %d is not in [%d, %d]", param.LimitTotalConn, 1, maxConcurrency)
+	}
+	if res := checker.GetIntChecker("", 1, limiter.DefaultDataLimit, true).Check(param.CacheSize); !res.Result {
+		return fmt.Errorf("cacheSize %d is not in [%d, %d]", param.CacheSize, 1, limiter.DefaultDataLimit)
+	}
+	if res := checker.GetIntChecker("", 1, maxConcurrency, true).Check(param.Concurrency); !res.Result {
+		return fmt.Errorf("concurrency %d is not in [%d, %d]", param.Concurrency, 1, maxConcurrency)
+	}
+	if res := checker.GetIntChecker("", 1, maxIPConnLimit, true).Check(param.LimitIPConn); !res.Result {
+		return fmt.Errorf("limitIPConn %d is not in [%d, %d]", param.LimitIPConn, 1, maxIPConnLimit)
+	}
+	if res := checker.GetIntChecker("", 1, limiter.DefaultDataLimit, true).Check(param.BodySizeLimit); !res.Result {
+		return fmt.Errorf("dataLimit %d is not in [%d, %d]", param.BodySizeLimit, 1, limiter.DefaultDataLimit)
+	}
+	return nil
 }

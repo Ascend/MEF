@@ -17,6 +17,7 @@ require (
 	huawei.com/mindx/common/modulemgr v0.0.1
 	huawei.com/mindx/common/websocketmgr v0.0.1
 	huawei.com/mindx/common/x509 v0.0.12
+	huawei.com/mindx/common/limiter v0.0.1
 	huawei.com/mindxedge/base v0.0.1
 )
 

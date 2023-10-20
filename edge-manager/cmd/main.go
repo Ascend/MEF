@@ -20,7 +20,6 @@ import (
 	"huawei.com/mindx/common/httpsmgr"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
-	"huawei.com/mindx/common/limiter"
 	"huawei.com/mindx/common/modulemgr"
 
 	"edge-manager/pkg/alarmmanager"
@@ -157,23 +156,8 @@ func validateFlags() error {
 	if res := checker.GetIntChecker("", common.MinPort, common.MaxPort, true).Check(authPort); !res.Result {
 		return fmt.Errorf("authPort %d is not in [%d, %d]", authPort, common.MinPort, common.MaxPort)
 	}
-	if res := checker.GetRegChecker("", limiter.IPReqLimitReg, true).Check(limitIPReq); !res.Result {
-		return fmt.Errorf("limitIPReq is invalid")
-	}
-	if res := checker.GetIntChecker("", 1, maxConcurrency, true).Check(limitTotalConn); !res.Result {
-		return fmt.Errorf("limitTotalConn %d is not in [%d, %d]", limitTotalConn, 1, maxConcurrency)
-	}
-	if res := checker.GetIntChecker("", 1, limiter.DefaultDataLimit, true).Check(cacheSize); !res.Result {
-		return fmt.Errorf("cacheSize %d is not in [%d, %d]", cacheSize, 1, limiter.DefaultDataLimit)
-	}
-	if res := checker.GetIntChecker("", 1, maxConcurrency, true).Check(concurrency); !res.Result {
-		return fmt.Errorf("concurrency %d is not in [%d, %d]", concurrency, 1, maxConcurrency)
-	}
-	if res := checker.GetIntChecker("", 1, maxIPConnLimit, true).Check(limitIPConn); !res.Result {
-		return fmt.Errorf("limitIPConn %d is not in [%d, %d]", limitIPConn, 1, maxIPConnLimit)
-	}
-	if res := checker.GetIntChecker("", 1, limiter.DefaultDataLimit, true).Check(dataLimit); !res.Result {
-		return fmt.Errorf("dataLimit %d is not in [%d, %d]", dataLimit, 1, limiter.DefaultDataLimit)
+	if err := common.LimitChecker(getLimitParam(), maxConcurrency, maxIPConnLimit); err != nil {
+		return err
 	}
 	if authPort == wsPort {
 		return fmt.Errorf("authPort can not equals to wsPort")
@@ -273,7 +257,13 @@ func register(ctx context.Context) error {
 	if err := modulemgr.Registry(certupdater.NewEdgeCertUpdater(true)); err != nil {
 		return err
 	}
-	if err := modulemgr.Registry(restfulservice.NewRestfulService(true, limitConf())); err != nil {
+	if err := modulemgr.Registry(restfulservice.NewRestfulService(true,
+		&httpsmgr.HttpsServer{
+			IP:          ip,
+			Port:        port,
+			SwitchLimit: true,
+			ServerParam: getLimitParam(),
+		})); err != nil {
 		return err
 	}
 	if err := modulemgr.Registry(nodemanager.NewNodeManager(true, ctx)); err != nil {
@@ -304,19 +294,13 @@ func register(ctx context.Context) error {
 	return nil
 }
 
-func limitConf() *httpsmgr.HttpsServer {
-	server := httpsmgr.ServerParam{
+func getLimitParam() httpsmgr.ServerParam {
+	return httpsmgr.ServerParam{
 		Concurrency:    concurrency,
 		BodySizeLimit:  dataLimit,
 		LimitIPReq:     limitIPReq,
 		LimitIPConn:    limitIPConn,
 		LimitTotalConn: limitTotalConn,
 		CacheSize:      cacheSize,
-	}
-	return &httpsmgr.HttpsServer{
-		IP:          ip,
-		Port:        port,
-		SwitchLimit: true,
-		ServerParam: server,
 	}
 }
