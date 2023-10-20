@@ -60,9 +60,13 @@ func GetMefId() (uint32, uint32, error) {
 
 // GetLocalIps get local ips
 func GetLocalIps() ([]string, error) {
+	const maxIPLen = 20
 	addresses, err := net.InterfaceAddrs()
 	if err != nil {
 		return nil, fmt.Errorf("get local ip address failed: %s", err.Error())
+	}
+	if len(addresses) > maxIPLen {
+		return nil, fmt.Errorf("interfaceAddrs length cannot exceed %v", maxIPLen)
 	}
 	var validIps []string
 	for _, address := range addresses {

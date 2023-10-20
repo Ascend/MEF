@@ -30,8 +30,8 @@ const (
 func GetImageAddress() (string, error) {
 	secret, err := kubeclient.GetKubeClient().GetSecret(kubeclient.DefaultImagePullSecretKey)
 	if err != nil {
-		hwlog.RunLog.Errorf("get image pull secret failed, error:%v", err)
-		return "", err
+		hwlog.RunLog.Error("get image pull secret from k8s failed")
+		return "", errors.New("get image pull secret from k8s failed")
 	}
 	secretByte, ok := secret.Data[v1.DockerConfigJsonKey]
 	if !ok {

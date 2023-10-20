@@ -17,7 +17,6 @@
     "/usr/lib64/aicpu_kernels/",
     "/usr/local/sbin/npu-smi",
     "/usr/lib64/libstackcore.so",
-    "/etc/slog.conf",
     "/usr/local/Ascend/driver/lib64",
     "/var/slogd",
     "/var/dmp_daemon"
