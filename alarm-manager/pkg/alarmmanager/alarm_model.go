@@ -63,7 +63,7 @@ func (adh *AlarmDbHandler) addAlarmInfo(data *AlarmInfo) error {
 			return nil
 		} else if strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
 			// if id was taken already,try again
-			hwlog.RunLog.Warnf("random id has already been taken,will retry")
+			hwlog.RunLog.Warn("random id has already been taken, will retry")
 			continue
 		}
 		return errors.New("failed to create new alarm")

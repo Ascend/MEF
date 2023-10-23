@@ -12,6 +12,7 @@ import (
 	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -28,6 +29,7 @@ func (sm *SoftwareMgr) ClearDockerImage(components []string) error {
 	for _, name := range components {
 		dockerMgr := GetDockerDealer(name, DockerTag)
 		if err := dockerMgr.DeleteImage(); err != nil {
+			hwlog.RunLog.Errorf("delete %s image failed, error: %v", name, err)
 			return err
 		}
 	}
@@ -65,8 +67,9 @@ func (sm *SoftwareMgr) clearLock() error {
 	lockPath := filepath.Join("/run", MefCenterLock)
 
 	if err := fileutils.DeleteFile(lockPath); err != nil {
-		hwlog.RunLog.Errorf("delete mef-center lock failed:%s", err.Error())
-		return err
+		hwlog.RunLog.Warnf("delete mef-center lock failed: %s", err.Error())
+		fmt.Println("warning: clear mef-center lock failed")
+		return nil
 	}
 
 	fmt.Println("clear mef-center lock success")
@@ -79,8 +82,8 @@ func (sm *SoftwareMgr) clearNodeLabel() error {
 	hwlog.RunLog.Info("start to clear node label")
 	localIps, err := GetLocalIps()
 	if err != nil {
-		hwlog.RunLog.Errorf("get local IP failed: %s", err.Error())
-		return err
+		hwlog.RunLog.Errorf("get local ip failed: %s", err.Error())
+		return errors.New("get local ip failed")
 	}
 
 	ret, err := envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "get", "nodes", "-o", "wide")
@@ -161,6 +164,7 @@ func (sm *SoftwareMgr) ClearKubeAuth() error {
 		hwlog.RunLog.Warnf("delete clusterrolebinding failed: %v", err)
 	}
 	if err != nil {
+		fmt.Println("warning: clear K8s auth failed")
 		return nil
 	}
 	fmt.Println("clear K8s auth success")

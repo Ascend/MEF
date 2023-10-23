@@ -77,16 +77,16 @@ func (nm *NamespaceMgr) checkNameSpaceExist() (bool, error) {
 	namespaceReg := fmt.Sprintf("^%s\\s", nm.namespace)
 	ret, err := envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "get", "namespace")
 	if err != nil {
-		hwlog.RunLog.Errorf("check namespace command exec failed: %s", err.Error())
-		return false, errors.New("check namespace command exec failed")
+		hwlog.RunLog.Errorf("execute command to get namespace failed, error: %s", err.Error())
+		return false, errors.New("execute command to get namespace failed")
 	}
 
 	lines := strings.Split(ret, "\n")
 	for _, line := range lines {
 		found, err := regexp.MatchString(namespaceReg, line)
 		if err != nil {
-			hwlog.RunLog.Errorf("check if namespace %s's exists on reg match failed: %s", nm.namespace, err.Error())
-			return false, errors.New("check if namespace exists failed")
+			hwlog.RunLog.Errorf("reg match with the existing namespace failed, error: %s", err.Error())
+			return false, errors.New("reg match with the existing namespace failed")
 		}
 		if found {
 			return true, nil
@@ -100,7 +100,8 @@ func (nm *NamespaceMgr) checkNameSpaceExist() (bool, error) {
 func (nm *NamespaceMgr) ClearNamespace() error {
 	ret, err := nm.checkNameSpaceExist()
 	if err != nil {
-		return err
+		hwlog.RunLog.Errorf("check whether the namespace %s exists failed, error: %v", nm.namespace, err)
+		return fmt.Errorf("check whether the namespace %s exists failed", nm.namespace)
 	}
 	if !ret {
 		hwlog.RunLog.Warnf("namespace %s does not exist, no need to clear", nm.namespace)
@@ -109,8 +110,8 @@ func (nm *NamespaceMgr) ClearNamespace() error {
 
 	_, err = envutils.RunCommand(CommandKubectl, DeleteNsTimeoutSec, "delete", "namespace", nm.namespace)
 	if err != nil {
-		hwlog.RunLog.Errorf("delete %s namespace command exec failed: %s", nm.namespace, err.Error())
-		return errors.New("delete namespace command exec failed")
+		hwlog.RunLog.Errorf("execute command to delete namespace %s failed, error: %v", nm.namespace, err)
+		return fmt.Errorf("execute command to delete namespace %s failed", nm.namespace)
 	}
 	return nil
 }
@@ -119,7 +120,8 @@ func (nm *NamespaceMgr) ClearNamespace() error {
 func (nm *NamespaceMgr) ForceClearNamespace() error {
 	ret, err := nm.checkNameSpaceExist()
 	if err != nil {
-		return err
+		hwlog.RunLog.Errorf("check whether the namespace %s exists failed, error: %v", nm.namespace, err)
+		return fmt.Errorf("check whether the namespace %s exists failed", nm.namespace)
 	}
 	if !ret {
 		hwlog.RunLog.Warnf("namespace %s does not exist, no need to clear", nm.namespace)

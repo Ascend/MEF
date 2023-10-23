@@ -85,7 +85,7 @@ func issueServiceCa(input interface{}) common.RespMsg {
 	cert, err := issueServiceCert(csrJsonData.CertName, csrJsonData.Csr)
 	if err != nil {
 		hwlog.RunLog.Errorf("issue service certificate failed: %v", err)
-		return common.RespMsg{Status: common.ErrorIssueSrvCert, Msg: "issue service certificate failed", Data: string(cert)}
+		return common.RespMsg{Status: common.ErrorIssueSrvCert, Msg: "issue service certificate failed", Data: nil}
 	}
 	hwlog.RunLog.Infof("issue [%s] service certificate success", csrJsonData.CertName)
 	return common.RespMsg{Status: common.Success, Msg: "issue success", Data: string(cert)}

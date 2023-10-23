@@ -21,6 +21,7 @@ type SftUninstallMgr struct {
 func (sum *SftUninstallMgr) DoUninstall() error {
 	var installTasks = []func() error{
 		sum.checkUser,
+		sum.checkCurrentPath,
 		sum.uninstallOptionComponent,
 		sum.ClearNamespace,
 		sum.ClearKubeAuth,
@@ -42,7 +43,7 @@ func (sum *SftUninstallMgr) checkUser() error {
 	if err := envutils.CheckUserIsRoot(); err != nil {
 		fmt.Println("current user is not root, cannot uninstall")
 		hwlog.RunLog.Errorf("check user failed: %s", err.Error())
-		return err
+		return errors.New("check user failed")
 	}
 	hwlog.RunLog.Info("check user successful")
 	return nil
