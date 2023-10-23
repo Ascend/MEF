@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"huawei.com/mindx/common/backuputils"
@@ -30,6 +31,8 @@ const (
 	serialNumberLen = 20
 	sha256sumLen    = 32
 )
+
+var caLock sync.Mutex
 
 func queryRootCa(input interface{}) common.RespMsg {
 	certName, ok := input.(string)
@@ -118,6 +121,8 @@ func certsUpdateResult(input interface{}) common.RespMsg {
 }
 
 func importRootCa(input interface{}) common.RespMsg {
+	caLock.Lock()
+	defer caLock.Unlock()
 	hwlog.RunLog.Info("import cert item start")
 	var req importCertReq
 	if err := common.ParamConvert(input, &req); err != nil {
@@ -151,6 +156,8 @@ func importRootCa(input interface{}) common.RespMsg {
 }
 
 func deleteRootCa(input interface{}) common.RespMsg {
+	caLock.Lock()
+	defer caLock.Unlock()
 	hwlog.RunLog.Info("import the cert item start")
 	var req deleteCaReq
 	if err := common.ParamConvert(input, &req); err != nil {
@@ -226,6 +233,8 @@ func parseNorthernRootCa(caBytes []byte) (interface{}, error) {
 }
 
 func importCrl(input interface{}) common.RespMsg {
+	caLock.Lock()
+	defer caLock.Unlock()
 	hwlog.RunLog.Info("start to import the crl")
 	var req importCrlReq
 	if err := common.ParamConvert(input, &req); err != nil {
