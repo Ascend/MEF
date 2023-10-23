@@ -9,10 +9,11 @@ import (
 	"strings"
 	"time"
 
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
-	"huawei.com/mindx/common/utils"
+
 	"huawei.com/mindxedge/base/common"
 
 	"nginx-manager/pkg/msgutil"
@@ -121,9 +122,14 @@ func startMonitor(ctx context.Context) {
 }
 
 func isNginxUp(targetPort int) bool {
-	data, err := utils.ReadFile(tcpFilePath)
+	realTcpFilePath, err := fileutils.EvalSymlinks(tcpFilePath)
 	if err != nil {
-		hwlog.RunLog.Error(err)
+		hwlog.RunLog.Errorf("get real path of %s failed, %v", tcpFilePath, err)
+		return false
+	}
+	data, err := fileutils.LoadFile(realTcpFilePath)
+	if err != nil {
+		hwlog.RunLog.Errorf("load file %s failed, %v", tcpFilePath, err)
 		return false
 	}
 	lines := strings.Split(string(data), "\n")
