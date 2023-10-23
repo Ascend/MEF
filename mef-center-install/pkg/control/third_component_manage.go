@@ -11,13 +11,15 @@ import (
 	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindx/mef/common/cmsverify"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
-// ManageThridComponentFlow is used to
-type ManageThridComponentFlow struct {
+// ManageThirdComponentFlow is used to
+type ManageThirdComponentFlow struct {
 	pathMgr   *util.InstallDirPathMgr
 	component string
 	operate   string
@@ -31,10 +33,10 @@ type SubParam struct {
 	InstallCrlPath     string
 }
 
-// NewThirdComponentManageFlow an ManageThridComponentFlow struct
+// NewThirdComponentManageFlow an ManageThirdComponentFlow struct
 func NewThirdComponentManageFlow(component, operate string, subParams SubParam,
-	pathMgr *util.InstallDirPathMgr) *ManageThridComponentFlow {
-	return &ManageThridComponentFlow{
+	pathMgr *util.InstallDirPathMgr) *ManageThirdComponentFlow {
+	return &ManageThirdComponentFlow{
 		pathMgr:   pathMgr,
 		component: component,
 		operate:   operate,
@@ -56,7 +58,7 @@ func operateThirdComponent() []string {
 }
 
 // DoManage is the main func to manage third component
-func (mtc *ManageThridComponentFlow) DoManage() error {
+func (mtc *ManageThirdComponentFlow) DoManage() error {
 	if err := mtc.checkParam(); err != nil {
 		return err
 	}
@@ -68,7 +70,7 @@ func (mtc *ManageThridComponentFlow) DoManage() error {
 	return nil
 }
 
-func (mtc *ManageThridComponentFlow) checkParam() error {
+func (mtc *ManageThirdComponentFlow) checkParam() error {
 	if err := util.CheckParamOption(thirdComponent(), mtc.component); err != nil {
 		hwlog.RunLog.Errorf("check parameter component error, %v", err)
 		return fmt.Errorf("check parameter component error, %v", err)
@@ -207,8 +209,10 @@ func (ics icsManager) uninstall() error {
 	if err := util.DeleteComponentToInstallInfo(util.IcsManagerName,
 		ics.pathMgr.WorkPathMgr.GetInstallParamJsonPath()); err != nil {
 		if strings.Contains(err.Error(), util.ComponentNotInstalled) {
+			hwlog.RunLog.Errorf("%s not installed yet, cannot %s", ics.name, ics.operate)
 			fmt.Printf("%s not installed yet, cannot %s\n", ics.name, ics.operate)
 		}
+		hwlog.RunLog.Errorf("delete ics from install param json failed, error: %v", err)
 		return err
 	}
 	if exist := fileutils.IsExist(ics.pathMgr.GetIcsPath()); !exist {
@@ -248,13 +252,13 @@ func (ics icsManager) Operate() error {
 	switch ics.operate {
 	case util.StartOperateFlag:
 		if err := ics.exchange(); err != nil {
-			hwlog.RunLog.Errorf("%s %s when exchage ca failed:%v", ics.name, ics.operate, err)
+			hwlog.RunLog.Errorf("%s %s when exchange ca failed: %v", ics.name, ics.operate, err)
 			return err
 		}
 	case util.StopOperateFlag:
 	case util.RestartOperateFlag:
 		if err := ics.exchange(); err != nil {
-			hwlog.RunLog.Errorf("%s %s when exchage ca failed:%v", ics.name, ics.operate, err)
+			hwlog.RunLog.Errorf("%s %s when exchange ca failed: %v", ics.name, ics.operate, err)
 			return err
 		}
 	case util.UninstallFlag:

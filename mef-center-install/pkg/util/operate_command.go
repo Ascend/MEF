@@ -64,7 +64,8 @@ func (cc *CtlComponent) stopComponent() error {
 	nsMgr := NewNamespaceMgr(MefNamespace)
 	ret, err := nsMgr.checkNameSpaceExist()
 	if err != nil {
-		return err
+		hwlog.RunLog.Errorf("check whether the namespace %s exists failed, error: %v", nsMgr.namespace, err)
+		return fmt.Errorf("check whether the namespace %s exists failed", nsMgr.namespace)
 	}
 	if !ret {
 		hwlog.RunLog.Warnf("namespace %s does not exist, no component could start", MefNamespace)

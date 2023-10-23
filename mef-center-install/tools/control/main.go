@@ -146,6 +146,7 @@ func (uc *uninstallController) doControl() error {
 	}
 	controlMgr := control.GetSftUninstallMgrIns(installedComponents, installPathMgr)
 	if err := controlMgr.DoUninstall(); err != nil {
+		hwlog.RunLog.Errorf("uninstall failed, error: %v", err)
 		return err
 	}
 	return nil
@@ -356,7 +357,7 @@ func (ukc *updateKmcController) getName() string {
 	return ukc.operate
 }
 
-type manageThridComponent struct {
+type manageThirdComponent struct {
 	installParam *util.InstallParamJsonTemplate
 	component    string
 	operate      string
@@ -371,7 +372,7 @@ const (
 	installCrlPathFlag     = "install_crl_file"
 )
 
-func (mtc *manageThridComponent) bindFlag() bool {
+func (mtc *manageThirdComponent) bindFlag() bool {
 	flag.StringVar(&(mtc.component), componentFlag, "", "component name, only support [ics-manager]")
 	flag.StringVar(&(mtc.operate), operateFlag, "", "manage third component operate, only support [install, uninstall]")
 	flag.StringVar(&(mtc.InstallPackagePath), installPackagePathFlag, "",
@@ -385,11 +386,11 @@ func (mtc *manageThridComponent) bindFlag() bool {
 	return true
 }
 
-func (mtc *manageThridComponent) setInstallParam(installParam *util.InstallParamJsonTemplate) {
+func (mtc *manageThirdComponent) setInstallParam(installParam *util.InstallParamJsonTemplate) {
 	mtc.installParam = installParam
 }
 
-func (mtc *manageThridComponent) doControl() error {
+func (mtc *manageThirdComponent) doControl() error {
 	pathMgr, err := util.InitInstallDirPathMgr()
 	if err != nil {
 		hwlog.RunLog.Errorf("init install path mgr failed: %v", err)
@@ -405,25 +406,25 @@ func (mtc *manageThridComponent) doControl() error {
 	return nil
 }
 
-func (mtc *manageThridComponent) printExecutingLog(ip, user string) {
+func (mtc *manageThirdComponent) printExecutingLog(ip, user string) {
 	hwlog.RunLog.Info("-------------------start to manage third component-------------------")
 	hwlog.OpLog.Infof("[%s@%s] start to manage third component", user, ip)
 	fmt.Println("start to manage third component")
 }
 
-func (mtc *manageThridComponent) printSuccessLog(user, ip string) {
+func (mtc *manageThirdComponent) printSuccessLog(user, ip string) {
 	hwlog.RunLog.Info("-------------------manage third component successful-------------------")
 	hwlog.OpLog.Infof("[%s@%s] manage third component successful", user, ip)
 	fmt.Println("manage third component successful")
 }
 
-func (mtc *manageThridComponent) printFailedLog(user, ip string) {
+func (mtc *manageThirdComponent) printFailedLog(user, ip string) {
 	hwlog.RunLog.Error("-------------------manage third component failed-------------------")
 	hwlog.OpLog.Errorf("[%s@%s] manage third component failed", user, ip)
 	fmt.Println("manage third component failed")
 }
 
-func (mtc *manageThridComponent) getName() string {
+func (mtc *manageThirdComponent) getName() string {
 	return mtc.lockOperate
 }
 
@@ -580,8 +581,7 @@ func handle() int {
 		hwlog.RunLog.Error(err)
 		return util.ErrorExitCode
 	}
-	err = envutils.GetFlock(util.MefCenterLock).Lock(curController.getName())
-	if err != nil {
+	if err = envutils.GetFlock(util.MefCenterLock).Lock(curController.getName()); err != nil {
 		fmt.Println("execute command failed: the last is not complete")
 		hwlog.RunLog.Error("execute command failed: the last is not complete, has not been unlocked yet")
 		hwlog.OpLog.Errorf("[%s@%s] execute command failed", user, ip)
@@ -633,7 +633,7 @@ func getOperateMap(operate string) map[string]controller {
 		util.ExchangeCaFlag:       &exchangeCertsController{operate: operate},
 		util.UpdateKmcFlag:        &updateKmcController{operate: operate},
 		util.ImportCrlFlag:        &importCrlController{operate: operate},
-		util.ManageThirdComponent: &manageThridComponent{operate: operate},
+		util.ManageThirdComponent: &manageThirdComponent{operate: operate},
 		util.AlarmCfgFlag:         &alarmCfgController{operate: operate},
 		util.GetAlarmCfgFlag:      &getAlarmCfgController{operate: operate},
 	}

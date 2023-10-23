@@ -255,7 +255,8 @@ func issueCertForEdge(msg *model.Message) (*model.Message, bool, error) {
 	}
 	respMsg, err := msg.NewResponse()
 	if err != nil {
-		return nil, false, err
+		hwlog.RunLog.Errorf("new response for issuing cert to edge failed, error: %v", err)
+		return nil, false, errors.New("new response failed")
 	}
 	respMsg.SetRouter(
 		common.CloudHubName,

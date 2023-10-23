@@ -105,8 +105,8 @@ func authServer() {
 func GetSvrSender() (websocketmgr.WsSvrSender, error) {
 	if !initFlag {
 		if _, err := InitServer(); err != nil {
-			hwlog.RunLog.Errorf("init websocket server failed before sending message to mef-edge, error: %v", err)
-			return websocketmgr.WsSvrSender{}, errors.New("init websocket server failed before sending message to mef-edge")
+			hwlog.RunLog.Errorf("init websocket server failed before sending message to edge, error: %v", err)
+			return websocketmgr.WsSvrSender{}, errors.New("init websocket server failed before sending message to edge")
 		}
 	}
 	return serverSender, nil

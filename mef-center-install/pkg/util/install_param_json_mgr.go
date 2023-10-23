@@ -12,6 +12,7 @@ import (
 	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -28,13 +29,15 @@ func GetInstallParamJsonInfo(jsonPath string) (*InstallParamJsonTemplate, error)
 	installParam := InstallParamJsonTemplate{}
 	if err := installParam.initFromFilePath(jsonPath); err == nil {
 		if err := backuputils.NewBackupFileMgr(jsonPath).BackUp(); err != nil {
+			hwlog.RunLog.Warn("create backup of install-param.json failed")
 			fmt.Println("warning: create backup of install-param.json failed")
 		}
 		return &installParam, nil
 	}
 	fmt.Println("get install param json failed, try restore from backup")
 	if err := backuputils.NewBackupFileMgr(jsonPath).Restore(); err != nil {
-		return nil, fmt.Errorf("restore install-param.json from backup failed, %s", err.Error())
+		hwlog.RunLog.Errorf("restore install-param.json from backup failed, error: %v", err)
+		return nil, errors.New("restore install-param.json from backup failed")
 	}
 	if err := installParam.initFromFilePath(jsonPath); err != nil {
 		return nil, err
@@ -44,15 +47,17 @@ func GetInstallParamJsonInfo(jsonPath string) (*InstallParamJsonTemplate, error)
 
 func (ins *InstallParamJsonTemplate) initFromFilePath(jsonPath string) error {
 	if !fileutils.IsExist(jsonPath) {
+		hwlog.RunLog.Error("install_param.json not exist")
 		return errors.New("install_param.json not exist")
 	}
 	file, err := fileutils.LoadFile(jsonPath)
 	if err != nil {
-		return fmt.Errorf("read component json failed: %s", err.Error())
+		hwlog.RunLog.Errorf("read component json failed: %s", err.Error())
+		return errors.New("read component json failed")
 	}
-	err = json.Unmarshal(file, ins)
-	if err != nil {
-		return fmt.Errorf("parse json file failed: %s", err.Error())
+	if err = json.Unmarshal(file, ins); err != nil {
+		hwlog.RunLog.Errorf("parse json file failed: %s", err.Error())
+		return errors.New("parse json file failed")
 	}
 	return nil
 }
