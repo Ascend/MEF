@@ -180,7 +180,7 @@ func (ics icsManager) prepareFile(tarPath, cmsPath, crlPath string) (string, err
 
 	hwlog.RunLog.Infof("verify %s package success", ics.name)
 	unpackTarPath := ics.pathMgr.GetIcsTempTarPath()
-	if err := common.ExtraTarGzFile(tarPath, unpackTarPath, true); err != nil {
+	if err := fileutils.ExtraTarGzFile(tarPath, unpackTarPath, true); err != nil {
 		hwlog.RunLog.Errorf("unzip tar file failed: %s", err.Error())
 		return "", errors.New("unzip tar file failed")
 	}
