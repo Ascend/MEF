@@ -195,7 +195,7 @@ func (upf *UpgradePreFlowMgr) unzipTarFile() error {
 		return errors.New("tarPath is nil")
 	}
 
-	if err := common.ExtraTarGzFile(upf.tarPath, upf.unpackPath, true); err != nil {
+	if err := fileutils.ExtraTarGzFile(upf.tarPath, upf.unpackPath, true); err != nil {
 		hwlog.RunLog.Errorf("unzip tar file failed: %s", err.Error())
 		return errors.New("unzip tar file failed")
 	}
