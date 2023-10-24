@@ -34,7 +34,6 @@ type NodeService interface {
 	listManagedNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
 	listUnManagedNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
 	countAllNodesByName(string) (int64, error)
-	countNodeBySn(string) (int64, error)
 	listAllNodesByName(uint64, uint64, string) (*[]NodeInfo, error)
 	updateNodeInfoBySerialNumber(string, *NodeInfo) error
 	getNodeByUniqueName(string) (*NodeInfo, error)
@@ -173,11 +172,6 @@ func (n *NodeServiceImpl) getNodeInfoBySerialNumber(name string) (*NodeInfo, err
 func (n *NodeServiceImpl) countNodeByGroup(groupID uint64) (int64, error) {
 	var num int64
 	return num, n.db().Model(NodeRelation{}).Where("group_id = ?", groupID).Count(&num).Error
-}
-
-func (n *NodeServiceImpl) countNodeBySn(sn string) (int64, error) {
-	var num int64
-	return num, n.db().Model(NodeInfo{}).Where("serial_number=?", sn).Count(&num).Error
 }
 
 // GetNodeGroupByID get node group info by group id

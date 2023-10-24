@@ -689,12 +689,12 @@ func updateNodeSoftwareInfo(input interface{}) common.RespMsg {
 	}
 
 	nodeInfo, err := NodeServiceInstance().getNodeInfoBySerialNumber(req.SerialNumber)
-	if err != nil && err != gorm.ErrRecordNotFound {
+	if err != nil {
 		hwlog.RunLog.Errorf("get node info [%s] failed:%v", req.SerialNumber, err)
 		return common.RespMsg{Status: "", Msg: "get node info failed", Data: nil}
 	}
 
-	count, err := NodeServiceInstance().countNodeBySn(req.SerialNumber)
+	count, err := GetTableCount(NodeInfo{})
 	if err != nil && err != gorm.ErrRecordNotFound {
 		hwlog.RunLog.Errorf("get nodes count failed: %v", err)
 		return common.RespMsg{Status: "", Msg: "get node info failed", Data: nil}

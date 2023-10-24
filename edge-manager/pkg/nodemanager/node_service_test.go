@@ -859,8 +859,6 @@ func testUpdateNodeSoftwareInfo() {
 		CreatedAt:    time.Now().Format(TimeFormat),
 		UpdatedAt:    time.Now().Format(TimeFormat),
 	}
-	res := env.createNode(node)
-	convey.So(res, convey.ShouldBeNil)
 
 	sfwInfo := types.SoftwareInfo{
 		InactiveVersion: "v1.12",
@@ -869,7 +867,7 @@ func testUpdateNodeSoftwareInfo() {
 	}
 
 	req := types.EdgeReportSoftwareInfoReq{
-		SerialNumber: node.SerialNumber,
+		SerialNumber: "test-update-node-software-info-2-serial-number",
 		SoftwareInfo: []types.SoftwareInfo{sfwInfo},
 	}
 	reqByte, err := json.Marshal(req)
@@ -877,10 +875,13 @@ func testUpdateNodeSoftwareInfo() {
 		fmt.Printf("marshal req failed, error: %v", err)
 	}
 	resp := updateNodeSoftwareInfo(string(reqByte))
-	convey.So(resp.Status, convey.ShouldEqual, common.Success)
+	convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
+
+	res := env.createNode(node)
+	convey.So(res, convey.ShouldBeNil)
 
 	req = types.EdgeReportSoftwareInfoReq{
-		SerialNumber: "test-update-node-software-info-2-serial-number",
+		SerialNumber: node.SerialNumber,
 		SoftwareInfo: []types.SoftwareInfo{sfwInfo},
 	}
 	reqByte, err = json.Marshal(req)
