@@ -353,11 +353,16 @@ func updateLocalCrlFile(verifyCrl string) error {
 		hwlog.RunLog.Errorf("create crl dir [%s] failed, error: %v", util.CrlOnDeviceDir, err)
 		return fmt.Errorf("create crl dir [%s] failed", util.CrlOnDeviceDir)
 	}
-
 	crlOnDevicePath := filepath.Join(util.CrlOnDeviceDir, util.CrlOnDeviceName)
 	if err := fileutils.CopyFile(verifyCrl, crlOnDevicePath); err != nil {
 		hwlog.RunLog.Errorf("copy crl file [%s] failed, error: %v", verifyCrl, err)
 		return errors.New("copy crl file failed")
+	}
+
+	if _, err := fileutils.RealFileCheck(
+		crlOnDevicePath, true, false, fileutils.Size10M); err != nil {
+		hwlog.RunLog.Errorf("check file [%s] failed, error: %v", crlOnDevicePath, err)
+		return fmt.Errorf("check file [%s] failed", crlOnDevicePath)
 	}
 	if err := fileutils.SetPathPermission(crlOnDevicePath, common.Mode644, false, false); err != nil {
 		hwlog.RunLog.Errorf("set new crl permission failed, error: %v", err)

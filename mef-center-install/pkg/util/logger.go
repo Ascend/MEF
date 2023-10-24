@@ -60,6 +60,10 @@ func initHwLogger(runLogConfig, opLogConfig *hwlog.LogConfig) error {
 
 // PrepareLogDumpDir prepares the log dump dir
 func PrepareLogDumpDir() error {
+	if _, err := fileutils.RealDirCheck(filepath.Dir(logDumpRootDir), true, false); err != nil {
+		return fmt.Errorf("check parent dir of log dump dir failed, %v", err)
+	}
+
 	if err := fileutils.DeleteAllFileWithConfusion(logDumpRootDir); err != nil {
 		return fmt.Errorf("delete log dump dir failed, %v", err)
 	}
