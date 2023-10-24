@@ -16,6 +16,7 @@ import (
 	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindx/mef/common/cmsverify"
 
 	"huawei.com/mindxedge/base/common"
@@ -129,7 +130,7 @@ func (upf *UpgradePreFlowMgr) checkDiskSpace() error {
 }
 
 func (upf *UpgradePreFlowMgr) checkUpgradePaths() error {
-	const maxFileSize = 512 * common.MB
+	const maxFileSize = 512
 	pathMap := map[string]string{
 		"tar file": upf.tarPath,
 		"cms file": upf.cmsPath,

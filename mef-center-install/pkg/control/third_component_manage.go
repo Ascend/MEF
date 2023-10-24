@@ -14,7 +14,6 @@ import (
 
 	"huawei.com/mindx/mef/common/cmsverify"
 
-	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
@@ -190,7 +189,7 @@ func (ics icsManager) prepareFile(tarPath, cmsPath, crlPath string) (string, err
 }
 
 func (ics icsManager) checkInstallPaths(fileTag, filePath string) error {
-	const maxFileSize = 512 * common.MB
+	const maxFileSize = 512
 
 	if !fileutils.IsExist(filePath) {
 		hwlog.RunLog.Errorf("%s does not exist", fileTag)
