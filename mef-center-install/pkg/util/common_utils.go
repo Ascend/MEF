@@ -29,16 +29,14 @@ func GetArch() (string, error) {
 func GetInstallInfo() (*InstallParamJsonTemplate, error) {
 	currentDir, err := filepath.Abs(filepath.Dir(filepath.Dir(os.Args[0])))
 	if err != nil {
-		hwlog.RunLog.Errorf("get current absolute path failed, error: %v", err)
-		fmt.Println("get current absolute path failed")
+		fmt.Printf("get current absolute path error: %v\n", err)
 		return nil, err
 	}
 
 	paramJsonPath := path.Join(currentDir, InstallParamJson)
 	paramJsonMgr, err := GetInstallParamJsonInfo(paramJsonPath)
 	if err != nil {
-		hwlog.RunLog.Errorf("get install info failed, error: %v", err)
-		fmt.Println("get install info failed")
+		fmt.Printf("get install info error: %v\n", err)
 		return nil, err
 	}
 
