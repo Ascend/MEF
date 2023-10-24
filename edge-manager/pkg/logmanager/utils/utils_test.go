@@ -49,8 +49,8 @@ func TestCleanTempFiles(t *testing.T) {
 		convey.So(err, convey.ShouldBeNil)
 
 		exists, err := CleanTempFiles()
-		convey.So(err, convey.ShouldBeNil)
-		convey.So(exists, convey.ShouldBeTrue)
+		convey.So(err, convey.ShouldNotBeNil)
+		convey.So(exists, convey.ShouldBeFalse)
 	})
 	convey.Convey("test clean temp files", t, func() {
 		err := os.Chmod(constants.LogDumpTempDir, common.Mode755)
