@@ -64,6 +64,19 @@ func doInstall() error {
 func checkPath() error {
 	var err error
 
+	currentInstallerPath, err := os.Executable()
+	if err != nil {
+		return err
+	}
+	currentInstallerDir, err := filepath.Abs(filepath.Dir(currentInstallerPath))
+	if err != nil {
+		return err
+	}
+
+	if currentInstallerDir, err = fileutils.RealDirCheck(currentInstallerDir, true, false); err != nil {
+		return fmt.Errorf("check installer path failed: %s", err.Error())
+	}
+
 	if logRootPath, err = checkSinglePath(logRootPath); err != nil {
 		return fmt.Errorf("check log root path failed: %s", err.Error())
 	}
