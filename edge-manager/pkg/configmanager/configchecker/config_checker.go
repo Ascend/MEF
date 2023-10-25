@@ -9,6 +9,7 @@ import (
 
 	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/checker/valuer"
+	"huawei.com/mindx/common/utils"
 )
 
 const invalidChar = ':'
@@ -26,10 +27,14 @@ func (cc *configChecker) init() {
 	cc.configCheck.Checker = checker.GetAndChecker(
 		checker.GetRegChecker("Account", nameReg, true),
 		checker.GetOrChecker(
-			checker.GetRegChecker("Domain", domainReg, true),
+			checker.GetAndChecker(
+				checker.GetRegChecker("Domain", domainReg, true),
+				checker.GetStringExcludeChecker("Domain", []string{"localhost"}, true),
+			),
 			checker.GetAndChecker(
 				checker.GetStringChoiceChecker("Domain", []string{""}, true),
 				checker.GetIpV4Checker("IP", true),
+				&localIpChecker{},
 			),
 		),
 		checker.GetListChecker("Password",
@@ -64,6 +69,20 @@ func (i *invalidCharChecker) Check(data interface{}) checker.CheckResult {
 	}
 	if value == invalidChar {
 		return checker.NewFailedResult("password contains invalid character")
+	}
+	return checker.NewSuccessResult()
+}
+
+type localIpChecker struct{}
+
+func (i *localIpChecker) Check(data interface{}) checker.CheckResult {
+	strValuer := valuer.StringValuer{}
+	value, err := strValuer.GetValue(data, "")
+	if err != nil {
+		return checker.NewFailedResult(fmt.Sprintf("get string value failed, error: %v", err))
+	}
+	if utils.IsLocalIp(value) {
+		return checker.NewFailedResult("ip cannot be loopBack address")
 	}
 	return checker.NewSuccessResult()
 }

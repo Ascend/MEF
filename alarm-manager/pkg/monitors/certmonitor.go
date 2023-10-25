@@ -44,8 +44,8 @@ func registerCertMonitor(dbPath string) error {
 		alarmConfigDir := filepath.Dir(dbPath)
 		alarmDbMgr := common.NewDbMgr(alarmConfigDir, common.AlarmConfigDBName)
 		period, err := alarmDbMgr.GetAlarmConfig(common.CertCheckPeriodDB)
-		if err != nil {
-			hwlog.RunLog.Errorf("get alarm config cert check period failed, error: %v", err)
+		if err != nil || period == 0 {
+			hwlog.RunLog.Error("get alarm config cert check period failed")
 			time.Sleep(getConfigWaitTime)
 			continue
 		}

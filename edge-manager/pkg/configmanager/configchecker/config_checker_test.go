@@ -55,6 +55,7 @@ func testInvalidDomain() {
 		"fd.test.com-",
 		"-fd.test.com",
 		".fd.test.com",
+		"localhost",
 	}
 	for _, data := range testData {
 		imageCfg.Domain = data
@@ -68,6 +69,7 @@ func testInvalidIp() {
 	testData := []string{
 		"0.0.0.0",
 		"255.255.255.255",
+		"127.0.0.1",
 	}
 	imageCfg.Domain = ""
 	for _, data := range testData {
