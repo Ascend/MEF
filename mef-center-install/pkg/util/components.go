@@ -368,18 +368,17 @@ func (c *ComponentMgr) PrepareLogDir(pathMgr *LogDirPathMgr) error {
 		return fmt.Errorf("prepare component [%s] log dir failed", c.name)
 	}
 
-	if _, err := fileutils.CheckOriginPath(logDir); err != nil {
-		hwlog.RunLog.Errorf("check component [%s] Log Dir failed: %s", c.name, err.Error())
-		return fmt.Errorf("check component [%s] log dir failed", c.name)
-	}
-
 	mefUid, mefGid, err := GetMefId()
 	if err != nil {
 		hwlog.RunLog.Errorf("get mef uid or gid failed: %s", err.Error())
 		return errors.New("get mef uid or gid failed")
 	}
-
-	if err = os.Chown(logDir, int(mefUid), int(mefGid)); err != nil {
+	linkChecker := fileutils.NewFileLinkChecker(false)
+	chownParam := fileutils.SetOwnerParam{
+		Path: logDir, Uid: mefUid, Gid: mefGid, Recursive: false, IgnoreFile: false,
+		CheckerParam: []fileutils.FileChecker{linkChecker},
+	}
+	if err = fileutils.SetPathOwnerGroup(chownParam); err != nil {
 		hwlog.RunLog.Errorf("set path [%s] owner failed, error: %s", logDir, err.Error())
 		return errors.New("set run script path owner failed")
 	}
