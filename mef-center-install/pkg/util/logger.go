@@ -19,7 +19,8 @@ const (
 	opLogMaxBackups  = 10
 	runLogMaxBackups = 30
 
-	logDumpRootDir = "/var/mef_logcollect"
+	// LogDumpRootDir is the dir to store log-dumping temp files
+	LogDumpRootDir = "/var/mef_logcollect"
 )
 
 func newLogConfig(LogFileName string, logBackupDir string, maxBackups int) *hwlog.LogConfig {
@@ -60,14 +61,14 @@ func initHwLogger(runLogConfig, opLogConfig *hwlog.LogConfig) error {
 
 // PrepareLogDumpDir prepares the log dump dir
 func PrepareLogDumpDir() error {
-	if _, err := fileutils.RealDirCheck(filepath.Dir(logDumpRootDir), true, false); err != nil {
+	if _, err := fileutils.RealDirCheck(filepath.Dir(LogDumpRootDir), true, false); err != nil {
 		return fmt.Errorf("check parent dir of log dump dir failed, %v", err)
 	}
 
-	if err := fileutils.DeleteAllFileWithConfusion(logDumpRootDir); err != nil {
+	if err := fileutils.DeleteAllFileWithConfusion(LogDumpRootDir); err != nil {
 		return fmt.Errorf("delete log dump dir failed, %v", err)
 	}
-	if err := fileutils.CreateDir(logDumpRootDir, common.Mode700); err != nil {
+	if err := fileutils.CreateDir(LogDumpRootDir, common.Mode700); err != nil {
 		return fmt.Errorf("create log dump dir failed, %v", err)
 	}
 	uid, gid, err := GetMefId()
@@ -75,7 +76,7 @@ func PrepareLogDumpDir() error {
 		return fmt.Errorf("get mef id failed, %v", err)
 	}
 	if err := fileutils.SetPathOwnerGroup(
-		fileutils.SetOwnerParam{Path: logDumpRootDir, Uid: uid, Gid: gid, IgnoreFile: true}); err != nil {
+		fileutils.SetOwnerParam{Path: LogDumpRootDir, Uid: uid, Gid: gid, IgnoreFile: true}); err != nil {
 		return fmt.Errorf("set log dump dir ownership failed, %v", err)
 	}
 	return nil
