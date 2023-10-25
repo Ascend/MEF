@@ -31,20 +31,19 @@ type Package struct {
 }
 
 func unmarshalXml(xmlPath string) (*VersionXmlTemplate, error) {
-	xmlIns := new(VersionXmlTemplate)
 	content, err := fileutils.LoadFile(xmlPath)
 	if err != nil {
 		hwlog.RunLog.Errorf("read version.xml failed: %s", err.Error())
 		return nil, errors.New("read version.xml failed")
 	}
 
-	err = xml.Unmarshal(content, xmlIns)
-	if err != nil {
+	var xmlIns VersionXmlTemplate
+	if err = xml.Unmarshal(content, &xmlIns); err != nil {
 		hwlog.RunLog.Errorf("unmarshal version.xml failed: %s", err.Error())
 		return nil, errors.New("unmarshal version.xml failed")
 	}
 
-	return xmlIns, nil
+	return &xmlIns, nil
 }
 
 // GetVersion func is used to get the inner version in version.xml
@@ -57,7 +56,7 @@ func GetVersion(xmlPath string) (string, error) {
 		return "", errors.New("marshaled version.xml is nil")
 	}
 
-	if len(xmlIns.Package) == 0 {
+	if len(xmlIns.Package) < 1 {
 		hwlog.RunLog.Error("unmarshal version.xml failed: cannot find package data")
 		return "", errors.New("unmarshal version.xml failed")
 	}

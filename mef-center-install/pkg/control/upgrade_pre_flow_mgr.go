@@ -364,7 +364,7 @@ func updateLocalCrlFile(verifyCrl string) error {
 		hwlog.RunLog.Errorf("check file [%s] failed, error: %v", crlOnDevicePath, err)
 		return fmt.Errorf("check file [%s] failed", crlOnDevicePath)
 	}
-	if err := fileutils.SetPathPermission(crlOnDevicePath, common.Mode644, false, false); err != nil {
+	if err := fileutils.SetPathPermission(crlOnDevicePath, common.Mode640, false, false); err != nil {
 		hwlog.RunLog.Errorf("set new crl permission failed, error: %v", err)
 		return errors.New("set new crl permission failed")
 	}
