@@ -4,11 +4,13 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/mef-center-install/pkg/control"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
@@ -51,6 +53,9 @@ func main() {
 }
 
 func initLog(installParam *util.InstallParamJsonTemplate) error {
+	if installParam == nil {
+		return errors.New("install param is nil")
+	}
 	logDirPath := installParam.LogDir
 	logBackupDirPath := installParam.LogBackupDir
 	logPathMgr := util.InitLogDirPathMgr(logDirPath, logBackupDirPath)

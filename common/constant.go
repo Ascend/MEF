@@ -212,7 +212,7 @@ const (
 	Mode755  = 0755
 	Mode700  = 0700
 	Mode600  = 0600
-	Mode644  = 0644
+	Mode640  = 0640
 	Mode500  = 0500
 	Mode400  = 0400
 	Umask077 = 0077

@@ -229,7 +229,11 @@ func parseEdgeManagerResp(resp common.RespMsg, groupId uint64) ([]string, error)
 		return []string{}, nil
 	}
 	if status != common.Success {
-		return []string{}, errors.New(common.ErrorMap[resp.Status])
+		errMsg, ok := common.ErrorMap[resp.Status]
+		if !ok {
+			errMsg = "get sns from group id failed"
+		}
+		return []string{}, errors.New(errMsg)
 	}
 	dataBytes, err := json.Marshal(resp.Data)
 	if err != nil {
