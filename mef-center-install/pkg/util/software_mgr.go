@@ -128,24 +128,37 @@ func (sm *SoftwareMgr) clearNodeLabel() error {
 	return errors.New("no valid node matches the device ip found")
 }
 
-// ClearNamespace is used to clear mef-center namespace
-func (sm *SoftwareMgr) ClearNamespace() error {
+// ClearMEFUserNamespace is used to clear mef-user namespace
+func (sm *SoftwareMgr) ClearMEFUserNamespace() error {
 	fmt.Println("start to clear Namespace")
 	hwlog.RunLog.Info("start to clear Namespace")
-	nsMgr := NewNamespaceMgr(MefNamespace)
-	if err := nsMgr.ClearNamespace(); err != nil {
-		fmt.Printf("clear %s namespace failed\n", MefNamespace)
+	// mef-users namespace creates by edge-manager
+	nsMgr := NewNamespaceMgr(common.MefUserNs)
+	if err := nsMgr.ForceClearNamespace(); err != nil {
+		fmt.Printf("clear %s namespace failed\n", common.MefUserNs)
+		hwlog.RunLog.Errorf("clear %s namespace failed\n", common.MefUserNs)
 		return err
 	}
 
-	// mef-users namespace creates by edge-manager
-	nsMgr = NewNamespaceMgr(common.MefUserNs)
-	if err := nsMgr.ForceClearNamespace(); err != nil {
-		fmt.Printf("clear %s namespace failed\n", common.MefUserNs)
+	fmt.Printf("clear Namespace[%s] success\n", common.MefUserNs)
+	hwlog.RunLog.Infof("clear Namespace[%s] success", common.MefUserNs)
+	return nil
+}
+
+// ClearMEFCenterNamespace delete mef-center namespace
+func (sm *SoftwareMgr) ClearMEFCenterNamespace() error {
+	fmt.Printf("start to clear Namespace[%s]\n", MefNamespace)
+	hwlog.RunLog.Infof("start to clear Namespace[%s]", MefNamespace)
+
+	nsMgr := NewNamespaceMgr(MefNamespace)
+	if err := nsMgr.ClearNamespace(); err != nil {
+		fmt.Printf("clear %s namespace failed\n", MefNamespace)
+		hwlog.RunLog.Errorf("clear %s namespace failed\n", MefNamespace)
 		return err
 	}
-	fmt.Println("clear Namespace success")
-	hwlog.RunLog.Info("clear Namespace success")
+
+	fmt.Printf("clear Namespace success[%s]\n", MefNamespace)
+	hwlog.RunLog.Infof("clear Namespace success[%s]", MefNamespace)
 	return nil
 }
 

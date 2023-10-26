@@ -370,15 +370,7 @@ func (upf *UpgradePostFlowMgr) recordStarted() error {
 
 func (upf *UpgradePostFlowMgr) deleteNameSpace() error {
 	upf.step = util.RestartPodStep
-	hwlog.RunLog.Info("start to delete mef-center namespace")
-	fmt.Println("start to delete mef-center namespace")
-	namespaceMgr := util.NewNamespaceMgr(util.MefNamespace)
-	if err := namespaceMgr.ClearNamespace(); err != nil {
-		return err
-	}
-	hwlog.RunLog.Info("delete mef-center namespace succeeds")
-	fmt.Println("delete mef-center namespace succeeds")
-	return nil
+	return upf.ClearMEFCenterNamespace()
 }
 
 func (upf *UpgradePostFlowMgr) removeDockerImage() error {
@@ -521,7 +513,7 @@ func (upf *UpgradePostFlowMgr) clearEnv() {
 	if err := clearMgr.ClearUpgrade(); err != nil {
 		hwlog.RunLog.Errorf("clear upgrade environment failed: %s", err.Error())
 		hwlog.RunLog.Error("----------upgrade failed, restore environment failed-----------")
-		fmt.Println("clear environment failed, plz recover it manually")
+		fmt.Println("clear environment failed, please recover it manually")
 		return
 	}
 	fmt.Println("environment has been recovered")

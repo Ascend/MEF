@@ -199,7 +199,7 @@ func (scm *SftOperateMgr) dealUpgradeFlag() error {
 	}
 
 	if scm.operate != util.StartOperateFlag {
-		fmt.Println("the last upgrade was terminated unexpectedly, plz use start operate to recovery first")
+		fmt.Println("the last upgrade was terminated unexpectedly, please use start operation to recovery first")
 		hwlog.RunLog.Error("the last upgrade was terminated unexpectedly, needs to recovery first")
 		return errors.New("needs to recovery environment")
 	}
@@ -213,7 +213,7 @@ func (scm *SftOperateMgr) dealUpgradeFlag() error {
 	if err := clearMgr.ClearUpgrade(); err != nil {
 		hwlog.RunLog.Errorf("clear upgrade environment failed: %s", err.Error())
 		hwlog.RunLog.Error("----------restore environment failed-----------")
-		fmt.Println("clear environment failed, plz recover it manually")
+		fmt.Println("clear environment failed, please recover it manually")
 		return err
 	}
 	fmt.Println("environment has been recovered")
