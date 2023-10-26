@@ -157,6 +157,10 @@ func getContainers(containerInfos []Container) ([]v1.Container, error) {
 					Add:  nil,
 					Drop: []v1.Capability{"All"},
 				},
+				SeccompProfile: &v1.SeccompProfile{
+					Type:             v1.SeccompProfileTypeRuntimeDefault,
+					LocalhostProfile: nil,
+				},
 			},
 		})
 	}
