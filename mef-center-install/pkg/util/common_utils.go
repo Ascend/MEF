@@ -60,7 +60,7 @@ func GetMefId() (uint32, uint32, error) {
 
 // GetLocalIps get local ips
 func GetLocalIps() ([]string, error) {
-	const maxIPLen = 20
+	const maxIPLen = 100
 	addresses, err := net.InterfaceAddrs()
 	if err != nil {
 		return nil, fmt.Errorf("get local ip address failed: %s", err.Error())
