@@ -11,6 +11,7 @@ import (
 
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
@@ -137,7 +138,7 @@ func (wdc *WorkingDirCtl) prepareRunSh() error {
 	}
 
 	runScripPath := wdc.pathMgr.GetRunShPath()
-	if err = os.Chmod(runScripPath, common.Mode500); err != nil {
+	if err = fileutils.SetPathPermission(runScripPath, common.Mode500, false, false); err != nil {
 		hwlog.RunLog.Errorf("set path [%s] mode failed, error: %s", runScripPath, err.Error())
 		return errors.New("set run script path mode failed")
 	}
@@ -184,7 +185,7 @@ func (wdc *WorkingDirCtl) prepareVersionXml() error {
 	}
 
 	versionXmlPath := wdc.pathMgr.GetVersionXmlPath()
-	if err = os.Chmod(versionXmlPath, common.Mode400); err != nil {
+	if err = fileutils.SetPathPermission(versionXmlPath, common.Mode400, false, false); err != nil {
 		hwlog.RunLog.Errorf("set path [%s] mode failed, error: %s", versionXmlPath, err.Error())
 		return errors.New("set version.xml path mode failed")
 	}

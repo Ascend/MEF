@@ -36,10 +36,10 @@ func PrepareTempDirs() error {
 	}
 	dirs := []string{constants.LogDumpTempDir, constants.LogDumpPublicDir}
 	for _, dir := range dirs {
-		if err := os.RemoveAll(dir); err != nil && !errors.Is(err, os.ErrNotExist) {
+		if err := fileutils.DeleteAllFileWithConfusion(dir); err != nil && !errors.Is(err, os.ErrNotExist) {
 			return err
 		}
-		if err := os.MkdirAll(dir, common.Mode700); err != nil {
+		if err := fileutils.CreateDir(dir, common.Mode700); err != nil {
 			return err
 		}
 	}
@@ -50,7 +50,7 @@ func PrepareTempDirs() error {
 func CleanupTempDirs() error {
 	dirs := []string{constants.LogDumpTempDir, constants.LogDumpPublicDir}
 	for _, dir := range dirs {
-		if err := os.RemoveAll(dir); err != nil && errors.Is(err, os.ErrNotExist) {
+		if err := fileutils.DeleteAllFileWithConfusion(dir); err != nil && errors.Is(err, os.ErrNotExist) {
 			return err
 		}
 	}

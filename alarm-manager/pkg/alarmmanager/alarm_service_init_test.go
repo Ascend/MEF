@@ -18,6 +18,7 @@ import (
 	"github.com/agiledragon/gomonkey/v2"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"huawei.com/mindx/common/fileutils"
 
 	"huawei.com/mindx/common/database"
 	"huawei.com/mindx/common/httpsmgr"
@@ -59,7 +60,7 @@ func setup() {
 		return
 	}
 	if InitDbFlag {
-		if err = os.Remove(dbPath); err != nil && !errors.Is(err, os.ErrNotExist) {
+		if err = fileutils.DeleteFile(dbPath); err != nil && !errors.Is(err, os.ErrNotExist) {
 			hwlog.RunLog.Errorf("cleanup db failed, error: %v", err)
 			return
 		}
@@ -79,7 +80,7 @@ func setup() {
 }
 
 func teardown() {
-	if err := os.Remove(dbPath); err != nil && errors.Is(err, os.ErrExist) {
+	if err := fileutils.DeleteFile(dbPath); err != nil && errors.Is(err, os.ErrExist) {
 		hwlog.RunLog.Errorf("cleanup [%s] failed, error: %s", dbPath, err.Error())
 	}
 }

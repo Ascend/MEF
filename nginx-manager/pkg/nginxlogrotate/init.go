@@ -4,9 +4,11 @@
 package nginxlogrotate
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/logmgmt/logrotate"
 )
 
@@ -25,10 +27,10 @@ const (
 
 // Setup evaluates log rotate configurations and does basic preparation.
 func Setup() (logrotate.Configs, error) {
-	if err := os.MkdirAll(defaultLogBackupDir, defaultPermission); err != nil && os.IsExist(err) {
+	if err := fileutils.CreateDir(defaultLogBackupDir, defaultPermission); err != nil && errors.Is(err, os.ErrExist) {
 		return logrotate.Configs{}, err
 	}
-	if err := os.Chmod(defaultLogBackupDir, defaultPermission); err != nil {
+	if err := fileutils.SetPathPermission(defaultLogBackupDir, defaultPermission, false, false); err != nil {
 		return logrotate.Configs{}, err
 	}
 	accessLog := logrotate.Config{

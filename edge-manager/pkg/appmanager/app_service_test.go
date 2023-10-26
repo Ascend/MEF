@@ -16,6 +16,7 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/database"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -42,7 +43,7 @@ func setup() {
 	if err = common.InitHwlogger(logConfig, logConfig); err != nil {
 		hwlog.RunLog.Errorf("init hwlog failed, %v", err)
 	}
-	if err = os.Remove(dbPath); err != nil && !os.IsNotExist(err) {
+	if err = fileutils.DeleteFile(dbPath); err != nil && !errors.Is(err, os.ErrNotExist) {
 		hwlog.RunLog.Errorf("cleanup db failed, error: %v", err)
 	}
 	gormInstance, err = gorm.Open(sqlite.Open(dbPath))
@@ -71,7 +72,7 @@ func setup() {
 }
 
 func teardown() {
-	if err := os.Remove(dbPath); err != nil && errors.Is(err, os.ErrExist) {
+	if err := fileutils.DeleteFile(dbPath); err != nil && errors.Is(err, os.ErrExist) {
 		fmt.Printf("cleanup [%s] failed, error: %v", dbPath, err)
 	}
 }
