@@ -12,9 +12,9 @@ import (
 
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
-	"k8s.io/api/apps/v1"
 
 	"edge-manager/pkg/appmanager/appchecker"
+	"edge-manager/pkg/config"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
 	"edge-manager/pkg/util"
@@ -225,14 +225,12 @@ func deployAppToNodeGroups(appInfo *AppInfo, NodeGroupIds []uint64) types.BatchR
 	failedMap := make(map[string]string)
 	deployRes.FailedInfos = failedMap
 
-	deployedNode := make(map[uint64]int)
 	for _, nodeGroupId := range NodeGroupIds {
-		_, err := getNodeGroupInfos([]uint64{nodeGroupId})
-		if err != nil {
-			errInfo := fmt.Sprintf("init daemonSet app [%s] on node group id [%d] failed: group id no exist",
-				appInfo.AppName, nodeGroupId)
+		if err := preCheckForDeployApp(nodeGroupId); err != nil {
+			errInfo := fmt.Sprintf("pre check for deploy app [%s] on node group id [%d] failed: %s",
+				appInfo.AppName, nodeGroupId, err.Error())
 			hwlog.RunLog.Error(errInfo)
-			failedMap[strconv.Itoa(int(nodeGroupId))] = errInfo
+			failedMap[strconv.Itoa(int(nodeGroupId))] = err.Error()
 			continue
 		}
 		daemonSet, err := initDaemonSet(appInfo, nodeGroupId)
@@ -243,18 +241,28 @@ func deployAppToNodeGroups(appInfo *AppInfo, NodeGroupIds []uint64) types.BatchR
 			failedMap[strconv.Itoa(int(nodeGroupId))] = errInfo
 			continue
 		}
-		if err := checkNodeGroupRes(nodeGroupId, daemonSet, deployedNode); err != nil {
+		if err := checkNodeGroupResource(nodeGroupId, daemonSet); err != nil {
 			errInfo := fmt.Sprintf("check app [%s] resources on node group id [%d] failed: %s",
 				appInfo.AppName, nodeGroupId, err.Error())
 			hwlog.RunLog.Error(errInfo)
 			failedMap[strconv.Itoa(int(nodeGroupId))] = errInfo
 			continue
 		}
-		daemonSet, err = kubeclient.GetKubeClient().CreateDaemonSet(daemonSet)
-		if err != nil {
-			errInfo := fmt.Sprintf("app daemonSet create failed: %s", err.Error())
+		if err = appRepository.addDaemonSet(daemonSet, nodeGroupId, appInfo.ID); err != nil {
+			errInfo := fmt.Sprintf("app [%s] daemonSet create on node group id [%d] failed: %s",
+				appInfo.AppName, nodeGroupId, err.Error())
 			hwlog.RunLog.Error(errInfo)
 			failedMap[strconv.Itoa(int(nodeGroupId))] = errInfo
+			continue
+		}
+		if err := updateAllocatedNodeRes(daemonSet, nodeGroupId, false); err != nil {
+			errInfo := fmt.Sprintf("app [%s] daemonSet create on node group id [%d] failed, "+
+				"update allocated node resource error: %s", appInfo.AppName, nodeGroupId, err.Error())
+			hwlog.RunLog.Error(errInfo)
+			failedMap[strconv.Itoa(int(nodeGroupId))] = errInfo
+			if err := appRepository.deleteDaemonSet(daemonSet.Name); err != nil {
+				hwlog.RunLog.Errorf("roll back creation for daemonSet[%s] failed", daemonSet.Name)
+			}
 			continue
 		}
 		deployRes.SuccessIDs = append(deployRes.SuccessIDs, nodeGroupId)
@@ -262,24 +270,19 @@ func deployAppToNodeGroups(appInfo *AppInfo, NodeGroupIds []uint64) types.BatchR
 	return deployRes
 }
 
-func checkNodeGroupRes(nodeGroupId uint64, daemonSet *v1.DaemonSet, deployedNode map[uint64]int) error {
-	if deployedNode == nil {
-		return errors.New("nil map error")
-	}
-	var duplicatedCount int
-	nodeIDs, err := getNodesByNodeGroup(nodeGroupId)
+func preCheckForDeployApp(nodeGroupId uint64) error {
+	_, err := getNodeGroupInfos([]uint64{nodeGroupId})
 	if err != nil {
-		return fmt.Errorf("get nodes by group id [%d] failed", nodeGroupId)
+		return errors.New("group id no exist")
 	}
-	for _, nodeID := range nodeIDs {
-		count := deployedNode[nodeID]
-		count++
-		deployedNode[nodeID] = count
-		if count > duplicatedCount {
-			duplicatedCount = count
-		}
+	deployedCount, err := AppRepositoryInstance().countDeployedAppByGroupID(nodeGroupId)
+	if err != nil {
+		return errors.New("get deployed app count failed")
 	}
-	return checkNodeGroupResWithDuplicatedNode(nodeGroupId, daemonSet, duplicatedCount)
+	if deployedCount >= config.PodConfig.MaxDsNumberPerNodeGroup {
+		return errors.New("node group out of max app limit")
+	}
+	return nil
 }
 
 // unDeployApp deploy application on node group
@@ -301,27 +304,49 @@ func unDeployApp(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("get app info error, undeploy app failed")
 		return common.RespMsg{Status: common.ErrorUnDeployApp, Msg: "get app info error, undeploy app failed"}
 	}
+	unDeployRes := undeployAppFromNodeGroups(appInfo, req.NodeGroupIds)
 
-	var unDeployRes types.BatchResp
-	failedMap := make(map[string]string)
-	unDeployRes.FailedInfos = failedMap
-	for _, nodeGroupId := range req.NodeGroupIds {
-		daemonSetName := formatDaemonSetName(appInfo.AppName, nodeGroupId)
-		if err = kubeclient.GetKubeClient().DeleteDaemonSet(daemonSetName); err != nil {
-			errInfo := fmt.Sprintf("undeploy app [%s] on node group id [%d] failed: %s",
-				appInfo.AppName, nodeGroupId, err.Error())
-			hwlog.RunLog.Error(errInfo)
-			failedMap[strconv.Itoa(int(nodeGroupId))] = errInfo
-			continue
-		}
-		unDeployRes.SuccessIDs = append(unDeployRes.SuccessIDs, nodeGroupId)
-	}
 	if len(unDeployRes.FailedInfos) != 0 {
 		return common.RespMsg{Status: common.ErrorUnDeployApp, Msg: "undeploy app failed", Data: unDeployRes}
 	}
 
 	hwlog.RunLog.Info("undeploy app on node group success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
+}
+
+func undeployAppFromNodeGroups(appInfo *AppInfo, NodeGroupIds []uint64) types.BatchResp {
+	var unDeployRes types.BatchResp
+	failedMap := make(map[string]string)
+	unDeployRes.FailedInfos = failedMap
+	for _, nodeGroupId := range NodeGroupIds {
+		daemonSetName := formatDaemonSetName(appInfo.AppName, nodeGroupId)
+		daemonSet, err := kubeclient.GetKubeClient().GetDaemonSet(daemonSetName)
+		if err != nil {
+			errInfo := fmt.Sprintf("undeploy app [%s] on node group id [%d] failed: %s",
+				appInfo.AppName, nodeGroupId, err.Error())
+			hwlog.RunLog.Error(errInfo)
+			failedMap[strconv.Itoa(int(nodeGroupId))] = errInfo
+			continue
+		}
+		if err = appRepository.deleteDaemonSet(daemonSetName); err != nil {
+			errInfo := fmt.Sprintf("undeploy app [%s] on node group id [%d] failed: %s",
+				appInfo.AppName, nodeGroupId, err.Error())
+			hwlog.RunLog.Error(errInfo)
+			failedMap[strconv.Itoa(int(nodeGroupId))] = errInfo
+			continue
+		}
+		if err := updateAllocatedNodeRes(daemonSet, nodeGroupId, true); err != nil {
+			errInfo := fmt.Sprintf("undeploy app [%s] on node group id [%d] failed, "+
+				"update allocated node resource error: %s", appInfo.AppName, nodeGroupId, err.Error())
+			hwlog.RunLog.Error(errInfo)
+			failedMap[strconv.Itoa(int(nodeGroupId))] = errInfo
+			if err := appRepository.addDaemonSet(daemonSet, nodeGroupId, appInfo.ID); err != nil {
+				hwlog.RunLog.Errorf("roll back deletion for daemonSet[%s] failed", daemonSet.Name)
+			}
+		}
+		unDeployRes.SuccessIDs = append(unDeployRes.SuccessIDs, nodeGroupId)
+	}
+	return unDeployRes
 }
 
 func updateNodeGroupDaemonSet(appInfo *AppInfo, nodeGroups []types.NodeGroupInfo) error {
@@ -497,19 +522,20 @@ func getAppInstanceRespFromAppInstances(appInstances []AppInstance) ([]AppInstan
 				instance.AppID, instance.NodeID, err)
 			continue
 		}
-		nodeGroupName, err := AppRepositoryInstance().getNodeGroupName(instance.AppID, instance.NodeGroupID)
-		if err != nil {
-			hwlog.RunLog.Warnf("get app id [%d] node group [%d] name failed, db error",
-				instance.AppID, instance.NodeGroupID)
+
+		nodeInfos, err := getNodeGroupInfos([]uint64{instance.NodeGroupID})
+		if err != nil || len(nodeInfos) != 1 {
+			hwlog.RunLog.Warnf("get node group [%d] name failed, node manager error", instance.NodeGroupID)
 			continue
 		}
+
 		createdAt := instance.CreatedAt.Format(common.TimeFormat)
 		resp := AppInstanceResp{
 			AppID:   instance.AppID,
 			AppName: instance.AppName,
 			NodeGroupInfo: types.NodeGroupInfo{
 				NodeGroupID:   instance.NodeGroupID,
-				NodeGroupName: nodeGroupName,
+				NodeGroupName: nodeInfos[0].NodeGroupName,
 			},
 			NodeID:        instance.NodeID,
 			NodeName:      instance.NodeName,

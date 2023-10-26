@@ -15,7 +15,9 @@ var PodConfig podConfigInfo
 
 // podConfigInfo [struct] for save pod config
 type podConfigInfo struct {
-	HostPath []string
+	HostPath                []string
+	MaxPodNumberPerNode     int64 `json:"maxPodNumberPerNode,omitempty"`
+	MaxDsNumberPerNodeGroup int64 `json:"maxDsNumberPerNodeGroup,omitempty"`
 }
 
 // CheckAndModifyHostPath [method] do check and modification job
@@ -36,4 +38,17 @@ func CheckAndModifyHostPath(hostPath []string) []string {
 		hostPathTmp = append(hostPathTmp, filepath.Clean(hostPath[i]))
 	}
 	return hostPathTmp
+}
+
+// CheckAndModifyMaxLimitNumber [method] init max pod/daemonSet number for check
+func CheckAndModifyMaxLimitNumber(number int64) int64 {
+	const (
+		defaultMaxLimitNumber = 20
+		minLimitNumber        = 1
+		maxLimitNumber        = 128
+	)
+	if number < minLimitNumber || number > maxLimitNumber {
+		return defaultMaxLimitNumber
+	}
+	return number
 }

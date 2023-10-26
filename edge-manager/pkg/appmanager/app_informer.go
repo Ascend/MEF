@@ -12,7 +12,6 @@ import (
 	"sync"
 
 	"huawei.com/mindx/common/hwlog"
-	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -33,7 +32,6 @@ const (
 
 type appStatusServiceImpl struct {
 	podInformer          cache.SharedIndexInformer
-	daemonSetInformer    cache.SharedIndexInformer
 	podStatusCache       map[string]string
 	containerStatusCache map[string]containerStatus
 	appStatusCacheLock   sync.RWMutex
@@ -116,16 +114,10 @@ func (a *appStatusServiceImpl) initInformer(client *kubernetes.Clientset, stopCh
 			options.LabelSelector = LabelSelector
 		}))
 	appStatusService.podInformer = informerFactory.Core().V1().Pods().Informer()
-	appStatusService.daemonSetInformer = informerFactory.Apps().V1().DaemonSets().Informer()
 	a.podInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    a.addPod,
 		UpdateFunc: a.updatePod,
 		DeleteFunc: a.deletePod,
-	})
-	a.daemonSetInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc:    a.addDaemonSet,
-		UpdateFunc: a.updateDaemonSet,
-		DeleteFunc: a.deleteDaemonSet,
 	})
 	informerFactory.Start(stopCh)
 }
@@ -136,18 +128,10 @@ func (a *appStatusServiceImpl) run(stopCh <-chan struct{}) error {
 		hwlog.RunLog.Error("failed to delete remaining app instance before sync caches")
 		return err
 	}
-	if err := AppRepositoryInstance().deleteAllRemainingDaemonSet(); err != nil {
-		hwlog.RunLog.Error("failed to delete remaining daemon set instance before sync caches")
-		return err
-	}
 	hwlog.RunLog.Info("Waiting for app status service caches to sync")
 	if ok := cache.WaitForCacheSync(stopCh, a.podInformer.HasSynced); !ok {
 		hwlog.RunLog.Error("failed to wait for caches to sync ")
 		return errors.New("sync app status service pod caches error")
-	}
-	if ok := cache.WaitForCacheSync(stopCh, a.daemonSetInformer.HasSynced); !ok {
-		hwlog.RunLog.Error("failed to wait for caches to sync ")
-		return errors.New("sync app status service daemon set caches error")
 	}
 	return nil
 }
@@ -396,142 +380,4 @@ func getContainerStatus(containerStatus corev1.ContainerStatus) string {
 		return containerStateTerminated
 	}
 	return containerStateUnknown
-}
-
-func (a *appStatusServiceImpl) addDaemonSet(obj interface{}) {
-	daemonSet, err := parseDaemonSet(obj)
-	if err != nil {
-		hwlog.RunLog.Errorf("recovered add object, parse daemon set error: %v", err)
-		return
-	}
-	appDaemonSet, err := parseDaemonSetToDB(daemonSet)
-	if err != nil {
-		hwlog.RunLog.Errorf("recovered add daemon set, generate app daemon set error: %v", err)
-		return
-	}
-	count, err := GetTableCount(AppDaemonSet{})
-	if err != nil {
-		hwlog.RunLog.Errorf("get daemonSet table count error:%v", err)
-		return
-	}
-	if count > maxDaemonsetNum {
-		hwlog.RunLog.Errorf("daemonSet count cannot exceed %d, please delete no need daemonSet", maxDaemonsetNum)
-		return
-	}
-	if err = updateAllocatedNodeRes(daemonSet, appDaemonSet.NodeGroupID, false); err != nil {
-		hwlog.RunLog.Errorf("recovered add daemon set, update allocated node resource error: %v", err)
-		return
-	}
-	if err = AppRepositoryInstance().addDaemonSet(appDaemonSet); err != nil {
-		hwlog.RunLog.Error("recovered add object, add daemon set to db error")
-		return
-	}
-}
-
-func (a *appStatusServiceImpl) updateDaemonSet(_, newObj interface{}) {
-	daemonSet, err := parseDaemonSet(newObj)
-	if err != nil {
-		hwlog.RunLog.Errorf("recovered update object, parse daemon set error: %v", err)
-		return
-	}
-	appDaemonSet, err := parseDaemonSetToDB(daemonSet)
-	if err != nil {
-		hwlog.RunLog.Errorf("recovered update daemon set, generate app daemon set error: %v", err)
-		return
-	}
-	if err = AppRepositoryInstance().updateDaemonSet(appDaemonSet); err != nil {
-		hwlog.RunLog.Error("recovered update object, update daemon set to db error")
-		return
-	}
-}
-
-func (a *appStatusServiceImpl) deleteDaemonSet(obj interface{}) {
-	daemonSet, err := parseDaemonSet(obj)
-	if err != nil {
-		hwlog.RunLog.Errorf("recovered delete object, parse daemon set error: %v", err)
-		return
-	}
-	nodeGroupID, err := getNodeGroupIdFromDaemonSet(daemonSet)
-	if err != nil {
-		hwlog.RunLog.Errorf("recovered delete daemon set, get node group id error, %v", err)
-		return
-	}
-	if err = updateAllocatedNodeRes(daemonSet, nodeGroupID, true); err != nil {
-		hwlog.RunLog.Errorf("recovered delete daemon set, update allocated node resource error: %v", err)
-		return
-	}
-	if err = AppRepositoryInstance().deleteDaemonSet(daemonSet.Name); err != nil {
-		hwlog.RunLog.Error("recovered add object, add daemon set to db error")
-		return
-	}
-}
-
-func parseDaemonSet(obj interface{}) (*appv1.DaemonSet, error) {
-	set, ok := obj.(*appv1.DaemonSet)
-	if !ok {
-		return nil, errors.New("convert object to daemon set error")
-	}
-	return set, nil
-}
-
-func parseDaemonSetToDB(eventSet *appv1.DaemonSet) (*AppDaemonSet, error) {
-	appId, err := getAppIdFromDaemonSet(eventSet)
-	if err != nil {
-		return nil, fmt.Errorf("get app id error, %v", err)
-	}
-	nodeGroupId, err := getNodeGroupIdFromDaemonSet(eventSet)
-	if err != nil {
-		return nil, fmt.Errorf("get node group id error, %v", err)
-	}
-	nodeGroupInfos, err := getNodeGroupInfos([]uint64{nodeGroupId})
-	if err != nil {
-		return nil, fmt.Errorf("get group name or id error, %v", err)
-	}
-	if len(nodeGroupInfos) != 1 {
-		return nil, errors.New("get group name or id nums error")
-	}
-	nodeGroupInfo := nodeGroupInfos[0]
-	set := AppDaemonSet{
-		DaemonSetName: eventSet.Name,
-		AppID:         appId,
-		NodeGroupID:   nodeGroupInfo.NodeGroupID,
-		NodeGroupName: nodeGroupInfo.NodeGroupName,
-	}
-	return &set, nil
-}
-
-func getNodeGroupIdFromDaemonSet(eventSet *appv1.DaemonSet) (uint64, error) {
-	if eventSet == nil {
-		return 0, errors.New("event daemon set is nil")
-	}
-	nodeSelector := eventSet.Spec.Template.Spec.NodeSelector
-	if nodeSelector == nil {
-		return 0, errors.New("node selector is nil")
-	}
-	var nodeGroupId uint64
-	var err error
-	for labelKey := range nodeSelector {
-		if !strings.HasPrefix(labelKey, common.NodeGroupLabelPrefix) {
-			continue
-		}
-		nodeGroupId, err = strconv.ParseUint(strings.TrimPrefix(labelKey, common.NodeGroupLabelPrefix),
-			common.BaseHex, common.BitSize64)
-		if err != nil {
-			return 0, err
-		}
-	}
-	return nodeGroupId, nil
-}
-
-func getAppIdFromDaemonSet(eventSet *appv1.DaemonSet) (uint64, error) {
-	podLabels := eventSet.Spec.Template.Labels
-	value, ok := podLabels[AppId]
-	if !ok {
-		return 0, errors.New("app id label do not exist")
-	}
-	appId, err := strconv.ParseUint(value, common.BaseHex, common.BaseHex)
-	if err != nil {
-		return 0, err
-	}
-	return appId, nil
 }

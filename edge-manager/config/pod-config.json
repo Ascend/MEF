@@ -20,5 +20,7 @@
     "/usr/local/Ascend/driver/lib64",
     "/var/slogd",
     "/var/dmp_daemon"
-  ]
+  ],
+  "maxPodNumberPerNode": 20,
+  "maxDsNumberPerNodeGroup": 20
 }

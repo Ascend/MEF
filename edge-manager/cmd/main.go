@@ -178,6 +178,8 @@ func initPodConfig(configPath string) error {
 		return errors.New("unmarshal pod config failed")
 	}
 	config.PodConfig.HostPath = config.CheckAndModifyHostPath(podConfig.HostPath)
+	config.PodConfig.MaxPodNumberPerNode = config.CheckAndModifyMaxLimitNumber(podConfig.MaxPodNumberPerNode)
+	config.PodConfig.MaxDsNumberPerNodeGroup = config.CheckAndModifyMaxLimitNumber(podConfig.MaxDsNumberPerNodeGroup)
 	return nil
 }
 
