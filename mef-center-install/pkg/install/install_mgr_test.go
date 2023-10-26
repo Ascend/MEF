@@ -16,6 +16,7 @@ import (
 	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/fileutils"
+
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
@@ -353,7 +354,7 @@ func PrepareComponentLogDirTest() {
 		convey.Convey("test prepareComponentLogDir func success", func() {
 			p := gomonkey.ApplyFuncReturn(envutils.GetUid, uint32(8000), nil).
 				ApplyFuncReturn(envutils.GetGid, uint32(8000), nil).
-				ApplyFuncReturn(os.Chown, nil)
+				ApplyFuncReturn(fileutils.SetPathOwnerGroup, nil)
 			defer ResetAndClearDir(p, ins.logPathMgr.GetComponentLogPath("edge-manager"))
 			convey.So(ins.prepareComponentLogDir(), convey.ShouldBeNil)
 		})
@@ -365,7 +366,7 @@ func PrepareComponentLogDirTest() {
 		})
 
 		convey.Convey("test prepareComponentLogDir func makedir failed", func() {
-			p := gomonkey.ApplyFuncReturn(os.MkdirAll, ErrTest)
+			p := gomonkey.ApplyFuncReturn(fileutils.CreateDir, ErrTest)
 			defer p.Reset()
 			convey.So(ins.prepareComponentLogDir(), convey.ShouldResemble,
 				errors.New("prepare component [edge-manager] log dir failed"))
@@ -374,7 +375,7 @@ func PrepareComponentLogDirTest() {
 		convey.Convey("test prepareComponentLogDir func chown failed", func() {
 			p := gomonkey.ApplyFuncReturn(envutils.GetUid, uint32(8000), nil).
 				ApplyFuncReturn(envutils.GetGid, uint32(8000), nil).
-				ApplyFuncReturn(os.Chown, ErrTest)
+				ApplyFuncReturn(fileutils.SetPathOwnerGroup, ErrTest)
 			defer ResetAndClearDir(p, ins.logPathMgr.GetComponentLogPath("edge-manager"))
 			convey.So(ins.prepareComponentLogDir(), convey.ShouldResemble,
 				errors.New("set run script path owner failed"))

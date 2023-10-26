@@ -241,7 +241,7 @@ func writeKeyToPipe(pipeFile string, content []byte, deletePipeAfterUse bool) {
 			hwlog.RunLog.Error("pipe close error")
 		}
 		if deletePipeAfterUse {
-			err = os.Remove(pipeFile)
+			err = fileutils.DeleteFile(pipeFile)
 			if err != nil {
 				hwlog.RunLog.Error("pipe remove error")
 			}

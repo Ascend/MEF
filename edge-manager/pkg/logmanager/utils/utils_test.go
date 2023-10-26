@@ -11,6 +11,7 @@ import (
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
+	"huawei.com/mindx/common/fileutils"
 
 	"edge-manager/pkg/constants"
 	"edge-manager/pkg/logmanager/testutils"
@@ -33,9 +34,9 @@ func TestMain(m *testing.M) {
 
 func TestCleanTempFiles(t *testing.T) {
 	convey.Convey("test clean temp files", t, func() {
-		err := os.RemoveAll(constants.LogDumpTempDir)
+		err := fileutils.DeleteAllFileWithConfusion(constants.LogDumpTempDir)
 		convey.So(err, convey.ShouldBeNil)
-		err = os.RemoveAll(constants.LogDumpPublicDir)
+		err = fileutils.DeleteAllFileWithConfusion(constants.LogDumpPublicDir)
 		convey.So(err, convey.ShouldBeNil)
 
 		exists, err := CleanTempFiles()
@@ -43,9 +44,9 @@ func TestCleanTempFiles(t *testing.T) {
 		convey.So(exists, convey.ShouldBeFalse)
 	})
 	convey.Convey("test clean temp files", t, func() {
-		err := os.MkdirAll(constants.LogDumpTempDir, common.Mode700)
+		err := fileutils.CreateDir(constants.LogDumpTempDir, common.Mode700)
 		convey.So(err, convey.ShouldBeNil)
-		err = os.MkdirAll(constants.LogDumpPublicDir, common.Mode700)
+		err = fileutils.CreateDir(constants.LogDumpPublicDir, common.Mode700)
 		convey.So(err, convey.ShouldBeNil)
 
 		exists, err := CleanTempFiles()

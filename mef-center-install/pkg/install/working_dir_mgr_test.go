@@ -10,6 +10,7 @@ import (
 	. "github.com/agiledragon/gomonkey/v2"
 	. "github.com/smartystreets/goconvey/convey"
 	"huawei.com/mindx/common/fileutils"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
@@ -125,7 +126,7 @@ func PrepareRunShTest() {
 	}
 
 	Convey("test prepareRunSh func success", func() {
-		p := ApplyFuncReturn(fileutils.CopyFile, nil).ApplyFuncReturn(os.Chmod, nil)
+		p := ApplyFuncReturn(fileutils.CopyFile, nil).ApplyFuncReturn(fileutils.SetPathPermission, nil)
 		defer p.Reset()
 		So(ins.prepareRunSh(), ShouldBeNil)
 	})
@@ -143,7 +144,8 @@ func PrepareRunShTest() {
 	})
 
 	Convey("test prepareRunSh func change mod failed", func() {
-		p := ApplyFuncReturn(fileutils.CopyFile, nil).ApplyFuncReturn(os.Chmod, ErrTest)
+		p := ApplyFuncReturn(fileutils.CopyFile, nil).ApplyFuncReturn(os.Chmod, ErrTest).
+			ApplyFuncReturn(fileutils.SetPathPermission, ErrTest)
 		defer p.Reset()
 		So(ins.prepareRunSh(), ShouldResemble, errors.New("set run script path mode failed"))
 	})
@@ -190,7 +192,8 @@ func PrepareVersionXmlTest() {
 	}
 
 	Convey("test func prepareVersionXm func success", func() {
-		p := ApplyFuncReturn(fileutils.CopyFile, nil).ApplyFuncReturn(os.Chmod, nil)
+		p := ApplyFuncReturn(fileutils.CopyFile, nil).ApplyFuncReturn(os.Chmod, nil).
+			ApplyFuncReturn(fileutils.SetPathPermission, nil)
 		defer p.Reset()
 		So(ins.prepareVersionXml(), ShouldBeNil)
 	})
@@ -208,7 +211,7 @@ func PrepareVersionXmlTest() {
 	})
 
 	Convey("test func prepareVersionXm func change mod failed", func() {
-		p := ApplyFuncReturn(fileutils.CopyFile, nil).ApplyFuncReturn(os.Chmod, ErrTest)
+		p := ApplyFuncReturn(fileutils.CopyFile, nil).ApplyFuncReturn(fileutils.SetPathPermission, ErrTest)
 		defer p.Reset()
 		So(ins.prepareVersionXml(), ShouldResemble, errors.New("set version.xml path mode failed"))
 	})

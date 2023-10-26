@@ -6,6 +6,7 @@ import (
 	"os"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"huawei.com/mindx/common/fileutils"
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
@@ -58,7 +59,7 @@ func testGetYamlPath() {
 		So(err, ShouldBeNil)
 	}()
 	defer func() {
-		err = os.RemoveAll("./test.yaml")
+		err = fileutils.DeleteAllFileWithConfusion("./test.yaml")
 		So(err, ShouldBeNil)
 	}()
 	_, err = writer.Write([]byte(yamlContent))

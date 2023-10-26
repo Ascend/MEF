@@ -5,12 +5,13 @@ package install
 import (
 	"errors"
 	"fmt"
-	"os"
 	"testing"
 
 	. "github.com/agiledragon/gomonkey/v2"
 	. "github.com/smartystreets/goconvey/convey"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -20,7 +21,7 @@ func ResetAndClearDir(p *Patches, clearPath string) {
 	if p != nil {
 		p.Reset()
 	}
-	err := os.RemoveAll(clearPath)
+	err := fileutils.DeleteAllFileWithConfusion(clearPath)
 	So(err, ShouldBeNil)
 }
 

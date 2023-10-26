@@ -14,6 +14,7 @@ import (
 
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/install"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
@@ -467,7 +468,7 @@ func (upf *UpgradePostFlowMgr) resetSoftLink() error {
 	}
 
 	if fileutils.IsExist(upf.InstallPathMgr.GetWorkPath()) {
-		if err = os.Remove(upf.InstallPathMgr.GetWorkPath()); err != nil {
+		if err = fileutils.DeleteFile(upf.InstallPathMgr.GetWorkPath()); err != nil {
 			hwlog.RunLog.Errorf("remove old software dir symlink failed, error: %s", err.Error())
 			return errors.New("remove old software dir symlink failed")
 		}
