@@ -409,7 +409,15 @@ func (c *ComponentMgr) PrepareLogBackupDir(pathMgr *LogDirPathMgr) error {
 		return errors.New("get mef uid or gid failed")
 	}
 
-	if err = os.Chown(logDir, int(mefUid), int(mefGid)); err != nil {
+	setParam := fileutils.SetOwnerParam{
+		Path:         logDir,
+		Uid:          mefUid,
+		Gid:          mefGid,
+		Recursive:    false,
+		IgnoreFile:   false,
+		CheckerParam: nil,
+	}
+	if err = fileutils.SetPathOwnerGroup(setParam); err != nil {
 		hwlog.RunLog.Errorf("set path [%s] owner failed, error: %s", logDir, err.Error())
 		return errors.New("set run script path owner failed")
 	}
@@ -435,7 +443,15 @@ func (c *ComponentMgr) PrepareLibDir(libSrcPath string, pathMgr WorkPathItf) err
 		return errors.New("get mef uid or gid failed")
 	}
 
-	if err = os.Chown(libDir, int(mefUid), int(mefGid)); err != nil {
+	setParam := fileutils.SetOwnerParam{
+		Path:         libDir,
+		Uid:          mefUid,
+		Gid:          mefGid,
+		Recursive:    false,
+		IgnoreFile:   false,
+		CheckerParam: nil,
+	}
+	if err = fileutils.SetPathOwnerGroup(setParam); err != nil {
 		hwlog.RunLog.Errorf("set path [%s] owner failed, error: %s", libDir, err.Error())
 		return fmt.Errorf("set path [%s] owner failed", libDir)
 	}
