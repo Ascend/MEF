@@ -59,7 +59,7 @@ func (ins *InstallParamJsonTemplate) initFromFilePath(jsonPath string) error {
 
 // SetInstallParamJsonInfo is used to save infos into install_param.json
 func (ins *InstallParamJsonTemplate) SetInstallParamJsonInfo(jsonPath string) error {
-	file, err := os.OpenFile(jsonPath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, common.Mode600)
+	file, err := os.OpenFile(jsonPath, os.O_WRONLY|os.O_CREATE, common.Mode600)
 	if err != nil {
 		return fmt.Errorf("open %s failed: %s", InstallParamJson, err.Error())
 	}
@@ -68,6 +68,19 @@ func (ins *InstallParamJsonTemplate) SetInstallParamJsonInfo(jsonPath string) er
 			hwlog.RunLog.Errorf("close %s failed: %s", InstallParamJson, err.Error())
 		}
 	}()
+	linkChecker := fileutils.NewFileLinkChecker(false)
+	ownerChecker := fileutils.NewFileOwnerChecker(false, false, fileutils.RootUid, fileutils.RootGid)
+	modeChecker := fileutils.NewFileModeChecker(false, fileutils.DefaultWriteFileMode, false, false)
+	linkChecker.SetNext(ownerChecker)
+	linkChecker.SetNext(modeChecker)
+	if err = linkChecker.Check(file, jsonPath); err != nil {
+		hwlog.RunLog.Errorf("check %s failed: %v", jsonPath, err)
+		return fmt.Errorf("check %s failed", jsonPath)
+	}
+	if err = file.Truncate(0); err != nil {
+		hwlog.RunLog.Errorf("truncate file failed: %v", err)
+		return errors.New("truncate file failed")
+	}
 	encoder := json.NewEncoder(file)
 
 	if err = encoder.Encode(ins); err != nil {
