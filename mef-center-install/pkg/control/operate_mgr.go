@@ -6,10 +6,13 @@ package control
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
@@ -30,6 +33,7 @@ func (scm *SftOperateMgr) DoOperate() error {
 		scm.init,
 		scm.prepareComponentLogDir,
 		scm.prepareComponentLogBackupDir,
+		scm.checkLogDumpDir,
 		scm.check,
 		scm.dealUpgradeFlag,
 		scm.deal,
@@ -111,6 +115,35 @@ func (scm *SftOperateMgr) prepareComponentLogBackupDir() error {
 		}
 	}
 	hwlog.RunLog.Info("prepare components' log backup dir successful")
+	return nil
+}
+
+func (scm *SftOperateMgr) checkLogDumpDir() error {
+	hwlog.RunLog.Info("start to check log dump dir")
+	if _, err := fileutils.RealDirCheck(filepath.Dir(util.LogDumpRootDir), true, false); err != nil {
+		return err
+	}
+
+	uid, gid, err := util.GetMefId()
+	if err != nil {
+		return err
+	}
+	checker := fileutils.NewFileLinkChecker(false)
+	checker.SetNext(fileutils.NewFileOwnerChecker(false, false, uid, gid))
+	checker.SetNext(fileutils.NewFileModeChecker(false, fileutils.DefaultWriteFileMode, true, true))
+	dir, err := os.Open(util.LogDumpRootDir)
+	if err != nil {
+		return fmt.Errorf("failed to open dir %s, %v", util.LogDumpRootDir, err)
+	}
+	defer func() {
+		if err := dir.Close(); err != nil {
+			hwlog.RunLog.Errorf("close dir %s failed, %v", util.LogDumpRootDir, err)
+		}
+	}()
+	if err := checker.Check(dir, util.LogDumpRootDir); err != nil {
+		return err
+	}
+	hwlog.RunLog.Info("check log dump dir successful")
 	return nil
 }
 

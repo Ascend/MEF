@@ -24,6 +24,7 @@ func CleanTempFiles() (bool, error) {
 			return false, nil
 		}
 		fileHandle, entries, err := fileutils.ReadDir(dir,
+			fileutils.NewFileLinkChecker(false),
 			fileutils.NewFileModeChecker(true, common.Umask077, false, false),
 			fileutils.NewFileOwnerChecker(true, true, 0, 0))
 		if err != nil {
