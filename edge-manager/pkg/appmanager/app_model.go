@@ -13,7 +13,9 @@ import (
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/database"
 	"huawei.com/mindx/common/hwlog"
+	"k8s.io/api/apps/v1"
 
+	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
 
 	"huawei.com/mindxedge/base/common"
@@ -50,8 +52,7 @@ type AppRepository interface {
 	updatePod(*AppInstance) error
 	deletePod(*AppInstance) error
 	deleteAllRemainingDaemonSet() error
-	addDaemonSet(*AppDaemonSet) error
-	updateDaemonSet(*AppDaemonSet) error
+	addDaemonSet(ds *v1.DaemonSet, nodeGroupId, appId uint64) error
 	deleteDaemonSet(string) error
 	getNodeGroupName(appID uint64, nodeGroupID uint64) (string, error)
 	countDeployedAppByGroupID(uint64) (int64, error)
@@ -245,21 +246,39 @@ func (a *AppRepositoryImpl) deleteAllRemainingDaemonSet() error {
 	return a.db().Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&AppDaemonSet{}).Error
 }
 
-func (a *AppRepositoryImpl) addDaemonSet(set *AppDaemonSet) error {
-	return a.db().Model(AppDaemonSet{}).Create(set).Error
-}
-
-func (a *AppRepositoryImpl) updateDaemonSet(set *AppDaemonSet) error {
-	var appDaemonSet AppDaemonSet
-	a.db().Model(AppDaemonSet{}).Where("daemon_set_name = ?", set.DaemonSetName).First(&appDaemonSet)
-	if appDaemonSet.NodeGroupName == set.NodeGroupName {
+func (a *AppRepositoryImpl) addDaemonSet(ds *v1.DaemonSet, nodeGroupId, appId uint64) error {
+	return database.Transaction(a.db(), func(tx *gorm.DB) error {
+		appDaemonSet := AppDaemonSet{
+			DaemonSetName: ds.Name,
+			NodeGroupID:   nodeGroupId,
+			AppID:         appId,
+		}
+		if err := tx.Model(AppDaemonSet{}).Create(&appDaemonSet).Error; err != nil {
+			hwlog.RunLog.Errorf("create appDaemonSet to database failed, error: %v", err)
+			return errors.New("create daemon set failed, database error")
+		}
+		_, err := kubeclient.GetKubeClient().CreateDaemonSet(ds)
+		if err != nil {
+			hwlog.RunLog.Errorf("create daemonSet to k8s failed, error: %v", err)
+			return errors.New("create daemon set failed, k8s error")
+		}
 		return nil
-	}
-	return a.db().Model(AppDaemonSet{}).Updates(set).Error
+	})
 }
 
 func (a *AppRepositoryImpl) deleteDaemonSet(name string) error {
-	return a.db().Model(AppDaemonSet{}).Where("daemon_set_name = ?", name).Delete(&AppDaemonSet{}).Error
+	return database.Transaction(a.db(), func(tx *gorm.DB) error {
+		err := tx.Model(AppDaemonSet{}).Where("daemon_set_name = ?", name).Delete(&AppDaemonSet{}).Error
+		if err != nil {
+			hwlog.RunLog.Errorf("delete appDaemonSet from database failed, error: %v", err)
+			return errors.New(" delete daemon set failed, database error")
+		}
+		if err := kubeclient.GetKubeClient().DeleteDaemonSet(name); err != nil {
+			hwlog.RunLog.Errorf("delete daemonSet from k8s failed, error: %v", err)
+			return errors.New("delete daemon set failed, k8s error")
+		}
+		return nil
+	})
 }
 
 func (a *AppRepositoryImpl) getNodeGroupName(appID uint64, nodeGroupID uint64) (string, error) {

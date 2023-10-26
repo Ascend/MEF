@@ -16,6 +16,7 @@ type AppInfo struct {
 }
 
 // AppDaemonSet record created daemon set
+// property NodeGroupName is deprecated
 type AppDaemonSet struct {
 	ID            uint64    `gorm:"type:Integer;primaryKey;autoIncrement:true"`
 	DaemonSetName string    `gorm:"type:char(128);unique;not null"`

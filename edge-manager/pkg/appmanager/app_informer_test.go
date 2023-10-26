@@ -13,8 +13,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"huawei.com/mindxedge/base/common"
-
-	"edge-manager/pkg/types"
 )
 
 var (
@@ -28,8 +26,6 @@ func TestInformer(t *testing.T) {
 	convey.Convey("addPod pod should success", t, testAddPod)
 	convey.Convey("update pod pod should success", t, testUpdatePod)
 	convey.Convey("delete pod pod should success", t, testDeletePod)
-	convey.Convey("add daemonset app should success", t, testAddDaemonSet)
-	convey.Convey("delete daemonset should success", t, testDeleteDaemonSet)
 }
 
 func initInformerTestEnv() {
@@ -133,44 +129,5 @@ func testDeletePod() {
 	gormInstance.Model(AppInstance{}).Count(&count1)
 	appStatusService.deletePod(pod)
 	gormInstance.Model(AppInstance{}).Count(&count2)
-	convey.So(count1, convey.ShouldNotEqual, count2)
-}
-
-func testAddDaemonSet() {
-	var count1, count2 int64
-	var p1 = gomonkey.ApplyFuncReturn(getNodeGroupInfos,
-		[]types.NodeGroupInfo{
-			{
-				NodeGroupID:   1,
-				NodeGroupName: "group1",
-			},
-		}, nil,
-	)
-	defer p1.Reset()
-	var p2 = gomonkey.ApplyFuncReturn(common.SendSyncMessageByRestful,
-		common.RespMsg{
-			Status: common.Success,
-		},
-	)
-	defer p2.Reset()
-
-	gormInstance.Model(AppDaemonSet{}).Count(&count1)
-	appStatusService.addDaemonSet(daemonSet)
-	gormInstance.Model(AppDaemonSet{}).Count(&count2)
-	convey.So(count1, convey.ShouldNotEqual, count2)
-}
-
-func testDeleteDaemonSet() {
-	var p1 = gomonkey.ApplyFuncReturn(common.SendSyncMessageByRestful,
-		common.RespMsg{
-			Status: common.Success,
-		},
-	)
-	defer p1.Reset()
-
-	var count1, count2 int64
-	gormInstance.Model(AppDaemonSet{}).Count(&count1)
-	appStatusService.deleteDaemonSet(daemonSet)
-	gormInstance.Model(AppDaemonSet{}).Count(&count2)
 	convey.So(count1, convey.ShouldNotEqual, count2)
 }

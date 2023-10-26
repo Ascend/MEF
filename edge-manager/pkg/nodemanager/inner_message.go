@@ -186,6 +186,9 @@ func checkNodeResBeforeDeployApp(req types.InnerCheckNodeResReq) error {
 		if err = checkNodeResource(req.ResourceReqs, nodeRelation.NodeID); err != nil {
 			return fmt.Errorf("in group [%d], %s", req.NodeGroupID, err.Error())
 		}
+		if err = checkNodePodLimit(1, nodeRelation.NodeID); err != nil {
+			return fmt.Errorf("in group [%d], %s", req.NodeGroupID, err.Error())
+		}
 	}
 	return nil
 }

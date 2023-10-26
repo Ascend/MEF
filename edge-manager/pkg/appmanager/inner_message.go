@@ -37,7 +37,7 @@ func getAppInstanceCountByNodeGroup(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Data: appInstanceCount}
 }
 
-func checkNodeGroupResWithDuplicatedNode(groupID uint64, daemonSet *appv1.DaemonSet, duplicatedCount int) error {
+func checkNodeGroupResource(groupID uint64, daemonSet *appv1.DaemonSet) error {
 	router := common.Router{
 		Source:      common.AppManagerName,
 		Destination: common.NodeManagerName,
@@ -46,26 +46,13 @@ func checkNodeGroupResWithDuplicatedNode(groupID uint64, daemonSet *appv1.Daemon
 	}
 	req := types.InnerCheckNodeResReq{
 		NodeGroupID:  groupID,
-		ResourceReqs: getTotalAppResReqs(daemonSet, duplicatedCount),
+		ResourceReqs: getAppResReqs(daemonSet),
 	}
 	resp := common.SendSyncMessageByRestful(req, &router, common.ResponseTimeout)
 	if resp.Status != common.Success {
 		return errors.New(resp.Msg)
 	}
 	return nil
-}
-
-func getTotalAppResReqs(daemonSet *appv1.DaemonSet, duplicatedCount int) corev1.ResourceList {
-	appResReqs := getAppResReqs(daemonSet)
-	totalResReqs := make(map[corev1.ResourceName]resource.Quantity)
-	for i := 0; i < duplicatedCount; i++ {
-		for resName, quantity := range appResReqs {
-			totalResReq := totalResReqs[resName]
-			totalResReq.Add(quantity)
-			totalResReqs[resName] = totalResReq
-		}
-	}
-	return totalResReqs
 }
 
 func updateAllocatedNodeRes(daemonSet *appv1.DaemonSet, nodeGroupID uint64, isUndeploy bool) error {

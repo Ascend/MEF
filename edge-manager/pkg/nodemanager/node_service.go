@@ -21,6 +21,7 @@ import (
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 
+	"edge-manager/pkg/config"
 	"edge-manager/pkg/constants"
 	"edge-manager/pkg/types"
 	"edge-manager/pkg/util"
@@ -506,7 +507,7 @@ func addNodeRelation(input interface{}) common.RespMsg {
 	}
 	res, err := addNode(req)
 	if err != nil {
-		hwlog.RunLog.Error(err.Error())
+		hwlog.RunLog.Error("add node to group failed")
 		return common.RespMsg{Status: common.ErrorAddNodeToGroup, Msg: err.Error(), Data: res}
 	}
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
@@ -519,15 +520,18 @@ func addNode(req AddNodeToGroupReq) (*types.BatchResp, error) {
 
 	nodeGroup, err := NodeServiceInstance().getNodeGroupByID(*req.GroupID)
 	if err != nil {
+		hwlog.RunLog.Errorf("add node failed, dont have this node group id(%d)", *req.GroupID)
 		return nil, fmt.Errorf("dont have this node group id(%d)", *req.GroupID)
 	}
-	resReq, err := getNodeGroupResReq(nodeGroup)
+	resReq, count, err := getRequestItemsOfAddGroup(nodeGroup)
 	if err != nil {
-		return nil, fmt.Errorf("parse node group id [%d] resources request error", *req.GroupID)
+		hwlog.RunLog.Errorf("get group id [%d] request items for add to group failed, %v", nodeGroup.ID, err)
+		return nil, fmt.Errorf("get group id [%d] request items for add to group failed, %v", nodeGroup.ID, err)
 	}
 	for i, id := range *req.NodeIDs {
-		if err = checkNodeResource(resReq, id); err != nil {
-			errInfo := fmt.Sprintf("check node allocatable resource failed: %s", err.Error())
+		if err = checkNodeBeforeAddToGroup(resReq, count, id); err != nil {
+			errInfo := fmt.Sprintf("add node[%d] to group[%d] error, check node failed: %s",
+				id, nodeGroup.ID, err.Error())
 			hwlog.RunLog.Error(errInfo)
 			failedMap[strconv.Itoa(int(id))] = errInfo
 			continue
@@ -544,7 +548,7 @@ func addNode(req AddNodeToGroupReq) (*types.BatchResp, error) {
 			GroupID:   *req.GroupID,
 			CreatedAt: time.Now().Format(TimeFormat)}
 		if err := nodeServiceInstance.addNodeToGroup(&relation, nodeDb.UniqueName); err != nil {
-			errInfo := fmt.Sprintf("add node(%s) to group(%d) error", nodeDb.NodeName, nodeGroup.ID)
+			errInfo := fmt.Sprintf("add node[%s] to group[%d] error", nodeDb.NodeName, nodeGroup.ID)
 			hwlog.RunLog.Error(errInfo)
 			failedMap[strconv.Itoa(int(id))] = errInfo
 			continue
@@ -555,6 +559,18 @@ func addNode(req AddNodeToGroupReq) (*types.BatchResp, error) {
 		return &res, errors.New("add some nodes to group failed")
 	}
 	return &res, nil
+}
+
+func getRequestItemsOfAddGroup(nodeGroup *NodeGroup) (v1.ResourceList, int64, error) {
+	resReq, err := getNodeGroupResReq(nodeGroup)
+	if err != nil {
+		return nil, 0, err
+	}
+	count, err := getAppInstanceCountByGroupId(nodeGroup.ID)
+	if err != nil {
+		return nil, 0, fmt.Errorf("get node group id [%d] deployed app count request error", nodeGroup.ID)
+	}
+	return resReq, count, nil
 }
 
 func addUnManagedNode(input interface{}) common.RespMsg {
@@ -657,6 +673,35 @@ func checkNodeResource(req v1.ResourceList, nodeId uint64) error {
 	npuReq, ok := req[common.DeviceType]
 	if ok && availableRes.Npu.Cmp(npuReq) < 0 {
 		return fmt.Errorf("node [%d] do not have enough npu resources", nodeId)
+	}
+	return nil
+}
+
+func checkNodePodLimit(addedNumber int64, nodeId uint64) error {
+	nodeGroups, err := NodeServiceInstance().getGroupsByNodeID(nodeId)
+	if err != nil {
+		return fmt.Errorf("get node groups by node id [%d] error", nodeId)
+	}
+	var nodeDeployedCount int64
+	for _, group := range *nodeGroups {
+		count, err := getAppInstanceCountByGroupId(group.ID)
+		if err != nil {
+			return fmt.Errorf("get deployed app count by node group id [%d] error", group.ID)
+		}
+		nodeDeployedCount += count
+	}
+	if addedNumber+nodeDeployedCount > config.PodConfig.MaxPodNumberPerNode {
+		return fmt.Errorf("pod addedNumber is out of node [%d] max allowed addedNumber", nodeId)
+	}
+	return nil
+}
+
+func checkNodeBeforeAddToGroup(req v1.ResourceList, addedNumber int64, nodeId uint64) error {
+	if err := checkNodeResource(req, nodeId); err != nil {
+		return err
+	}
+	if err := checkNodePodLimit(addedNumber, nodeId); err != nil {
+		return err
 	}
 	return nil
 }

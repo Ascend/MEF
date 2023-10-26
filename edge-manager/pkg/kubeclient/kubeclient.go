@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"huawei.com/mindx/common/checker"
 	"net"
 	"net/http"
 	"os"
@@ -25,6 +24,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
+	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/checker/valid"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
@@ -348,6 +348,11 @@ func (ki *Client) CreateDaemonSet(dm *appv1.DaemonSet) (*appv1.DaemonSet, error)
 // UpdateDaemonSet Update daemonSet
 func (ki *Client) UpdateDaemonSet(dm *appv1.DaemonSet) (*appv1.DaemonSet, error) {
 	return ki.kubeClient.AppsV1().DaemonSets(common.MefUserNs).Update(context.Background(), dm, metav1.UpdateOptions{})
+}
+
+// GetDaemonSet query daemonSet from k8s
+func (ki *Client) GetDaemonSet(name string) (*appv1.DaemonSet, error) {
+	return ki.kubeClient.AppsV1().DaemonSets(common.MefUserNs).Get(context.Background(), name, metav1.GetOptions{})
 }
 
 // DeleteDaemonSet Delete daemonSet

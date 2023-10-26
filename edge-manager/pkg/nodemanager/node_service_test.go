@@ -523,6 +523,9 @@ func testAddUnManagedNode() {
             "groupIDs": [%d],
             "nodeID": %d
 			}`, node.NodeName, node.Description, group.ID, node.ID)
+		p := gomonkey.ApplyFuncReturn(checkNodeBeforeAddToGroup, nil).
+			ApplyFuncReturn(getRequestItemsOfAddGroup, nil, int64(0), nil)
+		defer p.Reset()
 		resp := addUnManagedNode(args)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
 		node.IsManaged = true

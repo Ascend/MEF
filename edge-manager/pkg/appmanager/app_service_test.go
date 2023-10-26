@@ -7,9 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"reflect"
 	"testing"
-	"time"
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
@@ -19,7 +17,6 @@ import (
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
 
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
@@ -136,10 +133,6 @@ func TestListAppInstances(t *testing.T) {
 	convey.Convey("list app instance should success", t, testListAppInstance)
 	convey.Convey("list app instance error input", t, testListAppInstanceError)
 	convey.Convey("list app instance invalid input", t, testListAppInstanceInvalid)
-}
-
-func TestParseDaemonsetToDB(t *testing.T) {
-	convey.Convey("list app instance should success", t, testGetInstanceFromAppInstances)
 }
 
 func TestListAppInstancesByNode(t *testing.T) {
@@ -374,23 +367,14 @@ func testDeployApInfo() {
 	reqData := `{
     "appId": 1,
     "nodeGroupIds": [1,2]}`
-	var c *kubeclient.Client
-	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "CreateDaemonSet",
-		func(*kubeclient.Client, *v1.DaemonSet) (*v1.DaemonSet, error) {
-			return &v1.DaemonSet{}, nil
-		})
-	var p2 = gomonkey.ApplyFunc(getNodeGroupInfos,
-		func(nodeGroupIds []uint64) ([]types.NodeGroupInfo, error) {
-			return []types.NodeGroupInfo{{NodeGroupID: 1, NodeGroupName: "group1"},
-				{NodeGroupID: 2, NodeGroupName: "group2"}}, nil
-		})
-	var p3 = gomonkey.ApplyFunc(checkNodeGroupRes,
-		func(nodeGroupId uint64, daemonSet *v1.DaemonSet, deployedNode map[uint64]int) error {
-			return nil
-		})
-	defer p1.Reset()
-	defer p2.Reset()
-	defer p3.Reset()
+	var p = gomonkey.ApplyPrivateMethod(&AppRepositoryImpl{}, "addDaemonSet",
+		func(ds *v1.DaemonSet, nodeGroupId, appId uint64) error { return nil }).
+		ApplyFuncReturn(getNodeGroupInfos, []types.NodeGroupInfo{{NodeGroupID: 1, NodeGroupName: "group1"}}, nil).
+		ApplyFuncReturn(checkNodeGroupResource, nil).
+		ApplyFuncReturn(updateAllocatedNodeRes, nil).
+		ApplyFuncReturn(preCheckForDeployApp, nil)
+	defer p.Reset()
+
 	resp := deployApp(reqData)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
@@ -413,11 +397,11 @@ func testUndeployApInfo() {
 	reqData := `{
     "appId": 1,
     "nodeGroupIds": [1,2]}`
-	var c *kubeclient.Client
-	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "DeleteDaemonSet",
-		func(*kubeclient.Client, string) error {
-			return nil
-		})
+	var p1 = gomonkey.ApplyPrivateMethod(kubeclient.GetKubeClient(), "DeleteDaemonSet",
+		func(string) error { return nil }).
+		ApplyPrivateMethod(kubeclient.GetKubeClient(), "GetDaemonSet",
+			func(string) (*v1.DaemonSet, error) { return &v1.DaemonSet{}, nil }).
+		ApplyFuncReturn(updateAllocatedNodeRes, nil)
 	defer p1.Reset()
 	resp := unDeployApp(reqData)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
@@ -427,11 +411,11 @@ func testUndeployNotExit() {
 	reqData := `{
     "appId": 100,
     "nodeGroupIds": [1,2]}`
-	var c *kubeclient.Client
-	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "DeleteDaemonSet",
-		func(*kubeclient.Client, string) error {
-			return nil
-		})
+	var p1 = gomonkey.ApplyPrivateMethod(kubeclient.GetKubeClient(), "DeleteDaemonSet",
+		func(string) error { return nil }).
+		ApplyPrivateMethod(kubeclient.GetKubeClient(), "GetDaemonSet",
+			func(string) (*v1.DaemonSet, error) { return &v1.DaemonSet{}, nil }).
+		ApplyFuncReturn(updateAllocatedNodeRes, nil)
 	defer p1.Reset()
 	resp := unDeployApp(reqData)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorUnDeployApp)
@@ -459,31 +443,6 @@ func testListAppInstanceInvalid() {
 	}
 	resp := listAppInstances(reqData)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
-}
-
-func testGetInstanceFromAppInstances() {
-	patchFunc := gomonkey.ApplyFunc(getAppIdFromDaemonSet, func(_ *v1.DaemonSet) (uint64, error) {
-		return 1, nil
-	})
-	patchFunc2 := gomonkey.ApplyFunc(common.SendSyncMessageByRestful, func(interface{}, *common.Router,
-		time.Duration) common.RespMsg {
-		data := types.NodeGroupInfo{NodeGroupID: 1, NodeGroupName: "name"}
-		return common.RespMsg{Status: common.Success, Msg: "", Data: types.InnerGetNodeGroupInfosResp{
-			NodeGroupInfos: []types.NodeGroupInfo{data}}}
-	})
-	defer patchFunc.Reset()
-	defer patchFunc2.Reset()
-	selector := map[string]string{fmt.Sprintf("%s%s", common.NodeGroupLabelPrefix, "1024"): ""}
-	eventSet := v1.DaemonSet{
-		Spec: v1.DaemonSetSpec{
-			Template: corev1.PodTemplateSpec{
-				Spec: corev1.PodSpec{
-					NodeSelector: selector,
-				}},
-		},
-	}
-	_, res := parseDaemonSetToDB(&eventSet)
-	convey.So(res, convey.ShouldBeNil)
 }
 
 func testListAppInstancesByNode() {
