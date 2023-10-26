@@ -101,10 +101,17 @@ func getKubeClientCA(podCommand string) (string, error) {
 		return "", errors.New("ca path parse failed")
 	}
 
-	if _, err := fileutils.RealFileCheck(kubeclientCaPathArr[1], false, false, 1); err != nil {
-		return "", fmt.Errorf("ca path [%s] check failed: %v", kubeclientCaPathArr[1], err)
-	}
-	caContent, err := fileutils.LoadFile(kubeclientCaPathArr[1])
+	pathChecker := fileutils.NewFilePathChecker()
+	ownerChecker := fileutils.NewFileOwnerChecker(false, false, fileutils.RootUid, fileutils.RootGid)
+	modeChecker := fileutils.NewFileModeChecker(false, fileutils.DefaultWriteFileMode, true, true)
+	sizeChecker := fileutils.NewFileSizeChecker(common.MB)
+	dirChecker := fileutils.NewIsDirChecker(false)
+
+	pathChecker.SetNext(ownerChecker)
+	pathChecker.SetNext(modeChecker)
+	pathChecker.SetNext(sizeChecker)
+	pathChecker.SetNext(dirChecker)
+	caContent, err := fileutils.LoadFile(kubeclientCaPathArr[1], pathChecker)
 	if err != nil {
 		return "", fmt.Errorf("load file failed: %s", err.Error())
 	}
