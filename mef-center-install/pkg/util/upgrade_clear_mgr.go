@@ -112,7 +112,7 @@ func (ucm *UpgradeClearMgr) clearUnpackPath() error {
 // ClearUpgrade is the func that used to clear the environment when upgrade failed
 func (ucm *UpgradeClearMgr) ClearUpgrade() error {
 	if ucm.step >= ClearNameSpaceStep {
-		if err := ucm.ClearNamespace(); err != nil {
+		if err := ucm.ClearMEFCenterNamespace(); err != nil {
 			hwlog.RunLog.Errorf("delete mef center namespace failed: %s", err.Error())
 			return err
 		}
