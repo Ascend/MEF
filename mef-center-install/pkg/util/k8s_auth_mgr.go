@@ -48,7 +48,7 @@ rules:
     verbs: ["create","get"]
   - apiGroups: ["apps"]
     resources: ["daemonsets"]
-    verbs: ["create","update","delete","get"]
+    verbs: ["create","update","delete","get","list"]
 `
 	if err := fileutils.WriteData(path, []byte(content)); err != nil {
 		hwlog.RunLog.Errorf("write yaml meets error: %v", err)
