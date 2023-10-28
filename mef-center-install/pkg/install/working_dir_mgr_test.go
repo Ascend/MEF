@@ -10,8 +10,6 @@ import (
 	. "github.com/agiledragon/gomonkey/v2"
 	. "github.com/smartystreets/goconvey/convey"
 	"huawei.com/mindx/common/fileutils"
-
-	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
@@ -84,7 +82,7 @@ func PrepareLibDirTest() {
 
 	Convey("test prepareLibDir func success", func() {
 		p := ApplyFuncReturn(fileutils.CreateDir, nil).
-			ApplyFuncReturn(common.CopyDir, nil).
+			ApplyFuncReturn(fileutils.CopyDir, nil).
 			ApplyMethodReturn(componentMgrIns, "PrepareLibDir", nil)
 		defer p.Reset()
 		So(ins.prepareLibDir(), ShouldBeNil)
@@ -104,14 +102,14 @@ func PrepareLibDirTest() {
 
 	Convey("test prepareLibDir func copy dir failed", func() {
 		p := ApplyFuncReturn(fileutils.CreateDir, nil).
-			ApplyFuncReturn(common.CopyDir, ErrTest)
+			ApplyFuncReturn(fileutils.CopyDir, ErrTest)
 		defer p.Reset()
 		So(ins.prepareLibDir(), ShouldResemble, errors.New("copy lib dir failed"))
 	})
 
 	Convey("test prepareLibDir func prepare component lib dir failed", func() {
 		p := ApplyFuncReturn(fileutils.CreateDir, nil).
-			ApplyFuncReturn(common.CopyDir, nil).
+			ApplyFuncReturn(fileutils.CopyDir, nil).
 			ApplyMethodReturn(componentMgrIns, "PrepareLibDir", ErrTest)
 		defer p.Reset()
 		So(ins.prepareLibDir(), ShouldResemble, ErrTest)

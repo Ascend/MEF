@@ -243,7 +243,16 @@ func (c *ComponentMgr) copyComponentFiles(pathMgr WorkPathItf) error {
 		}
 
 		filePath := filepath.Join(componentPath, f.Name())
-		if err = common.CopyDir(filePath, filesDst, true); err != nil {
+		dstPath := filepath.Join(filesDst, f.Name())
+		if !f.IsDir() {
+			if err = fileutils.CopyFile(filePath, dstPath); err != nil {
+				hwlog.RunLog.Errorf("copy %s failed: %s", filePath, err.Error())
+				return fmt.Errorf("copy component dir failed")
+			}
+			continue
+		}
+
+		if err = fileutils.CopyDirWithSoftlink(filePath, dstPath); err != nil {
 			hwlog.RunLog.Errorf("copy %s's dir failed: %s", c.name, err.Error())
 			return fmt.Errorf("copy component dir failed")
 		}
@@ -315,7 +324,7 @@ func (c *ComponentMgr) PrepareComponentConfig(pathMgr *ConfigPathMgr) error {
 		}
 	}
 
-	if err = common.CopyDir(configPath, filesDst, false); err != nil {
+	if err = fileutils.CopyDir(configPath, filesDst); err != nil {
 		hwlog.RunLog.Errorf("copy %s's config failed: %s", c.name, err.Error())
 		return fmt.Errorf("copy component config failed")
 	}
@@ -456,7 +465,7 @@ func (c *ComponentMgr) PrepareLibDir(libSrcPath string, pathMgr WorkPathItf) err
 		return fmt.Errorf("set path [%s] owner failed", libDir)
 	}
 
-	if err = common.CopyDir(libSrcPath, libDir, false); err != nil {
+	if err = fileutils.CopyDirWithSoftlink(libSrcPath, libDir); err != nil {
 		hwlog.RunLog.Errorf("copy component [%s]'s lib dir failed, error: %v", c.name, err.Error())
 		return fmt.Errorf("copy lib component [%s]'s dir failed", c.name)
 	}

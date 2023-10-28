@@ -66,7 +66,7 @@ func (cm *ConfigMgr) preparePubConfigDir() error {
 	srcPath := filepath.Join(installDir, ConfigInPkg)
 	dstPath := configPath
 
-	if err = common.CopyDir(srcPath, dstPath, true); err != nil {
+	if err = fileutils.CopyDir(srcPath, dstPath); err != nil {
 		hwlog.RunLog.Errorf("prepare public-config dir failed: %s", err.Error())
 		return errors.New("prepare public-config dir failed")
 	}
