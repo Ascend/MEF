@@ -13,10 +13,15 @@ import (
 	"github.com/smartystreets/goconvey/convey"
 	"huawei.com/mindx/common/fileutils"
 
-	"edge-manager/pkg/constants"
-	"edge-manager/pkg/logmanager/testutils"
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/taskschedule"
+
+	"edge-manager/pkg/constants"
+	"edge-manager/pkg/logmanager/testutils"
+)
+
+const (
+	mode777 = 0777
 )
 
 func TestMain(m *testing.M) {
@@ -50,13 +55,13 @@ func TestCleanTempFiles(t *testing.T) {
 		convey.So(err, convey.ShouldBeNil)
 
 		exists, err := CleanTempFiles()
-		convey.So(err, convey.ShouldNotBeNil)
-		convey.So(exists, convey.ShouldBeFalse)
+		convey.So(err, convey.ShouldBeNil)
+		convey.So(exists, convey.ShouldBeTrue)
 	})
 	convey.Convey("test clean temp files", t, func() {
 		err := os.Chmod(constants.LogDumpTempDir, common.Mode755)
 		convey.So(err, convey.ShouldBeNil)
-		err = os.Chmod(constants.LogDumpPublicDir, common.Mode755)
+		err = os.Chmod(constants.LogDumpPublicDir, mode777)
 		convey.So(err, convey.ShouldBeNil)
 
 		_, err = CleanTempFiles()

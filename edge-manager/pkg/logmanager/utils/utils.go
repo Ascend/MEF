@@ -10,7 +10,6 @@ import (
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 
-	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/taskschedule"
 
 	"edge-manager/pkg/constants"
@@ -25,7 +24,7 @@ func CleanTempFiles() (bool, error) {
 		}
 		fileHandle, entries, err := fileutils.ReadDir(dir,
 			fileutils.NewFileLinkChecker(false),
-			fileutils.NewFileModeChecker(true, common.Umask077, false, false),
+			fileutils.NewFileModeChecker(true, fileutils.DefaultWriteFileMode, false, false),
 			fileutils.NewFileOwnerChecker(true, true, 0, 0))
 		if err != nil {
 			return false, fmt.Errorf("failed to read dir %s, %v", dir, err)
