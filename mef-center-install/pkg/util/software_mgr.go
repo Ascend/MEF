@@ -6,8 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-	"regexp"
-	"strings"
 
 	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/fileutils"
@@ -80,52 +78,22 @@ func (sm *SoftwareMgr) clearLock() error {
 func (sm *SoftwareMgr) clearNodeLabel() error {
 	fmt.Println("start to clear node label")
 	hwlog.RunLog.Info("start to clear node label")
-	localIps, err := GetLocalIps()
+	var k8slMgr = K8sLabelMgr{}
+	nodeName, err := k8slMgr.getMasterNodeName()
 	if err != nil {
-		hwlog.RunLog.Errorf("get local ip failed: %s", err.Error())
-		return errors.New("get local ip failed")
+		return err
 	}
 
-	ret, err := envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "get", "nodes", "-o", "wide")
+	// 删除不存在的label会显示执行命令成功
+	_, err = envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec,
+		"label", "node", nodeName, "mef-center-node-")
 	if err != nil {
-		hwlog.RunLog.Errorf("get current node failed: %s", err.Error())
-		return errors.New("get current node failed")
+		hwlog.RunLog.Errorf("clear %s label command exec failed: %s", MefNamespace, err.Error())
+		return errors.New("clear node label command exec failed")
 	}
-	lines := strings.Split(ret, "\n")
-
-	for _, localIp := range localIps {
-		ipReg := fmt.Sprintf("\\s*%s\\s*", localIp)
-		for _, line := range lines {
-			found, err := regexp.MatchString(ipReg, line)
-			if err != nil {
-				hwlog.RunLog.Errorf("get current node name on reg match failed: %s", err.Error())
-				return errors.New("get current node name failed")
-			}
-
-			if !found {
-				continue
-			}
-			datas := strings.Split(line, " ")
-			if len(datas) < NodeSplitCount {
-				hwlog.RunLog.Errorf("get current node name failed: find invalid data")
-				return errors.New("get current node name failed")
-			}
-			nodeName := datas[0]
-
-			// 删除不存在的label会显示执行命令成功
-			_, err = envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec,
-				"label", "node", nodeName, "mef-center-node-")
-			if err != nil {
-				hwlog.RunLog.Errorf("clear %s label command exec failed: %s", MefNamespace, err.Error())
-				return errors.New("clear node label command exec failed")
-			}
-			fmt.Println("clear node label success")
-			hwlog.RunLog.Info("clear node label success")
-			return nil
-		}
-	}
-
-	return errors.New("no valid node matches the device ip found")
+	fmt.Println("clear node label success")
+	hwlog.RunLog.Info("clear node label success")
+	return nil
 }
 
 // ClearMEFUserNamespace is used to clear mef-user namespace

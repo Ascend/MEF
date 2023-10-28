@@ -190,9 +190,8 @@ const (
 
 // constant for set k8s label
 const (
-	K8sLabelSet    = "mef-center-node="
-	K8sLabel       = "mef-center-node"
-	NodeSplitCount = 1
+	K8sLabelSet = "mef-center-node="
+	K8sLabel    = "mef-center-node"
 )
 
 // constant for upgrade
