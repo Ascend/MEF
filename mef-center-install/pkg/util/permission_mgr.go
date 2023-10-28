@@ -53,7 +53,8 @@ func (mi *modeMgr) setDirMode(dirList []string, mode os.FileMode, isRecursive, i
 			hwlog.RunLog.Errorf("get %s's abspath failed: %s", tempDir, err.Error())
 			return fmt.Errorf("get %s's abspath failed", tempDir)
 		}
-		if err = fileutils.SetPathPermission(dirAbsPath, mode, isRecursive, ignoreFile); err != nil {
+		if err = fileutils.SetPathPermission(dirAbsPath, mode, isRecursive, ignoreFile,
+			&fileutils.FileBaseChecker{}); err != nil {
 			hwlog.RunLog.Error(err)
 			return err
 		}
@@ -77,7 +78,8 @@ func (mi *modeMgr) setFileMode(fileList []string, mode os.FileMode, isRecursive,
 			return fmt.Errorf("get %s's abspath failed", tempFile)
 		}
 
-		if err = fileutils.SetPathPermission(dirFilePath, mode, isRecursive, ignoreFile); err != nil {
+		if err = fileutils.SetPathPermission(dirFilePath, mode, isRecursive, ignoreFile,
+			&fileutils.FileBaseChecker{}); err != nil {
 			hwlog.RunLog.Error(err)
 			return errors.New("set path permission failed")
 		}
@@ -100,7 +102,8 @@ func (mi *modeMgr) handleTypeFileMode(typeFile string, mode os.FileMode) error {
 			return fmt.Errorf("get %s's abspath failed", file)
 		}
 
-		if err = fileutils.SetPathPermission(dirFilePath, mode, false, false); err != nil {
+		if err = fileutils.SetPathPermission(dirFilePath, mode, false, false,
+			&fileutils.FileBaseChecker{}); err != nil {
 			hwlog.RunLog.Error(err)
 			return errors.New("set path permission failed")
 		}
