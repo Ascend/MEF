@@ -142,7 +142,7 @@ func (ics icsManager) install(tarPath, cmsPath, crlPath string) error {
 
 	if err != nil {
 		fmt.Printf("install %s failed\n", ics.name)
-		hwlog.RunLog.Errorf("install %s error: %v, get more information in ics-manager log", ics.name, err)
+		hwlog.RunLog.Errorf("install %s error, get more information in ics-manager log", ics.name)
 		if err := util.DeleteComponentToInstallInfo(util.IcsManagerName,
 			ics.pathMgr.WorkPathMgr.GetInstallParamJsonPath()); err != nil {
 			return fmt.Errorf("install failed, delete %s from installInfo json error: %v", ics.name, err)
@@ -180,7 +180,11 @@ func (ics icsManager) prepareFile(tarPath, cmsPath, crlPath string) (string, err
 	}
 
 	hwlog.RunLog.Infof("verify %s package success", ics.name)
-	unpackTarPath := ics.pathMgr.GetIcsTempTarPath()
+	unpackTarPath, err := ics.pathMgr.GetIcsTempTarPath()
+	if err != nil {
+		hwlog.RunLog.Errorf("unpack tar path check failed: %s", err.Error())
+		return "", errors.New("unpack tar path check failed")
+	}
 	if err := fileutils.ExtraTarGzFile(tarPath, unpackTarPath, true); err != nil {
 		hwlog.RunLog.Errorf("unzip tar file failed: %s", err.Error())
 		return "", errors.New("unzip tar file failed")
@@ -225,17 +229,22 @@ func (ics icsManager) uninstall() error {
 		hwlog.RunLog.Info("clean residual files success")
 		return nil
 	}
-	defer func() {
+	if err := fileutils.DeleteAllFileWithConfusion(ics.pathMgr.ConfigPathMgr.GetIcsCertDir()); err != nil {
 		if err := util.AddComponentToInstallInfo(util.IcsManagerName,
 			ics.pathMgr.WorkPathMgr.GetInstallParamJsonPath()); err != nil {
 			hwlog.RunLog.Errorf("%s uninstall failed, rollback failed", ics.name)
 		}
-	}()
-	if err := fileutils.DeleteAllFileWithConfusion(ics.pathMgr.ConfigPathMgr.GetIcsCertDir()); err != nil {
 		hwlog.RunLog.Errorf("when uninstall ics-manager, delete inner root failed: %v", err)
 		return err
 	}
-	return ics.Operate()
+	if err := ics.Operate(); err != nil {
+		if err := util.AddComponentToInstallInfo(util.IcsManagerName,
+			ics.pathMgr.WorkPathMgr.GetInstallParamJsonPath()); err != nil {
+			hwlog.RunLog.Errorf("%s uninstall failed, rollback failed", ics.name)
+			return fmt.Errorf("%s uninstall failed, rollback failed", ics.name)
+		}
+	}
+	return nil
 }
 
 // Operate use to operate ics manager in start, stop, restart

@@ -95,7 +95,7 @@ func (ecf *ExchangeCaFlow) checkParam() error {
 		return errors.New("import path cannot equal export path")
 	}
 
-	if _, err := fileutils.RealFileCheck(ecf.importPath, false, false, maxCertSizeInMb); err != nil {
+	if _, err := fileutils.RealFileCheck(ecf.importPath, true, false, maxCertSizeInMb); err != nil {
 		hwlog.RunLog.Errorf("importPath [%s] check failed: %s", ecf.importPath, err.Error())
 		return errors.New("importPath check failed")
 	}

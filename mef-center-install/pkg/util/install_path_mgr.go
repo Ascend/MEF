@@ -118,13 +118,22 @@ func (idm *InstallDirPathMgr) GetIcsRunPath() string {
 }
 
 // GetRealVarDirPath returns ics unzip temporary dir
-func (idm *InstallDirPathMgr) GetRealVarDirPath() string {
-	return filepath.Join(idm.GetWorkAPath(), MefVarDir)
+func (idm *InstallDirPathMgr) GetRealVarDirPath() (string, error) {
+	normPath := idm.GetWorkPath()
+	realPath, err := filepath.EvalSymlinks(normPath)
+	if err != nil {
+		return "", fmt.Errorf("get realpath of work dir failed: %s", err.Error())
+	}
+	return filepath.Join(realPath, MefVarDir), nil
 }
 
 // GetIcsTempTarPath returns the path to tar file in ics-manager install operate
-func (idm *InstallDirPathMgr) GetIcsTempTarPath() string {
-	return filepath.Join(idm.GetRealVarDirPath(), IcsTar)
+func (idm *InstallDirPathMgr) GetIcsTempTarPath() (string, error) {
+	path, err := idm.GetRealVarDirPath()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(path, IcsTar), nil
 }
 
 // WorkPathMgr is a struct that controls all dir/file path in the mef-center softlink dir
