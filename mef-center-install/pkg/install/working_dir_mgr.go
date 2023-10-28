@@ -108,7 +108,7 @@ func (wdc *WorkingDirCtl) prepareLibDir() error {
 	}
 
 	libSrc := path.Join(currentPath, util.MefLibDir)
-	if err = common.CopyDir(libSrc, libDst, false); err != nil {
+	if err = fileutils.CopyDirWithSoftlink(libSrc, libDst); err != nil {
 		hwlog.RunLog.Errorf("copy lib dir failed, error: %v", err.Error())
 		return errors.New("copy lib dir failed")
 	}
