@@ -11,7 +11,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 )
 
-const regexpNodeName = "^[a-zA-Z0-9]([-_a-zA-Z0-9]{0,62}[a-zA-Z0-9])?$"
+const regexpNodeName = "^[a-z0-9]([a-z0-9-.]{0,251}[a-z0-9])?$"
 
 // K8sLabelMgr is a struct that used to manager mef-center-node label on current working node
 type K8sLabelMgr struct {
