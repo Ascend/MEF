@@ -109,8 +109,7 @@ func TestDumpMultiNodesLog(t *testing.T) {
 			ApplyMethodReturn(dummyObjs.TaskCtx, "Spec", taskSpec).
 			ApplyFuncReturn(dumpEdgeLogs, []taskschedule.Task{{}}, nil).
 			ApplyFuncReturn(envutils.CheckDiskSpace, nil).
-			ApplyFunc(createTarGz, mockCreateTarGz).
-			ApplyFuncReturn(utils.CleanTempFiles, true, nil)
+			ApplyFunc(createTarGz, mockCreateTarGz)
 		defer patch.Reset()
 
 		err := dumpMultiNodesLog(dummyObjs.TaskCtx)
