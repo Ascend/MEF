@@ -471,6 +471,11 @@ func (upf *UpgradePostFlowMgr) resetSoftLink() error {
 		return errors.New("create software dir symlink failed")
 	}
 
+	if err = upf.InstallPathMgr.Reset(); err != nil {
+		hwlog.RunLog.Errorf("reset path mgr failed: %v", err)
+		return errors.New("reset path mgr failed")
+	}
+
 	return nil
 }
 

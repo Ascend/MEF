@@ -131,7 +131,7 @@ func (cmm *CenterModeMgr) getWorkMode700Dir() modeMgr {
 		isRecursive: true,
 		ignoreFile:  true,
 		fileList: []string{
-			cmm.pathMgr.GetMefPath(),
+			cmm.pathMgr.WorkPathMgr.GetWorkPath(),
 		},
 	}
 }
