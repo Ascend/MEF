@@ -23,6 +23,8 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
+            seccompProfile:
+              type: "RuntimeDefault"
           image: ascend-cert-manager:v1
           resources:
             requests:
@@ -40,7 +42,7 @@ spec:
                    fieldPath: status.podIP
           imagePullPolicy: IfNotPresent
           command: [ "/bin/bash", "-c", "--"]
-          args: [ "LD_LIBRARY_PATH=/home/cert_mgr_lib ./cert-manager -port=8103" ]
+          args: [ "LD_LIBRARY_PATH=/home/cert_mgr_lib:${LD_LIBRARY_PATH} ./cert-manager -port=8103" ]
           volumeMounts:
             - name: cert-manager-config
               mountPath: /home/data/config/

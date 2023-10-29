@@ -21,6 +21,8 @@ spec:
             allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            seccompProfile:
+              type: "RuntimeDefault"
           image: ascend-nginx-manager:v1
           resources:
             requests:
@@ -59,7 +61,7 @@ spec:
                 fieldRef:
                   fieldPath: status.hostIP
           command: [ "/bin/bash", "-c", "--"]
-          args: [ "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/home/MEFCenter/lib ./nginx-manager" ]
+          args: [ "LD_LIBRARY_PATH=/home/MEFCenter/lib:${LD_LIBRARY_PATH} ./nginx-manager" ]
           volumeMounts:
             - name: nginx-manager-log
               mountPath: /home/MEFCenter/logs/
