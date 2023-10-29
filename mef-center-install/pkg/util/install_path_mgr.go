@@ -41,6 +41,27 @@ type InstallDirPathMgr struct {
 	ConfigPathMgr *ConfigPathMgr
 }
 
+// Reset func is used to reset the workdir after the softlink has been reset
+func (idm *InstallDirPathMgr) Reset() error {
+	workPath := idm.GetWorkPath()
+
+	var (
+		workAbsPath string
+		err         error
+	)
+	if fileutils.IsExist(workPath) {
+		workAbsPath, err = fileutils.EvalSymlinks(workPath)
+		if err != nil {
+			return fmt.Errorf("get work abs path failed: %v", err)
+		}
+	} else {
+		workAbsPath = idm.GetWorkAPath()
+	}
+
+	idm.WorkPathMgr.workPath = workAbsPath
+	return nil
+}
+
 // GetRootPath returns the installation root path
 func (idm *InstallDirPathMgr) GetRootPath() string {
 	return idm.rootPath
