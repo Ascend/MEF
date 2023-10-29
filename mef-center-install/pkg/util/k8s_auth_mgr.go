@@ -120,7 +120,7 @@ func getKubeClientCA(podCommand string) (string, error) {
 	if err = caMgr.CheckCertChain(); err != nil {
 		found, err := regexp.MatchString(`the length of RSA public key 2048 less than`, err.Error())
 		if err != nil || !found {
-			return "", fmt.Errorf("check k8s apiserver client ca failed: %s", err)
+			return "", fmt.Errorf("check k8s apiserver client ca failed: %v", err)
 		}
 		hwlog.RunLog.Warn("k8s apiserver client ca public key length not enough")
 	}

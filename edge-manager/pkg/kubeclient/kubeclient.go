@@ -87,7 +87,7 @@ func NewClientK8s() (*Client, error) {
 		WithBackup: true,
 	}
 
-	tlsCfg, err := certutils.GetTlsCfgWithPath(tlsCertInfo)
+	tlsCfg, err := certutils.GetTlsCfgWithPathIgnoreLength(tlsCertInfo)
 	if err != nil {
 		return nil, fmt.Errorf("get tls config failed")
 	}
