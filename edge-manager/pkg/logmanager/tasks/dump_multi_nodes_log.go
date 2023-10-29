@@ -165,7 +165,10 @@ func updateMasterTaskStatus(ctx taskschedule.TaskContext, success bool) {
 		status = partiallyFailedStatus
 	}
 	if err := ctx.UpdateStatus(status); err != nil {
-		_, _ = utils.CleanTempFiles()
+		_, cleanErr := utils.CleanTempFiles()
+		if cleanErr != nil {
+			hwlog.RunLog.Warnf("clean temp files failed, error: %v", err)
+		}
 		hwlog.RunLog.Errorf("failed to update task status, %v", err)
 		return
 	}
@@ -259,9 +262,14 @@ func createTarGz(ctx taskschedule.TaskContext, subTasks []taskschedule.Task) err
 	if err != nil {
 		return fmt.Errorf("failed to create output file")
 	}
-	defer outputFile.Close()
+	defer func() {
+		if err = outputFile.Close(); err != nil {
+			hwlog.RunLog.Errorf("close output file handle failed, error: %v", err)
+		}
+	}()
+
 	fileChecker := fileutils.NewFileLinkChecker(false)
-	if err := fileChecker.Check(outputFile, edgeNodesLogTempPath); err != nil {
+	if err = fileChecker.Check(outputFile, edgeNodesLogTempPath); err != nil {
 		return fmt.Errorf("failed to check log temp path, %v", err)
 	}
 	gzipWriter, err := gzip.NewWriterLevel(
@@ -269,12 +277,21 @@ func createTarGz(ctx taskschedule.TaskContext, subTasks []taskschedule.Task) err
 	if err != nil {
 		return fmt.Errorf("failed to create gzip write, %v", err)
 	}
-	defer gzipWriter.Close()
+	defer func() {
+		if err = gzipWriter.Close(); err != nil {
+			hwlog.RunLog.Errorf("close gzip writer handle failed, error: %v", err)
+		}
+	}()
+
 	tarWriter := tar.NewWriter(gzipWriter)
-	defer tarWriter.Close()
+	defer func() {
+		if err = tarWriter.Close(); err != nil {
+			hwlog.RunLog.Errorf("close tar writer handle failed, error: %v", err)
+		}
+	}()
 
 	for _, task := range subTasks {
-		if err := addSingleNodeTarGz(task, tarWriter); err != nil {
+		if err = addSingleNodeTarGz(task, tarWriter); err != nil {
 			return fmt.Errorf("failed to add single node tar gz, %v", err)
 		}
 	}
@@ -302,7 +319,11 @@ func addSingleNodeTarGz(task taskschedule.Task, tarWriter *tar.Writer) error {
 	if err != nil {
 		return fmt.Errorf("failed to open temp file, %v", err)
 	}
-	defer tarGzFile.Close()
+	defer func() {
+		if err = tarGzFile.Close(); err != nil {
+			hwlog.RunLog.Errorf("close file handle failed, error: %v", err)
+		}
+	}()
 
 	stat, err := tarGzFile.Stat()
 	if err != nil {

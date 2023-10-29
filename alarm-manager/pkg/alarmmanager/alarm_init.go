@@ -7,13 +7,13 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"time"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 
 	"alarm-manager/pkg/monitors"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/requests"
 )
@@ -55,6 +55,7 @@ func methodSelect(req *model.Message) (interface{}, error) {
 
 func (am *alarmManager) Start() {
 	go am.startMonitoring()
+	go am.checkAlarmNum()
 	for {
 		select {
 		case _, ok := <-am.ctx.Done():
@@ -123,4 +124,41 @@ func (am *alarmManager) startMonitoring() {
 			go alarm.Monitoring(am.ctx)
 		}
 	}
+}
+
+func (am *alarmManager) checkAlarmNum() {
+	const checkInterval = 5 * time.Minute
+	tick := time.NewTicker(checkInterval)
+	defer tick.Stop()
+	for {
+		select {
+		case <-am.ctx.Done():
+			hwlog.RunLog.Info("catch stop signal, channel is closed")
+			return
+		case <-tick.C:
+			if err := clearEdgeAlarms(); err != nil {
+				continue
+			}
+		}
+	}
+}
+
+func clearEdgeAlarms() error {
+	total, err := common.GetItemCount(AlarmInfo{})
+	if err != nil {
+		hwlog.RunLog.Errorf("get number of table alarm info failed, error: %v", err)
+		return err
+	}
+
+	const allowMaxAlarm = 100000
+	if total >= allowMaxAlarm {
+		// An exception occurs when the number of alarms reaches the upper limit. Record error logs directly.
+		hwlog.RunLog.Error("number of table alarm info is enough, need to be cleared")
+		if err = AlarmDbInstance().DeleteEdgeAlarm(); err != nil {
+			hwlog.RunLog.Errorf("clear all alarms from edge failed: %s", err.Error())
+			return err
+		}
+		hwlog.RunLog.Error("clear all alarms from edge success")
+	}
+	return nil
 }
