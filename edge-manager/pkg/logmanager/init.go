@@ -47,7 +47,10 @@ func (l *logMgr) Enable() bool {
 			hwlog.RunLog.Errorf("failed to init task scheduler, %v", err)
 			return !l.enable
 		}
-		_, _ = utils.CleanTempFiles()
+		_, err := utils.CleanTempFiles()
+		if err != nil {
+			hwlog.RunLog.Warnf("clean temp files failed, error: %v", err)
+		}
 	}
 	return l.enable
 }
