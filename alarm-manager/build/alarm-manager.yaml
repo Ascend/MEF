@@ -24,6 +24,8 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
+            seccompProfile:
+              type: "RuntimeDefault"
           image: ascend-alarm-manager:v1
           resources:
             requests:
@@ -45,7 +47,7 @@ spec:
                   fieldPath: status.hostIP
           imagePullPolicy: IfNotPresent
           command: [ "/bin/bash", "-c", "--"]
-          args: ["LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/home/MEFCenter/lib ./alarm-manager -port=8102"]
+          args: ["LD_LIBRARY_PATH=/home/MEFCenter/lib:${LD_LIBRARY_PATH} ./alarm-manager -port=8102"]
           volumeMounts:
             - name: alarm-manager-config
               mountPath: /home/data/config/

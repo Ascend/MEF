@@ -23,6 +23,8 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
+            seccompProfile:
+              type: "RuntimeDefault"
           image: ascend-edge-manager:v1
           resources:
             requests:
@@ -34,7 +36,7 @@ spec:
           imagePullPolicy: IfNotPresent
           command: [ "/bin/bash", "-c", "--" ]
           # NOTE: HTTPS is enabled by default
-          args: [ "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/home/MEFCenter/lib ./edge-manager -port=8101 -wsPort=10000 -maxClientNum=1024" ]
+          args: [ "LD_LIBRARY_PATH=/home/MEFCenter/lib:${LD_LIBRARY_PATH} ./edge-manager -port=8101 -wsPort=10000 -maxClientNum=1024" ]
           volumeMounts:
             - name: edge-manager-log
               mountPath: /var/log/mindx-edge/edge-manager
