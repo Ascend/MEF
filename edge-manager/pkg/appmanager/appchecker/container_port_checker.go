@@ -24,7 +24,7 @@ type ContainerPortChecker struct {
 func (evc *ContainerPortChecker) init() {
 	evc.modelChecker.Checker = checker.GetAndChecker(
 		checker.GetRegChecker("Name", nameReg, true),
-		checker.GetStringChoiceChecker("Proto", []string{"TCP", "UDP", "SCTP"}, true),
+		checker.GetStringChoiceChecker("Proto", []string{"TCP", "UDP"}, true),
 		checker.GetIntChecker("ContainerPort", minContainerPort, maxContainerPort, true),
 		checker.GetIpV4Checker("HostIP", true),
 		checker.GetIntChecker("HostPort", minHostPort, maxHostPort, true),
