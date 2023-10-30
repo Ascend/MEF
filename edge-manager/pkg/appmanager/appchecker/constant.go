@@ -16,8 +16,6 @@ const (
 	maxEnvCount            = 256
 	minVolumeMountsCount   = 0
 	maxVolumeMountsCount   = 256
-	minCmMountsCount       = 0
-	maxCmMountsCount       = 4
 	minContainerPort       = 1
 	maxContainerPort       = 65535
 	minHostPort            = 1024

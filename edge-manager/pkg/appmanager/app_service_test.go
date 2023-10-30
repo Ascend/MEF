@@ -56,9 +56,6 @@ func setup() {
 	if err = gormInstance.AutoMigrate(&AppDaemonSet{}); err != nil {
 		hwlog.RunLog.Errorf("setup table error, %v", err)
 	}
-	if err = gormInstance.AutoMigrate(&ConfigmapInfo{}); err != nil {
-		hwlog.RunLog.Errorf("setup table error, %v", err)
-	}
 
 	if _, err = kubeclient.NewClientK8s(); err != nil {
 		hwlog.RunLog.Error("init k8s failed")

@@ -29,13 +29,6 @@ type HostPathVolume struct {
 	MountPath string `json:"mountPath"`
 }
 
-// ConfigmapVolume [struct] for configmap volume
-type ConfigmapVolume struct {
-	Name          string `json:"name"`
-	ConfigmapName string `json:"configmapName"`
-	MountPath     string `json:"mountPath"`
-}
-
 // EnvVar encapsulate env request
 type EnvVar struct {
 	Name  string `json:"name"`

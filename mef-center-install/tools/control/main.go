@@ -200,6 +200,7 @@ func (uc *upgradeController) doControl() error {
 	}
 
 	if err := controlMgr.DoUpgrade(); err != nil {
+		hwlog.RunLog.Errorf("upgrade failed, error: %v", err)
 		return err
 	}
 	return nil

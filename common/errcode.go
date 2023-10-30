@@ -103,21 +103,6 @@ const (
 	// ErrorGetAppInstanceCountByNodeGroup failed to count app instances by node group
 	ErrorGetAppInstanceCountByNodeGroup = "40022012"
 
-	// ErrorCreateCm failed to create configmap
-	ErrorCreateCm = "40023001"
-	// ErrorDeleteCm failed to delete configmap
-	ErrorDeleteCm = "40023002"
-	// ErrorUpdateCm failed to update configmap
-	ErrorUpdateCm = "40023003"
-	// ErrorQueryCm failed to query configmap
-	ErrorQueryCm = "40023004"
-	// ErrorListCm failed to list configmap
-	ErrorListCm = "40023005"
-	// ErrorCheckCmCount failed to check configmap item count while creating
-	ErrorCheckCmCount = "40023006"
-	// ErrorUnmarshalCm failed to unmarshal configmap param from db
-	ErrorUnmarshalCm = "40023007"
-
 	// ErrorAccountOrPassword incorrect account or password
 	ErrorAccountOrPassword = "40031000"
 	// ErrorSetEdgeAccountPassword failed to set edge account password
@@ -289,21 +274,6 @@ var ErrorMap = map[string]string{
 	ErrorListAppInstances: "failed to list app instances",
 	// ErrorGetAppInstanceCountByNodeGroup failed to count app instances by node group
 	ErrorGetAppInstanceCountByNodeGroup: "failed to count app instances by node group",
-
-	// ErrorCreateCm failed to create configmap
-	ErrorCreateCm: "failed to create configmap",
-	// ErrorDeleteCm failed to delete configmap
-	ErrorDeleteCm: "failed to delete configmap",
-	// ErrorUpdateCm failed to update configmap
-	ErrorUpdateCm: "failed to update configmap",
-	// ErrorQueryCm failed to query configmap
-	ErrorQueryCm: "failed to query configmap",
-	// ErrorListCm failed to list configmap
-	ErrorListCm: "failed to list configmap",
-	// ErrorCheckCmCount failed to check configmap item count while creating
-	ErrorCheckCmCount: "failed to check configmap item count while creating",
-	// ErrorUnmarshalCm failed to unmarshal configmap param from db
-	ErrorUnmarshalCm: "failed to unmarshal configmap param from db",
 
 	// ErrorGetRootCa failed to get root ca by cert name
 	ErrorGetRootCa: "failed to get root ca by cert name",

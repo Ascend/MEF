@@ -4,10 +4,8 @@
 package appmanager
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 	"sync"
 
 	"gorm.io/gorm"
@@ -310,72 +308,4 @@ func (a *AppRepositoryImpl) isAppReferenced(appId uint64) error {
 		return errors.New("find app instance failed when deleting app")
 	}
 	return nil
-}
-
-func updateSingleCm(tx *gorm.DB, cmName string, appId uint64) error {
-	// query configmap info
-	var cmInfo ConfigmapInfo
-	if err := tx.Model(ConfigmapInfo{}).Where("configmap_name = ?", cmName).First(&cmInfo).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			hwlog.RunLog.Errorf("configmap [%s] does not exist", cmName)
-			return fmt.Errorf("configmap [%s] does not exist", cmName)
-		}
-		hwlog.RunLog.Errorf("query configmap [%s] from db failed, error: %v", cmName, err)
-		return fmt.Errorf("query configmap [%s] from db failed", cmName)
-	}
-
-	// update configmap associated app list
-	updateCmInfo, err := updateAppList(&cmInfo, appId)
-	if err != nil {
-		return err
-	}
-
-	stmt := tx.Model(&ConfigmapInfo{}).Where("configmap_name = ?", cmName).Updates(&updateCmInfo)
-	if stmt.Error != nil {
-		if strings.Contains(stmt.Error.Error(), common.ErrDbUniqueFailed) {
-			hwlog.RunLog.Errorf("configmap name [%s] is duplicate", cmName)
-			return fmt.Errorf("configmap name [%s] is duplicate", cmName)
-		}
-		hwlog.RunLog.Errorf("update configmap [%s] to db failed, error: %v", cmName, stmt.Error)
-		return errors.New("update configmap to db failed")
-	}
-	if stmt.RowsAffected != 1 {
-		hwlog.RunLog.Errorf("update configmap [%s] to db failed, rows affected wrong", cmName)
-		return errors.New("update configmap to db failed")
-	}
-
-	return nil
-}
-
-func updateAppList(cmInfo *ConfigmapInfo, appId uint64) (*ConfigmapInfo, error) {
-	if cmInfo == nil {
-		return nil, errors.New("configmap info is nil")
-	}
-
-	var appList []uint64
-	if err := json.Unmarshal([]byte(cmInfo.AssociatedAppList), &appList); err != nil {
-		hwlog.RunLog.Errorf("unmarshal associated app list failed, error: %v", err)
-		return nil, errors.New("unmarshal associated app list failed")
-	}
-	appList = deleteAppIdFromList(appId, appList)
-
-	appByte, err := json.Marshal(appList)
-	if err != nil {
-		hwlog.RunLog.Errorf("marshal associated app list failed, error: %v", err)
-		return nil, errors.New("marshal associated app list failed")
-	}
-	cmInfo.AssociatedAppList = string(appByte)
-	return cmInfo, nil
-}
-
-func deleteAppIdFromList(appId uint64, appList []uint64) []uint64 {
-	var idIndex int
-	for i := range appList {
-		if appList[i] == appId {
-			idIndex = i
-			break
-		}
-	}
-	appList = append(appList[:idIndex], appList[idIndex+1:]...)
-	return appList
 }

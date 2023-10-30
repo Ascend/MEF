@@ -374,26 +374,6 @@ func (ki *Client) GetToken() ([]byte, error) {
 	return token, nil
 }
 
-// CreateConfigMap create configmap
-func (ki *Client) CreateConfigMap(cm *v1.ConfigMap) (*v1.ConfigMap, error) {
-	return ki.kubeClient.CoreV1().ConfigMaps(common.MefUserNs).Create(context.Background(), cm, metav1.CreateOptions{})
-}
-
-// GetConfigMap get configmap
-func (ki *Client) GetConfigMap(name string) (*v1.ConfigMap, error) {
-	return ki.kubeClient.CoreV1().ConfigMaps(common.MefUserNs).Get(context.Background(), name, metav1.GetOptions{})
-}
-
-// DeleteConfigMap delete configmap
-func (ki *Client) DeleteConfigMap(name string) error {
-	return ki.kubeClient.CoreV1().ConfigMaps(common.MefUserNs).Delete(context.Background(), name, metav1.DeleteOptions{})
-}
-
-// UpdateConfigMap update configmap
-func (ki *Client) UpdateConfigMap(cm *v1.ConfigMap) (*v1.ConfigMap, error) {
-	return ki.kubeClient.CoreV1().ConfigMaps(common.MefUserNs).Update(context.Background(), cm, metav1.UpdateOptions{})
-}
-
 // GetSecret [method] for creating secret
 func (ki *Client) GetSecret(name string) (*v1.Secret, error) {
 	return ki.GetClientSet().CoreV1().Secrets(common.MefUserNs).Get(context.Background(), name, metav1.GetOptions{})
