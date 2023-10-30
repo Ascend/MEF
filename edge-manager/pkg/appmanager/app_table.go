@@ -42,16 +42,6 @@ type AppInstance struct {
 	ContainerInfo  string    `gorm:"type:text;" json:"containers"`
 }
 
-// AppTemplateDb db table for application template group
-type AppTemplateDb struct {
-	ID           uint64    `gorm:"type:integer;primaryKey;autoIncrement:true"`
-	TemplateName string    `gorm:"type:char(128);unique;not null"`
-	Description  string    `gorm:"type:char(255);" json:"description"`
-	CreatedAt    time.Time `gorm:"type:time"`
-	UpdatedAt    time.Time `gorm:"type:time"`
-	Containers   string    `gorm:"type:text;not null" json:"containers"`
-}
-
 // ConfigmapInfo is configmap table info
 type ConfigmapInfo struct {
 	ID                uint64    `gorm:"type:integer;primaryKey;autoIncrement:true"`

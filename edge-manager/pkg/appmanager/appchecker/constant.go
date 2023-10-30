@@ -47,8 +47,6 @@ const (
 
 	minAppId       = 1
 	maxAppId       = math.MaxUint32
-	minTemplateId  = 1
-	maxTemplateId  = math.MaxUint32
 	minNodeGroupId = 1
 	maxNodeGroupId = math.MaxUint32
 	minList        = 1

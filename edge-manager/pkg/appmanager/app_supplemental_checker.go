@@ -27,11 +27,6 @@ func NewAppSupplementalChecker(req CreateAppReq) *appParamChecker {
 	return &appParamChecker{req: &req}
 }
 
-// NewTemplateSupplementalChecker [method] for getting template backend checker
-func NewTemplateSupplementalChecker(req CreateTemplateReq) *templateParamChecker {
-	return &templateParamChecker{req: &req}
-}
-
 type containerParamChecker struct {
 	container *Container
 }
@@ -135,34 +130,6 @@ func isCmExist(cmName string) error {
 func (c *appParamChecker) Check() error {
 	var checkItems = []func() error{
 		c.checkAppContainersValid,
-	}
-	for _, checkItem := range checkItems {
-		if err := checkItem(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-type templateParamChecker struct {
-	req *CreateTemplateReq
-	appParamChecker
-}
-
-func (c *templateParamChecker) checkTemplateContainersValid() error {
-	c.appParamChecker.req = &CreateAppReq{
-		Containers: c.req.Containers,
-	}
-	if err := c.appParamChecker.Check(); err != nil {
-		return err
-	}
-	return nil
-}
-
-// Check [method] for template param checker
-func (c *templateParamChecker) Check() error {
-	var checkItems = []func() error{
-		c.checkTemplateContainersValid,
 	}
 	for _, checkItem := range checkItems {
 		if err := checkItem(); err != nil {
