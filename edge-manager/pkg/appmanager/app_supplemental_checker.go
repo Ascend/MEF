@@ -7,19 +7,8 @@ import (
 	"errors"
 	"fmt"
 
-	"gorm.io/gorm"
-	"huawei.com/mindx/common/hwlog"
-
 	"edge-manager/pkg/config"
 	"edge-manager/pkg/util"
-)
-
-const (
-	maxVolumesNum      = 256
-	maxContentValueLen = 2048
-
-	hostPathVolumeType  = "hostPath"
-	configMapVolumeType = "configMap"
 )
 
 // NewAppSupplementalChecker [method] for getting app backend checker
@@ -112,20 +101,6 @@ func (c *appParamChecker) checkAppContainersValid() error {
 	return nil
 }
 
-func isCmExist(cmName string) error {
-	if _, err := CmRepositoryInstance().queryCmByName(cmName); err != nil {
-		if err == gorm.ErrRecordNotFound {
-			hwlog.RunLog.Errorf("configmap [%s] does not exist", cmName)
-			return fmt.Errorf("configmap [%s] does not exist", cmName)
-		}
-
-		hwlog.RunLog.Errorf("query whether the configmap [%s] exists failed, error: %v", cmName, err)
-		return fmt.Errorf("query whether the configmap [%s] exists failed", cmName)
-	}
-
-	return nil
-}
-
 // Check [method] for app param checker
 func (c *appParamChecker) Check() error {
 	var checkItems = []func() error{
@@ -134,54 +109,6 @@ func (c *appParamChecker) Check() error {
 	for _, checkItem := range checkItems {
 		if err := checkItem(); err != nil {
 			return err
-		}
-	}
-	return nil
-}
-
-// CmParamChecker cm param checker
-type CmParamChecker struct {
-	req *ConfigmapReq
-}
-
-// NewCmSupplementalChecker get cm param checker
-func NewCmSupplementalChecker(req ConfigmapReq) *CmParamChecker {
-	return &CmParamChecker{req: &req}
-}
-
-// Check cm param supplemental checker
-func (cpc *CmParamChecker) Check() error {
-	var checkItems = []func() error{
-		cpc.checkContentKeyUnique,
-		cpc.checkContentValueLen,
-	}
-
-	for _, checkItem := range checkItems {
-		if err := checkItem(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// configmap content key should be unique
-func (cpc *CmParamChecker) checkContentKeyUnique() error {
-	cmContentKeysMap := make(map[string]struct{})
-	for _, content := range cpc.req.ConfigmapContent {
-		if _, ok := cmContentKeysMap[content.Name]; ok {
-			return errors.New("configmap content key is duplicated")
-		}
-		cmContentKeysMap[content.Name] = struct{}{}
-	}
-
-	return nil
-}
-
-func (cpc *CmParamChecker) checkContentValueLen() error {
-	for _, content := range cpc.req.ConfigmapContent {
-		if len(content.Value) > maxContentValueLen {
-			return errors.New("configmap content value length is invalid")
 		}
 	}
 	return nil

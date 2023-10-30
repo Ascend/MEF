@@ -5,7 +5,6 @@ package appmanager
 
 import (
 	"encoding/json"
-	"errors"
 
 	"huawei.com/mindx/common/hwlog"
 )
@@ -36,19 +35,5 @@ func (req *UpdateAppReq) toDb() (*AppInfo, error) {
 		AppName:     req.AppName,
 		Description: req.Description,
 		Containers:  string(containers),
-	}, nil
-}
-
-func (cr *ConfigmapReq) toDb() (*ConfigmapInfo, error) {
-	configmapContentBytes, err := json.Marshal(cr.ConfigmapContent)
-	if err != nil {
-		hwlog.RunLog.Errorf("marshal configmap content failed, error: %v", err)
-		return nil, errors.New("marshal configmap content failed")
-	}
-
-	return &ConfigmapInfo{
-		ConfigmapName:    cr.ConfigmapName,
-		ConfigmapContent: string(configmapContentBytes),
-		Description:      cr.Description,
 	}, nil
 }

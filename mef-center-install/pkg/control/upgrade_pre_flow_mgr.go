@@ -188,7 +188,7 @@ func (upf *UpgradePreFlowMgr) unzipTarFile() error {
 	hwlog.RunLog.Info("start to unzip tar file")
 	fmt.Println("start to unzip tar file")
 	if upf.tarPath == "" {
-		hwlog.RunLog.Errorf("tarPath is nil")
+		hwlog.RunLog.Error("tarPath is nil")
 		return errors.New("tarPath is nil")
 	}
 
@@ -248,7 +248,7 @@ func (upf *UpgradePreFlowMgr) newShErrDeal(returnErr error) {
 			hwlog.RunLog.Warnf("delete temp dir %s failed, need to clear it manually", err.Error())
 			return
 		}
-		hwlog.RunLog.Infof("clear environment success")
+		hwlog.RunLog.Info("clear environment success")
 	}
 }
 

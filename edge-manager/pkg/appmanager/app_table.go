@@ -41,14 +41,3 @@ type AppInstance struct {
 	UpdatedAt      time.Time `gorm:"type:time"`
 	ContainerInfo  string    `gorm:"type:text;" json:"containers"`
 }
-
-// ConfigmapInfo is configmap table info
-type ConfigmapInfo struct {
-	ID                uint64    `gorm:"type:integer;primaryKey;autoIncrement:true"`
-	ConfigmapName     string    `gorm:"type:char(128);unique;not null"`
-	ConfigmapContent  string    `gorm:"type:char(65535)"`
-	Description       string    `gorm:"type:char(1024)"`
-	AssociatedAppList string    `gorm:""`
-	CreatedAt         time.Time `gorm:"type:time"`
-	UpdatedAt         time.Time `gorm:"type:time"`
-}
