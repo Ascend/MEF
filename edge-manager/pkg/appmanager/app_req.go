@@ -89,42 +89,6 @@ type AppReturnInfo struct {
 	Containers     []Container           `json:"containers"`
 }
 
-// AppTemplate app template detail
-type AppTemplate struct {
-	Id          uint64      `json:"id"`
-	Name        string      `json:"name"`
-	Description string      `json:"description"`
-	CreatedAt   string      `json:"createdAt"`
-	ModifiedAt  string      `json:"modifiedAt"`
-	Containers  []Container `json:"containers"`
-}
-
-// CreateTemplateReq create app template
-type CreateTemplateReq struct {
-	Name        string      `json:"name"`
-	Description string      `json:"description"`
-	Containers  []Container `json:"containers"`
-}
-
-// UpdateTemplateReq update app template
-type UpdateTemplateReq struct {
-	Id uint64 `json:"id"`
-	CreateTemplateReq
-}
-
-// ListTemplatesResp encapsulate app list
-type ListTemplatesResp struct {
-	// AppTemplates app template info
-	AppTemplates []AppTemplate `json:"appTemplates"`
-	// Total is num of appInfos
-	Total int64 `json:"total"`
-}
-
-// DeleteTemplateReq request body to delete app template
-type DeleteTemplateReq struct {
-	Ids []uint64 `json:"ids"`
-}
-
 // ListAppInstancesResp encapsulate app instances list for return
 type ListAppInstancesResp struct {
 	AppInstances []AppInstanceResp `json:"appInstances"`

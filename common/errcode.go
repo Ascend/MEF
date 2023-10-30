@@ -118,27 +118,6 @@ const (
 	// ErrorUnmarshalCm failed to unmarshal configmap param from db
 	ErrorUnmarshalCm = "40023007"
 
-	// ErrorCheckAppTemplateParams failed to check app template params
-	ErrorCheckAppTemplateParams = "40024001"
-	// ErrorCountAllTemplates failed to count all templates in db
-	ErrorCountAllTemplates = "40024002"
-	// ErrorExceedMaxTemplates total number of templates in db has exceeded max limit
-	ErrorExceedMaxTemplates = "40024003"
-	// ErrorCreateAppTemplate failed to create app template
-	ErrorCreateAppTemplate = "40024004"
-	// ErrorDeleteAppTemplate failed to delete app template
-	ErrorDeleteAppTemplate = "40024005"
-	// ErrorModifyAppTemplate failed to modify app template
-	ErrorModifyAppTemplate = "40024006"
-	// ErrorGetAppTemplates failed to get app templates
-	ErrorGetAppTemplates = "40024007"
-	// ErrorTemplateNotFind template id not found
-	ErrorTemplateNotFind = "40024404"
-	// ErrorGetAppTemplateDetail failed to get app template detail
-	ErrorGetAppTemplateDetail = "40024008"
-	// ErrorOperate fail to operate
-	ErrorOperate = "00002010"
-
 	// ErrorAccountOrPassword incorrect account or password
 	ErrorAccountOrPassword = "40031000"
 	// ErrorSetEdgeAccountPassword failed to set edge account password
@@ -346,27 +325,6 @@ var ErrorMap = map[string]string{
 	ErrorExportRootCa: "failed to export root ca",
 	// ErrorGetImportedCertsInfo failed to get imported certs info
 	ErrorGetImportedCertsInfo: "failed to get imported certs info",
-
-	// ErrorCreateAppTemplate failed to create app template info
-	ErrorCreateAppTemplate: "failed to create app template",
-	// ErrorDeleteAppTemplate failed to delete app template info
-	ErrorDeleteAppTemplate: "failed to delete app template",
-	// ErrorModifyAppTemplate failed to modify app template info
-	ErrorModifyAppTemplate: "failed to modify app template",
-	// ErrorGetAppTemplates failed to get app templates
-	ErrorGetAppTemplates: "failed to get app templates",
-	// ErrorGetAppTemplateDetail failed to get app template detail info
-	ErrorGetAppTemplateDetail: "failed to get app template detail",
-	// ErrorOperate fail to operate
-	ErrorOperate: "failed to operate",
-	// ErrorCheckAppTemplateParams failed to check app template params
-	ErrorCheckAppTemplateParams: "failed to check app template params",
-	// ErrorCountAllTemplates failed to count all templates in db
-	ErrorCountAllTemplates: "failed to count all templates in db",
-	// ErrorExceedMaxTemplates total number of templates in db has exceeded max limit
-	ErrorExceedMaxTemplates: "total number of templates in db has exceeded max limit",
-	// ErrorTemplateNotFind template id not found
-	ErrorTemplateNotFind: "template id not found",
 
 	// ErrorAccountOrPassword incorrect account or password
 	ErrorAccountOrPassword: "incorrect account or password",

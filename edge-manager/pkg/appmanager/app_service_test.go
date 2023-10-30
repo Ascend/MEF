@@ -53,9 +53,6 @@ func setup() {
 	if err = gormInstance.AutoMigrate(&AppInstance{}); err != nil {
 		hwlog.RunLog.Errorf("setup table error, %v", err)
 	}
-	if err = gormInstance.AutoMigrate(&AppTemplateDb{}); err != nil {
-		hwlog.RunLog.Errorf("setup table error, %v", err)
-	}
 	if err = gormInstance.AutoMigrate(&AppDaemonSet{}); err != nil {
 		hwlog.RunLog.Errorf("setup table error, %v", err)
 	}

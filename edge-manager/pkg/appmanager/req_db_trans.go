@@ -8,8 +8,6 @@ import (
 	"errors"
 
 	"huawei.com/mindx/common/hwlog"
-
-	"huawei.com/mindxedge/base/common"
 )
 
 func (req *CreateAppReq) toDb() (*AppInfo, error) {
@@ -39,67 +37,6 @@ func (req *UpdateAppReq) toDb() (*AppInfo, error) {
 		Description: req.Description,
 		Containers:  string(containers),
 	}, nil
-}
-
-// ToDb convert app template dto to db model
-func (dto *CreateTemplateReq) ToDb(template *AppTemplateDb) error {
-	if template == nil {
-		return errors.New("param is nil")
-	}
-	*template = AppTemplateDb{
-		TemplateName: dto.Name,
-		Description:  dto.Description,
-	}
-
-	containers, err := json.Marshal(dto.Containers)
-	if err != nil {
-		hwlog.RunLog.Error("marshal containers failed")
-		return err
-	}
-
-	template.Containers = string(containers)
-
-	return nil
-}
-
-// ToDb convert app template dto to db model
-func (dto *UpdateTemplateReq) ToDb(template *AppTemplateDb) error {
-	if template == nil {
-		return errors.New("param is nil")
-	}
-	*template = AppTemplateDb{
-		ID:           dto.Id,
-		TemplateName: dto.Name,
-		Description:  dto.Description,
-	}
-
-	containers, err := json.Marshal(dto.Containers)
-	if err != nil {
-		hwlog.RunLog.Error("marshal containers failed")
-		return err
-	}
-
-	template.Containers = string(containers)
-
-	return nil
-}
-
-// FromDb convert db model to app template dto
-func (dto *AppTemplate) FromDb(template *AppTemplateDb) error {
-	if template == nil {
-		return errors.New("param is nil")
-	}
-	dto.Id = template.ID
-	dto.Name = template.TemplateName
-	dto.Description = template.Description
-	dto.CreatedAt = template.CreatedAt.Format(common.TimeFormat)
-	dto.ModifiedAt = template.UpdatedAt.Format(common.TimeFormat)
-
-	if err := json.Unmarshal([]byte(template.Containers), &dto.Containers); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (cr *ConfigmapReq) toDb() (*ConfigmapInfo, error) {
