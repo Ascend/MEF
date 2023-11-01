@@ -47,7 +47,6 @@ type LockRepository interface {
 	isLock() (bool, error)
 	deleteLockRecord() error
 	UnlockRecords() (int64, error)
-	updateLockTime() error
 	getFailedRecord(string) (*AuthFailedRecord, error)
 	createFailedRecord(string) error
 	updateFailedRecord(string) error
@@ -84,9 +83,6 @@ func (c *lockRepositoryImpl) isLock() (bool, error) {
 		return false, nil
 	}
 
-	if err := c.updateLockTime(); err != nil {
-		return true, fmt.Errorf("update lock time error")
-	}
 	return true, nil
 }
 
@@ -223,11 +219,4 @@ func (c *lockRepositoryImpl) deleteLockRecord() error {
 		return fmt.Errorf("delete lock info error")
 	}
 	return nil
-}
-
-func (c *lockRepositoryImpl) updateLockTime() error {
-	updatedColumns := map[string]interface{}{
-		"LockTime": time.Now().Add(common.LockInterval).Unix(),
-	}
-	return c.db().Session(&gorm.Session{AllowGlobalUpdate: true}).Model(LockRecord{}).Updates(updatedColumns).Error
 }
