@@ -207,12 +207,12 @@ func (ard *AlarmReqDealer) dealEvent() error {
 		}
 
 		if err = AlarmDbInstance().deleteAlarmInfos(oldestEvent); err != nil {
-			hwlog.RunLog.Errorf("%v [%s:%s] %v %v: delete oldest event failed: %s",
+			hwlog.RunLog.Errorf("%v [%s:%s] %v %v: delete oldest event[%s] failed: %s",
 				time.Now().Format(time.RFC3339Nano), ard.ip, ard.sn, http.MethodPost,
 				requests.ReportAlarmRouter, ard.req.AlarmId, err.Error())
 			return errors.New("delete oldest event failed")
 		}
-		hwlog.RunLog.Infof("%v [%s:%s] %v %v: delete oldest event success", time.Now().Format(time.RFC3339Nano),
+		hwlog.RunLog.Infof("%v [%s:%s] %v %v: delete oldest event[%s] success", time.Now().Format(time.RFC3339Nano),
 			ard.ip, ard.sn, http.MethodPost, requests.ReportAlarmRouter, ard.req.AlarmId)
 	}
 

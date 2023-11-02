@@ -204,7 +204,7 @@ func saveCaContent(certName string, caContent []byte) error {
 		return fmt.Errorf("save %s ca file failed", certName)
 	}
 	if err := backuputils.BackUpFiles(caFilePath); err != nil {
-		hwlog.RunLog.Warnf("back up %s ca file failed, %v", err)
+		hwlog.RunLog.Warnf("back up %s ca file failed, %v", caFilePath, err)
 	}
 	hwlog.RunLog.Infof("save %s ca file success", certName)
 	return nil
