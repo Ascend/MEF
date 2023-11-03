@@ -166,9 +166,15 @@ func (k *kubeConfig) prepareApiServerInfo() error {
 		return err
 	}
 	caPath := k.certPathMgr.GetKubeConfigCa()
+
 	if err := fileutils.CopyFile(srcCaPath, caPath); err != nil {
 		hwlog.RunLog.Errorf("copy kubeclient ca cert failed: %v", err)
 		return err
+	}
+
+	if err := fileutils.SetPathPermission(caPath, fileutils.Mode400, false, false); err != nil {
+		hwlog.RunLog.Errorf("set path %s's permission failed: %v", caPath, err)
+		return fmt.Errorf("set path %s's permission failed", caPath)
 	}
 
 	if err := getApiserverEndpoint(podCommand); err != nil {
