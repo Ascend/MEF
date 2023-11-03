@@ -13,6 +13,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindx/common/utils"
 
 	"huawei.com/mindxedge/base/common"
 )
@@ -27,7 +28,7 @@ func TestDownloadInfo(t *testing.T) {
 			}
 			rspMsg.FillContent(common.OK)
 			return rspMsg, nil
-		})
+		}).ApplyFuncReturn(utils.IsLocalIp, false)
 	defer p1.Reset()
 
 	convey.Convey("test download software should be success", t, testDownloadSfw)
@@ -50,9 +51,9 @@ func createDownloadSfwBaseData() SoftwareDownloadInfo {
     "softWareName": "MEFEdge",
     "softWarVersion": "1.0",
     "downLoadInfo": {
-        "package": "GET https://Ascend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
-        "signFile": "GET https://Ascend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
-        "crlFile": "GET https://Ascend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
+        "package": "GET https://127.0.0.1/Ascend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
+        "signFile": "GET https://127.0.0.1/Ascend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
+        "crlFile": "GET https://127.0.0.1/Ascend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
         "userName": "FileTransferAccount",
         "password": [118,103,56,115,42,98,35,118,120,54,111]
     	}
