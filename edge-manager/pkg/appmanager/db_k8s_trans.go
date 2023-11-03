@@ -54,7 +54,7 @@ func initDaemonSet(appInfo *AppInfo, nodeGroupId uint64) (*appv1.DaemonSet, erro
 	var tmpSpec *v1.PodSpec
 	var err error
 	if tmpSpec, err = getPodSpec(appInfo.Containers, nodeGroupId); err != nil {
-		hwlog.RunLog.Errorf("get pod spec failed: %s", err)
+		hwlog.RunLog.Errorf("get pod spec failed: %v", err)
 		return nil, err
 	}
 	template := v1.PodTemplateSpec{
