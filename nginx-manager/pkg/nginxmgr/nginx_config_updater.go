@@ -30,18 +30,9 @@ type nginxConfUpdater struct {
 
 // NewNginxConfUpdater create an updater to modify nginx configuration file
 func NewNginxConfUpdater(confItems []nginxcom.NginxConfItem) (*nginxConfUpdater, error) {
-	enableResolverVal, err := nginxcom.GetEnvManager().Get(nginxcom.EnableResolverKey)
-	if err != nil {
-		return nil, err
-	}
 	config := nginxConfUpdater{}
-	if enableResolverVal == "true" {
-		config.confPath = nginxResolverConfigPath
-		config.icsConf = getIcsResolverConfContent
-	} else {
-		config.confPath = nginxDefaultConfigPath
-		config.icsConf = getIcsConfContent
-	}
+	config.confPath = nginxDefaultConfigPath
+	config.icsConf = getIcsConfContent
 	if err := prepareRootCert(nginxcom.IcsCaPath, common.IcsCertName, false); err != nil {
 		config.icsConf = func() string { return "" }
 	}
@@ -105,7 +96,7 @@ func getIcsConfContent() string {
             proxy_ssl_protocols TLSv1.3;
             proxy_ssl_ciphers "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384";
             proxy_pass https://ascend-ics-manager.ics-center.svc.cluster.local:%v;
-			
+            limit_except GET POST PUT DELETE PATCH {deny all;}
 			location /icsmanager/v1/inclearning/label/upload {
                 limit_conn per_addr_upload_conn_zone 1;
                 limit_conn global_upload_conn_zone 10;
@@ -115,14 +106,15 @@ func getIcsConfContent() string {
                 proxy_request_buffering off;
 
                 proxy_pass https://ascend-ics-manager.ics-center.svc.cluster.local:%v;
+                limit_except POST {deny all;}
             }
             location /icsmanager/v1/inclearning/label/download {
                 limit_conn global_download_conn_zone 1;
                 proxy_send_timeout 7200;
                 proxy_pass https://ascend-ics-manager.ics-center.svc.cluster.local:%v;
+                limit_except GET {deny all;}
             }
         }
-
         location /icscertmgnt {
             proxy_set_header X-Forwarded-For $remote_addr;
             proxy_set_header X-Real-IP $remote_addr;
@@ -137,60 +129,11 @@ func getIcsConfContent() string {
             proxy_ssl_protocols TLSv1.3;
             proxy_ssl_ciphers "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384";
             proxy_pass https://ascend-ics-cert-manager.ics-center.svc.cluster.local:%v;
+            limit_except GET POST PUT DELETE PATCH {
+                deny all;
+            }
         }`, data.icsPort, data.icsPort, data.icsPort, data.icsCertPort)
 	return res
-}
-
-func getIcsResolverConfContent() string {
-	data, err := getIcsData()
-	if err != nil {
-		return ""
-	}
-	return fmt.Sprintf(`location /icsmanager {
-            proxy_set_header X-Forwarded-For $remote_addr;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_pass_request_headers on;
-            proxy_pass_request_body on;
-            proxy_request_buffering off;
-			proxy_ssl_certificate /home/data/config/mef-certs/nginx-manager.crt;
-			proxy_ssl_certificate_key /home/MEFCenter/pipe/client_pipe_5;
-            proxy_ssl_trusted_certificate /home/data/config/mef-certs/ics-root.crt;
-            proxy_ssl_verify on;
-            proxy_ssl_session_reuse on;
-            proxy_ssl_protocols TLSv1.3;
-            proxy_ssl_ciphers "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384";
-			set $IcsMgrSvc https://ascend-ics-manager.ics-center.svc.cluster.local;
-            proxy_pass https://$IcsMgrSvc:%v;
-			location /icsmanager/v1/inclearning/label/upload {
-                limit_conn per_addr_upload_conn_zone 1;
-                limit_conn global_upload_conn_zone 10;
-                client_max_body_size 500m;
-                client_body_timeout   600;
-                proxy_http_version 1.1;
-                proxy_request_buffering off;
-				set $IcsMgrSvc https://ascend-ics-manager.ics-center.svc.cluster.local;
-                proxy_pass https://$IcsMgrSvc:%v;}
-			location /icsmanager/v1/inclearning/label/download {
-                limit_conn global_download_conn_zone 1;
-                proxy_send_timeout 7200;
-				set $IcsMgrSvc https://ascend-ics-manager.ics-center.svc.cluster.local;
-                proxy_pass https://$IcsMgrSvc:%v;}
-        }
-        location /icscertmgnt {
-            proxy_set_header X-Forwarded-For $remote_addr;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_pass_request_headers on;
-            proxy_pass_request_body on;
-            proxy_request_buffering off;
-			proxy_ssl_certificate /home/data/config/mef-certs/nginx-manager.crt;
-			proxy_ssl_certificate_key /home/MEFCenter/pipe/client_pipe_6;
-            proxy_ssl_trusted_certificate /home/data/config/mef-certs/ics-root.crt;
-            proxy_ssl_verify on;
-            proxy_ssl_session_reuse on;
-            proxy_ssl_protocols TLSv1.3;
-            proxy_ssl_ciphers "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384";
-            set $IcsMgrSvc https://ascend-ics-cert-manager.ics-center.svc.cluster.local;
-            proxy_pass https://$IcsMgrSvc:%v;}`, data.icsPort, data.icsPort, data.icsPort, data.icsCertPort)
 }
 
 type icsData struct {
