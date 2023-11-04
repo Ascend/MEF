@@ -55,7 +55,7 @@ func SendAlarms(alarms ...*requests.AlarmReq) error {
 		alarmReqs = append(alarmReqs, *alm)
 	}
 
-	hostIp, err := common.GetHostIP()
+	hostIp, err := common.GetHostIP("HOST_IP")
 	if err != nil {
 		hwlog.RunLog.Errorf("get host ip failed, error: %v", err)
 		return errors.New("get host ip failed")
