@@ -30,6 +30,7 @@ func (cc *configChecker) init() {
 			checker.GetAndChecker(
 				checker.GetRegChecker("Domain", domainReg, true),
 				checker.GetStringExcludeChecker("Domain", []string{"localhost"}, true),
+				&domainChecker{},
 			),
 			checker.GetAndChecker(
 				checker.GetStringChoiceChecker("Domain", []string{""}, true),
@@ -77,12 +78,29 @@ type localIpChecker struct{}
 
 func (i *localIpChecker) Check(data interface{}) checker.CheckResult {
 	strValuer := valuer.StringValuer{}
-	value, err := strValuer.GetValue(data, "")
+	value, err := strValuer.GetValue(data, "IP")
 	if err != nil {
 		return checker.NewFailedResult(fmt.Sprintf("get string value failed, error: %v", err))
 	}
 	if utils.IsLocalIp(value) {
 		return checker.NewFailedResult("ip cannot be loopBack address")
+	}
+	if err = utils.CheckInterfaceAddressIp(value); err != nil {
+		return checker.NewFailedResult(fmt.Sprintf("checkInterfaceAddressIp failed, error: %v", err))
+	}
+	return checker.NewSuccessResult()
+}
+
+type domainChecker struct{}
+
+func (d *domainChecker) Check(data interface{}) checker.CheckResult {
+	strValuer := valuer.StringValuer{}
+	value, err := strValuer.GetValue(data, "Domain")
+	if err != nil {
+		return checker.NewFailedResult(fmt.Sprintf("get string value failed, error: %v", err))
+	}
+	if utils.IsDigitString(value) {
+		return checker.NewFailedResult("domain cannot be all digits")
 	}
 	return checker.NewSuccessResult()
 }
