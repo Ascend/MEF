@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"sync/atomic"
 	"time"
 
@@ -282,10 +281,10 @@ func sendAlarm(alarmId, notifyType string) error {
 		return fmt.Errorf("create alarm [%v] error: %v", alarmId, err)
 	}
 
-	hostIp := os.Getenv("NODE_IP")
-	if hostIp == "" {
-		hwlog.RunLog.Error("get host ip error")
-		return fmt.Errorf("get host ip error")
+	hostIp, err := common.GetHostIP("NODE_IP")
+	if err != nil {
+		hwlog.RunLog.Errorf("get host ip failed, error: %v", err)
+		return errors.New("get host ip failed")
 	}
 
 	alarmReq := requests.AddAlarmReq{

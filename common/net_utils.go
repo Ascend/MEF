@@ -87,8 +87,8 @@ func GetPodIP() (string, error) {
 }
 
 // GetHostIP [method] for get host ip from env
-func GetHostIP() (string, error) {
-	ip := os.Getenv("HOST_IP")
+func GetHostIP(envName string) (string, error) {
+	ip := os.Getenv(envName)
 	if ip == "" {
 		return "", errors.New("host ip obtained from env is nil")
 	}
