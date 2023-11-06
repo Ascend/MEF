@@ -57,7 +57,7 @@ func (icf *ImportCrlFlow) checkParam() error {
 		return errors.New("ca is not be imported")
 	}
 
-	if _, err := fileutils.RealFileCheck(icf.crlPath, false, false, maxCrlSizeInMb); err != nil {
+	if _, err := fileutils.RealFileCheck(icf.crlPath, true, false, maxCrlSizeInMb); err != nil {
 		hwlog.RunLog.Errorf("crl path [%s] check failed: %s", icf.crlPath, err.Error())
 		return errors.New("crl path check failed")
 	}
@@ -74,11 +74,9 @@ func (icf *ImportCrlFlow) checkCrl() error {
 }
 
 func (icf *ImportCrlFlow) importCrl() error {
-	if fileutils.IsLexist(icf.savePath) {
-		if err := fileutils.DeleteFile(icf.savePath); err != nil {
-			hwlog.RunLog.Errorf("delete original crl [%s] failed: %s", icf.savePath, err.Error())
-			return errors.New("delete original crl failed")
-		}
+	if err := fileutils.DeleteFile(icf.savePath); err != nil {
+		hwlog.RunLog.Errorf("delete original crl [%s] failed: %s", icf.savePath, err.Error())
+		return errors.New("delete original crl failed")
 	}
 
 	if err := fileutils.CopyFile(icf.crlPath, icf.savePath); err != nil {
@@ -98,7 +96,7 @@ func (icf *ImportCrlFlow) importCrl() error {
 		return errors.New("set crl owner failed")
 	}
 
-	if err := fileutils.SetPathPermission(icf.savePath, fileutils.Mode400, false, false); err != nil {
+	if err := fileutils.SetPathPermission(icf.savePath, fileutils.Mode600, false, false); err != nil {
 		hwlog.RunLog.Errorf("set save crl right failed: %s", err.Error())
 		if err = fileutils.DeleteFile(icf.savePath); err != nil {
 			hwlog.RunLog.Warnf("delete crl [%s] failed: %s", filepath.Base(icf.savePath), err.Error())

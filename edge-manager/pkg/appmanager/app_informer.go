@@ -83,8 +83,13 @@ func initNamespace() error {
 }
 
 func initDefaultImagePullSecret() error {
-	_, err := kubeclient.GetKubeClient().GetSecret(kubeclient.DefaultImagePullSecretKey)
+	secret, err := kubeclient.GetKubeClient().GetSecret(kubeclient.DefaultImagePullSecretKey)
 	if err == nil {
+		secretData, ok := secret.Data[corev1.DockerConfigJsonKey]
+		if !ok {
+			return nil
+		}
+		common.ClearSliceByteMemory(secretData)
 		return nil
 	}
 	if !strings.Contains(err.Error(), kubeclient.K8sNotFoundErrorFragment) {
