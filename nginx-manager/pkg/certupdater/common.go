@@ -34,26 +34,32 @@ type CertUpdatePayload struct {
 var nginxReloadLocker sync.Mutex
 
 func reloadNginxConf() error {
+	var err error
 	nginxReloadLocker.Lock()
 	defer nginxReloadLocker.Unlock()
 	// create cert key pipes
-	if err := nginxmgr.CreateKeyPipes(); err != nil {
+	if err = nginxmgr.CreateKeyPipes(); err != nil {
 		hwlog.RunLog.Errorf("create key pipes error: %v", err)
 		return fmt.Errorf("create keys pipes failed: %v", err)
 	}
+	defer func() {
+		if err != nil {
+			nginxmgr.DeleteKeyPipes()
+		}
+	}()
 	//  reload nginx config, nginx will read conf file twice, 1st for testing, 2nd for making effect
-	if _, err := envutils.RunResidentCmd("./nginx", "-s", "reload", "-c",
+	if _, err = envutils.RunResidentCmd("./nginx", "-s", "reload", "-c",
 		nginxcom.NginxConfigPath); err != nil {
 		hwlog.RunLog.Errorf("reload nginx config failed: %v", err)
 		return fmt.Errorf("reload nginx config failed: %v", err)
 	}
 	// write cert key data to pipe for the first time, DON'T delete pipes
-	if err := nginxmgr.LoadKeysDataToPipes(false); err != nil {
+	if err = nginxmgr.LoadKeysDataToPipes(false); err != nil {
 		hwlog.RunLog.Errorf("load cert keys to pipe failed: %v", err)
 		return fmt.Errorf("load cert keys to pipe failed: %v", err)
 	}
 	// write cert key data to pipe for the second time, delete after use.
-	if err := nginxmgr.LoadKeysDataToPipes(true); err != nil {
+	if err = nginxmgr.LoadKeysDataToPipes(true); err != nil {
 		hwlog.RunLog.Errorf("load cert keys to pipe failed: %v", err)
 		return fmt.Errorf("load cert keys to pipe failed: %v", err)
 	}

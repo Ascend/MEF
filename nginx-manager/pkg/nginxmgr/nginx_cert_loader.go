@@ -229,7 +229,15 @@ func loadKey(path string) ([]byte, error) {
 }
 
 func writeKeyToPipe(pipeFile string, content []byte, deletePipeAfterUse bool) {
-	defer common.ClearSliceByteMemory(content)
+	defer func() {
+		common.ClearSliceByteMemory(content)
+		if deletePipeAfterUse {
+			err := fileutils.DeleteFile(pipeFile)
+			if err != nil {
+				hwlog.RunLog.Error("pipe remove error")
+			}
+		}
+	}()
 	pipe, err := os.OpenFile(pipeFile, os.O_WRONLY|os.O_SYNC, os.ModeNamedPipe)
 	if err != nil {
 		hwlog.RunLog.Error("open pipe failed")
@@ -239,12 +247,6 @@ func writeKeyToPipe(pipeFile string, content []byte, deletePipeAfterUse bool) {
 		err = pipe.Close()
 		if err != nil {
 			hwlog.RunLog.Error("pipe close error")
-		}
-		if deletePipeAfterUse {
-			err = fileutils.DeleteFile(pipeFile)
-			if err != nil {
-				hwlog.RunLog.Error("pipe remove error")
-			}
 		}
 	}()
 	var nginxStatus bool
