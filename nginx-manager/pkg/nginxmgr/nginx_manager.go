@@ -138,6 +138,13 @@ func CreateKeyPipes() error {
 	return PrepareForClient(nginxcom.ClientPipeDir, pipeCount)
 }
 
+// DeleteKeyPipes is used to delete all pipe for nginx
+func DeleteKeyPipes() {
+	if err := fileutils.DeleteAllFileWithConfusion(nginxcom.ClientPipeDir); err != nil {
+		hwlog.RunLog.Errorf("delete pipe dir %s failed: %v", nginxcom.ClientPipeDir, err)
+	}
+}
+
 // CreateConfItems create some items which used to replace into nginx.conf file
 func CreateConfItems() ([]nginxcom.NginxConfItem, error) {
 	var ret []nginxcom.NginxConfItem
@@ -265,23 +272,29 @@ func reqRestartNginx(req *model.Message) {
 }
 
 func startNginxCmd() bool {
-	if err := CreateKeyPipes(); err != nil {
+	var err error
+	if err = CreateKeyPipes(); err != nil {
 		hwlog.RunLog.Errorf("create key pipes failed: %v", err)
 		return false
 	}
-	if _, err := envutils.RunResidentCmd(startCommand); err != nil {
+	defer func() {
+		if err != nil {
+			DeleteKeyPipes()
+		}
+	}()
+	if _, err = envutils.RunResidentCmd(startCommand); err != nil {
 		hwlog.RunLog.Errorf("start nginx failed: %v", err)
 		return false
 	}
-	if err := LoadKeysDataToPipes(true); err != nil {
+	if err = LoadKeysDataToPipes(true); err != nil {
 		hwlog.RunLog.Errorf("load keys data to pipes failed: %v", err)
 		return false
 	}
-	if err := fileutils.SetPathPermission(accessLogFile, logFileMode, false, false); err != nil {
+	if err = fileutils.SetPathPermission(accessLogFile, logFileMode, false, false); err != nil {
 		hwlog.RunLog.Errorf("chmod access.log failed, cause by: {%s}", err.Error())
 		return false
 	}
-	if err := fileutils.SetPathPermission(errorLogFile, logFileMode, false, false); err != nil {
+	if err = fileutils.SetPathPermission(errorLogFile, logFileMode, false, false); err != nil {
 		hwlog.RunLog.Errorf("chmod error.log failed, cause by: {%v}", err.Error())
 		return false
 	}
