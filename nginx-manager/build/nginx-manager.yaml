@@ -60,6 +60,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+          imagePullPolicy: Never
           command: [ "/bin/bash", "-c", "--"]
           args: [ "LD_LIBRARY_PATH=/home/MEFCenter/lib:${LD_LIBRARY_PATH} ./nginx-manager" ]
           volumeMounts:

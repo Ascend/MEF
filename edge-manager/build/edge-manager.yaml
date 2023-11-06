@@ -33,7 +33,7 @@ spec:
             limits:
               memory: 10000Mi
               cpu: 6000m
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Never
           command: [ "/bin/bash", "-c", "--" ]
           # NOTE: HTTPS is enabled by default
           args: [ "LD_LIBRARY_PATH=/home/MEFCenter/lib:${LD_LIBRARY_PATH} ./edge-manager -port=8101 -wsPort=10000 -maxClientNum=1024" ]

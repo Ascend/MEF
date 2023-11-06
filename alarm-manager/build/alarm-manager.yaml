@@ -45,7 +45,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Never
           command: [ "/bin/bash", "-c", "--"]
           args: ["LD_LIBRARY_PATH=/home/MEFCenter/lib:${LD_LIBRARY_PATH} ./alarm-manager -port=8102"]
           volumeMounts:
