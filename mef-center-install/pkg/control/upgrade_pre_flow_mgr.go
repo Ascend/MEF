@@ -359,8 +359,9 @@ func updateLocalCrlFile(verifyCrl string) error {
 		return errors.New("copy crl file failed")
 	}
 
+	const maxCrlSizeInMb = 10
 	if _, err := fileutils.RealFileCheck(
-		crlOnDevicePath, true, false, fileutils.Size10M); err != nil {
+		crlOnDevicePath, true, false, maxCrlSizeInMb); err != nil {
 		hwlog.RunLog.Errorf("check file [%s] failed, error: %v", crlOnDevicePath, err)
 		return fmt.Errorf("check file [%s] failed", crlOnDevicePath)
 	}
