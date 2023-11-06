@@ -40,7 +40,7 @@ spec:
               valueFrom:
                  fieldRef:
                    fieldPath: status.podIP
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Never
           command: [ "/bin/bash", "-c", "--"]
           args: [ "LD_LIBRARY_PATH=/home/cert_mgr_lib:${LD_LIBRARY_PATH} ./cert-manager -port=8103" ]
           volumeMounts:
