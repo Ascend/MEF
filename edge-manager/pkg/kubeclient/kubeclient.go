@@ -365,7 +365,7 @@ func (ki *Client) GetToken() ([]byte, error) {
 	secret, err := ki.kubeClient.CoreV1().Secrets(systemNamespace).
 		Get(context.Background(), tokenSecretName, metav1.GetOptions{})
 	if err != nil {
-		return nil, err
+		return nil, errors.New("get token from k8s failed")
 	}
 	token, ok := secret.Data[tokenDataName]
 	if !ok {
@@ -384,7 +384,7 @@ func (ki *Client) GetCloudCoreCa() ([]byte, error) {
 	caSecret, err := ki.GetClientSet().CoreV1().Secrets(systemNamespace).Get(context.Background(),
 		caSecretName, metav1.GetOptions{})
 	if err != nil {
-		return nil, err
+		return nil, errors.New("get cloud core ca from k8s failed")
 	}
 
 	if _, ok := caSecret.Data[caKeyDataName]; !ok {
