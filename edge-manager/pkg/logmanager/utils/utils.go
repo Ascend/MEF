@@ -5,6 +5,7 @@ package utils
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"huawei.com/mindx/common/fileutils"
@@ -14,6 +15,15 @@ import (
 
 	"edge-manager/pkg/constants"
 )
+
+func deleteTempSubFiles(dir string, entries []os.DirEntry) error {
+	for _, entry := range entries {
+		if err := fileutils.DeleteFile(filepath.Join(dir, entry.Name())); err != nil {
+			return fmt.Errorf("failed to delete file %s, %v", entry.Name(), err)
+		}
+	}
+	return nil
+}
 
 // CleanTempFiles clean temp files
 func CleanTempFiles() (bool, error) {
@@ -29,19 +39,15 @@ func CleanTempFiles() (bool, error) {
 		if err != nil {
 			return false, fmt.Errorf("failed to read dir %s, %v", dir, err)
 		}
-		defer func() {
-			if fileHandle == nil {
-				return
-			}
-
+		if err = deleteTempSubFiles(dir, entries); err != nil {
 			if err = fileHandle.Close(); err != nil {
 				hwlog.RunLog.Errorf("closer dir %s's handle failed: %v", dir, err)
 			}
-		}()
-		for _, entry := range entries {
-			if err = fileutils.DeleteFile(filepath.Join(dir, entry.Name())); err != nil {
-				return false, fmt.Errorf("failed to delete file %s, %v", entry.Name(), err)
-			}
+			return false, err
+		}
+
+		if err = fileHandle.Close(); err != nil {
+			hwlog.RunLog.Errorf("closer dir %s's handle failed: %v", dir, err)
 		}
 	}
 	return true, nil
