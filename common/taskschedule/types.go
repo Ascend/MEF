@@ -82,6 +82,7 @@ type GoroutinePoolSpec struct {
 type SchedulerSpec struct {
 	MaxHistoryMasterTasks int64
 	MaxActiveTasks        int64
+	AllowedMaxTasksInDb   int
 }
 
 // IsFinished tests phase is finished

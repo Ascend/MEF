@@ -204,6 +204,7 @@ func initScheduler() error {
 	const (
 		maxHistoryMasterTasks = 2000
 		maxActiveTasks        = 200
+		allowedMaxTasksInDb   = 300000
 	)
 	db, err := gorm.Open(sqlite.Open(":memory:?cache=shared"))
 	if err != nil {
@@ -217,6 +218,7 @@ func initScheduler() error {
 	return taskschedule.InitDefaultScheduler(context.Background(), db, taskschedule.SchedulerSpec{
 		MaxHistoryMasterTasks: maxHistoryMasterTasks,
 		MaxActiveTasks:        maxActiveTasks,
+		AllowedMaxTasksInDb:   allowedMaxTasksInDb,
 	})
 }
 

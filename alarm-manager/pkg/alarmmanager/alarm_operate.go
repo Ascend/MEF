@@ -240,9 +240,8 @@ func dealNodeClearReq(input interface{}) (interface{}, error) {
 		return common.FAIL, nil
 	}
 
-	err := AlarmDbInstance().deleteBySn(reqs.Sn)
-	if err != nil {
-		hwlog.RunLog.Errorf("delete alarm info by sn failed: %s", err.Error())
+	if err := AlarmDbInstance().deleteBySn(reqs.Sn); err != nil {
+		hwlog.RunLog.Errorf("delete alarm info by sn [%s] failed: %s", reqs.Sn, err.Error())
 		return common.FAIL, nil
 	}
 

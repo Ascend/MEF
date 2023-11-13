@@ -214,7 +214,8 @@ func dumpEdgeLogs(
 		doneCount    int
 	)
 	taskIter := taskschedule.DefaultScheduler().NewSubTaskSelector(masterTaskCtx.Spec().Id)
-	for {
+	const maxNodes = 100
+	for i := 0; i < maxNodes; i++ {
 		childCtx, err = taskIter.Select(masterTaskCtx.GracefulShutdown())
 		if err != nil {
 			break
@@ -305,15 +306,14 @@ func addSingleNodeTarGz(task taskschedule.Task, tarWriter *tar.Writer) error {
 		return errors.New("can't get serial number")
 	}
 	tarGzPath := filepath.Join(constants.LogDumpTempDir, task.Spec.Id+common.TarGzSuffix)
-	if _, err := fileutils.CheckOriginPath(tarGzPath); err != nil {
-		return fmt.Errorf("failed to check log temp path, %v", err)
-	}
-
 	defer func() {
 		if err := fileutils.DeleteFile(tarGzPath); err != nil {
 			hwlog.RunLog.Errorf("failed to delete temp file, %v", err)
 		}
 	}()
+	if _, err := fileutils.CheckOriginPath(tarGzPath); err != nil {
+		return fmt.Errorf("failed to check log temp path, %v", err)
+	}
 
 	tarGzFile, err := os.Open(tarGzPath)
 	if err != nil {

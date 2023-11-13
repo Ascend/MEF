@@ -157,7 +157,11 @@ func (t *taskContextImpl) onWaiting() {
 			break
 		}
 		select {
-		case updateReq, _ := <-t.updates:
+		case updateReq, ok := <-t.updates:
+			if !ok {
+				hwlog.RunLog.Info("task update request chan has closed")
+				break
+			}
 			t.handleUpdateRequest(updateReq)
 		case _, _ = <-t.mainCtx.Done():
 			t.handleUpdateRequest(forcedShutdownReq)
@@ -199,7 +203,11 @@ func (t *taskContextImpl) onProcessing() {
 		}
 
 		select {
-		case updateReq, _ := <-t.updates:
+		case updateReq, ok := <-t.updates:
+			if !ok {
+				hwlog.RunLog.Info("task update request chan has closed")
+				break
+			}
 			t.handleUpdateRequest(updateReq)
 		case _, _ = <-heartbeatMonitoring:
 			t.handleUpdateRequest(gracefulShutdownReq)
@@ -250,7 +258,11 @@ func (t *taskContextImpl) onAborting() {
 		}
 
 		select {
-		case updateReq, _ := <-t.updates:
+		case updateReq, ok := <-t.updates:
+			if !ok {
+				hwlog.RunLog.Info("task update request chan has closed")
+				break
+			}
 			t.handleUpdateRequest(updateReq)
 		case _, _ = <-gracefulShutdownTimerCh:
 			t.handleUpdateRequest(forcedShutdownReq)

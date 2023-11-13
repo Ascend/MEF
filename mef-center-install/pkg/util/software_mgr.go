@@ -121,7 +121,7 @@ func (sm *SoftwareMgr) ClearMEFCenterNamespace() error {
 	nsMgr := NewNamespaceMgr(MefNamespace)
 	if err := nsMgr.ClearNamespace(); err != nil {
 		fmt.Printf("clear %s namespace failed\n", MefNamespace)
-		hwlog.RunLog.Errorf("clear %s namespace failed\n", MefNamespace)
+		hwlog.RunLog.Errorf("clear %s namespace failed", MefNamespace)
 		return err
 	}
 

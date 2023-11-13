@@ -95,7 +95,12 @@ func (s *schedulerImpl) GetTaskContext(taskId string) (TaskContext, error) {
 }
 
 func (s *schedulerImpl) NewSubTaskSelector(taskId string) SubTaskSelector {
-	return &subTaskSelectorImpl{taskId: taskId, repo: s.repo, scheduler: s}
+	return &subTaskSelectorImpl{
+		taskId:               taskId,
+		repo:                 s.repo,
+		scheduler:            s,
+		allowedMaxTasksCount: s.AllowedMaxTasksInDb,
+	}
 }
 
 func (s *schedulerImpl) getActiveTaskContext(taskId string) (*taskContextImpl, error) {
@@ -119,6 +124,10 @@ func (s *schedulerImpl) trySubmitTask(taskCtx *taskContextImpl) (TaskSpec, error
 		},
 	}
 	err := s.repo.Transaction(func(tx *gorm.DB) error {
+		total, err := newTaskRepo(tx).countTask()
+		if err != nil || total >= s.AllowedMaxTasksInDb {
+			return errors.New("count task failed or has reached maximum number")
+		}
 		if err := newTaskRepo(tx).createTask(task); err != nil {
 			return err
 		}
@@ -203,7 +212,9 @@ func (s *schedulerImpl) doRemoveHistoryTasks() {
 
 	var deletedCount int
 	deleteTaskFromDb := func(tn TaskTreeNode) {
-		if err := s.repo.deleteTask(tn.Current.Spec.Id); err == nil {
+		if err := s.repo.deleteTask(tn.Current.Spec.Id); err != nil {
+			hwlog.RunLog.Errorf("delete task failed, error: %v", err)
+		} else {
 			deletedCount++
 		}
 	}
@@ -230,10 +241,11 @@ func (s *schedulerImpl) walkTaskTree(taskId string, fn func(node TaskTreeNode)) 
 }
 
 type subTaskSelectorImpl struct {
-	taskId          string
-	scheduler       Scheduler
-	repo            taskRepository
-	finishedTaskIds sync.Map
+	taskId               string
+	scheduler            Scheduler
+	repo                 taskRepository
+	finishedTaskIds      sync.Map
+	allowedMaxTasksCount int
 }
 
 func (s *subTaskSelectorImpl) Select(cancel ...<-chan struct{}) (TaskContext, error) {
@@ -254,7 +266,7 @@ func (s *subTaskSelectorImpl) Select(cancel ...<-chan struct{}) (TaskContext, er
 	}
 
 	var chosenChildCtx TaskContext
-	for {
+	for i := 0; i < s.allowedMaxTasksCount; i++ {
 		if len(childrenCtx) == 0 {
 			return nil, ErrNoRunningSubTask
 		}

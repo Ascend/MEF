@@ -34,8 +34,8 @@ func (scm *SftOperateMgr) DoOperate() error {
 		scm.prepareComponentLogDir,
 		scm.prepareComponentLogBackupDir,
 		scm.checkLogDumpDir,
-		scm.check,
 		scm.dealUpgradeFlag,
+		scm.check,
 		scm.deal,
 	}
 
