@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509/certutils"
 	"k8s.io/api/core/v1"
 
@@ -46,10 +47,10 @@ func GetImageAddress() (string, error) {
 
 	authSli := strings.Split(secretStr, secretSplit)
 	defer func() {
-		common.ClearStringMemory(secretStr)
+		utils.ClearStringMemory(secretStr)
 		common.ClearSliceByteMemory(secretByte)
 		for i := 0; i < len(authSli); i++ {
-			common.ClearStringMemory(authSli[i])
+			utils.ClearStringMemory(authSli[i])
 		}
 	}()
 	if len(authSli) < secretLen {

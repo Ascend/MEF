@@ -14,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"huawei.com/mindx/common/httpsmgr"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509/certutils"
 	"huawei.com/mindx/common/xcrypto"
 
@@ -139,7 +140,7 @@ func checkEdgeToken(c *gin.Context) (int, error) {
 	}
 
 	token := c.GetHeader(headerToken)
-	defer common.ClearStringMemory(token)
+	defer utils.ClearStringMemory(token)
 
 	if match := regexp.MustCompile(common.PassWordRegex).MatchString(token); !match {
 		if err := LockRepositoryInstance().recordFailed(ip); err != nil {
