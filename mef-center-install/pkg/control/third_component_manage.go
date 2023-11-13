@@ -59,6 +59,7 @@ func operateThirdComponent() []string {
 // DoManage is the main func to manage third component
 func (mtc *ManageThirdComponentFlow) DoManage() error {
 	if err := mtc.checkParam(); err != nil {
+		fmt.Println(err)
 		return err
 	}
 	if mtc.component == util.IcsManagerName {
@@ -174,7 +175,7 @@ func (ics icsManager) prepareFile(tarPath, cmsPath, crlPath string) (string, err
 		return "", errors.New("crl file is invalid")
 	}
 	if err = cmsverify.VerifyPackage(crlPath, cmsPath, tarPath); err != nil {
-		fmt.Println("verify package failed, the zip file might be tampered")
+		fmt.Println("verify package failed")
 		hwlog.RunLog.Errorf("verify package failed,error:%v", err)
 		return "", errors.New("verify package failed")
 	}
