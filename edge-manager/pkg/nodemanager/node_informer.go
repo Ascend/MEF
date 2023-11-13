@@ -193,7 +193,7 @@ func (s *nodeSyncImpl) handleAddNode(node *v1.Node) {
 		hwlog.RunLog.Error("get node info table count error")
 		return
 	}
-	if count > maxNodeSize {
+	if count >= maxNodeSize {
 		hwlog.RunLog.Errorf("node count cannot exceed %d, please delete no need node", maxNodeSize)
 		return
 	}
