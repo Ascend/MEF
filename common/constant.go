@@ -230,7 +230,8 @@ const (
 
 // node specification
 const (
-	MaxNode         = 1024
+	// MaxNode contains 1024 managed nodes + 1024 unmanaged nodes
+	MaxNode         = 2048
 	MaxNodeGroup    = 1024
 	MaxNodePerGroup = 1024
 	MaxGroupPerNode = 10
