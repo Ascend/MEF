@@ -13,7 +13,6 @@ import (
 	"strings"
 	"syscall"
 	"time"
-	"unsafe"
 
 	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/httpsmgr"
@@ -41,14 +40,6 @@ const (
 func ClearSliceByteMemory(sliceByte []byte) {
 	for i := 0; i < len(sliceByte); i++ {
 		sliceByte[i] = 0
-	}
-}
-
-// ClearStringMemory clears string in memory
-func ClearStringMemory(s string) {
-	bs := *(*[]byte)(unsafe.Pointer(&s))
-	for i := 0; i < len(bs); i++ {
-		bs[i] = 0
 	}
 }
 
