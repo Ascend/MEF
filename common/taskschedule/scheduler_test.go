@@ -43,6 +43,7 @@ func setup() error {
 	if err := InitDefaultScheduler(context.Background(), db, SchedulerSpec{
 		MaxHistoryMasterTasks: thousand,
 		MaxActiveTasks:        thousand,
+		AllowedMaxTasksInDb:   thousand,
 	}); err != nil {
 		return fmt.Errorf("init sheduler failed, %v", err)
 	}

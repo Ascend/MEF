@@ -18,6 +18,14 @@ type taskRepository struct {
 	*gorm.DB
 }
 
+func (r taskRepository) countTask() (int, error) {
+	var total int64
+	if stmtErr := r.DB.Model(Task{}).Count(&total).Error; stmtErr != nil {
+		return 0, errors.New("failed to count task")
+	}
+	return int(total), nil
+}
+
 func (r taskRepository) createTask(task Task) error {
 	stmt := r.DB.Model(Task{}).Create(&task)
 	if stmt.Error != nil {
