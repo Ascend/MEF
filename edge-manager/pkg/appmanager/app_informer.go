@@ -26,8 +26,7 @@ import (
 )
 
 const (
-	maxPodNum       = 21000
-	maxDaemonsetNum = 21000
+	maxPodNum = 21000
 )
 
 type appStatusServiceImpl struct {
@@ -170,19 +169,20 @@ func (a *appStatusServiceImpl) addPod(obj interface{}) {
 		hwlog.RunLog.Errorf("recovered add object, parse pod error: %v", err)
 		return
 	}
-	appStatusService.updateStatusCache(pod)
-	appInstance, err := parsePodToInstance(pod)
-	if err != nil {
-		hwlog.RunLog.Errorf("recovered add pod, parse pod to app instance error: %v", err)
-		return
-	}
 	count, err := GetTableCount(AppInstance{})
 	if err != nil {
 		hwlog.RunLog.Errorf("get pod table count error:%v", err)
 		return
 	}
-	if count > maxPodNum {
+	if count >= maxPodNum {
 		hwlog.RunLog.Errorf("pod count cannot exceed %d, please delete no need pod", maxPodNum)
+		return
+	}
+
+	appStatusService.updateStatusCache(pod)
+	appInstance, err := parsePodToInstance(pod)
+	if err != nil {
+		hwlog.RunLog.Errorf("recovered add pod, parse pod to app instance error: %v", err)
 		return
 	}
 	if err = AppRepositoryInstance().addPod(appInstance); err != nil {
