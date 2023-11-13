@@ -74,13 +74,13 @@ func (icc *importCrlController) printExecutingLog(ip, user string) {
 	fmt.Println("start to import crl")
 }
 
-func (icc *importCrlController) printSuccessLog(user, ip string) {
+func (icc *importCrlController) printSuccessLog(ip, user string) {
 	hwlog.RunLog.Info("-------------------import crl successful-------------------")
 	hwlog.OpLog.Infof("[%s@%s] import crl successful", user, ip)
 	fmt.Println("import crl successful")
 }
 
-func (icc *importCrlController) printFailedLog(user, ip string) {
+func (icc *importCrlController) printFailedLog(ip, user string) {
 	hwlog.RunLog.Error("-------------------import crl failed-------------------")
 	hwlog.OpLog.Errorf("[%s@%s] import crl failed", user, ip)
 	fmt.Println("import crl failed")

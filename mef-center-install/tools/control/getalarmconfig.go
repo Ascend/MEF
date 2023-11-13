@@ -74,13 +74,13 @@ func (gcc *getAlarmCfgController) printExecutingLog(ip, user string) {
 	fmt.Println("start to get alarm config")
 }
 
-func (gcc *getAlarmCfgController) printSuccessLog(user, ip string) {
+func (gcc *getAlarmCfgController) printSuccessLog(ip, user string) {
 	hwlog.RunLog.Info("-------------------get alarm config successful-------------------")
 	hwlog.OpLog.Infof("[%s@%s] get alarm config successful", user, ip)
 	fmt.Println("get alarm config successful")
 }
 
-func (gcc *getAlarmCfgController) printFailedLog(user, ip string) {
+func (gcc *getAlarmCfgController) printFailedLog(ip, user string) {
 	hwlog.RunLog.Error("-------------------get alarm config failed-------------------")
 	hwlog.OpLog.Errorf("[%s@%s] get alarm config failed", user, ip)
 	fmt.Println("get alarm config failed")

@@ -87,13 +87,13 @@ func (acc *alarmCfgController) printExecutingLog(ip, user string) {
 	fmt.Println("start to update alarm config")
 }
 
-func (acc *alarmCfgController) printSuccessLog(user, ip string) {
+func (acc *alarmCfgController) printSuccessLog(ip, user string) {
 	hwlog.RunLog.Info("-------------------update alarm config successful-------------------")
 	hwlog.OpLog.Infof("[%s@%s] update alarm config successful", user, ip)
 	fmt.Println("update alarm config successful")
 }
 
-func (acc *alarmCfgController) printFailedLog(user, ip string) {
+func (acc *alarmCfgController) printFailedLog(ip, user string) {
 	hwlog.RunLog.Error("-------------------update alarm config failed-------------------")
 	hwlog.OpLog.Errorf("[%s@%s] update alarm config failed", user, ip)
 	fmt.Println("update alarm config failed")
