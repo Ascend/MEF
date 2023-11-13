@@ -6,7 +6,7 @@ package configchecker
 const (
 	minHostPort = 1
 	maxHostPort = 65535
-	minPwdCount = 1
+	minPwdCount = 8
 	maxPwdCount = 20
 	nameReg     = "^[a-zA-Z0-9]([a-zA-Z0-9-_]{0,254}[a-zA-Z0-9]){0,1}$"
 	domainReg   = "^[a-zA-Z0-9][a-zA-Z0-9.-]{1,61}[a-zA-Z0-9]$"

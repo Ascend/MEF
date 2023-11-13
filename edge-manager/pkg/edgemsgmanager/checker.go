@@ -49,7 +49,7 @@ type downloadInfoChecker struct {
 }
 
 func (d *downloadInfoChecker) init() {
-	const minPwdLength = 1
+	const minPwdLength = 8
 	const maxPwdLength = 20
 	d.modelChecker.Checker = checker.GetAndChecker(
 		checker.GetHttpsUrlChecker("Package", true),
