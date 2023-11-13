@@ -291,13 +291,13 @@ func (ecc *exchangeCertsController) printExecutingLog(ip, user string) {
 	fmt.Println("start to exchange certs")
 }
 
-func (ecc *exchangeCertsController) printSuccessLog(user, ip string) {
+func (ecc *exchangeCertsController) printSuccessLog(ip, user string) {
 	hwlog.RunLog.Info("-------------------exchange certs successful-------------------")
 	hwlog.OpLog.Infof("[%s@%s] exchange certs successful", user, ip)
 	fmt.Println("exchange certs successful")
 }
 
-func (ecc *exchangeCertsController) printFailedLog(user, ip string) {
+func (ecc *exchangeCertsController) printFailedLog(ip, user string) {
 	hwlog.RunLog.Error("-------------------exchange certs failed-------------------")
 	hwlog.OpLog.Errorf("[%s@%s] exchange certs failed", user, ip)
 	fmt.Println("exchange certs failed")
@@ -342,13 +342,13 @@ func (ukc *updateKmcController) printExecutingLog(ip, user string) {
 	fmt.Println(" start to update kmc keys")
 }
 
-func (ukc *updateKmcController) printSuccessLog(user, ip string) {
+func (ukc *updateKmcController) printSuccessLog(ip, user string) {
 	hwlog.RunLog.Info("-------------------update kmc keys successful-------------------")
 	hwlog.OpLog.Infof("[%s@%s] update kmc keys successful", user, ip)
 	fmt.Println("update kmc keys successful")
 }
 
-func (ukc *updateKmcController) printFailedLog(user, ip string) {
+func (ukc *updateKmcController) printFailedLog(ip, user string) {
 	hwlog.RunLog.Error("-------------------update kmc keys failed-------------------")
 	hwlog.OpLog.Errorf("[%s@%s] update kmc keys failed", user, ip)
 	fmt.Println("update kmc keys failed")
@@ -413,13 +413,13 @@ func (mtc *manageThirdComponent) printExecutingLog(ip, user string) {
 	fmt.Println("start to manage third component")
 }
 
-func (mtc *manageThirdComponent) printSuccessLog(user, ip string) {
+func (mtc *manageThirdComponent) printSuccessLog(ip, user string) {
 	hwlog.RunLog.Info("-------------------manage third component successful-------------------")
 	hwlog.OpLog.Infof("[%s@%s] manage third component successful", user, ip)
 	fmt.Println("manage third component successful")
 }
 
-func (mtc *manageThirdComponent) printFailedLog(user, ip string) {
+func (mtc *manageThirdComponent) printFailedLog(ip, user string) {
 	hwlog.RunLog.Error("-------------------manage third component failed-------------------")
 	hwlog.OpLog.Errorf("[%s@%s] manage third component failed", user, ip)
 	fmt.Println("manage third component failed")
