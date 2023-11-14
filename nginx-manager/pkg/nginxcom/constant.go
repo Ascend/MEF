@@ -76,6 +76,4 @@ const (
 	NginxSslPortKey = "NginxSslPort"
 	// PodIpKey the key of this pod's ip
 	PodIpKey = "POD_IP"
-	// EnableResolverKey enable the nginx dynamic ip resolver, true or false
-	EnableResolverKey = "EnableResolver"
 )

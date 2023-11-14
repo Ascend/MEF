@@ -74,8 +74,6 @@ func newEnvironmentMgr() *environmentMgr {
 			createIntChecker(common.MinPort, common.MaxPort)},
 		PodIpKey: {PodIpKey, "", "", true,
 			createIpChecker()},
-		EnableResolverKey: {EnableResolverKey, "", "false", false,
-			createBoolChoiceChecker()},
 	}
 	return &environmentMgr{valuers: valuers}
 }

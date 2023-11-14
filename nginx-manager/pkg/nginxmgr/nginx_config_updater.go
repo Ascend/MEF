@@ -18,8 +18,7 @@ import (
 )
 
 const (
-	nginxDefaultConfigPath  = "/home/MEFCenter/conf/nginx_default.conf"
-	nginxResolverConfigPath = "/home/MEFCenter/conf/nginx_resolver.conf"
+	nginxDefaultConfigPath = "/home/MEFCenter/conf/nginx_default.conf"
 )
 
 type nginxConfUpdater struct {
