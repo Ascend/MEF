@@ -78,20 +78,9 @@ func (usm *upgradeSmoothMgr) setPriv() error {
 }
 
 func (usm *upgradeSmoothMgr) smoothAlarmManager() (err error) {
-	defer func() {
-		if err = util.ResetPriv(); err != nil {
-			hwlog.RunLog.Errorf("reset current euid/egid failed: %v", err)
-			return
-		}
-	}()
-	if err = util.ReducePriv(); err != nil {
-		hwlog.RunLog.Errorf("reduce right failed: %v", err)
-		return err
-	}
 	if err = usm.smoothSingleComponentConfig(util.AlarmManagerName); err != nil {
 		return err
 	}
-
 	if err = usm.smoothSingleComponentLog(util.AlarmManagerName); err != nil {
 		return err
 	}
