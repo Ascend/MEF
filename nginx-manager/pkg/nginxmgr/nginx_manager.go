@@ -50,6 +50,10 @@ func initResource() error {
 		return err
 	}
 
+	if err := prepareLog(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -84,6 +88,37 @@ func prepareCrlFile() error {
 		return fmt.Errorf("writeFile failed. error:%s", err.Error())
 	}
 	hwlog.RunLog.Info("prepare nginx crl success")
+	return nil
+}
+
+func prepareLog() error {
+	logList := []string{
+		accessLogFile,
+		errorLogFile,
+	}
+
+	for _, logFile := range logList {
+		if err := prepareOneLog(logFile); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func prepareOneLog(logFile string) error {
+	if !fileutils.IsExist(logFile) {
+		if err := fileutils.CreateFile(logFile, fileutils.Mode600); err != nil {
+			hwlog.RunLog.Errorf("create %s failed: %v", logFile, err)
+			return fmt.Errorf("create %s failed", logFile)
+		}
+	} else {
+		if err := fileutils.SetPathPermission(logFile, fileutils.Mode600, false, false); err != nil {
+			hwlog.RunLog.Errorf("chmod %s failed, cause by: {%v}", logFile, err)
+			return fmt.Errorf("set %s's mode failed", logFile)
+		}
+	}
+
 	return nil
 }
 
@@ -288,14 +323,6 @@ func startNginxCmd() bool {
 	}
 	if err = LoadKeysDataToPipes(true); err != nil {
 		hwlog.RunLog.Errorf("load keys data to pipes failed: %v", err)
-		return false
-	}
-	if err = fileutils.SetPathPermission(accessLogFile, logFileMode, false, false); err != nil {
-		hwlog.RunLog.Errorf("chmod access.log failed, cause by: {%s}", err.Error())
-		return false
-	}
-	if err = fileutils.SetPathPermission(errorLogFile, logFileMode, false, false); err != nil {
-		hwlog.RunLog.Errorf("chmod error.log failed, cause by: {%v}", err.Error())
 		return false
 	}
 	hwlog.RunLog.Info("run nginx success")
