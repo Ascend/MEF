@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/hwlog"
 
 	"huawei.com/mindxedge/base/common"
@@ -15,8 +16,10 @@ import (
 )
 
 type getAlarmCfgController struct {
-	operate      string
-	installParam *util.InstallParamJsonTemplate
+	operate              string
+	installParam         *util.InstallParamJsonTemplate
+	certCheckPeriod      int
+	certOverdueThreshold int
 }
 
 // UnitDay unit day
@@ -49,23 +52,74 @@ func (gcc *getAlarmCfgController) doControl() (err error) {
 	configDir := pathMgr.GetConfigPath()
 	alarmDbDir := filepath.Join(configDir, util.AlarmManagerName)
 	dbMgr := common.NewDbMgr(alarmDbDir, common.AlarmConfigDBName)
+
+	period, err := dbMgr.GetAlarmConfig(common.CertCheckPeriodDB)
+	if err != nil {
+		hwlog.RunLog.Errorf("get alarm config %s failed, error: %v", common.CertCheckPeriodDB, err)
+		return err
+	}
+	gcc.certCheckPeriod = period
+
+	threshold, err := dbMgr.GetAlarmConfig(common.CertOverdueThresholdDB)
+	if err != nil {
+		hwlog.RunLog.Errorf("get alarm config %s failed, error: %v", common.CertOverdueThresholdDB, err)
+		return err
+	}
+	gcc.certOverdueThreshold = threshold
+
+	var checkFuncs = []func() error{
+		gcc.checkThreshold,
+		gcc.checkPeriod,
+	}
+	for _, checkFunc := range checkFuncs {
+		if err = checkFunc(); err != nil {
+			return err
+		}
+	}
+	gcc.printAlarmConfig()
+	return nil
+}
+
+func (gcc *getAlarmCfgController) checkPeriod() error {
+	periodChecker := checker.GetIntChecker("", util.MinCheckPeriod, int64(gcc.certOverdueThreshold-DiffTime), true)
+	checkRes := periodChecker.Check(gcc.certCheckPeriod)
+	if checkRes.Result {
+		return nil
+	}
+
+	errInfo := fmt.Sprintf("%s error, should be from %d to the certificate alarm threshold minus %d",
+		CertCheckPeriodCmd, util.MinCheckPeriod, DiffTime)
+	hwlog.RunLog.Error(errInfo)
+	fmt.Println(errInfo)
+	return fmt.Errorf("%s is invalid", CertCheckPeriodCmd)
+}
+
+func (gcc *getAlarmCfgController) checkThreshold() error {
+	thresholdChecker := checker.GetIntChecker("", util.MinOverdueThreshold, util.MaxOverdueThreshold, true)
+	checkRes := thresholdChecker.Check(gcc.certOverdueThreshold)
+	if checkRes.Result {
+		return nil
+	}
+	errInfo := fmt.Sprintf("%s error, should be within [%d, %d]",
+		CertOverdueThresholdCmd, util.MinOverdueThreshold, util.MaxOverdueThreshold)
+	hwlog.RunLog.Error(errInfo)
+	fmt.Println(errInfo)
+	return fmt.Errorf("%s is invalid", CertOverdueThresholdCmd)
+}
+
+func (gcc *getAlarmCfgController) printAlarmConfig() {
 	alarmCfgs := []struct {
-		cfgInDb string
+		cfgInDb int
 		cfgCmd  string
 		unit    string
 	}{
-		{common.CertCheckPeriodDB, CertCheckPeriodCmd, UnitDay},
-		{common.CertOverdueThresholdDB, CertOverdueThresholdCmd, UnitDay},
+		{gcc.certCheckPeriod, CertCheckPeriodCmd, UnitDay},
+		{gcc.certOverdueThreshold, CertOverdueThresholdCmd, UnitDay},
 	}
 	for _, alarmCfg := range alarmCfgs {
-		cfg, err := dbMgr.GetAlarmConfig(alarmCfg.cfgInDb)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("%s is [%v], the unit is %s\n", alarmCfg.cfgCmd, cfg, alarmCfg.unit)
+		fmt.Printf("%s is [%v], the unit is %s\n", alarmCfg.cfgCmd, alarmCfg.cfgInDb, alarmCfg.unit)
 	}
-
-	return nil
+	return
 }
 
 func (gcc *getAlarmCfgController) printExecutingLog(ip, user string) {
