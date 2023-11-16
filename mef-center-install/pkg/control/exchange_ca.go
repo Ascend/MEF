@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/fileutils"
@@ -99,21 +100,22 @@ func (ecf *ExchangeCaFlow) checkParam() error {
 		hwlog.RunLog.Errorf("importPath [%s] check failed: %s", ecf.importPath, err.Error())
 		return errors.New("importPath check failed")
 	}
-
+	// forbid path traversal
+	if strings.Contains(ecf.exportPath, "..") {
+		return errors.New("the input path contains unsupported flag for parent directory")
+	}
 	exportDir := filepath.Dir(ecf.exportPath)
 	if _, err := fileutils.RealDirCheck(exportDir, true, false); err != nil {
 		hwlog.RunLog.Errorf("exportPath [%s] check failed: %s", ecf.exportPath, err.Error())
 		return errors.New("exportPath check failed")
 	}
-
-	if !fileutils.IsLexist(ecf.exportPath) {
-		return nil
+	// exportPath should not be an existing file to avoid overwriting any sys file
+	// should not be already existed file
+	if fileutils.IsExist(ecf.exportPath) {
+		hwlog.RunLog.Errorf("exportPath [%s] check failed, cannot overwrite existed file", ecf.exportPath)
+		return fmt.Errorf("exportPath [%s] check failed, cannot overwrite existed file", ecf.exportPath)
 	}
 
-	if _, err := fileutils.RealFileCheck(ecf.exportPath, false, false, maxCertSizeInMb); err != nil {
-		hwlog.RunLog.Errorf("exportPath [%s] check failed: %s", ecf.exportPath, err.Error())
-		return errors.New("exportPath check failed")
-	}
 	return nil
 }
 

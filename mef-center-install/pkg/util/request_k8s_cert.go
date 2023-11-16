@@ -195,7 +195,7 @@ func (k *kubeConfig) prepareAuth() error {
 	}
 	if _, err := envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "apply",
 		"-f", configPath); err != nil {
-		return fmt.Errorf("delete clusterrole failed: %v", err)
+		return fmt.Errorf("creating new clusterrole failed: %v", err)
 	}
 	if err := fileutils.DeleteFile(configPath); err != nil {
 		return err
