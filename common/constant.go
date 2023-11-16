@@ -59,16 +59,12 @@ const (
 )
 
 const (
-	// Create option create
-	Create = "create"
 	// Delete option delete
 	Delete = "delete"
 	// Update option update
 	Update = "update"
 	// Get option get
 	Get = "get"
-	// Add option add
-	Add = "add"
 	// Inner option for inner message
 	Inner = "inner"
 
@@ -157,11 +153,6 @@ const (
 )
 
 const (
-	// IllegalChars the illegal chars for command
-	IllegalChars = "\n!\\; &$<>`"
-)
-
-const (
 	// OptGet option for get
 	OptGet = "GET"
 	// OptPost option for post
@@ -182,8 +173,6 @@ const (
 	ResConfig = "/config"
 	// ResDownLoadCert resource for downloading cert
 	ResDownLoadCert = "/cert/download_info"
-	// CertWillOverdue cert will overdue
-	CertWillOverdue = "/cert/update"
 	// CertWillExpired cert will expire
 	CertWillExpired = "/cert/update"
 	// ResEdgeCert resource for issuing cert for a csr from mef edge
@@ -216,11 +205,6 @@ const (
 	Mode500  = 0500
 	Mode400  = 0400
 	Umask077 = 0077
-)
-
-// CommandCopy constant
-const (
-	CommandCopy = "cp"
 )
 
 // TarGzSuffix is the suffix of tar.gz file
@@ -271,3 +255,6 @@ const (
 const (
 	MefCertCommonNamePrefix = "MindXMEF"
 )
+
+// MaxLoopNum max loop num
+const MaxLoopNum = 10000

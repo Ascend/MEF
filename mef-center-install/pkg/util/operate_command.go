@@ -101,6 +101,14 @@ func getComponentStatus(name string) (string, error) {
 
 	deploymentReg := fmt.Sprintf("^%s\\s", AscendPrefix+name)
 	lines := strings.Split(ret, "\n")
+
+	// 4 deployments currently (4 components)
+	const maxMefCenterNsNum = 20
+	if len(lines) > maxMefCenterNsNum {
+		hwlog.RunLog.Error("the number of deployments whose namespace is mef-center exceed the upper limit")
+		return "", errors.New("the number of deployments whose namespace is mef-center exceed the upper limit")
+	}
+
 	for _, line := range lines {
 		found, err := regexp.MatchString(deploymentReg, line)
 		if err != nil {
