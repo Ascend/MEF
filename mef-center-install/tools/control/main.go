@@ -300,7 +300,7 @@ func (ecc *exchangeCertsController) printSuccessLog(ip, user string) {
 func (ecc *exchangeCertsController) printFailedLog(ip, user string) {
 	hwlog.RunLog.Error("-------------------exchange certs failed-------------------")
 	hwlog.OpLog.Errorf("[%s@%s] exchange certs failed", user, ip)
-	fmt.Println("exchange certs failed")
+	fmt.Println("exchange certs failed, for more information please look up mef install log files")
 }
 
 func (ecc *exchangeCertsController) getName() string {
