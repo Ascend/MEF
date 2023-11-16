@@ -226,8 +226,8 @@ func deployAppToNodeGroups(appInfo *AppInfo, NodeGroupIds []uint64) types.BatchR
 	deployRes.FailedInfos = failedMap
 
 	for _, nodeGroupId := range NodeGroupIds {
-		if err := preCheckForDeployApp(nodeGroupId); err != nil {
-			errInfo := fmt.Sprintf("pre check for deploy app [%s] on node group id [%d] failed: %s",
+		if err := preCheckForDeployApp(appInfo.ID, nodeGroupId); err != nil {
+			errInfo := fmt.Sprintf("check deploy app [%s] on node group id [%d] failed: %s",
 				appInfo.AppName, nodeGroupId, err.Error())
 			hwlog.RunLog.Error(errInfo)
 			failedMap[strconv.Itoa(int(nodeGroupId))] = err.Error()
@@ -270,9 +270,11 @@ func deployAppToNodeGroups(appInfo *AppInfo, NodeGroupIds []uint64) types.BatchR
 	return deployRes
 }
 
-func preCheckForDeployApp(nodeGroupId uint64) error {
-	_, err := getNodeGroupInfos([]uint64{nodeGroupId})
-	if err != nil {
+func preCheckForDeployApp(appId, nodeGroupId uint64) error {
+	if _, err := AppRepositoryInstance().getAppDaemonSet(appId, nodeGroupId); err == nil {
+		return errors.New("app already exists")
+	}
+	if _, err := getNodeGroupInfos([]uint64{nodeGroupId}); err != nil {
 		return errors.New("group id no exist")
 	}
 	deployedCount, err := AppRepositoryInstance().countDeployedAppByGroupID(nodeGroupId)

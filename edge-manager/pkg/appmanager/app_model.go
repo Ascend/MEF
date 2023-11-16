@@ -52,7 +52,7 @@ type AppRepository interface {
 	deleteAllRemainingDaemonSet() error
 	addDaemonSet(ds *v1.DaemonSet, nodeGroupId, appId uint64) error
 	deleteDaemonSet(string) error
-	getNodeGroupName(appID uint64, nodeGroupID uint64) (string, error)
+	getAppDaemonSet(appID uint64, nodeGroupID uint64) (*AppDaemonSet, error)
 	countDeployedAppByGroupID(uint64) (int64, error)
 
 	isAppReferenced(appId uint64) error
@@ -279,13 +279,13 @@ func (a *AppRepositoryImpl) deleteDaemonSet(name string) error {
 	})
 }
 
-func (a *AppRepositoryImpl) getNodeGroupName(appID uint64, nodeGroupID uint64) (string, error) {
+func (a *AppRepositoryImpl) getAppDaemonSet(appID uint64, nodeGroupID uint64) (*AppDaemonSet, error) {
 	var appDaemonSet AppDaemonSet
 	if err := a.db().Model(AppDaemonSet{}).Where("app_id = ? and node_group_id = ?", appID, nodeGroupID).
 		First(&appDaemonSet).Error; err != nil {
-		return "", err
+		return nil, err
 	}
-	return appDaemonSet.NodeGroupName, nil
+	return &appDaemonSet, nil
 }
 
 func (a *AppRepositoryImpl) countDeployedAppByGroupID(nodeGroupID uint64) (int64, error) {
