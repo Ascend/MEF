@@ -12,6 +12,8 @@ import (
 	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
+
+	"huawei.com/mindxedge/base/common"
 )
 
 // DockerDealer is a struct to handle docker images
@@ -98,6 +100,10 @@ func (dd *DockerDealer) CheckImageExists() (bool, error) {
 	}
 
 	lines := strings.Split(images, "\n")
+	if len(lines) > common.MaxLoopNum {
+		hwlog.RunLog.Error("the number of images exceed the upper limit")
+		return false, errors.New("the number of images exceed the upper limit")
+	}
 	for _, line := range lines {
 		columns := strings.Fields(line)
 		if len(columns) < imagesMinColumns {

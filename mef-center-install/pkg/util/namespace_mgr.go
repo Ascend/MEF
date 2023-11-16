@@ -10,6 +10,8 @@ import (
 
 	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/hwlog"
+
+	"huawei.com/mindxedge/base/common"
 )
 
 // NamespaceMgr is the struct that manages the func related to namespace operation
@@ -27,12 +29,17 @@ func (nm *NamespaceMgr) prepareNameSpace() error {
 	namespaceReg := fmt.Sprintf("^%s\\s", nm.namespace)
 	ret, err := envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "get", "namespace")
 	if err != nil {
-		hwlog.RunLog.Errorf("check namespace failed: %s", err.Error())
+		hwlog.RunLog.Errorf("get namespace failed: %s", err.Error())
 		return errors.New("get namespace failed")
 	}
 
 	var status string
 	lines := strings.Split(ret, "\n")
+	if len(lines) > common.MaxLoopNum {
+		hwlog.RunLog.Error("the number of namespaces exceed the upper limit")
+		return errors.New("the number of namespaces exceed the upper limit")
+	}
+
 	for _, line := range lines {
 		found, err := regexp.MatchString(namespaceReg, line)
 		if err != nil {
@@ -43,7 +50,7 @@ func (nm *NamespaceMgr) prepareNameSpace() error {
 			r := regexp.MustCompile("\\S+")
 			res := r.FindAllString(line, SplitStringCount)
 			if len(res) < NamespaceStatusLoc+1 {
-				hwlog.RunLog.Errorf("split namespace ret failed")
+				hwlog.RunLog.Error("split namespace ret failed")
 				return errors.New("split namespace ret failed")
 			}
 			status = res[NamespaceStatusLoc]
@@ -82,6 +89,10 @@ func (nm *NamespaceMgr) checkNameSpaceExist() (bool, error) {
 	}
 
 	lines := strings.Split(ret, "\n")
+	if len(lines) > common.MaxLoopNum {
+		hwlog.RunLog.Error("the number of namespaces exceed the upper limit")
+		return false, errors.New("the number of namespaces exceed the upper limit")
+	}
 	for _, line := range lines {
 		found, err := regexp.MatchString(namespaceReg, line)
 		if err != nil {

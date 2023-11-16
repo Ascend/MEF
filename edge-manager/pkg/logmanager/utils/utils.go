@@ -4,6 +4,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,12 +12,16 @@ import (
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 
+	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/taskschedule"
 
 	"edge-manager/pkg/constants"
 )
 
 func deleteTempSubFiles(dir string, entries []os.DirEntry) error {
+	if len(entries) > common.MaxLoopNum {
+		return errors.New("the number of dir entries exceed the upper limit")
+	}
 	for _, entry := range entries {
 		if err := fileutils.DeleteFile(filepath.Join(dir, entry.Name())); err != nil {
 			return fmt.Errorf("failed to delete file %s, %v", entry.Name(), err)

@@ -72,6 +72,12 @@ func (klm *K8sLabelMgr) CheckK8sLabel() (bool, error) {
 	}
 
 	lines := strings.Split(ret, "\n")
+	// only one currently
+	const maxK8sLabelNodes = 20
+	if len(lines) > maxK8sLabelNodes {
+		hwlog.RunLog.Error("the number of k8s label nodes exceed the upper limit")
+		return false, errors.New("the number of k8s label nodes exceed the upper limit")
+	}
 	for _, line := range lines {
 		if strings.Contains(line, nodeName) {
 			return true, nil
