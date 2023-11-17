@@ -77,11 +77,11 @@ func (usm *upgradeSmoothMgr) setPriv() error {
 	return nil
 }
 
-func (usm *upgradeSmoothMgr) smoothAlarmManager() (err error) {
-	if err = usm.smoothSingleComponentConfig(util.AlarmManagerName); err != nil {
+func (usm *upgradeSmoothMgr) smoothAlarmManager() error {
+	if err := usm.smoothSingleComponentConfig(util.AlarmManagerName); err != nil {
 		return err
 	}
-	if err = usm.smoothSingleComponentLog(util.AlarmManagerName); err != nil {
+	if err := usm.smoothSingleComponentLog(util.AlarmManagerName); err != nil {
 		return err
 	}
 	return nil
@@ -207,12 +207,18 @@ func setSingleOwner(path string) error {
 		return errors.New("get mef uid or gid failed")
 	}
 
+	linkChecker := fileutils.NewFileLinkChecker(false)
+	ownerChecker := fileutils.NewFileOwnerChecker(false, true, mefUid, mefGid)
+	linkChecker.SetNext(ownerChecker)
 	param := fileutils.SetOwnerParam{
 		Path:       path,
 		Uid:        mefUid,
 		Gid:        mefGid,
 		Recursive:  true,
 		IgnoreFile: false,
+		CheckerParam: []fileutils.FileChecker{
+			linkChecker,
+		},
 	}
 	if err = fileutils.SetPathOwnerGroup(param); err != nil {
 		hwlog.RunLog.Errorf("set alarm config right failed: %s", err.Error())
