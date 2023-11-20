@@ -4,10 +4,12 @@
 package alarmmanager
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/smartystreets/goconvey/convey"
 
@@ -20,13 +22,14 @@ import (
 )
 
 const (
-	normalPageSize = 15
-	OverPageSize   = 105
-	firstPageNum   = 1
-	firstPageSize  = 10
-	testSn1        = "testSn1"
-	testSn2        = "testSn2"
-	groupIdFirst   = 1
+	normalPageSize    = 15
+	OverPageSize      = 105
+	firstPageNum      = 1
+	firstPageSize     = 10
+	testSn1           = "testSn1"
+	testSn2           = "testSn2"
+	groupIdFirst      = 1
+	testOldEventTotal = 200
 )
 
 func TestAddAlarm(t *testing.T) {
@@ -44,6 +47,43 @@ func testAddAlarm() {
 		err := AlarmDbInstance().addAlarmInfo(&alarm)
 		convey.So(err, convey.ShouldBeNil)
 	}
+}
+
+func TestGetNodeOldEvent(t *testing.T) {
+	convey.Convey("test limit oldest events ", t, func() {
+		testGetNodeOldEvent()
+	})
+}
+
+func testGetNodeOldEvent() {
+	var err error
+	for i := 0; i < testOldEventTotal; i++ {
+		id, err := randIntn(math.MaxUint32)
+		evenData := AlarmInfo{
+			Id:                  uint64(id),
+			AlarmType:           alarms.EventType,
+			CreatedAt:           time.Now(),
+			SerialNumber:        testSn1,
+			Ip:                  "10.10.10.10",
+			AlarmId:             "AlarmId",
+			AlarmName:           "AlarmName",
+			PerceivedSeverity:   "PerceivedSeverity",
+			DetailedInformation: "DetailedInformation",
+			Suggestion:          "Suggestion",
+			Reason:              "Reason",
+			Impact:              "Impact",
+			Resource:            "Resource",
+		}
+		err = AlarmDbInstance().addAlarmInfo(&evenData)
+		if err != nil {
+			break
+		}
+	}
+	convey.So(err, convey.ShouldBeNil)
+	event, err := AlarmDbInstance().getNodeOldEvent(testSn1, maxOneNodeEventCount-1)
+	fmt.Println("length of events", len(event))
+	convey.So(err, convey.ShouldBeNil)
+	convey.So(len(event), convey.ShouldBeLessThan, maxOldEventCount+1)
 }
 
 func TestListAlarmByNodeId(t *testing.T) {
