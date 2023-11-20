@@ -120,8 +120,8 @@ func (c *CloudServer) dispatch(message *model.Message) {
 	var retMsg = message
 	handler, ok := getMsgHandler(message)
 	if ok {
-		sn := message.GetNodeId()
-		ip := message.GetIp()
+		sn := message.GetPeerInfo().Sn
+		ip := message.GetPeerInfo().Ip
 
 		hwlog.RunLog.Infof("%v[%v:%v] %v %v start", time.Now().Format(time.RFC3339Nano),
 			ip, sn, message.GetOption(), message.GetResource())

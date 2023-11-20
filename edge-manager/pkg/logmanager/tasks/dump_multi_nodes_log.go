@@ -16,6 +16,7 @@ import (
 
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr/model"
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/taskschedule"
@@ -75,10 +76,18 @@ func dumpMultiNodesLog(ctx taskschedule.TaskContext) error {
 	packLock.Lock()
 	defer packLock.Unlock()
 
-	// 1. parse serial number & node ids
-	serialNumbers, nodeIDs, err := parseArgs(ctx)
+	// 1. parse serial number & node ids & ips
+	serialNumbers, err := parseSerialNumbers(ctx)
 	if err != nil {
 		return errors.New("failed to parse serial number")
+	}
+	ips, err := parseIps(ctx)
+	if err != nil {
+		return errors.New("failed to parse ip")
+	}
+	nodeIds, err := parseNodeIds(ctx)
+	if err != nil {
+		return errors.New("failed to parse node id")
 	}
 
 	hwlog.RunLog.Info("start to dump logs of edge nodes")
@@ -96,7 +105,7 @@ func dumpMultiNodesLog(ctx taskschedule.TaskContext) error {
 		return errors.New("temp dir has no enough disk space")
 	}
 	// 4. dump edge logs
-	succeedTasks, err := dumpEdgeLogs(ctx, serialNumbers, nodeIDs)
+	succeedTasks, err := dumpEdgeLogs(ctx, serialNumbers, ips, nodeIds)
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to dump edge logs, %v", err)
 		return errors.New("failed to dump edge logs")
@@ -129,18 +138,34 @@ func cleanTempFiles() {
 	}
 }
 
-func parseArgs(ctx taskschedule.TaskContext) ([]string, []uint64, error) {
+func parseSerialNumbers(ctx taskschedule.TaskContext) ([]string, error) {
 	var serialNumbers []string
-	var nodeIDs []uint64
 	if err := ctx.Spec().Args.Get(paramNameNodeSerialNumbers, &serialNumbers); err != nil {
 		hwlog.RunLog.Errorf("failed to parse serial number, %v", err)
-		return nil, nil, err
+		return nil, err
 	}
-	if err := ctx.Spec().Args.Get(paramNameNodeIDs, &nodeIDs); err != nil {
+
+	return serialNumbers, nil
+}
+
+func parseIps(ctx taskschedule.TaskContext) ([]string, error) {
+	var ips []string
+	if err := ctx.Spec().Args.Get(paramNameNodeIps, &ips); err != nil {
+		hwlog.RunLog.Errorf("failed to get node ips, %v", err)
+		return nil, err
+	}
+
+	return ips, nil
+}
+
+func parseNodeIds(ctx taskschedule.TaskContext) ([]uint64, error) {
+	var nodeIds []uint64
+	if err := ctx.Spec().Args.Get(paramNameNodeIDs, &nodeIds); err != nil {
 		hwlog.RunLog.Errorf("failed to parse node id, %v", err)
-		return nil, nil, err
+		return nil, err
 	}
-	return serialNumbers, nodeIDs, nil
+
+	return nodeIds, nil
 }
 
 func prepareDirs() error {
@@ -175,12 +200,13 @@ func updateMasterTaskStatus(ctx taskschedule.TaskContext, success bool) {
 	hwlog.RunLog.Info("dump log successful")
 }
 
-func createSubTasks(masterTaskCtx taskschedule.TaskContext, serialNumbers []string, nodeIDs []uint64) {
+func createSubTasks(masterTaskCtx taskschedule.TaskContext, serialNumbers, ips []string, nodeIDs []uint64) {
 	for idx := range serialNumbers {
 		if len(nodeIDs) <= idx {
 			continue
 		}
 		serialNumber := serialNumbers[idx]
+		ip := ips[idx]
 		nodeID := nodeIDs[idx]
 		subTask := taskschedule.TaskSpec{
 			Name:          fmt.Sprintf("%s.%s", constants.DumpSingleNodeLogTaskName, serialNumber),
@@ -188,8 +214,12 @@ func createSubTasks(masterTaskCtx taskschedule.TaskContext, serialNumbers []stri
 			GoroutinePool: constants.DumpSingleNodeLogTaskName,
 			Command:       constants.DumpSingleNodeLogTaskName,
 			Args: map[string]interface{}{
-				constants.NodeSerialNumber: serialNumber,
-				constants.NodeID:           nodeID,
+				constants.NodeSnAndIp: serialNumber,
+				constants.NodeID:      nodeID,
+				constants.PeerInfo: model.MsgPeerInfo{
+					Sn: serialNumber,
+					Ip: ip,
+				},
 			},
 			HeartbeatTimeout: dumpSingleNodeLogTaskHeartbeatTimeout,
 			ExecuteTimeout:   dumpSingleNodeLogTaskExecuteTimeout,
@@ -201,12 +231,12 @@ func createSubTasks(masterTaskCtx taskschedule.TaskContext, serialNumbers []stri
 	}
 }
 
-func dumpEdgeLogs(
-	masterTaskCtx taskschedule.TaskContext, serialNumbers []string, nodeIDs []uint64) ([]taskschedule.Task, error) {
+func dumpEdgeLogs(masterTaskCtx taskschedule.TaskContext, serialNumbers,
+	ips []string, nodeIDs []uint64) ([]taskschedule.Task, error) {
 	if len(serialNumbers) == 0 {
 		return nil, errors.New("no edge node to dump logs")
 	}
-	createSubTasks(masterTaskCtx, serialNumbers, nodeIDs)
+	createSubTasks(masterTaskCtx, serialNumbers, ips, nodeIDs)
 	var (
 		succeedTasks []taskschedule.Task
 		err          error
@@ -239,7 +269,7 @@ func dumpEdgeLogs(
 			continue
 		}
 		var serialNumber string
-		if err := childCtx.Spec().Args.Get(constants.NodeSerialNumber, &serialNumber); err != nil {
+		if err := childCtx.Spec().Args.Get(constants.NodeSnAndIp, &serialNumber); err != nil {
 			continue
 		}
 		hwlog.RunLog.Errorf("sub task for node(%s) failed, %s", serialNumber, status.Message)
@@ -302,7 +332,7 @@ func createTarGz(ctx taskschedule.TaskContext, subTasks []taskschedule.Task) err
 
 func addSingleNodeTarGz(task taskschedule.Task, tarWriter *tar.Writer) error {
 	var serialNumber string
-	if err := task.Spec.Args.Get(constants.NodeSerialNumber, &serialNumber); err != nil {
+	if err := task.Spec.Args.Get(constants.NodeSnAndIp, &serialNumber); err != nil {
 		return errors.New("can't get serial number")
 	}
 	tarGzPath := filepath.Join(constants.LogDumpTempDir, task.Spec.Id+common.TarGzSuffix)

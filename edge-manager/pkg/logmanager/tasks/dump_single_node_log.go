@@ -25,7 +25,7 @@ const (
 // doDumpSingleNodeLog sends message to edge and tells edge to collect and upload logs
 func doDumpSingleNodeLog(ctx taskschedule.TaskContext) {
 	var serialNumber string
-	if err := ctx.Spec().Args.Get(constants.NodeSerialNumber, &serialNumber); err != nil {
+	if err := ctx.Spec().Args.Get(constants.NodeSnAndIp, &serialNumber); err != nil {
 		hwlog.RunLog.Errorf("failed to parse serial number, %v", err)
 		utils.FeedbackTaskError(ctx, errors.New("failed to parse serial number"))
 		return

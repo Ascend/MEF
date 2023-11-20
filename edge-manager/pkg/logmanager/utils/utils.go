@@ -65,7 +65,7 @@ func FeedbackTaskError(ctx taskschedule.TaskContext, err error) {
 		Message: err.Error(),
 	}
 	var serialNumber string
-	if err := ctx.Spec().Args.Get(constants.NodeSerialNumber, &serialNumber); err != nil {
+	if err := ctx.Spec().Args.Get(constants.NodeSnAndIp, &serialNumber); err != nil {
 		serialNumber = ""
 	}
 	if err := ctx.UpdateStatus(errStatus); err != nil {

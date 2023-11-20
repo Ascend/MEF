@@ -52,11 +52,14 @@ const (
 	LogUploadMaxSize = 200 * common.MB
 )
 
+// consts fot args in TaskSpec struct
 const (
-	// NodeSerialNumber resource for serial number of node
-	NodeSerialNumber = "nodeSerialNumber"
-	// NodeID resource for node id
-	NodeID = "nodeID"
+	NodeSnAndIp = "nodeSnAndIp"
+	NodeID      = "nodeID"
+	PeerInfo    = "peerInfo"
+)
+
+const (
 	// LogManagerName LogManagerName
 	LogManagerName = "LogManager"
 	// MefCenterUserName user name

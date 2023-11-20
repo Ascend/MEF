@@ -20,6 +20,7 @@ import (
 	"edge-manager/pkg/constants"
 	"edge-manager/pkg/nodemanager"
 	"edge-manager/pkg/types"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/alarms"
 	"huawei.com/mindxedge/base/common/requests"

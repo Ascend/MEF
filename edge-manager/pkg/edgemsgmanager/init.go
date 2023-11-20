@@ -118,8 +118,8 @@ func methodSelect(req *model.Message) *common.RespMsg {
 }
 
 func methodWithOpLogSelect(funcMap map[string]handlerFunc, req *model.Message) (*common.RespMsg, error) {
-	sn := req.GetNodeId()
-	ip := req.GetIp()
+	sn := req.GetPeerInfo().Sn
+	ip := req.GetPeerInfo().Ip
 	var res common.RespMsg
 	method, ok := funcMap[common.Combine(req.GetOption(), req.GetResource())]
 	if !ok {
