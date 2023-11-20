@@ -145,7 +145,7 @@ func setNodeExtInfos(nodeInfo NodeInfoDetail) (NodeInfoDetail, error) {
 		Memory: nodeResource.Memory.Value(),
 		Npu:    nodeResource.Npu.Value(),
 	}
-	nodeInfo.Status, err = NodeSyncInstance().GetNodeStatus(nodeInfo.UniqueName)
+	nodeInfo.Status, err = NodeSyncInstance().GetMEFNodeStatus(nodeInfo.UniqueName)
 	if err != nil {
 		hwlog.RunLog.Warnf("get node detail query node status error, %s", err.Error())
 		nodeInfo.Status = statusOffline
@@ -190,7 +190,7 @@ func getNodeStatistics(interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorCountNodeByStatus, Msg: ""}
 	}
 	statusMap := make(map[string]string)
-	allNodeStatus := NodeSyncInstance().ListNodeStatus()
+	allNodeStatus := NodeSyncInstance().ListMEFNodeStatus()
 	for hostname, status := range allNodeStatus {
 		statusMap[hostname] = status
 	}
@@ -239,7 +239,7 @@ func listManagedNode(input interface{}) common.RespMsg {
 			hwlog.RunLog.Errorf("list node db error: %s", err.Error())
 			return common.RespMsg{Status: common.ErrorListNode, Msg: err.Error()}
 		}
-		respItem.Status, err = NodeSyncInstance().GetNodeStatus(nodeInfo.UniqueName)
+		respItem.Status, err = NodeSyncInstance().GetMEFNodeStatus(nodeInfo.UniqueName)
 		if err != nil {
 			respItem.Status = statusOffline
 		}
@@ -275,7 +275,7 @@ func listUnmanagedNode(input interface{}) common.RespMsg {
 		for _, node := range *nodes {
 			var respItem NodeInfoEx
 			respItem.NodeInfo = node
-			respItem.Status, err = NodeSyncInstance().GetNodeStatus(node.UniqueName)
+			respItem.Status, err = NodeSyncInstance().GetMEFNodeStatus(node.UniqueName)
 			if err != nil {
 				respItem.Status = statusOffline
 			}
@@ -321,7 +321,7 @@ func listNode(input interface{}) common.RespMsg {
 			hwlog.RunLog.Errorf("list node id [%d] db error: %s", nodeInfo.ID, err.Error())
 			return common.RespMsg{Status: common.ErrorListNode, Msg: err.Error()}
 		}
-		respItem.Status, err = NodeSyncInstance().GetNodeStatus(nodeInfo.UniqueName)
+		respItem.Status, err = NodeSyncInstance().GetMEFNodeStatus(nodeInfo.UniqueName)
 		if err != nil {
 			respItem.Status = statusOffline
 		}

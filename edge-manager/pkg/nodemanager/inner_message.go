@@ -64,7 +64,7 @@ func innerGetNodeStatus(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("parse inner message content failed")
 		return common.RespMsg{Status: "", Msg: "parse inner message content failed", Data: nil}
 	}
-	status, err := NodeSyncInstance().GetNodeStatus(req.UniqueName)
+	status, err := NodeSyncInstance().GetK8sNodeStatus(req.UniqueName)
 	if err != nil {
 		hwlog.RunLog.Error("inner message get node status failed")
 		return common.RespMsg{Status: "", Msg: "internal get node status failed", Data: nil}

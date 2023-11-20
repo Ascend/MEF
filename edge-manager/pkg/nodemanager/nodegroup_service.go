@@ -120,7 +120,7 @@ func getNodeGroupDetail(input interface{}) common.RespMsg {
 			return common.RespMsg{Status: common.ErrorGetNodeGroup, Msg: "query node by relations failed", Data: nil}
 		}
 		respItem.NodeInfo = *node
-		respItem.Status, err = NodeSyncInstance().GetNodeStatus(node.UniqueName)
+		respItem.Status, err = NodeSyncInstance().GetMEFNodeStatus(node.UniqueName)
 		if err != nil {
 			respItem.Status = statusOffline
 		}
