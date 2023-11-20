@@ -27,6 +27,7 @@ var (
 const (
 	// obtainIdRetryTime max retry times for generating random id for alarm
 	obtainIdRetryTime = 5
+	maxOldEventCount  = 100
 )
 
 // AlarmDbHandler is the struct to deal with alarm db
@@ -85,8 +86,10 @@ func (adh *AlarmDbHandler) getNodeEventCount(sn string) (int, error) {
 
 func (adh *AlarmDbHandler) getNodeOldEvent(sn string, offset int) ([]AlarmInfo, error) {
 	var ret []AlarmInfo
-	return ret, adh.db().Model(AlarmInfo{}).Where("serial_number = ? and alarm_type = ?",
-		sn, alarms.EventType).Order("created_at DESC").Offset(offset).Find(&ret).Error
+	// for every new event delete old events,at most for 100 records each time
+	err := adh.db().Model(AlarmInfo{}).Where("serial_number = ? and alarm_type = ?", sn, alarms.EventType).
+		Order("created_at DESC").Offset(offset).Limit(maxOldEventCount).Find(&ret).Error
+	return ret, err
 }
 
 func (adh *AlarmDbHandler) getAlarmInfo(alarmId string, sn string) ([]AlarmInfo, error) {

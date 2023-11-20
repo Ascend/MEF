@@ -258,7 +258,8 @@ func (n *NodeServiceImpl) getGroupsByNodeID(nodeID uint64) (*[]NodeGroup, error)
 
 func (n *NodeServiceImpl) listNodes() (*[]NodeInfo, error) {
 	var nodes []NodeInfo
-	return &nodes, n.db().Model(NodeInfo{}).Find(&nodes).Error
+	err := n.db().Model(NodeInfo{}).Limit(maxNodeInfos).Find(&nodes).Error
+	return &nodes, err
 }
 
 // countNodesByName count nodes by name
