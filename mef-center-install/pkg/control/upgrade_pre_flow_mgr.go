@@ -287,8 +287,7 @@ func prepareVerifyCrl(crlFile string) (bool, string, error) {
 func getValidCrlOnDevice() (string, error) {
 	crlOnDevicePath := filepath.Join(util.CrlOnDeviceDir, util.CrlOnDeviceName)
 	if fileutils.IsExist(crlOnDevicePath) {
-
-		_, err := fileutils.CheckOwnerAndPermission(crlOnDevicePath, util.ModeUmask0027, fileutils.RootUid)
+		_, err := fileutils.CheckOwnerAndPermission(crlOnDevicePath, fileutils.DefaultWriteFileMode, fileutils.RootUid)
 		if err != nil {
 			hwlog.RunLog.Errorf("failed to check crl on device,err:%s", err.Error())
 			return "", fmt.Errorf("failed to check crl on device,err:%s", err.Error())
