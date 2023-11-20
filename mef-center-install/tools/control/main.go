@@ -100,6 +100,7 @@ func (oc *operateController) doControl() error {
 	controlMgr := control.InitSftOperateMgr(componentType, oc.operate, components, installPathMgr,
 		util.InitLogDirPathMgr(oc.installParam.LogDir, oc.installParam.LogBackupDir))
 	if err := controlMgr.DoOperate(); err != nil {
+		hwlog.RunLog.Errorf("%s %s failed,err:%s", oc.operate, componentType, err.Error())
 		return err
 	}
 	return nil
@@ -591,6 +592,7 @@ func handle() int {
 	defer envutils.GetFlock(util.MefCenterLock).Unlock()
 	curController.setInstallParam(installParam)
 	curController.printExecutingLog(ip, user)
+
 	if err = curController.doControl(); err != nil {
 		curController.printFailedLog(ip, user)
 		if err.Error() == util.NotGenCertErrorStr {
@@ -621,6 +623,18 @@ func initLog(installParam *util.InstallParamJsonTemplate) error {
 	if err = util.InitLogPath(logPath, logBackupPath); err != nil {
 		return fmt.Errorf("init log path %s failed:%s", logPath, err.Error())
 	}
+
+	errLog := fileutils.SetPathPermission(logPathMgr.GetModuleLogPath(), fileutils.Mode700, false, true)
+	if errLog != nil {
+		hwlog.RunLog.Errorf("failed to set permissions for log dir, err:%s", err.Error())
+		return errors.New("failed to set permissions for log dir")
+	}
+	errBackLog := fileutils.SetPathPermission(logPathMgr.GetModuleLogBackupPath(), fileutils.Mode700, false, true)
+	if errBackLog != nil {
+		hwlog.RunLog.Errorf("failed to set permissions for log backup dir, err:%s", err.Error())
+		return errors.New("failed to set permissions for log backup dir")
+	}
+
 	return nil
 }
 

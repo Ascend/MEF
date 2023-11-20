@@ -129,6 +129,7 @@ const (
 	MefCenterGroup    = "MEFCenter"
 	DockerTag         = "v1"
 	ModeUmask0277     = 0277
+	ModeUmask0027     = 0027
 )
 
 // yaml editor constant

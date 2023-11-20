@@ -98,8 +98,8 @@ func (sm *SoftwareMgr) clearNodeLabel() error {
 
 // ClearMEFUserNamespace is used to clear mef-user namespace
 func (sm *SoftwareMgr) ClearMEFUserNamespace() error {
-	fmt.Println("start to clear Namespace")
-	hwlog.RunLog.Info("start to clear Namespace")
+	fmt.Printf("start to clear Namespace[%s]\n", common.MefUserNs)
+	hwlog.RunLog.Infof("start to clear Namespace[%s]", common.MefUserNs)
 	// mef-users namespace creates by edge-manager
 	nsMgr := NewNamespaceMgr(common.MefUserNs)
 	if err := nsMgr.ForceClearNamespace(); err != nil {
@@ -125,8 +125,8 @@ func (sm *SoftwareMgr) ClearMEFCenterNamespace() error {
 		return err
 	}
 
-	fmt.Printf("clear Namespace success[%s]\n", MefNamespace)
-	hwlog.RunLog.Infof("clear Namespace success[%s]", MefNamespace)
+	fmt.Printf("clear Namespace[%s] success\n", MefNamespace)
+	hwlog.RunLog.Infof("clear Namespace[%s] success", MefNamespace)
 	return nil
 }
 
