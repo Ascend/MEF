@@ -19,6 +19,7 @@ const (
 
 	paramNameNodeSerialNumbers = "nodeSerialNumbers"
 	paramNameNodeIDs           = "nodeIDs"
+	paramNameNodeIps           = "nodeIps"
 )
 
 // InitTasks init goroutine pools and tasks
@@ -41,7 +42,7 @@ func InitTasks() error {
 }
 
 // SubmitLogDumpTask submit log dump task, return task id
-func SubmitLogDumpTask(edgeNodeSNs []string, edgeNodeIDs []uint64) (string, error) {
+func SubmitLogDumpTask(edgeNodeSNs []string, edgeIps []string, edgeNodeIDs []uint64) (string, error) {
 	masterTask := &taskschedule.TaskSpec{
 		Name:          constants.DumpMultiNodesLogTaskName,
 		GoroutinePool: constants.DumpMultiNodesLogTaskName,
@@ -49,6 +50,7 @@ func SubmitLogDumpTask(edgeNodeSNs []string, edgeNodeIDs []uint64) (string, erro
 		Args: map[string]interface{}{
 			paramNameNodeSerialNumbers: edgeNodeSNs,
 			paramNameNodeIDs:           edgeNodeIDs,
+			paramNameNodeIps:           edgeIps,
 		},
 		ExecuteTimeout:          dumpMultiNodesLogTaskExecuteTimeout,
 		GracefulShutdownTimeout: dumpMultiNodesLogTaskGracefulShutdownTimeout,

@@ -13,6 +13,7 @@ type NodeInfo struct {
 	NodeID       uint64 `json:"nodeID"`
 	UniqueName   string `json:"uniqueName"`
 	SerialNumber string `json:"serialNumber"`
+	Ip           string `json:"ip"`
 }
 
 // ListReq for common list request, PageNum and PageSize for slice page, Name for fuzzy query

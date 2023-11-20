@@ -28,9 +28,9 @@ func TestMain(m *testing.M) {
 	m.Run()
 }
 
-// TestGetNodeSerialNumbersByID tests getNodeSerialNumbersByID func
+// TestGetNodeSerialNumbersByID tests getNodeSnAndIpByID func
 func TestGetNodeSerialNumbersByID(t *testing.T) {
-	convey.Convey("test getNodeSerialNumbersByID", t, func() {
+	convey.Convey("test getNodeSnAndIpByID", t, func() {
 		resp := common.RespMsg{
 			Status: common.Success,
 			Data:   types.InnerGetNodeInfosResp{NodeInfos: []types.NodeInfo{{SerialNumber: "123"}}},
@@ -38,9 +38,10 @@ func TestGetNodeSerialNumbersByID(t *testing.T) {
 		patch := gomonkey.ApplyFuncReturn(common.SendSyncMessageByRestful, resp)
 		defer patch.Reset()
 
-		serialNumbers, err := getNodeSerialNumbersByID(nil)
+		serialNumbers, ips, err := getNodeSnAndIpByID(nil)
 		convey.So(err, convey.ShouldBeNil)
 		convey.So(serialNumbers, convey.ShouldResemble, []string{"123"})
+		convey.So(ips, convey.ShouldResemble, []string{""})
 	})
 }
 
@@ -55,7 +56,7 @@ func TestCreateTaskHandle(t *testing.T) {
 	})
 	convey.Convey("test createTaskHandler.Handle's get serial numbers", t, func() {
 		patch := gomonkey.ApplyFuncReturn(modulemgr.SendMessage, nil).
-			ApplyFuncReturn(getNodeSerialNumbersByID, nil, errors.New("get serial number failed"))
+			ApplyFuncReturn(getNodeSnAndIpByID, nil, nil, errors.New("get serial number failed"))
 		defer patch.Reset()
 		var handler createTaskHandler
 		err := handler.Handle(&model.Message{Content: `{"module":"edgeNode", "edgeNodes": [1,2]}`})
@@ -63,7 +64,7 @@ func TestCreateTaskHandle(t *testing.T) {
 	})
 	convey.Convey("test createTaskHandler.Handle's submit task", t, func() {
 		patch := gomonkey.ApplyFuncReturn(modulemgr.SendMessage, nil).
-			ApplyFuncReturn(getNodeSerialNumbersByID, []string{"1", "2"}, nil).
+			ApplyFuncReturn(getNodeSnAndIpByID, []string{"1", "2"}, []string{"1", "2"}, nil).
 			ApplyFuncReturn(tasks.SubmitLogDumpTask, "", errors.New("submit task failed"))
 		defer patch.Reset()
 		var handler createTaskHandler
@@ -72,7 +73,7 @@ func TestCreateTaskHandle(t *testing.T) {
 	})
 	convey.Convey("test createTaskHandler.Handle", t, func() {
 		patch := gomonkey.ApplyFuncReturn(modulemgr.SendMessage, nil).
-			ApplyFuncReturn(getNodeSerialNumbersByID, []string{"1", "2"}, nil).
+			ApplyFuncReturn(getNodeSnAndIpByID, []string{"1", "2"}, []string{"1", "2"}, nil).
 			ApplyFuncReturn(tasks.SubmitLogDumpTask, "", nil)
 		defer patch.Reset()
 		var handler createTaskHandler

@@ -47,7 +47,7 @@ func (h *reportErrorHandler) Handle(msg *model.Message) error {
 }
 
 func (h *reportErrorHandler) Parse(msg *model.Message) error {
-	h.serialNumber = msg.GetNodeId()
+	h.serialNumber = msg.GetPeerInfo().Sn
 	ip, err := h.getIpBySn(h.serialNumber)
 	if err != nil {
 		hwlog.RunLog.Errorf("get ip by sn failed, error: %v", err)

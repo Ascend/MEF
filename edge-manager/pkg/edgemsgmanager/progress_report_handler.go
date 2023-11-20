@@ -30,8 +30,9 @@ func UpdateEdgeDownloadProgress(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("check software download result failed: %s", checkResult.Reason)
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
 	}
-	if err := nodesProgress.Set(req.SerialNumber, req.ProgressInfo, neverOverdue); err != nil {
-		hwlog.RunLog.Errorf("set software download progress for %s failed: %v", req.SerialNumber, err)
+	sn := message.GetPeerInfo().Sn
+	if err := nodesProgress.Set(sn, req.ProgressInfo, neverOverdue); err != nil {
+		hwlog.RunLog.Errorf("set software download progress for %s failed: %v", sn, err)
 		return common.RespMsg{Status: common.ErrorUpdateSoftwareDownloadProgress, Msg: "set cache error", Data: nil}
 	}
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}

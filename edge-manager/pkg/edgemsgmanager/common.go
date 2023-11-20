@@ -13,6 +13,7 @@ import (
 	"huawei.com/mindx/common/modulemgr/model"
 
 	"edge-manager/pkg/types"
+
 	"huawei.com/mindxedge/base/common"
 )
 

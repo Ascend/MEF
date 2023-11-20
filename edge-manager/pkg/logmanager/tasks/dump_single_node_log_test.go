@@ -14,13 +14,14 @@ import (
 	"edge-manager/pkg/constants"
 	"edge-manager/pkg/logmanager/testutils"
 	"edge-manager/pkg/logmanager/utils"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/taskschedule"
 )
 
 func TestDoDumpSingleNodeLog(t *testing.T) {
 	taskSpec := taskschedule.TaskSpec{Args: map[string]interface{}{
-		constants.NodeSerialNumber: "1", constants.NodeID: 1}}
+		constants.NodeSnAndIp: "1", constants.NodeID: 1}}
 	dummyValues := testutils.DummyTaskSchedule()
 
 	convey.Convey("test dump edge logs", t, func() {

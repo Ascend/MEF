@@ -104,8 +104,8 @@ func (updater *EdgeCertUpdater) dispatch(msg *model.Message) {
 		return
 	}
 
-	sn := msg.GetNodeId()
-	ip := msg.GetIp()
+	sn := msg.GetPeerInfo().Sn
+	ip := msg.GetPeerInfo().Ip
 
 	hwlog.RunLog.Infof("%v [%v:%v] %v %v start", time.Now().Format(time.RFC3339Nano),
 		ip, sn, msg.GetOption(), msg.GetResource())

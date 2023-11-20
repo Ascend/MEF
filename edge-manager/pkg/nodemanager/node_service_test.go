@@ -21,6 +21,7 @@ import (
 	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/database"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr/model"
 	"k8s.io/api/core/v1"
 
 	"edge-manager/pkg/constants"
@@ -877,7 +878,11 @@ func testUpdateNodeSoftwareInfo() {
 	if err != nil {
 		fmt.Printf("marshal req failed, error: %v", err)
 	}
-	resp := updateNodeSoftwareInfo(string(reqByte))
+	msg, err := model.NewMessage()
+	convey.So(err, convey.ShouldBeNil)
+	msg.Content = string(reqByte)
+	msg.SetPeerInfo(model.MsgPeerInfo{Sn: "test-update-node-software-info-2-serial-number"})
+	resp := updateNodeSoftwareInfo(msg)
 	convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
 
 	res := env.createNode(node)
@@ -891,11 +896,15 @@ func testUpdateNodeSoftwareInfo() {
 	if err != nil {
 		fmt.Printf("marshal req failed, error: %v", err)
 	}
-	resp = updateNodeSoftwareInfo(string(reqByte))
+	msg, err = model.NewMessage()
+	convey.So(err, convey.ShouldBeNil)
+	msg.Content = string(reqByte)
+	msg.SetPeerInfo(model.MsgPeerInfo{Sn: node.SerialNumber})
+	resp = updateNodeSoftwareInfo(msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
-func testUpdateNodeSoftwareInfoErr() {
+func getUpdateNodeSftErrReqMsg() *model.Message {
 	node := &NodeInfo{
 		Description:  "test-node-description-9",
 		NodeName:     "test-node-name-9",
@@ -922,10 +931,21 @@ func testUpdateNodeSoftwareInfoErr() {
 	if err != nil {
 		fmt.Printf("marshal req failed, error: %v", err)
 	}
+	msg, err := model.NewMessage()
+	convey.So(err, convey.ShouldBeNil)
+	msg.SetPeerInfo(model.MsgPeerInfo{
+		Sn: node.SerialNumber,
+	})
+	msg.Content = string(reqByte)
+	return msg
+}
 
+func testUpdateNodeSoftwareInfoErr() {
 	convey.Convey("empty request", func() {
-		args := ``
-		resp := updateNodeSoftwareInfo(args)
+		msg, err := model.NewMessage()
+		convey.So(err, convey.ShouldBeNil)
+		msg.Content = ""
+		resp := updateNodeSoftwareInfo(msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
 	})
 
@@ -935,7 +955,7 @@ func testUpdateNodeSoftwareInfoErr() {
 				return nil, testErr
 			})
 		defer p1.Reset()
-		resp := updateNodeSoftwareInfo(string(reqByte))
+		resp := updateNodeSoftwareInfo(getUpdateNodeSftErrReqMsg())
 		convey.So(resp.Msg, convey.ShouldEqual, "marshal version info failed")
 	})
 
@@ -946,7 +966,8 @@ func testUpdateNodeSoftwareInfoErr() {
 				return nil, testErr
 			})
 		defer p1.Reset()
-		resp := updateNodeSoftwareInfo(string(reqByte))
+
+		resp := updateNodeSoftwareInfo(getUpdateNodeSftErrReqMsg())
 		convey.So(resp.Msg, convey.ShouldEqual, "get node info failed")
 	})
 
@@ -958,7 +979,7 @@ func testUpdateNodeSoftwareInfoErr() {
 			})
 		defer p1.Reset()
 
-		resp := updateNodeSoftwareInfo(string(reqByte))
+		resp := updateNodeSoftwareInfo(getUpdateNodeSftErrReqMsg())
 		convey.So(resp.Msg, convey.ShouldEqual, "update node software info failed")
 	})
 }

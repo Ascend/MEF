@@ -131,8 +131,8 @@ func selectMethod(req *model.Message) (*common.RespMsg, error) {
 }
 
 func methodWithOpLogSelect(funcMap map[string]handlerFunc, req *model.Message) (*common.RespMsg, error) {
-	sn := req.GetNodeId()
-	ip := req.GetIp()
+	sn := req.GetPeerInfo().Sn
+	ip := req.GetPeerInfo().Ip
 	var res common.RespMsg
 	method, ok := funcMap[common.Combine(req.GetOption(), req.GetResource())]
 	if !ok {
@@ -141,7 +141,7 @@ func methodWithOpLogSelect(funcMap map[string]handlerFunc, req *model.Message) (
 	}
 	hwlog.RunLog.Infof("%v [%v:%v] %v %v start",
 		time.Now().Format(time.RFC3339Nano), ip, sn, req.GetOption(), req.GetResource())
-	res = method(req.GetContent())
+	res = method(req)
 	if res.Status == common.Success {
 		hwlog.RunLog.Infof("%v [%v:%v] %v %v success",
 			time.Now().Format(time.RFC3339Nano), ip, sn, req.GetOption(), req.GetResource())
@@ -178,17 +178,17 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodPost, filepath.Join(nodeGroupRootPath, "node/batch-delete")): deleteNodeFromGroup,
 	common.Combine(http.MethodPost, filepath.Join(nodeGroupRootPath, "pod/batch-delete")):  batchDeleteNodeRelation,
 
-	common.Combine(common.Inner, common.Node):                innerGetNodeInfoByUniqueName,
-	common.Combine(common.Inner, constants.NodeSerialNumber): innerGetNodeUniqueNameByID,
-	common.Combine(common.Inner, common.NodeGroup):           innerGetNodeGroupInfosByIds,
-	common.Combine(common.Inner, common.NodeSoftwareInfo):    innerGetNodeSoftwareInfo,
-	common.Combine(common.Inner, common.NodeStatus):          innerGetNodeStatus,
-	common.Combine(common.Inner, common.CheckResource):       innerCheckNodeGroupResReq,
-	common.Combine(common.Inner, common.UpdateResource):      innerUpdateNodeGroupResReq,
-	common.Combine(common.Inner, common.NodeList):            innerAllNodeInfos,
-	common.Combine(common.Inner, common.NodeID):              innerGetNodesByNodeGroupID,
-	common.Combine(common.Get, common.GetIpBySn):             innerGetIpBySn,
-	common.Combine(common.Get, common.GetSnsByGroup):         innerGetNodeSnsByGroupId,
+	common.Combine(common.Inner, common.Node):             innerGetNodeInfoByUniqueName,
+	common.Combine(common.Inner, constants.NodeSnAndIp):   innerGetNodeSnAndIpByID,
+	common.Combine(common.Inner, common.NodeGroup):        innerGetNodeGroupInfosByIds,
+	common.Combine(common.Inner, common.NodeSoftwareInfo): innerGetNodeSoftwareInfo,
+	common.Combine(common.Inner, common.NodeStatus):       innerGetNodeStatus,
+	common.Combine(common.Inner, common.CheckResource):    innerCheckNodeGroupResReq,
+	common.Combine(common.Inner, common.UpdateResource):   innerUpdateNodeGroupResReq,
+	common.Combine(common.Inner, common.NodeList):         innerAllNodeInfos,
+	common.Combine(common.Inner, common.NodeID):           innerGetNodesByNodeGroupID,
+	common.Combine(common.Get, common.GetIpBySn):          innerGetIpBySn,
+	common.Combine(common.Get, common.GetSnsByGroup):      innerGetNodeSnsByGroupId,
 }
 
 var handlerWithOpLogFuncMap = map[string]handlerFunc{

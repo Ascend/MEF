@@ -61,7 +61,7 @@ func (am *alarmManager) Start() {
 }
 
 func (am *alarmManager) forwardMsgToAlarmManager(msg *model.Message) {
-	sn := msg.GetNodeId()
+	sn := msg.GetPeerInfo().Sn
 
 	content, ok := msg.GetContent().(string)
 	if !ok {

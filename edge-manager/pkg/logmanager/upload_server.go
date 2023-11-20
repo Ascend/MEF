@@ -18,6 +18,7 @@ import (
 
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr/model"
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/taskschedule"
@@ -221,14 +222,23 @@ func createUploadProcess(w http.ResponseWriter, r *http.Request) (*uploadProcess
 	if pkgSize > constants.LogUploadMaxSize || pkgSize <= 0 {
 		return nil, errors.New("invalid package size")
 	}
+	taskCtx, err := taskschedule.DefaultScheduler().GetTaskContext(taskId)
+	if err != nil {
+		return nil, fmt.Errorf("get task context failed: %v", err)
+	}
+	spec := taskCtx.Spec()
+	var peerInfo model.MsgPeerInfo
+	err = spec.Args.Get(constants.PeerInfo, &peerInfo)
+	if err != nil {
+		return nil, fmt.Errorf("get task peerInfo failed: %v", err)
+	}
 	const tokensLen = 3
 	tokens := strings.Split(taskId, ".")
 	if len(tokens) != tokensLen {
 		return nil, errors.New("node serial number not found")
 	}
-	clientIps := r.Header["X-Forwarded-For"]
-	if len(clientIps) < 1 {
-		return nil, errors.New("client ip not found")
+	if tokens[1] != peerInfo.Sn {
+		return nil, errors.New("sn does not match the recorded data")
 	}
 	return &uploadProcess{
 		httpRequest:    r,
@@ -236,8 +246,8 @@ func createUploadProcess(w http.ResponseWriter, r *http.Request) (*uploadProcess
 		taskId:         taskId,
 		packageSize:    pkgSize,
 		sha256Checksum: sha256Checksum,
-		serialNumber:   tokens[1],
-		clientIP:       clientIps[0],
+		serialNumber:   peerInfo.Sn,
+		clientIP:       peerInfo.Ip,
 	}, nil
 }
 

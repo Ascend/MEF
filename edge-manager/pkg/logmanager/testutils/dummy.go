@@ -5,7 +5,12 @@
 // Package testutils
 package testutils
 
-import "huawei.com/mindxedge/base/common/taskschedule"
+import (
+	"edge-manager/pkg/constants"
+
+	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindxedge/base/common/taskschedule"
+)
 
 type dummyScheduler struct {
 	taskschedule.Scheduler
@@ -27,6 +32,17 @@ func (s *dummyScheduler) GetTaskContext(string) (taskschedule.TaskContext, error
 
 func (s *dummyScheduler) NewSubTaskSelector(string) taskschedule.SubTaskSelector {
 	return s.subTaskSelector
+}
+
+func (c *dummyTaskCtx) Spec() taskschedule.TaskSpec {
+	return taskschedule.TaskSpec{
+		Args: map[string]interface{}{
+			constants.PeerInfo: model.MsgPeerInfo{
+				Ip: "test",
+				Sn: "test",
+			},
+		},
+	}
 }
 
 // DummyTaskScheduleObjects dummy schedule objects

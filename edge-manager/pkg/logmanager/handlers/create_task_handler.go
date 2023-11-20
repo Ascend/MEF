@@ -37,13 +37,13 @@ func (h *createTaskHandler) Handle(msg *model.Message) error {
 		return sendRestfulResponse(common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error()}, msg)
 	}
 
-	edgeNodeSNs, err := getNodeSerialNumbersByID(req.EdgeNodes)
+	edgeNodeSNs, edgeNodeIps, err := getNodeSnAndIpByID(req.EdgeNodes)
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to get serial number of edge node, %v", err)
 		return sendRestfulResponse(common.RespMsg{Status: common.ErrorLogDumpNodeInfoError, Msg: err.Error()}, msg)
 	}
 
-	taskId, err := tasks.SubmitLogDumpTask(edgeNodeSNs, req.EdgeNodes)
+	taskId, err := tasks.SubmitLogDumpTask(edgeNodeSNs, edgeNodeIps, req.EdgeNodes)
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to create master task, %v", err)
 		return sendRestfulResponse(common.RespMsg{Status: common.ErrorLogDumpBusiness, Msg: err.Error()}, msg)
@@ -62,34 +62,38 @@ func (h *createTaskHandler) parseAndCheckArgs(content interface{}) (CreateTaskRe
 	return req, nil
 }
 
-func getNodeSerialNumbersByID(nodeIds []uint64) ([]string, error) {
+func getNodeSnAndIpByID(nodeIds []uint64) ([]string, []string, error) {
 	router := common.Router{
 		Source:      constants.LogManagerName,
 		Destination: common.NodeManagerName,
 		Option:      common.Inner,
-		Resource:    constants.NodeSerialNumber,
+		Resource:    constants.NodeSnAndIp,
 	}
 	resp := common.SendSyncMessageByRestful(
 		types.InnerGetNodeInfosReq{NodeIds: nodeIds}, &router, common.ResponseTimeout)
 	if resp.Status != common.Success {
-		return nil, errors.New(resp.Msg)
+		return nil, nil, errors.New(resp.Msg)
 	}
 	var nodeInfos types.InnerGetNodeInfosResp
 	if err := utils.ObjectConvert(resp.Data, &nodeInfos); err != nil {
-		return nil, errors.New("convert internal response error")
+		return nil, nil, errors.New("convert internal response error")
 	}
 	notFoundIdSet := utils.NewSet()
 	for _, nodeId := range nodeIds {
 		notFoundIdSet.Add(strconv.FormatUint(nodeId, common.BaseHex))
 	}
-	var serialNumbers []string
+	var (
+		serialNumbers []string
+		ips           []string
+	)
 	for _, info := range nodeInfos.NodeInfos {
 		serialNumbers = append(serialNumbers, info.SerialNumber)
+		ips = append(ips, info.Ip)
 		notFoundIdSet.Delete(strconv.FormatUint(info.NodeID, common.BaseHex))
 	}
 	notFoundIdList := notFoundIdSet.List()
 	if len(notFoundIdList) > 0 {
-		return nil, fmt.Errorf("node (%s) not found", strings.Join(notFoundIdList, ","))
+		return nil, nil, fmt.Errorf("node (%s) not found", strings.Join(notFoundIdList, ","))
 	}
-	return serialNumbers, nil
+	return serialNumbers, ips, nil
 }

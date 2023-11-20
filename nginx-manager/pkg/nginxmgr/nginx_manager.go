@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -317,7 +318,12 @@ func startNginxCmd() bool {
 			DeleteKeyPipes()
 		}
 	}()
-	if _, err = envutils.RunResidentCmd(startCommand); err != nil {
+	nginxPath, err := filepath.Abs(startCommand)
+	if err != nil {
+		hwlog.RunLog.Errorf("get nginx abs path failed: %v", err)
+		return false
+	}
+	if _, err = envutils.RunResidentCmd(nginxPath); err != nil {
 		hwlog.RunLog.Errorf("start nginx failed: %v", err)
 		return false
 	}

@@ -710,7 +710,13 @@ func updateNodeSoftwareInfo(input interface{}) common.RespMsg {
 	hwlog.RunLog.Info("start to update node software info")
 	const maxPayloadSize = 1024
 
-	inputStr, ok := input.(string)
+	msg, ok := input.(*model.Message)
+	if !ok {
+		hwlog.RunLog.Errorf("update node software info failed: parse msg failed")
+		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "update node software info failed"}
+	}
+
+	inputStr, ok := msg.GetContent().(string)
 	if !ok {
 		hwlog.RunLog.Error("update node software info failed: para type not valid")
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "update node software info convert param failed"}
@@ -722,7 +728,7 @@ func updateNodeSoftwareInfo(input interface{}) common.RespMsg {
 	}
 
 	var req types.EdgeReportSoftwareInfoReq
-	if err := common.ParamConvert(input, &req); err != nil {
+	if err := common.ParamConvert(inputStr, &req); err != nil {
 		hwlog.RunLog.Errorf("update node software info error, %v", err)
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "convert request error", Data: nil}
 	}
@@ -733,9 +739,9 @@ func updateNodeSoftwareInfo(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: "", Msg: "marshal version info failed", Data: nil}
 	}
 
-	nodeInfo, err := NodeServiceInstance().getNodeInfoBySerialNumber(req.SerialNumber)
+	nodeInfo, err := NodeServiceInstance().getNodeInfoBySerialNumber(msg.GetPeerInfo().Sn)
 	if err != nil {
-		hwlog.RunLog.Errorf("get node info [%s] failed:%v", req.SerialNumber, err)
+		hwlog.RunLog.Errorf("get node info [%s] failed:%v", msg.GetPeerInfo().Sn, err)
 		return common.RespMsg{Status: "", Msg: "get node info failed", Data: nil}
 	}
 

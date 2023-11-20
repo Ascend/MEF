@@ -117,25 +117,25 @@ func TestCreateUploadProcess(t *testing.T) {
 			result bool
 		}{
 			{header: map[string][]string{
-				headerTaskId:      {constants.DumpSingleNodeLogTaskName + ".Aa1.1"},
+				headerTaskId:      {constants.DumpSingleNodeLogTaskName + ".test.1"},
 				headerPackageSize: {strconv.Itoa(constants.LogUploadMaxSize)},
-				"X-Forwarded-For": {"ip"},
+				"X-Forwarded-For": {"test"},
 			}, result: true},
 			{header: map[string][]string{
-				headerTaskId:      {constants.DumpSingleNodeLogTaskName + ".Aa1.1"},
-				headerPackageSize: {strconv.Itoa(constants.LogUploadMaxSize)},
-			}},
-			{header: map[string][]string{
-				headerTaskId:      {constants.DumpSingleNodeLogTaskName + ".Aa1.1"},
+				headerTaskId:      {constants.DumpSingleNodeLogTaskName + ".test.1"},
 				headerPackageSize: {strconv.Itoa(constants.LogUploadMaxSize + 1)},
-				"X-Forwarded-For": {"ip"},
+				"X-Forwarded-For": {"test"},
 			}},
 			{header: map[string][]string{
-				headerTaskId:      {constants.DumpSingleNodeLogTaskName + "/.Aa1.1"},
+				headerTaskId:      {constants.DumpSingleNodeLogTaskName + "/.test.1"},
 				headerPackageSize: {strconv.Itoa(constants.LogUploadMaxSize)},
-				"X-Forwarded-For": {"ip"},
+				"X-Forwarded-For": {"test"},
 			}},
 		}
+
+		taskScheduler := testutils.DummyTaskSchedule().Scheduler
+		p := gomonkey.ApplyFuncReturn(taskschedule.DefaultScheduler, taskScheduler)
+		defer p.Reset()
 
 		for _, testcase := range testcases {
 			assertion := convey.ShouldNotBeNil
