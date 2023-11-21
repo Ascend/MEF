@@ -288,10 +288,15 @@ func prepareVerifyCrl(crlFile string) (bool, string, error) {
 func getValidCrlOnDevice() (string, error) {
 	crlOnDevicePath := filepath.Join(util.CrlOnDeviceDir, util.CrlOnDeviceName)
 	if fileutils.IsExist(crlOnDevicePath) {
-		_, err := fileutils.CheckOwnerAndPermission(crlOnDevicePath, fileutils.DefaultWriteFileMode, fileutils.RootUid)
+		crlChecker := fileutils.NewFileOwnerChecker(false, false, fileutils.RootUid, fileutils.RootGid)
+		linkChecker := fileutils.NewFileLinkChecker(false)
+		modChecker := fileutils.NewFileModeChecker(false, fileutils.DefaultWriteFileMode, false, false)
+		crlChecker.SetNext(linkChecker)
+		crlChecker.SetNext(modChecker)
+		err := fileutils.SetPathPermission(crlOnDevicePath, fileutils.Mode600, false, false, crlChecker)
 		if err != nil {
-			hwlog.RunLog.Errorf("failed to check crl on device,err:%s", err.Error())
-			return "", fmt.Errorf("failed to check crl on device,err:%s", err.Error())
+			hwlog.RunLog.Errorf("check crl on device failed,err:%s", err.Error())
+			return "", fmt.Errorf("check crl on device failed,err:%s", err.Error())
 		}
 
 		crlOnDeviceValid, err := cmsverify.CompareCrls(crlOnDevicePath, crlOnDevicePath)
