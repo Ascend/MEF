@@ -175,3 +175,18 @@ func CheckParamOption(optionalParam []string, inputParam string) error {
 
 	return errors.New("not support parameter")
 }
+
+// CheckNecessaryCommands check commands used in shell
+func CheckNecessaryCommands() error {
+	hwlog.RunLog.Info("start to check necessary commands")
+	for _, command := range []string{"uname", "grep", "dirname", "readlink"} {
+		if err := envutils.CheckCommandAllowedSugid(command); err != nil {
+			fmt.Printf("check necessary commands failed, [%s] is abnormal\n", command)
+			hwlog.RunLog.Errorf("check necessary commands failed, [%s] is abnormal, error: %s", command, err.Error())
+			return fmt.Errorf("check necessary commands failed, [%s] is abnormal", command)
+		}
+	}
+
+	hwlog.RunLog.Info("check necessary commands success")
+	return nil
+}

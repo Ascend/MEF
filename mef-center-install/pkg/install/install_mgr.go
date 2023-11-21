@@ -13,6 +13,7 @@ import (
 	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
@@ -64,6 +65,7 @@ func (sic *SftInstallCtl) preCheck() error {
 	var checkTasks = []func() error{
 		sic.checkUser,
 		sic.checkNecessaryTools,
+		util.CheckNecessaryCommands,
 		sic.checkInstalled,
 		sic.checkDiskSpace,
 	}
