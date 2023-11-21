@@ -187,6 +187,8 @@ const (
 	ResCertUpdate = "/inner/v1/cert/update"
 	// ResEdgeMgrCertUpdate cert update notify in nginx-manager
 	ResEdgeMgrCertUpdate = "/inner/cert/edge-manger"
+	// ResEdgeConnStatus the status of southern connection
+	ResEdgeConnStatus = "/inner/edge/conn-status"
 )
 
 // memory unit

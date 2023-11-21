@@ -14,6 +14,8 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindx/common/websocketmgr"
+
 	"huawei.com/mindxedge/base/common"
 
 	"k8s.io/api/core/v1"
@@ -51,14 +53,16 @@ var (
 
 // NodeStatusService provide node status from k8s
 type NodeStatusService interface {
-	// GetNodeStatus gets specific node status by hostname
-	GetNodeStatus(hostname string) (string, error)
-	// ListNodeStatus lists all k8s node status
-	ListNodeStatus() map[string]string
+	// GetK8sNodeStatus gets specific k8s node status by hostname
+	GetK8sNodeStatus(hostname string) (string, error)
+	// GetMEFNodeStatus gets specific mef node status by hostname
+	GetMEFNodeStatus(hostname string) (string, error)
+	// ListMEFNodeStatus lists all k8s node status
+	ListMEFNodeStatus() map[string]string
 	// GetAllocatableResource gets specific node resource(cpu & resource) by hostname
 	GetAllocatableResource(hostname string) (*NodeResource, error)
 	// GetAvailableResource gets available node resource(cpu & resource) by hostname
-	GetAvailableResource(hostname string) (*NodeResource, error)
+	GetAvailableResource(nodeID uint64, hostname string) (*NodeResource, error)
 	Prepare() error
 	Handlers() cache.ResourceEventHandlerFuncs
 }
@@ -261,7 +265,7 @@ func (s *nodeSyncImpl) GetAllocatableResource(hostname string) (*NodeResource, e
 	return nodeResource, nil
 }
 
-func (s *nodeSyncImpl) GetNodeStatus(hostname string) (string, error) {
+func (s *nodeSyncImpl) GetK8sNodeStatus(hostname string) (string, error) {
 	node, err := s.getNode(hostname)
 	if err != nil {
 		return "", err
@@ -269,18 +273,79 @@ func (s *nodeSyncImpl) GetNodeStatus(hostname string) (string, error) {
 	return evalNodeStatus(node), nil
 }
 
-func (s *nodeSyncImpl) ListNodeStatus() map[string]string {
+func (s *nodeSyncImpl) GetMEFNodeStatus(hostname string) (string, error) {
+	node, err := s.getNode(hostname)
+	if err != nil {
+		return "", err
+	}
+	serialNumber, ok := node.Labels[snNodeLabelKey]
+	if !ok {
+		return statusAbnormal, nil
+	}
+	status := evalNodeStatus(node)
+	states := getEdgeConnStatus(serialNumber)
+	connected, ok := states[serialNumber]
+	if !ok || !connected {
+		status = statusAbnormal
+	}
+	return status, nil
+}
+
+func (s *nodeSyncImpl) ListMEFNodeStatus() map[string]string {
 	objects := s.informer.GetStore().List()
 	allNodeStatus := make(map[string]string)
+	var snList []string
 	for _, obj := range objects {
 		node, ok := obj.(*v1.Node)
 		if !ok {
 			hwlog.RunLog.Warnf("list node status failed: failed to convert type %T", obj)
 			continue
 		}
-		allNodeStatus[node.Name] = evalNodeStatus(node)
+		serialNumber, ok := node.Labels[snNodeLabelKey]
+		status := statusAbnormal
+		if ok {
+			snList = append(snList, serialNumber)
+			status = evalNodeStatus(node)
+		}
+		allNodeStatus[node.Name] = status
+	}
+	if len(snList) == 0 {
+		return allNodeStatus
+	}
+	for sn, connected := range getEdgeConnStatus(snList...) {
+		if !connected {
+			allNodeStatus[sn] = statusAbnormal
+		}
 	}
 	return allNodeStatus
+}
+
+func getEdgeConnStatus(snList ...string) map[string]bool {
+	connectedMap := make(map[string]bool, len(snList))
+	for _, sn := range snList {
+		connectedMap[sn] = false
+	}
+	msg, err := model.NewMessage()
+	if err != nil {
+		hwlog.RunLog.Warnf("get node connection status failed: failed to create message, %v", err)
+		return connectedMap
+	}
+	msg.SetRouter(common.NodeManagerName, common.CloudHubName, common.OptGet, common.ResEdgeConnStatus)
+	msg.FillContent(snList)
+	resp, err := modulemgr.SendSyncMessage(msg, common.ResponseTimeout)
+	if err != nil {
+		hwlog.RunLog.Warnf("get node connection status failed: failed to send sync message, %v", err)
+		return connectedMap
+	}
+	response, ok := resp.GetContent().([]websocketmgr.WebsocketPeerInfo)
+	if !ok {
+		hwlog.RunLog.Warnf("get node connection status failed: bad content type %T", resp.GetContent())
+		return connectedMap
+	}
+	for _, peerInfo := range response {
+		connectedMap[peerInfo.Sn] = true
+	}
+	return connectedMap
 }
 
 func (s *nodeSyncImpl) GetAvailableResource(nodeID uint64, hostname string) (*NodeResource, error) {

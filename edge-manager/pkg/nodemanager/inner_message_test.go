@@ -157,7 +157,7 @@ func testInnerGetNodeStatusErr() {
 
 	convey.Convey("get node status error", func() {
 		var c *nodeSyncImpl
-		var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "GetNodeStatus",
+		var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "GetK8sNodeStatus",
 			func(s *nodeSyncImpl, hostname string) (string, error) {
 				return statusOffline, testErr
 			})

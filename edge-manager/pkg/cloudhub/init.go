@@ -33,8 +33,9 @@ func getMsgHandler(msg *model.Message) (messageHandler, bool) {
 	handler, ok := messageHandlerMap[handlerKey]
 	return handler, ok
 }
-func initMsgHandler() {
+func (c *CloudServer) initMsgHandler() {
 	messageHandlerMap[common.OptPost+common.ResEdgeCert] = issueCertForEdge
+	messageHandlerMap[common.OptGet+common.ResEdgeConnStatus] = c.getEdgeConnStatus
 }
 
 // CloudServer wraps the struct WebSocketServer
@@ -93,7 +94,7 @@ func (c *CloudServer) Start() {
 		hwlog.RunLog.Errorf("init websocket server failed: %v", err)
 		return
 	}
-	initMsgHandler()
+	c.initMsgHandler()
 	hwlog.RunLog.Info("init websocket server success")
 	for {
 		select {
@@ -266,4 +267,30 @@ func issueCertForEdge(msg *model.Message) (*model.Message, bool, error) {
 	respMsg.SetNodeId(msg.GetNodeId())
 	respMsg.FillContent(certStr)
 	return respMsg, true, nil
+}
+
+func (c *CloudServer) getEdgeConnStatus(msg *model.Message) (*model.Message, bool, error) {
+	snList, ok := msg.GetContent().([]string)
+	if !ok {
+		return nil, false, errors.New("serial number list format error")
+	}
+	var peerInfoList []websocketmgr.WebsocketPeerInfo
+	for _, sn := range snList {
+		peerInfo, err := c.serverProxy.GetPeer(sn)
+		if err != nil {
+			hwlog.RunLog.Warnf("failed to get connection status for node %s, %v", sn, err)
+			continue
+		}
+		peerInfoList = append(peerInfoList, *peerInfo)
+	}
+
+	msg, err := msg.NewResponse()
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to create response for edge connection status request, %v", err)
+	}
+	msg.FillContent(peerInfoList)
+	if err := modulemgr.SendMessage(msg); err != nil {
+		return nil, false, fmt.Errorf("failed to send response for edge connection status request, %v", err)
+	}
+	return nil, false, nil
 }

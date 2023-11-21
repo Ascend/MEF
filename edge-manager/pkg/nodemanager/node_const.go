@@ -18,4 +18,5 @@ const (
 	statusOffline  = "offline"
 	statusNotReady = "notReady"
 	statusUnknown  = "unknown"
+	statusAbnormal = "abnormal"
 )

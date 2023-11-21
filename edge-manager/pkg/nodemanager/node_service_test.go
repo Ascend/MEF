@@ -87,8 +87,9 @@ func (e *environment) setupGoMonkeyPatches(db *gorm.DB) *gomonkey.Patches {
 	client := &kubeclient.Client{}
 	return gomonkey.ApplyFuncReturn(database.GetDb, db).
 		ApplyFuncReturn(NodeSyncInstance, service).
-		ApplyMethodReturn(service, "ListNodeStatus", map[string]string{}).
-		ApplyMethodReturn(service, "GetNodeStatus", statusOffline, nil).
+		ApplyMethodReturn(service, "ListMEFNodeStatus", map[string]string{}).
+		ApplyMethodReturn(service, "GetMEFNodeStatus", statusOffline, nil).
+		ApplyMethodReturn(service, "GetK8sNodeStatus", statusOffline, nil).
 		ApplyMethodReturn(service, "GetAllocatableResource", &NodeResource{}, nil).
 		ApplyMethodReturn(service, "GetAvailableResource", &NodeResource{}, nil).
 		ApplyFuncReturn(kubeclient.GetKubeClient, client).
