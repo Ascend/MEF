@@ -286,7 +286,7 @@ func (ics icsManager) Operate() error {
 		hwlog.RunLog.Errorf("%s component %s failed: %v", ics.operate, ics.name, err)
 		return err
 	}
-	hwlog.RunLog.Infof("%s result:%v", ics.operate, res)
+	hwlog.RunLog.Infof("%s result:%s", ics.operate, res)
 	fmt.Printf("%s module %s successful\n", ics.operate, ics.name)
 	hwlog.RunLog.Infof("%s module %s successful", ics.operate, ics.name)
 	return nil
@@ -295,6 +295,12 @@ func (ics icsManager) Operate() error {
 func (ics icsManager) exchange() error {
 	importPath := filepath.Join(ics.pathMgr.GetRootPath(), "/ICS-Manager/ics-config/root-ca/ics-cert/RootCA.crt")
 	exportPath := filepath.Join(ics.pathMgr.GetRootPath(), "/ICS-Manager/ics-config/root-ca/mef-cert/RootCA.crt")
+	// make sure exportPath file not exist
+	err := fileutils.DeleteFile(exportPath)
+	if err != nil {
+		hwlog.RunLog.Errorf("failed to delete existing export cert file,%s", err.Error())
+		return errors.New("failed to delete existing export cert file")
+	}
 	exchangeFlow, err := NewExchangeCaFlow(importPath, exportPath, util.IcsManagerName, ics.pathMgr)
 	if err != nil {
 		return err
