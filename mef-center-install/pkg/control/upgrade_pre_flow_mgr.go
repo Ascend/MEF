@@ -83,6 +83,7 @@ func (upf *UpgradePreFlowMgr) preCheck() error {
 	hwlog.RunLog.Info("start to exec environment check")
 	var checkTasks = []func() error{
 		upf.checkUser,
+		util.CheckNecessaryCommands,
 		upf.checkCurrentPath,
 		upf.checkDiskSpace,
 	}

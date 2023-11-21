@@ -150,6 +150,7 @@ func (scm *SftOperateMgr) checkLogDumpDir() error {
 func (scm *SftOperateMgr) check() error {
 	var checkTasks = []func() error{
 		scm.checkUser,
+		util.CheckNecessaryCommands,
 		scm.checkCloudCoreIsRunning,
 	}
 
