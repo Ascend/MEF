@@ -115,7 +115,6 @@ func (ecf *ExchangeCaFlow) checkParam() error {
 		hwlog.RunLog.Errorf("exportPath [%s] check failed, cannot overwrite existed file", ecf.exportPath)
 		return fmt.Errorf("exportPath [%s] check failed, cannot overwrite existed file", ecf.exportPath)
 	}
-
 	return nil
 }
 
