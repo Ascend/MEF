@@ -179,12 +179,14 @@ func (a *appStatusServiceImpl) addPod(obj interface{}) {
 		return
 	}
 
-	appStatusService.updateStatusCache(pod)
 	appInstance, err := parsePodToInstance(pod)
 	if err != nil {
 		hwlog.RunLog.Errorf("recovered add pod, parse pod to app instance error: %v", err)
 		return
 	}
+
+	appStatusService.updateStatusCache(pod)
+
 	if err = AppRepositoryInstance().addPod(appInstance); err != nil {
 		hwlog.RunLog.Errorf("recovered add object, add instance to db error: %v", err)
 		return
@@ -204,12 +206,13 @@ func (a *appStatusServiceImpl) updatePod(oldObj, newObj interface{}) {
 		hwlog.RunLog.Errorf("recovered update object, parse new pod error: %v", err)
 		return
 	}
-	appStatusService.updateStatusCache(newPod)
 	appInstance, err := parsePodToInstance(newPod)
 	if err != nil {
 		hwlog.RunLog.Errorf("recovered update object, parse pod to app instance error: %v", err)
 		return
 	}
+
+	appStatusService.updateStatusCache(newPod)
 	if err = AppRepositoryInstance().updatePod(appInstance); err != nil {
 		hwlog.RunLog.Errorf("recovered update object, update instance to db error: %v", err)
 		return

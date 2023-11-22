@@ -228,7 +228,12 @@ func (a *AppRepositoryImpl) addPod(appInstance *AppInstance) error {
 
 func (a *AppRepositoryImpl) updatePod(appInstance *AppInstance) error {
 	var eventInstance AppInstance
-	a.db().Model(AppInstance{}).Where("pod_name = ?", appInstance.PodName).First(&eventInstance)
+
+	err := a.db().Model(AppInstance{}).Where("pod_name = ?", appInstance.PodName).First(&eventInstance).Error
+	if err != nil {
+		return err
+	}
+
 	if eventInstance.ContainerInfo == appInstance.ContainerInfo &&
 		eventInstance.NodeName == appInstance.NodeName {
 		return nil
