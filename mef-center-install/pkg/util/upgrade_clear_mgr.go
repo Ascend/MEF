@@ -38,7 +38,7 @@ func (ucm *UpgradeClearMgr) reloadDockerImage() error {
 	fmt.Println("start to reload docker image")
 	hwlog.RunLog.Info("start to reload docker image")
 	for _, component := range ucm.installedComponent {
-		dockerDealerIns := GetDockerDealer(component, DockerTag)
+		dockerDealerIns := GetAscendDockerDealer(component, DockerTag)
 		imagePath := ucm.InstallPathMgr.WorkPathMgr.GetImageDirPath(component)
 		if err := dockerDealerIns.ReloadImage(imagePath); err != nil {
 			fmt.Println("reload docker image failed")

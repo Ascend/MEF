@@ -22,10 +22,18 @@ type DockerDealer struct {
 	tag       string
 }
 
-// GetDockerDealer inits a DockerDealer struct
-func GetDockerDealer(componentName string, tag string) DockerDealer {
+// GetAscendDockerDealer inits a DockerDealer struct with ascend prefix on image name
+func GetAscendDockerDealer(componentName string, tag string) DockerDealer {
 	return DockerDealer{
 		imageName: ImagePrefix + componentName,
+		tag:       tag,
+	}
+}
+
+// GetDockerDealer inits a DockerDealer with iamge name and tag
+func GetDockerDealer(imageName, tag string) DockerDealer {
+	return DockerDealer{
+		imageName: imageName,
 		tag:       tag,
 	}
 }
@@ -175,5 +183,29 @@ func (dd *DockerDealer) ReloadImage(imageDirPath string) error {
 	if err != nil {
 		return fmt.Errorf("reload docker image %s failed: %s", imagePath, err.Error())
 	}
+	return nil
+}
+
+// CheckDependentImage is the func to check the existence of dependent iamge
+func CheckDependentImage() error {
+	var dependentImageMap = map[string]string{
+		common.UbuntuImageName: common.UbuntuImageTag,
+	}
+
+	for name, version := range dependentImageMap {
+		dockerDealerIns := GetDockerDealer(name, version)
+		exists, err := dockerDealerIns.CheckImageExists()
+		if err != nil {
+			hwlog.RunLog.Errorf("check if %s:%s image exists failed: %v", name, version, err)
+			return errors.New("check image existence failed")
+		}
+
+		if !exists {
+			fmt.Printf("docker images %s:%s does not exist, please prepare it first\n", name, version)
+			hwlog.RunLog.Errorf("image %s:%s does not exist", name, version)
+			return errors.New("dependent image does node exist")
+		}
+	}
+
 	return nil
 }
