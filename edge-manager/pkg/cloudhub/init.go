@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"huawei.com/mindx/common/database"
@@ -26,6 +27,7 @@ import (
 
 type messageHandler func(*model.Message) (*model.Message, bool, error)
 
+var lockFlag int64 = nolockingFlag
 var messageHandlerMap = make(map[string]messageHandler)
 
 func getMsgHandler(msg *model.Message) (messageHandler, bool) {
@@ -87,7 +89,7 @@ func (c *CloudServer) Start() {
 		hwlog.RunLog.Errorf("init mef edge max client num failed: %v", err)
 		return
 	}
-	go periodCheck()
+	checkAndLock()
 	var err error
 	c.serverProxy, err = InitServer()
 	if err != nil {
@@ -201,32 +203,43 @@ func initNodeTable() error {
 	return nil
 }
 
-func periodCheck() {
-	unlockIP()
-	ticker := time.NewTicker(common.CheckUnlockInterval)
+func doLock() {
+	ticker := time.NewTicker(common.LockInterval)
 	defer ticker.Stop()
-	for {
-		select {
-		case _, ok := <-ticker.C:
-			if !ok {
-				return
-			}
-			unlockIP()
+
+	select {
+	case _, ok := <-ticker.C:
+		if !ok {
+			return
+		}
+		if err := LockRepositoryInstance().UnlockRecords(); err != nil {
+			hwlog.RunLog.Errorf("unlock in db error:%v", err)
+			return
+		}
+		hwlog.RunLog.Info("time expired, automatically unlock token")
+		hwlog.OpLog.Infof("[%s@%s] time expired, automatically unlock token",
+			constants.MefCenterUserName, constants.LocalHost)
+		if !atomic.CompareAndSwapInt64(&lockFlag, lockingFlag, nolockingFlag) {
+			hwlog.RunLog.Error("token has unlocked")
 		}
 	}
+
 }
 
-func unlockIP() {
-	rowsAffected, err := LockRepositoryInstance().UnlockRecords()
+func checkAndLock() {
+	lock, err := LockRepositoryInstance().isLock()
 	if err != nil {
 		hwlog.RunLog.Error("unlock edge failed")
 		return
 	}
-	if rowsAffected == 0 {
+	if !lock {
 		return
 	}
-	hwlog.RunLog.Info("time expired, automatically unlock token")
-	hwlog.OpLog.Infof("[%s@%s] time expired, automatically unlock token", constants.MefCenterUserName, constants.LocalHost)
+	if !atomic.CompareAndSwapInt64(&lockFlag, nolockingFlag, lockingFlag) {
+		hwlog.RunLog.Error("token is in locking status, try it later")
+		return
+	}
+	go doLock()
 }
 
 func issueCertForEdge(msg *model.Message) (*model.Message, bool, error) {
