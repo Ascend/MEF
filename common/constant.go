@@ -142,7 +142,6 @@ const (
 	Pbkdf2IterationCount   = 10000
 	BytesOfEncryptedString = 32
 	LockInterval           = 5 * time.Minute
-	CheckUnlockInterval    = 15 * time.Second
 	OneDay                 = 24 * time.Hour
 )
 
