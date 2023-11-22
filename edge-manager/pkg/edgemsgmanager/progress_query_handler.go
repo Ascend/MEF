@@ -37,7 +37,8 @@ func queryEdgeDownloadProgress(input interface{}) common.RespMsg {
 	value, err := nodesProgress.Get(serialNumber)
 	if err != nil {
 		hwlog.RunLog.Errorf("get download progress for %s failed: %v", serialNumber, err)
-		return common.RespMsg{Status: common.ErrorGetSoftwareDownloadProgress, Msg: "cache error", Data: nil}
+		return common.RespMsg{Status: common.ErrorGetSoftwareDownloadProgress,
+			Msg: "get download progress failed", Data: nil}
 	}
 
 	processInfo, ok := value.(types.ProgressInfo)

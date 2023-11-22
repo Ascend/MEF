@@ -57,6 +57,12 @@ func sendDownloadInfo(req SoftwareDownloadInfo, msg *model.Message) types.BatchR
 	failedMap := make(map[string]string)
 	batchResp.FailedInfos = failedMap
 	for _, sn := range req.SerialNumbers {
+		if err := nodesProgress.Set(sn, types.ProgressInfo{}, neverOverdue); err != nil {
+			errInfo := fmt.Sprintf("set software download progress for %s failed: %v", sn, err)
+			hwlog.RunLog.Error(errInfo)
+			failedMap[sn] = errInfo
+			continue
+		}
 		msg.SetNodeId(sn)
 		rsp, err := modulemgr.SendSyncMessage(msg, common.ResponseTimeout)
 		if err != nil {
@@ -67,12 +73,6 @@ func sendDownloadInfo(req SoftwareDownloadInfo, msg *model.Message) types.BatchR
 		}
 		if content, ok := rsp.GetContent().(string); !ok || content != common.OK {
 			errInfo := fmt.Sprintf("mef edge process software download info in %s failed", sn)
-			hwlog.RunLog.Error(errInfo)
-			failedMap[sn] = errInfo
-			continue
-		}
-		if err := nodesProgress.Set(sn, types.ProgressInfo{}, neverOverdue); err != nil {
-			errInfo := fmt.Sprintf("set software download progress for %s failed: %v", sn, err)
 			hwlog.RunLog.Error(errInfo)
 			failedMap[sn] = errInfo
 			continue
