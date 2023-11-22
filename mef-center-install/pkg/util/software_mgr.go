@@ -25,7 +25,7 @@ func (sm *SoftwareMgr) ClearDockerImage(components []string) error {
 	fmt.Println("start to clear docker image")
 	hwlog.RunLog.Info("start to clear docker image")
 	for _, name := range components {
-		dockerMgr := GetDockerDealer(name, DockerTag)
+		dockerMgr := GetAscendDockerDealer(name, DockerTag)
 		if err := dockerMgr.DeleteImage(); err != nil {
 			hwlog.RunLog.Errorf("delete %s image failed, error: %v", name, err)
 			return err

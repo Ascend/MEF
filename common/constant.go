@@ -260,3 +260,9 @@ const (
 
 // MaxLoopNum max loop num
 const MaxLoopNum = 10000
+
+// const for dependent image
+const (
+	UbuntuImageName = "ubuntu"
+	UbuntuImageTag  = "22.04"
+)

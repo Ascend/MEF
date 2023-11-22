@@ -65,7 +65,7 @@ func (c *ComponentMgr) LoadAndSaveImage(pathMgr WorkPathItf) error {
 		return errors.New("pointer pathMgr is nil")
 	}
 
-	dockerDealerIns := GetDockerDealer(c.name, DockerTag)
+	dockerDealerIns := GetAscendDockerDealer(c.name, DockerTag)
 	imageConfigPath := pathMgr.GetImageConfigPath(c.name)
 	imagePath := pathMgr.GetImagePath(c.name)
 	if err := c.loadImage(&dockerDealerIns, imageConfigPath); err != nil {

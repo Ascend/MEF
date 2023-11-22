@@ -53,6 +53,7 @@ func (upf *UpgradePostFlowMgr) DoUpgrade() error {
 	var installTasks = []func() error{
 		upf.checkVersion,
 		upf.checkNecessaryTools,
+		util.CheckDependentImage,
 		upf.prepareK8sLabel,
 		upf.createFlag,
 		upf.prepareWorkCDir,
@@ -330,7 +331,7 @@ func (upf *UpgradePostFlowMgr) recordStarted() error {
 	}
 
 	for _, c := range util.GetAddedComponent() {
-		dockerDealer := util.GetDockerDealer(c, util.DockerTag)
+		dockerDealer := util.GetAscendDockerDealer(c, util.DockerTag)
 		ret, err := dockerDealer.CheckImageExists()
 		if err != nil {
 			hwlog.RunLog.Errorf("check component %s's image failed: %s", c, err.Error())
@@ -376,7 +377,7 @@ func (upf *UpgradePostFlowMgr) deleteNameSpace() error {
 func (upf *UpgradePostFlowMgr) removeDockerImage() error {
 	upf.step = util.LoadOldDockerStep
 	for _, component := range upf.SoftwareMgr.Components {
-		dockerDealerIns := util.GetDockerDealer(component, util.DockerTag)
+		dockerDealerIns := util.GetAscendDockerDealer(component, util.DockerTag)
 		if err := dockerDealerIns.DeleteImage(); err != nil {
 			return err
 		}

@@ -68,6 +68,7 @@ func (sic *SftInstallCtl) preCheck() error {
 		util.CheckNecessaryCommands,
 		sic.checkInstalled,
 		sic.checkDiskSpace,
+		util.CheckDependentImage,
 	}
 
 	for _, function := range checkTasks {
