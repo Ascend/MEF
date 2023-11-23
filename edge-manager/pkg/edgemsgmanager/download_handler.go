@@ -11,9 +11,10 @@ import (
 	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/utils"
 
-	"huawei.com/mindxedge/base/common"
-
 	"edge-manager/pkg/types"
+
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/logmgmt"
 )
 
 // downloadSoftware [method] download software to edge
@@ -58,26 +59,24 @@ func sendDownloadInfo(req SoftwareDownloadInfo, msg *model.Message) types.BatchR
 	batchResp.FailedInfos = failedMap
 	for _, sn := range req.SerialNumbers {
 		if err := nodesProgress.Set(sn, types.ProgressInfo{}, neverOverdue); err != nil {
-			errInfo := fmt.Sprintf("set software download progress for %s failed: %v", sn, err)
-			hwlog.RunLog.Error(errInfo)
-			failedMap[sn] = errInfo
+			hwlog.RunLog.Errorf("set software download progress for %s failed: %v", sn, err)
+			failedMap[sn] = fmt.Sprintf("set software download progress failed: %v", err)
 			continue
 		}
 		msg.SetNodeId(sn)
 		rsp, err := modulemgr.SendSyncMessage(msg, common.ResponseTimeout)
 		if err != nil {
-			errInfo := fmt.Sprintf("send software download info to %s failed", sn)
-			hwlog.RunLog.Error(errInfo)
-			failedMap[sn] = errInfo
+			hwlog.RunLog.Errorf("send software download info to %s failed: %v", sn, err)
+			failedMap[sn] = fmt.Sprintf("send software download info failed: %v", err)
 			continue
 		}
 		if content, ok := rsp.GetContent().(string); !ok || content != common.OK {
-			errInfo := fmt.Sprintf("mef edge process software download info in %s failed", sn)
-			hwlog.RunLog.Error(errInfo)
-			failedMap[sn] = errInfo
+			hwlog.RunLog.Errorf("parse mef edge process software download info in %s failed", sn)
+			failedMap[sn] = "parse mef edge process software download info failed"
 			continue
 		}
 		batchResp.SuccessIDs = append(batchResp.SuccessIDs, sn)
 	}
+	logmgmt.BatchOperationLog("send software download msg to edge", batchResp.SuccessIDs)
 	return batchResp
 }

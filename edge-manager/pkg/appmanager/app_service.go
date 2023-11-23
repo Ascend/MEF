@@ -20,6 +20,7 @@ import (
 	"edge-manager/pkg/util"
 
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/logmgmt"
 )
 
 // createApp Create application
@@ -212,6 +213,7 @@ func deployApp(input interface{}) common.RespMsg {
 	}
 	deployRes := deployAppToNodeGroups(appInfo, req.NodeGroupIds)
 
+	logmgmt.BatchOperationLog(fmt.Sprintf("deploy app [%d] to node groups", req.AppID), deployRes.SuccessIDs)
 	if len(deployRes.FailedInfos) != 0 {
 		return common.RespMsg{Status: common.ErrorDeployApp, Msg: "", Data: deployRes}
 	}
@@ -227,39 +229,39 @@ func deployAppToNodeGroups(appInfo *AppInfo, NodeGroupIds []uint64) types.BatchR
 
 	for _, nodeGroupId := range NodeGroupIds {
 		if err := preCheckForDeployApp(appInfo.ID, nodeGroupId); err != nil {
-			errInfo := fmt.Sprintf("check deploy app [%s] on node group id [%d] failed: %s",
+			hwlog.RunLog.Errorf("check deploy app [%s] on node group id [%d] failed: %s",
 				appInfo.AppName, nodeGroupId, err.Error())
-			hwlog.RunLog.Error(errInfo)
-			failedMap[strconv.Itoa(int(nodeGroupId))] = err.Error()
+			failedMap[strconv.Itoa(int(nodeGroupId))] = fmt.Sprintf("check deploy app [%s] failed: %s",
+				appInfo.AppName, err.Error())
 			continue
 		}
 		daemonSet, err := initDaemonSet(appInfo, nodeGroupId)
 		if err != nil {
-			errInfo := fmt.Sprintf("init daemonSet app [%s] on node group id [%d] failed: %s",
+			hwlog.RunLog.Errorf("init daemonSet app [%s] on node group id [%d] failed: %s",
 				appInfo.AppName, nodeGroupId, err.Error())
-			hwlog.RunLog.Error(errInfo)
-			failedMap[strconv.Itoa(int(nodeGroupId))] = errInfo
+			failedMap[strconv.Itoa(int(nodeGroupId))] = fmt.Sprintf("init daemonSet app [%s] failed: %s",
+				appInfo.AppName, err.Error())
 			continue
 		}
 		if err := checkNodeGroupResource(nodeGroupId, daemonSet); err != nil {
-			errInfo := fmt.Sprintf("check app [%s] resources on node group id [%d] failed: %s",
+			hwlog.RunLog.Errorf("check app [%s] resources on node group id [%d] failed: %s",
 				appInfo.AppName, nodeGroupId, err.Error())
-			hwlog.RunLog.Error(errInfo)
-			failedMap[strconv.Itoa(int(nodeGroupId))] = errInfo
+			failedMap[strconv.Itoa(int(nodeGroupId))] = fmt.Sprintf("check app [%s] resources failed: %s",
+				appInfo.AppName, err.Error())
 			continue
 		}
 		if err = appRepository.addDaemonSet(daemonSet, nodeGroupId, appInfo.ID); err != nil {
-			errInfo := fmt.Sprintf("app [%s] daemonSet create on node group id [%d] failed: %s",
+			hwlog.RunLog.Errorf("app [%s] daemonSet create on node group id [%d] failed: %s",
 				appInfo.AppName, nodeGroupId, err.Error())
-			hwlog.RunLog.Error(errInfo)
-			failedMap[strconv.Itoa(int(nodeGroupId))] = errInfo
+			failedMap[strconv.Itoa(int(nodeGroupId))] = fmt.Sprintf("app [%s] daemonSet create failed: %s",
+				appInfo.AppName, err.Error())
 			continue
 		}
 		if err := updateAllocatedNodeRes(daemonSet, nodeGroupId, false); err != nil {
-			errInfo := fmt.Sprintf("app [%s] daemonSet create on node group id [%d] failed, "+
+			hwlog.RunLog.Errorf("app [%s] daemonSet create on node group id [%d] failed, "+
 				"update allocated node resource error: %s", appInfo.AppName, nodeGroupId, err.Error())
-			hwlog.RunLog.Error(errInfo)
-			failedMap[strconv.Itoa(int(nodeGroupId))] = errInfo
+			failedMap[strconv.Itoa(int(nodeGroupId))] = fmt.Sprintf("app [%s] daemonSet create failed, "+
+				"update allocated node resource error: %s", appInfo.AppName, err.Error())
 			if err := appRepository.deleteDaemonSet(daemonSet.Name); err != nil {
 				hwlog.RunLog.Errorf("roll back creation for daemonSet[%s] failed", daemonSet.Name)
 			}
@@ -307,6 +309,8 @@ func unDeployApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorUnDeployApp, Msg: "get app info error, undeploy app failed"}
 	}
 	unDeployRes := undeployAppFromNodeGroups(appInfo, req.NodeGroupIds)
+	logmgmt.BatchOperationLog(fmt.Sprintf("batch delete app %d on node groups", req.AppID),
+		unDeployRes.SuccessIDs)
 
 	if len(unDeployRes.FailedInfos) != 0 {
 		return common.RespMsg{Status: common.ErrorUnDeployApp, Msg: "undeploy app failed", Data: unDeployRes}
@@ -338,10 +342,10 @@ func undeployAppFromNodeGroups(appInfo *AppInfo, NodeGroupIds []uint64) types.Ba
 			continue
 		}
 		if err := updateAllocatedNodeRes(daemonSet, nodeGroupId, true); err != nil {
-			errInfo := fmt.Sprintf("undeploy app [%s] on node group id [%d] failed, "+
+			hwlog.RunLog.Errorf("undeploy app [%s] on node group id [%d] failed, "+
 				"update allocated node resource error: %s", appInfo.AppName, nodeGroupId, err.Error())
-			hwlog.RunLog.Error(errInfo)
-			failedMap[strconv.Itoa(int(nodeGroupId))] = errInfo
+			failedMap[strconv.Itoa(int(nodeGroupId))] = fmt.Sprintf("undeploy app failed, "+
+				"update allocated node resource error: %s", err.Error())
 			if err := appRepository.addDaemonSet(daemonSet, nodeGroupId, appInfo.ID); err != nil {
 				hwlog.RunLog.Errorf("roll back deletion for daemonSet[%s] failed", daemonSet.Name)
 			}
@@ -455,19 +459,18 @@ func deleteApp(input interface{}) common.RespMsg {
 	for _, appId := range req.AppIDs {
 		rowsAffected, err := AppRepositoryInstance().deleteAppById(appId)
 		if err != nil {
-			errInfo := fmt.Sprintf("delete app [%d] failed: %v", appId, err)
-			hwlog.RunLog.Error(errInfo)
-			failedMap[strconv.Itoa(int(appId))] = errInfo
+			hwlog.RunLog.Errorf("delete app [%d] failed: %v", appId, err)
+			failedMap[strconv.Itoa(int(appId))] = fmt.Sprintf("delete app failed: %v", err)
 			continue
 		}
 		if rowsAffected != 1 {
-			errInfo := fmt.Sprintf("delete app [%d] failed: id does not exist", appId)
-			hwlog.RunLog.Error(errInfo)
-			failedMap[strconv.Itoa(int(appId))] = errInfo
+			hwlog.RunLog.Errorf("delete app [%d] failed: id does not exist", appId)
+			failedMap[strconv.Itoa(int(appId))] = fmt.Sprintf("delete app failed: id does not exist")
 			continue
 		}
 		deleteRes.SuccessIDs = append(deleteRes.SuccessIDs, appId)
 	}
+	logmgmt.BatchOperationLog("batch delete app", deleteRes.SuccessIDs)
 	if len(deleteRes.FailedInfos) != 0 {
 		return common.RespMsg{Status: common.ErrorDeleteApp, Msg: "", Data: deleteRes}
 	}

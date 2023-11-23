@@ -10,9 +10,10 @@ import (
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 
-	"huawei.com/mindxedge/base/common"
-
 	"edge-manager/pkg/types"
+
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/logmgmt"
 )
 
 func upgradeEdgeSoftware(input interface{}) common.RespMsg {
@@ -39,8 +40,8 @@ func upgradeEdgeSoftware(input interface{}) common.RespMsg {
 	failedMap := make(map[string]string)
 	batchResp.FailedInfos = failedMap
 	for _, sn := range req.SerialNumbers {
-		if err := sendUpgradeConfigToEdge(sn, upgradeConfig); err != nil {
-			hwlog.RunLog.Error(err.Error())
+		if err = sendUpgradeConfigToEdge(sn, upgradeConfig); err != nil {
+			hwlog.RunLog.Errorf("send upgrade msg to edge failed: %v", err)
 			failedMap[sn] = err.Error()
 			continue
 		}
@@ -48,6 +49,7 @@ func upgradeEdgeSoftware(input interface{}) common.RespMsg {
 		batchResp.SuccessIDs = append(batchResp.SuccessIDs, sn)
 	}
 
+	logmgmt.BatchOperationLog("send upgrade instruction to edge", batchResp.SuccessIDs)
 	if len(batchResp.FailedInfos) != 0 {
 		hwlog.RunLog.Error("deal edge software upgrade info failed")
 		return common.RespMsg{Status: common.ErrorSendMsgToNode, Msg: "", Data: batchResp}
@@ -69,7 +71,7 @@ func sendUpgradeConfigToEdge(sn string, upgradeConfig interface{}) error {
 
 	rsp, err := modulemgr.SendSyncMessage(msg, common.ResponseTimeout)
 	if err != nil {
-		return fmt.Errorf("send software upgrade info to %s failed", sn)
+		return fmt.Errorf("send msg failed: %v", err)
 	}
 
 	if content, ok := rsp.GetContent().(string); !ok || content != common.OK {
