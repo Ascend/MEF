@@ -55,7 +55,7 @@ const (
 	defaultKmcPath        = "/home/data/public-config/kmc-config.json"
 	defaultOpLogMaxSize   = 200
 	defaultRunLogMaxSize  = 400
-	logMaxLineLength      = 512
+	logMaxLineLength      = 1024
 	maxIPConnLimit        = 128
 	maxConcurrency        = 512
 	defaultConnection     = 3

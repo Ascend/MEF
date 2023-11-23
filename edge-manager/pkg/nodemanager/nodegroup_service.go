@@ -13,7 +13,9 @@ import (
 
 	"edge-manager/pkg/types"
 	"edge-manager/pkg/util"
+
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/logmgmt"
 )
 
 func createNodeGroup(input interface{}) common.RespMsg {
@@ -185,13 +187,13 @@ func batchDeleteNodeGroup(input interface{}) common.RespMsg {
 	delRes.FailedInfos = failedMap
 	for _, groupID := range *req.GroupIDs {
 		if err := deleteSingleGroup(groupID); err != nil {
-			errInfo := fmt.Sprintf("delete node group %d failed, %s", groupID, err.Error())
-			hwlog.RunLog.Error(errInfo)
-			failedMap[strconv.Itoa(int(groupID))] = errInfo
+			hwlog.RunLog.Errorf("delete node group %d failed, %s", groupID, err.Error())
+			failedMap[strconv.Itoa(int(groupID))] = fmt.Sprintf("delete failed, %s", err.Error())
 			continue
 		}
 		delRes.SuccessIDs = append(delRes.SuccessIDs, groupID)
 	}
+	logmgmt.BatchOperationLog("batch delete node group", delRes.SuccessIDs)
 	if len(delRes.FailedInfos) != 0 {
 		hwlog.RunLog.Error("batch delete node group failed")
 		return common.RespMsg{Status: common.ErrorDeleteNodeGroup, Msg: "", Data: delRes}
