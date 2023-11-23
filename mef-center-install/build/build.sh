@@ -25,6 +25,7 @@ function build_installer() {
   export CGO_ENABLED=1
   export CGO_CFLAGS="-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
   export CGO_CPPFLAGS="-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
+  go mod tidy
   go build -mod=mod -buildmode=pie -ldflags "-s -linkmode=external -extldflags=-Wl,-z,now \
           -X main.BuildName=${OUTPUT_INSTALLER_NAME} \
           -X main.BuildVersion=${build_version}_linux-${arch}" \
