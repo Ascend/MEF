@@ -13,6 +13,7 @@ import (
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
+	"huawei.com/mindx/common/x509"
 	"huawei.com/mindx/common/x509/certutils"
 
 	"huawei.com/mindxedge/base/common"
@@ -20,6 +21,7 @@ import (
 
 const (
 	parceCertMinArrLen  = 2
+	certRestLen         = 2
 	maxCertDataLen      = 4096
 	clusterroleYamlName = "cluster-role.yaml"
 	bindingName         = "edge-manager-clusterrolebinding"
@@ -141,7 +143,7 @@ func (k *kubeConfig) signCertFormK8s(csr []byte) error {
 		return err
 	}
 	certPath := k.certPathMgr.GetKubeConfigCertPath()
-	if err := checkAndSaveCert(rawCertData, certPath); err != nil {
+	if err := k.checkAndSaveCert(rawCertData, certPath); err != nil {
 		hwlog.RunLog.Errorf("check and save cert error: %v", err)
 		return err
 	}
@@ -213,10 +215,11 @@ func (k *kubeConfig) prepareAuth() error {
 	return nil
 }
 
-func checkAndSaveCert(rawCertData, certPath string) error {
+func (k *kubeConfig) checkAndSaveCert(rawCertData, certPath string) error {
 	if len(rawCertData) > maxCertDataLen {
 		return errors.New("invalid cert data length")
 	}
+
 	// certdata result is like 'xxx', so need split char '
 	res := strings.Split(rawCertData, "'")
 	if len(res) < parceCertMinArrLen {
@@ -227,6 +230,20 @@ func checkAndSaveCert(rawCertData, certPath string) error {
 	cert := make([]byte, base64.StdEncoding.DecodedLen(len([]byte(certData))))
 	if _, err := base64.StdEncoding.Decode(cert, []byte(certData)); err != nil {
 		return fmt.Errorf("decode kubeconfig cert failed: %v", err)
+	}
+	cert = cert[:len(cert)-certRestLen]
+
+	kmcKeyPath := filepath.Join(k.certPathMgr.GetComponentKmcDirPath(EdgeManagerName), MasterKeyFile)
+	kmcBackKeyPath := k.certPathMgr.GetComponentBackKmcPath(EdgeManagerName)
+	checkTask := x509.CheckSvcCertTask{
+		KeyPath:     k.certPathMgr.GetKubeConfigKeyPath(),
+		SvcCertData: cert,
+		KmcConfig:   kmc.GetKmcCfg(kmcKeyPath, kmcBackKeyPath),
+	}
+
+	if err := checkTask.RunTask(); err != nil {
+		hwlog.RunLog.Errorf("check kubeconfig srv cert failed: %v", err)
+		return errors.New("check kubeconfig srv cert failed")
 	}
 
 	if err := fileutils.WriteData(certPath, cert); err != nil {
