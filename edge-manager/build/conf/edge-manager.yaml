@@ -19,6 +19,9 @@ compile:
         - remove: ["{{TOP_DIR}}/output/"]
         - makedir:
             path: "{{TOP_DIR}}/output"
+      include:
+        - commands:
+            - command: "cd {{TOP_DIR}} && go mod tidy"
 
   process:
     language: go
