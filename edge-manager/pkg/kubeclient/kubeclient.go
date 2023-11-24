@@ -125,7 +125,10 @@ func (ki *Client) systemComponentsModify() {
 		hwlog.RunLog.Warnf("modify kube-system components failed, get system daemonset error: %v", err)
 		return
 	}
-	for _, ds := range dsList.Items {
+	for index, ds := range dsList.Items {
+		if index >= common.MaxLoopNum {
+			break
+		}
 		if ds.Spec.Template.Spec.Affinity == nil {
 			ds.Spec.Template.Spec.Affinity = &v1.Affinity{}
 		}
