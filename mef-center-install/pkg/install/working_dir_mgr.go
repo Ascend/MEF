@@ -9,6 +9,7 @@ import (
 	"path"
 	"path/filepath"
 
+	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 
@@ -251,6 +252,10 @@ func (wdc *WorkingDirCtl) prepareInstallParamJson() error {
 	if err = fileutils.CopyFile(srcPath, dstPath); err != nil {
 		hwlog.RunLog.Errorf("prepare install-param.json failed: %s", err.Error())
 		return errors.New("prepare install-param.json failed")
+	}
+
+	if err := backuputils.BackUpFiles(dstPath); err != nil {
+		hwlog.RunLog.Warnf("back up install-param.json failed: %s", err.Error())
 	}
 
 	return nil
