@@ -258,7 +258,7 @@ const (
 )
 
 // MaxLoopNum max loop num
-const MaxLoopNum = 10000
+const MaxLoopNum = 30000
 
 // const for dependent image
 const (

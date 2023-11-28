@@ -218,7 +218,12 @@ func updateNodeGroupResReq(req v1.ResourceList, nodeGroupID uint64, isUndeploy b
 	if err != nil {
 		return fmt.Errorf("parse node group id [%d] resources request error", nodeGroupID)
 	}
+	var count int
 	for name, quantity := range req {
+		if count > common.MaxLoopNum {
+			break
+		}
+		count++
 		currentRes := allocatedRes[name]
 		if isUndeploy {
 			currentRes.Sub(quantity)
