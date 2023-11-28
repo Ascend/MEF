@@ -37,6 +37,12 @@ type DeleteNodeRelationReq struct {
 	NodeID  *uint64 `json:"nodeID"`
 }
 
+// DeleteNodeRelationRecord is the struct to record the node sn and group name relation
+type DeleteNodeRelationRecord struct {
+	GroupName string `json:"groupName"`
+	NodeSn    string `json:"nodeSn"`
+}
+
 // ModifyNodeReq request object
 type ModifyNodeReq struct {
 	NodeID      *uint64 `json:"nodeID"`

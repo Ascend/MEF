@@ -66,7 +66,7 @@ func createApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorCreateApp, Msg: "create app in db failed", Data: nil}
 	}
 
-	hwlog.RunLog.Info("create app in db success")
+	hwlog.RunLog.Infof("create app %s success", req.AppName)
 	return common.RespMsg{Status: common.Success, Msg: "", Data: app.ID}
 }
 
@@ -211,9 +211,9 @@ func deployApp(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("get app info error, deploy app failed")
 		return common.RespMsg{Status: common.ErrorDeployApp, Msg: "get app info error, deploy app failed", Data: nil}
 	}
-	deployRes := deployAppToNodeGroups(appInfo, req.NodeGroupIds)
+	deployRes, successGroups := deployAppToNodeGroups(appInfo, req.NodeGroupIds)
 
-	logmgmt.BatchOperationLog(fmt.Sprintf("deploy app [%d] to node groups", req.AppID), deployRes.SuccessIDs)
+	logmgmt.BatchOperationLog(fmt.Sprintf("deploy app [%s] to node groups", appInfo.AppName), successGroups)
 	if len(deployRes.FailedInfos) != 0 {
 		return common.RespMsg{Status: common.ErrorDeployApp, Msg: "", Data: deployRes}
 	}
@@ -222,54 +222,68 @@ func deployApp(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
-func deployAppToNodeGroups(appInfo *AppInfo, NodeGroupIds []uint64) types.BatchResp {
+func deployAppToNodeGroups(appInfo *AppInfo, NodeGroupIds []uint64) (types.BatchResp, []interface{}) {
 	var deployRes types.BatchResp
+	var successGroups []interface{}
 	failedMap := make(map[string]string)
 	deployRes.FailedInfos = failedMap
 
 	for _, nodeGroupId := range NodeGroupIds {
-		if err := preCheckForDeployApp(appInfo.ID, nodeGroupId); err != nil {
-			hwlog.RunLog.Errorf("check deploy app [%s] on node group id [%d] failed: %s",
-				appInfo.AppName, nodeGroupId, err.Error())
-			failedMap[strconv.Itoa(int(nodeGroupId))] = fmt.Sprintf("check deploy app [%s] failed: %s",
-				appInfo.AppName, err.Error())
-			continue
-		}
-		daemonSet, err := initDaemonSet(appInfo, nodeGroupId)
+		groupInfo, err := getNodeGroupInfos([]uint64{nodeGroupId})
 		if err != nil {
-			hwlog.RunLog.Errorf("init daemonSet app [%s] on node group id [%d] failed: %s",
-				appInfo.AppName, nodeGroupId, err.Error())
-			failedMap[strconv.Itoa(int(nodeGroupId))] = fmt.Sprintf("init daemonSet app [%s] failed: %s",
-				appInfo.AppName, err.Error())
+			hwlog.RunLog.Errorf("get node group [%d]'s infos failed: %v", nodeGroupId, err)
+			failedMap[strconv.Itoa(int(nodeGroupId))] = fmt.Sprintf("deploy app failed, "+
+				"get group info error: %v", err)
 			continue
 		}
-		if err := checkNodeGroupResource(nodeGroupId, daemonSet); err != nil {
-			hwlog.RunLog.Errorf("check app [%s] resources on node group id [%d] failed: %s",
-				appInfo.AppName, nodeGroupId, err.Error())
-			failedMap[strconv.Itoa(int(nodeGroupId))] = fmt.Sprintf("check app [%s] resources failed: %s",
-				appInfo.AppName, err.Error())
+		if len(groupInfo) == 0 {
+			hwlog.RunLog.Errorf("get node group [%d]'s infos failed: ret is empty", nodeGroupId)
+			failedMap[strconv.Itoa(int(nodeGroupId))] = "deploy app failed, get group info error: ret is empty"
 			continue
 		}
-		if err = appRepository.addDaemonSet(daemonSet, nodeGroupId, appInfo.ID); err != nil {
-			hwlog.RunLog.Errorf("app [%s] daemonSet create on node group id [%d] failed: %s",
-				appInfo.AppName, nodeGroupId, err.Error())
-			failedMap[strconv.Itoa(int(nodeGroupId))] = fmt.Sprintf("app [%s] daemonSet create failed: %s",
-				appInfo.AppName, err.Error())
-			continue
-		}
-		if err := updateAllocatedNodeRes(daemonSet, nodeGroupId, false); err != nil {
-			hwlog.RunLog.Errorf("app [%s] daemonSet create on node group id [%d] failed, "+
-				"update allocated node resource error: %s", appInfo.AppName, nodeGroupId, err.Error())
-			failedMap[strconv.Itoa(int(nodeGroupId))] = fmt.Sprintf("app [%s] daemonSet create failed, "+
-				"update allocated node resource error: %s", appInfo.AppName, err.Error())
-			if err := appRepository.deleteDaemonSet(daemonSet.Name); err != nil {
-				hwlog.RunLog.Errorf("roll back creation for daemonSet[%s] failed", daemonSet.Name)
-			}
+		groupName := groupInfo[0].NodeGroupName
+		if err := deployAppToSingleNodeGroup(appInfo, nodeGroupId, groupName); err != nil {
+			failedMap[strconv.Itoa(int(nodeGroupId))] = err.Error()
 			continue
 		}
 		deployRes.SuccessIDs = append(deployRes.SuccessIDs, nodeGroupId)
+		successGroups = append(successGroups, groupName)
 	}
-	return deployRes
+	return deployRes, successGroups
+}
+
+func deployAppToSingleNodeGroup(appInfo *AppInfo, nodeGroupId uint64, groupName string) error {
+	if err := preCheckForDeployApp(appInfo.ID, nodeGroupId); err != nil {
+		hwlog.RunLog.Errorf("check deploy app [%s] on node group id [%d](name=%s) failed: %s",
+			appInfo.AppName, nodeGroupId, groupName, err.Error())
+		return fmt.Errorf("check deploy app [%s] failed: %v", appInfo.AppName, err)
+	}
+	daemonSet, err := initDaemonSet(appInfo, nodeGroupId)
+	if err != nil {
+		hwlog.RunLog.Errorf("init daemonSet app [%s] on node group id [%d](name=%s) failed: %s",
+			appInfo.AppName, nodeGroupId, groupName, err.Error())
+		return fmt.Errorf("init daemonSet app [%s] failed: %v", appInfo.AppName, err)
+	}
+	if err := checkNodeGroupResource(nodeGroupId, daemonSet); err != nil {
+		hwlog.RunLog.Errorf("check app [%s] resources on node group id [%d](name=%s) failed: %s",
+			appInfo.AppName, nodeGroupId, groupName, err.Error())
+		return fmt.Errorf("check app [%s] resources failed: %v", appInfo.AppName, err)
+	}
+	if err = appRepository.addDaemonSet(daemonSet, nodeGroupId, appInfo.ID); err != nil {
+		hwlog.RunLog.Errorf("app [%s] daemonSet create on node group id [%d](name=%s) failed: %s",
+			appInfo.AppName, nodeGroupId, groupName, err.Error())
+		return fmt.Errorf("app [%s] daemonSet create failed: %v", appInfo.AppName, err)
+	}
+	if err := updateAllocatedNodeRes(daemonSet, nodeGroupId, false); err != nil {
+		hwlog.RunLog.Errorf("app [%s] daemonSet create on node group id [%d](name=%s) failed, "+
+			"update allocated node resource error: %s", appInfo.AppName, nodeGroupId, groupName, err.Error())
+		if err := appRepository.deleteDaemonSet(daemonSet.Name); err != nil {
+			hwlog.RunLog.Errorf("roll back creation for daemonSet[%s] failed", daemonSet.Name)
+		}
+		return fmt.Errorf("app [%s] daemonSet create failed, update allocated node resource error: %v",
+			appInfo.AppName, err)
+	}
+	return nil
 }
 
 func preCheckForDeployApp(appId, nodeGroupId uint64) error {
@@ -308,9 +322,8 @@ func unDeployApp(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("get app info error, undeploy app failed")
 		return common.RespMsg{Status: common.ErrorUnDeployApp, Msg: "get app info error, undeploy app failed"}
 	}
-	unDeployRes := undeployAppFromNodeGroups(appInfo, req.NodeGroupIds)
-	logmgmt.BatchOperationLog(fmt.Sprintf("batch delete app %d on node groups", req.AppID),
-		unDeployRes.SuccessIDs)
+	unDeployRes, successGroup := undeployAppFromNodeGroups(appInfo, req.NodeGroupIds)
+	logmgmt.BatchOperationLog(fmt.Sprintf("batch delete app %s on node groups", appInfo.AppName), successGroup)
 
 	if len(unDeployRes.FailedInfos) != 0 {
 		return common.RespMsg{Status: common.ErrorUnDeployApp, Msg: "undeploy app failed", Data: unDeployRes}
@@ -320,39 +333,56 @@ func unDeployApp(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
-func undeployAppFromNodeGroups(appInfo *AppInfo, NodeGroupIds []uint64) types.BatchResp {
+func undeployAppFromNodeGroups(appInfo *AppInfo, NodeGroupIds []uint64) (types.BatchResp, []interface{}) {
 	var unDeployRes types.BatchResp
+	var successGroup []interface{}
 	failedMap := make(map[string]string)
 	unDeployRes.FailedInfos = failedMap
 	for _, nodeGroupId := range NodeGroupIds {
-		daemonSetName := formatDaemonSetName(appInfo.AppName, nodeGroupId)
-		daemonSet, err := kubeclient.GetKubeClient().GetDaemonSet(daemonSetName)
+		groupInfo, err := getNodeGroupInfos([]uint64{nodeGroupId})
 		if err != nil {
-			errInfo := fmt.Sprintf("undeploy app [%s] on node group id [%d] failed: %s",
-				appInfo.AppName, nodeGroupId, err.Error())
-			hwlog.RunLog.Error(errInfo)
-			failedMap[strconv.Itoa(int(nodeGroupId))] = errInfo
+			hwlog.RunLog.Errorf("get node group [%d]'s infos failed: %v", nodeGroupId, err)
+			failedMap[strconv.Itoa(int(nodeGroupId))] = fmt.Sprintf("get node group [%d]'s infos failed", nodeGroupId)
 			continue
 		}
-		if err = appRepository.deleteDaemonSet(daemonSetName); err != nil {
-			errInfo := fmt.Sprintf("undeploy app [%s] on node group id [%d] failed: %s",
-				appInfo.AppName, nodeGroupId, err.Error())
-			hwlog.RunLog.Error(errInfo)
-			failedMap[strconv.Itoa(int(nodeGroupId))] = errInfo
+		if len(groupInfo) == 0 {
+			hwlog.RunLog.Errorf("get node group [%d]'s infos failed: ret is empty", nodeGroupId)
+			failedMap[strconv.Itoa(int(nodeGroupId))] = "undeploy app failed, get group info error: ret is empty"
 			continue
 		}
-		if err := updateAllocatedNodeRes(daemonSet, nodeGroupId, true); err != nil {
-			hwlog.RunLog.Errorf("undeploy app [%s] on node group id [%d] failed, "+
-				"update allocated node resource error: %s", appInfo.AppName, nodeGroupId, err.Error())
-			failedMap[strconv.Itoa(int(nodeGroupId))] = fmt.Sprintf("undeploy app failed, "+
-				"update allocated node resource error: %s", err.Error())
-			if err := appRepository.addDaemonSet(daemonSet, nodeGroupId, appInfo.ID); err != nil {
-				hwlog.RunLog.Errorf("roll back deletion for daemonSet[%s] failed", daemonSet.Name)
-			}
+		groupName := groupInfo[0].NodeGroupName
+		if err := undeployAppFromSingleNodeGroup(appInfo, nodeGroupId, groupName); err != nil {
+			failedMap[strconv.Itoa(int(nodeGroupId))] = err.Error()
+			continue
 		}
 		unDeployRes.SuccessIDs = append(unDeployRes.SuccessIDs, nodeGroupId)
+		successGroup = append(successGroup, groupInfo[0].NodeGroupName)
 	}
-	return unDeployRes
+	return unDeployRes, successGroup
+}
+
+func undeployAppFromSingleNodeGroup(appInfo *AppInfo, nodeGroupId uint64, groupName string) error {
+	daemonSetName := formatDaemonSetName(appInfo.AppName, nodeGroupId)
+	daemonSet, err := kubeclient.GetKubeClient().GetDaemonSet(daemonSetName)
+	if err != nil {
+		hwlog.RunLog.Errorf("undeploy app [%s] on node group id [%d] failed: %v", appInfo.AppName, nodeGroupId, err)
+		return fmt.Errorf("undeploy app on node group id [%d] failed", nodeGroupId)
+	}
+	if err = appRepository.deleteDaemonSet(daemonSetName); err != nil {
+		hwlog.RunLog.Errorf("undeploy app [%s] on node group id [%d] failed: %v", appInfo.AppName, nodeGroupId, err)
+		return fmt.Errorf("undeploy app on node group id [%d] failed", nodeGroupId)
+	}
+
+	if err = updateAllocatedNodeRes(daemonSet, nodeGroupId, true); err != nil {
+		hwlog.RunLog.Errorf("undeploy app [%s] on node group id [%d](name=%s) failed, "+
+			"update allocated node resource error: %v",
+			appInfo.AppName, nodeGroupId, groupName, err)
+		if err = appRepository.addDaemonSet(daemonSet, nodeGroupId, appInfo.ID); err != nil {
+			hwlog.RunLog.Errorf("roll back deletion for daemonSet[%s] failed", daemonSet.Name)
+		}
+		return fmt.Errorf("undeploy app failed, update allocated node resource error: %v", err)
+	}
+	return nil
 }
 
 func updateNodeGroupDaemonSet(appInfo *AppInfo, nodeGroups []types.NodeGroupInfo) error {
@@ -453,24 +483,32 @@ func deleteApp(input interface{}) common.RespMsg {
 	}
 
 	var deleteRes types.BatchResp
+	var successApps []interface{}
 	failedMap := make(map[string]string)
 	deleteRes.FailedInfos = failedMap
 
 	for _, appId := range req.AppIDs {
+		appInfo, err := AppRepositoryInstance().getAppInfoById(appId)
+		if err != nil {
+			hwlog.RunLog.Errorf("get app [%d]'s info failed:%v", appId, err)
+			failedMap[strconv.Itoa(int(appId))] = fmt.Sprintf("delete app failed: get app info failed")
+			continue
+		}
 		rowsAffected, err := AppRepositoryInstance().deleteAppById(appId)
 		if err != nil {
-			hwlog.RunLog.Errorf("delete app [%d] failed: %v", appId, err)
+			hwlog.RunLog.Errorf("delete app [%d](name=%s) failed: %v", appId, appInfo.AppName, err)
 			failedMap[strconv.Itoa(int(appId))] = fmt.Sprintf("delete app failed: %v", err)
 			continue
 		}
 		if rowsAffected != 1 {
-			hwlog.RunLog.Errorf("delete app [%d] failed: id does not exist", appId)
+			hwlog.RunLog.Errorf("delete app [%d](name=%s) failed: id does not exist", appId, appInfo.AppName)
 			failedMap[strconv.Itoa(int(appId))] = fmt.Sprintf("delete app failed: id does not exist")
 			continue
 		}
 		deleteRes.SuccessIDs = append(deleteRes.SuccessIDs, appId)
+		successApps = append(successApps, appInfo.AppName)
 	}
-	logmgmt.BatchOperationLog("batch delete app", deleteRes.SuccessIDs)
+	logmgmt.BatchOperationLog("batch delete app", successApps)
 	if len(deleteRes.FailedInfos) != 0 {
 		return common.RespMsg{Status: common.ErrorDeleteApp, Msg: "", Data: deleteRes}
 	}

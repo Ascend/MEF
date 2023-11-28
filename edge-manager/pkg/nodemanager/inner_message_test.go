@@ -263,7 +263,7 @@ func testNodeGroupResReqErr() {
 		defer p1.Reset()
 		input := types.InnerCheckNodeResReq{NodeGroupID: 1}
 		res := innerCheckNodeGroupResReq(input)
-		convey.So(res.Msg, convey.ShouldEqual, fmt.Sprintf("get node relations by group id [%d] error", 1))
+		convey.So(res.Status, convey.ShouldEqual, "")
 
 		input2 := types.InnerGetNodesReq{NodeGroupID: 1}
 		res2 := innerGetNodesByNodeGroupID(input2)

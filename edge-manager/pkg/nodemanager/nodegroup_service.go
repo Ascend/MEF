@@ -49,7 +49,7 @@ func createNodeGroup(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("node group db create failed")
 		return common.RespMsg{Status: common.ErrorCreateNodeGroup, Msg: "", Data: nil}
 	}
-	hwlog.RunLog.Info("node group db create success")
+	hwlog.RunLog.Infof("node group [%s] create success", *req.NodeGroupName)
 	return common.RespMsg{Status: common.Success, Msg: "", Data: group.ID}
 }
 
@@ -148,6 +148,11 @@ func modifyNodeGroup(input interface{}) common.RespMsg {
 		"Description": req.Description,
 		"UpdatedAt":   time.Now().Format(TimeFormat),
 	}
+	originData, err := NodeServiceInstance().getNodeGroupByID(*req.GroupID)
+	if err != nil {
+		hwlog.RunLog.Errorf("get group %d's info failed: %v", *req.GroupID, err)
+		return common.RespMsg{Status: common.ErrorModifyNodeGroup, Msg: "get group info failed", Data: nil}
+	}
 	if count, err := NodeServiceInstance().updateGroup(*req.GroupID, updatedColumns); err != nil || count != 1 {
 		if err != nil && strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
 			hwlog.RunLog.Error("node group name is duplicate")
@@ -156,7 +161,8 @@ func modifyNodeGroup(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("modify node group db update error")
 		return common.RespMsg{Status: common.ErrorModifyNodeGroup, Msg: "db update node group error", Data: nil}
 	}
-	hwlog.RunLog.Info("modify node group db update success")
+	hwlog.RunLog.Infof("modify node group [%s]'s info success, group name changes to [%s]", originData.GroupName,
+		*req.GroupName)
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
@@ -183,17 +189,25 @@ func batchDeleteNodeGroup(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
 	}
 	var delRes types.BatchResp
+	var successGroups []interface{}
 	failedMap := make(map[string]string)
 	delRes.FailedInfos = failedMap
 	for _, groupID := range *req.GroupIDs {
-		if err := deleteSingleGroup(groupID); err != nil {
-			hwlog.RunLog.Errorf("delete node group %d failed, %s", groupID, err.Error())
+		nodeGroup, err := deleteSingleGroup(groupID)
+		if err != nil {
+			if nodeGroup == nil {
+				hwlog.RunLog.Errorf("delete node group %d failed, %s", groupID, err.Error())
+			} else {
+				hwlog.RunLog.Errorf("delete node group %d(name=%s) failed, %s", groupID, nodeGroup.GroupName,
+					err.Error())
+			}
 			failedMap[strconv.Itoa(int(groupID))] = fmt.Sprintf("delete failed, %s", err.Error())
 			continue
 		}
 		delRes.SuccessIDs = append(delRes.SuccessIDs, groupID)
+		successGroups = append(successGroups, nodeGroup.GroupName)
 	}
-	logmgmt.BatchOperationLog("batch delete node group", delRes.SuccessIDs)
+	logmgmt.BatchOperationLog("batch delete node group", successGroups)
 	if len(delRes.FailedInfos) != 0 {
 		hwlog.RunLog.Error("batch delete node group failed")
 		return common.RespMsg{Status: common.ErrorDeleteNodeGroup, Msg: "", Data: delRes}
@@ -202,24 +216,25 @@ func batchDeleteNodeGroup(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "batch delete node group success", Data: nil}
 }
 
-func deleteSingleGroup(groupID uint64) error {
-	if _, err := NodeServiceInstance().getNodeGroupByID(groupID); err != nil {
-		return fmt.Errorf("get node group by group id %d failed", groupID)
+func deleteSingleGroup(groupID uint64) (*NodeGroup, error) {
+	nodeGroup, err := NodeServiceInstance().getNodeGroupByID(groupID)
+	if err != nil {
+		return nil, fmt.Errorf("get node group by group id %d failed", groupID)
 	}
 	count, err := getAppInstanceCountByGroupId(groupID)
 	if err != nil {
 		hwlog.RunLog.Errorf("get from app error: %v", err)
-		return err
+		return nodeGroup, err
 	}
 	if count != 0 {
-		return fmt.Errorf("group %d has deployed app, can't remove", groupID)
+		return nodeGroup, fmt.Errorf("group %d has deployed app, can't remove", groupID)
 	}
 	relations, err := NodeServiceInstance().listNodeRelationsByGroupId(groupID)
 	if err != nil {
-		return fmt.Errorf("get relations between node and node group by group id %d failed", groupID)
+		return nodeGroup, fmt.Errorf("get relations between node and node group by group id %d failed", groupID)
 	}
 	if err = NodeServiceInstance().deleteNodeGroup(groupID, relations); err != nil {
-		return err
+		return nodeGroup, err
 	}
-	return nil
+	return nodeGroup, nil
 }

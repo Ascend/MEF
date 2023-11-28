@@ -395,7 +395,10 @@ func testUndeployApInfo() {
 		func(string) error { return nil }).
 		ApplyPrivateMethod(kubeclient.GetKubeClient(), "GetDaemonSet",
 			func(string) (*v1.DaemonSet, error) { return &v1.DaemonSet{}, nil }).
-		ApplyFuncReturn(updateAllocatedNodeRes, nil)
+		ApplyFuncReturn(updateAllocatedNodeRes, nil).
+		ApplyFuncReturn(getNodeGroupInfos, []types.NodeGroupInfo{
+			{NodeGroupName: "test"},
+		}, nil)
 	defer p1.Reset()
 	resp := unDeployApp(reqData)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
