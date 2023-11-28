@@ -349,17 +349,25 @@ func batchDeleteNode(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
 	}
 	var res types.BatchResp
+	var successNodes []interface{}
 	failedMap := make(map[string]string)
 	res.FailedInfos = failedMap
 	for _, nodeID := range req.NodeIDs {
-		if err := deleteSingleNode(nodeID); err != nil {
-			hwlog.RunLog.Errorf("failed to delete node %d, error: err=%v", nodeID, err)
+		nodeInfo, err := deleteSingleNode(nodeID)
+		if err != nil {
+			if nodeInfo == nil {
+				hwlog.RunLog.Errorf("failed to delete node %d, error: err=%v", nodeID, err)
+			} else {
+				hwlog.RunLog.Errorf("failed to delete node %d(sn=%s), error: err=%v",
+					nodeID, nodeInfo.SerialNumber, err)
+			}
 			failedMap[strconv.Itoa(int(nodeID))] = fmt.Sprintf("failed to delete, error: err=%v", err)
 			continue
 		}
 		res.SuccessIDs = append(res.SuccessIDs, nodeID)
+		successNodes = append(successNodes, nodeInfo.SerialNumber)
 	}
-	logmgmt.BatchOperationLog("batch delete node", res.SuccessIDs)
+	logmgmt.BatchOperationLog("batch delete node with sn", successNodes)
 	if len(res.FailedInfos) != 0 {
 		return common.RespMsg{Status: common.ErrorDeleteNode, Data: res}
 	}
@@ -367,36 +375,36 @@ func batchDeleteNode(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Data: nil}
 }
 
-func deleteSingleNode(nodeID uint64) error {
+func deleteSingleNode(nodeID uint64) (*NodeInfo, error) {
 	nodeInfo, err := NodeServiceInstance().getNodeByID(nodeID)
 	if err != nil {
-		return errors.New("db query failed")
+		return nil, errors.New("db query failed")
 	}
 	if !nodeInfo.IsManaged {
-		return errors.New("can't delete unmanaged node")
+		return nodeInfo, errors.New("can't delete unmanaged node")
 	}
 
 	nodeRelations, err := NodeServiceInstance().getRelationsByNodeID(nodeID)
 	if err != nil {
-		return err
+		return nodeInfo, err
 	}
 	for _, relation := range *nodeRelations {
 		count, err := getAppInstanceCountByGroupId(relation.GroupID)
 		if err != nil {
-			return fmt.Errorf("query group(%d) app count failed, %v", relation.GroupID, err)
+			return nodeInfo, fmt.Errorf("query group(%d) app count failed, %v", relation.GroupID, err)
 		}
 		if count > 0 {
-			return fmt.Errorf("group(%d) has deployed app, can't remove", relation.GroupID)
+			return nodeInfo, fmt.Errorf("group(%d) has deployed app, can't remove", relation.GroupID)
 		}
 	}
 
 	if err = NodeServiceInstance().deleteNode(nodeInfo); err != nil {
-		return err
+		return nodeInfo, err
 	}
 	if err := sendDeleteNodeMessageToNode(nodeInfo.SerialNumber); err != nil {
-		return fmt.Errorf("send delete node msg error:%v", err)
+		return nodeInfo, fmt.Errorf("send delete node msg error:%v", err)
 	}
-	return nil
+	return nodeInfo, nil
 }
 
 func deleteNodeFromGroup(input interface{}) common.RespMsg {
@@ -411,17 +419,39 @@ func deleteNodeFromGroup(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
 	}
 	var res types.BatchResp
+	var successNodes []interface{}
+	var groupInfo *NodeGroup
 	failedMap := make(map[string]string)
 	res.FailedInfos = failedMap
-	for _, nodeID := range *req.NodeIDs {
-		if err := NodeServiceInstance().deleteSingleNodeRelation(*req.GroupID, nodeID); err != nil {
-			hwlog.RunLog.Errorf("failed to delete node %d from group %d, error: err=%v", nodeID, *req.GroupID, err)
-			failedMap[strconv.Itoa(int(nodeID))] = fmt.Sprintf("failed to delete, error: err=%v", err)
-			continue
+	groupInfo, err := NodeServiceInstance().getNodeGroupByID(*req.GroupID)
+	if err != nil {
+		if groupInfo == nil {
+			hwlog.RunLog.Errorf("failed to get group %d's info, error: ret is empty", *req.GroupID)
+		} else {
+			hwlog.RunLog.Errorf("failed to get group %d's info, error: %v", *req.GroupID, err)
 		}
-		res.SuccessIDs = append(res.SuccessIDs, nodeID)
+		for _, nodeID := range *req.NodeIDs {
+			failedMap[strconv.Itoa(int(nodeID))] = "failed to delete, error: failed to get group info"
+		}
+	} else {
+		for _, nodeID := range *req.NodeIDs {
+			nodeInfo, err := NodeServiceInstance().getNodeByID(nodeID)
+			if err != nil {
+				hwlog.RunLog.Errorf("failed to get node %d's info, error: %v", nodeID, err)
+				failedMap[strconv.Itoa(int(nodeID))] = "failed to delete, error: failed to get node info"
+				continue
+			}
+			if err = NodeServiceInstance().deleteSingleNodeRelation(*req.GroupID, nodeID); err != nil {
+				hwlog.RunLog.Errorf("failed to delete node %d(sn=%s) from group %d(name=%s), error: err=%v", nodeID,
+					nodeInfo.SerialNumber, *req.GroupID, groupInfo.GroupName, err)
+				failedMap[strconv.Itoa(int(nodeID))] = fmt.Sprintf("failed to delete, error: err=%v", err)
+				continue
+			}
+			res.SuccessIDs = append(res.SuccessIDs, nodeID)
+			successNodes = append(successNodes, nodeInfo.SerialNumber)
+		}
+		logmgmt.BatchOperationLog(fmt.Sprintf("from group [%s], delete node", groupInfo.GroupName), successNodes)
 	}
-	logmgmt.BatchOperationLog(fmt.Sprintf("from group [%d], delete node", *req.GroupID), res.SuccessIDs)
 	if len(res.FailedInfos) != 0 {
 		return common.RespMsg{Status: common.ErrorDeleteNodeFromGroup, Msg: "", Data: res}
 	}
@@ -441,24 +471,56 @@ func batchDeleteNodeRelation(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
 	}
 	var res types.BatchResp
+	var successRelations []interface{}
 	failedMap := make(map[string]string)
 	res.FailedInfos = failedMap
 	for _, relation := range req {
-		if err := NodeServiceInstance().deleteSingleNodeRelation(*relation.GroupID, *relation.NodeID); err != nil {
-			relationStr := fmt.Sprintf("groupID: %d, nodeID: %d", *relation.GroupID, *relation.NodeID)
-			hwlog.RunLog.Errorf("failed to delete node relation: node %d from group %d, error: %v",
-				*relation.NodeID, *relation.GroupID, err)
-			failedMap[relationStr] = fmt.Sprintf("failed to delete node relation, error: %v", err)
+		relationStr := fmt.Sprintf("groupID: %d, nodeID: %d", *relation.GroupID, *relation.NodeID)
+		nodeSn, groupName, err := deleteSingleRelation(*relation.GroupID, *relation.NodeID)
+		if err != nil {
+			failedMap[relationStr] = err.Error()
 			continue
 		}
 		res.SuccessIDs = append(res.SuccessIDs, relation)
+		successRelations = append(successRelations, DeleteNodeRelationRecord{
+			NodeSn:    nodeSn,
+			GroupName: groupName,
+		})
 	}
-	logmgmt.BatchOperationLog("batch delete node relation", res.SuccessIDs)
+	logmgmt.BatchOperationLog("batch delete node relation", successRelations)
 	if len(res.FailedInfos) != 0 {
 		return common.RespMsg{Status: common.ErrorDeleteNodeFromGroup, Msg: "", Data: res}
 	}
 	hwlog.RunLog.Info("delete node relation success")
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
+}
+
+func deleteSingleRelation(groupId, nodeId uint64) (string, string, error) {
+	nodeInfo, err := NodeServiceInstance().getNodeByID(nodeId)
+	if err != nil {
+		hwlog.RunLog.Errorf("failed to get node %d's info, error: %v", nodeId, err)
+		return "", "", errors.New("failed to delete node relation, error: failed to get node info")
+	}
+	if nodeInfo == nil {
+		hwlog.RunLog.Errorf("failed to get node %d's info, error: ret is empty", nodeId)
+		return "", "", errors.New("failed to delete node relation, error: failed to get node info")
+	}
+	groupInfo, err := NodeServiceInstance().getNodeGroupByID(groupId)
+	if err != nil {
+		hwlog.RunLog.Errorf("failed to get group %d's info, error: %v", groupId, err)
+		return "", "", errors.New("failed to delete node relation: failed to get group info")
+	}
+	if groupInfo == nil {
+		hwlog.RunLog.Errorf("failed to get group %d's info, error: ret is empty", groupId)
+		return "", "", errors.New("failed to delete node relation: failed to get group info")
+	}
+	if err = NodeServiceInstance().deleteSingleNodeRelation(groupId, nodeId); err != nil {
+		hwlog.RunLog.Errorf("failed to delete node relation: node %d(sn=%s) from group %d(name=%s), error: %v",
+			nodeId, nodeInfo.SerialNumber, groupId, groupInfo.GroupName, err)
+		return "", "", fmt.Errorf("failed to delete node relation, error: %v", err)
+	}
+
+	return nodeInfo.SerialNumber, groupInfo.GroupName, nil
 }
 
 func isNodeNotFound(err error) bool {
@@ -517,6 +579,7 @@ func addNodeRelation(input interface{}) common.RespMsg {
 
 func addNode(req AddNodeToGroupReq) (*types.BatchResp, error) {
 	var res types.BatchResp
+	var successNodes []interface{}
 	failedMap := make(map[string]string)
 	res.FailedInfos = failedMap
 
@@ -532,8 +595,8 @@ func addNode(req AddNodeToGroupReq) (*types.BatchResp, error) {
 	}
 	for i, id := range *req.NodeIDs {
 		if err = checkNodeBeforeAddToGroup(resReq, count, id); err != nil {
-			hwlog.RunLog.Errorf("add node[%d] to group[%d] error, check node failed: %s",
-				id, nodeGroup.ID, err.Error())
+			hwlog.RunLog.Errorf("add node[%d] to group[%d](name=%s) error, check node failed: %s",
+				id, nodeGroup.ID, nodeGroup.GroupName, err.Error())
 			failedMap[strconv.Itoa(int(id))] = fmt.Sprintf("add node to group error, check node failed: %s",
 				err.Error())
 			continue
@@ -548,14 +611,16 @@ func addNode(req AddNodeToGroupReq) (*types.BatchResp, error) {
 			NodeID:    (*req.NodeIDs)[i],
 			GroupID:   *req.GroupID,
 			CreatedAt: time.Now().Format(TimeFormat)}
-		if err := nodeServiceInstance.addNodeToGroup(&relation, nodeDb.UniqueName); err != nil {
-			hwlog.RunLog.Errorf("add node[%s] to group[%d] error: %v", nodeDb.NodeName, nodeGroup.ID, err)
+		if err = nodeServiceInstance.addNodeToGroup(&relation, nodeDb.UniqueName); err != nil {
+			hwlog.RunLog.Errorf("add node[%s](sn=%s) to group[%d](name=%s) error: %v",
+				nodeDb.NodeName, nodeDb.SerialNumber, nodeGroup.ID, nodeGroup.GroupName, err)
 			failedMap[strconv.Itoa(int(id))] = "add node to group failed"
 			continue
 		}
 		res.SuccessIDs = append(res.SuccessIDs, id)
+		successNodes = append(successNodes, nodeDb.SerialNumber)
 	}
-	logmgmt.BatchOperationLog(fmt.Sprintf("into group [%d], add node", *req.GroupID), res.SuccessIDs)
+	logmgmt.BatchOperationLog(fmt.Sprintf("into group [%s], add node", nodeGroup.GroupName), successNodes)
 	if len(res.FailedInfos) != 0 {
 		return &res, errors.New("add some nodes to group failed")
 	}
@@ -603,7 +668,7 @@ func addUnManagedNode(input interface{}) common.RespMsg {
 		"UpdatedAt":   time.Now().Format(TimeFormat),
 	}
 	if cnt, err := NodeServiceInstance().updateNode(*req.NodeID, unmanaged, updatedColumns); err != nil || cnt != 1 {
-		hwlog.RunLog.Error("add unmanaged node error")
+		hwlog.RunLog.Errorf("add unmanaged node error: %v", err)
 		return common.RespMsg{Status: common.ErrorAddUnManagedNode, Msg: "add node to mef system error", Data: nil}
 	}
 	addNodeRes := addNodeToGroups(req)
@@ -657,6 +722,7 @@ func getNodeGroupResReq(nodeGroup *NodeGroup) (v1.ResourceList, error) {
 func checkNodeResource(req v1.ResourceList, nodeId uint64) error {
 	nodeInfo, err := NodeServiceInstance().getNodeByID(nodeId)
 	if err != nil {
+		hwlog.RunLog.Errorf("get node info by node id [%d] error: %v", nodeId, err)
 		return fmt.Errorf("get node info by node id [%d] error", nodeId)
 	}
 	availableRes, err := NodeSyncInstance().GetAvailableResource(nodeInfo.ID, nodeInfo.UniqueName)
@@ -779,17 +845,25 @@ func deleteUnManagedNode(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
 	}
 	var res types.BatchResp
+	var successNodes []interface{}
 	failedMap := make(map[string]string)
 	res.FailedInfos = failedMap
 	for _, nodeID := range req.NodeIDs {
-		if err := deleteSingleUnManagedNode(nodeID); err != nil {
-			hwlog.RunLog.Errorf("failed to delete unmanaged node %d, error: err=%v", nodeID, err)
+		nodeInfo, err := deleteSingleUnManagedNode(nodeID)
+		if err != nil {
+			if nodeInfo == nil {
+				hwlog.RunLog.Errorf("failed to delete unmanaged node %d, error: err=%v", nodeID, err)
+			} else {
+				hwlog.RunLog.Errorf("failed to delete unmanaged node %d(sn=%s), error: err=%v",
+					nodeID, nodeInfo.SerialNumber, err)
+			}
 			failedMap[strconv.Itoa(int(nodeID))] = fmt.Sprintf("failed to delete, error: err=%v", err)
 			continue
 		}
 		res.SuccessIDs = append(res.SuccessIDs, nodeID)
+		successNodes = append(successNodes, nodeInfo.SerialNumber)
 	}
-	logmgmt.BatchOperationLog("batch delete unmanaged node", res.SuccessIDs)
+	logmgmt.BatchOperationLog("batch delete unmanaged node", successNodes)
 	if len(res.FailedInfos) != 0 {
 		return common.RespMsg{Status: common.ErrorDeleteNode, Data: res}
 	}
@@ -812,16 +886,19 @@ func sendDeleteNodeMessageToNode(serialNumber string) error {
 	return nil
 }
 
-func deleteSingleUnManagedNode(nodeID uint64) error {
+func deleteSingleUnManagedNode(nodeID uint64) (*NodeInfo, error) {
 	nodeInfo, err := NodeServiceInstance().getNodeByID(nodeID)
 	if err != nil {
-		return errors.New("db query failed")
+		return nil, errors.New("db query failed")
+	}
+	if !nodeInfo.IsManaged {
+		return nodeInfo, errors.New("node is not managed")
 	}
 	if err = NodeServiceInstance().deleteUnmanagedNode(nodeInfo); err != nil {
-		return err
+		return nodeInfo, err
 	}
 	if err := sendDeleteNodeMessageToNode(nodeInfo.SerialNumber); err != nil {
-		return fmt.Errorf("send delete node msg error:%v", err)
+		return nodeInfo, fmt.Errorf("send delete node msg error:%v", err)
 	}
-	return nil
+	return nodeInfo, nil
 }

@@ -290,8 +290,8 @@ func (n *NodeServiceImpl) deleteAllUnManagedNodes() error {
 func (n *NodeServiceImpl) addNodeToGroup(relation *NodeRelation, uniqueName string) error {
 	return database.Transaction(n.db(), func(tx *gorm.DB) error {
 		if err := tx.Model(NodeRelation{}).Create(relation).Error; err != nil {
-			return fmt.Errorf("db create node relation error, groupID %d, nodeID %d",
-				relation.GroupID, relation.NodeID)
+			return fmt.Errorf("db create node relation error, groupID %d, nodeID %d: %v",
+				relation.GroupID, relation.NodeID, err)
 		}
 		label := map[string]string{fmt.Sprintf("%s%d", common.NodeGroupLabelPrefix, relation.GroupID): ""}
 		if _, err := kubeclient.GetKubeClient().AddNodeLabels(uniqueName, label); err != nil {
@@ -362,6 +362,7 @@ func deleteRelation(tx *gorm.DB, groupID, nodeID uint64) error {
 	if err != nil && isNodeNotFound(err) {
 		hwlog.RunLog.Warnf("k8s delete label failed, err=%v", err)
 	} else if err != nil {
+		hwlog.RunLog.Errorf("k8s delete label(group %d) failed: %v", groupID, err)
 		return fmt.Errorf("k8s delete label(group %d) failed", groupID)
 	}
 	return nil
