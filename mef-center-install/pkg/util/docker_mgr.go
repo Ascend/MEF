@@ -186,7 +186,7 @@ func (dd *DockerDealer) ReloadImage(imageDirPath string) error {
 	return nil
 }
 
-// CheckDependentImage is the func to check the existence of dependent iamge
+// CheckDependentImage is the func to check the existence of dependent image
 func CheckDependentImage() error {
 	var dependentImageMap = map[string]string{
 		common.UbuntuImageName: common.UbuntuImageTag,
