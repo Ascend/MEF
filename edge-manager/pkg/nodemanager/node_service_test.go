@@ -812,7 +812,7 @@ func testDeleteUnManagedNode() {
 		UniqueName:   "test-node-unique-name-7",
 		SerialNumber: "test-node-serial-number-7",
 		IP:           "0.0.0.0",
-		IsManaged:    true,
+		IsManaged:    false,
 		CreatedAt:    time.Now().Format(TimeFormat),
 		UpdatedAt:    time.Now().Format(TimeFormat),
 	}

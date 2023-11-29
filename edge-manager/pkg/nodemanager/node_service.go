@@ -891,8 +891,8 @@ func deleteSingleUnManagedNode(nodeID uint64) (*NodeInfo, error) {
 	if err != nil {
 		return nil, errors.New("db query failed")
 	}
-	if !nodeInfo.IsManaged {
-		return nodeInfo, errors.New("node is not managed")
+	if nodeInfo.IsManaged {
+		return nodeInfo, errors.New("node is managed")
 	}
 	if err = NodeServiceInstance().deleteUnmanagedNode(nodeInfo); err != nil {
 		return nodeInfo, err
