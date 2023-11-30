@@ -34,7 +34,8 @@ type AuthFailedRecord struct {
 
 // LockRecord lock ip record
 type LockRecord struct {
-	LockTime int64 `gorm:"type:integer"`
+	IP       string `gorm:"type:char(32)"`
+	LockTime int64  `gorm:"type:integer"`
 }
 
 var (
