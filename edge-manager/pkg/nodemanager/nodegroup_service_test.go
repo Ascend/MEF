@@ -12,6 +12,7 @@ import (
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
 	"gorm.io/gorm"
+	"huawei.com/mindx/common/test"
 
 	"edge-manager/pkg/types"
 	"huawei.com/mindxedge/base/common"
@@ -74,7 +75,7 @@ func testCreateGroupMaxCount() {
 	const maxTableCount = 1024
 	var p1 = gomonkey.ApplyFunc(GetTableCount,
 		func(tb interface{}) (int, error) {
-			return maxTableCount, testErr
+			return maxTableCount, test.ErrTest
 		})
 	defer p1.Reset()
 	args := fmt.Sprintf(`
@@ -107,7 +108,7 @@ func testCreateNodeGroupErrCreate() {
 	var c *NodeServiceImpl
 	var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "createNodeGroup",
 		func(n *NodeServiceImpl, nodeGroup *NodeGroup) error {
-			return testErr
+			return test.ErrTest
 		})
 	defer p1.Reset()
 	resp := createNodeGroup(args)
@@ -127,7 +128,7 @@ func testGetGroupStat() {
 func testGetGroupStatErrGetCount() {
 	var p1 = gomonkey.ApplyFunc(GetTableCount,
 		func(tb interface{}) (int, error) {
-			return 0, testErr
+			return 0, test.ErrTest
 		})
 	defer p1.Reset()
 	resp := getNodeGroupStatistics(``)
@@ -190,7 +191,7 @@ func testGetNodeGroupDetailErrGetGroup() {
 	var c *NodeServiceImpl
 	var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "getNodeGroupByID",
 		func(n *NodeServiceImpl, groupID uint64) (*NodeGroup, error) {
-			return nil, testErr
+			return nil, test.ErrTest
 		})
 	defer p1.Reset()
 	resp := getNodeGroupDetail(uint64(1))
@@ -201,7 +202,7 @@ func testGetDetailErrListRelations() {
 	var c *NodeServiceImpl
 	var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "listNodeRelationsByGroupId",
 		func(n *NodeServiceImpl, groupID uint64) (*[]NodeRelation, error) {
-			return nil, testErr
+			return nil, test.ErrTest
 		})
 	defer p1.Reset()
 	resp := getNodeGroupDetail(uint64(1))
@@ -238,7 +239,7 @@ func testGetGroupDetailErrGetNodeById() {
 	var c *NodeServiceImpl
 	var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "getNodeByID",
 		func(uint64) (*NodeInfo, error) {
-			return nil, testErr
+			return nil, test.ErrTest
 		})
 	defer p1.Reset()
 	resp := getNodeGroupDetail(group.ID)
@@ -305,7 +306,7 @@ func testModifyGroupErrUpdate() {
 	var c *NodeServiceImpl
 	var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "updateGroup",
 		func(n *NodeServiceImpl, id uint64, columns map[string]interface{}) (int64, error) {
-			return 0, testErr
+			return 0, test.ErrTest
 		})
 	defer p1.Reset()
 	resp := modifyNodeGroup(args)
@@ -395,7 +396,7 @@ func testListNodeGroupErrCountGroup() {
 	var c *NodeServiceImpl
 	var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "countNodeGroupsByName",
 		func(n *NodeServiceImpl, nodeGroup string) (int64, error) {
-			return 0, testErr
+			return 0, test.ErrTest
 		})
 	defer p1.Reset()
 	args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
@@ -407,7 +408,7 @@ func testListNodeGroupErrGetGroup() {
 	var c *NodeServiceImpl
 	var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "getNodeGroupsByName",
 		func(n *NodeServiceImpl, pageNum, pageSize uint64, nodeGroup string) (*[]NodeGroup, error) {
-			return nil, testErr
+			return nil, test.ErrTest
 		})
 	defer p1.Reset()
 	args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
@@ -419,7 +420,7 @@ func testListNodeGroupErrListRelations() {
 	var c *NodeServiceImpl
 	var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "listNodeRelationsByGroupId",
 		func(n *NodeServiceImpl, groupID uint64) (*[]NodeRelation, error) {
-			return nil, testErr
+			return nil, test.ErrTest
 		})
 	defer p1.Reset()
 	args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
@@ -495,7 +496,7 @@ func testAddNodeRelationErrAdd() {
 	convey.Convey("get available resource error", func() {
 		var c *nodeSyncImpl
 		var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "GetAvailableResource",
-			func(n *nodeSyncImpl, nodeID uint64, hostname string) (*NodeResource, error) { return nil, testErr }).
+			func(n *nodeSyncImpl, nodeID uint64, hostname string) (*NodeResource, error) { return nil, test.ErrTest }).
 			ApplyFuncReturn(getRequestItemsOfAddGroup, nil, int64(0), nil)
 		defer p1.Reset()
 		args := `{"groupID": 1, "nodeIDs": [1]}`
@@ -505,7 +506,7 @@ func testAddNodeRelationErrAdd() {
 	convey.Convey("get managed node by id error", func() {
 		var c *NodeServiceImpl
 		var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "getManagedNodeByID",
-			func(n *NodeServiceImpl, nodeID uint64) (*NodeInfo, error) { return nil, testErr }).
+			func(n *NodeServiceImpl, nodeID uint64) (*NodeInfo, error) { return nil, test.ErrTest }).
 			ApplyFuncReturn(getRequestItemsOfAddGroup, nil, int64(0), nil).
 			ApplyFuncReturn(checkNodeBeforeAddToGroup, nil)
 		defer p1.Reset()
@@ -516,7 +517,7 @@ func testAddNodeRelationErrAdd() {
 	convey.Convey("add node to group error", func() {
 		var c *NodeServiceImpl
 		var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "addNodeToGroup",
-			func(n *NodeServiceImpl, relation *NodeRelation, uniqueName string) error { return testErr }).
+			func(n *NodeServiceImpl, relation *NodeRelation, uniqueName string) error { return test.ErrTest }).
 			ApplyFuncReturn(getRequestItemsOfAddGroup, nil, int64(0), nil).
 			ApplyFuncReturn(checkNodeBeforeAddToGroup, nil)
 		defer p1.Reset()

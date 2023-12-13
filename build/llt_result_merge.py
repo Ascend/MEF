@@ -57,6 +57,8 @@ def merger_json(src, det):
         with open(json_file, 'r') as f:
             data = f.read()
             json_data = json.loads(data)
+            if json_data['Packages'] is None:
+                raise Exception('cannot find package json data, maybe some of the test cases are skipped.')
             for pkg in json_data['Packages']:
                 json_dump['Packages'].append(pkg)
     json_w = json.dumps(json_dump)

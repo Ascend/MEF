@@ -4,14 +4,12 @@
 package tasks
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
-	"huawei.com/mindx/common/envutils"
 	"huawei.com/mindx/common/fileutils"
 
 	"huawei.com/mindxedge/base/common"
@@ -21,20 +19,6 @@ import (
 	"edge-manager/pkg/logmanager/testutils"
 	"edge-manager/pkg/logmanager/utils"
 )
-
-// TestMain sets up the environment
-func TestMain(m *testing.M) {
-	if err := testutils.PrepareHwlog(); err != nil {
-		fmt.Printf("init hwlog failed, %v\n", err)
-	}
-	if err := testutils.PrepareTempDirs(); err != nil {
-		fmt.Printf("prepare dirs failed, %v\n", err)
-	}
-	m.Run()
-	if err := testutils.CleanupTempDirs(); err != nil {
-		fmt.Printf("cleanup dirs failed, %v\n", err)
-	}
-}
 
 // TestDumpEdgeLogs tests dumpEdgeLogs
 func TestDumpEdgeLogs(t *testing.T) {
@@ -110,7 +94,10 @@ func TestDumpMultiNodesLog(t *testing.T) {
 			ApplyMethodReturn(dummyObjs.TaskCtx, "UpdateStatus", nil).
 			ApplyMethodReturn(dummyObjs.TaskCtx, "Spec", taskSpec).
 			ApplyFuncReturn(dumpEdgeLogs, []taskschedule.Task{{}}, nil).
-			ApplyFuncReturn(envutils.CheckDiskSpace, nil).
+			ApplyFuncReturn(utils.CheckDiskSpace, nil).
+			ApplyFuncReturn(utils.CleanTempFiles, false, nil).
+			ApplyFuncReturn(fileutils.CreateDir, nil).
+			ApplyFuncReturn(fileutils.RealDirCheck, "", nil).
 			ApplyFunc(createTarGz, mockCreateTarGz)
 		defer patch.Reset()
 

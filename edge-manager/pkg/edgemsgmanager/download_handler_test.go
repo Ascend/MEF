@@ -13,6 +13,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindx/common/test"
 	"huawei.com/mindx/common/utils"
 
 	"huawei.com/mindxedge/base/common"
@@ -335,7 +336,7 @@ func testDownloadErrNewMsg() {
 
 	var p1 = gomonkey.ApplyFunc(model.NewMessage,
 		func() (*model.Message, error) {
-			return nil, testErr
+			return nil, test.ErrTest
 		})
 	defer p1.Reset()
 
@@ -349,7 +350,7 @@ func testDownloadErrSendSyncMsg() {
 		return
 	}
 
-	var p = gomonkey.ApplyFuncReturn(modulemgr.SendSyncMessage, nil, testErr)
+	var p = gomonkey.ApplyFuncReturn(modulemgr.SendSyncMessage, nil, test.ErrTest)
 	defer p.Reset()
 	resp := downloadSoftware(msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorSendMsgToNode)

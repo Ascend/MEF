@@ -4,51 +4,11 @@
 package taskschedule
 
 import (
-	"context"
-	"fmt"
 	"testing"
 	"time"
 
 	"github.com/smartystreets/goconvey/convey"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
-	"huawei.com/mindx/common/hwlog"
 )
-
-func TestMain(m *testing.M) {
-	if err := setup(); err != nil {
-		fmt.Printf("%v\n", err)
-		return
-	}
-	m.Run()
-}
-
-func setup() error {
-	const (
-		memoryDsn = ":memory:?cache=shared"
-		thousand  = 1000
-	)
-	if err := hwlog.InitRunLogger(&hwlog.LogConfig{OnlyToStdout: true}, context.Background()); err != nil {
-		return fmt.Errorf("init hwlog failed, %v", err)
-	}
-	db, err := gorm.Open(sqlite.Open(memoryDsn))
-	if err != nil {
-		return fmt.Errorf("open db failed, %v", err)
-	}
-	rawDb, err := db.DB()
-	if err != nil {
-		return fmt.Errorf("setup db failed, %v", err)
-	}
-	rawDb.SetMaxOpenConns(1)
-	if err := InitDefaultScheduler(context.Background(), db, SchedulerSpec{
-		MaxHistoryMasterTasks: thousand,
-		MaxActiveTasks:        thousand,
-		AllowedMaxTasksInDb:   thousand,
-	}); err != nil {
-		return fmt.Errorf("init sheduler failed, %v", err)
-	}
-	return nil
-}
 
 func TestTaskConcurrentControl(t *testing.T) {
 	convey.Convey("test task concurrent control", t, func() {

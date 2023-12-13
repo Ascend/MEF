@@ -4,33 +4,13 @@
 package configmanager
 
 import (
-	"fmt"
 	"net/http"
 	"path/filepath"
 	"testing"
 
 	"github.com/smartystreets/goconvey/convey"
-	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr/model"
-
-	"huawei.com/mindxedge/base/common"
 )
-
-func init() {
-	initLog()
-}
-
-func initLog() {
-	hwRunLogConfig := &hwlog.LogConfig{
-		OnlyToStdout: true,
-	}
-	hwOpLogConfig := &hwlog.LogConfig{
-		OnlyToStdout: true,
-	}
-	if err := common.InitHwlogger(hwRunLogConfig, hwOpLogConfig); err != nil {
-		fmt.Println("llt init log failed")
-	}
-}
 
 func TestMethodSelect(t *testing.T) {
 	convey.Convey("method select functional test", t, func() {

@@ -8,6 +8,7 @@ import (
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
+	"huawei.com/mindx/common/test"
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -98,7 +99,7 @@ func initTestDaemonSet() {
 	}`
 	resp := createApp(reqData)
 	var appInfo AppInfo
-	gormInstance.Model(AppInfo{}).Where("id = ?", resp.Data.(uint64)).Find(&appInfo)
+	test.MockGetDb().Model(AppInfo{}).Where("id = ?", resp.Data.(uint64)).Find(&appInfo)
 	daemonSet, _ = initDaemonSet(&appInfo, 1)
 }
 
@@ -109,9 +110,9 @@ func testAddPod() {
 	defer p1.Reset()
 
 	var count1, count2 int64
-	gormInstance.Model(AppInstance{}).Count(&count1)
+	test.MockGetDb().Model(AppInstance{}).Count(&count1)
 	appStatusService.addPod(pod)
-	gormInstance.Model(AppInstance{}).Count(&count2)
+	test.MockGetDb().Model(AppInstance{}).Count(&count2)
 	convey.So(count1, convey.ShouldNotEqual, count2)
 }
 
@@ -126,8 +127,8 @@ func testUpdatePod() {
 
 func testDeletePod() {
 	var count1, count2 int64
-	gormInstance.Model(AppInstance{}).Count(&count1)
+	test.MockGetDb().Model(AppInstance{}).Count(&count1)
 	appStatusService.deletePod(pod)
-	gormInstance.Model(AppInstance{}).Count(&count2)
+	test.MockGetDb().Model(AppInstance{}).Count(&count2)
 	convey.So(count1, convey.ShouldNotEqual, count2)
 }

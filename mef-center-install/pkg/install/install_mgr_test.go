@@ -124,7 +124,8 @@ func PreCheckTest() {
 		p := gomonkey.ApplyPrivateMethod(ins, "checkUser", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "checkDiskSpace", func(_ *SftInstallCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "checkInstalled", func(_ *SftInstallCtl) error { return nil }).
-			ApplyPrivateMethod(ins, "checkNecessaryTools", func(_ *SftInstallCtl) error { return nil })
+			ApplyPrivateMethod(ins, "checkNecessaryTools", func(_ *SftInstallCtl) error { return nil }).
+			ApplyMethodReturn(&util.DockerDealer{}, "CheckImageExists", true, nil)
 		defer p.Reset()
 		convey.So(ins.preCheck(), convey.ShouldBeNil)
 	})

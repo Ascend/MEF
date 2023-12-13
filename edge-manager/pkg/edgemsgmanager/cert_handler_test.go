@@ -13,6 +13,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindx/common/test"
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/requests"
@@ -103,7 +104,7 @@ func testGetCertInfoErrGetRootCa() {
 	var c *requests.ReqCertParams
 	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "GetRootCa",
 		func(c *requests.ReqCertParams, certName string) (string, error) {
-			return "", testErr
+			return "", test.ErrTest
 		})
 	defer p1.Reset()
 
@@ -120,7 +121,7 @@ func testGetCertInfoErrMarshal() {
 
 	var p1 = gomonkey.ApplyFunc(json.Marshal,
 		func(v interface{}) ([]byte, error) {
-			return nil, testErr
+			return nil, test.ErrTest
 		})
 	defer p1.Reset()
 
@@ -137,7 +138,7 @@ func testGetCertInfoErrSendMsg() {
 
 	var p1 = gomonkey.ApplyFunc(modulemgr.SendMessage,
 		func(m *model.Message) error {
-			return testErr
+			return test.ErrTest
 		})
 	defer p1.Reset()
 

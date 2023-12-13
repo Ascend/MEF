@@ -12,6 +12,7 @@ import (
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
+	"huawei.com/mindx/common/test"
 
 	"huawei.com/mindxedge/base/common"
 
@@ -159,7 +160,7 @@ func testInnerGetNodeStatusErr() {
 		var c *nodeSyncImpl
 		var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "GetK8sNodeStatus",
 			func(s *nodeSyncImpl, hostname string) (string, error) {
-				return statusOffline, testErr
+				return statusOffline, test.ErrTest
 			})
 		defer p1.Reset()
 		input := types.InnerGetNodeStatusReq{UniqueName: ""}
@@ -203,7 +204,7 @@ func testInnerGetNodeGroupInfosByIdsErr() {
 		var c *NodeServiceImpl
 		var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "getNodeGroupByID",
 			func(n *NodeServiceImpl, groupID uint64) (*NodeGroup, error) {
-				return nil, testErr
+				return nil, test.ErrTest
 			})
 		defer p1.Reset()
 		input := types.InnerGetNodeGroupInfosReq{NodeGroupIds: []uint64{0}}
@@ -222,7 +223,7 @@ func TestInnerAllNodeInfos(t *testing.T) {
 		var c *NodeServiceImpl
 		var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "listNodes",
 			func(n *NodeServiceImpl) (*[]NodeInfo, error) {
-				return nil, testErr
+				return nil, test.ErrTest
 			})
 		defer p1.Reset()
 		res := innerAllNodeInfos("")
@@ -258,7 +259,7 @@ func testNodeGroupResReqErr() {
 		var c *NodeServiceImpl
 		var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "listNodeRelationsByGroupId",
 			func(n *NodeServiceImpl, groupId uint64) (*[]NodeRelation, error) {
-				return nil, testErr
+				return nil, test.ErrTest
 			})
 		defer p1.Reset()
 		input := types.InnerCheckNodeResReq{NodeGroupID: 1}
