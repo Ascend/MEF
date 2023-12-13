@@ -5,7 +5,6 @@ package utils
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"testing"
 
@@ -20,22 +19,7 @@ import (
 	"edge-manager/pkg/logmanager/testutils"
 )
 
-const (
-	mode777 = 0777
-)
-
-func TestMain(m *testing.M) {
-	if err := testutils.PrepareHwlog(); err != nil {
-		fmt.Println("prepare hwlog failed")
-	}
-	if err := testutils.PrepareTempDirs(); err != nil {
-		fmt.Printf("prepare dirs failed, %v\n", err)
-	}
-	m.Run()
-	if err := testutils.CleanupTempDirs(); err != nil {
-		fmt.Printf("cleanup dirs failed, %v\n", err)
-	}
-}
+const mode777 = 0777
 
 func TestCleanTempFiles(t *testing.T) {
 	convey.Convey("test clean temp files", t, func() {

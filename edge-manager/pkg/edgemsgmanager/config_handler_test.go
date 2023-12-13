@@ -12,6 +12,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindx/common/test"
 
 	"huawei.com/mindxedge/base/common"
 
@@ -54,7 +55,7 @@ func testGetConfigInfo() {
 
 	outputs := []gomonkey.OutputCell{
 		{Values: gomonkey.Params{nil, nil}},
-		{Values: gomonkey.Params{nil, testErr}},
+		{Values: gomonkey.Params{nil, test.ErrTest}},
 	}
 	var p3 = gomonkey.ApplyMethodSeq(c, "GetCloudCoreCa", outputs)
 	defer p3.Reset()
@@ -121,7 +122,7 @@ func testGetConfigInfoErrSendAsyncMsg() {
 
 	var p2 = gomonkey.ApplyFunc(modulemgr.SendAsyncMessage,
 		func(m *model.Message) error {
-			return testErr
+			return test.ErrTest
 		})
 	defer p2.Reset()
 

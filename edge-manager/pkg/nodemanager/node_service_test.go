@@ -16,12 +16,10 @@ import (
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/checker"
-	"huawei.com/mindx/common/database"
-	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindx/common/test"
 	"k8s.io/api/core/v1"
 
 	"edge-manager/pkg/constants"
@@ -32,74 +30,16 @@ import (
 )
 
 const (
-	memoryDsn           = ":memory:?cache=shared"
 	defaultPageSize     = 20
 	shuffledNumberCount = 10000
 	errPageSize         = 200
 )
 
-var (
-	env     environment
-	testErr = errors.New("test error")
-)
+var env environment
 
 type environment struct {
 	shuffledNumbers     []int
 	shuffledNumbersLock sync.Mutex
-	patches             *gomonkey.Patches
-}
-
-func (e *environment) setup() error {
-	logConfig := &hwlog.LogConfig{OnlyToStdout: true}
-	if err := common.InitHwlogger(logConfig, logConfig); err != nil {
-		return err
-	}
-	db, err := gorm.Open(sqlite.Open(memoryDsn))
-	if err != nil {
-		return err
-	}
-	if err = e.setupTables(db); err != nil {
-		return err
-	}
-	e.patches = e.setupGoMonkeyPatches(db)
-	return nil
-}
-
-func (e *environment) teardown() {
-	e.patches.Reset()
-}
-
-func (e *environment) setupTables(db *gorm.DB) error {
-	if err := db.AutoMigrate(&NodeInfo{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&NodeRelation{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&NodeGroup{}); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (e *environment) setupGoMonkeyPatches(db *gorm.DB) *gomonkey.Patches {
-	service := &nodeSyncImpl{}
-	client := &kubeclient.Client{}
-	return gomonkey.ApplyFuncReturn(database.GetDb, db).
-		ApplyFuncReturn(NodeSyncInstance, service).
-		ApplyMethodReturn(service, "ListMEFNodeStatus", map[string]string{}).
-		ApplyMethodReturn(service, "GetMEFNodeStatus", statusOffline, nil).
-		ApplyMethodReturn(service, "GetK8sNodeStatus", statusOffline, nil).
-		ApplyMethodReturn(service, "GetAllocatableResource", &NodeResource{}, nil).
-		ApplyMethodReturn(service, "GetAvailableResource", &NodeResource{}, nil).
-		ApplyFuncReturn(kubeclient.GetKubeClient, client).
-		ApplyPrivateMethod(client, "patchNode", e.mockPatchNode).
-		ApplyMethodReturn(client, "ListNode", &v1.NodeList{}, nil).
-		ApplyMethodReturn(client, "DeleteNode", nil)
-}
-
-func (e *environment) mockPatchNode(string, []map[string]interface{}) (*v1.Node, error) {
-	return &v1.Node{}, nil
 }
 
 func (e *environment) createNode(node *NodeInfo) error {
@@ -273,17 +213,6 @@ func (e *environment) randomizeInternal(pointer interface{}, replacements map[st
 	}
 }
 
-func TestMain(m *testing.M) {
-	env = environment{}
-	if err := env.setup(); err != nil {
-		fmt.Printf("failed to setup test environment, reason: %v", err)
-		return
-	}
-	defer env.teardown()
-	code := m.Run()
-	hwlog.RunLog.Infof("test complete, exitCode=%d", code)
-}
-
 func TestGetNodeDetail(t *testing.T) {
 	convey.Convey("getNodeDetail should be success", t, testGetNodeDetail)
 	convey.Convey("getNodeDetail should be failed, input error", t, testGetNodeDetailErrInput)
@@ -351,7 +280,7 @@ func testGetNodeDetailErrEvalNodeGroup() {
 		var c *NodeServiceImpl
 		var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "getRelationsByNodeID",
 			func(n *NodeServiceImpl, id uint64) (*[]NodeRelation, error) {
-				return nil, testErr
+				return nil, test.ErrTest
 			})
 		defer p1.Reset()
 		resp := getNodeDetail(map[string]interface{}{
@@ -483,7 +412,7 @@ func testGetNodeStatisticsErr() {
 	var c *NodeServiceImpl
 	var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "listNodes",
 		func(n *NodeServiceImpl) (*[]NodeInfo, error) {
-			return nil, testErr
+			return nil, test.ErrTest
 		})
 	defer p1.Reset()
 	resp := getNodeStatistics(``)
@@ -630,7 +559,7 @@ func testListManagedAndUnmanagedErrCount() {
 	var c *NodeServiceImpl
 	var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "countNodesByName",
 		func(n *NodeServiceImpl, name string, isManaged int) (int64, error) {
-			return 0, testErr
+			return 0, test.ErrTest
 		})
 	defer p1.Reset()
 	args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
@@ -646,7 +575,7 @@ func testListManagedAndUnmanagedErrList() {
 	var c1 *NodeServiceImpl
 	var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c1), "listManagedNodesByName",
 		func(n *NodeServiceImpl, page, pageSize uint64, nodeName string) (*[]NodeInfo, error) {
-			return nil, testErr
+			return nil, test.ErrTest
 		})
 	defer p1.Reset()
 
@@ -656,7 +585,7 @@ func testListManagedAndUnmanagedErrList() {
 	var c2 *NodeServiceImpl
 	var p2 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c2), "listUnManagedNodesByName",
 		func(n *NodeServiceImpl, page, pageSize uint64, nodeName string) (*[]NodeInfo, error) {
-			return nil, testErr
+			return nil, test.ErrTest
 		})
 	defer p2.Reset()
 	resp = listUnmanagedNode(args)
@@ -668,7 +597,7 @@ func testListManagedNodeErrEvalNodeGroup() {
 		var c *NodeServiceImpl
 		var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "getRelationsByNodeID",
 			func(n *NodeServiceImpl, id uint64) (*[]NodeRelation, error) {
-				return nil, testErr
+				return nil, test.ErrTest
 			})
 		defer p1.Reset()
 		args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
@@ -710,7 +639,7 @@ func testListNodeErrCount() {
 	var c *NodeServiceImpl
 	var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "countAllNodesByName",
 		func(n *NodeServiceImpl, name string) (int64, error) {
-			return 0, testErr
+			return 0, test.ErrTest
 		})
 	defer p1.Reset()
 	args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
@@ -722,7 +651,7 @@ func testListNodeErrList() {
 	var c *NodeServiceImpl
 	var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "listAllNodesByName",
 		func(n *NodeServiceImpl, page, pageSize uint64, nodeName string) (*[]NodeInfo, error) {
-			return nil, testErr
+			return nil, test.ErrTest
 		})
 	defer p1.Reset()
 	args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
@@ -735,7 +664,7 @@ func testListNodeErrEvalNodeGroup() {
 		var c *NodeServiceImpl
 		var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "getRelationsByNodeID",
 			func(n *NodeServiceImpl, id uint64) (*[]NodeRelation, error) {
-				return nil, testErr
+				return nil, test.ErrTest
 			})
 		defer p1.Reset()
 		args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
@@ -953,7 +882,7 @@ func testUpdateNodeSoftwareInfoErr() {
 	convey.Convey("marshal error", func() {
 		var p1 = gomonkey.ApplyFunc(json.Marshal,
 			func(v interface{}) ([]byte, error) {
-				return nil, testErr
+				return nil, test.ErrTest
 			})
 		defer p1.Reset()
 		resp := updateNodeSoftwareInfo(getUpdateNodeSftErrReqMsg())
@@ -964,7 +893,7 @@ func testUpdateNodeSoftwareInfoErr() {
 		var c *NodeServiceImpl
 		var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "getNodeInfoBySerialNumber",
 			func(n *NodeServiceImpl, name string) (*NodeInfo, error) {
-				return nil, testErr
+				return nil, test.ErrTest
 			})
 		defer p1.Reset()
 
@@ -976,7 +905,7 @@ func testUpdateNodeSoftwareInfoErr() {
 		var c *NodeServiceImpl
 		var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c), "updateNodeInfoBySerialNumber",
 			func(n *NodeServiceImpl, sn string, nodeInfo *NodeInfo) error {
-				return testErr
+				return test.ErrTest
 			})
 		defer p1.Reset()
 

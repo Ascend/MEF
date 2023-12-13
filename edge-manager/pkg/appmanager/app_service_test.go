@@ -4,18 +4,10 @@
 package appmanager
 
 import (
-	"errors"
-	"fmt"
-	"os"
 	"testing"
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
-	"huawei.com/mindx/common/database"
-	"huawei.com/mindx/common/fileutils"
-	"huawei.com/mindx/common/hwlog"
 	"k8s.io/api/apps/v1"
 
 	"edge-manager/pkg/kubeclient"
@@ -24,63 +16,10 @@ import (
 	"huawei.com/mindxedge/base/common"
 )
 
-var (
-	gormInstance *gorm.DB
-	dbPath       = "./test.db"
-)
-
 const (
 	notExitID      = 100
 	exceedPageSize = 101
 )
-
-func setup() {
-	var err error
-	logConfig := &hwlog.LogConfig{OnlyToStdout: true}
-	if err = common.InitHwlogger(logConfig, logConfig); err != nil {
-		hwlog.RunLog.Errorf("init hwlog failed, %v", err)
-	}
-	if err = fileutils.DeleteFile(dbPath); err != nil && !errors.Is(err, os.ErrNotExist) {
-		hwlog.RunLog.Errorf("cleanup db failed, error: %v", err)
-	}
-	gormInstance, err = gorm.Open(sqlite.Open(dbPath))
-	if err != nil {
-		hwlog.RunLog.Errorf("failed to init test db, %v", err)
-	}
-	if err = gormInstance.AutoMigrate(&AppInfo{}); err != nil {
-		hwlog.RunLog.Errorf("setup table error, %v", err)
-	}
-	if err = gormInstance.AutoMigrate(&AppInstance{}); err != nil {
-		hwlog.RunLog.Errorf("setup table error, %v", err)
-	}
-	if err = gormInstance.AutoMigrate(&AppDaemonSet{}); err != nil {
-		hwlog.RunLog.Errorf("setup table error, %v", err)
-	}
-
-	if _, err = kubeclient.NewClientK8s(); err != nil {
-		hwlog.RunLog.Error("init k8s failed")
-	}
-}
-
-func teardown() {
-	if err := fileutils.DeleteFile(dbPath); err != nil && errors.Is(err, os.ErrExist) {
-		fmt.Printf("cleanup [%s] failed, error: %v", dbPath, err)
-	}
-}
-
-func mockGetDb() *gorm.DB {
-	return gormInstance
-}
-
-func TestMain(m *testing.M) {
-	patches := gomonkey.
-		ApplyFunc(database.GetDb, mockGetDb)
-	defer patches.Reset()
-	setup()
-	code := m.Run()
-	teardown()
-	hwlog.RunLog.Infof("exit_code=%d\n", code)
-}
 
 func TestCreateApp(t *testing.T) {
 	convey.Convey("create app should success", t, testCreateApp)

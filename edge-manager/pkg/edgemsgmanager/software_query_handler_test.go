@@ -12,6 +12,7 @@ import (
 	"github.com/smartystreets/goconvey/convey"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindx/common/test"
 
 	"edge-manager/pkg/types"
 	"huawei.com/mindxedge/base/common"
@@ -103,7 +104,7 @@ func testSoftwareQueryErrMarshal() {
 
 	var p2 = gomonkey.ApplyFunc(json.Marshal,
 		func(v interface{}) ([]byte, error) {
-			return nil, testErr
+			return nil, test.ErrTest
 		})
 	defer p2.Reset()
 	rsp := queryEdgeSoftwareVersion(msg)
@@ -119,7 +120,7 @@ func testSoftwareQueryErrUnmarshal() {
 
 	var p2 = gomonkey.ApplyFunc(json.Unmarshal,
 		func(data []byte, v interface{}) error {
-			return testErr
+			return test.ErrTest
 		})
 	defer p2.Reset()
 	rsp := queryEdgeSoftwareVersion(msg)

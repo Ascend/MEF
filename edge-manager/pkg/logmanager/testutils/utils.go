@@ -6,28 +6,18 @@
 package testutils
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 
 	"huawei.com/mindx/common/fileutils"
-	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/test"
 
 	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/constants"
 )
-
-// PrepareHwlog prepares hwlog
-func PrepareHwlog() error {
-	logConfig := &hwlog.LogConfig{OnlyToStdout: true}
-	if err := hwlog.InitRunLogger(logConfig, context.Background()); err != nil {
-		return err
-	}
-	return hwlog.InitOperateLogger(logConfig, context.Background())
-}
 
 // PrepareTempDirs prepares temp dirs
 func PrepareTempDirs() error {
@@ -60,4 +50,26 @@ func CleanupTempDirs() error {
 // WithoutDiskPressureProtect returns a writer
 func WithoutDiskPressureProtect(writer io.Writer, filePath string) io.Writer {
 	return writer
+}
+
+// TcLogMgr struct for test case base
+type TcLogMgr struct{}
+
+// Setup pre-processing
+func (tc *TcLogMgr) Setup() error {
+	if err := test.InitLog(); err != nil {
+		return err
+	}
+	if err := PrepareTempDirs(); err != nil {
+		fmt.Printf("prepare dirs failed, %v\n", err)
+		return err
+	}
+	return nil
+}
+
+// Teardown post-processing
+func (tc *TcLogMgr) Teardown() {
+	if err := CleanupTempDirs(); err != nil {
+		fmt.Printf("cleanup dirs failed, %v\n", err)
+	}
 }

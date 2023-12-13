@@ -13,6 +13,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindx/common/test"
 
 	"huawei.com/mindxedge/base/common"
 )
@@ -158,7 +159,7 @@ func testUpgradeSfwErrNewMsg() {
 
 	var p1 = gomonkey.ApplyFunc(model.NewMessage,
 		func() (*model.Message, error) {
-			return nil, testErr
+			return nil, test.ErrTest
 		})
 	defer p1.Reset()
 
@@ -174,7 +175,7 @@ func testUpgradeSfwErrSendSyncMsg() {
 
 	var p1 = gomonkey.ApplyFunc(modulemgr.SendSyncMessage,
 		func(m *model.Message, duration time.Duration) (*model.Message, error) {
-			return nil, testErr
+			return nil, test.ErrTest
 		})
 	defer p1.Reset()
 

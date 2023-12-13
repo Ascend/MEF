@@ -12,6 +12,7 @@ require (
 	huawei.com/mindx/common/kmc v0.1.0
 	huawei.com/mindx/common/limiter v0.0.0
 	huawei.com/mindx/common/modulemgr v0.0.1
+	huawei.com/mindx/common/test v0.0.1
 	huawei.com/mindx/common/utils v0.1.13
 	huawei.com/mindx/common/x509 v0.0.12
 	huawei.com/mindxedge/base v0.0.1
@@ -31,6 +32,7 @@ replace (
 	huawei.com/mindx/common/modulemgr => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/modulemgr v0.0.8
 	huawei.com/mindx/common/rand => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/rand v0.0.2
 	huawei.com/mindx/common/terminal => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/terminal v0.0.5
+	huawei.com/mindx/common/test => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/test v0.0.2
 	huawei.com/mindx/common/utils => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/utils v0.1.34
 	huawei.com/mindx/common/x509 => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/x509 v0.0.36
 	huawei.com/mindx/mef/common/cmsverify => ./../MEF_Utils/cmsverify

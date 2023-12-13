@@ -6,7 +6,6 @@ package logmanager
 import (
 	"archive/tar"
 	"compress/gzip"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -26,19 +25,6 @@ import (
 	"edge-manager/pkg/logmanager/testutils"
 	"edge-manager/pkg/logmanager/utils"
 )
-
-func TestMain(m *testing.M) {
-	if err := testutils.PrepareHwlog(); err != nil {
-		fmt.Printf("init hwlog failed, %v\n", err)
-	}
-	if err := testutils.PrepareTempDirs(); err != nil {
-		fmt.Printf("prepare dirs failed, %v\n", err)
-	}
-	m.Run()
-	if err := testutils.CleanupTempDirs(); err != nil {
-		fmt.Printf("cleanup dirs failed, %v\n", err)
-	}
-}
 
 func TestProcessUpload(t *testing.T) {
 	convey.Convey("test process upload", t, func() {

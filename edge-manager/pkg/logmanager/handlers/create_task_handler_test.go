@@ -5,7 +5,6 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/agiledragon/gomonkey/v2"
@@ -16,17 +15,8 @@ import (
 	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/logmanager/tasks"
-	"edge-manager/pkg/logmanager/testutils"
 	"edge-manager/pkg/types"
 )
-
-// TestMain sets up the hwlog
-func TestMain(m *testing.M) {
-	if err := testutils.PrepareHwlog(); err != nil {
-		fmt.Printf("init hwlog failed, %v\n", err)
-	}
-	m.Run()
-}
 
 // TestGetNodeSerialNumbersByID tests getNodeSnAndIpByID func
 func TestGetNodeSerialNumbersByID(t *testing.T) {
