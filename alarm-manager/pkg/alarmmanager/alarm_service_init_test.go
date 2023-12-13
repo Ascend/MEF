@@ -4,36 +4,16 @@
 package alarmmanager
 
 import (
-	"crypto/rand"
-	"encoding/json"
-	"errors"
-	"io"
 	"math"
-	"math/big"
-	"os"
 	"strconv"
-	"testing"
 	"time"
 
-	"github.com/agiledragon/gomonkey/v2"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
-	"huawei.com/mindx/common/fileutils"
-
-	"huawei.com/mindx/common/database"
-	"huawei.com/mindx/common/httpsmgr"
 	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/modulemgr"
-	"huawei.com/mindx/common/modulemgr/model"
 
-	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/alarms"
 )
 
 var (
-	gormInstance  *gorm.DB
-	dbPath        = "./test.db"
-	patchers      = make([]*gomonkey.Patches, 0)
 	groupNodesMap = map[string]bool{testSn1: true}
 	// ensure testSn is in db
 	testSns        = []string{testSn1, testSn2, ""}
@@ -42,133 +22,11 @@ var (
 )
 
 const (
-	InitDbFlag        = true
-	NodeNums          = 4
-	InitialRecordNums = 100
-	MaxAlarmNum       = 200
-	MinAlarmNum       = 3
-	TypesOfSevirity   = 3
-	Possibility       = 10
-	HalfPossibility   = 5
+	NodeNums        = 4
+	TypesOfSeverity = 3
+	Possibility     = 10
+	HalfPossibility = 5
 )
-
-func setup() {
-	var err error
-	logConfig := &hwlog.LogConfig{OnlyToStdout: true}
-	if err = common.InitHwlogger(logConfig, logConfig); err != nil {
-		hwlog.RunLog.Errorf("init hwlog failed, %v", err)
-		return
-	}
-	if InitDbFlag {
-		if err = fileutils.DeleteFile(dbPath); err != nil && !errors.Is(err, os.ErrNotExist) {
-			hwlog.RunLog.Errorf("cleanup db failed, error: %v", err)
-			return
-		}
-	}
-	gormInstance, err = gorm.Open(sqlite.Open(dbPath))
-	if err != nil {
-		hwlog.RunLog.Errorf("failed to init test db, %v", err)
-		return
-	}
-	if err = gormInstance.AutoMigrate(&AlarmInfo{}); err != nil {
-		hwlog.RunLog.Errorf("setup table error, %v", err)
-		return
-	}
-	if InitDbFlag {
-		createInitialData()
-	}
-}
-
-func teardown() {
-	if err := fileutils.DeleteFile(dbPath); err != nil && errors.Is(err, os.ErrExist) {
-		hwlog.RunLog.Errorf("cleanup [%s] failed, error: %s", dbPath, err.Error())
-	}
-}
-
-func setupPatchers() {
-	p1 := gomonkey.ApplyFunc(database.GetDb, mockGetDb)
-	p2 := gomonkey.ApplyFunc(modulemgr.SendSyncMessage, func(m *model.Message, duration time.Duration) (*model.Message,
-		error) {
-		resp := common.RespMsg{
-			Status: common.Success,
-			Data:   []string{testSn1},
-		}
-		return &model.Message{
-			Content: resp,
-		}, nil
-	})
-	p3 := gomonkey.ApplyMethod(&httpsmgr.HttpsRequest{}, "GetWithTimeout",
-		func(req *httpsmgr.HttpsRequest, body io.Reader, timeout time.Duration) ([]byte, error) {
-			var resp common.RespMsg
-			nodeGroup := genNodeGroup()
-			resp.Data = nodeGroup
-			resp.Status = common.Success
-			bytes, err := json.Marshal(resp)
-			if err != nil {
-				hwlog.RunLog.Error("error marshalling")
-				return nil, err
-			}
-			return bytes, nil
-		})
-	patchers = append(patchers, p1, p2, p3)
-}
-
-func mockGetDb() *gorm.DB {
-	return gormInstance
-}
-
-func TestMain(m *testing.M) {
-	setupPatchers()
-	setup()
-	alarmSlice, err := AlarmDbInstance().listAllAlarmsOrEventsDb(firstPageNum, firstPageSize, alarms.AlarmType)
-	if err != nil {
-		return
-	}
-	defaultAlarmID = alarmSlice[0].Id
-	eventSlice, err := AlarmDbInstance().listAllAlarmsOrEventsDb(firstPageNum, firstPageSize, alarms.EventType)
-	if err != nil {
-		return
-	}
-	defaultEventID = eventSlice[0].Id
-
-	code := m.Run()
-	hwlog.RunLog.Infof("exit_code=%d\n", code)
-	defer func() {
-		teardown()
-		for _, p := range patchers {
-			p.Reset()
-		}
-	}()
-}
-
-func createInitialData() {
-	genRandomAlarmStaticInfo(InitialRecordNums)
-}
-
-func genRandomAlarmStaticInfo(num int) {
-	if num <= 0 || num >= MaxAlarmNum {
-		hwlog.RunLog.Error("the number of records is exceeded")
-		return
-	}
-	res := make([]AlarmInfo, num)
-
-	for idx, alarm := range res {
-		hwlog.RunLog.Infof("========== %d  ==========", idx)
-		if num < MinAlarmNum {
-			hwlog.RunLog.Errorf("testing db alarms should be more than %d records", MinAlarmNum)
-			return
-		}
-		randSetOneAlarm(&alarm)
-
-		alarm.SerialNumber = testSns[idx%len(testSns)]
-
-		err := AlarmDbInstance().addAlarmInfo(&alarm)
-		if err != nil {
-			hwlog.RunLog.Error(err.Error())
-			continue
-		}
-	}
-}
 
 func randSetOneAlarm(alarm *AlarmInfo) {
 	severities := []string{"MINOR", "MAJOR", "CRITICAL"}
@@ -181,7 +39,7 @@ func randSetOneAlarm(alarm *AlarmInfo) {
 	randType := alarms.AlarmType
 	var randNum, randNodeId, randTypeSe int
 	randNodeId, err1 := randIntn(NodeNums)
-	randTypeSe, err2 := randIntn(TypesOfSevirity - 1)
+	randTypeSe, err2 := randIntn(TypesOfSeverity - 1)
 	randNum, err3 := randIntn(Possibility)
 	if err1 != nil || err2 != nil || err3 != nil {
 		hwlog.RunLog.Error("failed to generate random id")
@@ -210,17 +68,4 @@ func randSetOneAlarm(alarm *AlarmInfo) {
 	alarm.Reason = defaultReason
 	alarm.Impact = defaultImpact
 	alarm.Resource = defaultAlarmResource
-}
-
-func randIntn(max int) (int, error) {
-	n, err := rand.Int(rand.Reader, big.NewInt(int64(max)))
-	if err != nil {
-		return -1, err
-	}
-	randNum := int((*n).Int64())
-	return randNum, nil
-}
-
-func genNodeGroup() []string {
-	return []string{testSn1}
 }
