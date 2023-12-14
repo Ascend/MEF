@@ -269,7 +269,7 @@ func deployAppToSingleNodeGroup(appInfo *AppInfo, nodeGroupId uint64, groupName 
 			appInfo.AppName, nodeGroupId, groupName, err.Error())
 		return fmt.Errorf("check app [%s] resources failed: %v", appInfo.AppName, err)
 	}
-	if err = appRepository.addDaemonSet(daemonSet, nodeGroupId, appInfo.ID); err != nil {
+	if err = appRepository.addDaemonSet(daemonSet, nodeGroupId, appInfo.ID, groupName); err != nil {
 		hwlog.RunLog.Errorf("app [%s] daemonSet create on node group id [%d](name=%s) failed: %s",
 			appInfo.AppName, nodeGroupId, groupName, err.Error())
 		return fmt.Errorf("app [%s] daemonSet create failed: %v", appInfo.AppName, err)
@@ -377,7 +377,7 @@ func undeployAppFromSingleNodeGroup(appInfo *AppInfo, nodeGroupId uint64, groupN
 		hwlog.RunLog.Errorf("undeploy app [%s] on node group id [%d](name=%s) failed, "+
 			"update allocated node resource error: %v",
 			appInfo.AppName, nodeGroupId, groupName, err)
-		if err = appRepository.addDaemonSet(daemonSet, nodeGroupId, appInfo.ID); err != nil {
+		if err = appRepository.addDaemonSet(daemonSet, nodeGroupId, appInfo.ID, groupName); err != nil {
 			hwlog.RunLog.Errorf("roll back deletion for daemonSet[%s] failed", daemonSet.Name)
 		}
 		return fmt.Errorf("undeploy app failed, update allocated node resource error: %v", err)

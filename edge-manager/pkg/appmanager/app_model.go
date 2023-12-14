@@ -50,7 +50,7 @@ type AppRepository interface {
 	updatePod(*AppInstance) error
 	deletePod(*AppInstance) error
 	deleteAllRemainingDaemonSet() error
-	addDaemonSet(ds *v1.DaemonSet, nodeGroupId, appId uint64) error
+	addDaemonSet(ds *v1.DaemonSet, nodeGroupId, appId uint64, nodeGroupName string) error
 	deleteDaemonSet(string) error
 	getAppDaemonSet(appID uint64, nodeGroupID uint64) (*AppDaemonSet, error)
 	countDeployedAppByGroupID(uint64) (int64, error)
@@ -249,12 +249,13 @@ func (a *AppRepositoryImpl) deleteAllRemainingDaemonSet() error {
 	return a.db().Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&AppDaemonSet{}).Error
 }
 
-func (a *AppRepositoryImpl) addDaemonSet(ds *v1.DaemonSet, nodeGroupId, appId uint64) error {
+func (a *AppRepositoryImpl) addDaemonSet(ds *v1.DaemonSet, nodeGroupId, appId uint64, nodeGroupName string) error {
 	return database.Transaction(a.db(), func(tx *gorm.DB) error {
 		appDaemonSet := AppDaemonSet{
 			DaemonSetName: ds.Name,
 			NodeGroupID:   nodeGroupId,
 			AppID:         appId,
+			NodeGroupName: nodeGroupName,
 		}
 		if err := tx.Model(AppDaemonSet{}).Create(&appDaemonSet).Error; err != nil {
 			hwlog.RunLog.Errorf("create appDaemonSet to database failed, error: %v", err)
