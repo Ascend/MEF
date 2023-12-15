@@ -95,18 +95,19 @@ func queryApp(input interface{}) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorQueryApp, Msg: "query app info failed", Data: nil}
 	}
 
-	nodeGroupInfos, err := AppRepositoryInstance().getNodeGroupInfosByAppID(appId)
+	nodeGroupInfoLists, err := getNodeGroupInfoList(appId)
 	if err != nil {
-		hwlog.RunLog.Errorf("query app info failed, db error")
+		hwlog.RunLog.Errorf("get node group info failed %s", err.Error())
 		return common.RespMsg{Status: common.ErrorQueryApp, Msg: "query app info failed", Data: nil}
 	}
+
 	resp := AppReturnInfo{
 		AppID:          appInfo.ID,
 		AppName:        appInfo.AppName,
 		Description:    appInfo.Description,
 		CreatedAt:      appInfo.CreatedAt.Format(common.TimeFormat),
 		ModifiedAt:     appInfo.UpdatedAt.Format(common.TimeFormat),
-		NodeGroupInfos: nodeGroupInfos,
+		NodeGroupInfos: nodeGroupInfoLists,
 	}
 
 	if err = json.Unmarshal([]byte(appInfo.Containers), &resp.Containers); err != nil {
@@ -166,18 +167,20 @@ func getListReturnInfo(req types.ListReq) (*ListReturnInfo, error) {
 			hwlog.RunLog.Error("unmarshal containers failed")
 			return nil, errors.New("unmarshal containers error")
 		}
-		nodeGroupInfos, err := AppRepositoryInstance().getNodeGroupInfosByAppID(app.ID)
+
+		nodeGroupInfoLists, err := getNodeGroupInfoList(app.ID)
 		if err != nil {
-			hwlog.RunLog.Error("get node group name failed when list")
+			hwlog.RunLog.Errorf("get node group list failed %s", err.Error())
 			return nil, err
 		}
+
 		appReturnInfo := AppReturnInfo{
 			AppID:          app.ID,
 			AppName:        app.AppName,
 			Description:    app.Description,
 			CreatedAt:      app.CreatedAt.Format(common.TimeFormat),
 			ModifiedAt:     app.UpdatedAt.Format(common.TimeFormat),
-			NodeGroupInfos: nodeGroupInfos,
+			NodeGroupInfos: nodeGroupInfoLists,
 			Containers:     containers,
 		}
 		appReturnInfos = append(appReturnInfos, appReturnInfo)
@@ -185,6 +188,18 @@ func getListReturnInfo(req types.ListReq) (*ListReturnInfo, error) {
 	return &ListReturnInfo{
 		AppInfo: appReturnInfos,
 	}, nil
+}
+
+func getNodeGroupInfoList(appId uint64) ([]types.NodeGroupInfo, error) {
+	nodeGroupInfos, err := AppRepositoryInstance().getNodeGroupInfosByAppID(appId)
+	if err != nil {
+		return []types.NodeGroupInfo{}, err
+	}
+	nodeGroupIDList := make([]uint64, len(nodeGroupInfos))
+	for i, nodeGroupInfo := range nodeGroupInfos {
+		nodeGroupIDList[i] = nodeGroupInfo.NodeGroupID
+	}
+	return getNodeGroupInfos(nodeGroupIDList)
 }
 
 // deployApp deploy application on node group
@@ -269,7 +284,7 @@ func deployAppToSingleNodeGroup(appInfo *AppInfo, nodeGroupId uint64, groupName 
 			appInfo.AppName, nodeGroupId, groupName, err.Error())
 		return fmt.Errorf("check app [%s] resources failed: %v", appInfo.AppName, err)
 	}
-	if err = appRepository.addDaemonSet(daemonSet, nodeGroupId, appInfo.ID, groupName); err != nil {
+	if err = appRepository.addDaemonSet(daemonSet, nodeGroupId, appInfo.ID); err != nil {
 		hwlog.RunLog.Errorf("app [%s] daemonSet create on node group id [%d](name=%s) failed: %s",
 			appInfo.AppName, nodeGroupId, groupName, err.Error())
 		return fmt.Errorf("app [%s] daemonSet create failed: %v", appInfo.AppName, err)
@@ -377,7 +392,7 @@ func undeployAppFromSingleNodeGroup(appInfo *AppInfo, nodeGroupId uint64, groupN
 		hwlog.RunLog.Errorf("undeploy app [%s] on node group id [%d](name=%s) failed, "+
 			"update allocated node resource error: %v",
 			appInfo.AppName, nodeGroupId, groupName, err)
-		if err = appRepository.addDaemonSet(daemonSet, nodeGroupId, appInfo.ID, groupName); err != nil {
+		if err = appRepository.addDaemonSet(daemonSet, nodeGroupId, appInfo.ID); err != nil {
 			hwlog.RunLog.Errorf("roll back deletion for daemonSet[%s] failed", daemonSet.Name)
 		}
 		return fmt.Errorf("undeploy app failed, update allocated node resource error: %v", err)
