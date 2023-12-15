@@ -260,6 +260,9 @@ func testQueryAppNotExist() {
 
 func testQueryApp() {
 	var reqData = uint64(1)
+	var p = gomonkey.ApplyFuncReturn(getNodeGroupInfos,
+		[]types.NodeGroupInfo{{NodeGroupID: 1, NodeGroupName: "group1"}}, nil)
+	defer p.Reset()
 	resp := queryApp(reqData)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
@@ -276,6 +279,9 @@ func testListAppInfo() {
 		PageSize: 1,
 		Name:     "face-check",
 	}
+	var p = gomonkey.ApplyFuncReturn(getNodeGroupInfos,
+		[]types.NodeGroupInfo{{NodeGroupID: 1, NodeGroupName: "group1"}}, nil)
+	defer p.Reset()
 	resp := listAppInfo(reqData)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
