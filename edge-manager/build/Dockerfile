@@ -5,7 +5,7 @@ RUN groupadd MEFCenter -g ${GID}
 RUN useradd -d /home/MEFCenter -u ${UID} -g ${GID} -m -s  /usr/sbin/nologin MEFCenter
 WORKDIR /home/MEFCenter
 COPY edge-manager .
-COPY --chown=MEFCenter:MEFCenter ./lib/kmc-lib/* ./lib/
+COPY --chown=MEFCenter:MEFCenter ./lib/kmc-lib ./lib/
 
 RUN chown MEFCenter:MEFCenter -R /home/MEFCenter/* &&\
     chmod 750 /home/MEFCenter &&\
