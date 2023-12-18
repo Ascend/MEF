@@ -6,7 +6,7 @@ RUN useradd -d /home/MEFCenter -u ${UID} -g ${GID} -m -s  /usr/sbin/nologin MEFC
 WORKDIR /home/MEFCenter
 
 COPY nginx .
-COPY --chown=MEFCenter:MEFCenter ./lib/kmc-lib/* ./lib/
+COPY --chown=MEFCenter:MEFCenter ./lib/kmc-lib/ ./lib/
 
 RUN chmod 750 /home/MEFCenter &&\
     chmod 500 -R /home/MEFCenter/* &&\
