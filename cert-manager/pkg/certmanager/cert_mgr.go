@@ -280,7 +280,6 @@ func ExportRootCa(c *gin.Context) {
 	}
 	c.Writer.WriteHeader(http.StatusOK)
 	c.Header(common.ContentType, "text/plain; charset=utf-8")
-	c.Header(common.TransferEncoding, "chunked")
 	c.Header(common.ContentDisposition, fmt.Sprintf("attachment; filename=%s", util.RootCaFileName))
 	c.Writer.WriteHeaderNow()
 	if _, err = c.Writer.Write(caBytes); err != nil {
