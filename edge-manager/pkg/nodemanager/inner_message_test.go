@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strconv"
 	"testing"
 	"time"
 
@@ -15,8 +16,13 @@ import (
 	"huawei.com/mindx/common/test"
 
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/requests"
 
 	"edge-manager/pkg/types"
+)
+
+const (
+	totalGroupNodeCount = 10
 )
 
 func TestInnerGetNodeInfoByUniqueName(t *testing.T) {
@@ -308,5 +314,69 @@ func testInnerUpdateNodeGroupResReqErr() {
 		resp := innerUpdateNodeGroupResReq(innerUpdateNodeResReq)
 		convey.So(resp.Msg, convey.ShouldEqual, fmt.Sprintf("get node group id [%d] resources request failed, "+
 			"db error", innerUpdateNodeResReq.NodeGroupID))
+	})
+}
+
+func TestInnerGetNodeSnsByGroupId(t *testing.T) {
+	groupName := "groupName"
+	convey.Convey("test get node ", t, func() {
+		patch1 := gomonkey.ApplyPrivateMethod(&NodeServiceImpl{}, "getNodeByID", func(nodeId uint64) (*NodeInfo, error) {
+			return &NodeInfo{
+				SerialNumber: "sn-" + strconv.Itoa(int(nodeId)),
+			}, nil
+		})
+		defer patch1.Reset()
+		nodegroupRes := CreateNodeGroupReq{
+			Description:   "description",
+			NodeGroupName: &groupName,
+		}
+		bytes, err := json.Marshal(nodegroupRes)
+		resp := createNodeGroup(string(bytes))
+		convey.So(resp.Status == common.Success, convey.ShouldBeTrue)
+		testGroupId, ok := resp.Data.(uint64)
+		convey.So(ok, convey.ShouldBeTrue)
+		for i := 1; i <= totalGroupNodeCount; i++ {
+			relation := NodeRelation{
+				GroupID:   testGroupId,
+				NodeID:    uint64(i),
+				CreatedAt: time.Now().String(),
+			}
+			err := test.MockGetDb().Model(NodeRelation{}).Create(relation).Error
+			convey.So(err, convey.ShouldBeNil)
+		}
+		reqInput := requests.GetSnsReq{GroupId: testGroupId}
+		bytes, err = json.Marshal(reqInput)
+		convey.So(err, convey.ShouldBeNil)
+		resp = innerGetNodeSnsByGroupId(string(bytes))
+		convey.So(resp.Status == common.Success, convey.ShouldBeTrue)
+		sns, ok := resp.Data.([]string)
+		convey.So(ok, convey.ShouldBeTrue)
+		convey.So(len(sns) == totalGroupNodeCount, convey.ShouldBeTrue)
+		for i := 1; i <= totalGroupNodeCount; i++ {
+			test.MockGetDb().Model(NodeRelation{}).Where("group_id = ?", testGroupId).Delete(&NodeRelation{})
+			convey.So(err, convey.ShouldBeNil)
+		}
+	})
+}
+
+func TestInnerGetNodeSnAndIpByID(t *testing.T) {
+	convey.Convey("test innerGetNodeSnAndIpByID", t, func() {
+		patch := gomonkey.ApplyPrivateMethod(&NodeServiceImpl{}, "getNodeByID", func(nodeId uint64) (*NodeInfo, error) {
+			return &NodeInfo{
+				ID:           nodeId,
+				UniqueName:   strconv.Itoa(int(nodeId)),
+				SerialNumber: strconv.Itoa(int(nodeId)),
+				IP:           "10.10.10.10",
+			}, nil
+		})
+		defer patch.Reset()
+		req := types.InnerGetNodeInfosReq{
+			NodeIds: []uint64{1},
+		}
+		resp := innerGetNodeSnAndIpByID(req)
+		convey.So(resp.Status == common.Success, convey.ShouldBeTrue)
+		info, ok := resp.Data.(types.InnerGetNodeInfosResp)
+		convey.So(ok, convey.ShouldBeTrue)
+		convey.So(len(info.NodeInfos) == 1, convey.ShouldBeTrue)
 	})
 }

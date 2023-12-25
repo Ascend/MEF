@@ -8,6 +8,7 @@ import (
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
+	"huawei.com/mindx/common/test"
 	"k8s.io/api/apps/v1"
 
 	"edge-manager/pkg/kubeclient"
@@ -19,6 +20,7 @@ import (
 const (
 	notExitID      = 100
 	exceedPageSize = 101
+	testId         = 100
 )
 
 func TestCreateApp(t *testing.T) {
@@ -409,4 +411,27 @@ func testListAppInstancesByIdError() {
 	input := ""
 	res := listAppInstancesById(input)
 	convey.So(res.Status, convey.ShouldEqual, common.ErrorTypeAssert)
+}
+
+func TestGetAppInstanceCountByNodeGroup(t *testing.T) {
+	convey.Convey("Test Get AppInstance CountByNodeGroup", t, func() {
+		ad := &AppDaemonSet{
+			ID:            testId,
+			AppID:         testId,
+			NodeGroupID:   testId,
+			NodeGroupName: "NodeGroupName",
+		}
+		err := test.MockGetDb().Model(&AppDaemonSet{}).Create(ad).Error
+		convey.So(err, convey.ShouldBeNil)
+		input := []uint64{testId}
+		resp := getAppInstanceCountByNodeGroup(input)
+		convey.So(resp.Status, convey.ShouldEqual, common.Success)
+		data, ok := resp.Data.(map[uint64]int64)
+		convey.So(ok, convey.ShouldBeTrue)
+		convey.So(data[testId], convey.ShouldEqual, 1)
+		err = test.MockGetDb().Model(&AppDaemonSet{}).Where(&AppDaemonSet{
+			ID: testId,
+		}).Delete(&AppDaemonSet{}).Error
+		convey.So(err, convey.ShouldBeNil)
+	})
 }
