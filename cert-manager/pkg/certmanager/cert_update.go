@@ -435,7 +435,7 @@ func checkCertValidity(certName string) (bool, bool, error) {
 		hwlog.RunLog.Errorf("parse pem cert file error: %v", err)
 		return false, false, err
 	}
-	remainingValidDays, err := x509.GetValidityPeriod(crt)
+	remainingValidDays, err := x509.GetValidityPeriod(crt, false)
 	if err != nil {
 		hwlog.RunLog.Errorf("check cert validity period error: %v", err)
 		return false, false, err
