@@ -8,19 +8,38 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"math/big"
+	"strconv"
 	"testing"
 	"time"
 
 	"github.com/agiledragon/gomonkey/v2"
+	"github.com/smartystreets/goconvey/convey"
 	"huawei.com/mindx/common/database"
 	"huawei.com/mindx/common/httpsmgr"
+	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/test"
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/alarms"
+)
+
+var (
+	groupNodesMap = map[string]bool{testSn1: true}
+	// ensure testSn is in db
+	testSns        = []string{testSn1, testSn2, ""}
+	defaultAlarmID uint64
+	defaultEventID uint64
+)
+
+const (
+	NodeNums        = 4
+	TypesOfSeverity = 3
+	Possibility     = 10
+	HalfPossibility = 5
 )
 
 func TestMain(m *testing.M) {
@@ -38,8 +57,10 @@ func TestMain(m *testing.M) {
 				Status: common.Success,
 				Data:   []string{testSn1},
 			}
+			bytes, err := json.Marshal(resp)
+			convey.So(err, convey.ShouldBeNil)
 			return &model.Message{
-				Content: resp,
+				Content: bytes,
 			}, nil
 		}).
 		ApplyMethod(&httpsmgr.HttpsRequest{}, "GetWithTimeout",
@@ -109,4 +130,46 @@ func randIntn(max int) (int, error) {
 	}
 	randNum := int((*n).Int64())
 	return randNum, nil
+}
+
+func randSetOneAlarm(alarm *AlarmInfo) {
+	severities := []string{"MINOR", "MAJOR", "CRITICAL"}
+	defaultInfo := "ALARM DEFAULT INFO"
+	defaultSuggest := "ALARM DEFAULT SUGGESTION"
+	defaultReason := "ALARM DEFAULT Reason"
+	defaultImpact := "ALARM DEFAULT Impact"
+	defaultAlarmName := "ALARM DEFAULT NAME"
+	defaultAlarmResource := "ALARM DEFAULT RESOURCE"
+	randType := alarms.AlarmType
+	var randNum, randNodeId, randTypeSe int
+	randNodeId, err1 := randIntn(NodeNums)
+	randTypeSe, err2 := randIntn(TypesOfSeverity - 1)
+	randNum, err3 := randIntn(Possibility)
+	if err1 != nil || err2 != nil || err3 != nil {
+		hwlog.RunLog.Error("failed to generate random id")
+		return
+	}
+	if randNum < HalfPossibility {
+		randType = alarms.EventType
+	}
+	alarm.AlarmType = randType
+	alarm.CreatedAt = time.Now()
+	alarm.SerialNumber = strconv.Itoa(randNodeId)
+	alarmId, err := randIntn(math.MaxUint32)
+	if err != nil {
+		hwlog.RunLog.Error("failed to generate alarm id")
+		return
+	}
+	alarm.AlarmId = strconv.Itoa(alarmId)
+	alarm.AlarmName = defaultAlarmName
+	typeSe := randTypeSe
+	if typeSe >= len(severities) {
+		return
+	}
+	alarm.PerceivedSeverity = severities[typeSe]
+	alarm.DetailedInformation = defaultInfo
+	alarm.Suggestion = defaultSuggest
+	alarm.Reason = defaultReason
+	alarm.Impact = defaultImpact
+	alarm.Resource = defaultAlarmResource
 }

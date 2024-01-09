@@ -1,15 +1,19 @@
 // Copyright (c) 2023. Huawei Technologies Co., Ltd. All rights reserved.
+// Copyright (c) 2023. Huawei Technologies Co., Ltd. All rights reserved.
 // Package nodemanager for
 package nodemanager
 
 import (
 	"crypto/rand"
+	"errors"
 	"math/big"
 	"testing"
 	"time"
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
+	"gorm.io/gorm"
+	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/test"
 	"k8s.io/api/core/v1"
 
@@ -18,6 +22,7 @@ import (
 
 const (
 	idUpperLimit = 100
+	retryTimes   = 3
 )
 
 func TestDeleteRelation(t *testing.T) {
@@ -26,21 +31,26 @@ func TestDeleteRelation(t *testing.T) {
 		return nil, nil
 	})
 	defer patch.Reset()
-	convey.Convey("test delete node relation", t, func() {
+	var nodeId uint64
+	for i := 0; i < retryTimes; i++ {
 		id, err := randIntn(idUpperLimit)
-		convey.So(err, convey.ShouldBeNil)
-		nodeId := uint64(id)
-		newNode := &NodeInfo{
-			ID:           nodeId,
-			NodeName:     "NodeName",
-			UniqueName:   "SerialNumber",
-			SerialNumber: "SerialNumber",
-			IsManaged:    false,
-			SoftwareInfo: "",
-			CreatedAt:    time.Now().String(),
-			UpdatedAt:    time.Now().String(),
+		if err != nil {
+			hwlog.RunLog.Error(err)
+			return
+
 		}
-		err = NodeServiceInstance().createNode(newNode)
+		nodeId = uint64(id)
+		_, err = NodeServiceInstance().getNodeByID(nodeId)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			break
+		}
+	}
+	convey.Convey("test delete node relation", t, func() {
+		newNode := &NodeInfo{
+			ID: nodeId, NodeName: "NodeName", UniqueName: "SerialNumber", SerialNumber: "SerialNumber",
+			IsManaged: false, SoftwareInfo: "", CreatedAt: time.Now().String(), UpdatedAt: time.Now().String(),
+		}
+		err := NodeServiceInstance().createNode(newNode)
 		convey.So(err, convey.ShouldBeNil)
 		gid, err := randIntn(idUpperLimit)
 		convey.So(err, convey.ShouldBeNil)
