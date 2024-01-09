@@ -13,7 +13,6 @@ import (
 	"huawei.com/mindx/common/hwlog"
 
 	"huawei.com/mindx/mef/common/cmsverify"
-
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 

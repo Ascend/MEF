@@ -50,10 +50,10 @@ func getCertByCertName(certName string) ([]byte, error) {
 	return certData, nil
 }
 
-// CreateCaIfNotExit [method] for check root ca
-func CreateCaIfNotExit() error {
-	keyFilePath := getRootKeyPath(common.WsCltName)
-	certFilePath := getRootCaPath(common.WsCltName)
+// CreateCaIfNotExit create new ca with specified name
+func CreateCaIfNotExit(certName string) error {
+	keyFilePath := getRootKeyPath(certName)
+	certFilePath := getRootCaPath(certName)
 	if isRootCaFilesExist(certFilePath, keyFilePath) {
 		return nil
 	}

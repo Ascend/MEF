@@ -12,6 +12,7 @@ import (
 	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
+
 	"huawei.com/mindxedge/base/common"
 
 	"nginx-manager/pkg/nginxcom"
@@ -48,12 +49,12 @@ func loadConf(path string) ([]byte, error) {
 	return b, nil
 }
 
-func calculatePipeCount() (int, error) {
+func calculatePipeCount(pipeType string) (int, error) {
 	content, err := loadConf(nginxcom.NginxConfigPath)
 	if err != nil {
 		return 0, err
 	}
-	return bytes.Count(content, []byte(nginxcom.ClientPipePrefix)), nil
+	return bytes.Count(content, []byte(pipeType)), nil
 }
 
 // Update do the modify nginx configuration file job
@@ -87,8 +88,8 @@ func getIcsConfContent() string {
             proxy_pass_request_headers on;
             proxy_pass_request_body on;
             proxy_request_buffering off;
-			proxy_ssl_certificate /home/data/config/mef-certs/nginx-manager.crt;
-			proxy_ssl_certificate_key /home/MEFCenter/pipe/client_pipe_5;
+			proxy_ssl_certificate /home/data/config/mef-certs/third-party-svc.crt;
+			proxy_ssl_certificate_key /home/MEFCenter/pipe/third_pipe_0;
             proxy_ssl_trusted_certificate /home/data/config/mef-certs/ics-root.crt;
             proxy_ssl_verify on;
             proxy_ssl_session_reuse on;
@@ -120,8 +121,8 @@ func getIcsConfContent() string {
             proxy_pass_request_headers on;
             proxy_pass_request_body on;
             proxy_request_buffering off;
-			proxy_ssl_certificate /home/data/config/mef-certs/nginx-manager.crt;
-			proxy_ssl_certificate_key /home/MEFCenter/pipe/client_pipe_6;
+			proxy_ssl_certificate /home/data/config/mef-certs/third-party-svc.crt;
+			proxy_ssl_certificate_key /home/MEFCenter/pipe/third_pipe_1;
             proxy_ssl_trusted_certificate /home/data/config/mef-certs/ics-root.crt;
             proxy_ssl_verify on;
             proxy_ssl_session_reuse on;

@@ -48,6 +48,12 @@ const (
 	RootCaPath = "/home/data/inner-root-ca/RootCA.crt"
 	// IcsCaPath ics inner ca, need exchange ca from ics manager
 	IcsCaPath = "/home/data/config/mef-certs/ics-root.crt"
+	// ThirdPartyServiceCertPath used for third party services cert
+	ThirdPartyServiceCertPath = "/home/data/config/mef-certs/third-party-svc.crt"
+	// ThirdPartyServiceKeyPath used for third party services key
+	ThirdPartyServiceKeyPath = "/home/data/config/mef-certs/third-party-svc.key"
+	// ThirdPipePrefix used for third pipe
+	ThirdPipePrefix = "third_pipe"
 	// PipePath 证书私钥管道
 	PipePath = "/home/MEFCenter/pipe/apig_keyPipe"
 	// AuthPipePath 认证端口的证书私钥管段

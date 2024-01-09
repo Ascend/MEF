@@ -44,10 +44,12 @@ func (r *Service) Name() string {
 // Start for RestfulService start
 func (r *Service) Start() {
 	go func() {
-		err := certmanager.CreateCaIfNotExit()
-		if err != nil {
-			hwlog.RunLog.Errorf("start cert restful at %d failed, check cert failed: %v", r.httpsSvr.Port, err)
-			return
+		toGenCertsNames := []string{common.WsCltName, common.ThirdPartyCertName}
+		for _, name := range toGenCertsNames {
+			if err := certmanager.CreateCaIfNotExit(name); err != nil {
+				hwlog.RunLog.Errorf("start cert restful at %d failed, check cert failed: %v", r.httpsSvr.Port, err)
+				return
+			}
 		}
 	}()
 	err := r.httpsSvr.Init()
