@@ -4,6 +4,7 @@
 package alarmmanager
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/smartystreets/goconvey/convey"
+	"huawei.com/mindx/common/modulemgr/model"
 
 	"huawei.com/mindx/common/hwlog"
 
@@ -147,10 +149,13 @@ func testListAlarmsOrEventsByNodeId(queryType string) {
 		resp interface{}
 		err  error
 	)
+	bytes, err := json.Marshal(reqData)
+	convey.So(err, convey.ShouldBeNil)
+	msg := model.Message{Content: bytes}
 	if queryType == alarms.AlarmType {
-		resp, err = listAlarms(reqData)
+		resp, err = listAlarms(&msg)
 	} else {
-		resp, err = listEvents(reqData)
+		resp, err = listEvents(&msg)
 	}
 	convey.So(err, convey.ShouldBeNil)
 	respContent, ok := resp.(*common.RespMsg)
@@ -182,10 +187,13 @@ func testListAlarmsOrEventsOfCenter(queryType string) {
 		resp interface{}
 		err  error
 	)
+	bytes, err := json.Marshal(reqData)
+	convey.So(err, convey.ShouldBeNil)
+	msg := model.Message{Content: bytes}
 	if queryType == alarms.AlarmType {
-		resp, err = listAlarms(reqData)
+		resp, err = listAlarms(&msg)
 	} else {
-		resp, err = listEvents(reqData)
+		resp, err = listEvents(&msg)
 	}
 	convey.So(err, convey.ShouldBeNil)
 	respContent, ok := resp.(*common.RespMsg)
@@ -215,10 +223,13 @@ func testListAlarmsOrEventsOfNodeGroup(queryType string) {
 		resp interface{}
 		err  error
 	)
+	bytes, err := json.Marshal(reqData)
+	convey.So(err, convey.ShouldBeNil)
+	msg := model.Message{Content: bytes}
 	if queryType == alarms.AlarmType {
-		resp, err = listAlarms(reqData)
+		resp, err = listAlarms(&msg)
 	} else {
-		resp, err = listEvents(reqData)
+		resp, err = listEvents(&msg)
 	}
 	convey.So(err, convey.ShouldBeNil)
 	respContent, ok := resp.(*common.RespMsg)
@@ -239,9 +250,11 @@ func testGetAlarmOrEventByInfoId(queryType string) {
 		err  error
 	)
 	if queryType == alarms.AlarmType {
-		resp, err = getAlarmDetail(defaultAlarmID)
+		msg := model.Message{Content: []byte(fmt.Sprintf("%d", defaultAlarmID))}
+		resp, err = getAlarmDetail(&msg)
 	} else {
-		resp, err = getEventDetail(defaultEventID)
+		msg := model.Message{Content: []byte(fmt.Sprintf("%d", defaultEventID))}
+		resp, err = getEventDetail(&msg)
 	}
 	convey.So(err, convey.ShouldBeNil)
 	respContent, ok := resp.(*common.RespMsg)
@@ -298,7 +311,8 @@ func testGetAlarmAbnormalInput() {
 }
 
 func getAlarmWithInput(id uint64, expectRes bool) {
-	resp, err := getAlarmDetail(id)
+	msg := model.Message{Content: []byte(fmt.Sprintf("%d", id))}
+	resp, err := getAlarmDetail(&msg)
 	convey.So(err, convey.ShouldBeNil)
 	respContent, ok := resp.(*common.RespMsg)
 	convey.So(ok, convey.ShouldBeTrue)
@@ -311,7 +325,9 @@ func getAlarmWithInput(id uint64, expectRes bool) {
 
 func listAlarmsWithInput(input interface{}, expectRes bool, expectMsg string, ignoredMsg bool,
 	callback func(msg common.RespMsg) bool) {
-	resp, err := listAlarms(input)
+	bytes, err := json.Marshal(input)
+	convey.So(err, convey.ShouldBeNil)
+	resp, err := listAlarms(&model.Message{Content: bytes})
 	convey.So(err, convey.ShouldBeNil)
 	respContent, ok := resp.(*common.RespMsg)
 	convey.So(ok, convey.ShouldBeTrue)
