@@ -147,12 +147,23 @@ func LoadKeysDataToPipes(deletePipeAfterUse bool) error {
 		return err
 	}
 
-	pipeCount, err := calculatePipeCount()
+	thirdPipeCount, err := calculatePipeCount(nginxcom.ThirdPipePrefix)
+	if err != nil {
+		return err
+	}
+	if thirdPipeCount != 0 {
+		if err := WritePipeForClient(nginxcom.ThirdPartyServiceKeyPath, nginxcom.ClientPipeDir,
+			nginxcom.ThirdPipePrefix, thirdPipeCount, deletePipeAfterUse); err != nil {
+			return err
+		}
+	}
+	pipeCount, err := calculatePipeCount(nginxcom.ClientPipePrefix)
 	if err != nil {
 		return err
 	}
 
-	return WritePipeForClient(nginxcom.ClientCertKeyFile, nginxcom.ClientPipeDir, pipeCount, deletePipeAfterUse)
+	return WritePipeForClient(nginxcom.ClientCertKeyFile, nginxcom.ClientPipeDir, nginxcom.ClientPipePrefix,
+		pipeCount, deletePipeAfterUse)
 }
 
 // CreateKeyPipes create pipes for cert key files.
@@ -167,11 +178,20 @@ func CreateKeyPipes() error {
 		return err
 	}
 
-	pipeCount, err := calculatePipeCount()
+	thirdPipeCount, err := calculatePipeCount(nginxcom.ThirdPipePrefix)
 	if err != nil {
 		return err
 	}
-	return PrepareForClient(nginxcom.ClientPipeDir, pipeCount)
+	if thirdPipeCount != 0 {
+		if err := PrepareForClient(nginxcom.ClientPipeDir, nginxcom.ThirdPipePrefix, thirdPipeCount); err != nil {
+			return err
+		}
+	}
+	pipeCount, err := calculatePipeCount(nginxcom.ClientPipePrefix)
+	if err != nil {
+		return err
+	}
+	return PrepareForClient(nginxcom.ClientPipeDir, nginxcom.ClientPipePrefix, pipeCount)
 }
 
 // DeleteKeyPipes is used to delete all pipe for nginx

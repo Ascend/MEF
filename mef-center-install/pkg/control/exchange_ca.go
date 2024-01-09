@@ -48,7 +48,7 @@ func NewExchangeCaFlow(importPath, exportPath, component string,
 	switch component {
 	case util.IcsManagerName:
 		savePath = pathMgr.ConfigPathMgr.GetIcsCertPath()
-		srcPath = pathMgr.ConfigPathMgr.GetRootCaCertPath()
+		srcPath = pathMgr.ConfigPathMgr.GetThirdPartyRootCaFilePath()
 		printFingerprint = false
 	case util.NginxManagerName:
 		savePath = pathMgr.ConfigPathMgr.GetNorthernCertPath()

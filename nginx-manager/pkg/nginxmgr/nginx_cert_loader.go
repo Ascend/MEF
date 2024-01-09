@@ -49,10 +49,13 @@ func prepareCert() error {
 		hwlog.RunLog.Errorf("get root ca(%s) failed: %v", common.WsCltName, err)
 		return err
 	}
+
 	if err := prepareRootCert(nginxcom.IcsCaPath, common.IcsCertName, false); err != nil {
-		hwlog.RunLog.Warnf("cannot get icsmanager cert, maybe not import yet")
+		hwlog.RunLog.Warnf("cannot get icsmanager cert, maybe not import yet,err: %s", err.Error())
+		return nil
 	}
-	return nil
+	return prepareServerCert(nginxcom.ThirdPartyServiceKeyPath, nginxcom.ThirdPartyServiceCertPath,
+		common.ThirdPartyCertName)
 }
 
 func prepareRootCert(certPath, certName string, retry bool) error {
@@ -164,11 +167,11 @@ func WritePipe(keyPath, pipePath string, deletePipeAfterUse bool) error {
 }
 
 // PrepareForClient creates a pipe file for internal communication.
-func PrepareForClient(pipeDir string, pipeCount int) error {
+func PrepareForClient(pipeDir string, pipeType string, pipeCount int) error {
 	var err error
 	var pipePaths []string
 	for i := 0; i < pipeCount; i++ {
-		pipePath := fmt.Sprintf("%s%s_%d", pipeDir, nginxcom.ClientPipePrefix, i)
+		pipePath := fmt.Sprintf("%s%s_%d", pipeDir, pipeType, i)
 		pipePaths = append(pipePaths, pipePath)
 	}
 
@@ -185,7 +188,7 @@ func PrepareForClient(pipeDir string, pipeCount int) error {
 }
 
 // WritePipeForClient load the secret key file which used for inner communication and write into pipe
-func WritePipeForClient(keyPath, pipeDir string, pipeCount int, deletePipeAfterUse bool) error {
+func WritePipeForClient(keyPath, pipeDir, pipeType string, pipeCount int, deletePipeAfterUse bool) error {
 	var keyContent []byte
 	var err error
 	if keyContent, err = loadKey(keyPath); err != nil {
@@ -195,7 +198,7 @@ func WritePipeForClient(keyPath, pipeDir string, pipeCount int, deletePipeAfterU
 
 	var pipePaths []string
 	for i := 0; i < pipeCount; i++ {
-		pipePath := fmt.Sprintf("%s%s_%d", pipeDir, nginxcom.ClientPipePrefix, i)
+		pipePath := fmt.Sprintf("%s%s_%d", pipeDir, pipeType, i)
 		pipePaths = append(pipePaths, pipePath)
 	}
 

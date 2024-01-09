@@ -39,6 +39,8 @@ const (
 	NorthernCertName = "north"
 	// IcsCertName for icsmanager cert name dir
 	IcsCertName = "ics"
+	// ThirdPartyCertName rootca dir name for third party component
+	ThirdPartyCertName = "thirdparty"
 )
 
 // consts for ModuleName

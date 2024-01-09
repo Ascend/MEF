@@ -136,14 +136,15 @@ func certContentChecker(certContent string) error {
 }
 
 var onlineImportMap = map[string]bool{
-	common.WsSerName:        false,
-	common.WsCltName:        false,
-	common.SoftwareCertName: true,
-	common.ImageCertName:    true,
-	common.NginxCertName:    false,
-	common.InnerName:        false,
-	common.NorthernCertName: false,
-	common.IcsCertName:      false,
+	common.WsSerName:          false,
+	common.WsCltName:          false,
+	common.SoftwareCertName:   true,
+	common.ImageCertName:      true,
+	common.NginxCertName:      false,
+	common.InnerName:          false,
+	common.NorthernCertName:   false,
+	common.IcsCertName:        false,
+	common.ThirdPartyCertName: false,
 }
 
 var certDeleteNames = []string{common.SoftwareCertName, common.ImageCertName}
