@@ -10,12 +10,12 @@ import (
 	"github.com/smartystreets/goconvey/convey"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindxedge/base/common"
 
 	"edge-manager/pkg/constants"
 	"edge-manager/pkg/logmanager/testutils"
 	"edge-manager/pkg/logmanager/utils"
 
-	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/taskschedule"
 )
 
@@ -25,7 +25,9 @@ func TestDoDumpSingleNodeLog(t *testing.T) {
 	dummyValues := testutils.DummyTaskSchedule()
 
 	convey.Convey("test dump edge logs", t, func() {
-		okMsg := &model.Message{Content: common.OK}
+		okMsg := &model.Message{}
+		err := okMsg.FillContent(common.OK)
+		convey.So(err, convey.ShouldBeNil)
 
 		patch := gomonkey.ApplyFuncReturn(taskschedule.DefaultScheduler, dummyValues.Scheduler).
 			ApplyMethodReturn(dummyValues.TaskCtx, "Spec", taskSpec).

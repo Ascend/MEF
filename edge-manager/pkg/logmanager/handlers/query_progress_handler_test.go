@@ -13,6 +13,7 @@ import (
 
 	"edge-manager/pkg/constants"
 	"edge-manager/pkg/logmanager/testutils"
+
 	"huawei.com/mindxedge/base/common/taskschedule"
 )
 
@@ -27,7 +28,7 @@ func TestQueryProgressHandle(t *testing.T) {
 		defer patch.Reset()
 
 		var handler queryProgressHandler
-		err := handler.Handle(&model.Message{Content: constants.DumpMultiNodesLogTaskName + `.abc`})
+		err := handler.Handle(&model.Message{Content: []byte(constants.DumpMultiNodesLogTaskName + `.abc`)})
 		convey.So(err, convey.ShouldBeNil)
 	})
 }

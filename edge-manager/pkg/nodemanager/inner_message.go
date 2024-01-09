@@ -10,6 +10,7 @@ import (
 
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr/model"
 	"k8s.io/api/core/v1"
 
 	"edge-manager/pkg/types"
@@ -19,9 +20,9 @@ import (
 	"huawei.com/mindxedge/base/common"
 )
 
-func innerGetNodeInfoByUniqueName(input interface{}) common.RespMsg {
-	req, ok := input.(types.InnerGetNodeInfoByNameReq)
-	if !ok {
+func innerGetNodeInfoByUniqueName(msg *model.Message) common.RespMsg {
+	var req types.InnerGetNodeInfoByNameReq
+	if err := msg.ParseContent(&req); err != nil {
 		hwlog.RunLog.Error("parse inner message content failed")
 		return common.RespMsg{Status: "", Msg: "parse inner message content failed", Data: nil}
 	}
@@ -37,9 +38,9 @@ func innerGetNodeInfoByUniqueName(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
-func innerGetNodeSoftwareInfo(input interface{}) common.RespMsg {
-	req, ok := input.(types.InnerGetSfwInfoBySNReq)
-	if !ok {
+func innerGetNodeSoftwareInfo(msg *model.Message) common.RespMsg {
+	var req types.InnerGetSfwInfoBySNReq
+	if err := msg.ParseContent(&req); err != nil {
 		hwlog.RunLog.Error("parse inner message content failed")
 		return common.RespMsg{Status: "", Msg: "parse inner message content failed", Data: nil}
 	}
@@ -58,9 +59,9 @@ func innerGetNodeSoftwareInfo(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
-func innerGetNodeStatus(input interface{}) common.RespMsg {
-	req, ok := input.(types.InnerGetNodeStatusReq)
-	if !ok {
+func innerGetNodeStatus(msg *model.Message) common.RespMsg {
+	var req types.InnerGetNodeStatusReq
+	if err := msg.ParseContent(&req); err != nil {
 		hwlog.RunLog.Error("parse inner message content failed")
 		return common.RespMsg{Status: "", Msg: "parse inner message content failed", Data: nil}
 	}
@@ -75,9 +76,9 @@ func innerGetNodeStatus(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
-func innerGetNodesByNodeGroupID(input interface{}) common.RespMsg {
-	req, ok := input.(types.InnerGetNodesReq)
-	if !ok {
+func innerGetNodesByNodeGroupID(msg *model.Message) common.RespMsg {
+	var req types.InnerGetNodesReq
+	if err := msg.ParseContent(&req); err != nil {
 		hwlog.RunLog.Error("parse inner message content failed")
 		return common.RespMsg{Status: "", Msg: "parse inner message content failed"}
 	}
@@ -96,10 +97,10 @@ func innerGetNodesByNodeGroupID(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
-func innerGetNodeSnsByGroupId(input interface{}) common.RespMsg {
+func innerGetNodeSnsByGroupId(msg *model.Message) common.RespMsg {
 	var reqInfo requests.GetSnsReq
-	inputInfo, ok := input.(string)
-	if !ok {
+	var inputInfo string
+	if err := msg.ParseContent(&inputInfo); err != nil {
 		hwlog.RunLog.Error("failed to convert param into string")
 		return common.RespMsg{Status: common.ErrorParamConvert}
 	}
@@ -139,9 +140,9 @@ func innerGetNodeSnsByGroupId(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nodeSns}
 }
 
-func innerGetIpBySn(input interface{}) common.RespMsg {
-	sn, ok := input.(string)
-	if !ok {
+func innerGetIpBySn(msg *model.Message) common.RespMsg {
+	var sn string
+	if err := msg.ParseContent(&sn); err != nil {
 		hwlog.RunLog.Error("parse inner message content failed")
 		return common.RespMsg{Status: "", Msg: "parse inner message content failed"}
 	}
@@ -155,7 +156,7 @@ func innerGetIpBySn(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: node.IP}
 }
 
-func innerAllNodeInfos(input interface{}) common.RespMsg {
+func innerAllNodeInfos(*model.Message) common.RespMsg {
 	nodeInfos, err := NodeServiceInstance().listNodes()
 	if err != nil {
 		hwlog.RunLog.Error("inner message get all node info failed")
@@ -165,9 +166,9 @@ func innerAllNodeInfos(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "internal get all node info success", Data: nodeInfos}
 }
 
-func innerCheckNodeGroupResReq(input interface{}) common.RespMsg {
-	req, ok := input.(types.InnerCheckNodeResReq)
-	if !ok {
+func innerCheckNodeGroupResReq(msg *model.Message) common.RespMsg {
+	var req types.InnerCheckNodeResReq
+	if err := msg.ParseContent(&req); err != nil {
 		hwlog.RunLog.Error("parse inner message content failed")
 		return common.RespMsg{Status: "", Msg: "parse inner message content failed"}
 	}
@@ -194,10 +195,10 @@ func checkNodeResBeforeDeployApp(req types.InnerCheckNodeResReq) error {
 	return nil
 }
 
-func innerUpdateNodeGroupResReq(input interface{}) common.RespMsg {
+func innerUpdateNodeGroupResReq(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start to update node group allocated resources")
-	req, ok := input.(types.InnerUpdateNodeResReq)
-	if !ok {
+	var req types.InnerUpdateNodeResReq
+	if err := msg.ParseContent(&req); err != nil {
 		hwlog.RunLog.Error("parse inner message content failed")
 		return common.RespMsg{Status: "", Msg: "parse inner message content failed"}
 	}
@@ -243,9 +244,9 @@ func updateNodeGroupResReq(req v1.ResourceList, nodeGroupID uint64, isUndeploy b
 	return nil
 }
 
-func innerGetNodeGroupInfosByIds(input interface{}) common.RespMsg {
-	req, ok := input.(types.InnerGetNodeGroupInfosReq)
-	if !ok {
+func innerGetNodeGroupInfosByIds(msg *model.Message) common.RespMsg {
+	var req types.InnerGetNodeGroupInfosReq
+	if err := msg.ParseContent(&req); err != nil {
 		hwlog.RunLog.Error("parse inner message content failed")
 		return common.RespMsg{Status: "", Msg: "parse inner message content failed", Data: nil}
 	}
@@ -299,9 +300,9 @@ func getAppInstanceCountByGroupId(groupId uint64) (int64, error) {
 	return count, nil
 }
 
-func innerGetNodeSnAndIpByID(input interface{}) common.RespMsg {
-	req, ok := input.(types.InnerGetNodeInfosReq)
-	if !ok {
+func innerGetNodeSnAndIpByID(msg *model.Message) common.RespMsg {
+	var req types.InnerGetNodeInfosReq
+	if err := msg.ParseContent(&req); err != nil {
 		hwlog.RunLog.Error("parse inner message content failed")
 		return common.RespMsg{Status: "", Msg: "parse inner message content failed", Data: nil}
 	}

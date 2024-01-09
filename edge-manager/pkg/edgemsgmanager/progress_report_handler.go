@@ -13,24 +13,18 @@ import (
 )
 
 // UpdateEdgeDownloadProgress [method] edge report the software upgrade progress to center
-func UpdateEdgeDownloadProgress(input interface{}) common.RespMsg {
+func UpdateEdgeDownloadProgress(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start to update node upgrade progress info")
-	message, ok := input.(*model.Message)
-	if !ok {
-		hwlog.RunLog.Error("get message failed")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "get message failed", Data: nil}
-	}
-
 	var req types.EdgeDownloadResInfo
-	if err := common.ParamConvert(message.GetContent(), &req); err != nil {
+	if err := msg.ParseContent(&req); err != nil {
 		hwlog.RunLog.Errorf("update node upgrade progress info error: %v", err)
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "convert request error", Data: nil}
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 	if checkResult := newDownloadResChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("check software download result failed: %s", checkResult.Reason)
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
 	}
-	sn := message.GetPeerInfo().Sn
+	sn := msg.GetPeerInfo().Sn
 	if err := nodesProgress.Set(sn, req.ProgressInfo, neverOverdue); err != nil {
 		hwlog.RunLog.Errorf("set software download progress for %s failed: %v", sn, err)
 		return common.RespMsg{Status: common.ErrorUpdateSoftwareDownloadProgress, Msg: "set cache error", Data: nil}

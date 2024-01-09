@@ -16,17 +16,11 @@ import (
 	"huawei.com/mindxedge/base/common/logmgmt"
 )
 
-func upgradeEdgeSoftware(input interface{}) common.RespMsg {
+func upgradeEdgeSoftware(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start effect edge software")
-	message, ok := input.(*model.Message)
-	if !ok {
-		hwlog.RunLog.Error("get message failed")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "get message failed", Data: nil}
-	}
-
 	var req UpgradeSoftwareReq
 	var err error
-	if err = common.ParamConvert(message.GetContent(), &req); err != nil {
+	if err = msg.ParseContent(&req); err != nil {
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
 	}
 
@@ -34,13 +28,12 @@ func upgradeEdgeSoftware(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("check software upgrade para failed: %s", checkResult.Reason)
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
 	}
-	upgradeConfig := message.GetContent()
 
 	var batchResp types.BatchResp
 	failedMap := make(map[string]string)
 	batchResp.FailedInfos = failedMap
 	for _, sn := range req.SerialNumbers {
-		if err = sendUpgradeConfigToEdge(sn, upgradeConfig); err != nil {
+		if err = sendUpgradeConfigToEdge(sn, msg.Content); err != nil {
 			hwlog.RunLog.Errorf("send upgrade msg to edge failed: %v", err)
 			failedMap[sn] = err.Error()
 			continue
@@ -59,14 +52,16 @@ func upgradeEdgeSoftware(input interface{}) common.RespMsg {
 	}
 }
 
-func sendUpgradeConfigToEdge(sn string, upgradeConfig interface{}) error {
+func sendUpgradeConfigToEdge(sn string, upgradeConfig []byte) error {
 	msg, err := model.NewMessage()
 	if err != nil {
 		return fmt.Errorf("create message for %s failed", sn)
 	}
 
 	msg.SetRouter(common.NodeMsgManagerName, common.CloudHubName, common.OptPost, common.ResEdgeUpgradeInfo)
-	msg.FillContent(upgradeConfig)
+	if err = msg.FillContent(upgradeConfig); err != nil {
+		return fmt.Errorf("fill content failed: %v", err)
+	}
 	msg.SetNodeId(sn)
 
 	rsp, err := modulemgr.SendSyncMessage(msg, common.ResponseTimeout)
@@ -74,7 +69,11 @@ func sendUpgradeConfigToEdge(sn string, upgradeConfig interface{}) error {
 		return fmt.Errorf("send msg failed: %v", err)
 	}
 
-	if content, ok := rsp.GetContent().(string); !ok || content != common.OK {
+	var content string
+	if err = rsp.ParseContent(&content); err != nil {
+		return fmt.Errorf("parse resp failed: %v", err)
+	}
+	if content != common.OK {
 		return fmt.Errorf("mef edge process software upgrade info in %s failed", sn)
 	}
 

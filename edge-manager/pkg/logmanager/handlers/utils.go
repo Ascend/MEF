@@ -34,8 +34,11 @@ func sendRestfulResponse(msg common.RespMsg, req *model.Message) error {
 		hwlog.RunLog.Error("failed to create message")
 		return originateErr
 	}
-	resp.FillContent(msg)
-	if err := modulemgr.SendMessage(resp); err != nil {
+	if err = resp.FillContent(msg); err != nil {
+		hwlog.RunLog.Errorf("fill content failed: %v", err)
+		return originateErr
+	}
+	if err = modulemgr.SendMessage(resp); err != nil {
 		if originateErr == nil {
 			originateErr = err
 		}

@@ -11,6 +11,7 @@ import (
 	"github.com/smartystreets/goconvey/convey"
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/x509/certutils"
 
 	"huawei.com/mindxedge/base/common"
@@ -51,7 +52,10 @@ func TestCheckAndUpdateToken(t *testing.T) {
 
 func TestExportToken(t *testing.T) {
 	convey.Convey("test ExportToken", t, func() {
-		resp := exportToken(struct{}{})
+		msg := model.Message{}
+		err := msg.FillContent(struct{}{})
+		convey.So(err, convey.ShouldBeNil)
+		resp := exportToken(&msg)
 		convey.So(resp, convey.ShouldNotBeNil)
 		convey.So(resp.Status == common.Success, convey.ShouldBeTrue)
 	})
@@ -65,7 +69,10 @@ func TestUpdateConfig(t *testing.T) {
 		}
 		bytes, err := json.Marshal(certInput)
 		convey.So(err, convey.ShouldBeNil)
-		resp := updateConfig(string(bytes))
+		msg := model.Message{}
+		err = msg.FillContent(bytes)
+		convey.So(err, convey.ShouldBeNil)
+		resp := updateConfig(&msg)
 		convey.So(resp, convey.ShouldNotBeNil)
 		convey.So(resp.Status == common.Success, convey.ShouldBeTrue)
 		convey.So(resp.Data == common.ImageCertName, convey.ShouldBeTrue)
@@ -83,7 +90,10 @@ func TestDownloadConfig(t *testing.T) {
 		}
 		configStr, err := json.Marshal(config)
 		convey.So(err, convey.ShouldBeNil)
-		resp := downloadConfig(string(configStr))
+		msg := model.Message{}
+		err = msg.FillContent(configStr)
+		convey.So(err, convey.ShouldBeNil)
+		resp := downloadConfig(&msg)
 		convey.So(resp, convey.ShouldNotBeNil)
 		convey.So(resp.Status == common.Success, convey.ShouldBeTrue)
 	})

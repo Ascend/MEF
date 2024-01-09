@@ -11,6 +11,7 @@ import (
 
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr/model"
 
 	"alarm-manager/pkg/utils"
 
@@ -31,12 +32,7 @@ const (
 )
 
 // getQueryType returns the query type is by SerialNum or groupId,neither will return err
-func getQueryType(input interface{}) (string, utils.ListAlarmOrEventReq, error) {
-	req, ok := input.(utils.ListAlarmOrEventReq)
-	if !ok {
-		hwlog.RunLog.Error("failed to convert params")
-		return "", utils.ListAlarmOrEventReq{}, errors.New("failed to convert params")
-	}
+func getQueryType(req utils.ListAlarmOrEventReq) (string, utils.ListAlarmOrEventReq, error) {
 	if req.IfCenter == trueStr {
 		return centerNodeQueryType, req, nil
 	}
@@ -58,9 +54,14 @@ func getQueryType(input interface{}) (string, utils.ListAlarmOrEventReq, error) 
 	return groupIdQueryType, req, nil
 }
 
-func dealRequest(input interface{}, AlarmOrEvent string) *common.RespMsg {
+func dealRequest(msg *model.Message, AlarmOrEvent string) *common.RespMsg {
 	hwlog.RunLog.Infof("start listing all %s", AlarmOrEvent)
-	queryIdType, standardParam, err := getQueryType(input)
+	var req utils.ListAlarmOrEventReq
+	if err := msg.ParseContent(&req); err != nil {
+		hwlog.RunLog.Error("failed to convert list center alarms/events inputs")
+		return &common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed"}
+	}
+	queryIdType, standardParam, err := getQueryType(req)
 	if err != nil {
 		hwlog.RunLog.Error("failed to convert parameters")
 		return &common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error()}
@@ -68,12 +69,6 @@ func dealRequest(input interface{}, AlarmOrEvent string) *common.RespMsg {
 	if checkRes := NewAlarmListerChecker().Check(standardParam); !checkRes.Result {
 		hwlog.RunLog.Errorf("list %s para checking failed,err:%s", queryIdType, checkRes.Reason)
 		return &common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkRes.Reason}
-	}
-
-	req, ok := input.(utils.ListAlarmOrEventReq)
-	if !ok {
-		hwlog.RunLog.Error("failed to convert list center alarms/events inputs")
-		return &common.RespMsg{Status: common.ErrorParamConvert}
 	}
 
 	if queryIdType == centerNodeQueryType {
@@ -258,12 +253,13 @@ func convertToDigestInfo(alarm AlarmInfo) utils.AlarmBriefInfo {
 	}
 }
 
-func getAlarmOrEventDbDetail(input interface{}, queryType string) *common.RespMsg {
+func getAlarmOrEventDbDetail(msg *model.Message, queryType string) *common.RespMsg {
 	hwlog.RunLog.Infof("start to get %s information", queryType)
-	inputId, ok := input.(uint64)
-	if !ok {
-		hwlog.RunLog.Errorf("failed to convert input alarmInfoId[%v] to uint64", input)
-		return &common.RespMsg{Status: common.ErrorTypeAssert, Msg: "failed to convert input to int"}
+	var inputId uint64
+	err := msg.ParseContent(&inputId)
+	if err != nil {
+		hwlog.RunLog.Errorf("parse content into uint64 failed: %v", err)
+		return &common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed"}
 	}
 	if chkRes := NewGetAlarmChecker().Check(inputId); !chkRes.Result {
 		hwlog.RunLog.Errorf("check input id [%d] failed, error: %s", inputId, chkRes.Reason)

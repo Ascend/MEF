@@ -12,6 +12,7 @@ import (
 	"huawei.com/mindx/common/modulemgr/model"
 
 	"edge-manager/pkg/logmanager/testutils"
+
 	"huawei.com/mindxedge/base/common/taskschedule"
 )
 
@@ -25,7 +26,7 @@ func TestReportErrorHandle(t *testing.T) {
 		defer patch.Reset()
 
 		var handler reportErrorHandler
-		err := handler.Handle(&model.Message{Content: `{"id":"abc"}`})
+		err := handler.Handle(&model.Message{Content: []byte(`{"id":"abc"}`)})
 		convey.So(err, convey.ShouldBeNil)
 	})
 }

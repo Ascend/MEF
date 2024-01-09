@@ -63,9 +63,9 @@ func (am *alarmManager) Start() {
 func (am *alarmManager) forwardMsgToAlarmManager(msg *model.Message) {
 	sn := msg.GetPeerInfo().Sn
 
-	content, ok := msg.GetContent().(string)
-	if !ok {
-		hwlog.RunLog.Error("add alarm receive invalid param type")
+	var content string
+	if err := msg.ParseContent(&content); err != nil {
+		hwlog.RunLog.Errorf("add alarm parse content failed: %v", err)
 		return
 	}
 
@@ -83,16 +83,14 @@ func (am *alarmManager) forwardMsgToAlarmManager(msg *model.Message) {
 
 	alarmReq.Sn = sn
 	alarmReq.Ip = ip
-	updatedContent, err := json.Marshal(alarmReq)
-	if err != nil {
-		hwlog.RunLog.Errorf("marshal alarm req failed: %s", err.Error())
+
+	if err = msg.FillContent(alarmReq, true); err != nil {
+		hwlog.RunLog.Errorf("fill alarm req into content failed: %v", err)
 		return
 	}
-
-	msg.FillContent(string(updatedContent))
 	msg.SetNodeId(common.AlarmManagerClientName)
 	msg.Router.Destination = common.InnerServerName
-	if err := modulemgr.SendAsyncMessage(msg); err != nil {
+	if err = modulemgr.SendAsyncMessage(msg); err != nil {
 		hwlog.RunLog.Errorf("send msg to inner server failed: %s", err.Error())
 	}
 }

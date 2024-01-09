@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr/model"
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -17,12 +18,12 @@ import (
 	"edge-manager/pkg/types"
 )
 
-func getAppInstanceCountByNodeGroup(input interface{}) common.RespMsg {
+func getAppInstanceCountByNodeGroup(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start to get appInstance count")
-	req, ok := input.([]uint64)
-	if !ok {
-		hwlog.RunLog.Error("failed to convert param")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "failed to convert param"}
+	var req []uint64
+	if err := msg.ParseContent(&req); err != nil {
+		hwlog.RunLog.Errorf("failed to parse param: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed"}
 	}
 	appInstanceCount := make(map[uint64]int64)
 	for _, groupId := range req {

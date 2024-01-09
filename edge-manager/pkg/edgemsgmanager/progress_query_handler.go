@@ -13,19 +13,12 @@ import (
 	"edge-manager/pkg/types"
 )
 
-func queryEdgeDownloadProgress(input interface{}) common.RespMsg {
+func queryEdgeDownloadProgress(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start query edge software upgrade progress")
-	message, ok := input.(*model.Message)
-	if !ok {
-		hwlog.RunLog.Error("get message failed")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "get message failed", Data: nil}
-	}
-
-	serialNumber, ok := message.GetContent().(string)
-	if !ok {
-		hwlog.RunLog.Error("query edge software upgrade progress failed: para type not valid")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "query edge software upgrade progress" +
-			" convert error", Data: nil}
+	var serialNumber string
+	if err := msg.ParseContent(&serialNumber); err != nil {
+		hwlog.RunLog.Errorf("query edge software upgrade progress failed: parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 
 	if res := checker.GetRegChecker("",

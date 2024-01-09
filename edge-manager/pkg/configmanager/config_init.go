@@ -17,7 +17,7 @@ import (
 	"huawei.com/mindxedge/base/common"
 )
 
-type handlerFunc func(req interface{}) common.RespMsg
+type handlerFunc func(message *model.Message) common.RespMsg
 
 type configManager struct {
 	enable bool
@@ -81,7 +81,10 @@ func (cm *configManager) dispatch(req *model.Message) {
 		hwlog.RunLog.Errorf("%s new response failed", cm.Name())
 		return
 	}
-	resp.FillContent(msg)
+	if err = resp.FillContent(msg); err != nil {
+		hwlog.RunLog.Errorf("%s fill content failed: %v", cm.Name(), err)
+		return
+	}
 	if err = modulemgr.SendMessage(resp); err != nil {
 		hwlog.RunLog.Errorf("%s send response failed", cm.Name())
 		return
@@ -96,7 +99,7 @@ func methodSelect(req *model.Message) *common.RespMsg {
 			req.GetResource())
 		return nil
 	}
-	res = method(req.GetContent())
+	res = method(req)
 	return &res
 }
 

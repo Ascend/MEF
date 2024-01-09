@@ -15,6 +15,7 @@ import (
 	"huawei.com/mindx/common/test"
 
 	"edge-manager/pkg/types"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -34,7 +35,6 @@ func TestQuerySoftwareInfo(t *testing.T) {
 	defer p1.Reset()
 
 	convey.Convey("test query software info should be success", t, testSoftwareQueryValid)
-	convey.Convey("test query software info should be failed, invalid input", t, testSoftwareQueryErrInput)
 	convey.Convey("test query software info should be failed, invalid content", t, testSoftwareQueryErrContent)
 	convey.Convey("test query software info should be failed, send sync msg error", t, testSfwQueryErrSendSyncMsg)
 	convey.Convey("test query software info should be failed, marshal error", t, testSoftwareQueryErrMarshal)
@@ -49,7 +49,8 @@ func testSoftwareQueryValid() {
 
 	dataCases := []string{"2102312NSF10K8000130"}
 	for _, dataCase := range dataCases {
-		msg.FillContent(dataCase)
+		err = msg.FillContent(dataCase)
+		convey.So(err, convey.ShouldBeNil)
 		rsp := queryEdgeSoftwareVersion(msg)
 		convey.So(rsp.Status, convey.ShouldEqual, common.Success)
 		softwareInfo, ok := rsp.Data.([]types.SoftwareInfo)
@@ -60,20 +61,9 @@ func testSoftwareQueryValid() {
 	}
 }
 
-func testSoftwareQueryErrInput() {
-	req := createDownloadSfwBaseData()
-	resp := queryEdgeSoftwareVersion(req)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
-}
-
 func testSoftwareQueryErrContent() {
-	msg, err := model.NewMessage()
-	if err != nil {
-		hwlog.RunLog.Errorf("create message failed, error: %v", err)
-	}
-	msg.FillContent([]byte{})
-	resp := queryEdgeSoftwareVersion(msg)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
+	resp := queryEdgeSoftwareVersion(&model.Message{Content: []byte("")})
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 }
 
 func testSfwQueryErrSendSyncMsg() {
@@ -81,7 +71,8 @@ func testSfwQueryErrSendSyncMsg() {
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
 	}
-	msg.FillContent("2102312NSF10K8000130")
+	err = msg.FillContent("2102312NSF10K8000130")
+	convey.So(err, convey.ShouldBeNil)
 
 	var p1 = gomonkey.ApplyFunc(common.SendSyncMessageByRestful,
 		func(input interface{}, router *common.Router, timeout time.Duration) common.RespMsg {
@@ -100,7 +91,8 @@ func testSoftwareQueryErrMarshal() {
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
 	}
-	msg.FillContent("2102312NSF10K8000130")
+	err = msg.FillContent("2102312NSF10K8000130")
+	convey.So(err, convey.ShouldBeNil)
 
 	var p2 = gomonkey.ApplyFunc(json.Marshal,
 		func(v interface{}) ([]byte, error) {
@@ -116,7 +108,8 @@ func testSoftwareQueryErrUnmarshal() {
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
 	}
-	msg.FillContent("2102312NSF10K8000130")
+	err = msg.FillContent("2102312NSF10K8000130")
+	convey.So(err, convey.ShouldBeNil)
 
 	var p2 = gomonkey.ApplyFunc(json.Unmarshal,
 		func(data []byte, v interface{}) error {

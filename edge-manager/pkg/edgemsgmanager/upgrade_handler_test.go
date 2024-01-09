@@ -20,7 +20,6 @@ import (
 
 func TestUpgradeSoftware(t *testing.T) {
 	convey.Convey("test upgrade software should be success", t, testUpgradeSoftware)
-	convey.Convey("test upgrade software should be failed, input is invalid", t, testUpgradeSfwErrInput)
 	convey.Convey("test upgrade software should be failed, invalid param", t, testUpgradeSfwErrParam)
 	convey.Convey("test upgrade software should be failed, invalid sn and sfwName", t, testUpgradeSfwErrSnAndSfwName)
 	convey.Convey("test upgrade software should be failed, new msg error", t, testUpgradeSfwErrNewMsg)
@@ -44,16 +43,15 @@ func createUpgradeSfwBaseData() UpgradeSoftwareReq {
 
 func prepareUpgradeSfwRightMsg() *model.Message {
 	req := createUpgradeSfwBaseData()
-	content, err := json.Marshal(req)
-	if err != nil {
-		hwlog.RunLog.Errorf("marshal failed, error: %v", err)
-	}
 
 	msg, err := model.NewMessage()
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
 	}
-	msg.FillContent(string(content))
+	err = msg.FillContent(req, true)
+	if err != nil {
+		hwlog.RunLog.Errorf("fill content failed: %v", err)
+	}
 	return msg
 }
 
@@ -69,7 +67,8 @@ func testUpgradeSoftware() {
 			if err != nil {
 				hwlog.RunLog.Error("create message failed")
 			}
-			rspMsg.FillContent(common.OK)
+			err = rspMsg.FillContent(common.OK)
+			convey.So(err, convey.ShouldBeNil)
 			return rspMsg, nil
 		})
 	defer p1.Reset()
@@ -78,19 +77,8 @@ func testUpgradeSoftware() {
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
-func testUpgradeSfwErrInput() {
-	req := createUpgradeSfwBaseData()
-	resp := upgradeEdgeSoftware(req)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
-}
-
 func testUpgradeSfwErrParam() {
-	msg, err := model.NewMessage()
-	if err != nil {
-		hwlog.RunLog.Errorf("create message failed, error: %v", err)
-	}
-	msg.FillContent(common.OK)
-	resp := upgradeEdgeSoftware(msg)
+	resp := upgradeEdgeSoftware(&model.Message{Content: []byte("")})
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
 }
 
@@ -101,7 +89,8 @@ func testUpgradeSfwErrSnAndSfwName() {
 			if err != nil {
 				hwlog.RunLog.Errorf("create message failed, error: %v", err)
 			}
-			rspMsg.FillContent(common.OK)
+			err = rspMsg.FillContent(common.OK)
+			convey.So(err, convey.ShouldBeNil)
 			return rspMsg, nil
 		})
 	defer p1.Reset()
@@ -124,11 +113,8 @@ func testUpgradeSfwErrSnAndSfwName() {
 	}
 	for _, snCase := range snCases {
 		req.SerialNumbers = snCase
-		content, err := json.Marshal(req)
-		if err != nil {
-			hwlog.RunLog.Errorf("marshal failed, error: %v", err)
-		}
-		msg.FillContent(string(content))
+		err = msg.FillContent(req)
+		convey.So(err, convey.ShouldBeNil)
 
 		resp := upgradeEdgeSoftware(msg)
 		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
@@ -140,11 +126,8 @@ func testUpgradeSfwErrSnAndSfwName() {
 	}
 	for _, sfwNameCase := range sfwNameCases {
 		req.SoftwareName = sfwNameCase
-		content, err := json.Marshal(req)
-		if err != nil {
-			hwlog.RunLog.Errorf("marshal failed, error: %v", err)
-		}
-		msg.FillContent(string(content))
+		err = msg.FillContent(req)
+		convey.So(err, convey.ShouldBeNil)
 
 		resp := upgradeEdgeSoftware(msg)
 		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)

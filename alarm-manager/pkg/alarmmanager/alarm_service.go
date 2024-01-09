@@ -4,21 +4,22 @@
 package alarmmanager
 
 import (
+	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindxedge/base/common/alarms"
 )
 
-func listAlarms(input interface{}) (interface{}, error) {
-	return dealRequest(input, alarms.AlarmType), nil
+func listAlarms(msg *model.Message) (interface{}, error) {
+	return dealRequest(msg, alarms.AlarmType), nil
 }
 
-func listEvents(input interface{}) (interface{}, error) {
-	return dealRequest(input, alarms.EventType), nil
+func listEvents(msg *model.Message) (interface{}, error) {
+	return dealRequest(msg, alarms.EventType), nil
 }
 
-func getAlarmDetail(input interface{}) (interface{}, error) {
-	return getAlarmOrEventDbDetail(input, alarms.AlarmType), nil
+func getAlarmDetail(msg *model.Message) (interface{}, error) {
+	return getAlarmOrEventDbDetail(msg, alarms.AlarmType), nil
 }
 
-func getEventDetail(input interface{}) (interface{}, error) {
-	return getAlarmOrEventDbDetail(input, alarms.EventType), nil
+func getEventDetail(msg *model.Message) (interface{}, error) {
+	return getAlarmOrEventDbDetail(msg, alarms.EventType), nil
 }

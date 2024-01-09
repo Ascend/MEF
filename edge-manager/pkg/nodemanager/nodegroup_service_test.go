@@ -12,9 +12,11 @@ import (
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
 	"gorm.io/gorm"
+	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/test"
 
 	"edge-manager/pkg/types"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -38,12 +40,12 @@ func testCreateNodeGroup() {
   			"nodeGroupName": "%s",
   			"description": "%s"
 			}`, group.GroupName, group.Description)
-	resp := createNodeGroup(args)
+	resp := createNodeGroup(&model.Message{Content: []byte(args)})
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
 func testCreateNodeGroupErrInput() {
-	resp := createNodeGroup("")
+	resp := createNodeGroup(&model.Message{Content: []byte("")})
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
 }
 
@@ -55,13 +57,13 @@ func testCreateNodeGroupErrParam() {
 
 	convey.Convey("groupName is not exist", func() {
 		args := fmt.Sprintf(`{"description": "%s"}`, group.Description)
-		resp := createNodeGroup(args)
+		resp := createNodeGroup(&model.Message{Content: []byte(args)})
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 	})
 
 	convey.Convey("description is not exist", func() {
 		args := fmt.Sprintf(`{"nodeGroupName": "%s"}`, group.GroupName)
-		resp := createNodeGroup(args)
+		resp := createNodeGroup(&model.Message{Content: []byte(args)})
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
 	})
 }
@@ -83,7 +85,7 @@ func testCreateGroupMaxCount() {
   			"nodeGroupName": "%s",
   			"description": "%s"
 			}`, group.GroupName, group.Description)
-	resp := createNodeGroup(args)
+	resp := createNodeGroup(&model.Message{Content: []byte(args)})
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorCheckNodeMrgSize)
 }
 
@@ -93,8 +95,8 @@ func testCreateGroupNameDuplicate() {
 		GroupName:   "test_group_name_4",
 	}
 	args := fmt.Sprintf(`{"nodeGroupName": "%s"}`, group.GroupName)
-	_ = createNodeGroup(args)
-	resp := createNodeGroup(args)
+	_ = createNodeGroup(&model.Message{Content: []byte(args)})
+	resp := createNodeGroup(&model.Message{Content: []byte(args)})
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorNodeMrgDuplicate)
 }
 
@@ -111,7 +113,7 @@ func testCreateNodeGroupErrCreate() {
 			return test.ErrTest
 		})
 	defer p1.Reset()
-	resp := createNodeGroup(args)
+	resp := createNodeGroup(&model.Message{Content: []byte(args)})
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorCreateNodeGroup)
 }
 
@@ -121,7 +123,7 @@ func TestGroupStatistics(t *testing.T) {
 }
 
 func testGetGroupStat() {
-	resp := getNodeGroupStatistics(``)
+	resp := getNodeGroupStatistics(&model.Message{Content: []byte("")})
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
@@ -131,7 +133,7 @@ func testGetGroupStatErrGetCount() {
 			return 0, test.ErrTest
 		})
 	defer p1.Reset()
-	resp := getNodeGroupStatistics(``)
+	resp := getNodeGroupStatistics(&model.Message{Content: []byte("")})
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorCountNodeGroup)
 }
 
@@ -169,7 +171,10 @@ func testGetNodeGroupDetail() {
 	}
 	convey.So(env.createRelation(relation), convey.ShouldBeNil)
 
-	resp := getNodeGroupDetail(group.ID)
+	msg := model.Message{}
+	err := msg.FillContent(group.ID)
+	convey.So(err, convey.ShouldBeNil)
+	resp := getNodeGroupDetail(&msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 	groupDetail, ok := resp.Data.(NodeGroupDetail)
 	convey.So(ok, convey.ShouldBeTrue)
@@ -178,12 +183,15 @@ func testGetNodeGroupDetail() {
 
 func testGetNodeGroupDetailErrInput() {
 	args := `{"id": "1"}`
-	resp := getNodeGroupDetail(args)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
+	resp := getNodeGroupDetail(&model.Message{Content: []byte(args)})
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
 }
 
 func testGetNodeGroupDetailErrParam() {
-	resp := getNodeGroupDetail(uint64(0))
+	msg := model.Message{}
+	err := msg.FillContent(uint64(0))
+	convey.So(err, convey.ShouldBeNil)
+	resp := getNodeGroupDetail(&msg)
 	convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
 }
 
@@ -194,7 +202,10 @@ func testGetNodeGroupDetailErrGetGroup() {
 			return nil, test.ErrTest
 		})
 	defer p1.Reset()
-	resp := getNodeGroupDetail(uint64(1))
+	msg := model.Message{}
+	err := msg.FillContent(uint64(1))
+	convey.So(err, convey.ShouldBeNil)
+	resp := getNodeGroupDetail(&msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorGetNodeGroup)
 }
 
@@ -205,7 +216,10 @@ func testGetDetailErrListRelations() {
 			return nil, test.ErrTest
 		})
 	defer p1.Reset()
-	resp := getNodeGroupDetail(uint64(1))
+	msg := model.Message{}
+	err := msg.FillContent(uint64(1))
+	convey.So(err, convey.ShouldBeNil)
+	resp := getNodeGroupDetail(&msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorGetNodeGroup)
 }
 
@@ -242,7 +256,10 @@ func testGetGroupDetailErrGetNodeById() {
 			return nil, test.ErrTest
 		})
 	defer p1.Reset()
-	resp := getNodeGroupDetail(group.ID)
+	msg := model.Message{}
+	err := msg.FillContent(group.ID)
+	convey.So(err, convey.ShouldBeNil)
+	resp := getNodeGroupDetail(&msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorGetNodeGroup)
 }
 
@@ -267,14 +284,14 @@ func testModifyGroup() {
 				"nodeGroupName": "%s",
 				"description": "%s"
 			}`, group.ID, group.GroupName, group.Description)
-	resp := modifyNodeGroup(args)
+	resp := modifyNodeGroup(&model.Message{Content: []byte(args)})
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 	verifyRes := env.verifyDbNodeGroup(group, "UpdatedAt")
 	convey.So(verifyRes, convey.ShouldBeNil)
 }
 
 func testModifyGroupErrInput() {
-	resp := modifyNodeGroup(``)
+	resp := modifyNodeGroup(&model.Message{Content: []byte("")})
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
 }
 
@@ -284,7 +301,7 @@ func testModifyGroupErrParam() {
 	"nodeGroupName": "test_group_name_9",
 	"description": "test-group-description-9"
 }`
-	resp := modifyNodeGroup(args)
+	resp := modifyNodeGroup(&model.Message{Content: []byte(args)})
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 }
 
@@ -309,7 +326,7 @@ func testModifyGroupErrUpdate() {
 			return 0, test.ErrTest
 		})
 	defer p1.Reset()
-	resp := modifyNodeGroup(args)
+	resp := modifyNodeGroup(&model.Message{Content: []byte(args)})
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorModifyNodeGroup)
 }
 
@@ -337,7 +354,7 @@ func testBatchDeleteNodeGroup() {
 	defer p1.Reset()
 
 	args := fmt.Sprintf(`{"groupIDs": [%d]}`, group.ID)
-	resp := batchDeleteNodeGroup(args)
+	resp := batchDeleteNodeGroup(&model.Message{Content: []byte(args)})
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 	verifyRes := env.verifyDbNodeGroup(group)
 	convey.So(verifyRes, convey.ShouldEqual, gorm.ErrRecordNotFound)
@@ -346,22 +363,22 @@ func testBatchDeleteNodeGroup() {
 func testBatchDeleteNodeGroupErr() {
 	convey.Convey("bad id type", func() {
 		args := `{"groupIDs": ["1"]}`
-		resp := batchDeleteNodeGroup(args)
+		resp := batchDeleteNodeGroup(&model.Message{Content: []byte(args)})
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
 	})
 	convey.Convey("duplicate id", func() {
 		args := `{"groupIDs": [1, 1]}`
-		resp := batchDeleteNodeGroup(args)
+		resp := batchDeleteNodeGroup(&model.Message{Content: []byte(args)})
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 	})
 	convey.Convey("empty list", func() {
 		args := `{"groupIDs": []}`
-		resp := batchDeleteNodeGroup(args)
+		resp := batchDeleteNodeGroup(&model.Message{Content: []byte(args)})
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 	})
 	convey.Convey("group id is not exist", func() {
 		args := `{"groupIDs": [20]}`
-		resp := batchDeleteNodeGroup(args)
+		resp := batchDeleteNodeGroup(&model.Message{Content: []byte(args)})
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorDeleteNodeGroup)
 	})
 }
@@ -377,18 +394,24 @@ func TestListNodeGroup(t *testing.T) {
 
 func testListNodeGroup() {
 	args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
-	resp := listNodeGroup(args)
+	msg := model.Message{}
+	err := msg.FillContent(args)
+	convey.So(err, convey.ShouldBeNil)
+	resp := listNodeGroup(&msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
 func testListNodeGroupErrInput() {
-	resp := listNodeGroup("")
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
+	resp := listNodeGroup(&model.Message{Content: []byte("")})
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
 }
 
 func testListNodeGroupErrParam() {
 	args := types.ListReq{PageNum: 1, PageSize: errPageSize}
-	resp := listNodeGroup(args)
+	msg := model.Message{}
+	err := msg.FillContent(args)
+	convey.So(err, convey.ShouldBeNil)
+	resp := listNodeGroup(&msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 }
 
@@ -400,7 +423,10 @@ func testListNodeGroupErrCountGroup() {
 		})
 	defer p1.Reset()
 	args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
-	resp := listNodeGroup(args)
+	msg := model.Message{}
+	err := msg.FillContent(args)
+	convey.So(err, convey.ShouldBeNil)
+	resp := listNodeGroup(&msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorListNodeGroups)
 }
 
@@ -412,7 +438,10 @@ func testListNodeGroupErrGetGroup() {
 		})
 	defer p1.Reset()
 	args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
-	resp := listNodeGroup(args)
+	msg := model.Message{}
+	err := msg.FillContent(args)
+	convey.So(err, convey.ShouldBeNil)
+	resp := listNodeGroup(&msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorListNodeGroups)
 }
 
@@ -424,7 +453,10 @@ func testListNodeGroupErrListRelations() {
 		})
 	defer p1.Reset()
 	args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
-	resp := listNodeGroup(args)
+	msg := model.Message{}
+	err := msg.FillContent(args)
+	convey.So(err, convey.ShouldBeNil)
+	resp := listNodeGroup(&msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorListNodeGroups)
 }
 
@@ -461,7 +493,7 @@ func testAddNodeRelation() {
 	p := gomonkey.ApplyFuncReturn(getRequestItemsOfAddGroup, nil, int64(0), nil).
 		ApplyFuncReturn(checkNodeBeforeAddToGroup, nil)
 	defer p.Reset()
-	resp := addNodeRelation(args)
+	resp := addNodeRelation(&model.Message{Content: []byte(args)})
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 	relation := &NodeRelation{NodeID: node.ID, GroupID: group.ID}
 	verifyRes := env.verifyDbNodeRelation(relation, "CreatedAt")
@@ -469,20 +501,20 @@ func testAddNodeRelation() {
 }
 
 func testAddNodeRelationErrInput() {
-	resp := addNodeRelation(``)
+	resp := addNodeRelation(&model.Message{Content: []byte("")})
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
 }
 
 func testAddNodeRelationErrParam() {
 	args := `{"nodeIDs": [1]}`
-	resp := addNodeRelation(args)
+	resp := addNodeRelation(&model.Message{Content: []byte(args)})
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 }
 
 func testAddNodeRelationErrAdd() {
 	convey.Convey("group id is not exist", func() {
 		args := `{"groupID": 20, "nodeIDs": [1]}`
-		resp := addNodeRelation(args)
+		resp := addNodeRelation(&model.Message{Content: []byte(args)})
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorAddNodeToGroup)
 	})
 	convey.Convey("nodeIDs is not exist", func() {
@@ -490,7 +522,7 @@ func testAddNodeRelationErrAdd() {
 			ApplyFuncReturn(getRequestItemsOfAddGroup, nil, int64(0), nil)
 		defer p.Reset()
 		args := `{"groupID": 1, "nodeIDs": [50]}`
-		resp := addNodeRelation(args)
+		resp := addNodeRelation(&model.Message{Content: []byte(args)})
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorAddNodeToGroup)
 	})
 	convey.Convey("get available resource error", func() {
@@ -500,7 +532,7 @@ func testAddNodeRelationErrAdd() {
 			ApplyFuncReturn(getRequestItemsOfAddGroup, nil, int64(0), nil)
 		defer p1.Reset()
 		args := `{"groupID": 1, "nodeIDs": [1]}`
-		resp := addNodeRelation(args)
+		resp := addNodeRelation(&model.Message{Content: []byte(args)})
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorAddNodeToGroup)
 	})
 	convey.Convey("get managed node by id error", func() {
@@ -511,7 +543,7 @@ func testAddNodeRelationErrAdd() {
 			ApplyFuncReturn(checkNodeBeforeAddToGroup, nil)
 		defer p1.Reset()
 		args := `{"groupID": 1, "nodeIDs": [1]}`
-		resp := addNodeRelation(args)
+		resp := addNodeRelation(&model.Message{Content: []byte(args)})
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorAddNodeToGroup)
 	})
 	convey.Convey("add node to group error", func() {
@@ -522,7 +554,7 @@ func testAddNodeRelationErrAdd() {
 			ApplyFuncReturn(checkNodeBeforeAddToGroup, nil)
 		defer p1.Reset()
 		args := `{"groupID": 1, "nodeIDs": [1]}`
-		resp := addNodeRelation(args)
+		resp := addNodeRelation(&model.Message{Content: []byte(args)})
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorAddNodeToGroup)
 	})
 }
@@ -564,24 +596,24 @@ func testDeleteNodeFromGroup() {
                "nodeIDs": [%d],
                "groupID": %d
            }`, node.ID, group.ID)
-	resp := deleteNodeFromGroup(args)
+	resp := deleteNodeFromGroup(&model.Message{Content: []byte(args)})
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
 func testDeleteNodeFromGroupErr() {
 	convey.Convey("bad input type", func() {
 		args := `{"groupIDs": ["1"]}`
-		resp := batchDeleteNodeGroup(args)
+		resp := batchDeleteNodeGroup(&model.Message{Content: []byte(args)})
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
 	})
 	convey.Convey("empty nodeIDs", func() {
 		args := `{"groupID": 1, "nodeIDs": []}`
-		resp := deleteNodeFromGroup(args)
+		resp := deleteNodeFromGroup(&model.Message{Content: []byte(args)})
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 	})
 	convey.Convey("group id is not exist", func() {
 		args := `{"groupID": 1, "nodeIDs": [100]}`
-		resp := deleteNodeFromGroup(args)
+		resp := deleteNodeFromGroup(&model.Message{Content: []byte(args)})
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorDeleteNodeFromGroup)
 	})
 }
@@ -627,7 +659,7 @@ func testBatchDeleteNodeRelation() {
                 "nodeID": %d,
                 "groupID": %d
             }]`, node.ID, group.ID)
-	resp := batchDeleteNodeRelation(args)
+	resp := batchDeleteNodeRelation(&model.Message{Content: []byte(args)})
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 	verifyRes := env.verifyDbNodeRelation(relation)
 	convey.So(verifyRes, convey.ShouldEqual, gorm.ErrRecordNotFound)
@@ -635,25 +667,25 @@ func testBatchDeleteNodeRelation() {
 
 func testBatchDeleteNodeRelationErr() {
 	convey.Convey("input error", func() {
-		resp := batchDeleteNodeRelation(``)
+		resp := batchDeleteNodeRelation(&model.Message{Content: []byte("")})
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
 	})
 
 	convey.Convey("nodeID is not exist", func() {
 		args := `[{"groupID": 1}]`
-		resp := batchDeleteNodeRelation(args)
+		resp := batchDeleteNodeRelation(&model.Message{Content: []byte(args)})
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 	})
 
 	convey.Convey("duplicate relations", func() {
 		args := `[{"groupID":1, "nodeID":2},{"nodeID":2,"groupID":1}]`
-		resp := batchDeleteNodeRelation(args)
+		resp := batchDeleteNodeRelation(&model.Message{Content: []byte(args)})
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 	})
 
 	convey.Convey("delete error", func() {
 		args := `[{"groupID":1, "nodeID":2}]`
-		resp := batchDeleteNodeRelation(args)
+		resp := batchDeleteNodeRelation(&model.Message{Content: []byte(args)})
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorDeleteNodeFromGroup)
 	})
 }

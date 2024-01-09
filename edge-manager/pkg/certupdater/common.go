@@ -156,7 +156,9 @@ func sendCertUpdateNotifyToNode(serialNumber string, updatePayload string) error
 	}
 	notifyMsg.SetNodeId(serialNumber)
 	notifyMsg.SetRouter(common.CertUpdaterName, common.CloudHubName, common.OptGet, common.CertWillExpired)
-	notifyMsg.FillContent(updatePayload)
+	if err = notifyMsg.FillContent(updatePayload); err != nil {
+		return fmt.Errorf("fill content failed: %v", err)
+	}
 	if err = modulemgr.SendMessage(notifyMsg); err != nil {
 		return fmt.Errorf("%s sends message to %s failed, error: %v",
 			common.CertUpdaterName, common.CloudHubName, err)
@@ -292,17 +294,15 @@ func sendAlarm(alarmId, notifyType string) error {
 		Alarms: []requests.AlarmReq{*alarm},
 		Ip:     hostIp,
 	}
-	jsonAlarmReq, err := json.Marshal(alarmReq)
-	if err != nil {
-		hwlog.RunLog.Errorf("marshal alarm request error: %v", err)
-		return fmt.Errorf("marshal alarm request error: %v", err)
-	}
 	msg, err := model.NewMessage()
 	if err != nil {
 		hwlog.RunLog.Errorf("create new message error: %v", err)
 		return fmt.Errorf("create new message error: %v", err)
 	}
-	msg.FillContent(string(jsonAlarmReq))
+	if err = msg.FillContent(alarmReq, true); err != nil {
+		hwlog.RunLog.Errorf("fill alarm req into content failed: %v", err)
+		return errors.New("fill alarm req into content failed")
+	}
 	msg.SetNodeId(common.AlarmManagerClientName)
 	msg.SetRouter(common.CertUpdaterName, common.InnerServerName, common.OptPost, requests.ReportAlarmRouter)
 	var tryCnt int

@@ -14,11 +14,12 @@ import (
 	"huawei.com/mindx/common/modulemgr/model"
 
 	"alarm-manager/pkg/monitors"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/requests"
 )
 
-type handlerFunc func(req interface{}) (interface{}, error)
+type handlerFunc func(msg *model.Message) (interface{}, error)
 
 type alarmManager struct {
 	dbPath string
@@ -50,7 +51,7 @@ func methodSelect(req *model.Message) (interface{}, error) {
 			req.GetResource())
 		return nil, errors.New("handler func is not exist")
 	}
-	return method(req.GetContent())
+	return method(req)
 }
 
 func (am *alarmManager) Start() {
@@ -93,7 +94,10 @@ func (am *alarmManager) dispatch(req *model.Message) {
 		return
 	}
 
-	resp.FillContent(msg)
+	if err = resp.FillContent(msg); err != nil {
+		hwlog.RunLog.Errorf("%s fill content into resp failed: %v", am.Name(), err.Error())
+		return
+	}
 	if err = modulemgr.SendMessage(resp); err != nil {
 		hwlog.RunLog.Errorf("%s send response failed: %s", am.Name(), err.Error())
 		return

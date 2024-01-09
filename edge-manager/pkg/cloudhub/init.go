@@ -162,7 +162,10 @@ func (c *CloudServer) response(message *model.Message, content string) {
 		return
 	}
 
-	resp.FillContent(content)
+	if err = resp.FillContent(content); err != nil {
+		hwlog.RunLog.Errorf("fill resp into content failed: %v", err)
+		return
+	}
 	if err = modulemgr.SendMessage(resp); err != nil {
 		hwlog.RunLog.Errorf("%s send response failed: %v", c.Name(), err)
 	}
@@ -243,10 +246,10 @@ func checkAndLock() {
 }
 
 func issueCertForEdge(msg *model.Message) (*model.Message, bool, error) {
-	csrRawData := msg.GetContent()
-	csrBase64Str, ok := csrRawData.(string)
-	if !ok {
-		return nil, false, errors.New("csr data format error")
+	var csrBase64Str string
+	if err := msg.ParseContent(&csrBase64Str); err != nil {
+		hwlog.RunLog.Errorf("parse content failed: %v", err)
+		return nil, false, errors.New("parse content failed")
 	}
 	csrData, err := base64.StdEncoding.DecodeString(csrBase64Str)
 	if err != nil {
@@ -278,14 +281,18 @@ func issueCertForEdge(msg *model.Message) (*model.Message, bool, error) {
 		common.OptResp,
 		common.ResEdgeCert)
 	respMsg.SetNodeId(msg.GetNodeId())
-	respMsg.FillContent(certStr)
+	if err = respMsg.FillContent(certStr); err != nil {
+		hwlog.RunLog.Errorf("fill resp into content failed: %v", err)
+		return nil, false, errors.New("fill resp into content failed")
+	}
 	return respMsg, true, nil
 }
 
 func (c *CloudServer) getEdgeConnStatus(msg *model.Message) (*model.Message, bool, error) {
-	snList, ok := msg.GetContent().([]string)
-	if !ok {
-		return nil, false, errors.New("serial number list format error")
+	var snList []string
+	if err := msg.ParseContent(&snList); err != nil {
+		hwlog.RunLog.Errorf("parse content failed: %v", err)
+		return nil, false, errors.New("parse content failed")
 	}
 	var peerInfoList []websocketmgr.WebsocketPeerInfo
 	for _, sn := range snList {
@@ -301,8 +308,10 @@ func (c *CloudServer) getEdgeConnStatus(msg *model.Message) (*model.Message, boo
 	if err != nil {
 		return nil, false, fmt.Errorf("failed to create response for edge connection status request, %v", err)
 	}
-	msg.FillContent(peerInfoList)
-	if err := modulemgr.SendMessage(msg); err != nil {
+	if err = msg.FillContent(peerInfoList); err != nil {
+		return nil, false, fmt.Errorf("failed to fill peer info into content: %v", err)
+	}
+	if err = modulemgr.SendMessage(msg); err != nil {
 		return nil, false, fmt.Errorf("failed to send response for edge connection status request, %v", err)
 	}
 	return nil, false, nil

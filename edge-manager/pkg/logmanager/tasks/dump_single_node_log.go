@@ -39,15 +39,19 @@ func doDumpSingleNodeLog(ctx taskschedule.TaskContext) {
 	}
 	msg.SetRouter(constants.LogManagerName, common.CloudHubName, common.OptPost, constants.ResLogDumpTask)
 	msg.SetNodeId(serialNumber)
-	msg.Content = map[string]interface{}{"taskId": ctx.Spec().Id, "module": "edgeNode"}
+	if err = msg.FillContent(map[string]interface{}{"taskId": ctx.Spec().Id, "module": "edgeNode"}); err != nil {
+		hwlog.RunLog.Errorf("fill content failed: %v", err)
+		utils.FeedbackTaskError(ctx, errors.New("failed to send message to cloudhub"))
+		return
+	}
 	response, err := modulemgr.SendSyncMessage(msg, sendMessageTimeout)
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to send message to cloudhub, %v", err)
 		utils.FeedbackTaskError(ctx, errors.New("failed to send message to cloudhub"))
 		return
 	}
-	respMsg, ok := response.Content.(string)
-	if !ok {
+	var respMsg string
+	if err = response.ParseContent(&respMsg); err != nil {
 		hwlog.RunLog.Errorf("failed to parse response from cloudhub, %v", err)
 		utils.FeedbackTaskError(ctx, errors.New("failed to parse response from cloudhub"))
 		return

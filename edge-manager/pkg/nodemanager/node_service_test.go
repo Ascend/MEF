@@ -235,10 +235,13 @@ func testGetNodeDetail() {
 	convey.So(res, convey.ShouldBeNil)
 
 	convey.Convey("normal input", func() {
-		resp := getNodeDetail(map[string]interface{}{
+		msg := model.Message{}
+		err := msg.FillContent(map[string]interface{}{
 			constants.KeySymbol:   constants.IdKey,
 			constants.ValueSymbol: node.ID,
 		})
+		convey.So(err, convey.ShouldBeNil)
+		resp := getNodeDetail(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
 		nodeInfoDetail, ok := resp.Data.(NodeInfoDetail)
 		convey.So(ok, convey.ShouldBeTrue)
@@ -247,8 +250,11 @@ func testGetNodeDetail() {
 }
 
 func testGetNodeDetailErrInput() {
-	resp := getNodeDetail("1")
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
+	msg := model.Message{}
+	err := msg.FillContent("1")
+	convey.So(err, convey.ShouldBeNil)
+	resp := getNodeDetail(&msg)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
 }
 
 func testGetNodeDetailErrParam() {
@@ -262,16 +268,25 @@ func testGetNodeDetailErrParam() {
 			return checkRes
 		})
 	defer p1.Reset()
-	resp := getNodeDetail(map[string]interface{}{constants.KeySymbol: constants.IdKey, constants.ValueSymbol: uint64(0)})
+	msg := model.Message{}
+	err := msg.FillContent(map[string]interface{}{
+		constants.KeySymbol:   constants.IdKey,
+		constants.ValueSymbol: uint64(0),
+	})
+	convey.So(err, convey.ShouldBeNil)
+	resp := getNodeDetail(&msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 }
 
 func testGetNodeDetailErrGetNodeByID() {
 	const testNode = 20
-	resp := getNodeDetail(map[string]interface{}{
+	msg := model.Message{}
+	err := msg.FillContent(map[string]interface{}{
 		constants.KeySymbol:   constants.IdKey,
 		constants.ValueSymbol: uint64(testNode),
 	})
+	convey.So(err, convey.ShouldBeNil)
+	resp := getNodeDetail(&msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorGetNode)
 }
 
@@ -283,10 +298,13 @@ func testGetNodeDetailErrEvalNodeGroup() {
 				return nil, test.ErrTest
 			})
 		defer p1.Reset()
-		resp := getNodeDetail(map[string]interface{}{
+		msg := model.Message{}
+		err := msg.FillContent(map[string]interface{}{
 			constants.KeySymbol:   constants.IdKey,
-			constants.ValueSymbol: uint64(1)},
-		)
+			constants.ValueSymbol: uint64(1),
+		})
+		convey.So(err, convey.ShouldBeNil)
+		resp := getNodeDetail(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorGetNode)
 	})
 }
@@ -319,7 +337,10 @@ func testModifyNode() {
     			"nodeName": "%s",
     			"nodeID": %d
 			}`, node.Description, node.NodeName, node.ID)
-		resp := modifyNode(args)
+		msg := model.Message{}
+		err := msg.FillContent(args)
+		convey.So(err, convey.ShouldBeNil)
+		resp := modifyNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
 		verifyRes := env.verifyDbNodeInfo(node, "UpdatedAt")
 		convey.So(verifyRes, convey.ShouldBeNil)
@@ -338,9 +359,12 @@ func testModifyNodeErr() {
 		UpdatedAt:    time.Now().Format(TimeFormat),
 	}
 	env.randomize(node)
+	msg := model.Message{}
 
 	convey.Convey("input error", func() {
-		resp := modifyNode(``)
+		err := msg.FillContent(``)
+		convey.So(err, convey.ShouldBeNil)
+		resp := modifyNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
 	})
 
@@ -354,7 +378,9 @@ func testModifyNodeErr() {
     			"nodeName": "%s",
     			"nodeID": %d
 			}`, node.Description, "", node.ID)
-		resp := modifyNode(args)
+		err := msg.FillContent(args)
+		convey.So(err, convey.ShouldBeNil)
+		resp := modifyNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 	})
 
@@ -363,7 +389,9 @@ func testModifyNodeErr() {
 		convey.So(nodeRes, convey.ShouldBeNil)
 		node.Description = ""
 		args := fmt.Sprintf(`{"nodeName": "%s", "nodeID": %d}`, node.NodeName, node.ID)
-		resp := modifyNode(args)
+		err := msg.FillContent(args)
+		convey.So(err, convey.ShouldBeNil)
+		resp := modifyNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
 		verifyRes := env.verifyDbNodeInfo(node, "UpdatedAt")
 		convey.So(verifyRes, convey.ShouldBeNil)
@@ -378,7 +406,9 @@ func testModifyNodeErr() {
     			"nodeName": "%s",
     			"nodeID": %d
 			}`, node.Description, "test-modify-node-1-name-modified", node.ID)
-		resp := modifyNode(args)
+		err := msg.FillContent(args)
+		convey.So(err, convey.ShouldBeNil)
+		resp := modifyNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorNodeMrgDuplicate)
 	})
 
@@ -391,7 +421,9 @@ func testModifyNodeErr() {
     			"nodeName": "%s",
     			"nodeID": %d
 			}`, node.NodeName, node.ID)
-		resp := modifyNode(args)
+		err := msg.FillContent(args)
+		convey.So(err, convey.ShouldBeNil)
+		resp := modifyNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorModifyNode)
 	})
 }
@@ -403,7 +435,10 @@ func TestGetNodeStatistics(t *testing.T) {
 
 func testGetNodeStatistics() {
 	convey.Convey("normal input", func() {
-		resp := getNodeStatistics(``)
+		msg := model.Message{}
+		err := msg.FillContent(``)
+		convey.So(err, convey.ShouldBeNil)
+		resp := getNodeStatistics(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
 	})
 }
@@ -415,7 +450,10 @@ func testGetNodeStatisticsErr() {
 			return nil, test.ErrTest
 		})
 	defer p1.Reset()
-	resp := getNodeStatistics(``)
+	msg := model.Message{}
+	err := msg.FillContent(``)
+	convey.So(err, convey.ShouldBeNil)
+	resp := getNodeStatistics(&msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorCountNodeByStatus)
 }
 
@@ -457,7 +495,10 @@ func testAddUnManagedNode() {
 		p := gomonkey.ApplyFuncReturn(checkNodeBeforeAddToGroup, nil).
 			ApplyFuncReturn(getRequestItemsOfAddGroup, nil, int64(0), nil)
 		defer p.Reset()
-		resp := addUnManagedNode(args)
+		msg := model.Message{}
+		err := msg.FillContent(args)
+		convey.So(err, convey.ShouldBeNil)
+		resp := addUnManagedNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
 		node.IsManaged = true
 		convey.So(env.verifyDbNodeInfo(node, "CreatedAt", "UpdatedAt"), convey.ShouldBeNil)
@@ -466,8 +507,8 @@ func testAddUnManagedNode() {
 	})
 }
 
-func testAddUnManagedNodeErr() {
-	node := &NodeInfo{
+func getTestNodeInfo() *NodeInfo {
+	return &NodeInfo{
 		Description:  "test-node-description-5-#{random}",
 		NodeName:     "test-node-name-5-#{random}",
 		UniqueName:   "test-node-unique-name-5-#{random}",
@@ -477,13 +518,19 @@ func testAddUnManagedNodeErr() {
 		CreatedAt:    time.Now().Format(TimeFormat),
 		UpdatedAt:    time.Now().Format(TimeFormat),
 	}
+}
+
+func testAddUnManagedNodeErr() {
+	node := getTestNodeInfo()
 	env.randomize(node)
 	res := env.createNode(node)
 	convey.So(res, convey.ShouldBeNil)
+	msg := model.Message{}
 
 	convey.Convey("input error", func() {
-		args := ``
-		resp := addUnManagedNode(args)
+		err := msg.FillContent("")
+		convey.So(err, convey.ShouldBeNil)
+		resp := addUnManagedNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
 	})
 
@@ -494,7 +541,9 @@ func testAddUnManagedNodeErr() {
             "groupIDs": [],
             "nodeID": %d
 			}`, node.Description, node.ID)
-		resp := addUnManagedNode(args)
+		err := msg.FillContent(args)
+		convey.So(err, convey.ShouldBeNil)
+		resp := addUnManagedNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 	})
 
@@ -504,7 +553,9 @@ func testAddUnManagedNodeErr() {
             "description": "%s",
             "nodeID": %d
 			}`, node.NodeName, node.Description, uint64(20))
-		resp := addUnManagedNode(args)
+		err := msg.FillContent(args)
+		convey.So(err, convey.ShouldBeNil)
+		resp := addUnManagedNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorAddUnManagedNode)
 	})
 
@@ -515,7 +566,9 @@ func testAddUnManagedNodeErr() {
 			"groupIDs": [],
             "nodeID": %d
 			}`, node.NodeName, node.Description, node.ID)
-		resp := addUnManagedNode(args)
+		err := msg.FillContent(args)
+		convey.So(err, convey.ShouldBeNil)
+		resp := addUnManagedNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
 	})
 }
@@ -532,26 +585,34 @@ func TestListManagedAndUnmanagedNode(t *testing.T) {
 func testListManagedAndUnmanagedNode() {
 	convey.Convey("normal input", func() {
 		args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
-		resp := listManagedNode(args)
+		msg := model.Message{}
+		err := msg.FillContent(args)
+		convey.So(err, convey.ShouldBeNil)
+		resp := listManagedNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
-		resp = listUnmanagedNode(args)
+		resp = listUnmanagedNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
 	})
 }
 
 func testListManagedAndUnmanagedErrInput() {
-	args := ""
-	resp := listManagedNode(args)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
-	resp = listUnmanagedNode(args)
+	msg := model.Message{}
+	err := msg.FillContent("")
+	convey.So(err, convey.ShouldBeNil)
+	resp := listManagedNode(&msg)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
+	resp = listUnmanagedNode(&msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
 }
 
 func testListManagedAndUnmanagedErrParam() {
 	args := types.ListReq{PageNum: 1, PageSize: errPageSize}
-	resp := listManagedNode(args)
+	msg := model.Message{}
+	err := msg.FillContent(args)
+	convey.So(err, convey.ShouldBeNil)
+	resp := listManagedNode(&msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
-	resp = listUnmanagedNode(args)
+	resp = listUnmanagedNode(&msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 }
 
@@ -563,14 +624,20 @@ func testListManagedAndUnmanagedErrCount() {
 		})
 	defer p1.Reset()
 	args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
-	resp := listManagedNode(args)
+	msg := model.Message{}
+	err := msg.FillContent(args)
+	convey.So(err, convey.ShouldBeNil)
+	resp := listManagedNode(&msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorListNode)
-	resp = listUnmanagedNode(args)
+	resp = listUnmanagedNode(&msg)
 	convey.So(resp.Msg, convey.ShouldEqual, "count node failed")
 }
 
 func testListManagedAndUnmanagedErrList() {
 	args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
+	msg := model.Message{}
+	err := msg.FillContent(args)
+	convey.So(err, convey.ShouldBeNil)
 
 	var c1 *NodeServiceImpl
 	var p1 = gomonkey.ApplyPrivateMethod(reflect.TypeOf(c1), "listManagedNodesByName",
@@ -579,7 +646,7 @@ func testListManagedAndUnmanagedErrList() {
 		})
 	defer p1.Reset()
 
-	resp := listManagedNode(args)
+	resp := listManagedNode(&msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorListNode)
 
 	var c2 *NodeServiceImpl
@@ -588,7 +655,7 @@ func testListManagedAndUnmanagedErrList() {
 			return nil, test.ErrTest
 		})
 	defer p2.Reset()
-	resp = listUnmanagedNode(args)
+	resp = listUnmanagedNode(&msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorListUnManagedNode)
 }
 
@@ -601,7 +668,10 @@ func testListManagedNodeErrEvalNodeGroup() {
 			})
 		defer p1.Reset()
 		args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
-		resp := listManagedNode(args)
+		msg := model.Message{}
+		err := msg.FillContent(args)
+		convey.So(err, convey.ShouldBeNil)
+		resp := listManagedNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorListNode)
 	})
 }
@@ -618,20 +688,28 @@ func TestListNode(t *testing.T) {
 func testListNode() {
 	convey.Convey("normal input", func() {
 		args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
-		resp := listNode(args)
+		msg := model.Message{}
+		err := msg.FillContent(args)
+		convey.So(err, convey.ShouldBeNil)
+		resp := listNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
 	})
 }
 
 func testListNodeErrInput() {
-	args := ""
-	resp := listNode(args)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
+	msg := model.Message{}
+	err := msg.FillContent("")
+	convey.So(err, convey.ShouldBeNil)
+	resp := listNode(&msg)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
 }
 
 func testListNodeErrParam() {
 	args := types.ListReq{PageNum: 1, PageSize: errPageSize}
-	resp := listNode(args)
+	msg := model.Message{}
+	err := msg.FillContent(args)
+	convey.So(err, convey.ShouldBeNil)
+	resp := listNode(&msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 }
 
@@ -643,7 +721,10 @@ func testListNodeErrCount() {
 		})
 	defer p1.Reset()
 	args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
-	resp := listNode(args)
+	msg := model.Message{}
+	err := msg.FillContent(args)
+	convey.So(err, convey.ShouldBeNil)
+	resp := listNode(&msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorListNode)
 }
 
@@ -655,7 +736,10 @@ func testListNodeErrList() {
 		})
 	defer p1.Reset()
 	args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
-	resp := listNode(args)
+	msg := model.Message{}
+	err := msg.FillContent(args)
+	convey.So(err, convey.ShouldBeNil)
+	resp := listNode(&msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorListNode)
 }
 
@@ -668,7 +752,10 @@ func testListNodeErrEvalNodeGroup() {
 			})
 		defer p1.Reset()
 		args := types.ListReq{PageNum: 1, PageSize: defaultPageSize}
-		resp := listNode(args)
+		msg := model.Message{}
+		err := msg.FillContent(args)
+		convey.So(err, convey.ShouldBeNil)
+		resp := listNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorListNode)
 	})
 }
@@ -698,7 +785,10 @@ func testBatchDeleteNode() {
 
 	convey.Convey("normal input", func() {
 		args := fmt.Sprintf(`{"nodeIDs": [%d]}`, node.ID)
-		resp := batchDeleteNode(args)
+		msg := model.Message{}
+		err := msg.FillContent(args)
+		convey.So(err, convey.ShouldBeNil)
+		resp := batchDeleteNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
 		verifyRes := env.verifyDbNodeInfo(node)
 		convey.So(verifyRes, convey.ShouldNotEqual, "record not found")
@@ -706,21 +796,28 @@ func testBatchDeleteNode() {
 }
 
 func testBatchDeleteNodeErr() {
+	msg := model.Message{}
+
 	convey.Convey("empty request", func() {
-		args := ``
-		resp := batchDeleteNode(args)
+		err := msg.FillContent("")
+		convey.So(err, convey.ShouldBeNil)
+		resp := batchDeleteNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
 	})
 
 	convey.Convey("param error", func() {
 		args := `{"nodeIDs": []}`
-		resp := batchDeleteNode(args)
+		err := msg.FillContent(args)
+		convey.So(err, convey.ShouldBeNil)
+		resp := batchDeleteNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 	})
 
 	convey.Convey("delete node id error", func() {
 		args := `{"nodeIDs": [20]}`
-		resp := batchDeleteNode(args)
+		err := msg.FillContent(args)
+		convey.So(err, convey.ShouldBeNil)
+		resp := batchDeleteNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorDeleteNode)
 	})
 }
@@ -750,7 +847,10 @@ func testDeleteUnManagedNode() {
 
 	convey.Convey("normal input", func() {
 		args := fmt.Sprintf(`{"nodeIDs": [%d]}`, node.ID)
-		resp := deleteUnManagedNode(args)
+		msg := model.Message{}
+		err := msg.FillContent(args)
+		convey.So(err, convey.ShouldBeNil)
+		resp := deleteUnManagedNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
 		verifyRes := env.verifyDbNodeInfo(node)
 		convey.So(verifyRes, convey.ShouldNotEqual, "record not found")
@@ -758,21 +858,27 @@ func testDeleteUnManagedNode() {
 }
 
 func testDeleteUnManagedNodeErr() {
+	msg := model.Message{}
 	convey.Convey("empty request", func() {
-		args := ``
-		resp := deleteUnManagedNode(args)
+		err := msg.FillContent("")
+		convey.So(err, convey.ShouldBeNil)
+		resp := deleteUnManagedNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
 	})
 
 	convey.Convey("param error", func() {
 		args := `{"nodeIDs": []}`
-		resp := deleteUnManagedNode(args)
+		err := msg.FillContent(args)
+		convey.So(err, convey.ShouldBeNil)
+		resp := deleteUnManagedNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 	})
 
 	convey.Convey("delete node id error", func() {
 		args := `{"nodeIDs": [20]}`
-		resp := deleteUnManagedNode(args)
+		err := msg.FillContent(args)
+		convey.So(err, convey.ShouldBeNil)
+		resp := deleteUnManagedNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorDeleteNode)
 	})
 }
@@ -808,11 +914,11 @@ func testUpdateNodeSoftwareInfo() {
 	if err != nil {
 		fmt.Printf("marshal req failed, error: %v", err)
 	}
-	msg, err := model.NewMessage()
+	msg := model.Message{}
+	err = msg.FillContent(reqByte)
 	convey.So(err, convey.ShouldBeNil)
-	msg.Content = string(reqByte)
 	msg.SetPeerInfo(model.MsgPeerInfo{Sn: "test-update-node-software-info-2-serial-number"})
-	resp := updateNodeSoftwareInfo(msg)
+	resp := updateNodeSoftwareInfo(&msg)
 	convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
 
 	res := env.createNode(node)
@@ -826,11 +932,11 @@ func testUpdateNodeSoftwareInfo() {
 	if err != nil {
 		fmt.Printf("marshal req failed, error: %v", err)
 	}
-	msg, err = model.NewMessage()
 	convey.So(err, convey.ShouldBeNil)
-	msg.Content = string(reqByte)
+	err = msg.FillContent(reqByte)
+	convey.So(err, convey.ShouldBeNil)
 	msg.SetPeerInfo(model.MsgPeerInfo{Sn: node.SerialNumber})
-	resp = updateNodeSoftwareInfo(msg)
+	resp = updateNodeSoftwareInfo(&msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
@@ -861,21 +967,21 @@ func getUpdateNodeSftErrReqMsg() *model.Message {
 	if err != nil {
 		fmt.Printf("marshal req failed, error: %v", err)
 	}
-	msg, err := model.NewMessage()
-	convey.So(err, convey.ShouldBeNil)
+	msg := model.Message{}
 	msg.SetPeerInfo(model.MsgPeerInfo{
 		Sn: node.SerialNumber,
 	})
-	msg.Content = string(reqByte)
-	return msg
+	err = msg.FillContent(reqByte)
+	convey.So(err, convey.ShouldBeNil)
+	return &msg
 }
 
 func testUpdateNodeSoftwareInfoErr() {
 	convey.Convey("empty request", func() {
-		msg, err := model.NewMessage()
+		msg := model.Message{}
+		err := msg.FillContent("")
 		convey.So(err, convey.ShouldBeNil)
-		msg.Content = ""
-		resp := updateNodeSoftwareInfo(msg)
+		resp := updateNodeSoftwareInfo(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
 	})
 

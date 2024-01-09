@@ -47,29 +47,24 @@ func ClearSliceByteMemory(sliceByte []byte) {
 func SendSyncMessageByRestful(input interface{}, router *Router, timeout time.Duration) RespMsg {
 	msg, err := model.NewMessage()
 	if err != nil {
-		hwlog.RunLog.Error("new message error")
+		hwlog.RunLog.Errorf("new message error: %v", err)
 		return RespMsg{Status: ErrorsSendSyncMessageByRestful, Msg: "", Data: nil}
 	}
 
 	msg.SetRouter(router.Source, router.Destination, router.Option, router.Resource)
-	msg.FillContent(input)
+	if err = msg.FillContent(input); err != nil {
+		hwlog.RunLog.Errorf("fill content failed: %v", err)
+		return RespMsg{Status: ErrorsSendSyncMessageByRestful, Msg: "", Data: nil}
+	}
 
 	respMsg, err := modulemgr.SendSyncMessage(msg, timeout)
 	if err != nil {
-		hwlog.RunLog.Error("get response error")
+		hwlog.RunLog.Errorf("get response error: %v", err)
 		return RespMsg{Status: ErrorsSendSyncMessageByRestful, Msg: "", Data: nil}
 	}
-	return marshalResponse(respMsg)
-}
-
-func marshalResponse(respMsg *model.Message) RespMsg {
-	content := respMsg.GetContent()
-	respStr, err := json.Marshal(content)
-	if err != nil {
-		return RespMsg{Status: ErrorGetResponse, Msg: "", Data: nil}
-	}
 	var resp RespMsg
-	if err := json.Unmarshal(respStr, &resp); err != nil {
+	if err = respMsg.ParseContent(&resp); err != nil {
+		hwlog.RunLog.Errorf("parse content failed: %v", err)
 		return RespMsg{Status: ErrorGetResponse, Msg: "", Data: nil}
 	}
 	return resp

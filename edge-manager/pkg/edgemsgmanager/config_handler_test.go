@@ -22,7 +22,6 @@ import (
 func TestGetConfigInfo(t *testing.T) {
 	convey.Convey("test get config info token should be success", t, testGetConfigInfo)
 	convey.Convey("test get config info token should be failed, invalid input", t, testGetConfigInfoErrInput)
-	convey.Convey("test get config info token should be failed, invalid param", t, testGetConfigInfoErrParam)
 	convey.Convey("test get config info token should be failed, invalid config type", t, testGetConfigInfoErrConfigType)
 	convey.Convey("test get config info token should be failed, send async msg error", t, testGetConfigInfoErrSendAsyncMsg)
 }
@@ -32,7 +31,8 @@ func testGetConfigInfo() {
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
 	}
-	msg.FillContent("cloud-core-token")
+	err = msg.FillContent("cloud-core-token")
+	convey.So(err, convey.ShouldBeNil)
 
 	outputsGetToken := []gomonkey.OutputCell{
 		{Values: gomonkey.Params{[]byte("SwyHTEx_RQppr97g4J5lKXtabJecpejuef8AqKYMAJc"), nil}},
@@ -60,7 +60,8 @@ func testGetConfigInfo() {
 	var p3 = gomonkey.ApplyMethodSeq(c, "GetCloudCoreCa", outputs)
 	defer p3.Reset()
 
-	msg.FillContent("cloud-core-ca")
+	err = msg.FillContent("cloud-core-ca")
+	convey.So(err, convey.ShouldBeNil)
 	resp = GetConfigInfo(msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 	resp = GetConfigInfo(msg)
@@ -68,18 +69,11 @@ func testGetConfigInfo() {
 }
 
 func testGetConfigInfoErrInput() {
-	resp := GetConfigInfo("error message")
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
-}
-
-func testGetConfigInfoErrParam() {
-	msg, err := model.NewMessage()
-	if err != nil {
-		hwlog.RunLog.Errorf("create message failed, error: %v", err)
-	}
-	msg.FillContent([]byte{})
-	resp := GetConfigInfo(msg)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
+	msg := model.Message{}
+	err := msg.FillContent("error message")
+	convey.So(err, convey.ShouldBeNil)
+	resp := GetConfigInfo(&msg)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorGetConfigData)
 }
 
 func testGetConfigInfoErrConfigType() {
@@ -87,7 +81,8 @@ func testGetConfigInfoErrConfigType() {
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
 	}
-	msg.FillContent("cloud-core-tokenken")
+	err = msg.FillContent("cloud-core-tokenken")
+	convey.So(err, convey.ShouldBeNil)
 
 	var c *kubeclient.Client
 	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "GetToken",
@@ -111,7 +106,8 @@ func testGetConfigInfoErrSendAsyncMsg() {
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
 	}
-	msg.FillContent("cloud-core-token")
+	err = msg.FillContent("cloud-core-token")
+	convey.So(err, convey.ShouldBeNil)
 
 	var c *kubeclient.Client
 	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "GetToken",
