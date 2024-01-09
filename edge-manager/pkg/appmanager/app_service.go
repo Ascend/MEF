@@ -12,6 +12,7 @@ import (
 
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr/model"
 
 	"edge-manager/pkg/appmanager/appchecker"
 	"edge-manager/pkg/config"
@@ -24,12 +25,13 @@ import (
 )
 
 // createApp Create application
-func createApp(input interface{}) common.RespMsg {
+func createApp(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start create app")
 
 	var req CreateAppReq
-	if err := common.ParamConvert(input, &req); err != nil {
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
+	if err := msg.ParseContent(&req); err != nil {
+		hwlog.RunLog.Errorf("parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 
 	if checkResult := appchecker.NewCreateAppChecker().Check(req); !checkResult.Result {
@@ -71,13 +73,13 @@ func createApp(input interface{}) common.RespMsg {
 }
 
 // queryApp app info
-func queryApp(input interface{}) common.RespMsg {
+func queryApp(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start query app info")
 
-	appId, ok := input.(uint64)
-	if !ok {
-		hwlog.RunLog.Error("query app info failed: para type not valid")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "query app request convert error", Data: nil}
+	var appId uint64
+	if err := msg.ParseContent(&appId); err != nil {
+		hwlog.RunLog.Errorf("query app info failed: parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 
 	if checkResult := appchecker.IdChecker().Check(appId); !checkResult.Result {
@@ -120,13 +122,13 @@ func queryApp(input interface{}) common.RespMsg {
 }
 
 // listAppInfo get appInfo list
-func listAppInfo(input interface{}) common.RespMsg {
+func listAppInfo(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Infof("start list app infos")
 
-	req, ok := input.(types.ListReq)
-	if !ok {
-		hwlog.RunLog.Error("get apps Infos list failed: para type is invalid")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "", Data: nil}
+	var req types.ListReq
+	if err := msg.ParseContent(&req); err != nil {
+		hwlog.RunLog.Errorf("get apps Infos list failed: parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 
 	if checkResult := util.NewPaginationQueryChecker().Check(req); !checkResult.Result {
@@ -203,12 +205,13 @@ func getNodeGroupInfoList(appId uint64) ([]types.NodeGroupInfo, error) {
 }
 
 // deployApp deploy application on node group
-func deployApp(input interface{}) common.RespMsg {
+func deployApp(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start deploy app")
 
 	var req DeployAppReq
-	if err := common.ParamConvert(input, &req); err != nil {
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
+	if err := msg.ParseContent(&req); err != nil {
+		hwlog.RunLog.Errorf("parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 
 	if checkResult := appchecker.NewDeployAppChecker().Check(req); !checkResult.Result {
@@ -319,12 +322,13 @@ func preCheckForDeployApp(appId, nodeGroupId uint64) error {
 }
 
 // unDeployApp deploy application on node group
-func unDeployApp(input interface{}) common.RespMsg {
+func unDeployApp(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start unDeploy app")
 
 	var req UndeployAppReq
-	if err := common.ParamConvert(input, &req); err != nil {
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
+	if err := msg.ParseContent(&req); err != nil {
+		hwlog.RunLog.Errorf("parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 
 	if checkResult := appchecker.NewUndeployAppChecker().Check(req); !checkResult.Result {
@@ -441,13 +445,14 @@ func modifyContainerPara(req *UpdateAppReq, appInfo *AppInfo) error {
 }
 
 // updateApp update application
-func updateApp(input interface{}) common.RespMsg {
+func updateApp(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start update app")
 
 	var req UpdateAppReq
 	var err error
-	if err = common.ParamConvert(input, &req); err != nil {
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
+	if err = msg.ParseContent(&req); err != nil {
+		hwlog.RunLog.Errorf("parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 
 	if checkResult := appchecker.NewUpdateAppChecker().Check(req); !checkResult.Result {
@@ -484,12 +489,13 @@ func updateApp(input interface{}) common.RespMsg {
 }
 
 // deleteApp delete application by appName
-func deleteApp(input interface{}) common.RespMsg {
+func deleteApp(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start delete app")
 
 	var req DeleteAppReq
-	if err := common.ParamConvert(input, &req); err != nil {
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
+	if err := msg.ParseContent(&req); err != nil {
+		hwlog.RunLog.Errorf("parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 
 	if checkResult := appchecker.NewDeleteAppChecker().Check(req); !checkResult.Result {
@@ -533,14 +539,13 @@ func deleteApp(input interface{}) common.RespMsg {
 }
 
 // listAppInstancesById get deployed apps' list
-func listAppInstancesById(input interface{}) common.RespMsg {
+func listAppInstancesById(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start list app instances by id")
 
 	var appId uint64
-	appId, ok := input.(uint64)
-	if !ok {
-		hwlog.RunLog.Error("list app instances failed, param type is not integer")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "param type is not integer", Data: nil}
+	if err := msg.ParseContent(&appId); err != nil {
+		hwlog.RunLog.Errorf("list app instances failed, parse param failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse param failed", Data: nil}
 	}
 	if checkResult := appchecker.IdChecker().Check(appId); !checkResult.Result {
 		hwlog.RunLog.Errorf("list app instances failed: %s", checkResult.Reason)
@@ -608,14 +613,13 @@ func getAppInstanceRespFromAppInstances(appInstances []AppInstance) ([]AppInstan
 }
 
 // listAppInstancesByNode get deployed apps' list of a certain node
-func listAppInstancesByNode(input interface{}) common.RespMsg {
+func listAppInstancesByNode(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start list app instances by node id")
 
 	var nodeId uint64
-	nodeId, ok := input.(uint64)
-	if !ok {
-		hwlog.RunLog.Error("list app instances by node id failed, param type is not integer")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "param type is not integer", Data: nil}
+	if err := msg.ParseContent(&nodeId); err != nil {
+		hwlog.RunLog.Errorf("list app instances by node id failed, parse param failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse param failed", Data: nil}
 	}
 	if checkResult := appchecker.IdChecker().Check(nodeId); !checkResult.Result {
 		hwlog.RunLog.Errorf("list app instances by node failed: %s", checkResult.Reason)
@@ -640,13 +644,13 @@ func listAppInstancesByNode(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
-func listAppInstances(input interface{}) common.RespMsg {
+func listAppInstances(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start to list all app instances")
 
-	req, ok := input.(types.ListReq)
-	if !ok {
-		hwlog.RunLog.Error("list all app instances failed: para type is invalid")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "para type is invalid", Data: nil}
+	var req types.ListReq
+	if err := msg.ParseContent(&req); err != nil {
+		hwlog.RunLog.Errorf("list all app instances failed: parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 	if checkResult := util.NewPaginationQueryChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("list all app instances failed: %s", checkResult.Reason)

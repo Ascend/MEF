@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr/model"
 
 	"edge-manager/pkg/types"
 	"edge-manager/pkg/util"
@@ -18,12 +19,12 @@ import (
 	"huawei.com/mindxedge/base/common/logmgmt"
 )
 
-func createNodeGroup(input interface{}) common.RespMsg {
+func createNodeGroup(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start create node group")
 	var req CreateNodeGroupReq
-	if err := common.ParamConvert(input, &req); err != nil {
+	if err := msg.ParseContent(&req); err != nil {
 		hwlog.RunLog.Errorf("create node group convert request error, %s", err.Error())
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 	if checkResult := newCreateGroupChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("create node group validate parameters error, %s", checkResult.Reason)
@@ -53,11 +54,12 @@ func createNodeGroup(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: group.ID}
 }
 
-func listNodeGroup(input interface{}) common.RespMsg {
+func listNodeGroup(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start list node group")
-	req, ok := input.(types.ListReq)
-	if !ok {
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "convert list request error"}
+	var req types.ListReq
+	if err := msg.ParseContent(&req); err != nil {
+		hwlog.RunLog.Errorf("list node group parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed"}
 	}
 	if checkResult := util.NewPaginationQueryChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("list node group para check failed: %s", checkResult.Reason)
@@ -91,12 +93,12 @@ func listNodeGroup(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
-func getNodeGroupDetail(input interface{}) common.RespMsg {
+func getNodeGroupDetail(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start get node group detail")
-	id, ok := input.(uint64)
-	if !ok {
-		hwlog.RunLog.Error("get node group detail convert request error")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "convert node detail input failed"}
+	var id uint64
+	if err := msg.ParseContent(&id); err != nil {
+		hwlog.RunLog.Errorf("get node group detail parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed"}
 	}
 	if checkResult := idChecker("").Check(id); !checkResult.Result {
 		hwlog.RunLog.Errorf("get node group detail para check failed: %s", checkResult.Reason)
@@ -132,12 +134,12 @@ func getNodeGroupDetail(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
-func modifyNodeGroup(input interface{}) common.RespMsg {
+func modifyNodeGroup(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start modify node group")
 	var req ModifyNodeGroupReq
-	if err := common.ParamConvert(input, &req); err != nil {
+	if err := msg.ParseContent(&req); err != nil {
 		hwlog.RunLog.Errorf("modify node group convert request error, %s", err.Error())
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "convert modify node group request error"}
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed"}
 	}
 	if checkResult := newModifyGroupChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("modify node group check parameters failed, %s", checkResult.Reason)
@@ -166,7 +168,7 @@ func modifyNodeGroup(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
-func getNodeGroupStatistics(input interface{}) common.RespMsg {
+func getNodeGroupStatistics(*model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start get node group statistics")
 	total, err := GetTableCount(NodeGroup{})
 	if err != nil {
@@ -177,12 +179,12 @@ func getNodeGroupStatistics(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: total}
 }
 
-func batchDeleteNodeGroup(input interface{}) common.RespMsg {
+func batchDeleteNodeGroup(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start batch delete node group")
 	var req BatchDeleteNodeGroupReq
-	if err := common.ParamConvert(input, &req); err != nil {
+	if err := msg.ParseContent(&req); err != nil {
 		hwlog.RunLog.Errorf("batch delete node group convert request error, %s", err)
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 	if checkResult := newBatchDeleteGroupChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("batch delete node group check parameters failed, %s", checkResult.Reason)

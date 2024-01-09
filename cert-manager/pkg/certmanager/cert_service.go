@@ -16,6 +16,7 @@ import (
 	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/utils"
 	"huawei.com/mindx/common/x509"
 	"huawei.com/mindx/common/x509/certutils"
@@ -34,11 +35,11 @@ const (
 
 var caLock sync.Mutex
 
-func queryRootCa(input interface{}) common.RespMsg {
-	certName, ok := input.(string)
-	if !ok {
-		hwlog.RunLog.Error("query cert info failed: para type not valid")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "query cert info request convert error", Data: nil}
+func queryRootCa(msg *model.Message) common.RespMsg {
+	var certName string
+	if err := msg.ParseContent(&certName); err != nil {
+		hwlog.RunLog.Errorf("query cert info failed: parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 	if err := certchecker.CheckCertName(certName); err != nil {
 		hwlog.RunLog.Error("the cert name not support")
@@ -73,10 +74,11 @@ func queryRootCa(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "query ca success", Data: string(ca)}
 }
 
-func issueServiceCa(input interface{}) common.RespMsg {
+func issueServiceCa(msg *model.Message) common.RespMsg {
 	var csrJsonData csrJson
-	if err := common.ParamConvert(input, &csrJsonData); err != nil {
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
+	if err := msg.ParseContent(&csrJsonData); err != nil {
+		hwlog.RunLog.Errorf("parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 	if checkResult := certchecker.NewIssueCertChecker().Check(csrJsonData); !checkResult.Result {
 		hwlog.RunLog.Errorf("cert issue para check failed: %s", checkResult.Reason)
@@ -91,16 +93,11 @@ func issueServiceCa(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "issue success", Data: string(cert)}
 }
 
-func certsUpdateResult(input interface{}) common.RespMsg {
+func certsUpdateResult(msg *model.Message) common.RespMsg {
 	var result certUpdateResult
-	data, ok := input.(string)
-	if !ok {
-		hwlog.RunLog.Errorf("message content type error")
-		return common.RespMsg{Status: common.ErrorContentTypeError, Msg: common.ErrorMap[common.ErrorContentTypeError]}
-	}
-	if err := json.Unmarshal([]byte(data), &result); err != nil {
-		errMsg := fmt.Sprintf("unmarshal json bytes error: %v", err)
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: errMsg}
+	if err := msg.ParseContent(&result); err != nil {
+		hwlog.RunLog.Errorf("parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed"}
 	}
 	switch result.CertType {
 	case CertTypeEdgeCa:
@@ -120,13 +117,14 @@ func certsUpdateResult(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: ""}
 }
 
-func importRootCa(input interface{}) common.RespMsg {
+func importRootCa(msg *model.Message) common.RespMsg {
 	caLock.Lock()
 	defer caLock.Unlock()
 	hwlog.RunLog.Info("import cert item start")
 	var req importCertReq
-	if err := common.ParamConvert(input, &req); err != nil {
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
+	if err := msg.ParseContent(&req); err != nil {
+		hwlog.RunLog.Errorf("parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 	if checkResult := certchecker.NewImportCertChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("cert import para check failed: %s", checkResult.Reason)
@@ -155,13 +153,14 @@ func importRootCa(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "import certificate success", Data: nil}
 }
 
-func deleteRootCa(input interface{}) common.RespMsg {
+func deleteRootCa(msg *model.Message) common.RespMsg {
 	caLock.Lock()
 	defer caLock.Unlock()
 	hwlog.RunLog.Info("import the cert item start")
 	var req deleteCaReq
-	if err := common.ParamConvert(input, &req); err != nil {
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
+	if err := msg.ParseContent(&req); err != nil {
+		hwlog.RunLog.Errorf("parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 	if checkResult := certchecker.NewDeleteCertChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("cert delete para check failed: %s", checkResult.Reason)
@@ -182,11 +181,11 @@ func deleteRootCa(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "delete ca file success", Data: nil}
 }
 
-func getCertInfo(input interface{}) common.RespMsg {
-	certName, ok := input.(string)
-	if !ok {
-		hwlog.RunLog.Error("get cert info failed: para type not valid")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "request convert error"}
+func getCertInfo(msg *model.Message) common.RespMsg {
+	var certName string
+	if err := msg.ParseContent(&certName); err != nil {
+		hwlog.RunLog.Errorf("get cert info failed: parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed"}
 	}
 	if !certchecker.CheckIfCanGetInfo(certName) {
 		hwlog.RunLog.Error("the cert name not support")
@@ -232,13 +231,14 @@ func parseNorthernRootCa(caBytes []byte) (interface{}, error) {
 	return infos, nil
 }
 
-func importCrl(input interface{}) common.RespMsg {
+func importCrl(msg *model.Message) common.RespMsg {
 	caLock.Lock()
 	defer caLock.Unlock()
 	hwlog.RunLog.Info("start to import the crl")
 	var req importCrlReq
-	if err := common.ParamConvert(input, &req); err != nil {
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error()}
+	if err := msg.ParseContent(&req); err != nil {
+		hwlog.RunLog.Errorf("parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed"}
 	}
 	if checkResult := certchecker.NewImportCrlChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("import crl para check failed: %s", checkResult.Reason)
@@ -280,11 +280,11 @@ func saveCrlContentWithBackup(crlName string, crlContent []byte) error {
 	return nil
 }
 
-func queryCrl(input interface{}) common.RespMsg {
-	crlName, ok := input.(string)
-	if !ok {
-		hwlog.RunLog.Error("query crl info failed: para type not valid")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "query crl info request convert error", Data: nil}
+func queryCrl(msg *model.Message) common.RespMsg {
+	var crlName string
+	if err := msg.ParseContent(&crlName); err != nil {
+		hwlog.RunLog.Errorf("query crl info failed: parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 	if crlName != common.NorthernCertName {
 		hwlog.RunLog.Error("the crl name not support")
@@ -324,7 +324,7 @@ func checkCrlWithBackup(path string) error {
 	return err
 }
 
-func getImportedCertsInfo(input interface{}) common.RespMsg {
+func getImportedCertsInfo(*model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start to get imported certs info")
 	resp := requests.ImportedCertsInfo{}
 

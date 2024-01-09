@@ -18,7 +18,6 @@ import (
 
 func TestUpdateEdgeDownloadProgress(t *testing.T) {
 	convey.Convey("test report download progress should be success", t, testUpdateEdgeDownloadProgress)
-	convey.Convey("test report download progress should be failed, invalid input", t, testSoftwareReportErrInput)
 	convey.Convey("test report download progress should be failed, invalid param", t, testSoftwareReportErrParam)
 }
 
@@ -38,24 +37,15 @@ func testUpdateEdgeDownloadProgress() {
 		hwlog.RunLog.Errorf("unmarshal failed, error: %v", err)
 		return
 	}
-	content, err := json.Marshal(req)
-	if err != nil {
-		hwlog.RunLog.Errorf("marshal failed, error: %v", err)
-	}
 
 	msg, err := model.NewMessage()
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
 	}
-	msg.FillContent(string(content))
+	err = msg.FillContent(req)
+	convey.So(err, convey.ShouldBeNil)
 	resp := UpdateEdgeDownloadProgress(msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
-}
-
-func testSoftwareReportErrInput() {
-	req := createDownloadSfwBaseData()
-	resp := UpdateEdgeDownloadProgress(req)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
 }
 
 func testSoftwareReportErrParam() {
@@ -63,7 +53,8 @@ func testSoftwareReportErrParam() {
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
 	}
-	msg.FillContent(common.OK)
+	err = msg.FillContent(common.OK)
+	convey.So(err, convey.ShouldBeNil)
 	resp := UpdateEdgeDownloadProgress(msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
 }

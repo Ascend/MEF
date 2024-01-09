@@ -15,8 +15,6 @@ import (
 
 func TestProgressQueryPara(t *testing.T) {
 	convey.Convey("test progress query info should be success", t, testProgressQuery)
-	convey.Convey("test progress query info should be failed, invalid input", t, testProgressQueryErrInput)
-	convey.Convey("test progress query info should be failed, invalid content", t, testProgressQueryErrContent)
 	convey.Convey("test progress query info should be failed, invalid param", t, testProgressQueryErrParam)
 }
 
@@ -28,26 +26,11 @@ func testProgressQuery() {
 
 	dataCases := []string{"2102312NSF10K8000130"}
 	for _, dataCase := range dataCases {
-		msg.FillContent(dataCase)
+		err = msg.FillContent(dataCase)
+		convey.So(err, convey.ShouldBeNil)
 		resp := queryEdgeDownloadProgress(msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
 	}
-}
-
-func testProgressQueryErrInput() {
-	req := createDownloadSfwBaseData()
-	resp := queryEdgeDownloadProgress(req)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
-}
-
-func testProgressQueryErrContent() {
-	msg, err := model.NewMessage()
-	if err != nil {
-		hwlog.RunLog.Errorf("create message failed, error: %v", err)
-	}
-	msg.FillContent([]byte{})
-	resp := queryEdgeDownloadProgress(msg)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
 }
 
 // querying software download information is also tested here
@@ -66,7 +49,8 @@ func testProgressQueryErrParam() {
 		"2102312NSF10K80001302102312NSF10K80001302102312NSF10K800013021023",
 	}
 	for _, dataCase := range dataCases {
-		msg.FillContent(dataCase)
+		err = msg.FillContent(dataCase)
+		convey.So(err, convey.ShouldBeNil)
 		resp := queryEdgeDownloadProgress(msg)
 		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
 		resp = queryEdgeSoftwareVersion(msg)

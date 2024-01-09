@@ -31,7 +31,7 @@ type createTaskHandler struct {
 
 func (h *createTaskHandler) Handle(msg *model.Message) error {
 	hwlog.RunLog.Info("start to handle task creating")
-	req, err := h.parseAndCheckArgs(msg.Content)
+	req, err := h.parseAndCheckArgs(msg)
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to parse or check arguments, %v", err)
 		return sendRestfulResponse(common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error()}, msg)
@@ -51,10 +51,11 @@ func (h *createTaskHandler) Handle(msg *model.Message) error {
 	return sendRestfulResponse(common.RespMsg{Data: CreateTaskResp{TaskId: taskId}, Status: common.Success}, msg)
 }
 
-func (h *createTaskHandler) parseAndCheckArgs(content interface{}) (CreateTaskReq, error) {
+func (h *createTaskHandler) parseAndCheckArgs(msg *model.Message) (CreateTaskReq, error) {
 	var req CreateTaskReq
-	if err := common.ParamConvert(content, &req); err != nil {
-		return CreateTaskReq{}, err
+	if err := msg.ParseContent(&req); err != nil {
+		hwlog.RunLog.Errorf("parse content failed: %v", err)
+		return CreateTaskReq{}, errors.New("parse content failed")
 	}
 	if checkResult := newCreateTaskReqChecker().Check(req); !checkResult.Result {
 		return CreateTaskReq{}, fmt.Errorf("check request failed, %s", checkResult.Reason)

@@ -36,12 +36,12 @@ var (
 	nodeNotFoundPattern = regexp.MustCompile(`nodes "([^"]+)" not found`)
 )
 
-func getNodeDetail(input interface{}) common.RespMsg {
+func getNodeDetail(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start get node detail")
-	req, ok := input.(map[string]interface{})
-	if !ok {
-		hwlog.RunLog.Error("query node detail failed: para type not valid")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "query node detail convert param failed"}
+	var req map[string]interface{}
+	if err := msg.ParseContent(&req); err != nil {
+		hwlog.RunLog.Errorf("query node detail failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed"}
 	}
 
 	var handleFunc = map[string]func(interface{}) common.RespMsg{
@@ -66,16 +66,22 @@ func getNodeDetail(input interface{}) common.RespMsg {
 		hwlog.RunLog.Error("received unsupported identifier")
 		return common.RespMsg{Status: common.ErrorGetNode, Msg: "unsupported identifier received", Data: nil}
 	}
+	value, ok := req[constants.ValueSymbol]
+	if !ok {
+		hwlog.RunLog.Errorf("received unsupported value")
+		return common.RespMsg{Status: common.ErrorGetNode, Msg: "unsupported msg value received", Data: nil}
+	}
 
-	return dealer(req[constants.ValueSymbol])
+	return dealer(value)
 }
 
 func getNodeDetailById(input interface{}) common.RespMsg {
-	id, ok := input.(uint64)
+	idFloat, ok := input.(float64)
 	if !ok {
 		hwlog.RunLog.Error("query node detail failed: id para type not valid")
 		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "query node detail convert param failed"}
 	}
+	id := uint64(idFloat)
 
 	if checkResult := newGetNodeDetailIdChecker().Check(id); !checkResult.Result {
 		hwlog.RunLog.Errorf("query node detail parameters failed, %s", checkResult.Reason)
@@ -155,12 +161,12 @@ func setNodeExtInfos(nodeInfo NodeInfoDetail) (NodeInfoDetail, error) {
 	return nodeInfo, nil
 }
 
-func modifyNode(input interface{}) common.RespMsg {
+func modifyNode(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start modify node")
 	var req ModifyNodeReq
-	if err := common.ParamConvert(input, &req); err != nil {
+	if err := msg.ParseContent(&req); err != nil {
 		hwlog.RunLog.Errorf("modify node convert request error, %s", err.Error())
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "", Data: nil}
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 	if checkResult := newModifyNodeChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("modify node check parameters failed, %s", checkResult.Reason)
@@ -183,7 +189,7 @@ func modifyNode(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
-func getNodeStatistics(interface{}) common.RespMsg {
+func getNodeStatistics(*model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start get node statistics")
 	nodes, err := NodeServiceInstance().listNodes()
 	if err != nil {
@@ -210,12 +216,12 @@ func getNodeStatistics(interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
-func listManagedNode(input interface{}) common.RespMsg {
+func listManagedNode(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start list node managed")
-	req, ok := input.(types.ListReq)
-	if !ok {
-		hwlog.RunLog.Error("list node convert request error")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "convert list request error", Data: nil}
+	var req types.ListReq
+	if err := msg.ParseContent(&req); err != nil {
+		hwlog.RunLog.Errorf("list node parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 	if checkResult := util.NewPaginationQueryChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("list node para check failed: %s", checkResult.Reason)
@@ -254,12 +260,12 @@ func listManagedNode(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
-func listUnmanagedNode(input interface{}) common.RespMsg {
+func listUnmanagedNode(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start list node unmanaged")
-	req, ok := input.(types.ListReq)
-	if !ok {
-		hwlog.RunLog.Error("list node convert request error")
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "", Data: nil}
+	var req types.ListReq
+	if err := msg.ParseContent(&req); err != nil {
+		hwlog.RunLog.Errorf("list node convert request error: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 	if checkResult := util.NewPaginationQueryChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("list unmanaged node para check failed: %s", checkResult.Reason)
@@ -293,12 +299,12 @@ func listUnmanagedNode(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.ErrorListUnManagedNode, Msg: "", Data: nil}
 }
 
-func listNode(input interface{}) common.RespMsg {
+func listNode(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start list all nodes")
-	req, ok := input.(types.ListReq)
-	if !ok {
-		hwlog.RunLog.Error("list nodes convert request error")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "convert request error", Data: nil}
+	var req types.ListReq
+	if err := msg.ParseContent(&req); err != nil {
+		hwlog.RunLog.Errorf("list nodes parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 	if checkResult := util.NewPaginationQueryChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("list nodes para check failed: %s", checkResult.Reason)
@@ -337,12 +343,12 @@ func listNode(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: resp}
 }
 
-func batchDeleteNode(input interface{}) common.RespMsg {
+func batchDeleteNode(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start delete node")
 	var req BatchDeleteNodeReq
-	if err := common.ParamConvert(input, &req); err != nil {
+	if err := msg.ParseContent(&req); err != nil {
 		hwlog.RunLog.Errorf("failed to delete node, error: %v", err)
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error()}
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed"}
 	}
 	if checkResult := newBatchDeleteNodeChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("failed to delete node, error: %v", checkResult.Reason)
@@ -407,12 +413,12 @@ func deleteSingleNode(nodeID uint64) (*NodeInfo, error) {
 	return nodeInfo, nil
 }
 
-func deleteNodeFromGroup(input interface{}) common.RespMsg {
+func deleteNodeFromGroup(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start delete node from group")
 	var req DeleteNodeToGroupReq
-	if err := common.ParamConvert(input, &req); err != nil {
+	if err := msg.ParseContent(&req); err != nil {
 		hwlog.RunLog.Errorf("failed to delete from group, error: %v", err)
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error()}
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed"}
 	}
 	if checkResult := newDeleteNodeFromGroupChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("failed to delete node from group, error: %v", checkResult.Reason)
@@ -459,12 +465,12 @@ func deleteNodeFromGroup(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Data: nil}
 }
 
-func batchDeleteNodeRelation(input interface{}) common.RespMsg {
+func batchDeleteNodeRelation(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start delete node relation")
 	var req BatchDeleteNodeRelationReq
-	if err := common.ParamConvert(input, &req); err != nil {
+	if err := msg.ParseContent(&req); err != nil {
 		hwlog.RunLog.Errorf("failed to delete node relation, error: %v", err)
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error()}
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed"}
 	}
 	if checkResult := newBatchDeleteNodeRelationChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("failed to delete node relation, error: %v", checkResult.Reason)
@@ -552,12 +558,12 @@ func evalNodeGroup(nodeID uint64) (string, error) {
 	return nodeGroupName, nil
 }
 
-func addNodeRelation(input interface{}) common.RespMsg {
+func addNodeRelation(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start add node to group")
 	var req AddNodeToGroupReq
-	if err := common.ParamConvert(input, &req); err != nil {
+	if err := msg.ParseContent(&req); err != nil {
 		hwlog.RunLog.Errorf("add node to group convert request error, %s", err.Error())
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "", Data: nil}
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 	if checkResult := newAddNodeRelationChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("failed to add node to group, error: %v", checkResult.Reason)
@@ -639,12 +645,12 @@ func getRequestItemsOfAddGroup(nodeGroup *NodeGroup) (v1.ResourceList, int64, er
 	return resReq, count, nil
 }
 
-func addUnManagedNode(input interface{}) common.RespMsg {
+func addUnManagedNode(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start add unmanaged node")
 	var req AddUnManagedNodeReq
-	if err := common.ParamConvert(input, &req); err != nil {
+	if err := msg.ParseContent(&req); err != nil {
 		hwlog.RunLog.Errorf("add unmanaged node convert request error, %s", err)
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "convert request error", Data: nil}
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 	if checkResult := newAddUnManagedNodeChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("add unmanaged node validate parameters error, %s", checkResult.Reason)
@@ -773,20 +779,14 @@ func checkNodeBeforeAddToGroup(req v1.ResourceList, addedNumber int64, nodeId ui
 	return nil
 }
 
-func updateNodeSoftwareInfo(input interface{}) common.RespMsg {
+func updateNodeSoftwareInfo(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start to update node software info")
 	const maxPayloadSize = 1024
 
-	msg, ok := input.(*model.Message)
-	if !ok {
-		hwlog.RunLog.Errorf("update node software info failed: parse msg failed")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "update node software info failed"}
-	}
-
-	inputStr, ok := msg.GetContent().(string)
-	if !ok {
-		hwlog.RunLog.Error("update node software info failed: para type not valid")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "update node software info convert param failed"}
+	var inputStr string
+	if err := msg.ParseContent(&inputStr); err != nil {
+		hwlog.RunLog.Errorf("update node software info failed: parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed"}
 	}
 
 	if len(inputStr) > maxPayloadSize {
@@ -833,12 +833,12 @@ func updateNodeSoftwareInfo(input interface{}) common.RespMsg {
 	return common.RespMsg{Status: common.Success, Msg: "", Data: nil}
 }
 
-func deleteUnManagedNode(input interface{}) common.RespMsg {
+func deleteUnManagedNode(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start delete unmanaged node")
 	var req BatchDeleteNodeReq
-	if err := common.ParamConvert(input, &req); err != nil {
+	if err := msg.ParseContent(&req); err != nil {
 		hwlog.RunLog.Errorf("failed to delete unmanaged node, error: %v", err)
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error()}
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed"}
 	}
 	if checkResult := newBatchDeleteNodeChecker().Check(req); !checkResult.Result {
 		hwlog.RunLog.Errorf("failed to delete unmanaged node, error: %v", checkResult.Reason)
@@ -878,7 +878,9 @@ func sendDeleteNodeMessageToNode(serialNumber string) error {
 	}
 	sendMsg.SetNodeId(serialNumber)
 	sendMsg.SetRouter(common.NodeManagerName, common.CloudHubName, common.Delete, common.DeleteNodeMsg)
-	sendMsg.FillContent(fmt.Sprintf("delete:%s", serialNumber))
+	if err = sendMsg.FillContent(fmt.Sprintf("delete:%s", serialNumber)); err != nil {
+		return fmt.Errorf("fill content failed: %v", err)
+	}
 	if err = modulemgr.SendMessage(sendMsg); err != nil {
 		return fmt.Errorf("%s sends message to %s failed, error: %v",
 			common.NodeManagerName, common.CloudHubName, err)

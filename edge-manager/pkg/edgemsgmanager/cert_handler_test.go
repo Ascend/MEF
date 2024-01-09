@@ -41,7 +41,6 @@ func TestGetCertInfo(t *testing.T) {
 	defer p3.Reset()
 
 	convey.Convey("test get cert info should be success", t, testGetCertInfo)
-	convey.Convey("test get cert info should be failed, invalid input", t, testGetCertInfoErrInput)
 	convey.Convey("test get cert info should be failed, invalid param", t, testGetCertInfoErrParam)
 	convey.Convey("test get cert info should be failed, invalid cert name", t, testGetCertInfoErrCertName)
 	convey.Convey("test get cert info should be failed, get root ca error", t, testGetCertInfoErrGetRootCa)
@@ -54,7 +53,8 @@ func testGetCertInfo() {
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
 	}
-	msg.FillContent(common.ImageCertName)
+	err = msg.FillContent(common.ImageCertName)
+	convey.So(err, convey.ShouldBeNil)
 
 	resp := GetCertInfo(msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
@@ -67,20 +67,16 @@ func testGetCertInfo() {
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorQueryCrt)
 }
 
-func testGetCertInfoErrInput() {
-	resp := GetCertInfo("error input")
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
-}
-
 func testGetCertInfoErrParam() {
 	msg, err := model.NewMessage()
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
 	}
-	msg.FillContent([]byte{})
+	err = msg.FillContent([]byte{})
+	convey.So(err, convey.ShouldBeNil)
 
 	resp := GetCertInfo(msg)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 }
 
 func testGetCertInfoErrCertName() {
@@ -88,10 +84,11 @@ func testGetCertInfoErrCertName() {
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
 	}
-	msg.FillContent("error cert name")
+	err = msg.FillContent("error cert name")
+	convey.So(err, convey.ShouldBeNil)
 
 	resp := GetCertInfo(msg)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 }
 
 func testGetCertInfoErrGetRootCa() {
@@ -99,7 +96,8 @@ func testGetCertInfoErrGetRootCa() {
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
 	}
-	msg.FillContent(common.SoftwareCertName)
+	err = msg.FillContent(common.SoftwareCertName)
+	convey.So(err, convey.ShouldBeNil)
 
 	var c *requests.ReqCertParams
 	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "GetRootCa",
@@ -117,7 +115,8 @@ func testGetCertInfoErrMarshal() {
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
 	}
-	msg.FillContent(common.NginxCertName)
+	err = msg.FillContent(common.NginxCertName)
+	convey.So(err, convey.ShouldBeNil)
 
 	var p1 = gomonkey.ApplyFunc(json.Marshal,
 		func(v interface{}) ([]byte, error) {
@@ -134,7 +133,8 @@ func testGetCertInfoErrSendMsg() {
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
 	}
-	msg.FillContent(common.SoftwareCertName)
+	err = msg.FillContent(common.SoftwareCertName)
+	convey.So(err, convey.ShouldBeNil)
 
 	var p1 = gomonkey.ApplyFunc(modulemgr.SendMessage,
 		func(m *model.Message) error {

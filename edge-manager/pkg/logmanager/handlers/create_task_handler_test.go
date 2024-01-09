@@ -41,7 +41,7 @@ func TestCreateTaskHandle(t *testing.T) {
 		patch := gomonkey.ApplyFuncReturn(modulemgr.SendMessage, nil)
 		defer patch.Reset()
 		var handler createTaskHandler
-		err := handler.Handle(&model.Message{Content: `{}`})
+		err := handler.Handle(&model.Message{Content: []byte(`{}`)})
 		convey.So(err, convey.ShouldNotBeNil)
 	})
 	convey.Convey("test createTaskHandler.Handle's get serial numbers", t, func() {
@@ -49,7 +49,7 @@ func TestCreateTaskHandle(t *testing.T) {
 			ApplyFuncReturn(getNodeSnAndIpByID, nil, nil, errors.New("get serial number failed"))
 		defer patch.Reset()
 		var handler createTaskHandler
-		err := handler.Handle(&model.Message{Content: `{"module":"edgeNode", "edgeNodes": [1,2]}`})
+		err := handler.Handle(&model.Message{Content: []byte(`{"module":"edgeNode", "edgeNodes": [1,2]}`)})
 		convey.So(err, convey.ShouldNotBeNil)
 	})
 	convey.Convey("test createTaskHandler.Handle's submit task", t, func() {
@@ -58,7 +58,7 @@ func TestCreateTaskHandle(t *testing.T) {
 			ApplyFuncReturn(tasks.SubmitLogDumpTask, "", errors.New("submit task failed"))
 		defer patch.Reset()
 		var handler createTaskHandler
-		err := handler.Handle(&model.Message{Content: `{"module":"edgeNode", "edgeNodes": [1,2]}`})
+		err := handler.Handle(&model.Message{Content: []byte(`{"module":"edgeNode", "edgeNodes": [1,2]}`)})
 		convey.So(err, convey.ShouldNotBeNil)
 	})
 	convey.Convey("test createTaskHandler.Handle", t, func() {
@@ -67,7 +67,7 @@ func TestCreateTaskHandle(t *testing.T) {
 			ApplyFuncReturn(tasks.SubmitLogDumpTask, "", nil)
 		defer patch.Reset()
 		var handler createTaskHandler
-		err := handler.Handle(&model.Message{Content: `{"module":"edgeNode", "edgeNodes": [1,2]}`})
+		err := handler.Handle(&model.Message{Content: []byte(`{"module":"edgeNode", "edgeNodes": [1,2]}`)})
 		convey.So(err, convey.ShouldBeNil)
 	})
 }

@@ -37,12 +37,12 @@ const (
 )
 
 // downloadConfig download image config
-func downloadConfig(input interface{}) common.RespMsg {
+func downloadConfig(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start to generate configuration of image registry")
 	var req ImageConfig
-	if err := common.ParamConvert(input, &req); err != nil {
+	if err := msg.ParseContent(&req); err != nil {
 		hwlog.RunLog.Errorf("parse parameter failed, error: %v", err)
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 	defer func() {
 		common.ClearSliceByteMemory(req.Password)
@@ -126,12 +126,12 @@ func assembleSecretData(registryPath string, base64Auth []byte, config *ImageCon
 }
 
 // updateConfig update image config
-func updateConfig(input interface{}) common.RespMsg {
+func updateConfig(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("update cert content start")
 	var updateCert certutils.UpdateClientCert
-	if err := common.ParamConvert(input, &updateCert); err != nil {
-		hwlog.RunLog.Error("update cert info failed: para type not valid")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "update cert info request convert error", Data: nil}
+	if err := msg.ParseContent(&updateCert); err != nil {
+		hwlog.RunLog.Errorf("update cert info failed: parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 	certRes := certutils.ClientCertResp{
 		CertName:    updateCert.CertName,
@@ -190,7 +190,9 @@ func sendMessageToNode(serialNumber string, content string, router common.Router
 	}
 	sendMsg.SetNodeId(serialNumber)
 	sendMsg.SetRouter(router.Source, router.Destination, router.Option, router.Resource)
-	sendMsg.FillContent(content)
+	if err = sendMsg.FillContent(content); err != nil {
+		return fmt.Errorf("fill content failed: %v", err)
+	}
 	if err = modulemgr.SendMessage(sendMsg); err != nil {
 		return fmt.Errorf("%s sends message to %s failed, error: %v",
 			common.ConfigManagerName, common.CloudHubName, err)
@@ -198,7 +200,7 @@ func sendMessageToNode(serialNumber string, content string, router common.Router
 	return nil
 }
 
-func exportToken(input interface{}) common.RespMsg {
+func exportToken(*model.Message) common.RespMsg {
 	hwlog.RunLog.Info("export token start")
 	plainText, err := generateToken()
 	if err != nil {

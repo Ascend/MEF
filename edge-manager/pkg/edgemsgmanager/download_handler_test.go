@@ -27,7 +27,10 @@ func TestDownloadInfo(t *testing.T) {
 				hwlog.RunLog.Errorf("create message failed, error: %v", err)
 				return nil, err
 			}
-			rspMsg.FillContent(common.OK)
+			if err = rspMsg.FillContent(common.OK); err != nil {
+				hwlog.RunLog.Errorf("fill content failed: %v", err)
+				return nil, err
+			}
 			return rspMsg, nil
 		}).ApplyFuncReturn(utils.IsLocalIp, false)
 	defer p1.Reset()
@@ -71,18 +74,16 @@ func createDownloadSfwBaseData() SoftwareDownloadInfo {
 
 func createDownloadSfwRightMsg() *model.Message {
 	req := createDownloadSfwBaseData()
-	content, err := json.Marshal(req)
-	if err != nil {
-		hwlog.RunLog.Errorf("marshal failed, error: %v", err)
-		return nil
-	}
 
 	msg, err := model.NewMessage()
 	if err != nil {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
 		return nil
 	}
-	msg.FillContent(string(content))
+	if err = msg.FillContent(&req); err != nil {
+		hwlog.RunLog.Errorf("fill content failed: %v", err)
+		return nil
+	}
 	return msg
 }
 
@@ -97,9 +98,8 @@ func testDownloadSfw() {
 }
 
 func testDownloadSfwErrInput() {
-	req := createDownloadSfwBaseData()
-	resp := downloadSoftware(req)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
+	resp := downloadSoftware(&model.Message{Content: []byte("")})
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
 }
 
 func testDownloadSfwErrParam() {
@@ -108,7 +108,8 @@ func testDownloadSfwErrParam() {
 		hwlog.RunLog.Errorf("create message failed, error: %v", err)
 		return
 	}
-	msg.FillContent(common.OK)
+	err = msg.FillContent(common.OK)
+	convey.So(err, convey.ShouldBeNil)
 	resp := downloadSoftware(msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
 }
@@ -133,12 +134,8 @@ func testDownloadSfwErrSn() {
 	}
 	for _, dataCase := range dataCases {
 		req.SerialNumbers = dataCase
-		content, err := json.Marshal(req)
-		if err != nil {
-			hwlog.RunLog.Errorf("marshal failed, error: %v", err)
-			return
-		}
-		msg.FillContent(string(content))
+		err = msg.FillContent(req)
+		convey.So(err, convey.ShouldBeNil)
 
 		resp := downloadSoftware(msg)
 		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
@@ -159,12 +156,8 @@ func testDownloadSfwErrSfwName() {
 	}
 	for _, dataCase := range dataCases {
 		req.SoftwareName = dataCase
-		content, err := json.Marshal(req)
-		if err != nil {
-			hwlog.RunLog.Errorf("marshal failed, error: %v", err)
-			return
-		}
-		msg.FillContent(string(content))
+		err = msg.FillContent(req)
+		convey.So(err, convey.ShouldBeNil)
 
 		resp := downloadSoftware(msg)
 		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
@@ -197,12 +190,8 @@ func testDownloadSfwErrPkg() {
 	}
 	for _, dataCase := range dataCases {
 		req.DownloadInfo.Package = dataCase
-		content, err := json.Marshal(req)
-		if err != nil {
-			hwlog.RunLog.Errorf("marshal failed, error: %v", err)
-			return
-		}
-		msg.FillContent(string(content))
+		err = msg.FillContent(req)
+		convey.So(err, convey.ShouldBeNil)
 
 		resp := downloadSoftware(msg)
 		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
@@ -233,12 +222,8 @@ func testDownloadSfwErrSignFile() {
 	}
 	for _, dataCase := range failDataCases {
 		req.DownloadInfo.SignFile = dataCase
-		content, err := json.Marshal(req)
-		if err != nil {
-			hwlog.RunLog.Errorf("marshal failed, error: %v", err)
-			return
-		}
-		msg.FillContent(string(content))
+		err = msg.FillContent(req)
+		convey.So(err, convey.ShouldBeNil)
 
 		resp := downloadSoftware(msg)
 		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
@@ -269,12 +254,8 @@ func testDownloadSfwErrCrlFile() {
 	}
 	for _, dataCase := range failDataCases {
 		req.DownloadInfo.CrlFile = dataCase
-		content, err := json.Marshal(req)
-		if err != nil {
-			hwlog.RunLog.Errorf("marshal failed, error: %v", err)
-			return
-		}
-		msg.FillContent(string(content))
+		err = msg.FillContent(req)
+		convey.So(err, convey.ShouldBeNil)
 		resp := downloadSoftware(msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 	}
@@ -296,12 +277,8 @@ func testDownloadSfwErrUserName() {
 	}
 	for _, dataCase := range failDataCases {
 		req.DownloadInfo.UserName = dataCase
-		content, err := json.Marshal(req)
-		if err != nil {
-			hwlog.RunLog.Errorf("marshal failed, error: %v", err)
-			return
-		}
-		msg.FillContent(string(content))
+		err = msg.FillContent(&req)
+		convey.So(err, convey.ShouldBeNil)
 
 		resp := downloadSoftware(msg)
 		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
@@ -317,12 +294,8 @@ func testDownloadSfwErrPwd() {
 
 	req := createDownloadSfwBaseData()
 	req.DownloadInfo.Password = nil
-	content, err := json.Marshal(req)
-	if err != nil {
-		hwlog.RunLog.Errorf("marshal failed, error: %v", err)
-		return
-	}
-	msg.FillContent(string(content))
+	err = msg.FillContent(&req)
+	convey.So(err, convey.ShouldBeNil)
 
 	resp := downloadSoftware(msg)
 	convey.So(resp.Status, convey.ShouldNotEqual, common.Success)

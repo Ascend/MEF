@@ -10,8 +10,6 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr/handler"
 	"huawei.com/mindx/common/modulemgr/model"
-	"huawei.com/mindx/common/utils"
-
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/taskschedule"
 
@@ -54,7 +52,7 @@ func (h *reportErrorHandler) Parse(msg *model.Message) error {
 		return errors.New("get ip by sn failed")
 	}
 	h.ip = ip
-	return utils.ObjectConvert(msg.Content, &h.errInfo)
+	return msg.ParseContent(&h.errInfo)
 }
 
 func (h *reportErrorHandler) Check(*model.Message) error {

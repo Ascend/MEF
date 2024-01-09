@@ -10,6 +10,7 @@ import (
 
 	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/modulemgr/model"
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/alarms"
@@ -21,9 +22,9 @@ const (
 	maxOneNodeEventCount = 50
 )
 
-func dealAlarmReq(input interface{}) (interface{}, error) {
+func dealAlarmReq(msg *model.Message) (interface{}, error) {
 	var reqs requests.AddAlarmReq
-	if err := common.ParamConvert(input, &reqs); err != nil {
+	if err := msg.ParseContent(&reqs); err != nil {
 		hwlog.RunLog.Errorf("param convert failed: %s", err.Error())
 		return nil, errors.New("param convert failed")
 	}
@@ -234,9 +235,10 @@ func (ard *AlarmReqDealer) dealEvent() error {
 	return nil
 }
 
-func dealNodeClearReq(input interface{}) (interface{}, error) {
+func dealNodeClearReq(msg *model.Message) (interface{}, error) {
 	var reqs requests.ClearNodeAlarmReq
-	if err := common.ParamConvert(input, &reqs); err != nil {
+	if err := msg.ParseContent(&reqs); err != nil {
+		hwlog.RunLog.Errorf("parse content failed: %v", err)
 		return common.FAIL, nil
 	}
 

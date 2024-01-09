@@ -134,14 +134,16 @@ func handleCertUpdate(msg *model.Message) error {
 			respContent.Status = common.ErrorCertTypeError
 			respContent.Msg = updateErr.Error()
 		}
-		respMsg.FillContent(respContent)
+		if err = respMsg.FillContent(respContent); err != nil {
+			hwlog.RunLog.Errorf("fill resp content failed: %v", err)
+		}
 		if err = modulemgr.SendMessage(respMsg); err != nil {
 			hwlog.RunLog.Errorf("send response message error: %v", err)
 		}
 	}()
-	rawContent, ok := msg.GetContent().(string)
-	if !ok {
-		updateErr = fmt.Errorf("message content type error")
+	var rawContent string
+	if err := msg.ParseContent(&rawContent); err != nil {
+		updateErr = fmt.Errorf("parse content failed: %v", err)
 		return updateErr
 	}
 	var payload CertUpdatePayload
@@ -162,9 +164,9 @@ func handleCertUpdate(msg *model.Message) error {
 }
 
 func handleNodeChange(msg *model.Message) error {
-	rawContent, ok := msg.GetContent().(string)
-	if !ok {
-		return fmt.Errorf("message content type error")
+	var rawContent string
+	if err := msg.ParseContent(&rawContent); err != nil {
+		return fmt.Errorf("parse content failed: %v", err)
 	}
 	var msgData changedNodeInfo
 	if err := json.Unmarshal([]byte(rawContent), &msgData); err != nil {
@@ -187,9 +189,9 @@ func handleNodeChange(msg *model.Message) error {
 }
 
 func handleUpdateResult(msg *model.Message) error {
-	base64msgStr, ok := msg.GetContent().(string)
-	if !ok {
-		return fmt.Errorf("message content error")
+	var base64msgStr string
+	if err := msg.ParseContent(&base64msgStr); err != nil {
+		return fmt.Errorf("parse content failed: %v", err)
 	}
 	rawMessageContent, err := base64.StdEncoding.DecodeString(base64msgStr)
 	if err != nil {

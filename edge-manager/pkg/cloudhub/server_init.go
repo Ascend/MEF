@@ -4,7 +4,6 @@
 package cloudhub
 
 import (
-	"encoding/json"
 	"errors"
 	"time"
 
@@ -128,12 +127,10 @@ func clearAlarm(arg interface{}) {
 	clearStruct := requests.ClearNodeAlarmReq{
 		Sn: sn,
 	}
-	clearMsg, err := json.Marshal(clearStruct)
-	if err != nil {
-		hwlog.RunLog.Errorf("marshal msg to alarm manager failed: %s", err.Error())
+	if err = msg.FillContent(clearStruct, true); err != nil {
+		hwlog.RunLog.Errorf("fill content failed: %v", err)
 		return
 	}
-	msg.FillContent(string(clearMsg))
 	msg.SetNodeId(common.AlarmManagerClientName)
 	msg.SetRouter(common.CloudHubName, common.InnerServerName, common.Delete, requests.ClearOneNodeAlarmRouter)
 
@@ -149,7 +146,13 @@ func clearAlarm(arg interface{}) {
 			continue
 		}
 
-		if content, ok := ret.GetContent().(string); !ok || content != common.OK {
+		var content string
+		if err = ret.ParseContent(&content); err != nil {
+			hwlog.RunLog.Errorf("parse content failed: %v", err)
+			time.Sleep(clearWaitTime)
+			continue
+		}
+		if content != common.OK {
 			hwlog.RunLog.Warnf("clear node: %s alarm failed", sn)
 			time.Sleep(clearWaitTime)
 			continue

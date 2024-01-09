@@ -66,11 +66,6 @@ func SendAlarms(alarms ...*requests.AlarmReq) error {
 		Sn:     "",
 		Ip:     hostIp,
 	}
-	content, err := json.Marshal(addAlarmReq)
-	if err != nil {
-		hwlog.RunLog.Errorf("marshal add alarm req content failed, error: %v", err)
-		return errors.New("marshal add alarm req content failed")
-	}
 
 	msg, err := model.NewMessage()
 	if err != nil {
@@ -78,7 +73,10 @@ func SendAlarms(alarms ...*requests.AlarmReq) error {
 		return errors.New("new alarm msg failed")
 	}
 	msg.SetRouter(common.AlarmManagerName, common.AlarmManagerName, http.MethodPost, requests.ReportAlarmRouter)
-	msg.FillContent(string(content))
+	if err = msg.FillContent(addAlarmReq, true); err != nil {
+		hwlog.RunLog.Errorf("fill add alarm req failed: %v", err)
+		return errors.New("fill content failed")
+	}
 
 	if err = modulemgr.SendAsyncMessage(msg); err != nil {
 		hwlog.RunLog.Errorf("send async message failed, error: %v", err)

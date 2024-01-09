@@ -6,8 +6,8 @@ package certupdater
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"reflect"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
@@ -93,19 +93,21 @@ func handleCertUpdate(msg *model.Message) error {
 	}
 	var updateErr error
 	defer func() {
-		respMsg.FillContent(common.OK)
+		fillErr := respMsg.FillContent(common.OK)
 		if updateErr != nil {
-			respMsg.FillContent(updateErr.Error())
+			fillErr = respMsg.FillContent(updateErr.Error())
+		}
+		if fillErr != nil {
+			hwlog.RunLog.Errorf("fill content into resp failed: %v", err)
 		}
 		if err = modulemgr.SendMessage(respMsg); err != nil {
 			hwlog.RunLog.Errorf("send response message failed: %v", err)
 		}
 	}()
 
-	rawContent, ok := msg.GetContent().([]byte)
-	if !ok {
-		updateErr = fmt.Errorf("message content type error, expect byte slice, got %v",
-			reflect.TypeOf(msg.GetContent()).String())
+	var rawContent []byte
+	if err := msg.ParseContent(&rawContent); err != nil {
+		updateErr = errors.New("message content type error, expect byte slice")
 		hwlog.RunLog.Error(updateErr)
 		return updateErr
 	}

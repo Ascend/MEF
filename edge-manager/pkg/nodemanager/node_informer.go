@@ -331,15 +331,18 @@ func getEdgeConnStatus(snList ...string) map[string]bool {
 		return connectedMap
 	}
 	msg.SetRouter(common.NodeManagerName, common.CloudHubName, common.OptGet, common.ResEdgeConnStatus)
-	msg.FillContent(snList)
+	if err = msg.FillContent(snList); err != nil {
+		hwlog.RunLog.Warnf("fill content failed: %v", err)
+		return connectedMap
+	}
 	resp, err := modulemgr.SendSyncMessage(msg, common.ResponseTimeout)
 	if err != nil {
 		hwlog.RunLog.Warnf("get node connection status failed: failed to send sync message, %v", err)
 		return connectedMap
 	}
-	response, ok := resp.GetContent().([]websocketmgr.WebsocketPeerInfo)
-	if !ok {
-		hwlog.RunLog.Warnf("get node connection status failed: bad content type %T", resp.GetContent())
+	var response []websocketmgr.WebsocketPeerInfo
+	if err = resp.ParseContent(&response); err != nil {
+		hwlog.RunLog.Warnf("get node connection status failed: parse content failed %v", err)
 		return connectedMap
 	}
 	for _, peerInfo := range response {
@@ -439,12 +442,10 @@ func reportChangedNodeInfo(action string, node *v1.Node) {
 		return
 	}
 	reportMsg.SetRouter(common.NodeManagerName, common.CertUpdaterName, common.OptPost, common.ResNodeChanged)
-	jsonData, err := json.Marshal(changedInfo)
-	if err != nil {
-		hwlog.RunLog.Errorf("serialize changed node info error: %v", err)
+	if err = reportMsg.FillContent(changedInfo); err != nil {
+		hwlog.RunLog.Errorf("fill content failed: %v", err)
 		return
 	}
-	reportMsg.FillContent(string(jsonData))
 	if err = modulemgr.SendMessage(reportMsg); err != nil {
 		hwlog.RunLog.Errorf("report node change info error: %v changed info:%+v", err, changedInfo)
 	}

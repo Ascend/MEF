@@ -8,6 +8,7 @@ import (
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
+	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/test"
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -97,7 +98,7 @@ func initTestDaemonSet() {
       	    "userId":1024
 		}]
 	}`
-	resp := createApp(reqData)
+	resp := createApp(&model.Message{Content: []byte(reqData)})
 	var appInfo AppInfo
 	test.MockGetDb().Model(AppInfo{}).Where("id = ?", resp.Data.(uint64)).Find(&appInfo)
 	daemonSet, _ = initDaemonSet(&appInfo, 1)

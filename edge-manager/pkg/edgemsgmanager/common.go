@@ -25,7 +25,10 @@ func sendMessageToEdge(msg *model.Message, content string) error {
 	}
 
 	respMsg.SetNodeId(msg.GetNodeId())
-	respMsg.FillContent(content)
+	if err = respMsg.FillContent(content); err != nil {
+		hwlog.RunLog.Errorf("fill content failed: %v", err)
+		return errors.New("fill content failed")
+	}
 	respMsg.SetRouter(common.NodeMsgManagerName, common.CloudHubName, common.OptPost, msg.GetResource())
 
 	if err = modulemgr.SendMessage(respMsg); err != nil {
@@ -42,7 +45,9 @@ func sendRespToEdge(msg *model.Message, content string) error {
 		return err
 	}
 	respMsg.SetNodeId(msg.GetNodeId())
-	respMsg.FillContent(content)
+	if err = respMsg.FillContent(content); err != nil {
+		return fmt.Errorf("fill content failed: %v", err)
+	}
 	respMsg.SetRouter(common.NodeMsgManagerName, common.CloudHubName, common.OptResp, msg.GetResource())
 
 	return modulemgr.SendAsyncMessage(respMsg)

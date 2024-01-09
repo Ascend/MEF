@@ -51,18 +51,12 @@ func getCloudCoreCa() ([]byte, error) {
 }
 
 // GetConfigInfo get cloud core token and ca and send to edge
-func GetConfigInfo(input interface{}) common.RespMsg {
+func GetConfigInfo(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("receive msg to get config info")
-	message, ok := input.(*model.Message)
-	if !ok {
-		hwlog.RunLog.Error("get message failed")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "get message failed", Data: nil}
-	}
-
-	cfgType, ok := message.GetContent().(string)
-	if !ok {
-		hwlog.RunLog.Error("msg type is not string")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "msg type is not string", Data: nil}
+	var cfgType string
+	if err := msg.ParseContent(&cfgType); err != nil {
+		hwlog.RunLog.Errorf("parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 
 	var dealers = map[string]msgDealer{
@@ -70,7 +64,10 @@ func GetConfigInfo(input interface{}) common.RespMsg {
 		"cloud-core-ca":    {getCloudCoreCa, nil},
 	}
 
-	var dealer msgDealer
+	var (
+		dealer msgDealer
+		ok     bool
+	)
 	if dealer, ok = dealers[cfgType]; !ok {
 		hwlog.RunLog.Error("config type not support")
 		return common.RespMsg{Status: common.ErrorGetConfigData, Msg: "config type not support", Data: nil}
@@ -86,7 +83,7 @@ func GetConfigInfo(input interface{}) common.RespMsg {
 		defer dealer.post(data)
 	}
 
-	if err = sendRespToEdge(message, string(data)); err != nil {
+	if err = sendRespToEdge(msg, string(data)); err != nil {
 		hwlog.RunLog.Errorf("send msg to edge failed, error: %v", err)
 		return common.RespMsg{Status: common.ErrorSendMsgToNode, Msg: "send msg to edge failed", Data: nil}
 	}

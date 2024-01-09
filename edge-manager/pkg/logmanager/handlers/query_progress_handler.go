@@ -14,6 +14,7 @@ import (
 	"huawei.com/mindx/common/modulemgr/model"
 
 	"edge-manager/pkg/constants"
+
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/taskschedule"
 )
@@ -28,11 +29,16 @@ type queryProgressHandler struct {
 
 func (h *queryProgressHandler) Handle(msg *model.Message) error {
 	hwlog.RunLog.Info("start to handle progress query")
-	taskId, err := h.parseAndCheckArgs(msg.Content)
-	if err != nil {
-		hwlog.RunLog.Errorf("failed to handle progress query, %v", err)
-		return sendRestfulResponse(common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error()}, msg)
+	var taskId string
+	if err := msg.ParseContent(&taskId); err != nil {
+		hwlog.RunLog.Errorf("parse content failed: %v", err)
+		return sendRestfulResponse(common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed"}, msg)
 	}
+	if matched, err := regexp.MatchString(constants.MultiNodesTaskIdRegexpStr, taskId); err != nil || !matched {
+		hwlog.RunLog.Errorf("process task meet err: %v", err)
+		return sendRestfulResponse(common.RespMsg{Status: common.ErrorParamConvert, Msg: "invalid task Id"}, msg)
+	}
+
 	taskCtx, err := taskschedule.DefaultScheduler().GetTaskContext(taskId)
 	if err != nil {
 		hwlog.RunLog.Errorf("failed to handle progress query, %v", err)
@@ -47,11 +53,7 @@ func (h *queryProgressHandler) Handle(msg *model.Message) error {
 	return sendRestfulResponse(common.RespMsg{Status: common.Success, Data: getTaskRespProgress(taskTree)}, msg)
 }
 
-func (h *queryProgressHandler) parseAndCheckArgs(content interface{}) (string, error) {
-	taskId, ok := content.(string)
-	if !ok {
-		return "", errors.New("type error")
-	}
+func (h *queryProgressHandler) checkArgs(taskId string) (string, error) {
 	if matched, err := regexp.MatchString(constants.MultiNodesTaskIdRegexpStr, taskId); err != nil || !matched {
 		return "", errors.New("invalid task id")
 	}

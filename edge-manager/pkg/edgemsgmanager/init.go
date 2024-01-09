@@ -99,13 +99,16 @@ func (nm *NodeMsgDealer) dispatch(req *model.Message) {
 		return
 	}
 
-	resp.FillContent(msg)
+	if err = resp.FillContent(msg); err != nil {
+		hwlog.RunLog.Errorf("%s fill content failed: %v", nm.Name(), err)
+		return
+	}
 	if err = modulemgr.SendMessage(resp); err != nil {
 		hwlog.RunLog.Errorf("%s send response failed: %v", nm.Name(), err)
 	}
 }
 
-type handlerFunc func(req interface{}) common.RespMsg
+type handlerFunc func(msg *model.Message) common.RespMsg
 
 func methodSelect(req *model.Message) *common.RespMsg {
 	var res common.RespMsg

@@ -20,7 +20,7 @@ import (
 	"huawei.com/mindxedge/base/common"
 )
 
-type handlerFunc func(req interface{}) common.RespMsg
+type handlerFunc func(msg *model.Message) common.RespMsg
 
 type nodeManager struct {
 	enable bool
@@ -97,7 +97,10 @@ func (node *nodeManager) dispatch(req *model.Message) {
 		hwlog.RunLog.Errorf("%s new response failed: %v", node.Name(), err)
 		return
 	}
-	resp.FillContent(msg)
+	if err = resp.FillContent(msg); err != nil {
+		hwlog.RunLog.Errorf("%s fill content failed: %v", node.Name(), err)
+		return
+	}
 	if err = modulemgr.SendMessage(resp); err != nil {
 		hwlog.RunLog.Errorf("%s send response failed: %v", node.Name(), err)
 		return
@@ -126,7 +129,7 @@ func selectMethod(req *model.Message) (*common.RespMsg, error) {
 	if !exit {
 		return nil, fmt.Errorf("method not found for router: option=%s, resource=%s", req.GetOption(), req.GetResource())
 	}
-	res = method(req.GetContent())
+	res = method(req)
 	return &res, nil
 }
 

@@ -13,6 +13,7 @@ import (
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
+	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/test"
 
 	"huawei.com/mindxedge/base/common"
@@ -44,20 +45,25 @@ func testInnerGetNodeInfoByUniqueName() {
 	resNode := env.createNode(node)
 	convey.So(resNode, convey.ShouldBeNil)
 	input := types.InnerGetNodeInfoByNameReq{UniqueName: node.UniqueName}
-	res := innerGetNodeInfoByUniqueName(input)
+	msg := model.Message{}
+	err := msg.FillContent(input)
+	convey.So(err, convey.ShouldBeNil)
+	res := innerGetNodeInfoByUniqueName(&msg)
 	convey.So(res.Status, convey.ShouldEqual, common.Success)
 }
 
 func testInnerGetNodeInfoByUniqueNameErr() {
 	convey.Convey("input error", func() {
-		input := ""
-		res := innerGetNodeInfoByUniqueName(input)
+		res := innerGetNodeInfoByUniqueName(&model.Message{Content: []byte("")})
 		convey.So(res.Msg, convey.ShouldEqual, "parse inner message content failed")
 	})
 
 	convey.Convey("get node by id failed", func() {
 		input := types.InnerGetNodeInfoByNameReq{UniqueName: ""}
-		res := innerGetNodeInfoByUniqueName(input)
+		msg := model.Message{}
+		err := msg.FillContent(input)
+		convey.So(err, convey.ShouldBeNil)
+		res := innerGetNodeInfoByUniqueName(&msg)
 		convey.So(res.Status, convey.ShouldNotEqual, common.Success)
 	})
 }
@@ -95,20 +101,25 @@ func testInnerGetNodeSoftwareInfo() {
 	convey.So(resNode, convey.ShouldBeNil)
 
 	input := types.InnerGetSfwInfoBySNReq{SerialNumber: node.SerialNumber}
-	res := innerGetNodeSoftwareInfo(input)
+	msg := model.Message{}
+	err = msg.FillContent(input)
+	convey.So(err, convey.ShouldBeNil)
+	res := innerGetNodeSoftwareInfo(&msg)
 	convey.So(res.Status, convey.ShouldEqual, common.Success)
 }
 
 func testInnerGetNodeSoftwareInfoErr() {
 	convey.Convey("input error", func() {
-		input := ""
-		res := innerGetNodeSoftwareInfo(input)
+		res := innerGetNodeSoftwareInfo(&model.Message{Content: []byte("")})
 		convey.So(res.Msg, convey.ShouldEqual, "parse inner message content failed")
 	})
 
 	convey.Convey("get info failed", func() {
 		input := types.InnerGetSfwInfoBySNReq{SerialNumber: "error sn"}
-		res := innerGetNodeSoftwareInfo(input)
+		msg := model.Message{}
+		err := msg.FillContent(input)
+		convey.So(err, convey.ShouldBeNil)
+		res := innerGetNodeSoftwareInfo(&msg)
 		convey.So(res.Msg, convey.ShouldEqual, "get node info by unique name failed")
 	})
 
@@ -127,7 +138,10 @@ func testInnerGetNodeSoftwareInfoErr() {
 		resNode := env.createNode(node)
 		convey.So(resNode, convey.ShouldBeNil)
 		input := types.InnerGetSfwInfoBySNReq{SerialNumber: node.SerialNumber}
-		res := innerGetNodeSoftwareInfo(input)
+		msg := model.Message{}
+		err := msg.FillContent(input)
+		convey.So(err, convey.ShouldBeNil)
+		res := innerGetNodeSoftwareInfo(&msg)
 		convey.So(res.Msg, convey.ShouldEqual, "get node info failed because unmarshal failed")
 	})
 }
@@ -151,14 +165,16 @@ func testInnerGetNodeStatus() {
 	resNode := env.createNode(node)
 	convey.So(resNode, convey.ShouldBeNil)
 	input := types.InnerGetNodeStatusReq{UniqueName: node.UniqueName}
-	res := innerGetNodeStatus(input)
+	msg := model.Message{}
+	err := msg.FillContent(input)
+	convey.So(err, convey.ShouldBeNil)
+	res := innerGetNodeStatus(&msg)
 	convey.So(res.Status, convey.ShouldEqual, common.Success)
 }
 
 func testInnerGetNodeStatusErr() {
 	convey.Convey("input error", func() {
-		input := ""
-		res := innerGetNodeStatus(input)
+		res := innerGetNodeStatus(&model.Message{Content: []byte("")})
 		convey.So(res.Msg, convey.ShouldEqual, "parse inner message content failed")
 	})
 
@@ -170,7 +186,10 @@ func testInnerGetNodeStatusErr() {
 			})
 		defer p1.Reset()
 		input := types.InnerGetNodeStatusReq{UniqueName: ""}
-		res := innerGetNodeStatus(input)
+		msg := model.Message{}
+		err := msg.FillContent(input)
+		convey.So(err, convey.ShouldBeNil)
+		res := innerGetNodeStatus(&msg)
 		convey.So(res.Msg, convey.ShouldEqual, "internal get node status failed")
 	})
 }
@@ -189,20 +208,25 @@ func testInnerGetNodeGroupInfosByIds() {
 	resGroup := env.createGroup(group)
 	convey.So(resGroup, convey.ShouldBeNil)
 	input := types.InnerGetNodeGroupInfosReq{NodeGroupIds: []uint64{group.ID}}
-	res := innerGetNodeGroupInfosByIds(input)
+	msg := model.Message{}
+	err := msg.FillContent(input)
+	convey.So(err, convey.ShouldBeNil)
+	res := innerGetNodeGroupInfosByIds(&msg)
 	convey.So(res.Status, convey.ShouldEqual, common.Success)
 }
 
 func testInnerGetNodeGroupInfosByIdsErr() {
 	convey.Convey("input error", func() {
-		input := ""
-		res := innerGetNodeGroupInfosByIds(input)
+		res := innerGetNodeGroupInfosByIds(&model.Message{Content: []byte("")})
 		convey.So(res.Msg, convey.ShouldEqual, "parse inner message content failed")
 	})
 
 	convey.Convey("id does not exist", func() {
 		input := types.InnerGetNodeGroupInfosReq{NodeGroupIds: []uint64{0}}
-		res := innerGetNodeGroupInfosByIds(input)
+		msg := model.Message{}
+		err := msg.FillContent(input)
+		convey.So(err, convey.ShouldBeNil)
+		res := innerGetNodeGroupInfosByIds(&msg)
 		convey.So(res.Msg, convey.ShouldEqual, fmt.Sprintf("get node group info, id %v do no exist", 0))
 	})
 
@@ -214,14 +238,17 @@ func testInnerGetNodeGroupInfosByIdsErr() {
 			})
 		defer p1.Reset()
 		input := types.InnerGetNodeGroupInfosReq{NodeGroupIds: []uint64{0}}
-		res := innerGetNodeGroupInfosByIds(input)
+		msg := model.Message{}
+		err := msg.FillContent(input)
+		convey.So(err, convey.ShouldBeNil)
+		res := innerGetNodeGroupInfosByIds(&msg)
 		convey.So(res.Msg, convey.ShouldEqual, fmt.Sprintf("get node group info id %v, db failed", 0))
 	})
 }
 
 func TestInnerAllNodeInfos(t *testing.T) {
 	convey.Convey("innerAllNodeInfos should be success", t, func() {
-		res := innerAllNodeInfos("")
+		res := innerAllNodeInfos(&model.Message{Content: []byte("")})
 		convey.So(res.Status, convey.ShouldEqual, common.Success)
 	})
 
@@ -232,7 +259,7 @@ func TestInnerAllNodeInfos(t *testing.T) {
 				return nil, test.ErrTest
 			})
 		defer p1.Reset()
-		res := innerAllNodeInfos("")
+		res := innerAllNodeInfos(&model.Message{Content: []byte("")})
 		convey.So(res.Status, convey.ShouldEqual, "")
 	})
 }
@@ -244,20 +271,25 @@ func TestInnerCheckNodeGroupResReq(t *testing.T) {
 
 func testNodeGroupResReq() {
 	input := types.InnerCheckNodeResReq{NodeGroupID: 1}
-	res := innerCheckNodeGroupResReq(input)
+	msg := model.Message{}
+	err := msg.FillContent(input)
+	convey.So(err, convey.ShouldBeNil)
+	res := innerCheckNodeGroupResReq(&msg)
 	convey.So(res.Status, convey.ShouldEqual, common.Success)
 
 	input2 := types.InnerGetNodesReq{NodeGroupID: 1}
-	res2 := innerGetNodesByNodeGroupID(input2)
+	err = msg.FillContent(input2)
+	convey.So(err, convey.ShouldBeNil)
+	res2 := innerGetNodesByNodeGroupID(&msg)
 	convey.So(res2.Status, convey.ShouldEqual, common.Success)
 }
 
 func testNodeGroupResReqErr() {
 	convey.Convey("input error", func() {
-		res := innerCheckNodeGroupResReq("")
+		res := innerCheckNodeGroupResReq(&model.Message{Content: []byte("")})
 		convey.So(res.Msg, convey.ShouldEqual, "parse inner message content failed")
 
-		res2 := innerCheckNodeGroupResReq("")
+		res2 := innerCheckNodeGroupResReq(&model.Message{Content: []byte("")})
 		convey.So(res2.Msg, convey.ShouldEqual, "parse inner message content failed")
 	})
 
@@ -269,11 +301,16 @@ func testNodeGroupResReqErr() {
 			})
 		defer p1.Reset()
 		input := types.InnerCheckNodeResReq{NodeGroupID: 1}
-		res := innerCheckNodeGroupResReq(input)
+		msg := model.Message{}
+		err := msg.FillContent(input)
+		convey.So(err, convey.ShouldBeNil)
+		res := innerCheckNodeGroupResReq(&msg)
 		convey.So(res.Status, convey.ShouldEqual, "")
 
 		input2 := types.InnerGetNodesReq{NodeGroupID: 1}
-		res2 := innerGetNodesByNodeGroupID(input2)
+		err = msg.FillContent(input2)
+		convey.So(err, convey.ShouldBeNil)
+		res2 := innerGetNodesByNodeGroupID(&msg)
 		convey.So(res2.Msg, convey.ShouldEqual, "inner message get node status failed")
 	})
 }
@@ -295,13 +332,16 @@ func testInnerUpdateNodeGroupResReq() {
 		ResourceReqs: nil,
 		IsUndeploy:   false,
 	}
-	resp := innerUpdateNodeGroupResReq(innerUpdateNodeResReq)
+	msg := model.Message{}
+	err := msg.FillContent(innerUpdateNodeResReq)
+	convey.So(err, convey.ShouldBeNil)
+	resp := innerUpdateNodeGroupResReq(&msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
 func testInnerUpdateNodeGroupResReqErr() {
 	convey.Convey("input error", func() {
-		resp := innerUpdateNodeGroupResReq("")
+		resp := innerUpdateNodeGroupResReq(&model.Message{Content: []byte("")})
 		convey.So(resp.Msg, convey.ShouldEqual, "parse inner message content failed")
 	})
 
@@ -311,7 +351,10 @@ func testInnerUpdateNodeGroupResReqErr() {
 			ResourceReqs: nil,
 			IsUndeploy:   false,
 		}
-		resp := innerUpdateNodeGroupResReq(innerUpdateNodeResReq)
+		msg := model.Message{}
+		err := msg.FillContent(innerUpdateNodeResReq)
+		convey.So(err, convey.ShouldBeNil)
+		resp := innerUpdateNodeGroupResReq(&msg)
 		convey.So(resp.Msg, convey.ShouldEqual, fmt.Sprintf("get node group id [%d] resources request failed, "+
 			"db error", innerUpdateNodeResReq.NodeGroupID))
 	})
@@ -331,7 +374,10 @@ func TestInnerGetNodeSnsByGroupId(t *testing.T) {
 			NodeGroupName: &groupName,
 		}
 		bytes, err := json.Marshal(nodegroupRes)
-		resp := createNodeGroup(string(bytes))
+		msg := model.Message{}
+		err = msg.FillContent(bytes)
+		convey.So(err, convey.ShouldBeNil)
+		resp := createNodeGroup(&msg)
 		convey.So(resp.Status == common.Success, convey.ShouldBeTrue)
 		testGroupId, ok := resp.Data.(uint64)
 		convey.So(ok, convey.ShouldBeTrue)
@@ -347,7 +393,9 @@ func TestInnerGetNodeSnsByGroupId(t *testing.T) {
 		reqInput := requests.GetSnsReq{GroupId: testGroupId}
 		bytes, err = json.Marshal(reqInput)
 		convey.So(err, convey.ShouldBeNil)
-		resp = innerGetNodeSnsByGroupId(string(bytes))
+		err = msg.FillContent(bytes)
+		convey.So(err, convey.ShouldBeNil)
+		resp = innerGetNodeSnsByGroupId(&msg)
 		convey.So(resp.Status == common.Success, convey.ShouldBeTrue)
 		sns, ok := resp.Data.([]string)
 		convey.So(ok, convey.ShouldBeTrue)
@@ -373,7 +421,10 @@ func TestInnerGetNodeSnAndIpByID(t *testing.T) {
 		req := types.InnerGetNodeInfosReq{
 			NodeIds: []uint64{1},
 		}
-		resp := innerGetNodeSnAndIpByID(req)
+		msg := model.Message{}
+		err := msg.FillContent(req)
+		convey.So(err, convey.ShouldBeNil)
+		resp := innerGetNodeSnAndIpByID(&msg)
 		convey.So(resp.Status == common.Success, convey.ShouldBeTrue)
 		info, ok := resp.Data.(types.InnerGetNodeInfosResp)
 		convey.So(ok, convey.ShouldBeTrue)

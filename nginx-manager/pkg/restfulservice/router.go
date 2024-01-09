@@ -44,7 +44,11 @@ func updateEdgeMgrSouthCert(ctx *gin.Context) {
 		common.CertUpdaterName,
 		common.OptPost,
 		common.ResEdgeMgrCertUpdate)
-	msg.FillContent(bodyData)
+	if err = msg.FillContent(bodyData); err != nil {
+		hwlog.RunLog.Errorf("fill content failed: %v")
+		ctx.JSON(http.StatusBadRequest, errMsg)
+		return
+	}
 	// this sync message timeout must be greater than nginxReloadConfTimeout
 	resp, err := modulemgr.SendSyncMessage(msg, time.Minute)
 	if err != nil {
@@ -52,8 +56,8 @@ func updateEdgeMgrSouthCert(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, errMsg)
 		return
 	}
-	content, ok := resp.GetContent().(string)
-	if !ok {
+	var content string
+	if err = resp.ParseContent(&content); err != nil {
 		hwlog.RunLog.Error("response message from module cert-manager content type error, expect string")
 		ctx.JSON(http.StatusBadRequest, errMsg)
 		return

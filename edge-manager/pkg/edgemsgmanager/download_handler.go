@@ -18,16 +18,12 @@ import (
 )
 
 // downloadSoftware [method] download software to edge
-func downloadSoftware(input interface{}) common.RespMsg {
+func downloadSoftware(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start deal edge software download info")
-	message, ok := input.(*model.Message)
-	if !ok {
-		hwlog.RunLog.Error("get message failed")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "get message failed", Data: nil}
-	}
 	var req SoftwareDownloadInfo
-	if err := common.ParamConvert(message.GetContent(), &req); err != nil {
-		return common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error(), Data: nil}
+	if err := msg.ParseContent(&req); err != nil {
+		hwlog.RunLog.Errorf("parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 	if req.DownloadInfo.Password != nil {
 		defer utils.ClearSliceByteMemory(*(req.DownloadInfo.Password))
@@ -36,14 +32,17 @@ func downloadSoftware(input interface{}) common.RespMsg {
 		hwlog.RunLog.Errorf("check software download para failed: %s", checkResult.Reason)
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason, Data: nil}
 	}
-	msg, err := model.NewMessage()
+	resp, err := model.NewMessage()
 	if err != nil {
 		hwlog.RunLog.Error("create message failed")
 		return common.RespMsg{Status: common.ErrorNewMsg, Msg: "create message failed", Data: nil}
 	}
-	msg.SetRouter(common.NodeMsgManagerName, common.CloudHubName, common.OptPost, common.ResEdgeDownloadInfo)
-	msg.FillContent(message.GetContent())
-	batchResp := sendDownloadInfo(req, msg)
+	resp.SetRouter(common.NodeMsgManagerName, common.CloudHubName, common.OptPost, common.ResEdgeDownloadInfo)
+	if err = resp.FillContent(msg.Content); err != nil {
+		hwlog.RunLog.Errorf("fill content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorNewMsg, Msg: "fill content failed", Data: nil}
+	}
+	batchResp := sendDownloadInfo(req, resp)
 	if len(batchResp.FailedInfos) != 0 {
 		hwlog.RunLog.Error("deal edge software upgrade info failed")
 		return common.RespMsg{Status: common.ErrorSendMsgToNode, Msg: "", Data: batchResp}
@@ -64,13 +63,20 @@ func sendDownloadInfo(req SoftwareDownloadInfo, msg *model.Message) types.BatchR
 			continue
 		}
 		msg.SetNodeId(sn)
+		hwlog.RunLog.Errorf("start to send msg to %v", msg.Router.Destination)
 		rsp, err := modulemgr.SendSyncMessage(msg, common.ResponseTimeout)
 		if err != nil {
 			hwlog.RunLog.Errorf("send software download info to %s failed: %v", sn, err)
 			failedMap[sn] = fmt.Sprintf("send software download info failed: %v", err)
 			continue
 		}
-		if content, ok := rsp.GetContent().(string); !ok || content != common.OK {
+		var content string
+		if err = rsp.ParseContent(&content); err != nil {
+			hwlog.RunLog.Errorf("parse mef edge process software download info in %s failed: %v", sn, err)
+			failedMap[sn] = "parse mef edge process software download info failed"
+			continue
+		}
+		if content != common.OK {
 			hwlog.RunLog.Errorf("parse mef edge process software download info in %s failed", sn)
 			failedMap[sn] = "parse mef edge process software download info failed"
 			continue

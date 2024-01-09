@@ -11,19 +11,12 @@ import (
 	"huawei.com/mindxedge/base/common"
 )
 
-func queryEdgeSoftwareVersion(input interface{}) common.RespMsg {
+func queryEdgeSoftwareVersion(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("start query edge software version")
-	message, ok := input.(*model.Message)
-	if !ok {
-		hwlog.RunLog.Error("get message failed")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "get message failed", Data: nil}
-	}
-
-	serialNumber, ok := message.GetContent().(string)
-	if !ok {
-		hwlog.RunLog.Error("query edge software version failed: para type not valid")
-		return common.RespMsg{Status: common.ErrorTypeAssert, Msg: "query edge software version " +
-			"request convert error", Data: nil}
+	var serialNumber string
+	if err := msg.ParseContent(&serialNumber); err != nil {
+		hwlog.RunLog.Errorf("query edge software version failed: parse content failed: %v", err)
+		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
 
 	if res := checker.GetRegChecker("",
