@@ -7,12 +7,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"net/http"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
+	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 
 	"huawei.com/mindx/common/hwlog"
@@ -83,7 +86,6 @@ func testGetNodeOldEvent() {
 	}
 	convey.So(err, convey.ShouldBeNil)
 	event, err := AlarmDbInstance().getNodeOldEvent(testSn1, maxOneNodeEventCount-1)
-	fmt.Println("length of events", len(event))
 	convey.So(err, convey.ShouldBeNil)
 	convey.So(len(event), convey.ShouldBeLessThan, maxOldEventCount+1)
 }
@@ -380,4 +382,39 @@ func CallbackAllCenterNodes(resp common.RespMsg) bool {
 		res = res && alarm.Sn == alarms.CenterSn
 	}
 	return res
+}
+
+func TestDispatcher(t *testing.T) {
+	var resp *model.Message
+	patch := gomonkey.ApplyFunc(modulemgr.SendMessage, func(m *model.Message) error {
+		resp = m
+		return nil
+	})
+	defer patch.Reset()
+	convey.Convey("test dispatcher", t, func() {
+		content := utils.ListAlarmOrEventReq{
+			PageNum:  1,
+			PageSize: 10,
+		}
+		msg := model.Message{}
+		msg.SetRouter("", "", http.MethodGet, "/alarmmanager/v1/alarms")
+		err := msg.FillContent(content, true)
+		convey.So(err, convey.ShouldBeNil)
+		alarmMgr := &alarmManager{}
+		alarmMgr.dispatch(&msg)
+		convey.So(resp, convey.ShouldNotBeNil)
+
+		var listRet common.RespMsg
+		if resp == nil {
+			return
+		}
+		err = json.Unmarshal(resp.Content, &listRet)
+		convey.So(err, convey.ShouldBeNil)
+		convey.So(listRet.Status, convey.ShouldEqual, common.Success)
+		bytes, err := json.Marshal(listRet.Data)
+		convey.So(err, convey.ShouldBeNil)
+		var alarmList utils.ListAlarmsResp
+		err = json.Unmarshal(bytes, &alarmList)
+		convey.So(err, convey.ShouldBeNil)
+	})
 }

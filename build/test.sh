@@ -11,6 +11,7 @@ TEST_DIR="${TOP_DIR}/test/results"
 
 echo "TOP_DIR=${TOP_DIR}"
 EDGE_MANAGER="edge-manager"
+ALARM_MANAGER="alarm-manager"
 
 function prepare(){
   local lib_dir
@@ -40,6 +41,12 @@ function execute_edge_manager_ut() {
   ./test.sh
 }
 
+function execute_alarm_manager_ut() {
+  cd "${TOP_DIR}"/alarm-manager/build/
+  chmod u+x test.sh
+  ./test.sh
+}
+
 function execute_base_ut() {
   cd "${TOP_DIR}"/build/
   chmod u+x test_component.sh
@@ -59,6 +66,7 @@ function copy_base_file() {
 
 function copy_llt_result_files() {
   copy_file ${EDGE_MANAGER}
+  copy_file ${ALARM_MANAGER}
 }
 
 function merge_llt_result_and_create_new_file() {
@@ -70,6 +78,7 @@ function merge_llt_result_and_create_new_file() {
 function main() {
   clean
   prepare
+  execute_alarm_manager_ut
   execute_edge_manager_ut
   execute_base_ut
   copy_base_file
