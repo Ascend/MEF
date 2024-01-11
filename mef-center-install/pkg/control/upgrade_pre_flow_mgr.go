@@ -160,7 +160,7 @@ func (upf *UpgradePreFlowMgr) prepareUnpackDir() error {
 
 func (upf *UpgradePreFlowMgr) verifyPackage() error {
 	fmt.Println("start to verify package")
-	updateCrlFlag, verifyCrl, err := prepareVerifyCrl(upf.crlPath)
+	needUpdateCrl, verifyCrl, err := prepareVerifyCrl(upf.crlPath)
 	if err != nil {
 		hwlog.RunLog.Errorf("prepare crl for verifying package failed, error: %v", err)
 		return err
@@ -172,14 +172,14 @@ func (upf *UpgradePreFlowMgr) verifyPackage() error {
 		return errors.New("verify package failed")
 	}
 
-	if updateCrlFlag {
-		if err = updateLocalCrlFile(verifyCrl); err != nil {
+	if needUpdateCrl {
+		if err = UpdateLocalCrl(verifyCrl); err != nil {
 			hwlog.RunLog.Errorf("update crl file failed, error: %v", err)
 			return errors.New("update crl file failed")
 		}
+		fmt.Println("update crl file success.")
+		hwlog.RunLog.Info("update crl file success")
 	}
-	fmt.Println("update crl file success.")
-	hwlog.RunLog.Info("update crl file success")
 
 	hwlog.RunLog.Info("verify package succeeds")
 	return nil
@@ -253,76 +253,36 @@ func (upf *UpgradePreFlowMgr) newShErrDeal(returnErr error) {
 	}
 }
 
-func prepareVerifyCrl(crlFile string) (bool, string, error) {
-	updateCrlFlag := true
-	verifyCrl := crlFile
-	var err error
-
+func prepareVerifyCrl(newCrl string) (bool, string, error) {
 	// when two input parameters are the same, the function can be used to check whether the CRL file is valid
-	crlToUpdateValid, err := cmsverify.CompareCrls(verifyCrl, verifyCrl)
-	if err != nil || int(crlToUpdateValid) != util.CompareSame {
-		fmt.Println("crl file is invalid")
-		hwlog.RunLog.Error("crl file is invalid")
-		return true, "", errors.New("crl file is invalid")
+	newCrlStatus, err := cmsverify.CompareCrls(newCrl, newCrl)
+	if err != nil || int(newCrlStatus) != util.CompareSame {
+		fmt.Println("new crl file is invalid")
+		hwlog.RunLog.Error("new crl file is invalid")
+		return true, "", errors.New("new crl file is invalid")
 	}
 
-	crlOnDevicePath, err := getValidCrlOnDevice()
-	if err != nil {
-		hwlog.RunLog.Errorf("get valid crl on device failed, error: %v", err)
-		return true, verifyCrl, errors.New("get valid crl on device failed")
+	const maxCrlSizeInMb = 10
+	if _, err = fileutils.RealFileCheck(
+		util.CrlOnDevicePath, true, false, maxCrlSizeInMb); err != nil {
+		hwlog.RunLog.Warnf("check file [%s] failed, error: %v", util.CrlOnDevicePath, err)
+		return true, newCrl, nil
+	}
+	if err = fileutils.SetPathPermission(util.CrlOnDevicePath, fileutils.Mode600, false,
+		false); err != nil {
+		hwlog.RunLog.Warnf("set crl permission failed, error: %v", err)
+		return true, newCrl, nil
+	}
+	compareStatus, err := cmsverify.CompareCrls(util.CrlOnDevicePath, util.CrlOnDevicePath)
+	if err != nil || int(compareStatus) != util.CompareSame {
+		hwlog.RunLog.Warnf("the local crl is invalid, use crl in software package to verify")
+		return true, newCrl, nil
 	}
 
-	if crlOnDevicePath == "" {
-		return true, verifyCrl, nil
-	}
-
-	updateCrlFlag, verifyCrl, err = getUpdateCrlFlag(crlFile, crlOnDevicePath)
-	if err != nil {
-		hwlog.RunLog.Errorf("get update crl flag failed, error: %v", err)
-		return true, "", err
-	}
-
-	return updateCrlFlag, verifyCrl, nil
+	return compareCrls(newCrl, util.CrlOnDevicePath)
 }
 
-func getValidCrlOnDevice() (string, error) {
-	crlOnDevicePath := filepath.Join(util.CrlOnDeviceDir, util.CrlOnDeviceName)
-	if fileutils.IsExist(crlOnDevicePath) {
-		crlChecker := fileutils.NewFileOwnerChecker(false, false, fileutils.RootUid, fileutils.RootGid)
-		linkChecker := fileutils.NewFileLinkChecker(false)
-		modChecker := fileutils.NewFileModeChecker(false, fileutils.DefaultWriteFileMode, false, false)
-		crlChecker.SetNext(linkChecker)
-		crlChecker.SetNext(modChecker)
-		err := fileutils.SetPathPermission(crlOnDevicePath, fileutils.Mode600, false, false, crlChecker)
-		if err != nil {
-			hwlog.RunLog.Errorf("check crl on device failed,err:%s", err.Error())
-			return "", fmt.Errorf("check crl on device failed,err:%s", err.Error())
-		}
-
-		crlOnDeviceValid, err := cmsverify.CompareCrls(crlOnDevicePath, crlOnDevicePath)
-		if err != nil || int(crlOnDeviceValid) != util.CompareSame {
-			fmt.Println("Warning: crl file on device is invalid.")
-			hwlog.RunLog.Warn("crl file on device is invalid")
-			return "", nil
-		}
-
-		return crlOnDevicePath, nil
-	}
-
-	if err := fileutils.CreateDir(util.CrlOnDeviceDir, common.Mode755); err != nil {
-		hwlog.RunLog.Errorf("create crl dir [%s] failed, error: %v", util.CrlOnDeviceDir, err)
-		return crlOnDevicePath, fmt.Errorf("create crl dir [%s] failed", util.CrlOnDeviceDir)
-	}
-
-	if _, err := fileutils.RealDirCheck(util.CrlOnDeviceDir, true, false); err != nil {
-		hwlog.RunLog.Errorf("check dir [%s] failed, error: %v", util.CrlOnDeviceDir, err)
-		return crlOnDevicePath, fmt.Errorf("check dir [%s] failed", util.CrlOnDeviceDir)
-	}
-
-	return "", nil
-}
-
-func getUpdateCrlFlag(crlToUpdate, crlOnDevice string) (bool, string, error) {
+func compareCrls(crlToUpdate, crlOnDevice string) (bool, string, error) {
 	if crlToUpdate == "" || crlOnDevice == "" {
 		hwlog.RunLog.Error("crl is invalid")
 		return false, "", errors.New("crl is invalid")
@@ -330,16 +290,17 @@ func getUpdateCrlFlag(crlToUpdate, crlOnDevice string) (bool, string, error) {
 
 	var compareRes cmsverify.CrlCompareStatus
 	var err error
-	updateCrlFlag := true
+	needUpdateCrl := true
 	verifyCrl := crlToUpdate
-	if compareRes, err = cmsverify.CompareCrls(crlToUpdate, crlOnDevice); err != nil {
+	compareRes, err = cmsverify.CompareCrls(crlToUpdate, crlOnDevice)
+	if err != nil {
 		hwlog.RunLog.Errorf("compare crls failed, error: %v", err)
-		return false, "", errors.New("compare crls failed failed")
+		return false, "", errors.New("compare crls failed")
 	}
 
 	switch int(compareRes) {
 	case util.CompareSame:
-		updateCrlFlag = false
+		needUpdateCrl = false
 		verifyCrl = crlOnDevice
 		hwlog.RunLog.Info("the software package crl file is the same as the local crl file, " +
 			"use the local crl file to verify and no update local crl file required")
@@ -347,7 +308,7 @@ func getUpdateCrlFlag(crlToUpdate, crlOnDevice string) (bool, string, error) {
 		hwlog.RunLog.Info("the software package crl file is newer than the local crl file, " +
 			"use software package crl file to verify and update local crl file")
 	case util.CompareOld:
-		updateCrlFlag = false
+		needUpdateCrl = false
 		verifyCrl = crlOnDevice
 		hwlog.RunLog.Info("the software package crl file is older than the local crl file, " +
 			"use the local crl file to verify and no update local crl file required")
@@ -356,27 +317,27 @@ func getUpdateCrlFlag(crlToUpdate, crlOnDevice string) (bool, string, error) {
 			"use software package crl file to verify and update local crl file")
 	}
 
-	return updateCrlFlag, verifyCrl, nil
+	return needUpdateCrl, verifyCrl, nil
 }
 
-func updateLocalCrlFile(verifyCrl string) error {
-	if err := fileutils.CreateDir(util.CrlOnDeviceDir, common.Mode755); err != nil {
-		hwlog.RunLog.Errorf("create crl dir [%s] failed, error: %v", util.CrlOnDeviceDir, err)
-		return fmt.Errorf("create crl dir [%s] failed", util.CrlOnDeviceDir)
+// UpdateLocalCrl update local crl file to verify crl
+func UpdateLocalCrl(verifyCrl string) error {
+	crlOnDeviceDir := filepath.Dir(util.CrlOnDevicePath)
+	if err := fileutils.CreateDir(crlOnDeviceDir, common.Mode755); err != nil {
+		hwlog.RunLog.Errorf("create dir [%s] failed, error: %v", crlOnDeviceDir, err)
+		return fmt.Errorf("create dir [%s] failed", crlOnDeviceDir)
 	}
-	crlOnDevicePath := filepath.Join(util.CrlOnDeviceDir, util.CrlOnDeviceName)
-	if err := fileutils.CopyFile(verifyCrl, crlOnDevicePath); err != nil {
-		hwlog.RunLog.Errorf("copy crl file [%s] failed, error: %v", verifyCrl, err)
-		return errors.New("copy crl file failed")
+	if _, err := fileutils.RealDirCheck(crlOnDeviceDir, true, false); err != nil {
+		hwlog.RunLog.Errorf("check dir [%s] failed, error: %v", crlOnDeviceDir, err)
+		return fmt.Errorf("check dir [%s] failed", crlOnDeviceDir)
 	}
 
-	const maxCrlSizeInMb = 10
-	if _, err := fileutils.RealFileCheck(
-		crlOnDevicePath, true, false, maxCrlSizeInMb); err != nil {
-		hwlog.RunLog.Errorf("check file [%s] failed, error: %v", crlOnDevicePath, err)
-		return fmt.Errorf("check file [%s] failed", crlOnDevicePath)
+	if err := fileutils.CopyFile(verifyCrl, util.CrlOnDevicePath); err != nil {
+		hwlog.RunLog.Errorf("copy crl file to dir [%s] failed, error: %v", crlOnDeviceDir, err)
+		return fmt.Errorf("copy crl file to dir [%s] failed", crlOnDeviceDir)
 	}
-	if err := fileutils.SetPathPermission(crlOnDevicePath, common.Mode640, false, false); err != nil {
+	if err := fileutils.SetPathPermission(util.CrlOnDevicePath, common.Mode600, false,
+		false); err != nil {
 		hwlog.RunLog.Errorf("set new crl permission failed, error: %v", err)
 		return errors.New("set new crl permission failed")
 	}

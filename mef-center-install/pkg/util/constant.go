@@ -249,7 +249,7 @@ const (
 	KeyFileName = "server.key"
 )
 
-// compare crls result status while upgrading
+// compare crls result status while upgrading; crl path on device
 const (
 	// CompareSame two crls are same
 	CompareSame int = 0
@@ -257,12 +257,8 @@ const (
 	CompareNew int = 1
 	// CompareOld crl to update signed time is older
 	CompareOld int = 2
-)
-
-// Crl on device dir and name
-const (
-	CrlOnDeviceDir  = "/etc/hwsipcrl"
-	CrlOnDeviceName = "ascendsip.crl"
+	// CrlOnDevicePath path on device
+	CrlOnDevicePath = "/etc/hwsipcrl/ascendsip.crl"
 )
 
 // const for cert alarm config
