@@ -6,7 +6,6 @@ package alarmmanager
 import (
 	"crypto/rand"
 	"encoding/json"
-	"fmt"
 	"io"
 	"math"
 	"math/big"
@@ -40,6 +39,7 @@ const (
 	TypesOfSeverity = 3
 	Possibility     = 10
 	HalfPossibility = 5
+	NoneExistSn     = "nonexistsn"
 )
 
 func TestMain(m *testing.M) {
@@ -71,7 +71,6 @@ func TestMain(m *testing.M) {
 				resp.Status = common.Success
 				bytes, err := json.Marshal(resp)
 				if err != nil {
-					fmt.Println("error marshalling")
 					return nil, err
 				}
 				return bytes, nil
@@ -117,7 +116,6 @@ func createInitialData() {
 		randSetOneAlarm(&alarm)
 		alarm.SerialNumber = testSns[idx%len(testSns)]
 		if err := AlarmDbInstance().addAlarmInfo(&alarm); err != nil {
-			fmt.Println(err.Error())
 			continue
 		}
 	}

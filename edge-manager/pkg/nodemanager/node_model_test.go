@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	idUpperLimit = 100
+	idUpperLimit = 1000
 	retryTimes   = 3
 )
 
