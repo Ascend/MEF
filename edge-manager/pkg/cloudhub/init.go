@@ -19,15 +19,23 @@ import (
 	"huawei.com/mindx/common/websocketmgr"
 	"huawei.com/mindx/common/x509/certutils"
 
+	"edge-manager/pkg/cloudhub/innerwebsocket"
 	"edge-manager/pkg/constants"
 
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/requests"
 )
 
-type messageHandler func(*model.Message) (*model.Message, bool, error)
+type messageHandlerFunc func(*model.Message) (*model.Message, bool, error)
+
+type messageHandler struct {
+	HandlerFunc messageHandlerFunc
+	// indicates whether the message needs to print log, mainly for avoiding recording to many alarm messages
+	NeedLogging bool
+}
 
 var lockFlag int64 = nolockingFlag
+
 var messageHandlerMap = make(map[string]messageHandler)
 
 func getMsgHandler(msg *model.Message) (messageHandler, bool) {
@@ -36,14 +44,29 @@ func getMsgHandler(msg *model.Message) (messageHandler, bool) {
 	return handler, ok
 }
 func (c *CloudServer) initMsgHandler() {
-	messageHandlerMap[common.OptPost+common.ResEdgeCert] = issueCertForEdge
-	messageHandlerMap[common.OptGet+common.ResEdgeConnStatus] = c.getEdgeConnStatus
+	messageHandlerMap[common.OptPost+common.ResEdgeCert] = messageHandler{
+		HandlerFunc: issueCertForEdge,
+		NeedLogging: true,
+	}
+	messageHandlerMap[common.OptGet+common.ResEdgeConnStatus] = messageHandler{
+		HandlerFunc: c.getEdgeConnStatus,
+		NeedLogging: true,
+	}
+	messageHandlerMap[common.OptPost+requests.ReportAlarmRouter] = messageHandler{
+		HandlerFunc: innerwebsocket.AlarmReportHandler,
+		NeedLogging: false,
+	}
+	messageHandlerMap[common.Delete+requests.ClearOneNodeAlarmRouter] = messageHandler{
+		HandlerFunc: innerwebsocket.AlarmClearHandler,
+		NeedLogging: false,
+	}
 }
 
 // CloudServer wraps the struct WebSocketServer
 type CloudServer struct {
 	serverIp     string
 	wsPort       int
+	innerWsPort  int
 	authPort     int
 	maxClientNum int
 	serverProxy  *websocketmgr.WsServerProxy
@@ -55,13 +78,14 @@ type CloudServer struct {
 var server CloudServer
 
 // NewCloudServer new cloud server
-func NewCloudServer(enable bool, wsPort, authPort, maxClientNum int) *CloudServer {
+func NewCloudServer(enable bool, wsPort, innerWsPort, authPort, maxClientNum int) *CloudServer {
 	server = CloudServer{
 		wsPort:       wsPort,
 		authPort:     authPort,
 		maxClientNum: maxClientNum,
 		ctx:          context.Background(),
 		enable:       enable,
+		innerWsPort:  innerWsPort,
 	}
 	return &server
 }
@@ -91,13 +115,20 @@ func (c *CloudServer) Start() {
 	}
 	checkAndLock()
 	var err error
+	// set up a websocket server for connecting edge-nodes
 	c.serverProxy, err = InitServer()
 	if err != nil {
 		hwlog.RunLog.Errorf("init websocket server failed: %v", err)
 		return
 	}
+	// set up a websocket connection between edge-manager and alarm manager, for purposes of reporting alarms
+	// and inter pods communication
+	if err := innerwebsocket.InitInnerWsServer(c.innerWsPort); err != nil {
+		hwlog.RunLog.Errorf("init inner websocket server failed: %v", err)
+		return
+	}
+	hwlog.RunLog.Info("init websocket server succeeded")
 	c.initMsgHandler()
-	hwlog.RunLog.Info("init websocket server success")
 	for {
 		select {
 		case _, ok := <-c.ctx.Done():
@@ -125,20 +156,24 @@ func (c *CloudServer) dispatch(message *model.Message) {
 	if ok {
 		sn := message.GetPeerInfo().Sn
 		ip := message.GetPeerInfo().Ip
-
-		hwlog.RunLog.Infof("%v[%v:%v] %v %v start", time.Now().Format(time.RFC3339Nano),
-			ip, sn, message.GetOption(), message.GetResource())
-		result, sentToEdge, err := handler(message)
-		if err != nil {
-			hwlog.RunLog.Errorf("%v [%v:%v] %v %v failed", time.Now().Format(time.RFC3339Nano),
+		if handler.NeedLogging {
+			hwlog.RunLog.Infof("%v[%v:%v] %v %v start", time.Now().Format(time.RFC3339Nano),
 				ip, sn, message.GetOption(), message.GetResource())
+		}
+		result, sentToEdge, err := handler.HandlerFunc(message)
+		if err != nil {
+			if handler.NeedLogging {
+				hwlog.RunLog.Errorf("%v [%v:%v] %v %v failed", time.Now().Format(time.RFC3339Nano),
+					ip, sn, message.GetOption(), message.GetResource())
+			}
 			hwlog.RunLog.Errorf("process message [option: %v res: %v]error: %v",
 				message.GetOption(), message.GetResource(), err)
 			return
 		}
-
-		hwlog.RunLog.Infof("%v [%v:%v] %v %v success", time.Now().Format(time.RFC3339Nano),
-			ip, sn, message.GetOption(), message.GetResource())
+		if handler.NeedLogging {
+			hwlog.RunLog.Infof("%v [%v:%v] %v %v success", time.Now().Format(time.RFC3339Nano),
+				ip, sn, message.GetOption(), message.GetResource())
+		}
 		if !sentToEdge {
 			return
 		}

@@ -179,8 +179,8 @@ func listEdgeAlarmsOrEventsBySn(req utils.ListAlarmOrEventReq, AlarmOrEvent stri
 
 func listEdgeAlarmsOrEventsByGroupId(req utils.ListAlarmOrEventReq, queryType string) *common.RespMsg {
 	router := common.Router{
-		Source:      common.AlarmManagerClientName,
-		Destination: common.AlarmManagerClientName,
+		Source:      common.AlarmManagerName,
+		Destination: common.AlarmManagerWsMoudle,
 		Option:      common.Get,
 		Resource:    common.GetSnsByGroup,
 	}

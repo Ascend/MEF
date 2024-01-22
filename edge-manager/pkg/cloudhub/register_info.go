@@ -33,7 +33,8 @@ var regInfoList = []websocketmgr.RegisterModuleInfo{
 		MsgRate: defaultHandlerRate, MsgCapacity: defaultHandlerCapacity},
 	{MsgOpt: common.OptResp, MsgRes: common.CertWillExpired, ModuleName: common.CertUpdaterName,
 		MsgRate: defaultHandlerRate, MsgCapacity: defaultHandlerCapacity},
-	{MsgOpt: common.OptPost, MsgRes: requests.ReportAlarmRouter, ModuleName: common.AlarmManagerName,
+	//	edge nodes reports adding or clearing alarms router
+	{MsgOpt: common.OptPost, MsgRes: requests.ReportAlarmRouter, ModuleName: common.CloudHubName,
 		MsgRate: alarmHandlerRate, MsgCapacity: alarmHandlerCapacity},
 	{MsgOpt: common.OptReport, MsgRes: constants.ResLogDumpError, ModuleName: constants.LogManagerName,
 		MsgRate: defaultHandlerRate, MsgCapacity: defaultHandlerCapacity},

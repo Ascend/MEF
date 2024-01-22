@@ -35,7 +35,7 @@ func initClient() error {
 		WithBackup: true,
 	}
 
-	proxyConfig, err := websocketmgr.InitProxyConfig(common.AlarmManagerClientName, common.EdgeMgrDns,
+	proxyConfig, err := websocketmgr.InitProxyConfig(common.AlarmManagerWsMoudle, common.EdgeMgrDns,
 		common.EdgeManagerInnerWsPort, certInfo)
 	if err != nil {
 		hwlog.RunLog.Errorf("init proxy config failed, error: %v", err)
