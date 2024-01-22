@@ -22,14 +22,12 @@ import (
 	"huawei.com/mindx/common/kmc"
 	"huawei.com/mindx/common/modulemgr"
 
-	"edge-manager/pkg/alarmmanager"
 	"edge-manager/pkg/appmanager"
 	"edge-manager/pkg/certupdater"
 	"edge-manager/pkg/cloudhub"
 	"edge-manager/pkg/config"
 	"edge-manager/pkg/configmanager"
 	"edge-manager/pkg/edgemsgmanager"
-	"edge-manager/pkg/innerserver"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/logmanager"
 	"edge-manager/pkg/nodemanager"
@@ -276,7 +274,8 @@ func register(ctx context.Context) error {
 	if err := modulemgr.Registry(appmanager.NewAppManager(true)); err != nil {
 		return err
 	}
-	if err := modulemgr.Registry(cloudhub.NewCloudServer(true, wsPort, authPort, maxClientNum)); err != nil {
+	if err := modulemgr.Registry(cloudhub.NewCloudServer(true, wsPort, common.EdgeManagerInnerWsPort,
+		authPort, maxClientNum)); err != nil {
 		return err
 	}
 	if err := modulemgr.Registry(edgemsgmanager.NewNodeMsgManager(true)); err != nil {
@@ -286,12 +285,6 @@ func register(ctx context.Context) error {
 		return err
 	}
 	if err := modulemgr.Registry(logmanager.NewLogManager(ctx, true)); err != nil {
-		return err
-	}
-	if err := modulemgr.Registry(alarmmanager.NewAlarmManager(true)); err != nil {
-		return err
-	}
-	if err := modulemgr.Registry(innerserver.NewInnerServer(true, common.EdgeManagerInnerWsPort)); err != nil {
 		return err
 	}
 	modulemgr.Start()

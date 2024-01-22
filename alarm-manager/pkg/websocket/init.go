@@ -37,7 +37,7 @@ func NewAlarmWsClient(enable bool, ctx context.Context) model.Module {
 
 // Name module name
 func (m *alarmWsClient) Name() string {
-	return common.AlarmManagerClientName
+	return common.AlarmManagerWsMoudle
 }
 
 // Enable module enable
@@ -92,7 +92,7 @@ func (m *alarmWsClient) Start() {
 }
 
 func (m *alarmWsClient) sendMsgToSever(msg *model.Message) error {
-	msg.SetNodeId(common.AlarmManagerClientName)
+	msg.SetNodeId(common.AlarmManagerWsMoudle)
 	if err := clientSender.Send(msg); err != nil {
 		hwlog.RunLog.Errorf("alarm-manager sender send message to edge-manager failed, error: %v", err)
 		return errors.New("alarm-manager sender send message to edge-manager failed")

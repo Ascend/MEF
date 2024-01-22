@@ -303,8 +303,8 @@ func sendAlarm(alarmId, notifyType string) error {
 		hwlog.RunLog.Errorf("fill alarm req into content failed: %v", err)
 		return errors.New("fill alarm req into content failed")
 	}
-	msg.SetNodeId(common.AlarmManagerClientName)
-	msg.SetRouter(common.CertUpdaterName, common.InnerServerName, common.OptPost, requests.ReportAlarmRouter)
+	msg.SetNodeId(common.AlarmManagerWsMoudle)
+	msg.SetRouter(common.CertUpdaterName, common.CloudHubName, common.OptPost, requests.ReportAlarmRouter)
 	var tryCnt int
 	for tryCnt = 0; tryCnt < sendAlarmTryMax; tryCnt++ {
 		if err = modulemgr.SendAsyncMessage(msg); err != nil {

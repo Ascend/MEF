@@ -131,8 +131,8 @@ func clearAlarm(arg interface{}) {
 		hwlog.RunLog.Errorf("fill content failed: %v", err)
 		return
 	}
-	msg.SetNodeId(common.AlarmManagerClientName)
-	msg.SetRouter(common.CloudHubName, common.InnerServerName, common.Delete, requests.ClearOneNodeAlarmRouter)
+	msg.SetNodeId(common.AlarmManagerWsMoudle)
+	msg.SetRouter(common.CloudHubName, common.CloudHubName, common.Delete, requests.ClearOneNodeAlarmRouter)
 
 	const (
 		clearWaitTime = 30 * time.Second

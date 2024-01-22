@@ -45,19 +45,18 @@ const (
 
 // consts for ModuleName
 const (
-	MEFEdge                = "MEFEdge"
-	RestfulServiceName     = "RestfulService"
-	NodeManagerName        = "NodeManager"
-	AppManagerName         = "AppManager"
-	CloudHubName           = "CloudHub"
-	InnerServerName        = "InnerServer"
-	AlarmManagerClientName = "AlarmManagerClient"
-	NodeMsgManagerName     = "NodeMsgManager"
-	WebsocketName          = "websocket"
-	CertManagerName        = "CertManager"
-	ConfigManagerName      = "ConfigManager"
-	AlarmManagerName       = "AlarmManager"
-	CertUpdaterName        = "CertUpdater"
+	MEFEdge              = "MEFEdge"
+	RestfulServiceName   = "RestfulService"
+	NodeManagerName      = "NodeManager"
+	AppManagerName       = "AppManager"
+	CloudHubName         = "CloudHub"
+	AlarmManagerWsMoudle = "AlarmManagerWsModule"
+	NodeMsgManagerName   = "NodeMsgManager"
+	WebsocketName        = "websocket"
+	CertManagerName      = "CertManager"
+	ConfigManagerName    = "ConfigManager"
+	AlarmManagerName     = "AlarmManager"
+	CertUpdaterName      = "CertUpdater"
 )
 
 const (

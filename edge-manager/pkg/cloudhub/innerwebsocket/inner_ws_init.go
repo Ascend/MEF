@@ -1,12 +1,15 @@
 // Copyright (c) 2023. Huawei Technologies Co., Ltd. All rights reserved.
 
-package innerserver
+package innerwebsocket
 
 import (
+	"context"
 	"errors"
+	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
+	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/websocketmgr"
 	"huawei.com/mindx/common/x509/certutils"
 
@@ -16,7 +19,7 @@ import (
 )
 
 const (
-	name = "inner_server"
+	name = "inner_ws_server"
 )
 
 var serverSender websocketmgr.WsSvrSender
@@ -26,8 +29,21 @@ const (
 	burstSize = 100
 )
 
-// InitServer init server
-func InitServer() error {
+// WsInnerServer wraps the struct WebSocketServer
+type WsInnerServer struct {
+	WsPort int
+	Ctx    context.Context
+}
+
+// InnerWsServer is the server of the inner websocket
+var InnerWsServer WsInnerServer
+
+// InitInnerWsServer init server
+func InitInnerWsServer(innerWsPort int) error {
+	InnerWsServer = WsInnerServer{
+		WsPort: innerWsPort,
+		Ctx:    context.Background(),
+	}
 	certInfo := certutils.TlsCertInfo{
 		KmcCfg:     kmc.GetDefKmcCfg(),
 		RootCaPath: constants.RootCaPath,
@@ -42,7 +58,7 @@ func InitServer() error {
 		hwlog.RunLog.Errorf("get edge manager pod ip failed: %s", err.Error())
 		return errors.New("get edge manager pod ip")
 	}
-	proxyConfig, err := websocketmgr.InitProxyConfig(name, podIp, server.wsPort, certInfo)
+	proxyConfig, err := websocketmgr.InitProxyConfig(name, podIp, InnerWsServer.WsPort, certInfo)
 	if err != nil {
 		hwlog.RunLog.Errorf("init proxy config failed: %v", err)
 		return errors.New("init proxy config failed")
@@ -68,6 +84,19 @@ func InitServer() error {
 	return nil
 }
 
+// getWsSender returns a websocket server sender
 func getWsSender() websocketmgr.WsSvrSender {
 	return serverSender
+}
+
+// SendMessageByInnerWs send a message to specified module
+// message is the message need tobe sent, should pre set router and content
+// moduleName is the name of the ws client
+func sendMessageByInnerWs(message *model.Message, moduleName string) error {
+	if message == nil {
+		return fmt.Errorf("failed to send message to %s while message is nil", moduleName)
+	}
+	message.SetNodeId(moduleName)
+	sender := getWsSender()
+	return sender.Send(message.GetNodeId(), message)
 }
