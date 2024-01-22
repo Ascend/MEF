@@ -7,7 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/smartystreets/goconvey v1.7.2
 	gorm.io/driver/sqlite v1.4.2
-	gorm.io/gorm v1.22.3
+	gorm.io/gorm v1.25.4
 	huawei.com/mindx/common/backuputils v0.0.1
 	huawei.com/mindx/common/cache v0.0.2
 	huawei.com/mindx/common/checker v0.0.3
