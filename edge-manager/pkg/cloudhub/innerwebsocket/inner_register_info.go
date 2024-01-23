@@ -5,18 +5,22 @@ package innerwebsocket
 import (
 	"fmt"
 
+	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
-	"huawei.com/mindx/common/websocketmgr"
 
 	"huawei.com/mindxedge/base/common"
 )
 
-var regInfoList = []websocketmgr.RegisterModuleInfo{
+var regInfoList = []*modulemgr.RegisterModuleInfo{
 	{MsgOpt: common.Get, MsgRes: common.GetSnsByGroup, ModuleName: common.NodeManagerName},
 }
 
-func getRegModuleInfoList() []websocketmgr.RegisterModuleInfo {
-	return regInfoList
+func getRegModuleInfoList() []modulemgr.MessageHandlerIntf {
+	handlers := make([]modulemgr.MessageHandlerIntf, len(regInfoList), len(regInfoList))
+	for idx, reg := range regInfoList {
+		handlers[idx] = reg
+	}
+	return handlers
 }
 
 // AlarmClearHandler handler for requesting alarm manager to clear an alarm though the inner ws link

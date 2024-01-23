@@ -5,6 +5,7 @@ package cloudhub
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"huawei.com/mindx/common/hwlog"
@@ -22,14 +23,14 @@ import (
 )
 
 const (
-	name           = "server_edge_ctl"
-	wsWriteTimeout = 10 * time.Minute
+	name             = "server_edge_ctl"
+	largeFileTimeout = 10 * time.Minute
 
 	wsMaxThroughput    = 100 * common.MB
 	wsThroughputPeriod = 30 * time.Second
 )
 
-var serverSender websocketmgr.WsSvrSender
+var proxy *websocketmgr.WsServerProxy
 var initFlag bool
 
 // InitServer init server
@@ -57,21 +58,26 @@ func InitServer() (*websocketmgr.WsServerProxy, error) {
 		return nil, errors.New("init proxy config failed")
 	}
 	proxyConfig.RegModInfos(getRegModuleInfoList())
-	proxyConfig.ReadTimeout = wsWriteTimeout
-	proxyConfig.WriteTimeout = wsWriteTimeout
-	proxyConfig.MaxThroughputPerPeriod = wsMaxThroughput
-	proxyConfig.ThroughputPeriod = wsThroughputPeriod
-	proxy := &websocketmgr.WsServerProxy{
+	proxyConfig.SetTimeout(largeFileTimeout, largeFileTimeout, 0)
+	if err := proxyConfig.SetBandwidthLimiterCfg(wsMaxThroughput, wsThroughputPeriod); err != nil {
+		hwlog.RunLog.Errorf("init bandwidth limiter config failed: %v", err)
+		return nil, fmt.Errorf("init bandwidth limiter config failed: %v", err)
+	}
+	proxy = &websocketmgr.WsServerProxy{
 		ProxyCfg: proxyConfig,
 	}
-
+	if server.maxClientNum > 0 {
+		if err := proxy.SetConnLimiter(server.maxClientNum); err != nil {
+			hwlog.RunLog.Errorf("init connection limiter failed: %v", err)
+			return nil, fmt.Errorf("init connection limiter failed: %v", err)
+		}
+	}
 	proxy.AddDefaultHandler()
 	proxy.SetDisconnCallback(clearAlarm)
 	if err = proxy.AddHandler(constants.LogUploadUrl, logmanager.HandleUpload); err != nil {
 		hwlog.RunLog.Error("add handler failed")
 		return nil, errors.New("add handler failed")
 	}
-	serverSender.SetProxy(proxy)
 	if err = proxy.Start(); err != nil {
 		hwlog.RunLog.Errorf("proxy.Start failed: %v", err)
 		return nil, errors.New("proxy.Start failed")
@@ -101,14 +107,14 @@ func authServer() {
 }
 
 // GetSvrSender get server sender
-func GetSvrSender() (websocketmgr.WsSvrSender, error) {
+func GetSvrSender() (*websocketmgr.WsServerProxy, error) {
 	if !initFlag {
 		if _, err := InitServer(); err != nil {
 			hwlog.RunLog.Errorf("init websocket server failed before sending message to edge, error: %v", err)
-			return websocketmgr.WsSvrSender{}, errors.New("init websocket server failed before sending message to edge")
+			return nil, errors.New("init websocket server failed before sending message to edge")
 		}
 	}
-	return serverSender, nil
+	return proxy, nil
 }
 
 func clearAlarm(arg interface{}) {

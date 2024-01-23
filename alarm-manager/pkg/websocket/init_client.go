@@ -5,6 +5,7 @@ package websocket
 
 import (
 	"errors"
+	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
@@ -17,7 +18,6 @@ import (
 	"huawei.com/mindxedge/base/common"
 )
 
-var clientSender websocketmgr.WsCltSender
 var proxy *websocketmgr.WsClientProxy
 
 const (
@@ -43,21 +43,18 @@ func initClient() error {
 	}
 
 	proxyConfig.RegModInfos(getRegModuleInfoList())
+	if err := proxyConfig.SetRpsLimiterCfg(msgRate, burstSize); err != nil {
+		hwlog.RunLog.Errorf("init websocket rps limiter config failed: %v", err)
+		return fmt.Errorf("init websocket rps limiter config failed: %v", err)
+	}
 	proxy = &websocketmgr.WsClientProxy{
 		ProxyCfg: proxyConfig,
 	}
-
 	proxy.SetDisconnCallback(clearAllAlarms)
-	clientSender.SetProxy(proxy)
 	if err = proxy.Start(); err != nil {
 		hwlog.RunLog.Errorf("init alarm-manager client failed: %v", err)
 		return errors.New("init alarm-manager client failed")
 	}
-	if err := proxy.SetLimiter(websocketmgr.NewMsgLimiter(msgRate, burstSize)); err != nil {
-		hwlog.RunLog.Errorf("set msg limiter failed: %s", err.Error())
-		return errors.New("set msg limiter failed")
-	}
-
 	return nil
 }
 

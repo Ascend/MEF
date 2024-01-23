@@ -4,7 +4,7 @@
 package cloudhub
 
 import (
-	"huawei.com/mindx/common/websocketmgr"
+	"huawei.com/mindx/common/modulemgr"
 
 	"edge-manager/pkg/constants"
 
@@ -20,26 +20,25 @@ const (
 	defaultHandlerCapacity = 2048
 )
 
-var regInfoList = []websocketmgr.RegisterModuleInfo{
-	{MsgOpt: common.OptGet, MsgRes: common.ResConfig, ModuleName: common.NodeMsgManagerName,
-		MsgRate: defaultHandlerRate, MsgCapacity: defaultHandlerCapacity},
-	{MsgOpt: common.OptReport, MsgRes: common.ResDownloadProgress, ModuleName: common.NodeMsgManagerName,
-		MsgRate: defaultHandlerRate, MsgCapacity: defaultHandlerCapacity},
-	{MsgOpt: common.OptReport, MsgRes: common.ResSoftwareInfo, ModuleName: common.NodeManagerName,
-		MsgRate: defaultHandlerRate, MsgCapacity: defaultHandlerCapacity},
-	{MsgOpt: common.OptGet, MsgRes: common.ResDownLoadCert, ModuleName: common.NodeMsgManagerName,
-		MsgRate: defaultHandlerRate, MsgCapacity: defaultHandlerCapacity},
-	{MsgOpt: common.OptPost, MsgRes: common.ResEdgeCert, ModuleName: common.CloudHubName,
-		MsgRate: defaultHandlerRate, MsgCapacity: defaultHandlerCapacity},
-	{MsgOpt: common.OptResp, MsgRes: common.CertWillExpired, ModuleName: common.CertUpdaterName,
-		MsgRate: defaultHandlerRate, MsgCapacity: defaultHandlerCapacity},
-	//	edge nodes reports adding or clearing alarms router
+var regInfoList = []*modulemgr.RegisterModuleInfo{
+	{MsgOpt: common.OptGet, MsgRes: common.ResConfig, ModuleName: common.NodeMsgManagerName},
+	{MsgOpt: common.OptReport, MsgRes: common.ResDownloadProgress, ModuleName: common.NodeMsgManagerName},
+	{MsgOpt: common.OptReport, MsgRes: common.ResSoftwareInfo, ModuleName: common.NodeManagerName},
+	{MsgOpt: common.OptGet, MsgRes: common.ResDownLoadCert, ModuleName: common.NodeMsgManagerName},
+	{MsgOpt: common.OptPost, MsgRes: common.ResEdgeCert, ModuleName: common.CloudHubName},
+	{MsgOpt: common.OptResp, MsgRes: common.CertWillExpired, ModuleName: common.CertUpdaterName},
+	{MsgOpt: common.OptReport, MsgRes: constants.ResLogDumpError, ModuleName: constants.LogManagerName},
 	{MsgOpt: common.OptPost, MsgRes: requests.ReportAlarmRouter, ModuleName: common.CloudHubName,
-		MsgRate: alarmHandlerRate, MsgCapacity: alarmHandlerCapacity},
-	{MsgOpt: common.OptReport, MsgRes: constants.ResLogDumpError, ModuleName: constants.LogManagerName,
-		MsgRate: defaultHandlerRate, MsgCapacity: defaultHandlerCapacity},
+		Rps: alarmHandlerRate, Burst: alarmHandlerCapacity},
 }
 
-func getRegModuleInfoList() []websocketmgr.RegisterModuleInfo {
-	return regInfoList
+func getRegModuleInfoList() []modulemgr.MessageHandlerIntf {
+	handlers := make([]modulemgr.MessageHandlerIntf, len(regInfoList), len(regInfoList))
+	for idx, reg := range regInfoList {
+		if reg.Rps == 0 {
+			reg.Rps, reg.Burst = defaultHandlerRate, defaultHandlerCapacity
+		}
+		handlers[idx] = reg
+	}
+	return handlers
 }

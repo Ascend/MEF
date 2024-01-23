@@ -22,7 +22,7 @@ const (
 	name = "inner_ws_server"
 )
 
-var serverSender websocketmgr.WsSvrSender
+var proxy *websocketmgr.WsServerProxy
 
 const (
 	msgRate   = 40
@@ -64,29 +64,24 @@ func InitInnerWsServer(innerWsPort int) error {
 		return errors.New("init proxy config failed")
 	}
 	proxyConfig.RegModInfos(getRegModuleInfoList())
-	proxy := &websocketmgr.WsServerProxy{
+	if err = proxyConfig.SetRpsLimiterCfg(msgRate, burstSize); err != nil {
+		hwlog.RunLog.Errorf("set rps limiter config failed: %s", err.Error())
+		return fmt.Errorf("set rps limiter config failed: %s", err.Error())
+	}
+	proxy = &websocketmgr.WsServerProxy{
 		ProxyCfg: proxyConfig,
 	}
-
 	proxy.AddDefaultHandler()
-	serverSender.SetProxy(proxy)
 	if err = proxy.Start(); err != nil {
 		hwlog.RunLog.Errorf("proxy start failed: %v", err)
 		return errors.New("proxy start failed")
 	}
-
-	if err = proxy.SetLimiter(websocketmgr.NewMsgLimiter(msgRate, burstSize)); err != nil {
-		hwlog.RunLog.Errorf("set msg Limiter failed: %s", err.Error())
-		return errors.New("set msg limiter failed")
-	}
-
 	hwlog.RunLog.Info("cloudhub server start success")
 	return nil
 }
 
-// getWsSender returns a websocket server sender
-func getWsSender() websocketmgr.WsSvrSender {
-	return serverSender
+func getWsSender() *websocketmgr.WsServerProxy {
+	return proxy
 }
 
 // SendMessageByInnerWs send a message to specified module

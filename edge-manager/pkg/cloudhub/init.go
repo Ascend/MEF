@@ -109,10 +109,6 @@ func (c *CloudServer) Enable() bool {
 // Start initializes the websocket server
 func (c *CloudServer) Start() {
 	hwlog.RunLog.Info("----------------cloud hub start----------------")
-	if err := websocketmgr.InitConnLimiter(c.maxClientNum); err != nil {
-		hwlog.RunLog.Errorf("init mef edge max client num failed: %v", err)
-		return
-	}
 	checkAndLock()
 	var err error
 	// set up a websocket server for connecting edge-nodes
@@ -216,7 +212,6 @@ func (c *CloudServer) sendToEdge(msg *model.Message) error {
 	originalSync := msg.GetIsSync()
 	msg.SetIsSync(false)
 	defer msg.SetIsSync(originalSync)
-
 	if err = sender.Send(msg.GetNodeId(), msg); err != nil {
 		hwlog.RunLog.Errorf("cloud hub send msg to edge node error: %v, operation is [%s], resource is [%s]",
 			err, msg.GetOption(), msg.GetResource())
