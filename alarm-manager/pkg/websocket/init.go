@@ -93,7 +93,7 @@ func (m *alarmWsClient) Start() {
 
 func (m *alarmWsClient) sendMsgToSever(msg *model.Message) error {
 	msg.SetNodeId(common.AlarmManagerWsMoudle)
-	if err := clientSender.Send(msg); err != nil {
+	if err := proxy.Send(msg); err != nil {
 		hwlog.RunLog.Errorf("alarm-manager sender send message to edge-manager failed, error: %v", err)
 		return errors.New("alarm-manager sender send message to edge-manager failed")
 	}
