@@ -49,10 +49,10 @@ const (
 	defaultKmcPath = "/home/data/public-config/kmc-config.json"
 	defaultDbPath  = "/home/data/config/alarm-manager.db"
 
-	maxIPConnLimit     = 128
+	maxIPConnLimit     = 512
 	maxConcurrency     = 512
-	defaultConnection  = 3
-	defaultConcurrency = 3
+	defaultConnection  = 512
+	defaultConcurrency = 512
 	defaultDataLimit   = 1024 * 1024
 	defaultCacheSize   = 1024 * 1024 * 10
 )
@@ -172,6 +172,7 @@ func register(ctx context.Context) error {
 
 func getLimitParam() httpsmgr.ServerParam {
 	return httpsmgr.ServerParam{
+		BurstIPReq:     512,
 		Concurrency:    concurrency,
 		BodySizeLimit:  dataLimit,
 		LimitIPReq:     limitIPReq,

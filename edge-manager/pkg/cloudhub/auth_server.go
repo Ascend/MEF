@@ -48,6 +48,7 @@ func NewClientAuthService(serverIp string, port int, tlsCfg certutils.TlsCertInf
 			Port:        port,
 			SwitchLimit: true,
 			ServerParam: httpsmgr.ServerParam{
+				BurstIPReq:     512,
 				Concurrency:    connSize,
 				LimitIPReq:     limitIP,
 				BodySizeLimit:  dataSize,
