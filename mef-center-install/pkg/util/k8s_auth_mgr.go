@@ -117,13 +117,17 @@ func getKubeClientCA(podCommand string) (string, error) {
 		return "", fmt.Errorf("new ca chain mgr failed: %v", err)
 	}
 
-	if err = caMgr.CheckCertChain(); err != nil {
-		found, err := regexp.MatchString(`the length of RSA public key 2048 less than`, err.Error())
-		if err != nil || !found {
-			return "", fmt.Errorf("check k8s apiserver client ca failed: %v", err)
-		}
-		hwlog.RunLog.Warn("k8s apiserver client ca public key length not enough")
+	// The default length of RSA public key for k8s ca is 2048.
+	// Check ca twice to determine whether we should print a warning message.
+	if err = caMgr.CheckCertChain(); err == nil {
+		return kubeclientCaPathArr[1], nil
 	}
+	if err = caMgr.CheckCertChain(x509.CaChainCheckOptions{AllowMiddleStrengthRsaPublicKey: true}); err != nil {
+		return "", fmt.Errorf("check k8s apiserver client ca failed: %v", err)
+	}
+	fmt.Println("warning: k8s apiserver client ca public key length is less than 3072. " +
+		"It is recommended to use a stronger key.")
+	hwlog.RunLog.Warn("k8s apiserver client ca public key length is less than 3072")
 	return kubeclientCaPathArr[1], nil
 }
 
