@@ -203,16 +203,16 @@ func (c *CloudServer) response(message *model.Message, content string) {
 }
 
 func (c *CloudServer) sendToEdge(msg *model.Message) error {
-	sender, err := GetSvrSender()
-	if err != nil {
-		hwlog.RunLog.Errorf("send to client [%s] failed", msg.GetNodeId())
-		return fmt.Errorf("send to client [%s] failed", msg.GetNodeId())
+	sender := c.serverProxy
+	if sender == nil {
+		hwlog.RunLog.Errorf("server proxy is not initialized")
+		return fmt.Errorf("server proxy is not initialized")
 	}
 
 	originalSync := msg.GetIsSync()
 	msg.SetIsSync(false)
 	defer msg.SetIsSync(originalSync)
-	if err = sender.Send(msg.GetNodeId(), msg); err != nil {
+	if err := sender.Send(msg.GetNodeId(), msg); err != nil {
 		hwlog.RunLog.Errorf("cloud hub send msg to edge node error: %v, operation is [%s], resource is [%s]",
 			err, msg.GetOption(), msg.GetResource())
 		return fmt.Errorf("send to client [%s] failed", msg.GetNodeId())

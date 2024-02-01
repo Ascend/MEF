@@ -5,14 +5,14 @@ package install
 import (
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/smartystreets/goconvey/convey"
 )
 
 func TestInstallPkg(t *testing.T) {
-	Convey("test install pkg", t, func() {
-		Convey("test install mgr file", DoInstallMgrTest)
-		Convey("test cert mgr file", CertMgrTest)
-		Convey("test working dir mgr file", WorkingDirMgrTest)
-		Convey("test yaml mgr file", YamlMgrTest)
+	convey.Convey("test install pkg", t, func() {
+		convey.Convey("test install mgr file", DoInstallMgrTest)
+		convey.Convey("test cert mgr file", CertMgrTest)
+		convey.Convey("test working dir mgr file", WorkingDirMgrTest)
+		convey.Convey("test yaml mgr file", YamlMgrTest)
 	})
 }
