@@ -30,7 +30,6 @@ const (
 	wsThroughputPeriod = 30 * time.Second
 )
 
-var proxy *websocketmgr.WsServerProxy
 var initFlag bool
 
 // InitServer init server
@@ -63,7 +62,7 @@ func InitServer() (*websocketmgr.WsServerProxy, error) {
 		hwlog.RunLog.Errorf("init bandwidth limiter config failed: %v", err)
 		return nil, fmt.Errorf("init bandwidth limiter config failed: %v", err)
 	}
-	proxy = &websocketmgr.WsServerProxy{
+	proxy := &websocketmgr.WsServerProxy{
 		ProxyCfg: proxyConfig,
 	}
 	if server.maxClientNum > 0 {
@@ -104,17 +103,6 @@ func authServer() {
 		time.Sleep(constants.ServerInitRetryInterval)
 	}
 	hwlog.RunLog.Error("start auth server failed after maximum number of retry")
-}
-
-// GetSvrSender get server sender
-func GetSvrSender() (*websocketmgr.WsServerProxy, error) {
-	if !initFlag {
-		if _, err := InitServer(); err != nil {
-			hwlog.RunLog.Errorf("init websocket server failed before sending message to edge, error: %v", err)
-			return nil, errors.New("init websocket server failed before sending message to edge")
-		}
-	}
-	return proxy, nil
 }
 
 func clearAlarm(arg interface{}) {

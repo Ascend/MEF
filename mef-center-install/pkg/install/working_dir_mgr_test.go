@@ -7,22 +7,22 @@ import (
 	"os"
 	"path/filepath"
 
-	. "github.com/agiledragon/gomonkey/v2"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/agiledragon/gomonkey/v2"
+	"github.com/smartystreets/goconvey/convey"
 	"huawei.com/mindx/common/fileutils"
 
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
 func WorkingDirMgrTest() {
-	Convey("WorkingDirMgr DoInstallPrepare func", WorkingDirMgrDoPrepareTest)
-	Convey("prepareRootWorkDir func", PrepareRootWorkDirTest)
-	Convey("prepareLibDir func", PrepareLibDirTest)
-	Convey("prepareRunSh func", PrepareRunShTest)
-	Convey("prepareBinDir func", PrepareBinDirTest)
-	Convey("prepareVersionXml func", PrepareVersionXmlTest)
-	Convey("prepareComponentWorkDir func", PrepareComponentWorkDirTest)
-	Convey("prepareSymlinks func", PrepareSymlinksTest)
+	convey.Convey("WorkingDirMgr DoInstallPrepare func", WorkingDirMgrDoPrepareTest)
+	convey.Convey("prepareRootWorkDir func", PrepareRootWorkDirTest)
+	convey.Convey("prepareLibDir func", PrepareLibDirTest)
+	convey.Convey("prepareRunSh func", PrepareRunShTest)
+	convey.Convey("prepareBinDir func", PrepareBinDirTest)
+	convey.Convey("prepareVersionXml func", PrepareVersionXmlTest)
+	convey.Convey("prepareComponentWorkDir func", PrepareComponentWorkDirTest)
+	convey.Convey("prepareSymlinks func", PrepareSymlinksTest)
 }
 
 func WorkingDirMgrDoPrepareTest() {
@@ -32,8 +32,8 @@ func WorkingDirMgrDoPrepareTest() {
 		components:  nil,
 	}
 
-	Convey("test workingDirCtl struct DoInstallPrepare func success", func() {
-		p := ApplyPrivateMethod(ins, "prepareRootWorkDir", func(_ *WorkingDirCtl) error { return nil }).
+	convey.Convey("test workingDirCtl struct DoInstallPrepare func success", func() {
+		p := gomonkey.ApplyPrivateMethod(ins, "prepareRootWorkDir", func(_ *WorkingDirCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "prepareLibDir", func(_ *WorkingDirCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "prepareRunSh", func(_ *WorkingDirCtl) error { return nil }).
 			ApplyPrivateMethod(ins, "prepareBinDir", func(_ *WorkingDirCtl) error { return nil }).
@@ -42,14 +42,14 @@ func WorkingDirMgrDoPrepareTest() {
 			ApplyPrivateMethod(ins, "prepareSymlinks", func(_ *WorkingDirCtl) error { return nil })
 
 		defer p.Reset()
-		So(ins.DoInstallPrepare(), ShouldBeNil)
+		convey.So(ins.DoInstallPrepare(), convey.ShouldBeNil)
 	})
 
-	Convey("test workingDirCtl struct DoInstallPrepare func failed", func() {
-		p := ApplyPrivateMethod(ins, "prepareRootWorkDir",
+	convey.Convey("test workingDirCtl struct DoInstallPrepare func failed", func() {
+		p := gomonkey.ApplyPrivateMethod(ins, "prepareRootWorkDir",
 			func(_ *WorkingDirCtl) error { return ErrTest })
 		defer p.Reset()
-		So(ins.DoInstallPrepare(), ShouldResemble, ErrTest)
+		convey.So(ins.DoInstallPrepare(), convey.ShouldResemble, ErrTest)
 	})
 }
 
@@ -60,16 +60,16 @@ func PrepareRootWorkDirTest() {
 		components:  nil,
 	}
 
-	Convey("test prepareRootWorkDir func success", func() {
-		p := ApplyFuncReturn(fileutils.CreateDir, nil)
+	convey.Convey("test prepareRootWorkDir func success", func() {
+		p := gomonkey.ApplyFuncReturn(fileutils.CreateDir, nil)
 		defer p.Reset()
-		So(ins.prepareRootWorkDir(), ShouldBeNil)
+		convey.So(ins.prepareRootWorkDir(), convey.ShouldBeNil)
 	})
 
-	Convey("test prepareRootWorkDir func failed", func() {
-		p := ApplyFuncReturn(fileutils.CreateDir, ErrTest)
+	convey.Convey("test prepareRootWorkDir func failed", func() {
+		p := gomonkey.ApplyFuncReturn(fileutils.CreateDir, ErrTest)
 		defer p.Reset()
-		So(ins.prepareRootWorkDir(), ShouldResemble, errors.New("create mef root work path failed"))
+		convey.So(ins.prepareRootWorkDir(), convey.ShouldResemble, errors.New("create mef root work path failed"))
 	})
 }
 
@@ -81,41 +81,41 @@ func PrepareLibDirTest() {
 	}
 	var componentMgrIns *util.ComponentMgr
 
-	Convey("test prepareLibDir func success", func() {
-		p := ApplyFuncReturn(fileutils.CreateDir, nil).
+	convey.Convey("test prepareLibDir func success", func() {
+		p := gomonkey.ApplyFuncReturn(fileutils.CreateDir, nil).
 			ApplyFuncReturn(fileutils.CopyDir, nil).
 			ApplyMethodReturn(componentMgrIns, "PrepareLibDir", nil).
 			ApplyFuncReturn(fileutils.CopyDirWithSoftlink, nil)
 		defer p.Reset()
-		So(ins.prepareLibDir(), ShouldBeNil)
+		convey.So(ins.prepareLibDir(), convey.ShouldBeNil)
 	})
 
-	Convey("test prepareLibDir func get current path failed", func() {
-		p := ApplyFuncReturn(filepath.Abs, "", ErrTest)
+	convey.Convey("test prepareLibDir func get current path failed", func() {
+		p := gomonkey.ApplyFuncReturn(filepath.Abs, "", ErrTest)
 		defer p.Reset()
-		So(ins.prepareLibDir(), ShouldResemble, errors.New("get current path failed"))
+		convey.So(ins.prepareLibDir(), convey.ShouldResemble, errors.New("get current path failed"))
 	})
 
-	Convey("test prepareLibDir func makesure path failed", func() {
-		p := ApplyFuncReturn(fileutils.CreateDir, ErrTest)
+	convey.Convey("test prepareLibDir func makesure path failed", func() {
+		p := gomonkey.ApplyFuncReturn(fileutils.CreateDir, ErrTest)
 		defer p.Reset()
-		So(ins.prepareLibDir(), ShouldResemble, errors.New("create lib path failed"))
+		convey.So(ins.prepareLibDir(), convey.ShouldResemble, errors.New("create lib path failed"))
 	})
 
-	Convey("test prepareLibDir func copy dir failed", func() {
-		p := ApplyFuncReturn(fileutils.CreateDir, nil).
+	convey.Convey("test prepareLibDir func copy dir failed", func() {
+		p := gomonkey.ApplyFuncReturn(fileutils.CreateDir, nil).
 			ApplyFuncReturn(fileutils.CopyDir, ErrTest)
 		defer p.Reset()
-		So(ins.prepareLibDir(), ShouldResemble, errors.New("copy lib dir failed"))
+		convey.So(ins.prepareLibDir(), convey.ShouldResemble, errors.New("copy lib dir failed"))
 	})
 
-	Convey("test prepareLibDir func prepare component lib dir failed", func() {
-		p := ApplyFuncReturn(fileutils.CreateDir, nil).
+	convey.Convey("test prepareLibDir func prepare component lib dir failed", func() {
+		p := gomonkey.ApplyFuncReturn(fileutils.CreateDir, nil).
 			ApplyFuncReturn(fileutils.CopyDir, nil).
 			ApplyFuncReturn(fileutils.CopyDirWithSoftlink, nil).
 			ApplyMethodReturn(componentMgrIns, "PrepareLibDir", ErrTest)
 		defer p.Reset()
-		So(ins.prepareLibDir(), ShouldResemble, ErrTest)
+		convey.So(ins.prepareLibDir(), convey.ShouldResemble, ErrTest)
 	})
 }
 
@@ -126,29 +126,29 @@ func PrepareRunShTest() {
 		components:  nil,
 	}
 
-	Convey("test prepareRunSh func success", func() {
-		p := ApplyFuncReturn(fileutils.CopyFile, nil).ApplyFuncReturn(fileutils.SetPathPermission, nil)
+	convey.Convey("test prepareRunSh func success", func() {
+		p := gomonkey.ApplyFuncReturn(fileutils.CopyFile, nil).ApplyFuncReturn(fileutils.SetPathPermission, nil)
 		defer p.Reset()
-		So(ins.prepareRunSh(), ShouldBeNil)
+		convey.So(ins.prepareRunSh(), convey.ShouldBeNil)
 	})
 
-	Convey("test prepareRunSh func get current path failed", func() {
-		p := ApplyFuncReturn(filepath.Abs, "", ErrTest)
+	convey.Convey("test prepareRunSh func get current path failed", func() {
+		p := gomonkey.ApplyFuncReturn(filepath.Abs, "", ErrTest)
 		defer p.Reset()
-		So(ins.prepareRunSh(), ShouldResemble, errors.New("get current path failed"))
+		convey.So(ins.prepareRunSh(), convey.ShouldResemble, errors.New("get current path failed"))
 	})
 
-	Convey("test prepareRunSh func copy file failed", func() {
-		p := ApplyFuncReturn(fileutils.CopyFile, ErrTest)
+	convey.Convey("test prepareRunSh func copy file failed", func() {
+		p := gomonkey.ApplyFuncReturn(fileutils.CopyFile, ErrTest)
 		defer p.Reset()
-		So(ins.prepareRunSh(), ShouldResemble, errors.New("copy run scripts dir failed"))
+		convey.So(ins.prepareRunSh(), convey.ShouldResemble, errors.New("copy run scripts dir failed"))
 	})
 
-	Convey("test prepareRunSh func change mod failed", func() {
-		p := ApplyFuncReturn(fileutils.CopyFile, nil).ApplyFuncReturn(os.Chmod, ErrTest).
+	convey.Convey("test prepareRunSh func change mod failed", func() {
+		p := gomonkey.ApplyFuncReturn(fileutils.CopyFile, nil).ApplyFuncReturn(os.Chmod, ErrTest).
 			ApplyFuncReturn(fileutils.SetPathPermission, ErrTest)
 		defer p.Reset()
-		So(ins.prepareRunSh(), ShouldResemble, errors.New("set run script path mode failed"))
+		convey.So(ins.prepareRunSh(), convey.ShouldResemble, errors.New("set run script path mode failed"))
 	})
 }
 
@@ -159,29 +159,29 @@ func PrepareBinDirTest() {
 		components:  nil,
 	}
 
-	Convey("test prepareBinDir func success", func() {
-		p := ApplyFuncReturn(fileutils.CreateDir, nil).ApplyFuncReturn(fileutils.CopyDir, nil).
+	convey.Convey("test prepareBinDir func success", func() {
+		p := gomonkey.ApplyFuncReturn(fileutils.CreateDir, nil).ApplyFuncReturn(fileutils.CopyDir, nil).
 			ApplyFuncReturn(fileutils.CopyFile, nil)
 		defer p.Reset()
-		So(ins.prepareBinDir(), ShouldBeNil)
+		convey.So(ins.prepareBinDir(), convey.ShouldBeNil)
 	})
 
-	Convey("test prepareBinDir func get current path failed", func() {
-		p := ApplyFuncReturn(filepath.Abs, "", ErrTest)
+	convey.Convey("test prepareBinDir func get current path failed", func() {
+		p := gomonkey.ApplyFuncReturn(filepath.Abs, "", ErrTest)
 		defer p.Reset()
-		So(ins.prepareBinDir(), ShouldResemble, errors.New("get current path failed"))
+		convey.So(ins.prepareBinDir(), convey.ShouldResemble, errors.New("get current path failed"))
 	})
 
-	Convey("test prepareBinDir func makesure path failed", func() {
-		p := ApplyFuncReturn(fileutils.CreateDir, ErrTest)
+	convey.Convey("test prepareBinDir func makesure path failed", func() {
+		p := gomonkey.ApplyFuncReturn(fileutils.CreateDir, ErrTest)
 		defer p.Reset()
-		So(ins.prepareBinDir(), ShouldResemble, errors.New("create sbin work path failed"))
+		convey.So(ins.prepareBinDir(), convey.ShouldResemble, errors.New("create sbin work path failed"))
 	})
 
-	Convey("test prepareBinDir func copyfile failed", func() {
-		p := ApplyFuncReturn(fileutils.CreateDir, nil).ApplyFuncReturn(fileutils.CopyDir, ErrTest)
+	convey.Convey("test prepareBinDir func copyfile failed", func() {
+		p := gomonkey.ApplyFuncReturn(fileutils.CreateDir, nil).ApplyFuncReturn(fileutils.CopyDir, ErrTest)
 		defer p.Reset()
-		So(ins.prepareBinDir(), ShouldResemble, errors.New("copy mef controller failed"))
+		convey.So(ins.prepareBinDir(), convey.ShouldResemble, errors.New("copy mef controller failed"))
 	})
 }
 
@@ -192,29 +192,29 @@ func PrepareVersionXmlTest() {
 		components:  nil,
 	}
 
-	Convey("test func prepareVersionXm func success", func() {
-		p := ApplyFuncReturn(fileutils.CopyFile, nil).ApplyFuncReturn(os.Chmod, nil).
+	convey.Convey("test func prepareVersionXm func success", func() {
+		p := gomonkey.ApplyFuncReturn(fileutils.CopyFile, nil).ApplyFuncReturn(os.Chmod, nil).
 			ApplyFuncReturn(fileutils.SetPathPermission, nil)
 		defer p.Reset()
-		So(ins.prepareVersionXml(), ShouldBeNil)
+		convey.So(ins.prepareVersionXml(), convey.ShouldBeNil)
 	})
 
-	Convey("test func prepareVersionXm get current path failed", func() {
-		p := ApplyFuncReturn(filepath.Abs, "", ErrTest)
+	convey.Convey("test func prepareVersionXm get current path failed", func() {
+		p := gomonkey.ApplyFuncReturn(filepath.Abs, "", ErrTest)
 		defer p.Reset()
-		So(ins.prepareVersionXml(), ShouldResemble, errors.New("get current path failed"))
+		convey.So(ins.prepareVersionXml(), convey.ShouldResemble, errors.New("get current path failed"))
 	})
 
-	Convey("test func prepareVersionXm copy file failed", func() {
-		p := ApplyFuncReturn(fileutils.CopyFile, ErrTest)
+	convey.Convey("test func prepareVersionXm copy file failed", func() {
+		p := gomonkey.ApplyFuncReturn(fileutils.CopyFile, ErrTest)
 		defer p.Reset()
-		So(ins.prepareVersionXml(), ShouldResemble, errors.New("copy version.xml failed"))
+		convey.So(ins.prepareVersionXml(), convey.ShouldResemble, errors.New("copy version.xml failed"))
 	})
 
-	Convey("test func prepareVersionXm func change mod failed", func() {
-		p := ApplyFuncReturn(fileutils.CopyFile, nil).ApplyFuncReturn(fileutils.SetPathPermission, ErrTest)
+	convey.Convey("test func prepareVersionXm func change mod failed", func() {
+		p := gomonkey.ApplyFuncReturn(fileutils.CopyFile, nil).ApplyFuncReturn(fileutils.SetPathPermission, ErrTest)
 		defer p.Reset()
-		So(ins.prepareVersionXml(), ShouldResemble, errors.New("set version.xml path mode failed"))
+		convey.So(ins.prepareVersionXml(), convey.ShouldResemble, errors.New("set version.xml path mode failed"))
 	})
 }
 
@@ -226,24 +226,24 @@ func PrepareComponentWorkDirTest() {
 	}
 	var componentMgrIns *util.ComponentMgr
 
-	Convey("test func prepareComponentWorkDir success", func() {
-		p := ApplyFuncReturn(fileutils.CreateDir, nil).
+	convey.Convey("test func prepareComponentWorkDir success", func() {
+		p := gomonkey.ApplyFuncReturn(fileutils.CreateDir, nil).
 			ApplyMethodReturn(componentMgrIns, "PrepareSingleComponentDir", nil)
 		defer p.Reset()
-		So(ins.prepareComponentWorkDir(), ShouldBeNil)
+		convey.So(ins.prepareComponentWorkDir(), convey.ShouldBeNil)
 	})
 
-	Convey("test func prepareComponentWorkDir makesure dir failed", func() {
-		p := ApplyFuncReturn(fileutils.CreateDir, ErrTest)
+	convey.Convey("test func prepareComponentWorkDir makesure dir failed", func() {
+		p := gomonkey.ApplyFuncReturn(fileutils.CreateDir, ErrTest)
 		defer p.Reset()
-		So(ins.prepareComponentWorkDir(), ShouldResemble, errors.New("create component root work path failed"))
+		convey.So(ins.prepareComponentWorkDir(), convey.ShouldResemble, errors.New("create component root work path failed"))
 	})
 
-	Convey("test func prepareComponentWorkDir prepare components dir failed", func() {
-		p := ApplyFuncReturn(fileutils.CreateDir, nil).
+	convey.Convey("test func prepareComponentWorkDir prepare components dir failed", func() {
+		p := gomonkey.ApplyFuncReturn(fileutils.CreateDir, nil).
 			ApplyMethodReturn(componentMgrIns, "PrepareSingleComponentDir", ErrTest)
 		defer p.Reset()
-		So(ins.prepareComponentWorkDir(), ShouldResemble, ErrTest)
+		convey.So(ins.prepareComponentWorkDir(), convey.ShouldResemble, ErrTest)
 	})
 }
 
@@ -254,15 +254,15 @@ func PrepareSymlinksTest() {
 		components:  []string{"edge-manager"},
 	}
 
-	Convey("test func prepareSymlinks success", func() {
-		p := ApplyFuncReturn(os.Symlink, nil)
+	convey.Convey("test func prepareSymlinks success", func() {
+		p := gomonkey.ApplyFuncReturn(os.Symlink, nil)
 		defer p.Reset()
-		So(ins.prepareSymlinks(), ShouldBeNil)
+		convey.So(ins.prepareSymlinks(), convey.ShouldBeNil)
 	})
 
-	Convey("test func prepareSymlinks failed", func() {
-		p := ApplyFuncReturn(os.Symlink, ErrTest)
+	convey.Convey("test func prepareSymlinks failed", func() {
+		p := gomonkey.ApplyFuncReturn(os.Symlink, ErrTest)
 		defer p.Reset()
-		So(ins.prepareSymlinks(), ShouldResemble, errors.New("create work dir symlink failed"))
+		convey.So(ins.prepareSymlinks(), convey.ShouldResemble, errors.New("create work dir symlink failed"))
 	})
 }

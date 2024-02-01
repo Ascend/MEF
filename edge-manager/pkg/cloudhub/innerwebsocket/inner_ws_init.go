@@ -22,8 +22,6 @@ const (
 	name = "inner_ws_server"
 )
 
-var proxy *websocketmgr.WsServerProxy
-
 const (
 	msgRate   = 40
 	burstSize = 100
@@ -33,6 +31,7 @@ const (
 type WsInnerServer struct {
 	WsPort int
 	Ctx    context.Context
+	Proxy  *websocketmgr.WsServerProxy
 }
 
 // InnerWsServer is the server of the inner websocket
@@ -68,7 +67,7 @@ func InitInnerWsServer(innerWsPort int) error {
 		hwlog.RunLog.Errorf("set rps limiter config failed: %s", err.Error())
 		return fmt.Errorf("set rps limiter config failed: %s", err.Error())
 	}
-	proxy = &websocketmgr.WsServerProxy{
+	proxy := &websocketmgr.WsServerProxy{
 		ProxyCfg: proxyConfig,
 	}
 	proxy.AddDefaultHandler()
@@ -76,12 +75,9 @@ func InitInnerWsServer(innerWsPort int) error {
 		hwlog.RunLog.Errorf("proxy start failed: %v", err)
 		return errors.New("proxy start failed")
 	}
+	InnerWsServer.Proxy = proxy
 	hwlog.RunLog.Info("cloudhub server start success")
 	return nil
-}
-
-func getWsSender() *websocketmgr.WsServerProxy {
-	return proxy
 }
 
 // SendMessageByInnerWs send a message to specified module
@@ -92,6 +88,8 @@ func sendMessageByInnerWs(message *model.Message, moduleName string) error {
 		return fmt.Errorf("failed to send message to %s while message is nil", moduleName)
 	}
 	message.SetNodeId(moduleName)
-	sender := getWsSender()
-	return sender.Send(message.GetNodeId(), message)
+	if InnerWsServer.Proxy == nil {
+		return fmt.Errorf("inner ws proxy is not initialized")
+	}
+	return InnerWsServer.Proxy.Send(message.GetNodeId(), message)
 }

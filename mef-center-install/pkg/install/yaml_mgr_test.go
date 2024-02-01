@@ -5,7 +5,7 @@ package install
 import (
 	"os"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/smartystreets/goconvey/convey"
 	"huawei.com/mindx/common/fileutils"
 
 	"huawei.com/mindxedge/base/common"
@@ -49,26 +49,26 @@ spec:
 func testGetYamlPath() {
 	yamlPath := "./test.yaml"
 	pathMgr, err := util.InitInstallDirPathMgr(yamlPath)
-	So(err, ShouldBeNil)
+	convey.So(err, convey.ShouldBeNil)
 	var yamlDealer = GetYamlDealer(pathMgr, "edge-manager", "", "", yamlPath)
 	yamlContent := getTestYaml()
 	writer, err := os.OpenFile(yamlPath, os.O_WRONLY|os.O_CREATE, common.Mode700)
-	So(err, ShouldBeNil)
+	convey.So(err, convey.ShouldBeNil)
 	defer func() {
 		err = writer.Close()
-		So(err, ShouldBeNil)
+		convey.So(err, convey.ShouldBeNil)
 	}()
 	defer func() {
 		err = fileutils.DeleteAllFileWithConfusion("./test.yaml")
-		So(err, ShouldBeNil)
+		convey.So(err, convey.ShouldBeNil)
 	}()
 	_, err = writer.Write([]byte(yamlContent))
-	So(err, ShouldBeNil)
+	convey.So(err, convey.ShouldBeNil)
 
 	err = yamlDealer.EditSingleYaml([]string{"edge-manager"})
-	So(err, ShouldBeNil)
+	convey.So(err, convey.ShouldBeNil)
 }
 
 func YamlEditTest() {
-	Convey("test yaml edit function", testGetYamlPath)
+	convey.Convey("test yaml edit function", testGetYamlPath)
 }
