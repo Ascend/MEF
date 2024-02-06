@@ -5,7 +5,6 @@ package appmanager
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr/model"
@@ -90,31 +89,6 @@ func getAppResReqs(daemonSet *appv1.DaemonSet) corev1.ResourceList {
 	return appResReqs
 }
 
-func getNodesByNodeGroup(nodeGroupID uint64) ([]uint64, error) {
-	router := common.Router{
-		Source:      common.AppManagerName,
-		Destination: common.NodeManagerName,
-		Option:      common.Inner,
-		Resource:    common.NodeID,
-	}
-	req := types.InnerGetNodesReq{
-		NodeGroupID: nodeGroupID,
-	}
-	resp := common.SendSyncMessageByRestful(req, &router, common.ResponseTimeout)
-	if resp.Status != common.Success {
-		return nil, errors.New(resp.Msg)
-	}
-	data, err := json.Marshal(resp.Data)
-	if err != nil {
-		return nil, errors.New("marshal internal response error")
-	}
-	var nodeGroupInfosResp types.InnerGetNodesResp
-	if err = json.Unmarshal(data, &nodeGroupInfosResp); err != nil {
-		return nil, errors.New("unmarshal internal response error")
-	}
-	return nodeGroupInfosResp.NodeIDs, nil
-}
-
 func getNodeGroupInfos(nodeGroupIds []uint64) ([]types.NodeGroupInfo, error) {
 	router := common.Router{
 		Source:      common.AppManagerName,
@@ -126,16 +100,9 @@ func getNodeGroupInfos(nodeGroupIds []uint64) ([]types.NodeGroupInfo, error) {
 		NodeGroupIds: nodeGroupIds,
 	}
 	resp := common.SendSyncMessageByRestful(req, &router, common.ResponseTimeout)
-	if resp.Status != common.Success {
-		return nil, errors.New(resp.Msg)
-	}
-	data, err := json.Marshal(resp.Data)
-	if err != nil {
-		return nil, errors.New("marshal internal response error")
-	}
 	var nodeGroupInfosResp types.InnerGetNodeGroupInfosResp
-	if err = json.Unmarshal(data, &nodeGroupInfosResp); err != nil {
-		return nil, errors.New("unmarshal internal response error")
+	if err := parseDataFromResp(resp, &nodeGroupInfosResp); err != nil {
+		return nil, err
 	}
 	return nodeGroupInfosResp.NodeGroupInfos, nil
 }
@@ -155,16 +122,9 @@ func getNodeInfoByUniqueName(eventPod *corev1.Pod) (uint64, string, error) {
 		UniqueName: eventPod.Spec.NodeName,
 	}
 	resp := common.SendSyncMessageByRestful(req, &router, common.ResponseTimeout)
-	if resp.Status != common.Success {
-		return 0, "", errors.New(resp.Msg)
-	}
-	data, err := json.Marshal(resp.Data)
-	if err != nil {
-		return 0, "", errors.New("marshal internal response error")
-	}
 	var nodeInfo types.InnerGetNodeInfoByNameResp
-	if err = json.Unmarshal(data, &nodeInfo); err != nil {
-		return 0, "", errors.New("unmarshal internal response error")
+	if err := parseDataFromResp(resp, &nodeInfo); err != nil {
+		return 0, "", err
 	}
 	return nodeInfo.NodeID, nodeInfo.NodeName, nil
 }
@@ -184,16 +144,23 @@ func getNodeStatus(nodeUniqueName string) (string, error) {
 		UniqueName: nodeUniqueName,
 	}
 	resp := common.SendSyncMessageByRestful(req, &router, common.ResponseTimeout)
+	var node types.InnerGetNodeStatusResp
+	if err := parseDataFromResp(resp, &node); err != nil {
+		return "", err
+	}
+	return node.NodeStatus, nil
+}
+
+func parseDataFromResp(resp common.RespMsg, v interface{}) error {
 	if resp.Status != common.Success {
-		return nodeStatusUnknown, fmt.Errorf("get info from other module error, %v", resp.Msg)
+		return errors.New(resp.Msg)
 	}
 	data, err := json.Marshal(resp.Data)
 	if err != nil {
-		return nodeStatusUnknown, errors.New("marshal internal response error")
+		return errors.New("marshal internal response error")
 	}
-	var node types.InnerGetNodeStatusResp
-	if err = json.Unmarshal(data, &node); err != nil {
-		return nodeStatusUnknown, errors.New("unmarshal internal response error")
+	if err = json.Unmarshal(data, v); err != nil {
+		return errors.New("unmarshal internal response error")
 	}
-	return node.NodeStatus, nil
+	return nil
 }

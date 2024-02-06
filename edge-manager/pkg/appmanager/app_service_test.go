@@ -4,6 +4,9 @@
 package appmanager
 
 import (
+	"encoding/json"
+	"errors"
+	"math"
 	"testing"
 
 	"github.com/agiledragon/gomonkey/v2"
@@ -14,7 +17,6 @@ import (
 
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
-
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -81,55 +83,86 @@ func TestListAppInstancesById(t *testing.T) {
 	convey.Convey("test ListAppInstancesById error input", t, testListAppInstancesByIdError)
 }
 
+func TestGetAppInstanceRespFromAppInstances(t *testing.T) {
+	convey.Convey("test getAppInstanceRespFromAppInstances", t, testGetAppInstanceRespFromAppInstances)
+	convey.Convey("test getAppInstanceRespFromAppInstances error input", t, testGetAppInstanceRespFromAppInstancesError)
+}
+
+func getTestCreateAppReq(containers ...Container) CreateAppReq {
+	req := CreateAppReq{
+		AppName:    "face-check",
+		Containers: containers,
+	}
+	return req
+}
+
+func getTestContainer() Container {
+	uid, gid := int64(1024), int64(1024)
+	memoryLimit, cpuLimit, npu := int64(1024), float64(1), int64(1)
+	container := Container{
+		Name:         "container1",
+		UserID:       &uid,
+		GroupID:      &gid,
+		MemRequest:   1024,
+		MemLimit:     &memoryLimit,
+		CpuRequest:   1,
+		CpuLimit:     &cpuLimit,
+		Npu:          &npu,
+		Image:        "euler_image",
+		ImageVersion: "1.0",
+		Ports: []ContainerPort{{
+			Name:          "test-port",
+			Proto:         "TCP",
+			ContainerPort: 1234,
+			HostIP:        "127.0.0.1",
+			HostPort:      6666,
+		}},
+		HostPathVolumes: []HostPathVolume{{
+			Name:      "v1",
+			HostPath:  "/usr/local/sbin/npu-smi",
+			MountPath: "/usr/local/sbin/npu-smi",
+		}},
+	}
+	return container
+}
+
+func getTestJsonString(v interface{}) []byte {
+	data, err := json.Marshal(v)
+	if err != nil {
+		panic(err)
+	}
+	return data
+}
+
 func testCreateApp() {
-	reqData := `{
-    "appName":"face-check",
-    "description":"",
-    "containers":[{
-            "args":[],
-            "command":[],
-            "containerPort":[],
-			"memRequest": 1024,
-            "cpuRequest": 1,
-            "env":[],
-			"containerPort": [
-				{
-					"name": "test-port",
-                    "proto": "TCP",
-                    "containerPort": 1234,
-                    "hostIP": "12.23.45.78",
-                    "hostPort": 6666
-				}
-			],
-            "groupId":1024,
-            "image":"euler_image",
-            "imageVersion":"2.0",
-            "memRequest": 1024,
-            "name":"afafda",
-            "userId":1024
-	}]
-}`
-	resp := createApp(&model.Message{Content: []byte(reqData)})
+	resp := createApp(&model.Message{Content: getTestJsonString(getTestCreateAppReq(getTestContainer()))})
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
 func testCreateAppError() {
-	reqData := `{
-    "appName":"face-check",
-    "description":"",
-    "containers":[{
-			"memRequest": 1024,
-            "cpuRequest": 100000,
-            "groupId":1024,
-            "image":"euler_image",
-            "imageVersion":"2.0",
-            "memRequest": 1024,
-            "name":"afafda",
-            "userId":1024
-	}]
-}`
-	resp := createApp(&model.Message{Content: []byte(reqData)})
+	resp := createApp(&model.Message{Content: []byte("error content")})
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
+
+	container := getTestContainer()
+	reqData := getTestJsonString(getTestCreateAppReq(container, container))
+	resp = createApp(&model.Message{Content: reqData})
+	convey.So(resp.Msg, convey.ShouldEqual, "para check failed: check containers par failed: duplicated name")
+
+	container.CpuRequest = 10000
+	reqData = getTestJsonString(getTestCreateAppReq(container))
+	resp = createApp(&model.Message{Content: reqData})
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
+
+	patches := gomonkey.ApplyFuncSeq(GetTableCount, []gomonkey.OutputCell{
+		{Values: gomonkey.Params{0, test.ErrTest}, Times: 1},
+		{Values: gomonkey.Params{MaxApp, nil}, Times: 1},
+	})
+	defer patches.Reset()
+	reqData = getTestJsonString(getTestCreateAppReq(getTestContainer()))
+	resp = createApp(&model.Message{Content: reqData})
+	convey.So(resp.Msg, convey.ShouldEqual, "get app table num failed")
+	resp = createApp(&model.Message{Content: reqData})
+	convey.So(resp.Msg, convey.ShouldEqual, "app number is enough, can not be created")
 }
 
 func testDeleteNotExistApp() {
@@ -151,46 +184,46 @@ func testDeleteApp() {
 func testDeleteAppError() {
 	resp := deleteApp(&model.Message{Content: []byte("")})
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
+
+	resp = deleteApp(&model.Message{Content: []byte(`{"appIDs": [0]}`)})
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
+
+	patches := gomonkey.ApplyPrivateMethod(&AppRepositoryImpl{}, "getAppInfoById",
+		func(a *AppRepositoryImpl, appId uint64) (*AppInfo, error) { return &AppInfo{}, nil })
+	defer patches.Reset()
+	resp = deleteApp(&model.Message{Content: []byte(`{"appIDs": [1]}`)})
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorDeleteApp)
+
+	patches.ApplyPrivateMethod(&AppRepositoryImpl{}, "deleteAppById",
+		func(a *AppRepositoryImpl, appId uint64) (int64, error) {
+			return 0, errors.New("app is referenced, can not be deleted")
+		})
+	resp = deleteApp(&model.Message{Content: []byte(`{"appIDs": [1]}`)})
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorDeleteApp)
 }
 
 func testUpdateNotExistApp() {
-	reqData := `{
-	"appID": 1000,
-    "appName":"face-check",
-    "description":"",
-    "containers":[{
-			"memRequest": 1024,
-            "cpuRequest": 1,
-            "groupId":1024,
-            "image":"euler_image",
-            "imageVersion":"2.0",
-            "memRequest":1024,
-            "name":"afafda",
-            "userId":1024
-}]}`
-	resp := updateApp(&model.Message{Content: []byte(reqData)})
+	reqData := getTestJsonString(UpdateAppReq{
+		AppID: 1000,
+		CreateAppReq: CreateAppReq{
+			AppName:    "face-check",
+			Containers: []Container{getTestContainer()},
+		},
+	})
+	resp := updateApp(&model.Message{Content: reqData})
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorAppMrgRecodeNoFound)
 }
 
 func testUpdateApp() {
-	reqData := `{
-	"appID": 1,
-    "appName":"face-check",
-    "description":"",
-    "containers":[{
-            "args":[],
-            "command":[],
-            "containerPort":[],
-			"memRequest": 1024,
-            "cpuRequest": 1,
-            "env":[],
-            "groupId":1024,
-            "image":"euler_image",
-            "imageVersion":"2.0",
-            "memRequest":1024,
-            "name":"afafda",
-            "userId":1024
-}]}`
+	container := getTestContainer()
+	container.ImageVersion = "2.0"
+	reqData := getTestJsonString(UpdateAppReq{
+		AppID: 1,
+		CreateAppReq: CreateAppReq{
+			AppName:    "face-check",
+			Containers: []Container{container},
+		},
+	})
 	var p1 = gomonkey.ApplyPrivateMethod(AppRepositoryInstance(), "updateApp",
 		func(*AppInfo) error {
 			return nil
@@ -200,29 +233,20 @@ func testUpdateApp() {
 		return nil
 	})
 	defer p2.Reset()
-	resp := updateApp(&model.Message{Content: []byte(reqData)})
+	resp := updateApp(&model.Message{Content: reqData})
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
 func testUpdateAppDuplicate() {
-	reqData := `{
-	"appID": 1,
-    "appName":"face-check",
-    "description":"",
-    "containers":[{
-            "args":[],
-            "command":[],
-            "containerPort":[],
-			"memRequest": 1024,
-            "cpuRequest": 1,
-            "env":[],
-            "groupId":1024,
-            "image":"euler_image",
-            "imageVersion":"2.0",
-            "memRequest":1024,
-            "name":"afafda",
-            "userId":1024
-}]}`
+	container := getTestContainer()
+	container.ImageVersion = "2.0"
+	reqData := getTestJsonString(UpdateAppReq{
+		AppID: 1,
+		CreateAppReq: CreateAppReq{
+			AppName:    "face-check",
+			Containers: []Container{container},
+		},
+	})
 	var p1 = gomonkey.ApplyPrivateMethod(AppRepositoryInstance(), "updateApp",
 		func(*AppInfo) error {
 			return nil
@@ -232,46 +256,35 @@ func testUpdateAppDuplicate() {
 		return nil
 	})
 	defer p2.Reset()
-	resp := updateApp(&model.Message{Content: []byte(reqData)})
+	resp := updateApp(&model.Message{Content: reqData})
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
 func testUpdateAppErrorInput() {
-	reqData := `{
-	"appID": 1,
-    "appName":"face-check",
-    "containers":[{
-			"memRequest": 1024,
-            "cpuRequest": 100000,
-            "groupId":1024,
-            "image":"euler_image",
-            "imageVersion":"2.0",
-            "memRequest":1024,
-            "name":"afafda",
-            "userId":1024
-}]}`
-	resp := updateApp(&model.Message{Content: []byte(reqData)})
+	container := getTestContainer()
+	container.CpuRequest = 10000
+	container.ImageVersion = "2.0"
+	reqData := getTestJsonString(UpdateAppReq{
+		AppID: 1,
+		CreateAppReq: CreateAppReq{
+			AppName:    "face-check",
+			Containers: []Container{container},
+		},
+	})
+	resp := updateApp(&model.Message{Content: reqData})
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 }
 
 func testQueryAppNotExist() {
-	var reqData = uint64(notExitID)
-	msg := model.Message{}
-	err := msg.FillContent(reqData)
-	convey.So(err, convey.ShouldBeNil)
-	resp := queryApp(&msg)
+	resp := queryApp(newMsgWithContentForUT(uint64(notExitID)))
 	convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
 }
 
 func testQueryApp() {
-	var reqData = uint64(1)
-	msg := model.Message{}
-	err := msg.FillContent(reqData)
-	convey.So(err, convey.ShouldBeNil)
 	var p = gomonkey.ApplyFuncReturn(getNodeGroupInfos,
 		[]types.NodeGroupInfo{{NodeGroupID: 1, NodeGroupName: "group1"}}, nil)
 	defer p.Reset()
-	resp := queryApp(&msg)
+	resp := queryApp(newMsgWithContentForUT(uint64(1)))
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
@@ -286,19 +299,34 @@ func testListAppInfo() {
 		PageSize: 1,
 		Name:     "face-check",
 	}
-	msg := model.Message{}
-	err := msg.FillContent(reqData)
-	convey.So(err, convey.ShouldBeNil)
 	var p = gomonkey.ApplyFuncReturn(getNodeGroupInfos,
 		[]types.NodeGroupInfo{{NodeGroupID: 1, NodeGroupName: "group1"}}, nil)
 	defer p.Reset()
-	resp := listAppInfo(&msg)
+	resp := listAppInfo(newMsgWithContentForUT(reqData))
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
 func testListAppInfoError() {
 	resp := listAppInfo(&model.Message{Content: []byte("")})
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
+
+	var reqData = types.ListReq{
+		PageNum:  1,
+		PageSize: 1,
+		Name:     "face-check",
+	}
+	patches := gomonkey.ApplyPrivateMethod(AppRepositoryInstance(), "listAppsInfo",
+		func(a *AppRepositoryImpl, page, pageSize uint64, name string) ([]AppInfo, error) {
+			info := AppInfo{
+				ID:         1,
+				AppName:    "fake-check",
+				Containers: "error-container",
+			}
+			return []AppInfo{info}, nil
+		})
+	defer patches.Reset()
+	resp = listAppInfo(newMsgWithContentForUT(reqData))
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorListApp)
 }
 
 func testListAppInfoInvalid() {
@@ -307,10 +335,7 @@ func testListAppInfoInvalid() {
 		PageSize: exceedPageSize,
 		Name:     "face-check",
 	}
-	msg := model.Message{}
-	err := msg.FillContent(reqData)
-	convey.So(err, convey.ShouldBeNil)
-	resp := listAppInfo(&msg)
+	resp := listAppInfo(newMsgWithContentForUT(reqData))
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 }
 
@@ -336,14 +361,19 @@ func testDeployApInfoError() {
     "nodeGroupIds": [1,2]}`
 	resp := deployApp(&model.Message{Content: []byte(reqData)})
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorAppMrgRecodeNoFound)
+
+	resp = deployApp(&model.Message{Content: []byte("error data")})
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
+
+	var patches = gomonkey.ApplyPrivateMethod(&AppRepositoryImpl{}, "getAppInfoById",
+		func(a *AppRepositoryImpl, appId uint64) (*AppInfo, error) { return nil, test.ErrTest })
+	defer patches.Reset()
+	resp = deployApp(&model.Message{Content: []byte(`{"appId": 1,"nodeGroupIds": [1,2]}`)})
+	convey.So(resp.Status, convey.ShouldEqual, common.ErrorDeployApp)
 }
 
 func testDeployInvalid() {
-	reqData := DeleteAppReq{}
-	msg := model.Message{}
-	err := msg.FillContent(reqData)
-	convey.So(err, convey.ShouldBeNil)
-	resp := deployApp(&msg)
+	resp := deployApp(newMsgWithContentForUT(DeleteAppReq{}))
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 }
 
@@ -383,10 +413,7 @@ func testListAppInstance() {
 		PageNum:  1,
 		PageSize: 1,
 	}
-	msg := model.Message{}
-	err := msg.FillContent(reqData)
-	convey.So(err, convey.ShouldBeNil)
-	resp := listAppInstances(&msg)
+	resp := listAppInstances(newMsgWithContentForUT(reqData))
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
 }
 
@@ -400,39 +427,76 @@ func testListAppInstanceInvalid() {
 		PageNum:  1,
 		PageSize: exceedPageSize,
 	}
-	msg := model.Message{}
-	err := msg.FillContent(reqData)
-	convey.So(err, convey.ShouldBeNil)
-	resp := listAppInstances(&msg)
+	resp := listAppInstances(newMsgWithContentForUT(reqData))
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 }
 
 func testListAppInstancesByNode() {
-	input := uint64(1)
-	msg := model.Message{}
-	err := msg.FillContent(input)
-	convey.So(err, convey.ShouldBeNil)
-	res := listAppInstancesByNode(&msg)
+	res := listAppInstancesByNode(newMsgWithContentForUT(uint64(1)))
 	convey.So(res.Status, convey.ShouldEqual, common.Success)
 }
 
 func testListAppInstancesByNodeError() {
 	res := listAppInstancesByNode(&model.Message{Content: []byte("")})
 	convey.So(res.Status, convey.ShouldEqual, common.ErrorParamConvert)
+
+	res = listAppInstancesByNode(newMsgWithContentForUT(uint64(math.MaxUint32 + 1)))
+	convey.So(res.Status, convey.ShouldEqual, common.ErrorParamInvalid)
+
+	patches := gomonkey.ApplyFuncReturn(getAppInstanceRespFromAppInstances, nil, test.ErrTest)
+	defer patches.Reset()
+	res = listAppInstancesByNode(newMsgWithContentForUT(uint64(1)))
+	convey.So(res.Status, convey.ShouldEqual, common.ErrorListAppInstancesByNode)
 }
 
 func testListAppInstancesById() {
-	input := uint64(1)
-	msg := model.Message{}
-	err := msg.FillContent(input)
-	convey.So(err, convey.ShouldBeNil)
-	res := listAppInstancesById(&msg)
+	res := listAppInstancesById(newMsgWithContentForUT(uint64(1)))
 	convey.So(res.Status, convey.ShouldEqual, common.Success)
 }
 
 func testListAppInstancesByIdError() {
 	res := listAppInstancesById(&model.Message{Content: []byte("")})
 	convey.So(res.Status, convey.ShouldEqual, common.ErrorParamConvert)
+
+	res = listAppInstancesById(newMsgWithContentForUT(uint64(math.MaxUint32 + 1)))
+	convey.So(res.Status, convey.ShouldEqual, common.ErrorParamInvalid)
+
+	patches := gomonkey.ApplyFuncReturn(getAppInstanceRespFromAppInstances, nil, test.ErrTest)
+	defer patches.Reset()
+	res = listAppInstancesById(newMsgWithContentForUT(uint64(1)))
+	convey.So(res.Status, convey.ShouldEqual, common.ErrorListAppInstancesByID)
+}
+
+func testGetAppInstanceRespFromAppInstances() {
+	instance := AppInstance{
+		ContainerInfo: `[{"name":"testContainer","image":"testImage:v1","status":"running","restartCount":0}]`,
+	}
+	patches := gomonkey.ApplyFuncReturn(getNodeStatus, "", nil).
+		ApplyFuncReturn(getNodeGroupInfos, []types.NodeGroupInfo{{}}, nil)
+	defer patches.Reset()
+
+	appInstanceResp, err := getAppInstanceRespFromAppInstances([]AppInstance{instance})
+	convey.So(len(appInstanceResp), convey.ShouldEqual, 1)
+	convey.So(err, convey.ShouldBeNil)
+}
+
+func testGetAppInstanceRespFromAppInstancesError() {
+	patches := gomonkey.ApplyFuncSeq(getNodeStatus, []gomonkey.OutputCell{
+		{Values: gomonkey.Params{"", test.ErrTest}, Times: 1},
+		{Values: gomonkey.Params{nodeStatusReady, nil}, Times: 2}}).
+		ApplyFuncSeq(getNodeGroupInfos, []gomonkey.OutputCell{
+			{Values: gomonkey.Params{nil, test.ErrTest}, Times: 1}})
+	defer patches.Reset()
+
+	appInstanceResp, err := getAppInstanceRespFromAppInstances([]AppInstance{{ContainerInfo: "error data"}})
+	convey.So(len(appInstanceResp), convey.ShouldEqual, 0)
+	convey.So(err, convey.ShouldBeNil)
+	appInstanceResp, err = getAppInstanceRespFromAppInstances([]AppInstance{{}})
+	convey.So(len(appInstanceResp), convey.ShouldEqual, 0)
+	convey.So(err, convey.ShouldBeNil)
+	appInstanceResp, err = getAppInstanceRespFromAppInstances([]AppInstance{{}})
+	convey.So(len(appInstanceResp), convey.ShouldEqual, 0)
+	convey.So(err, convey.ShouldBeNil)
 }
 
 func TestGetAppInstanceCountByNodeGroup(t *testing.T) {
@@ -445,11 +509,7 @@ func TestGetAppInstanceCountByNodeGroup(t *testing.T) {
 		}
 		err := test.MockGetDb().Model(&AppDaemonSet{}).Create(ad).Error
 		convey.So(err, convey.ShouldBeNil)
-		input := []uint64{testId}
-		msg := model.Message{}
-		err = msg.FillContent(input)
-		convey.So(err, convey.ShouldBeNil)
-		resp := getAppInstanceCountByNodeGroup(&msg)
+		resp := getAppInstanceCountByNodeGroup(newMsgWithContentForUT([]uint64{testId}))
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
 		data, ok := resp.Data.(map[uint64]int64)
 		convey.So(ok, convey.ShouldBeTrue)
