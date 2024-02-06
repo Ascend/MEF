@@ -8,7 +8,10 @@ import (
 
 	"github.com/agiledragon/gomonkey/v2"
 	"huawei.com/mindx/common/database"
+	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/test"
+
+	"edge-manager/pkg/util"
 )
 
 func TestMain(m *testing.M) {
@@ -16,6 +19,19 @@ func TestMain(m *testing.M) {
 	tcBaseWithDb := &test.TcBaseWithDb{
 		Tables: append(tables, &AppInfo{}, &AppInstance{}, &AppDaemonSet{}),
 	}
-	patches := gomonkey.ApplyFunc(database.GetDb, test.MockGetDb)
+	patches := gomonkey.ApplyFunc(database.GetDb, test.MockGetDb).
+		ApplyFuncReturn(util.InWhiteList, true)
 	test.RunWithPatches(tcBaseWithDb, m, patches)
+}
+
+func newMsgWithContentForUT(v interface{}) *model.Message {
+	msg, err := model.NewMessage()
+	if err != nil {
+		panic(err)
+	}
+	err = msg.FillContent(v)
+	if err != nil {
+		panic(err)
+	}
+	return msg
 }

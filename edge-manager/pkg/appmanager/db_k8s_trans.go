@@ -217,7 +217,7 @@ func getResources(appContainer Container) (v1.ResourceRequirements, error) {
 		hwlog.RunLog.Error("parse cpu request failed")
 		return v1.ResourceRequirements{}, err
 	}
-	memRequest, err := resource.ParseQuantity(fmt.Sprintf("%vM", appContainer.MemRequest))
+	memRequest, err := resource.ParseQuantity(fmt.Sprintf("%vMi", appContainer.MemRequest))
 	if err != nil {
 		hwlog.RunLog.Error("parse memory request failed")
 		return v1.ResourceRequirements{}, err
