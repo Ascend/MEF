@@ -5,18 +5,14 @@ package util
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/utils"
-	"huawei.com/mindx/common/x509/certutils"
 	"k8s.io/api/core/v1"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/requests"
 
-	"edge-manager/pkg/constants"
 	"edge-manager/pkg/kubeclient"
 )
 
@@ -60,28 +56,4 @@ func GetImageAddress() (string, error) {
 	resBytes := make([]byte, len(authSli[authPosition]))
 	copy(resBytes, authSli[authPosition])
 	return strings.Trim(string(resBytes), secretTrim), nil
-}
-
-// GetCertContent get cert content
-func GetCertContent(certName string) (certutils.ClientCertResp, error) {
-	reqCertParams := requests.ReqCertParams{
-		ClientTlsCert: certutils.TlsCertInfo{
-			RootCaPath: constants.RootCaPath,
-			CertPath:   constants.ServerCertPath,
-			KeyPath:    constants.ServerKeyPath,
-			SvrFlag:    false,
-			WithBackup: true,
-		},
-	}
-	rootCaRes, err := reqCertParams.GetRootCa(certName)
-	if err != nil {
-		hwlog.RunLog.Errorf("query cert content from cert-manager failed, error: %v", err)
-		return certutils.ClientCertResp{}, fmt.Errorf("query cert content from cert-manager failed, error: %v", err)
-	}
-	queryCertRes := certutils.ClientCertResp{
-		CertName:    certName,
-		CertContent: rootCaRes,
-		CertOpt:     common.Update,
-	}
-	return queryCertRes, nil
 }

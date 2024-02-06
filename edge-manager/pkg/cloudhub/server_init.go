@@ -73,6 +73,7 @@ func InitServer() (*websocketmgr.WsServerProxy, error) {
 	}
 	proxy.AddDefaultHandler()
 	proxy.SetDisconnCallback(clearAlarm)
+	proxy.SetOnConnCallback(syncCertsToEdgeNode)
 	if err = proxy.AddHandler(constants.LogUploadUrl, logmanager.HandleUpload); err != nil {
 		hwlog.RunLog.Error("add handler failed")
 		return nil, errors.New("add handler failed")
@@ -105,12 +106,8 @@ func authServer() {
 	hwlog.RunLog.Error("start auth server failed after maximum number of retry")
 }
 
-func clearAlarm(arg interface{}) {
-	sn, ok := arg.(string)
-	if !ok {
-		hwlog.RunLog.Error("clear alarm failed: sn is invalid type")
-		return
-	}
+func clearAlarm(peerInfo websocketmgr.WebsocketPeerInfo) {
+	sn := peerInfo.Sn
 
 	msg, err := model.NewMessage()
 	if err != nil {
@@ -154,4 +151,32 @@ func clearAlarm(arg interface{}) {
 		hwlog.RunLog.Infof("clear alarm for node %s success", sn)
 		break
 	}
+}
+
+func syncCertsToEdgeNode(peerInfo websocketmgr.WebsocketPeerInfo) {
+	hwlog.RunLog.Infof("start to send certs to edge node[name=%s][ip=%s]", peerInfo.Sn, peerInfo.Ip)
+	certs := []string{common.SoftwareCertName, common.ImageCertName}
+	for _, cert := range certs {
+		if err := sendCertMsg(cert, peerInfo); err != nil {
+			hwlog.RunLog.Warnf("sync [%s] cert to edge node[name=%s][ip=%s] failed, %v", cert, peerInfo.Sn, peerInfo.Ip, err)
+			continue
+		}
+	}
+}
+
+func sendCertMsg(cert string, peerInfo websocketmgr.WebsocketPeerInfo) error {
+	msg, err := model.NewMessage()
+	if err != nil {
+		return fmt.Errorf("create message failed, %v", err)
+	}
+	msg.SetNodeId(peerInfo.Sn)
+	msg.SetRouter(common.CloudHubName, common.NodeMsgManagerName, common.OptGet, common.ResDownLoadCert)
+
+	if err := msg.FillContent(cert); err != nil {
+		return fmt.Errorf("fill message content failed, %v", err)
+	}
+	if err := modulemgr.SendMessage(msg); err != nil {
+		return fmt.Errorf("send message failed, %v", err)
+	}
+	return nil
 }

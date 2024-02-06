@@ -12,31 +12,21 @@ import (
 	"huawei.com/mindx/common/x509/certutils"
 
 	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/requests"
 
-	"edge-manager/pkg/constants"
+	"edge-manager/pkg/config"
 	"edge-manager/pkg/util"
 )
 
-func queryCertInfo(certName string) (certutils.ClientCertResp, error) {
+func getCertInfo(certName string) (certutils.ClientCertResp, error) {
 	res := certutils.ClientCertResp{}
-	reqCertParams := requests.ReqCertParams{
-		ClientTlsCert: certutils.TlsCertInfo{
-			RootCaPath: constants.RootCaPath,
-			CertPath:   constants.ServerCertPath,
-			KeyPath:    constants.ServerKeyPath,
-			SvrFlag:    false,
-			WithBackup: true,
-		},
-	}
-	rootCaRes, err := reqCertParams.GetRootCa(certName)
-	if err != nil {
-		hwlog.RunLog.Errorf("query %s cert content from cert-manager failed, error: %v", certName, err)
-		return res, errors.New("query cert content from cert-manager failed")
-	}
 
 	res.CertName = certName
-	res.CertContent = rootCaRes
+	certStr, err := config.GetCertCache(certName)
+	if err != nil {
+		hwlog.RunLog.Errorf("get %s failed, %v", certName, err)
+		return res, err
+	}
+	res.CertContent = certStr
 	res.CertOpt = common.Update
 
 	if certName == common.ImageCertName {
@@ -45,18 +35,13 @@ func queryCertInfo(certName string) (certutils.ClientCertResp, error) {
 			hwlog.RunLog.Errorf("get image registry address failed, error:%v", err)
 			return res, errors.New("get image registry address failed")
 		}
-		if address == "" {
-			hwlog.RunLog.Warn("image registry address should be configured")
-			return res, errors.New("image registry address should be configured")
-		}
 		res.ImageAddress = address
 	}
 	return res, nil
 }
 
-// GetCertInfo [method] get root cert
+// GetCertInfo [method] get root cert in response of cert request from mef-edge
 func GetCertInfo(msg *model.Message) common.RespMsg {
-	hwlog.RunLog.Info("----------downloading cert content begin----------")
 	var certName string
 	if err := msg.ParseContent(&certName); err != nil {
 		hwlog.RunLog.Errorf("parse message content failed: %v", err)
@@ -66,7 +51,9 @@ func GetCertInfo(msg *model.Message) common.RespMsg {
 		hwlog.RunLog.Error("the cert name not support")
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "query cert name not support", Data: nil}
 	}
-	certRes, err := queryCertInfo(certName)
+	hwlog.RunLog.Infof("start send cert[%s] to edge-node", certName)
+	// empty configuration can be delivered to edge for notifying that cert has been imported in center.
+	certRes, err := getCertInfo(certName)
 	if err != nil {
 		hwlog.RunLog.Errorf("query cert from cert manager failed, error: %v", err)
 		return common.RespMsg{Status: common.ErrorQueryCrt, Msg: "query cert from cert manager failed", Data: nil}

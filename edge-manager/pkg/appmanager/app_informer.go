@@ -14,6 +14,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/informers"
@@ -26,7 +27,8 @@ import (
 )
 
 const (
-	maxPodNum = 21000
+	maxPodNum      = 21000
+	namespaceField = "metadata.namespace"
 )
 
 type appStatusServiceImpl struct {
@@ -111,11 +113,13 @@ func initDefaultImagePullSecret() error {
 func (a *appStatusServiceImpl) initInformer(client *kubernetes.Clientset, stopCh <-chan struct{}) {
 	a.podStatusCache = make(map[string]string)
 	a.containerStatusCache = make(map[string]containerStatus)
-	LabelSelector := labels.Set(map[string]string{common.AppManagerName: AppLabel}).
-		AsSelector().String()
+	labelSelector := labels.Set{common.AppManagerName: AppLabel}.AsSelector().String()
+	fieldSelector := fields.Set{namespaceField: common.MefUserNs}.AsSelector().String()
+
 	informerFactory := informers.NewSharedInformerFactoryWithOptions(client, informerSyncInterval,
 		informers.WithTweakListOptions(func(options *metav1.ListOptions) {
-			options.LabelSelector = LabelSelector
+			options.LabelSelector = labelSelector
+			options.FieldSelector = fieldSelector
 		}))
 	appStatusService.podInformer = informerFactory.Core().V1().Pods().Informer()
 	a.podInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{

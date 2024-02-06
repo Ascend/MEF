@@ -46,8 +46,8 @@ func queryRootCa(msg *model.Message) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "Query root ca failed", Data: nil}
 	}
 	if !isCertImported(certName) {
-		return common.RespMsg{Status: common.ErrorGetRootCa,
-			Msg: fmt.Sprintf("%s is no imported yet", certName), Data: nil}
+		hwlog.RunLog.Infof("query [%s] cert finished, which is not imported yet", certName)
+		return common.RespMsg{Status: common.Success, Msg: fmt.Sprintf("%s cert is no imported yet", certName), Data: ""}
 	}
 	ca, err := getCertByCertName(certName)
 	if err != nil {
@@ -292,8 +292,8 @@ func queryCrl(msg *model.Message) common.RespMsg {
 	}
 	crlPath := getCrlPath(crlName)
 	if !fileutils.IsExist(crlPath) && !fileutils.IsExist(crlPath+backuputils.BackupSuffix) {
-		return common.RespMsg{Status: common.Success,
-			Msg: fmt.Sprintf("%s is no imported yet", crlName), Data: ""}
+		hwlog.RunLog.Infof("query [%s] crl finished, which is not imported yet", crlName)
+		return common.RespMsg{Status: common.Success, Msg: fmt.Sprintf("%s crl is no imported yet", crlName), Data: ""}
 	}
 	if err := checkCrlWithBackup(crlPath); err != nil {
 		hwlog.RunLog.Errorf("[%s] crl file is damaged", crlName)
