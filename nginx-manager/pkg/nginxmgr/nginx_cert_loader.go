@@ -31,6 +31,8 @@ const (
 	httpReqTryMaxTime  = 5
 )
 
+var errNotImported = errors.New("cert is not imported yet")
+
 func prepareCert() error {
 	if err := prepareServerCert(nginxcom.ServerCertKeyFile, nginxcom.ServerCertFile, common.NginxCertName); err != nil {
 		return err
@@ -49,10 +51,12 @@ func prepareCert() error {
 		hwlog.RunLog.Errorf("get root ca(%s) failed: %v", common.WsCltName, err)
 		return err
 	}
-
-	if err := prepareRootCert(nginxcom.IcsCaPath, common.IcsCertName, false); err != nil {
-		hwlog.RunLog.Warnf("cannot get icsmanager cert, maybe not import yet,err: %s", err.Error())
-		return nil
+	err := prepareRootCert(nginxcom.IcsCaPath, common.IcsCertName, false)
+	if errors.Is(err, errNotImported) {
+		hwlog.RunLog.Info("ics-manager cert is not imported yet")
+	}
+	if err != nil {
+		hwlog.RunLog.Warnf("get ics-manager cert failed, %v", err)
 	}
 	return prepareServerCert(nginxcom.ThirdPartyServiceKeyPath, nginxcom.ThirdPartyServiceCertPath,
 		common.ThirdPartyCertName)
@@ -78,7 +82,7 @@ func prepareRootCert(certPath, certName string, retry bool) error {
 		break
 	}
 	if rootCaStr == "" {
-		return err
+		return errNotImported
 	}
 
 	// To ensure the latest root certificate, overwritten root each restarted.

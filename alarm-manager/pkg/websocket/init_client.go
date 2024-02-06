@@ -58,7 +58,7 @@ func initClient() error {
 	return nil
 }
 
-func clearAllAlarms(interface{}) {
+func clearAllAlarms(websocketmgr.WebsocketPeerInfo) {
 	if err := alarmmanager.AlarmDbInstance().DeleteEdgeAlarm(); err != nil {
 		hwlog.RunLog.Errorf("clear alarm info table failed: %s", err.Error())
 		return

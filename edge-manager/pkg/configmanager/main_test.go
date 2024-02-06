@@ -10,7 +10,6 @@ import (
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/test"
-	"huawei.com/mindx/common/x509/certutils"
 
 	"edge-manager/pkg/config"
 	"edge-manager/pkg/kubeclient"
@@ -66,10 +65,7 @@ func TestMain(m *testing.M) {
 		}).
 		ApplyFuncReturn(modulemgr.SendMessage, nil).
 		ApplyFuncReturn(util.GetImageAddress, "xxxx", nil).
-		ApplyFuncReturn(util.GetCertContent, certutils.ClientCertResp{
-			CertName:    common.ImageCertName,
-			CertContent: base64CertContent,
-		}, nil).
+		ApplyFuncReturn(config.GetCertCache, base64CertContent, nil).
 		ApplyMethodReturn(&kubeclient.Client{}, "CreateOrUpdateSecret", nil, nil)
 
 	test.RunWithPatches(tcBase, m, patches)

@@ -93,19 +93,25 @@ func createSecret(config ImageConfig) (string, error) {
 }
 
 func sendCertToClient(registryPath string) error {
-	certRes, err := util.GetCertContent(common.ImageCertName)
+	certContent, err := config.GetCertCache(common.ImageCertName)
 	if err != nil {
 		hwlog.RunLog.Errorf("get cert content failed, error: %v", err)
 		return errors.New("get cert content failed")
 	}
-	if certRes.CertContent == "" {
-		hwlog.RunLog.Warnf(" %s cert content should be imported", certRes.CertName)
-		return nil
+	if certContent == "" {
+		hwlog.RunLog.Errorf("image cert is not imported yet, ignore cert upgrade broadcast")
+		return errors.New("image cert is not imported yet")
 	}
-	certRes.ImageAddress = registryPath
+
+	certRes := certutils.ClientCertResp{
+		CertName:     common.ImageCertName,
+		CertContent:  certContent,
+		CertOpt:      common.Update,
+		ImageAddress: registryPath,
+	}
 	// send message connector
 	if err := reportCertToClient(certRes); err != nil {
-		return errors.New("update cert content failed")
+		return errors.New("update image cert content failed")
 	}
 	return nil
 }
@@ -125,7 +131,7 @@ func assembleSecretData(registryPath string, base64Auth []byte, config *ImageCon
 	return data.Bytes()
 }
 
-// updateConfig update image config
+// updateConfig update image config when image or software cert are updated, only used by inner method
 func updateConfig(msg *model.Message) common.RespMsg {
 	hwlog.RunLog.Info("update cert content start")
 	var updateCert certutils.UpdateClientCert
@@ -133,6 +139,7 @@ func updateConfig(msg *model.Message) common.RespMsg {
 		hwlog.RunLog.Errorf("update cert info failed: parse content failed: %v", err)
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
+	config.SetCertCache(updateCert.CertName, string(updateCert.CertContent))
 	certRes := certutils.ClientCertResp{
 		CertName:    updateCert.CertName,
 		CertContent: string(updateCert.CertContent),

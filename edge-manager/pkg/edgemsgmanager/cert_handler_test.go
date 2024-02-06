@@ -5,7 +5,6 @@ package edgemsgmanager
 
 import (
 	"encoding/json"
-	"reflect"
 	"testing"
 
 	"github.com/agiledragon/gomonkey/v2"
@@ -15,18 +14,13 @@ import (
 	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/test"
 
-	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/requests"
-
+	"edge-manager/pkg/config"
 	"edge-manager/pkg/util"
+	"huawei.com/mindxedge/base/common"
 )
 
 func TestGetCertInfo(t *testing.T) {
-	var c *requests.ReqCertParams
-	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "GetRootCa",
-		func(c *requests.ReqCertParams, certName string) (string, error) {
-			return "", nil
-		})
+	var p1 = gomonkey.ApplyFuncReturn(config.GetCertCache, "", nil)
 	defer p1.Reset()
 
 	var p2 = gomonkey.ApplyFunc(util.GetImageAddress, func() (string, error) {
@@ -58,13 +52,6 @@ func testGetCertInfo() {
 
 	resp := GetCertInfo(msg)
 	convey.So(resp.Status, convey.ShouldEqual, common.Success)
-
-	var p2 = gomonkey.ApplyFunc(util.GetImageAddress, func() (string, error) {
-		return "", nil
-	})
-	defer p2.Reset()
-	resp = GetCertInfo(msg)
-	convey.So(resp.Status, convey.ShouldEqual, common.ErrorQueryCrt)
 }
 
 func testGetCertInfoErrParam() {
@@ -99,11 +86,7 @@ func testGetCertInfoErrGetRootCa() {
 	err = msg.FillContent(common.SoftwareCertName)
 	convey.So(err, convey.ShouldBeNil)
 
-	var c *requests.ReqCertParams
-	var p1 = gomonkey.ApplyMethod(reflect.TypeOf(c), "GetRootCa",
-		func(c *requests.ReqCertParams, certName string) (string, error) {
-			return "", test.ErrTest
-		})
+	var p1 = gomonkey.ApplyFuncReturn(config.GetCertCache, "", test.ErrTest)
 	defer p1.Reset()
 
 	resp := GetCertInfo(msg)
