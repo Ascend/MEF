@@ -61,7 +61,7 @@ func SendAlarms(alarms ...*requests.AlarmReq) error {
 		return errors.New("get host ip failed")
 	}
 
-	addAlarmReq := requests.AddAlarmReq{
+	alarmsReq := requests.AlarmsReq{
 		Alarms: alarmReqs,
 		Sn:     "",
 		Ip:     hostIp,
@@ -73,7 +73,7 @@ func SendAlarms(alarms ...*requests.AlarmReq) error {
 		return errors.New("new alarm msg failed")
 	}
 	msg.SetRouter(common.AlarmManagerName, common.AlarmManagerName, http.MethodPost, requests.ReportAlarmRouter)
-	if err = msg.FillContent(addAlarmReq, true); err != nil {
+	if err = msg.FillContent(alarmsReq, true); err != nil {
 		hwlog.RunLog.Errorf("fill add alarm req failed: %v", err)
 		return errors.New("fill content failed")
 	}

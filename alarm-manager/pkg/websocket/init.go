@@ -78,7 +78,7 @@ func (m *alarmWsClient) Start() {
 		}
 		receivedMsg, err := modulemgr.ReceiveMessage(m.Name())
 		if err != nil {
-			hwlog.RunLog.Errorf("alarm-manager get receive module message failed, error: %v", err)
+			hwlog.RunLog.Errorf("alarm-manager receive module message failed, error: %v", err)
 			continue
 		}
 		hwlog.RunLog.Infof("[routeToCenter], route: %+v, {ID: %s, parentID: %s}", receivedMsg.Router,

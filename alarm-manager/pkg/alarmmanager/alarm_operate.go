@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"time"
 
-	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr/model"
 
@@ -22,55 +21,35 @@ const (
 	maxOneNodeEventCount = 50
 )
 
-func dealAlarmReq(msg *model.Message) (interface{}, error) {
-	var reqs requests.AddAlarmReq
-	if err := msg.ParseContent(&reqs); err != nil {
-		hwlog.RunLog.Errorf("param convert failed: %s", err.Error())
-		return nil, errors.New("param convert failed")
+func dealAlarmsReq(msg *model.Message) interface{} {
+	var req requests.AlarmsReq
+	if err := msg.ParseContent(&req); err != nil {
+		hwlog.RunLog.Errorf("alarms req param parse failed: %s", err.Error())
+		return nil
 	}
 
-	snChecker := checker.GetOrChecker(
-		checker.GetSnChecker("", true),
-		checker.GetStringChoiceChecker("", []string{alarms.CenterSn}, true),
-	)
-	ret := snChecker.Check(reqs.Sn)
-	if !ret.Result {
-		hwlog.RunLog.Error("deal alarm para check failed: unsupported serial number received")
-		return nil, errors.New("deal alarm para check failed")
+	if checkResult := NewDealAlarmsReqChecker().Check(req); !checkResult.Result {
+		hwlog.RunLog.Errorf("alarms req param check failed: %s", checkResult.Reason)
+		return nil
 	}
 
-	ret = checker.GetIpV4Checker("", true).Check(reqs.Ip)
-	if !ret.Result {
-		hwlog.RunLog.Error("deal alarm para check failed: unsupported Ip received")
-		return nil, errors.New("deal alarm para check failed")
-	}
-
-	if len(reqs.Alarms) > maxOneNodeAlarmCount {
-		hwlog.RunLog.Error("alarms request exceeds the max count limitation")
-		return nil, errors.New("alarm request exceeds the max count limitation")
-	}
-
-	for _, req := range reqs.Alarms {
-		if checkResult := NewDealAlarmChecker().Check(req); !checkResult.Result {
-			hwlog.RunLog.Errorf("deal alarm para check failed: %s", checkResult.Reason)
-			return nil, errors.New("deal alarm para check failed")
-		}
-
-		dealer := GetAlarmReqDealer(&req, reqs.Sn, reqs.Ip)
+	for _, alarmReq := range req.Alarms {
+		dealer := GetAlarmReqDealer(&alarmReq, req.Sn, req.Ip)
 		if err := dealer.deal(); err != nil {
-			hwlog.RunLog.Errorf("deal alarm req failed: %s", err.Error())
-			return nil, errors.New("deal alarm req failed")
+			hwlog.RunLog.Errorf("deal alarms req failed: %s", err.Error())
+			return nil
 		}
 	}
 
-	return nil, nil
+	return nil
 }
 
 // AlarmReqDealer is the struct to deal with one alarm request
 type AlarmReqDealer struct {
-	req *requests.AlarmReq
-	sn  string
-	ip  string
+	req       *requests.AlarmReq
+	sn        string
+	ip        string
+	alarmInfo *AlarmInfo
 }
 
 // GetAlarmReqDealer is the func to create an AlarmReqDealer
@@ -86,6 +65,13 @@ func (ard *AlarmReqDealer) deal() error {
 	if ard.req == nil {
 		return errors.New("req is nil")
 	}
+
+	alarmInfo, err := ard.getAlarmInfo()
+	if err != nil {
+		hwlog.RunLog.Errorf("get alarm info failed: %s", err.Error())
+		return errors.New("get alarm info failed")
+	}
+	ard.alarmInfo = alarmInfo
 
 	if ard.req.Type == alarms.AlarmType {
 		return ard.dealAlarm()
@@ -117,19 +103,13 @@ func (ard *AlarmReqDealer) getAlarmInfo() (*AlarmInfo, error) {
 
 func (ard *AlarmReqDealer) dealAlarm() error {
 	if ard.req.NotificationType == alarms.ClearFlag {
-		return ard.dealAlarmClear()
+		return ard.clearAlarm()
 	} else {
-		return ard.dealAlarmAdd()
+		return ard.addAlarm()
 	}
 }
 
-func (ard *AlarmReqDealer) dealAlarmClear() error {
-	alarmInfoData, err := ard.getAlarmInfo()
-	if err != nil {
-		hwlog.RunLog.Errorf("get alarm info failed: %s", err.Error())
-		return errors.New("get alarm info failed")
-	}
-
+func (ard *AlarmReqDealer) clearAlarm() error {
 	ret, err := AlarmDbInstance().getAlarmInfo(ard.req.AlarmId, ard.sn)
 	if err != nil {
 		hwlog.RunLog.Errorf("get alarm info from db failed: %s", err.Error())
@@ -141,7 +121,10 @@ func (ard *AlarmReqDealer) dealAlarmClear() error {
 		return nil
 	}
 
-	if err := AlarmDbInstance().deleteOneAlarm(alarmInfoData); err != nil {
+	if ard.alarmInfo == nil {
+		return errors.New("alarm info is nil")
+	}
+	if err = AlarmDbInstance().deleteAlarm(ard.alarmInfo); err != nil {
 		hwlog.RunLog.Errorf("%v [%s:%s] %v %v: clear alarm %v from db failed: %s",
 			time.Now().Format(time.RFC3339Nano), ard.ip, ard.sn,
 			http.MethodPost, requests.ReportAlarmRouter, ard.req.AlarmId, err.Error())
@@ -153,7 +136,7 @@ func (ard *AlarmReqDealer) dealAlarmClear() error {
 	return nil
 }
 
-func (ard *AlarmReqDealer) dealAlarmAdd() error {
+func (ard *AlarmReqDealer) addAlarm() error {
 	count, err := AlarmDbInstance().getNodeAlarmCount(ard.sn)
 	if err != nil {
 		hwlog.RunLog.Errorf("get node alarm count failed: %s", err.Error())
@@ -171,17 +154,15 @@ func (ard *AlarmReqDealer) dealAlarmAdd() error {
 		return errors.New("get alarm info from db failed")
 	}
 
+	// the alarm already exists, ignore
 	if len(ret) != 0 {
 		return nil
 	}
 
-	alarmInfoData, err := ard.getAlarmInfo()
-	if err != nil {
-		hwlog.RunLog.Errorf("get alarm info failed: %s", err.Error())
-		return errors.New("get alarm info failed")
+	if ard.alarmInfo == nil {
+		return errors.New("alarm info is nil")
 	}
-
-	if err = AlarmDbInstance().addAlarmInfo(alarmInfoData); err != nil {
+	if err = AlarmDbInstance().addAlarmInfo(ard.alarmInfo); err != nil {
 		hwlog.RunLog.Errorf("%v [%s:%s] %v %v: add alarm %v into db failed: %s", time.Now().
 			Format(time.RFC3339Nano), ard.ip, ard.sn,
 			http.MethodPost, requests.ReportAlarmRouter, ard.req.AlarmId, err.Error())
@@ -207,7 +188,7 @@ func (ard *AlarmReqDealer) dealEvent() error {
 			return errors.New("get node oldest event failed")
 		}
 
-		if err = AlarmDbInstance().deleteAlarmInfos(oldestEvent); err != nil {
+		if err = AlarmDbInstance().deleteAlarms(oldestEvent); err != nil {
 			hwlog.RunLog.Errorf("%v [%s:%s] %v %v: delete oldest event[%s] failed: %s",
 				time.Now().Format(time.RFC3339Nano), ard.ip, ard.sn, http.MethodPost,
 				requests.ReportAlarmRouter, ard.req.AlarmId, err.Error())
@@ -217,13 +198,10 @@ func (ard *AlarmReqDealer) dealEvent() error {
 			ard.ip, ard.sn, http.MethodPost, requests.ReportAlarmRouter, ard.req.AlarmId)
 	}
 
-	eventData, err := ard.getAlarmInfo()
-	if err != nil {
-		hwlog.RunLog.Errorf("get alarm info failed: %s", err.Error())
-		return errors.New("get alarm info failed")
+	if ard.alarmInfo == nil {
+		return errors.New("alarm info is nil")
 	}
-
-	if err = AlarmDbInstance().addAlarmInfo(eventData); err != nil {
+	if err = AlarmDbInstance().addAlarmInfo(ard.alarmInfo); err != nil {
 		hwlog.RunLog.Errorf("%v [%s:%s] %v %v: add event %v into db failed: %s",
 			time.Now().Format(time.RFC3339Nano), ard.ip, ard.sn,
 			http.MethodPost, requests.ReportAlarmRouter, ard.req.AlarmId, err.Error())
@@ -235,18 +213,18 @@ func (ard *AlarmReqDealer) dealEvent() error {
 	return nil
 }
 
-func dealNodeClearReq(msg *model.Message) (interface{}, error) {
+func dealNodeClearReq(msg *model.Message) interface{} {
 	var reqs requests.ClearNodeAlarmReq
 	if err := msg.ParseContent(&reqs); err != nil {
-		hwlog.RunLog.Errorf("parse content failed: %v", err)
-		return common.FAIL, nil
+		hwlog.RunLog.Errorf("clear node alarm req param parse failed: %v", err)
+		return common.FAIL
 	}
 
 	if err := AlarmDbInstance().deleteBySn(reqs.Sn); err != nil {
 		hwlog.RunLog.Errorf("delete alarm info by sn [%s] failed: %s", reqs.Sn, err.Error())
-		return common.FAIL, nil
+		return common.FAIL
 	}
 
-	hwlog.RunLog.Infof("clear all alarms from node %s success", reqs.Sn)
-	return common.OK, nil
+	hwlog.RunLog.Infof("clear all alarms of node %s success", reqs.Sn)
+	return common.OK
 }

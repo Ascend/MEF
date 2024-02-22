@@ -13,6 +13,37 @@ import (
 	"huawei.com/mindxedge/base/common/alarms"
 )
 
+// DealAlarmsReqChecker is the checker for dealing alarms request
+type DealAlarmsReqChecker struct {
+	checker checker.ModelChecker
+}
+
+// NewDealAlarmsReqChecker is the func to create DealAlarmsReqChecker
+func NewDealAlarmsReqChecker() *DealAlarmsReqChecker {
+	return &DealAlarmsReqChecker{}
+}
+
+func (dac *DealAlarmsReqChecker) init() {
+	dac.checker.Checker = checker.GetAndChecker(
+		checker.GetOrChecker(
+			checker.GetSnChecker("Sn", true),
+			checker.GetStringChoiceChecker("Sn", []string{alarms.CenterSn}, true),
+		),
+		checker.GetIpV4Checker("Ip", true),
+		checker.GetListChecker("Alarms", NewDealAlarmChecker(), 0, maxOneNodeAlarmCount, true),
+	)
+}
+
+// Check is the main func to start the check for DealAlarmsReqChecker
+func (dac *DealAlarmsReqChecker) Check(data interface{}) checker.CheckResult {
+	dac.init()
+	checkResult := dac.checker.Check(data)
+	if !checkResult.Result {
+		return checker.NewFailedResult(fmt.Sprintf("deal alarms req check failed: %s", checkResult.Reason))
+	}
+	return checker.NewSuccessResult()
+}
+
 // DealAlarmChecker is the checker for add alarm msg
 type DealAlarmChecker struct {
 	checker checker.ModelChecker
@@ -78,10 +109,10 @@ func (alc *AlarmListerChecker) init() {
 		checker.GetUintChecker("PageSize", common.DefaultMinPageSize, common.DefaultMaxPageSize, true),
 		checker.GetOrChecker(
 			checker.GetSnChecker("Sn", true),
-			checker.GetStringChoiceChecker("Sn", []string{""}, true),
+			checker.GetStringChoiceChecker("Sn", []string{alarms.CenterSn}, true),
 		),
 		checker.GetUintChecker("GroupId", 0, math.MaxUint32, true),
-		checker.GetStringChoiceChecker("IfCenter", []string{"true", "false", ""}, true),
+		checker.GetStringChoiceChecker("IfCenter", []string{utils.TrueStr, utils.FalseStr, ""}, true),
 	)
 }
 
@@ -89,7 +120,7 @@ func (alc *AlarmListerChecker) init() {
 func (alc *AlarmListerChecker) Check(data utils.ListAlarmOrEventReq) checker.CheckResult {
 	alc.init()
 
-	if data.IfCenter != trueStr {
+	if data.IfCenter != utils.TrueStr {
 		if data.Sn != "" && data.GroupId != 0 {
 			return checker.NewFailedResult("sn and groupId can't exist at the same " +
 				"time when ifCenter is not true")

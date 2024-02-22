@@ -25,9 +25,8 @@ func modifyMsgForAlarmManager(msg *model.Message) {
 		return
 	}
 
-	var alarmReq requests.AddAlarmReq
-	err := json.Unmarshal([]byte(content), &alarmReq)
-	if err != nil {
+	var alarmsReq requests.AlarmsReq
+	if err := json.Unmarshal([]byte(content), &alarmsReq); err != nil {
 		hwlog.RunLog.Errorf("unmarshal alarm req failed: %s", err.Error())
 		return
 	}
@@ -37,10 +36,10 @@ func modifyMsgForAlarmManager(msg *model.Message) {
 		return
 	}
 
-	alarmReq.Sn = sn
-	alarmReq.Ip = ip
+	alarmsReq.Sn = sn
+	alarmsReq.Ip = ip
 
-	if err = msg.FillContent(alarmReq, true); err != nil {
+	if err = msg.FillContent(alarmsReq, true); err != nil {
 		hwlog.RunLog.Errorf("fill alarm req into content failed: %v", err)
 		return
 	}

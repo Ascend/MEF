@@ -54,7 +54,7 @@ const (
 	defaultConnection  = 3
 	defaultConcurrency = 3
 	defaultDataLimit   = 1024 * 1024
-	defaultCachSize    = 1024 * 1024 * 10
+	defaultCacheSize   = 1024 * 1024 * 10
 )
 
 func main() {
@@ -76,7 +76,7 @@ func main() {
 
 	podIp, err := common.GetPodIP()
 	if err != nil {
-		hwlog.RunLog.Errorf("get edge manager pod ip failed: %s", err.Error())
+		hwlog.RunLog.Errorf("get alarm manager pod ip failed: %s", err.Error())
 		return
 	}
 	ip = podIp
@@ -97,7 +97,7 @@ func main() {
 func init() {
 	flag.IntVar(&port, "port", defaultPort, "The server port of the http service,range[1025-65535]")
 	flag.StringVar(&dbPath, "dbPath", defaultDbPath, "sqlite database path")
-	flag.IntVar(&cacheSize, "cacheSize", defaultCachSize, "the cacheSize for ip limit,"+
+	flag.IntVar(&cacheSize, "cacheSize", defaultCacheSize, "the cacheSize for ip limit,"+
 		"keep default normally")
 	flag.IntVar(&limitIPConn, "limitIPConn", defaultConcurrency, "the tcp connection limit for each Ip")
 	flag.IntVar(&limitTotalConn, "limitTotalConn", defaultConnection, "the tcp connection limit for all request")
