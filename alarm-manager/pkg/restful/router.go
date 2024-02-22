@@ -23,10 +23,9 @@ const (
 	snKey         = "sn"
 	groupIdKey    = "groupId"
 	ifCenterKey   = "ifCenter"
-	trueStr       = "true"
 )
 
-var northAlarmDispatchers = map[string][]restfulmgr.DispatcherItf{
+var alarmRouterDispatchers = map[string][]restfulmgr.DispatcherItf{
 	"/alarmmanager/v1": {
 		listDispatcher{restfulmgr.GenericDispatcher{
 			RelativePath: "/alarms",
@@ -48,7 +47,7 @@ var northAlarmDispatchers = map[string][]restfulmgr.DispatcherItf{
 }
 
 func setRouter(engine *gin.Engine) {
-	restfulmgr.InitRouter(engine, northAlarmDispatchers)
+	restfulmgr.InitRouter(engine, alarmRouterDispatchers)
 }
 
 type queryDispatcher struct {
@@ -99,7 +98,7 @@ func (list listDispatcher) ParseData(c *gin.Context) (interface{}, error) {
 			ifCenterKey, groupIdKey, snKey)
 	}
 	ifCenter := values.Get(ifCenterKey)
-	if ifCenter == trueStr {
+	if ifCenter == utils.TrueStr {
 		return utils.ListAlarmOrEventReq{PageNum: pageNum, PageSize: pageSize, IfCenter: ifCenter}, nil
 	}
 

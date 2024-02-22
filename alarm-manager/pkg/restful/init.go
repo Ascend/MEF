@@ -34,7 +34,6 @@ func NewRestfulService(enable bool, conf *httpsmgr.HttpsServer) *Service {
 		enable:   enable,
 		httpsSvr: conf,
 	}
-
 }
 
 // Name for RestfulService name

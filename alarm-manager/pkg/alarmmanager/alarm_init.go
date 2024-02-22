@@ -5,7 +5,6 @@ package alarmmanager
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"time"
 
@@ -19,7 +18,7 @@ import (
 	"huawei.com/mindxedge/base/common/requests"
 )
 
-type handlerFunc func(msg *model.Message) (interface{}, error)
+type handlerFunc func(msg *model.Message) interface{}
 
 type alarmManager struct {
 	dbPath string
@@ -44,12 +43,12 @@ func (am *alarmManager) Enable() bool {
 	return am.enable
 }
 
-func methodSelect(req *model.Message) (interface{}, error) {
+func methodSelect(req *model.Message) interface{} {
 	method, exit := handlerFuncMap[common.Combine(req.GetOption(), req.GetResource())]
 	if !exit {
 		hwlog.RunLog.Errorf("handler func is not exist, option: %s, resource: %s", req.GetOption(),
 			req.GetResource())
-		return nil, errors.New("handler func is not exist")
+		return nil
 	}
 	return method(req)
 }
@@ -79,11 +78,7 @@ func (am *alarmManager) Start() {
 }
 
 func (am *alarmManager) dispatch(req *model.Message) {
-	msg, err := methodSelect(req)
-	if err != nil {
-		hwlog.RunLog.Errorf("%s get method by option and resource failed: %s", am.Name(), err.Error())
-		return
-	}
+	msg := methodSelect(req)
 	if msg == nil {
 		return
 	}
@@ -95,7 +90,7 @@ func (am *alarmManager) dispatch(req *model.Message) {
 	}
 
 	if err = resp.FillContent(msg); err != nil {
-		hwlog.RunLog.Errorf("%s fill content into resp failed: %v", am.Name(), err.Error())
+		hwlog.RunLog.Errorf("%s fill content into resp failed: %s", am.Name(), err.Error())
 		return
 	}
 	if err = modulemgr.SendMessage(resp); err != nil {
@@ -116,7 +111,7 @@ var handlerFuncMap = map[string]handlerFunc{
 	common.Combine(http.MethodGet, getAlarmDetailRouter):            getAlarmDetail,
 	common.Combine(http.MethodGet, listEventsRouter):                listEvents,
 	common.Combine(http.MethodGet, getEventDetailRouter):            getEventDetail,
-	common.Combine(http.MethodPost, requests.ReportAlarmRouter):     dealAlarmReq,
+	common.Combine(http.MethodPost, requests.ReportAlarmRouter):     dealAlarmsReq,
 	common.Combine(common.Delete, requests.ClearOneNodeAlarmRouter): dealNodeClearReq,
 }
 

@@ -46,10 +46,6 @@ func (adh *AlarmDbHandler) db() *gorm.DB {
 	return database.GetDb()
 }
 
-func (adh *AlarmDbHandler) setAlarmId() {
-
-}
-
 func (adh *AlarmDbHandler) addAlarmInfo(data *AlarmInfo) error {
 	// add records with random id to avoid collisions and overflow uint32,
 	for i := 0; i < obtainIdRetryTime; i++ {
@@ -97,12 +93,12 @@ func (adh *AlarmDbHandler) getAlarmInfo(alarmId string, sn string) ([]AlarmInfo,
 	return ret, adh.db().Model(AlarmInfo{}).Where("alarm_id = ? and serial_number = ?", alarmId, sn).Find(&ret).Error
 }
 
-func (adh *AlarmDbHandler) deleteOneAlarm(data *AlarmInfo) error {
+func (adh *AlarmDbHandler) deleteAlarm(data *AlarmInfo) error {
 	return adh.db().Model(AlarmInfo{}).Where("alarm_id = ? and serial_number = ?", data.AlarmId,
 		data.SerialNumber).Delete(&data).Error
 }
 
-func (adh *AlarmDbHandler) deleteAlarmInfos(data []AlarmInfo) error {
+func (adh *AlarmDbHandler) deleteAlarms(data []AlarmInfo) error {
 	return adh.db().Model(AlarmInfo{}).Delete(&data).Error
 }
 

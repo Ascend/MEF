@@ -290,7 +290,7 @@ func sendAlarm(alarmId, notifyType string) error {
 		return errors.New("get host ip failed")
 	}
 
-	alarmReq := requests.AddAlarmReq{
+	alarmsReq := requests.AlarmsReq{
 		Alarms: []requests.AlarmReq{*alarm},
 		Ip:     hostIp,
 	}
@@ -299,7 +299,7 @@ func sendAlarm(alarmId, notifyType string) error {
 		hwlog.RunLog.Errorf("create new message error: %v", err)
 		return fmt.Errorf("create new message error: %v", err)
 	}
-	if err = msg.FillContent(alarmReq, true); err != nil {
+	if err = msg.FillContent(alarmsReq, true); err != nil {
 		hwlog.RunLog.Errorf("fill alarm req into content failed: %v", err)
 		return errors.New("fill alarm req into content failed")
 	}

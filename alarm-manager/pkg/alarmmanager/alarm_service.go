@@ -20,9 +20,6 @@ import (
 )
 
 const (
-	trueStr  = "true"
-	falseStr = "false"
-
 	centerNodeQueryType    = "CenterNodeQuery"
 	serialNumQuery         = "SerialNumQuery"
 	groupIdQueryType       = "GroupIdQuery"
@@ -30,43 +27,42 @@ const (
 	fullEdgeNodesQueryType = "FullEdgeNodesQuery"
 )
 
-func listAlarms(msg *model.Message) (interface{}, error) {
-	return dealRequest(msg, alarms.AlarmType), nil
+func listAlarms(msg *model.Message) interface{} {
+	return dealRequest(msg, alarms.AlarmType)
 }
 
-func listEvents(msg *model.Message) (interface{}, error) {
-	return dealRequest(msg, alarms.EventType), nil
+func listEvents(msg *model.Message) interface{} {
+	return dealRequest(msg, alarms.EventType)
 }
 
-func getAlarmDetail(msg *model.Message) (interface{}, error) {
-	return getAlarmOrEventDbDetail(msg, alarms.AlarmType), nil
+func getAlarmDetail(msg *model.Message) interface{} {
+	return getAlarmOrEventDbDetail(msg, alarms.AlarmType)
 }
 
-func getEventDetail(msg *model.Message) (interface{}, error) {
-	return getAlarmOrEventDbDetail(msg, alarms.EventType), nil
+func getEventDetail(msg *model.Message) interface{} {
+	return getAlarmOrEventDbDetail(msg, alarms.EventType)
 }
 
-// getQueryType returns the query type is by SerialNum or groupId,neither will return err
-func getQueryType(req utils.ListAlarmOrEventReq) (string, utils.ListAlarmOrEventReq, error) {
-	if req.IfCenter == trueStr {
-		return centerNodeQueryType, req, nil
+func getQueryType(req utils.ListAlarmOrEventReq) (string, utils.ListAlarmOrEventReq) {
+	if req.IfCenter == utils.TrueStr {
+		return centerNodeQueryType, req
 	}
 	// without any param will return all
 	if req.IfCenter == "" && req.Sn == "" && req.GroupId == 0 {
-		return fullNodesQueryType, req, nil
+		return fullNodesQueryType, req
 	}
 
-	if req.IfCenter == falseStr && req.Sn == "" && req.GroupId == 0 {
-		return fullEdgeNodesQueryType, req, nil
+	if req.IfCenter == utils.FalseStr && req.Sn == "" && req.GroupId == 0 {
+		return fullEdgeNodesQueryType, req
 	}
 	if req.IfCenter == "" {
-		req.IfCenter = falseStr
+		req.IfCenter = utils.FalseStr
 	}
 	if req.Sn != "" {
-		return serialNumQuery, req, nil
+		return serialNumQuery, req
 	}
 	// groupId is not empty
-	return groupIdQueryType, req, nil
+	return groupIdQueryType, req
 }
 
 func dealRequest(msg *model.Message, AlarmOrEvent string) *common.RespMsg {
@@ -76,26 +72,23 @@ func dealRequest(msg *model.Message, AlarmOrEvent string) *common.RespMsg {
 		hwlog.RunLog.Error("failed to convert list center alarms/events inputs")
 		return &common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed"}
 	}
-	queryIdType, standardParam, err := getQueryType(req)
-	if err != nil {
-		hwlog.RunLog.Error("failed to convert parameters")
-		return &common.RespMsg{Status: common.ErrorParamConvert, Msg: err.Error()}
-	}
+	queryType, standardParam := getQueryType(req)
+
 	if checkRes := NewAlarmListerChecker().Check(standardParam); !checkRes.Result {
-		hwlog.RunLog.Errorf("list %s para checking failed,err:%s", queryIdType, checkRes.Reason)
+		hwlog.RunLog.Errorf("list %s param check failed, error: %s", queryType, checkRes.Reason)
 		return &common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkRes.Reason}
 	}
 
-	if queryIdType == centerNodeQueryType {
+	if queryType == centerNodeQueryType {
 		return listCenterAlarmOrEvents(req, AlarmOrEvent)
 	}
-	if queryIdType == serialNumQuery {
+	if queryType == serialNumQuery {
 		return listEdgeAlarmsOrEventsBySn(req, AlarmOrEvent)
 	}
-	if queryIdType == groupIdQueryType {
+	if queryType == groupIdQueryType {
 		return listEdgeAlarmsOrEventsByGroupId(req, AlarmOrEvent)
 	}
-	if queryIdType == fullEdgeNodesQueryType {
+	if queryType == fullEdgeNodesQueryType {
 		return listEdgeAlarmsOrEvents(req, AlarmOrEvent)
 	}
 	// fullNodesQueryType

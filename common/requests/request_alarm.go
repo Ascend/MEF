@@ -9,8 +9,8 @@ const (
 	ClearOneNodeAlarmRouter = "/edge/alarm/node-clear"
 )
 
-// AddAlarmReq is the struct to add an alarm into alarm-manager
-type AddAlarmReq struct {
+// AlarmsReq is the struct to deal alarms request
+type AlarmsReq struct {
 	Alarms []AlarmReq `json:"alarm"`
 	Sn     string     `json:"serialNumber"`
 	Ip     string     `json:"ip"`
