@@ -1,6 +1,6 @@
 // Copyright (c) 2023. Huawei Technologies Co., Ltd. All rights reserved.
 
-// Package alarmmanager test for service.go
+// Package alarmmanager test for alarm_service.go
 package alarmmanager
 
 import (
@@ -15,6 +15,7 @@ import (
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
+	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
@@ -232,6 +233,8 @@ func TestGetAlarmDetail(t *testing.T) {
 	})
 	convey.Convey("abnormal input for getting alarm", t, testGetAlarmAbnormalInput)
 	convey.Convey("test func getAlarmOrEventDbDetail failed, parse param failed", t, testGetAlarmDetailErrParse)
+	convey.Convey("test func getAlarmOrEventDbDetail failed, getAlarmOrEventInfoByAlarmInfoId failed", t,
+		testGetAlarmDetailErrGetInfo)
 }
 
 func TestGetEventDetail(t *testing.T) {
@@ -245,6 +248,44 @@ func testGetAlarmDetailErrParse() {
 	convey.So(err, convey.ShouldBeNil)
 	resp := getAlarmOrEventDbDetail(msg, alarms.AlarmType)
 	convey.So(resp, convey.ShouldResemble, &common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed"})
+}
+
+func testGetAlarmDetailErrGetInfo() {
+	queryType := alarms.AlarmType
+	inputId := 1
+
+	var p1 = gomonkey.ApplyPrivateMethod(&AlarmDbHandler{}, "getAlarmOrEventInfoByAlarmInfoId",
+		func(Id uint64) (*AlarmInfo, error) {
+			return &AlarmInfo{}, gorm.ErrRecordNotFound
+		})
+	defer p1.Reset()
+
+	msg, err := model.NewMessage()
+	convey.So(err, convey.ShouldBeNil)
+	err = msg.FillContent(inputId)
+	convey.So(err, convey.ShouldBeNil)
+	resp := getAlarmOrEventDbDetail(msg, queryType)
+	expResp := &common.RespMsg{Status: common.ErrorGetAlarmDetail, Msg: fmt.Sprintf("id [%d] not found", inputId)}
+	convey.So(resp, convey.ShouldResemble, expResp)
+
+	var p2 = gomonkey.ApplyPrivateMethod(&AlarmDbHandler{}, "getAlarmOrEventInfoByAlarmInfoId",
+		func(Id uint64) (*AlarmInfo, error) {
+			return &AlarmInfo{}, test.ErrTest
+		})
+	defer p2.Reset()
+	resp = getAlarmOrEventDbDetail(msg, queryType)
+	expResp = &common.RespMsg{Status: common.ErrorGetAlarmDetail}
+	convey.So(resp, convey.ShouldResemble, expResp)
+
+	var p3 = gomonkey.ApplyPrivateMethod(&AlarmDbHandler{}, "getAlarmOrEventInfoByAlarmInfoId",
+		func(Id uint64) (*AlarmInfo, error) {
+			return &AlarmInfo{AlarmType: alarms.EventType}, nil
+		})
+	defer p3.Reset()
+	resp = getAlarmOrEventDbDetail(msg, queryType)
+	expResp = &common.RespMsg{Status: common.ErrorParamInvalid,
+		Msg: fmt.Sprintf("the inputID[%d] is not an ID of %s", inputId, queryType)}
+	convey.So(resp, convey.ShouldResemble, expResp)
 }
 
 func testListEdgeBySn(queryType string) {
