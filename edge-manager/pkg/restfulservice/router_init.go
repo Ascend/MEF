@@ -69,7 +69,6 @@ func (r *EdgeMgrService) start() {
 	hwlog.RunLog.Info("start http server now...")
 	err = r.httpsSvr.Start()
 	if err != nil {
-		hwlog.RunLog.Errorf("start restful fail at %v", err)
 		hwlog.RunLog.Errorf("start restful at %d fail", r.httpsSvr.Port)
 	}
 }

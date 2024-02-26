@@ -54,16 +54,17 @@ const (
 	defaultOpLogMaxSize   = 200
 	defaultRunLogMaxSize  = 400
 	logMaxLineLength      = 1024
-	maxIPConnLimit        = 512
-	maxConcurrency        = 1000
-	defaultConnection     = 512
-	defaultConcurrency    = 512
+	maxIPConnLimit        = 100
+	maxConcurrency        = 100
+	defaultConnection     = 100
+	defaultConcurrency    = 100
+	maxBurstIP            = 100
 	defaultDataLimit      = 1024 * 1024
 	defaultCachSize       = 1024 * 1024 * 10
 )
 
 var (
-	serverRunConf = &hwlog.LogConfig{OnlyToFile: false, LogFileName: defaultRunLogFile, FileMaxSize: defaultRunLogMaxSize,
+	serverRunConf = &hwlog.LogConfig{OnlyToFile: true, LogFileName: defaultRunLogFile, FileMaxSize: defaultRunLogMaxSize,
 		BackupDirName: defaultBackupDirName, MaxLineLength: logMaxLineLength}
 	serverOpConf = &hwlog.LogConfig{OnlyToFile: true, LogFileName: defaultOperateLogFile, FileMaxSize: defaultOpLogMaxSize,
 		BackupDirName: defaultBackupDirName}
@@ -293,7 +294,7 @@ func register(ctx context.Context) error {
 
 func getLimitParam() httpsmgr.ServerParam {
 	return httpsmgr.ServerParam{
-		BurstIPReq:     512,
+		BurstIPReq:     maxBurstIP,
 		Concurrency:    concurrency,
 		BodySizeLimit:  dataLimit,
 		LimitIPReq:     limitIPReq,
