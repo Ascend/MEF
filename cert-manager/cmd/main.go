@@ -35,11 +35,12 @@ const (
 	backupDirName         = "/var/log_backup/mindx-edge/cert-manager"
 	defaultKmcPath        = "/home/data/public-config/kmc-config.json"
 	defaultCertConfigPath = "/home/data/config/cert-config.json"
-	maxIPConnLimit        = 128
-	maxConcurrency        = 512
+	maxIPConnLimit        = 100
+	maxConcurrency        = 100
 	defaultConnection     = 100
 	defaultConcurrency    = 100
 	defaultConnPerIP      = 100
+	maxBurstIP            = 100
 	defaultDataLimit      = 1024 * 1024
 	defaultCachSize       = 1024 * 1024 * 10
 )
@@ -178,6 +179,7 @@ func initCertConfig(configPath string) error {
 
 func getLimitParam() httpsmgr.ServerParam {
 	return httpsmgr.ServerParam{
+		BurstIPReq:     maxBurstIP,
 		Concurrency:    concurrency,
 		BodySizeLimit:  dataLimit,
 		LimitIPReq:     limitIPReq,

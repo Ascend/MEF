@@ -89,7 +89,7 @@ func getApiserverPodName() (string, error) {
 }
 
 func getKubeClientCA(podCommand string) (string, error) {
-	kubeclientCaPathRes := regexp.MustCompile(`client-ca-file=[a-zA-Z0-9_/.-]{1,256}.crt`).FindString(podCommand)
+	kubeclientCaPathRes := regexp.MustCompile(`client-ca-file=[a-zA-Z0-9_/.-]{1,50}.crt`).FindString(podCommand)
 	if kubeclientCaPathRes == "" {
 		return "", errors.New("no found apiserver client ca path")
 	}
