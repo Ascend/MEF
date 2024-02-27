@@ -89,7 +89,7 @@ func getApiserverPodName() (string, error) {
 }
 
 func getKubeClientCA(podCommand string) (string, error) {
-	kubeclientCaPathRes := regexp.MustCompile(`client-ca-file=(.*?).crt`).FindString(podCommand)
+	kubeclientCaPathRes := regexp.MustCompile(`client-ca-file=[a-zA-Z0-9_/.-]{1,256}.crt`).FindString(podCommand)
 	if kubeclientCaPathRes == "" {
 		return "", errors.New("no found apiserver client ca path")
 	}
@@ -132,7 +132,7 @@ func getKubeClientCA(podCommand string) (string, error) {
 }
 
 func getApiserverEndpoint(podCommand string) error {
-	addrStr := regexp.MustCompile(`advertise-address=(.*?)"`).FindString(podCommand)
+	addrStr := regexp.MustCompile(`advertise-address=[0-9.]{7,15}"`).FindString(podCommand)
 	if addrStr == "" {
 		return errors.New("no found apiserver advertise address")
 	}
@@ -147,7 +147,7 @@ func getApiserverEndpoint(podCommand string) error {
 		return errors.New("apiserver advertise address is invalid")
 	}
 
-	portStr := regexp.MustCompile(`--secure-port=(.*?)"`).FindString(podCommand)
+	portStr := regexp.MustCompile(`--secure-port=\d{1,5}"`).FindString(podCommand)
 	if portStr == "" {
 		return errors.New("no found apiserver secure port")
 	}
