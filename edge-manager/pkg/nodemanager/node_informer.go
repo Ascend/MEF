@@ -293,8 +293,9 @@ func (s *nodeSyncImpl) GetMEFNodeStatus(hostname string) (string, error) {
 
 func (s *nodeSyncImpl) ListMEFNodeStatus() map[string]string {
 	objects := s.informer.GetStore().List()
-	allNodeStatus := make(map[string]string)
-	var snList []string
+	nodeName2NodeStatus := make(map[string]string)
+	serialNumber2NodeName := make(map[string]string)
+	var serialNumbers []string
 	for _, obj := range objects {
 		node, ok := obj.(*v1.Node)
 		if !ok {
@@ -302,22 +303,25 @@ func (s *nodeSyncImpl) ListMEFNodeStatus() map[string]string {
 			continue
 		}
 		serialNumber, ok := node.Labels[snNodeLabelKey]
-		status := statusAbnormal
 		if ok {
-			snList = append(snList, serialNumber)
-			status = evalNodeStatus(node)
+			serialNumber2NodeName[serialNumber] = node.Name
+			serialNumbers = append(serialNumbers, serialNumber)
 		}
-		allNodeStatus[node.Name] = status
+		nodeName2NodeStatus[node.Name] = evalNodeStatus(node)
 	}
-	if len(snList) == 0 {
-		return allNodeStatus
+
+	if len(serialNumbers) == 0 {
+		return serialNumber2NodeName
 	}
-	for sn, connected := range getEdgeConnStatus(snList...) {
-		if !connected {
-			allNodeStatus[sn] = statusAbnormal
+	for serialNumber, connected := range getEdgeConnStatus(serialNumbers...) {
+		if connected {
+			continue
+		}
+		if name, ok := serialNumber2NodeName[serialNumber]; ok {
+			nodeName2NodeStatus[name] = statusAbnormal
 		}
 	}
-	return allNodeStatus
+	return nodeName2NodeStatus
 }
 
 func getEdgeConnStatus(snList ...string) map[string]bool {
