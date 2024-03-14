@@ -33,7 +33,7 @@ const (
 	startCommand         = "./nginx"
 	accessLogFile        = "/home/MEFCenter/logs/access.log"
 	errorLogFile         = "/home/MEFCenter/logs/error.log"
-	logFileMode          = 0600
+	pidFile              = "/home/MEFCenter/nginx.pid"
 )
 
 // initResource initial the resources needed by nginx
@@ -51,7 +51,7 @@ func initResource() error {
 		return err
 	}
 
-	if err := prepareLog(); err != nil {
+	if err := prepareFilesMode(); err != nil {
 		return err
 	}
 
@@ -92,14 +92,15 @@ func prepareCrlFile() error {
 	return nil
 }
 
-func prepareLog() error {
-	logList := []string{
+func prepareFilesMode() error {
+	fileList := []string{
 		accessLogFile,
 		errorLogFile,
+		pidFile,
 	}
 
-	for _, logFile := range logList {
-		if err := prepareOneLog(logFile); err != nil {
+	for _, file := range fileList {
+		if err := prepareOneFileMode(file); err != nil {
 			return err
 		}
 	}
@@ -107,16 +108,16 @@ func prepareLog() error {
 	return nil
 }
 
-func prepareOneLog(logFile string) error {
-	if !fileutils.IsExist(logFile) {
-		if err := fileutils.CreateFile(logFile, fileutils.Mode600); err != nil {
-			hwlog.RunLog.Errorf("create %s failed: %v", logFile, err)
-			return fmt.Errorf("create %s failed", logFile)
+func prepareOneFileMode(file string) error {
+	if !fileutils.IsExist(file) {
+		if err := fileutils.CreateFile(file, fileutils.Mode600); err != nil {
+			hwlog.RunLog.Errorf("create %s failed: %v", file, err)
+			return fmt.Errorf("create %s failed", file)
 		}
 	} else {
-		if err := fileutils.SetPathPermission(logFile, fileutils.Mode600, false, false); err != nil {
-			hwlog.RunLog.Errorf("chmod %s failed, cause by: {%v}", logFile, err)
-			return fmt.Errorf("set %s's mode failed", logFile)
+		if err := fileutils.SetPathPermission(file, fileutils.Mode600, false, false); err != nil {
+			hwlog.RunLog.Errorf("chmod %s failed, cause by: {%v}", file, err)
+			return fmt.Errorf("set %s's mode failed", file)
 		}
 	}
 
