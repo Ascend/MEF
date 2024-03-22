@@ -72,6 +72,9 @@ func checkDiskSpace(filePath string, requiredSpace, reservedBytes uint64, reserv
 	}
 
 	diskFree := fileStat.Bavail * uint64(fileStat.Bsize)
+	if diskFree < requiredSpace {
+		return ErrDiskPressure
+	}
 	freeBytes := diskFree - requiredSpace
 	if reservedBytes != 0 && freeBytes <= reservedBytes {
 		return ErrDiskPressure
