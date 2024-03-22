@@ -52,9 +52,9 @@ func (d *downloadInfoChecker) init() {
 	const minPwdLength = 8
 	const maxPwdLength = 20
 	d.modelChecker.Checker = checker.GetAndChecker(
-		checker.GetHttpsUrlChecker("Package", true),
-		checker.GetHttpsUrlChecker("SignFile", true),
-		checker.GetHttpsUrlChecker("CrlFile", true),
+		checker.GetHttpsUrlChecker("Package", true, false),
+		checker.GetHttpsUrlChecker("SignFile", true, false),
+		checker.GetHttpsUrlChecker("CrlFile", true, false),
 		checker.GetRegChecker("UserName", "^[a-zA-Z0-9]{6,32}$", true),
 		checker.GetListChecker("Password",
 			checker.GetUintChecker("", 0, math.MaxUint8, true),
