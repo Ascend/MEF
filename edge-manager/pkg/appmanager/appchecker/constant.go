@@ -40,7 +40,7 @@ const (
 	cmdReg                 = "^[a-zA-Z0-9 _./-]{0,255}[a-zA-Z0-9]$"
 	argsReg                = "^[a-zA-Z0-9 =_./-]{0,255}[a-zA-Z0-9]$"
 	descriptionReg         = "^[\\S ]{0,512}$"
-	envNameReg             = "^[a-zA-Z][a-zA-z0-9._-]{0,30}[a-zA-Z0-9]$"
+	envNameReg             = "^[a-zA-Z][a-zA-Z0-9._-]{0,30}[a-zA-Z0-9]$"
 	envValueReg            = "^[a-zA-Z0-9 _./:-]{1,512}$"
 
 	minAppId       = 1
