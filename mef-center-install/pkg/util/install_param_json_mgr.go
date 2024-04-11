@@ -18,10 +18,9 @@ import (
 
 // InstallParamJsonTemplate is the struct to deal with install_param.json
 type InstallParamJsonTemplate struct {
-	InstallDir      string   `json:"install_dir"`
-	LogDir          string   `json:"log_dir"`
-	LogBackupDir    string   `json:"log_backup_dir"`
-	OptionComponent []string `json:"option_component,omitempty"`
+	InstallDir   string `json:"install_dir"`
+	LogDir       string `json:"log_dir"`
+	LogBackupDir string `json:"log_backup_dir"`
 }
 
 // GetInstallParamJsonInfo is used to get infos from install_param.json
@@ -103,59 +102,4 @@ func (ins *InstallParamJsonTemplate) backupInstallParamJson(jsonPath string) err
 		return fmt.Errorf("create backup file failed: %s", err.Error())
 	}
 	return nil
-}
-
-// AddComponentToInstallInfo add install option component in install info json
-func AddComponentToInstallInfo(component, jsonPath string) error {
-	installInfo, err := GetInstallInfo()
-	if err != nil {
-		return err
-	}
-	for _, c := range installInfo.OptionComponent {
-		if c == component {
-			return nil
-		}
-	}
-	installInfo.OptionComponent = append(installInfo.OptionComponent, component)
-	if err := installInfo.SetInstallParamJsonInfo(jsonPath); err != nil {
-		return err
-	}
-	return nil
-}
-
-// DeleteComponentToInstallInfo delete uninstall option component in install info json
-func DeleteComponentToInstallInfo(component, jsonPath string) error {
-	installInfo, err := GetInstallInfo()
-	if err != nil {
-		return err
-	}
-	index := -1
-	for i, c := range installInfo.OptionComponent {
-		if c == component {
-			index = i
-			break
-		}
-	}
-	if index == -1 {
-		return errors.New(ComponentNotInstalled)
-	}
-	installInfo.OptionComponent = append(installInfo.OptionComponent[:index], installInfo.OptionComponent[index+1:]...)
-	if err := installInfo.SetInstallParamJsonInfo(jsonPath); err != nil {
-		return err
-	}
-	return nil
-}
-
-// OptionComponentExist check if component is exit
-func OptionComponentExist(component string) (bool, error) {
-	installInfo, err := GetInstallInfo()
-	if err != nil {
-		return false, err
-	}
-	for _, c := range installInfo.OptionComponent {
-		if c == component {
-			return true, nil
-		}
-	}
-	return false, nil
 }

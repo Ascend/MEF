@@ -62,7 +62,7 @@ func checkComponent(components []string) error {
 	if componentType == "all" {
 		return nil
 	}
-	allowedModule := append(util.GetCompulsorySlice(), util.OptionalComponent()...)
+	allowedModule := append(util.GetCompulsorySlice())
 
 	if err := util.CheckParamOption(allowedModule, componentType); err != nil {
 		fmt.Println("unsupported component")
@@ -70,11 +70,7 @@ func checkComponent(components []string) error {
 		return errors.New("unsupported component")
 	}
 
-	installInfo, err := util.GetInstallInfo()
-	if err != nil {
-		return err
-	}
-	installedComponents := append(components, installInfo.OptionComponent...)
+	installedComponents := append(components)
 
 	if err := util.CheckParamOption(installedComponents, componentType); err != nil {
 		fmt.Printf("the component %s is not installed yet\n", componentType)
@@ -359,77 +355,6 @@ func (ukc *updateKmcController) getName() string {
 	return ukc.operate
 }
 
-type manageThirdComponent struct {
-	installParam *util.InstallParamJsonTemplate
-	component    string
-	operate      string
-	lockOperate  string
-	control.SubParam
-}
-
-const (
-	operateFlag            = "operate"
-	installPackagePathFlag = "install_tar_file"
-	installCmsPathFlag     = "install_cms_file"
-	installCrlPathFlag     = "install_crl_file"
-)
-
-func (mtc *manageThirdComponent) bindFlag() bool {
-	flag.StringVar(&(mtc.component), componentFlag, "", "component name, only support [ics-manager]")
-	flag.StringVar(&(mtc.operate), operateFlag, "", "manage third component operate, only support [install, uninstall]")
-	flag.StringVar(&(mtc.InstallPackagePath), installPackagePathFlag, "",
-		"install package tar.gz file path, install operate necessary parameter")
-	flag.StringVar(&(mtc.InstallCmsPath), installCmsPathFlag, "",
-		"install package cms file path, install operate necessary parameter")
-	flag.StringVar(&(mtc.InstallCrlPath), installCrlPathFlag, "",
-		"install package crl file path, install operate necessary parameter")
-	utils.MarkFlagRequired(componentFlag)
-	utils.MarkFlagRequired(operateFlag)
-	return true
-}
-
-func (mtc *manageThirdComponent) setInstallParam(installParam *util.InstallParamJsonTemplate) {
-	mtc.installParam = installParam
-}
-
-func (mtc *manageThirdComponent) doControl() error {
-	pathMgr, err := util.InitInstallDirPathMgr()
-	if err != nil {
-		hwlog.RunLog.Errorf("init install path mgr failed: %v", err)
-		return errors.New("init install path mgr failed")
-	}
-
-	exchangeFlow := control.NewThirdComponentManageFlow(mtc.component, mtc.operate, mtc.SubParam, pathMgr)
-	if err = exchangeFlow.DoManage(); err != nil {
-		hwlog.RunLog.Errorf("%s %s failed: %s", mtc.operate, mtc.component, err.Error())
-		return err
-	}
-
-	return nil
-}
-
-func (mtc *manageThirdComponent) printExecutingLog(ip, user string) {
-	hwlog.RunLog.Info("-------------------start to manage third component-------------------")
-	hwlog.OpLog.Infof("[%s@%s] start to manage third component", user, ip)
-	fmt.Println("start to manage third component")
-}
-
-func (mtc *manageThirdComponent) printSuccessLog(ip, user string) {
-	hwlog.RunLog.Info("-------------------manage third component successful-------------------")
-	hwlog.OpLog.Infof("[%s@%s] manage third component successful", user, ip)
-	fmt.Println("manage third component successful")
-}
-
-func (mtc *manageThirdComponent) printFailedLog(ip, user string) {
-	hwlog.RunLog.Error("-------------------manage third component failed-------------------")
-	hwlog.OpLog.Errorf("[%s@%s] manage third component failed", user, ip)
-	fmt.Println("manage third component failed")
-}
-
-func (mtc *manageThirdComponent) getName() string {
-	return mtc.lockOperate
-}
-
 func dealArgs() bool {
 	flag.Usage = printUseHelp
 	if len(os.Args) <= util.NoArgCount {
@@ -518,7 +443,6 @@ Commands:
 	importcrl   	-- improt crl from the Northbound ca
 	alarmconfig 	-- update alarm used configuration 
 	getalarmconfig  -- get alarm used configuration
-	managecomponent -- manage third component
 `)
 }
 
@@ -640,16 +564,15 @@ func initLog(installParam *util.InstallParamJsonTemplate) error {
 
 func getOperateMap(operate string) map[string]controller {
 	return map[string]controller{
-		util.StartOperateFlag:     &operateController{operate: operate},
-		util.StopOperateFlag:      &operateController{operate: operate},
-		util.RestartOperateFlag:   &operateController{operate: operate},
-		util.UninstallFlag:        &uninstallController{operate: operate},
-		util.UpgradeFlag:          &upgradeController{operate: operate},
-		util.ExchangeCaFlag:       &exchangeCertsController{operate: operate},
-		util.UpdateKmcFlag:        &updateKmcController{operate: operate},
-		util.ImportCrlFlag:        &importCrlController{operate: operate},
-		util.ManageThirdComponent: &manageThirdComponent{operate: operate},
-		util.AlarmCfgFlag:         &alarmCfgController{operate: operate},
-		util.GetAlarmCfgFlag:      &getAlarmCfgController{operate: operate},
+		util.StartOperateFlag:   &operateController{operate: operate},
+		util.StopOperateFlag:    &operateController{operate: operate},
+		util.RestartOperateFlag: &operateController{operate: operate},
+		util.UninstallFlag:      &uninstallController{operate: operate},
+		util.UpgradeFlag:        &upgradeController{operate: operate},
+		util.ExchangeCaFlag:     &exchangeCertsController{operate: operate},
+		util.UpdateKmcFlag:      &updateKmcController{operate: operate},
+		util.ImportCrlFlag:      &importCrlController{operate: operate},
+		util.AlarmCfgFlag:       &alarmCfgController{operate: operate},
+		util.GetAlarmCfgFlag:    &getAlarmCfgController{operate: operate},
 	}
 }

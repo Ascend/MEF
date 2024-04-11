@@ -24,10 +24,8 @@ import (
 type UpgradePostFlowMgr struct {
 	util.SoftwareMgr
 	logPathMgr             *util.LogDirPathMgr
-	optionComponent        []string
 	startedComponents      []string
 	notInstalledComponents []string
-	optionComList          []util.OptionComponent
 	step                   int
 }
 
@@ -42,9 +40,8 @@ func GetUpgradePostMgr(components []string, installInfo *util.InstallParamJsonTe
 			Components:     components,
 			InstallPathMgr: pathMgr,
 		},
-		optionComponent: installInfo.OptionComponent,
-		logPathMgr:      util.InitLogDirPathMgr(installInfo.LogDir, installInfo.LogBackupDir),
-		step:            util.ClearUnpackPathStep,
+		logPathMgr: util.InitLogDirPathMgr(installInfo.LogDir, installInfo.LogBackupDir),
+		step:       util.ClearUnpackPathStep,
 	}, nil
 }
 
@@ -345,23 +342,6 @@ func (upf *UpgradePostFlowMgr) recordStarted() error {
 		upf.notInstalledComponents = append(upf.notInstalledComponents, c)
 	}
 
-	for _, c := range upf.optionComponent {
-		component := util.OptionComponent{
-			Name:    c,
-			PathMgr: upf.SoftwareMgr.InstallPathMgr,
-		}
-		started, err := util.CheckStarted(c)
-		if err != nil {
-			hwlog.RunLog.Errorf("check component %s's status failed: %s", c, err.Error())
-			return fmt.Errorf("check component %s's status failed", c)
-		}
-
-		if !started {
-			continue
-		}
-		upf.optionComList = append(upf.optionComList, component)
-	}
-
 	if len(upf.notInstalledComponents)+len(upf.startedComponents) == len(upf.Components) {
 		upf.startedComponents = append(upf.startedComponents, upf.notInstalledComponents...)
 	}
@@ -426,15 +406,6 @@ func (upf *UpgradePostFlowMgr) startNewPod() error {
 		if err != nil {
 			hwlog.RunLog.Errorf("start component %s failed", c)
 			return fmt.Errorf("start component %s failed", c)
-		}
-	}
-	for _, c := range upf.optionComList {
-		if c.Name == util.IcsManagerName {
-			ics := icsManager{pathMgr: c.PathMgr, name: util.IcsManagerName, operate: util.StartOperateFlag}
-			if err := ics.Operate(); err != nil {
-				hwlog.RunLog.Errorf("start component %s failed", c.Name)
-				return fmt.Errorf("start component %s failed", c.Name)
-			}
 		}
 	}
 
