@@ -46,8 +46,6 @@ const (
 	ClientCertKeyFile = "/home/data/config/mef-certs/nginx-manager.key"
 	// RootCaPath 内部消息转发根证书文件
 	RootCaPath = "/home/data/inner-root-ca/RootCA.crt"
-	// IcsCaPath ics inner ca, need exchange ca from ics manager
-	IcsCaPath = "/home/data/config/mef-certs/ics-root.crt"
 	// PipePath 证书私钥管道
 	PipePath = "/home/MEFCenter/pipe/apig_keyPipe"
 	// AuthPipePath 认证端口的证书私钥管段

@@ -37,8 +37,6 @@ const (
 	NginxCertName = "apig"
 	// NorthernCertName dir for northbound cert and crl
 	NorthernCertName = "north"
-	// IcsCertName for icsmanager cert name dir
-	IcsCertName = "ics"
 )
 
 // consts for ModuleName

@@ -17,11 +17,6 @@ import (
 	"huawei.com/mindxedge/base/common"
 )
 
-// OptionalComponent component optional installed
-func OptionalComponent() []string {
-	return append([]string{IcsManagerName})
-}
-
 // ComponentMgr is the struct for a single component's installation
 type ComponentMgr struct {
 	name string

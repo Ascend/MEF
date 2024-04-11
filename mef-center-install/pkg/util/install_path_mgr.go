@@ -123,40 +123,6 @@ func (idm *InstallDirPathMgr) GetTargetWorkPath() (string, error) {
 	return idm.GetWorkAPath(), nil
 }
 
-// GetIcsPath returns ics install path
-func (idm *InstallDirPathMgr) GetIcsPath() string {
-	return filepath.Join(idm.rootPath, IcsRootDir)
-}
-
-// GetIcsWorkPath returns ics work path
-func (idm *InstallDirPathMgr) GetIcsWorkPath() string {
-	return filepath.Join(idm.GetIcsPath(), IcsSoftLink)
-}
-
-// GetIcsRunPath returns ics run.sh path
-func (idm *InstallDirPathMgr) GetIcsRunPath() string {
-	return filepath.Join(idm.GetIcsWorkPath(), "run.sh")
-}
-
-// GetRealVarDirPath returns ics unzip temporary dir
-func (idm *InstallDirPathMgr) GetRealVarDirPath() (string, error) {
-	normPath := idm.GetWorkPath()
-	realPath, err := filepath.EvalSymlinks(normPath)
-	if err != nil {
-		return "", fmt.Errorf("get realpath of work dir failed: %s", err.Error())
-	}
-	return filepath.Join(realPath, MefVarDir), nil
-}
-
-// GetIcsTempTarPath returns the path to tar file in ics-manager install operate
-func (idm *InstallDirPathMgr) GetIcsTempTarPath() (string, error) {
-	path, err := idm.GetRealVarDirPath()
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(path, IcsTar), nil
-}
-
 // WorkPathMgr is a struct that controls all dir/file path in the mef-center softlink dir
 // all dir/file path in the mef-center softlink dir should be got by specified func in this struct
 type WorkPathMgr struct {
@@ -570,16 +536,6 @@ func (cpm *ConfigPathMgr) GetComponentMasterKmcPath(component string) string {
 // GetComponentBackKmcPath returns the kmc backup key file path for single component by component's name
 func (cpm *ConfigPathMgr) GetComponentBackKmcPath(component string) string {
 	return filepath.Join(cpm.GetComponentKmcDirPath(component), BackUpKeyFile)
-}
-
-// GetIcsCertPath returns the cert path of the ics manager
-func (cpm *ConfigPathMgr) GetIcsCertPath() string {
-	return filepath.Join(cpm.GetIcsCertDir(), RootCrtName)
-}
-
-// GetIcsCertDir returns the cert dir of the ics manager
-func (cpm *ConfigPathMgr) GetIcsCertDir() string {
-	return filepath.Join(cpm.GetComponentConfigPath(CertManagerName), RootCaDir, common.IcsCertName)
 }
 
 // InitInstallDirPathMgr returns the InstallDirPathMgr construct by the root path
