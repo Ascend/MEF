@@ -52,6 +52,7 @@ func (h *reportErrorHandler) Parse(msg *model.Message) error {
 		return errors.New("get ip by sn failed")
 	}
 	h.ip = ip
+	h.errInfo = TaskErrorInfo{}
 	return msg.ParseContent(&h.errInfo)
 }
 
