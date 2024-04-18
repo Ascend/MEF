@@ -13,6 +13,7 @@ import (
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"huawei.com/mindx/common/backuputils"
 	"huawei.com/mindx/common/checker"
 	"huawei.com/mindx/common/database"
@@ -205,7 +206,8 @@ func initScheduler() error {
 		maxActiveTasks        = 200
 		allowedMaxTasksInDb   = 300000
 	)
-	db, err := gorm.Open(sqlite.Open(":memory:?cache=shared"))
+	db, err := gorm.Open(sqlite.Open(":memory:?cache=shared"),
+		&gorm.Config{Logger: logger.Default.LogMode(logger.Silent)})
 	if err != nil {
 		return err
 	}
