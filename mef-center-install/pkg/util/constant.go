@@ -40,7 +40,6 @@ const (
 	MefConfigDir      = "mef-config"
 	InstallPackageDir = "install-package"
 	MefCenterLock     = "mef-center.lock"
-	IcsSoftLink       = "ics-manager"
 )
 
 // MEF-Center File constant
@@ -65,12 +64,10 @@ const (
 	ImageDir            = "image"
 	ImagesDirName       = "images"
 	MefBinDir           = "bin"
-	IcsRootDir          = "ICS-Manager"
 	DockerFileName      = "Dockerfile"
 	NginxDirName        = "nginx"
 	ImageTarNamePattern = "Ascend-mef-%s-linux-%s.tar.gz"
 	ImagePrefix         = "ascend-"
-	IcsTar              = "ics-tar"
 )
 
 // MEF-Config constant
@@ -109,7 +106,6 @@ const (
 	CertManagerName   = "cert-manager"
 	NginxManagerName  = "nginx-manager"
 	AlarmManagerName  = "alarm-manager"
-	IcsManagerName    = "ics-manager"
 	MefCenterRootName = "MEF-Center-root"
 )
 
@@ -159,29 +155,20 @@ const (
 	CheckStatusTimes    = 5
 )
 
-// constant for option component install
-const (
-	OperateInstall   = "install"
-	OperateUninstall = "uninstall"
-)
-
 const (
 	// NotGenCertErrorStr for the root ca has not yet generated
 	NotGenCertErrorStr = "the root ca has not yet generated"
-	//  ComponentNotInstalled option component not install error message
-	ComponentNotInstalled = "component has not installed"
 )
 
 // constant for mef control bin
 const (
-	UninstallFlag        = "uninstall"
-	UpgradeFlag          = "upgrade"
-	ExchangeCaFlag       = "exchangeca"
-	UpdateKmcFlag        = "updatekmc"
-	ImportCrlFlag        = "importcrl"
-	AlarmCfgFlag         = "alarmconfig"
-	GetAlarmCfgFlag      = "getalarmconfig"
-	ManageThirdComponent = "managecomponent"
+	UninstallFlag   = "uninstall"
+	UpgradeFlag     = "upgrade"
+	ExchangeCaFlag  = "exchangeca"
+	UpdateKmcFlag   = "updatekmc"
+	ImportCrlFlag   = "importcrl"
+	AlarmCfgFlag    = "alarmconfig"
+	GetAlarmCfgFlag = "getalarmconfig"
 
 	StartOperateFlag   = "start"
 	StopOperateFlag    = "stop"

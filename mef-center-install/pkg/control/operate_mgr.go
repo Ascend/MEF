@@ -24,7 +24,6 @@ type SftOperateMgr struct {
 	installPathMgr     *util.InstallDirPathMgr
 	logPathMgr         *util.LogDirPathMgr
 	componentList      []*util.CtlComponent
-	optionComList      []util.OptionComponent
 }
 
 // DoOperate is the main func to do an Operate handle
@@ -59,35 +58,14 @@ func (scm *SftOperateMgr) init() error {
 			}
 			scm.componentList = append(scm.componentList, component)
 		}
-		installInfo, err := util.GetInstallInfo()
-		if err != nil {
-			return err
-		}
-		for _, c := range installInfo.OptionComponent {
-			component := util.OptionComponent{
-				Name:      c,
-				Operation: scm.operate,
-				PathMgr:   scm.installPathMgr,
-			}
-			scm.optionComList = append(scm.optionComList, component)
-		}
 	} else {
 		// if just a certain componentFlag, then construct a single-element componentFlag list
-		if err := util.CheckParamOption(util.OptionalComponent(), scm.componentFlag); err == nil {
-			component := util.OptionComponent{
-				Name:      scm.componentFlag,
-				Operation: scm.operate,
-				PathMgr:   scm.installPathMgr,
-			}
-			scm.optionComList = append(scm.optionComList, component)
-		} else {
-			component := &util.CtlComponent{
-				Name:           scm.componentFlag,
-				Operation:      scm.operate,
-				InstallPathMgr: scm.installPathMgr.WorkPathMgr,
-			}
-			scm.componentList = append(scm.componentList, component)
+		component := &util.CtlComponent{
+			Name:           scm.componentFlag,
+			Operation:      scm.operate,
+			InstallPathMgr: scm.installPathMgr.WorkPathMgr,
 		}
+		scm.componentList = append(scm.componentList, component)
 	}
 
 	hwlog.RunLog.Info("init componentFlag list successful")
@@ -224,15 +202,6 @@ func (scm *SftOperateMgr) dealUpgradeFlag() error {
 
 func (scm *SftOperateMgr) deal() error {
 	var failedList []string
-	for _, c := range scm.optionComList {
-		if c.Name == util.IcsManagerName {
-			ics := icsManager{pathMgr: scm.installPathMgr, name: util.IcsManagerName, operate: scm.operate}
-			if err := ics.Operate(); err != nil {
-				fmt.Printf("%s component %s failed\n", scm.operate, ics.name)
-				failedList = append(failedList, c.Name)
-			}
-		}
-	}
 	for _, component := range scm.componentList {
 		if err := component.Operate(); err != nil {
 			fmt.Printf("%s component %s failed\n", component.Operation, component.Name)
