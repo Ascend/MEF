@@ -51,13 +51,6 @@ func prepareCert() error {
 		hwlog.RunLog.Errorf("get root ca(%s) failed: %v", common.WsCltName, err)
 		return err
 	}
-	err := prepareRootCert(nginxcom.IcsCaPath, common.IcsCertName, false)
-	if errors.Is(err, errNotImported) {
-		hwlog.RunLog.Info("ics-manager cert is not imported yet")
-	}
-	if err != nil {
-		hwlog.RunLog.Warnf("get ics-manager cert failed, %v", err)
-	}
 	return prepareServerCert(nginxcom.ThirdPartyServiceKeyPath, nginxcom.ThirdPartyServiceCertPath,
 		common.ThirdPartyCertName)
 }

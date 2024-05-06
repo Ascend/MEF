@@ -23,13 +23,6 @@ type CtlComponent struct {
 	InstallPathMgr WorkPathItf
 }
 
-// OptionComponent is a struct used to do a specific command to a optional single component
-type OptionComponent struct {
-	Name      string
-	Operation string
-	PathMgr   *InstallDirPathMgr
-}
-
 func (cc *CtlComponent) startComponent(yamlPath string) (bool, error) {
 	nsMgr := NewNamespaceMgr(MefNamespace)
 	if err := nsMgr.prepareNameSpace(); err != nil {
