@@ -136,6 +136,7 @@ func handleCertUpdate(msg *model.Message) error {
 		}
 		if err = respMsg.FillContent(respContent); err != nil {
 			hwlog.RunLog.Errorf("fill resp content failed: %v", err)
+			return
 		}
 		if err = modulemgr.SendMessage(respMsg); err != nil {
 			hwlog.RunLog.Errorf("send response message error: %v", err)

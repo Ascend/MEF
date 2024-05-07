@@ -35,6 +35,9 @@ func sendRestfulResponse(msg common.RespMsg, req *model.Message) error {
 		return originateErr
 	}
 	if err = resp.FillContent(msg); err != nil {
+		if originateErr == nil {
+			originateErr = err
+		}
 		hwlog.RunLog.Errorf("fill content failed: %v", err)
 		return originateErr
 	}
