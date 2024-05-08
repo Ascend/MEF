@@ -474,15 +474,15 @@ func main() {
 }
 
 func handle() int {
+	if !dealArgs() {
+		return util.ErrorExitCode
+	}
+
 	if !initInstallParam() {
 		return util.ErrorExitCode
 	}
 	if err = initLog(installParam); err != nil {
 		fmt.Println(err.Error())
-		return util.ErrorExitCode
-	}
-
-	if !dealArgs() {
 		return util.ErrorExitCode
 	}
 	fmt.Println("init log success")
