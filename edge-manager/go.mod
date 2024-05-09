@@ -31,7 +31,7 @@ require (
 replace (
 	huawei.com/mindx/common/backuputils => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/backuputils v0.0.9
 	huawei.com/mindx/common/cache => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/cache v0.0.2
-	huawei.com/mindx/common/checker => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/checker v0.0.16
+	huawei.com/mindx/common/checker => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/checker v0.0.19
 	huawei.com/mindx/common/database => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/database v0.0.9
 	huawei.com/mindx/common/envutils => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/envutils v0.1.8
 	huawei.com/mindx/common/fileutils => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/fileutils v0.0.19
@@ -43,7 +43,7 @@ replace (
 	huawei.com/mindx/common/rand => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/rand v0.0.2
 	huawei.com/mindx/common/terminal => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/terminal v0.0.5
 	huawei.com/mindx/common/test => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/test v0.0.2
-	huawei.com/mindx/common/utils => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/utils v0.1.37
+	huawei.com/mindx/common/utils => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/utils v0.1.40
 	huawei.com/mindx/common/websocketmgr => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/websocketmgr v0.0.36
 	huawei.com/mindx/common/x509 => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/x509 v0.0.39
 	huawei.com/mindx/common/xcrypto => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/xcrypto v0.0.2
