@@ -335,6 +335,7 @@ func allowPhaseTrans(from, to TaskPhase, byUser bool) bool {
 func doHeartbeatMonitoring(
 	ctx context.Context, duration time.Duration, heartbeat <-chan struct{}, notifyCh chan<- struct{}) {
 	timer := time.NewTimer(duration)
+	defer timer.Stop()
 forLoop:
 	for {
 		if heartbeat == nil {
