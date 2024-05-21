@@ -20,7 +20,7 @@ import (
 )
 
 func TestGetCertInfo(t *testing.T) {
-	var p1 = gomonkey.ApplyFuncReturn(config.GetCertCache, "", nil)
+	var p1 = gomonkey.ApplyFuncReturn(config.GetCertCrlPairCache, config.CertCrlPair{}, nil)
 	defer p1.Reset()
 
 	var p2 = gomonkey.ApplyFunc(util.GetImageAddress, func() (string, error) {
@@ -86,7 +86,7 @@ func testGetCertInfoErrGetRootCa() {
 	err = msg.FillContent(common.SoftwareCertName)
 	convey.So(err, convey.ShouldBeNil)
 
-	var p1 = gomonkey.ApplyFuncReturn(config.GetCertCache, "", test.ErrTest)
+	var p1 = gomonkey.ApplyFuncReturn(config.GetCertCrlPairCache, config.CertCrlPair{}, test.ErrTest)
 	defer p1.Reset()
 
 	resp := GetCertInfo(msg)

@@ -40,6 +40,6 @@ replace (
 	huawei.com/mindx/common/terminal => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/terminal v0.0.7
 	huawei.com/mindx/common/test => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/test v0.0.2
 	huawei.com/mindx/common/utils => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/utils v0.1.41
-	huawei.com/mindx/common/x509 => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/x509 v0.0.43
+	huawei.com/mindx/common/x509 => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/x509 v0.0.45
 	huawei.com/mindx/mef/common/cmsverify => ./MEF_Utils/cmsverify
 )

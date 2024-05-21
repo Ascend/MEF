@@ -21,12 +21,13 @@ func getCertInfo(certName string) (certutils.ClientCertResp, error) {
 	res := certutils.ClientCertResp{}
 
 	res.CertName = certName
-	certStr, err := config.GetCertCache(certName)
+	certCrlPair, err := config.GetCertCrlPairCache(certName)
 	if err != nil {
 		hwlog.RunLog.Errorf("get %s failed, %v", certName, err)
 		return res, err
 	}
-	res.CertContent = certStr
+	res.CertContent = certCrlPair.CertPEM
+	res.CrlContent = certCrlPair.CrlPEM
 	res.CertOpt = common.Update
 
 	if certName == common.ImageCertName {

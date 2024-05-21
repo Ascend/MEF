@@ -12,7 +12,7 @@ require (
 	huawei.com/mindx/common/cache v0.0.2
 	huawei.com/mindx/common/checker v0.0.3
 	huawei.com/mindx/common/database v0.0.2
-	huawei.com/mindx/common/fileutils v0.0.4
+	huawei.com/mindx/common/fileutils v0.0.14
 	huawei.com/mindx/common/httpsmgr v0.0.2
 	huawei.com/mindx/common/hwlog v0.10.12
 	huawei.com/mindx/common/kmc v0.1.0
@@ -45,7 +45,7 @@ replace (
 	huawei.com/mindx/common/test => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/test v0.0.2
 	huawei.com/mindx/common/utils => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/utils v0.1.41
 	huawei.com/mindx/common/websocketmgr => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/websocketmgr v0.0.39
-	huawei.com/mindx/common/x509 => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/x509 v0.0.43
+	huawei.com/mindx/common/x509 => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/x509 v0.0.45
 	huawei.com/mindx/common/xcrypto => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/xcrypto v0.0.2
 	huawei.com/mindx/mef/common/cmsverify => ./../MEF_Utils/cmsverify
 	huawei.com/mindxedge/base v0.0.1 => ./../

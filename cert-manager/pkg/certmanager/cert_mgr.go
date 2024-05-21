@@ -39,6 +39,13 @@ func isCertImported(certName string) bool {
 	return !exist || fileutils.IsExist(caFilePath) || fileutils.IsExist(caFilePath+backuputils.BackupSuffix)
 }
 
+// isExternalCrlImported checks whether an external crl is available.
+func isExternalCrlImported(crlName string) bool {
+	crlFilePath := getCrlPath(crlName)
+	_, exist := certsToImported[crlName]
+	return exist && (fileutils.IsExist(crlFilePath) || fileutils.IsExist(crlFilePath+backuputils.BackupSuffix))
+}
+
 // getCertByCertName query root ca with cert name
 func getCertByCertName(certName string) ([]byte, error) {
 	caFilePath := getRootCaPath(certName)
@@ -224,7 +231,7 @@ func removeCaFile(certName string) error {
 	return nil
 }
 
-func updateClientCert(certName, certOpt string, certContent []byte) error {
+func updateClientCert(certName, operation string) error {
 	lock.Lock()
 	defer lock.Unlock()
 	hwlog.RunLog.Info("start update cert file")
@@ -237,12 +244,29 @@ func updateClientCert(certName, certOpt string, certContent []byte) error {
 			KmcCfg:     nil,
 		},
 	}
-	cert := certutils.UpdateClientCert{
-		CertName:    certName,
-		CertContent: certContent,
-		CertOpt:     certOpt,
+	updateClientCertReq := certutils.UpdateClientCert{CertName: certName, CertOpt: operation}
+	if operation == common.Update {
+		certContent, err := getCertByCertName(certName)
+		if err != nil {
+			hwlog.RunLog.Errorf("load %s ca file failed, error:%v", certName, err)
+			return fmt.Errorf("load %s ca file failed", certName)
+		}
+		updateClientCertReq.CertContent = certContent
+
+		// CrlContent is optional field
+		if isExternalCrlImported(certName) {
+			crlContent, err := certutils.GetCrlContentWithBackup(getCrlPath(certName))
+			if err != nil {
+				hwlog.RunLog.Errorf("load %s crl file failed, error:%v", certName, err)
+				return fmt.Errorf("load %s crl file failed", certName)
+			}
+
+			updateClientCertReq.CrlContent = crlContent
+		}
+
 	}
-	certName, err := reqCertParams.UpdateCertFile(cert)
+
+	certName, err := reqCertParams.UpdateCertFile(updateClientCertReq)
 	if err != nil {
 		hwlog.RunLog.Errorf("update %s ca file failed, error:%v", certName, err)
 		return fmt.Errorf("update %s ca file failed", certName)

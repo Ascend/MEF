@@ -143,7 +143,7 @@ func importRootCa(msg *model.Message) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorSaveCa, Msg: "save ca content to file failed", Data: nil}
 	}
 	if req.CertName == common.SoftwareCertName || req.CertName == common.ImageCertName {
-		if err := updateClientCert(req.CertName, common.Update, caBase64); err != nil {
+		if err := updateClientCert(req.CertName, common.Update); err != nil {
 			hwlog.RunLog.Errorf("distribute cert file to client failed, error:%v", err)
 			return common.RespMsg{Status: common.Success, Msg: "import certificate success, " +
 				"but distribute cert file to client failed", Data: nil}
@@ -172,7 +172,7 @@ func deleteRootCa(msg *model.Message) common.RespMsg {
 		hwlog.RunLog.Errorf("delete ca file failed, error:%v", err)
 		return common.RespMsg{Status: common.ErrorDeleteRootCa, Msg: "delete ca file failed", Data: nil}
 	}
-	if err := updateClientCert(req.Type, common.Delete, nil); err != nil {
+	if err := updateClientCert(req.Type, common.Delete); err != nil {
 		hwlog.RunLog.Errorf("delete cert file for client failed, error:%v", err)
 		return common.RespMsg{Status: common.Success, Msg: "delete ca file success, " +
 			"but delete cert file for client failed", Data: nil}
@@ -253,9 +253,16 @@ func importCrl(msg *model.Message) common.RespMsg {
 			Msg: fmt.Sprintf("base64 decode ca content failed, error: %v", err)}
 	}
 
-	if err := saveCrlContentWithBackup(common.NorthernCertName, bytes); err != nil {
+	if err := saveCrlContentWithBackup(req.CrlName, bytes); err != nil {
 		return common.RespMsg{Status: common.ErrorSaveCrl,
 			Msg: fmt.Sprintf("save ca content to file failed, error: %v", err)}
+	}
+	if req.CrlName == common.SoftwareCertName || req.CrlName == common.ImageCertName {
+		if err := updateClientCert(req.CrlName, common.Update); err != nil {
+			hwlog.RunLog.Errorf("delete cert file for client failed, error:%v", err)
+			return common.RespMsg{Status: common.Success, Msg: "delete ca file success, " +
+				"but delete cert file for client failed", Data: nil}
+		}
 	}
 
 	return common.RespMsg{Status: common.Success, Msg: "import crl file success"}
@@ -286,42 +293,21 @@ func queryCrl(msg *model.Message) common.RespMsg {
 		hwlog.RunLog.Errorf("query crl info failed: parse content failed: %v", err)
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
-	if crlName != common.NorthernCertName {
+	if checkResult := certchecker.NewImportCrlNameChecker().Check(crlName); !checkResult.Result {
 		hwlog.RunLog.Error("the crl name not support")
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "query crl failed parma is invalid", Data: nil}
 	}
-	crlPath := getCrlPath(crlName)
-	if !fileutils.IsExist(crlPath) && !fileutils.IsExist(crlPath+backuputils.BackupSuffix) {
+	if !isExternalCrlImported(crlName) {
 		hwlog.RunLog.Infof("query [%s] crl finished, which is not imported yet", crlName)
 		return common.RespMsg{Status: common.Success, Msg: fmt.Sprintf("%s crl is no imported yet", crlName), Data: ""}
 	}
-	if err := checkCrlWithBackup(crlPath); err != nil {
+	crlData, err := certutils.GetCrlContentWithBackup(getCrlPath(crlName))
+	if err != nil {
 		hwlog.RunLog.Errorf("[%s] crl file is damaged", crlName)
 		return common.RespMsg{Status: common.ErrorGetRootCa, Msg: "query crl failed, crl file is damaged", Data: nil}
 	}
-	crlData, err := fileutils.LoadFile(crlPath)
-	if err != nil {
-		hwlog.RunLog.Errorf("query cert [%s] crl failed: %v", crlName, err)
-		return common.RespMsg{Status: common.ErrorGetRootCa, Msg: "query crl failed, load crl file failed", Data: nil}
-	}
 	hwlog.RunLog.Infof("query [%s] crl success", crlName)
 	return common.RespMsg{Status: common.Success, Msg: "query crl success", Data: string(crlData)}
-}
-
-func checkCrlWithBackup(path string) error {
-	_, err := x509.ParseCrls(path)
-	if err == nil {
-		if backupErr := backuputils.BackUpFiles(path); backupErr != nil {
-			hwlog.RunLog.Warnf("back up crl file [%s] failed", path)
-		}
-		return nil
-	}
-	if restoreErr := backuputils.RestoreFiles(path); restoreErr != nil {
-		hwlog.RunLog.Errorf("restore crl file [%s] failed", path)
-		return err
-	}
-	_, err = x509.ParseCrls(path)
-	return err
 }
 
 func getImportedCertsInfo(*model.Message) common.RespMsg {

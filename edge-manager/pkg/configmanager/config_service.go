@@ -93,19 +93,20 @@ func createSecret(config ImageConfig) (string, error) {
 }
 
 func sendCertToClient(registryPath string) error {
-	certContent, err := config.GetCertCache(common.ImageCertName)
+	certCrlPair, err := config.GetCertCrlPairCache(common.ImageCertName)
 	if err != nil {
 		hwlog.RunLog.Errorf("get cert content failed, error: %v", err)
 		return errors.New("get cert content failed")
 	}
-	if certContent == "" {
+	if certCrlPair.CertPEM == "" {
 		hwlog.RunLog.Errorf("image cert is not imported yet, ignore cert upgrade broadcast")
 		return errors.New("image cert is not imported yet")
 	}
 
 	certRes := certutils.ClientCertResp{
 		CertName:     common.ImageCertName,
-		CertContent:  certContent,
+		CertContent:  certCrlPair.CertPEM,
+		CrlContent:   certCrlPair.CrlPEM,
 		CertOpt:      common.Update,
 		ImageAddress: registryPath,
 	}
@@ -139,9 +140,10 @@ func updateConfig(msg *model.Message) common.RespMsg {
 		hwlog.RunLog.Errorf("update cert info failed: parse content failed: %v", err)
 		return common.RespMsg{Status: common.ErrorParamConvert, Msg: "parse content failed", Data: nil}
 	}
-	config.SetCertCache(updateCert.CertName, string(updateCert.CertContent))
+	config.SetCertCrlPairCache(updateCert.CertName, string(updateCert.CertContent), string(updateCert.CrlContent))
 	certRes := certutils.ClientCertResp{
 		CertName:    updateCert.CertName,
+		CrlContent:  string(updateCert.CrlContent),
 		CertContent: string(updateCert.CertContent),
 		CertOpt:     updateCert.CertOpt,
 	}
