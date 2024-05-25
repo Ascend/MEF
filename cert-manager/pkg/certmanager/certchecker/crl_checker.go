@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"huawei.com/mindx/common/checker"
+	"huawei.com/mindx/common/checker/valuer"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/x509"
 
@@ -17,25 +18,27 @@ import (
 )
 
 type importCrlChecker struct {
-	crlChecker checker.ModelChecker
 }
 
-// NewImportCrlChecker [method] for getting issue cert checker struct
+// NewImportCrlChecker [method] for getting crl validation struct
 func NewImportCrlChecker() *importCrlChecker {
-	return &importCrlChecker{
-		crlChecker: checker.ModelChecker{
-			Checker: checker.GetAndChecker(
-				checker.GetStringChoiceChecker("CrlName", []string{common.NorthernCertName}, true),
-				GetStringChecker("Crl", crlContentChecker, true),
-			)},
+	return &importCrlChecker{}
+}
+
+// NewImportCrlNameChecker [method] for getting crl name validation struct
+func NewImportCrlNameChecker() *checker.ModelChecker {
+	return &checker.ModelChecker{
+		Required: true,
+		Checker: checker.GetStringChoiceChecker("",
+			[]string{common.NorthernCertName, common.ImageCertName, common.SoftwareCertName}, true),
 	}
 }
 
-func crlContentChecker(crlContent string) error {
+func checkCrlContent(name, content string) error {
 	lock.Lock()
 	defer lock.Unlock()
 
-	bytes, err := base64.StdEncoding.DecodeString(crlContent)
+	bytes, err := base64.StdEncoding.DecodeString(content)
 	if err != nil {
 		hwlog.RunLog.Errorf("base64 decode crl content failed, error: %s", err.Error())
 		return err
@@ -50,7 +53,8 @@ func crlContentChecker(crlContent string) error {
 		hwlog.RunLog.Errorf("check crl failed, new crl mgr error: %s", err.Error())
 		return err
 	}
-	if err = mgr.CheckCrl(filepath.Join(util.RootCaMgrDir, common.NorthernCertName, util.RootCaFileName)); err != nil {
+	certData := x509.CertData{CertPath: filepath.Join(util.RootCaMgrDir, name, util.RootCaFileName)}
+	if err = mgr.CheckCrl(certData); err != nil {
 		hwlog.RunLog.Errorf("check crl content failed, error: %s", err.Error())
 		return err
 	}
@@ -58,9 +62,24 @@ func crlContentChecker(crlContent string) error {
 }
 
 func (icc *importCrlChecker) Check(data interface{}) checker.CheckResult {
-	checkResult := icc.crlChecker.Check(data)
-	if !checkResult.Result {
-		return checker.NewFailedResult(fmt.Sprintf("crl checker check failed: %s", checkResult.Reason))
+	var (
+		strValuer  valuer.StringValuer
+		crlName    string
+		crlContent string
+		err        error
+	)
+	if crlName, err = strValuer.GetValue(data, "CrlName"); err != nil {
+		return checker.NewFailedResult("crl checker check failed: unable to get crl name")
+	}
+	if crlContent, err = strValuer.GetValue(data, "Crl"); err != nil {
+		return checker.NewFailedResult("crl checker check failed: unable to get crl content")
+	}
+
+	if checkResult := NewImportCrlNameChecker().Check(crlName); !checkResult.Result {
+		return checker.NewFailedResult(fmt.Sprintf("crl checker check name failed: %s", checkResult.Reason))
+	}
+	if err := checkCrlContent(crlName, crlContent); err != nil {
+		return checker.NewFailedResult(fmt.Sprintf("crl checker check content failed: %s", err.Error()))
 	}
 	return checker.NewSuccessResult()
 }

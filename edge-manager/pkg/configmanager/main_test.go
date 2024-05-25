@@ -65,7 +65,7 @@ func TestMain(m *testing.M) {
 		}).
 		ApplyFuncReturn(modulemgr.SendMessage, nil).
 		ApplyFuncReturn(util.GetImageAddress, "xxxx", nil).
-		ApplyFuncReturn(config.GetCertCache, base64CertContent, nil).
+		ApplyFuncReturn(config.GetCertCrlPairCache, config.CertCrlPair{CertPEM: base64CertContent}, nil).
 		ApplyMethodReturn(&kubeclient.Client{}, "CreateOrUpdateSecret", nil, nil)
 
 	test.RunWithPatches(tcBase, m, patches)

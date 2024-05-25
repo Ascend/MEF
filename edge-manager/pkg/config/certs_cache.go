@@ -15,45 +15,51 @@ import (
 	"edge-manager/pkg/constants"
 )
 
-var certCache sync.Map
+var certCrlPairCache sync.Map
 
-func init() {
-	certCache.Store(common.SoftwareCertName, nil)
-	certCache.Store(common.ImageCertName, nil)
+// CertCrlPair represents a pair of ca and crl
+type CertCrlPair struct {
+	CertPEM string
+	CrlPEM  string
 }
 
-// GetCertCache return cert cache by name,
+func init() {
+	certCrlPairCache.Store(common.SoftwareCertName, nil)
+	certCrlPairCache.Store(common.ImageCertName, nil)
+}
+
+// GetCertCrlPairCache return ca and crl by name from cache,
 // which supposed return error only in certs request failed form edge-manager to cert-manager.
-func GetCertCache(name string) (string, error) {
+func GetCertCrlPairCache(name string) (CertCrlPair, error) {
 	hwlog.RunLog.Infof("start to get cert [%s] from cache", name)
 	// cert name error case, check name first
-	cert, ok := certCache.Load(name)
+	cert, ok := certCrlPairCache.Load(name)
 	if !ok {
-		return "", errors.New("unknown cert name")
+		return CertCrlPair{}, errors.New("unknown cert name")
 	}
 	// if cache is nil, get form cert-manager
 	if cert == nil {
 		return getCertFromCertMgr(name)
 	}
-	certStr, ok := cert.(string)
+	certCrlPair, ok := cert.(CertCrlPair)
 	if !ok {
-		return "", errors.New("unknown type of certificate's content")
+		return CertCrlPair{}, errors.New("unknown type of certificate's content")
 	}
-	return certStr, nil
+	return certCrlPair, nil
 }
 
-// SetCertCache refresh cert cache by name
+// SetCertCrlPairCache refresh ca and crl cache by name
 // which will be called when the certs(image, software) is updated in cert-manager.
-func SetCertCache(name, content string) {
-	_, ok := certCache.Load(name)
+func SetCertCrlPairCache(name, certPEM, crlPEM string) {
+	_, ok := certCrlPairCache.Load(name)
 	if !ok {
 		return
 	}
 	hwlog.RunLog.Infof("start to set cert [%s] to cache", name)
-	certCache.Store(name, content)
+	certCrlPairCache.Store(name, CertCrlPair{CertPEM: certPEM, CrlPEM: crlPEM})
 }
 
-func getCertFromCertMgr(name string) (string, error) {
+func getCertFromCertMgr(name string) (CertCrlPair, error) {
 	reqCertParams := requests.ReqCertParams{
 		ClientTlsCert: certutils.TlsCertInfo{
 			RootCaPath: constants.RootCaPath,
@@ -66,9 +72,17 @@ func getCertFromCertMgr(name string) (string, error) {
 	certStr, err := reqCertParams.GetRootCa(name)
 	if err != nil {
 		hwlog.RunLog.Errorf("request [%s] cert cache from cert-manager failed, %v", name, err)
-		return "", err
+		return CertCrlPair{}, err
 	}
 	hwlog.RunLog.Infof("request [%s] cert cache from cert-manager successful", name)
-	certCache.Store(name, certStr)
-	return certStr, nil
+
+	crlStr, err := reqCertParams.GetCrl(name)
+	if err != nil {
+		hwlog.RunLog.Errorf("request [%s] crl cache from cert-manager failed, %v", name, err)
+		return CertCrlPair{}, err
+	}
+
+	certCrlPair := CertCrlPair{CertPEM: certStr, CrlPEM: crlStr}
+	certCrlPairCache.Store(name, certCrlPair)
+	return certCrlPair, nil
 }
