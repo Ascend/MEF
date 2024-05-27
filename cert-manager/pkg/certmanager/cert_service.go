@@ -142,13 +142,8 @@ func importRootCa(msg *model.Message) common.RespMsg {
 		hwlog.RunLog.Errorf("save ca content to file failed, error:%v", err)
 		return common.RespMsg{Status: common.ErrorSaveCa, Msg: "save ca content to file failed", Data: nil}
 	}
-	if req.CertName == common.SoftwareCertName || req.CertName == common.ImageCertName {
-		if err := updateClientCert(req.CertName, common.Update); err != nil {
-			hwlog.RunLog.Errorf("distribute cert file to client failed, error:%v", err)
-			return common.RespMsg{Status: common.Success, Msg: "import certificate success, " +
-				"but distribute cert file to client failed", Data: nil}
-		}
-	}
+	certMonitor.Recheck()
+
 	hwlog.RunLog.Infof("import %s certificate success", req.CertName)
 	return common.RespMsg{Status: common.Success, Msg: "import certificate success", Data: nil}
 }
@@ -172,11 +167,8 @@ func deleteRootCa(msg *model.Message) common.RespMsg {
 		hwlog.RunLog.Errorf("delete ca file failed, error:%v", err)
 		return common.RespMsg{Status: common.ErrorDeleteRootCa, Msg: "delete ca file failed", Data: nil}
 	}
-	if err := updateClientCert(req.Type, common.Delete); err != nil {
-		hwlog.RunLog.Errorf("delete cert file for client failed, error:%v", err)
-		return common.RespMsg{Status: common.Success, Msg: "delete ca file success, " +
-			"but delete cert file for client failed", Data: nil}
-	}
+	certMonitor.Recheck()
+
 	hwlog.RunLog.Infof("delete %s certificate success", req.Type)
 	return common.RespMsg{Status: common.Success, Msg: "delete ca file success", Data: nil}
 }
@@ -257,13 +249,7 @@ func importCrl(msg *model.Message) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorSaveCrl,
 			Msg: fmt.Sprintf("save ca content to file failed, error: %v", err)}
 	}
-	if req.CrlName == common.SoftwareCertName || req.CrlName == common.ImageCertName {
-		if err := updateClientCert(req.CrlName, common.Update); err != nil {
-			hwlog.RunLog.Errorf("delete cert file for client failed, error:%v", err)
-			return common.RespMsg{Status: common.Success, Msg: "delete ca file success, " +
-				"but delete cert file for client failed", Data: nil}
-		}
-	}
+	certMonitor.Recheck()
 
 	return common.RespMsg{Status: common.Success, Msg: "import crl file success"}
 }

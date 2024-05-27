@@ -173,6 +173,10 @@ const (
 	StartOperateFlag   = "start"
 	StopOperateFlag    = "stop"
 	RestartOperateFlag = "restart"
+
+	GetUnusedCertOperateFlag = "getunusedcert"
+	RestoreCertOperateFlag   = "restorecert"
+	DeleteCertOperateFlag    = "deletecert"
 )
 
 // constant for set k8s label

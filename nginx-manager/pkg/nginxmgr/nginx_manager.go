@@ -18,6 +18,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
+	"huawei.com/mindx/common/x509"
 	"huawei.com/mindx/common/x509/certutils"
 
 	"nginx-manager/pkg/msgutil"
@@ -273,6 +274,17 @@ func getNorthCrl() (bool, error) {
 			break
 		}
 		hwlog.RunLog.Info("north crl is not imported yet, nginx will no config crl")
+		return false, nil
+	}
+
+	crlMgr, err := x509.NewCrlMgr([]byte(crlStr))
+	if err != nil {
+		hwlog.RunLog.Errorf("north crl is invalid, error: %v", err)
+		return false, err
+	}
+	// ignore CRL when it is not signed by the same ca
+	if err := crlMgr.CheckCrl(x509.CertData{CertPath: nginxcom.NorthernCertFile}); err != nil {
+		hwlog.RunLog.Warnf("north crl is not signed by the ca, error: %v", err)
 		return false, nil
 	}
 

@@ -72,8 +72,9 @@ func (ecf *ExchangeCaFlow) DoExchange() error {
 	var upgradeTasks = []func() error{
 		ecf.checkParam,
 		ecf.checkCa,
-		ecf.exportCa,
-		ecf.importCa,
+		ecf.ensureRootCaDir,
+		withMEFCenterUser(ecf.exportCa),
+		withMEFCenterUser(ecf.importCa),
 	}
 
 	for _, function := range upgradeTasks {
@@ -136,12 +137,33 @@ func (ecf *ExchangeCaFlow) checkCa() error {
 	return nil
 }
 
+func (ecf *ExchangeCaFlow) ensureRootCaDir() error {
+	hwlog.RunLog.Info("start to create root-ca dir")
+
+	rootCaDir := ecf.pathMgr.ConfigPathMgr.GetCertMgrRootCaDirPath()
+	if err := fileutils.CreateDir(rootCaDir, fileutils.Mode700); err != nil {
+		hwlog.RunLog.Errorf("create root-ca dir failed: %s", err.Error())
+		return errors.New("create root-ca dir failed")
+	}
+	param := fileutils.SetOwnerParam{
+		Path:       rootCaDir,
+		Uid:        ecf.uid,
+		Gid:        ecf.gid,
+		Recursive:  false,
+		IgnoreFile: false,
+	}
+	if err := fileutils.SetPathOwnerGroup(param); err != nil {
+		hwlog.RunLog.Errorf("set root-ca dir owner failed: %s", err.Error())
+		return errors.New("set root-ca dir owner failed")
+	}
+
+	hwlog.RunLog.Info("create root-ca dir success")
+	return nil
+}
+
 func (ecf *ExchangeCaFlow) importCa() error {
-	if fileutils.IsLexist(ecf.savePath) {
-		if err := fileutils.DeleteFile(ecf.savePath); err != nil {
-			hwlog.RunLog.Errorf("delete original crt [%s] failed: %s", ecf.savePath, err.Error())
-			return errors.New("delete original crt failed")
-		}
+	if err := ecf.backupExistingCa(); err != nil {
+		return err
 	}
 	if err := ecf.copyCaToCertManager(); err != nil {
 		return err
@@ -160,34 +182,41 @@ func (ecf *ExchangeCaFlow) importCa() error {
 	return nil
 }
 
+func (ecf *ExchangeCaFlow) backupExistingCa() error {
+	previousCaPath := ecf.savePath + common.PreviousCertSuffix
+	if !fileutils.IsLexist(ecf.savePath) {
+		return nil
+	}
+
+	if err := fileutils.DeleteFile(previousCaPath); err != nil {
+		hwlog.RunLog.Warnf("delete previous ca failed: %s", err.Error())
+	}
+	certContent, err := certutils.GetCertContentWithBackup(ecf.savePath)
+	if err != nil {
+		hwlog.RunLog.Errorf("read or parse ca failed: %s", err.Error())
+		return errors.New("read or parse ca failed")
+	}
+	if err := fileutils.WriteData(previousCaPath, certContent); err != nil {
+		hwlog.RunLog.Errorf("backup existing ca failed: %s", err.Error())
+		return errors.New("backup existing ca failed")
+	}
+	if err := ecf.setDirOwnerAndPermission(common.Mode600, false, previousCaPath); err != nil {
+		hwlog.RunLog.Errorf("set permission for existing ca failed: %s", err.Error())
+		return errors.New("set permission for existing ca failed")
+	}
+	return nil
+}
+
 func (ecf *ExchangeCaFlow) copyCaToCertManager() error {
 	if err := fileutils.MakeSureDir(ecf.savePath); err != nil {
 		hwlog.RunLog.Errorf("create cert dst dir failed: %s", err.Error())
 		return errors.New("create cert dst dir failed")
 	}
-	param := fileutils.SetOwnerParam{
-		Path:       filepath.Dir(filepath.Dir(ecf.savePath)),
-		Uid:        ecf.uid,
-		Gid:        ecf.gid,
-		Recursive:  false,
-		IgnoreFile: false,
+	if err := fileutils.DeleteFile(ecf.savePath); err != nil {
+		hwlog.RunLog.Errorf("delete original crt [%s] failed: %s", ecf.savePath, err.Error())
+		return errors.New("delete original crt failed")
 	}
-	if err := fileutils.SetPathOwnerGroup(param); err != nil {
-		hwlog.RunLog.Errorf("set root-ca dir owner failed: %s", err.Error())
-		return errors.New("set root-ca dir owner failed")
-	}
-	param = fileutils.SetOwnerParam{
-		Path:       filepath.Dir(ecf.savePath),
-		Uid:        ecf.uid,
-		Gid:        ecf.gid,
-		Recursive:  false,
-		IgnoreFile: false,
-	}
-	if err := fileutils.SetPathOwnerGroup(param); err != nil {
-		hwlog.RunLog.Errorf("set crt dir owner failed: %s", err.Error())
-		return errors.New("set crt dir owner failed")
-	}
-	if err := fileutils.CopyFile(ecf.importPath, ecf.savePath); err != nil {
+	if err := ecf.copyWithRootPrivilege(ecf.importPath, ecf.savePath, true); err != nil {
 		hwlog.RunLog.Errorf("copy temp crt to dst failed: %s", err.Error())
 		return errors.New("copy temp crt to dst failed")
 	}
@@ -196,11 +225,10 @@ func (ecf *ExchangeCaFlow) copyCaToCertManager() error {
 		return errors.New("create backup of cert failed")
 	}
 
-	if err := ecf.setDirOwnerAndPermission(common.Mode400, true, ecf.savePath); err != nil {
+	if err := ecf.setDirOwnerAndPermission(common.Mode600, true, ecf.savePath); err != nil {
 		hwlog.RunLog.Errorf("failed to set import root.crt permissions mode and owner,err:%s", err.Error())
 		return fmt.Errorf("failed to set import root.crt permissions mode and owner,err:%s", err.Error())
 	}
-
 	if err := ecf.setBackupPathPermission(); err != nil {
 		return err
 	}
@@ -241,23 +269,11 @@ func (ecf *ExchangeCaFlow) exportCa() (err error) {
 		return fmt.Errorf("check path [%s] failed", ecf.srcPath)
 	}
 
-	if err = util.ReducePriv(); err != nil {
-		hwlog.RunLog.Errorf("reduce euid/gid to MEFCenter failed: %s", err.Error())
-		return errors.New("reduce priv failed")
-	}
-
-	defer func() {
-		if resetErr := util.ResetPriv(); resetErr != nil {
-			err = resetErr
-			hwlog.RunLog.Errorf("reset euid/gid back to root failed: %s", err.Error())
-		}
-	}()
-
 	if _, err = certutils.GetCertContentWithBackup(ecf.srcPath); err != nil {
 		hwlog.RunLog.Errorf("check cert [%s] failed: %s, cannot export", ecf.srcPath, err.Error())
 		return fmt.Errorf("check cert [%s] failed", ecf.srcPath)
 	}
-	if err = ecf.setDirOwnerAndPermission(common.Mode400, true, ecf.srcPath); err != nil {
+	if err = ecf.setDirOwnerAndPermission(common.Mode600, true, ecf.srcPath); err != nil {
 		hwlog.RunLog.Errorf("reset apig crt file right failed: %s", err.Error())
 		return errors.New("reset apig crt file right failed")
 	}
@@ -266,12 +282,7 @@ func (ecf *ExchangeCaFlow) exportCa() (err error) {
 		return errors.New("reset apig crt file right failed")
 	}
 
-	if err = util.ResetPriv(); err != nil {
-		hwlog.RunLog.Errorf("reset euid/gid back to root failed: %s", err.Error())
-		return errors.New("reset euid/gid back to root failed")
-	}
-
-	if err = fileutils.CopyFile(ecf.srcPath, ecf.exportPath); err != nil {
+	if err := ecf.copyWithRootPrivilege(ecf.srcPath, ecf.exportPath, false); err != nil {
 		hwlog.RunLog.Errorf("export ca failed: %s", err.Error())
 		return errors.New("export ca failed")
 	}
@@ -298,4 +309,40 @@ func (ecf *ExchangeCaFlow) setDirOwnerAndPermission(mode os.FileMode, recursive 
 		}
 	}
 	return nil
+}
+
+func (ecf *ExchangeCaFlow) copyWithRootPrivilege(src, dst string, setOwnerAndPermission bool) error {
+	if err := util.ResetPriv(); err != nil {
+		hwlog.RunLog.Errorf("reset euid/gid back to root failed: %s", err.Error())
+		return errors.New("reset euid/gid back to root failed")
+	}
+	defer func() {
+		if err := util.ReducePriv(); err != nil {
+			hwlog.RunLog.Errorf("reduce euid/gid to MEFCenter failed: %s", err.Error())
+		}
+	}()
+
+	if err := fileutils.CopyFile(src, dst); err != nil {
+		return err
+	}
+	if !setOwnerAndPermission {
+		return nil
+	}
+	return ecf.setDirOwnerAndPermission(fileutils.Mode600, false, dst)
+}
+
+func withMEFCenterUser(f func() error) func() error {
+	return func() error {
+		if err := util.ReducePriv(); err != nil {
+			hwlog.RunLog.Errorf("reduce euid/gid to MEFCenter failed: %s", err.Error())
+			return errors.New("reduce priv failed")
+		}
+		defer func() {
+			if err := util.ResetPriv(); err != nil {
+				hwlog.RunLog.Errorf("reset euid/gid back to root failed: %s", err.Error())
+			}
+		}()
+
+		return f()
+	}
 }
