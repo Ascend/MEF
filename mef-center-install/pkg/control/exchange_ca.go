@@ -225,7 +225,7 @@ func (ecf *ExchangeCaFlow) copyCaToCertManager() error {
 		return errors.New("create backup of cert failed")
 	}
 
-	if err := ecf.setDirOwnerAndPermission(common.Mode600, true, ecf.savePath); err != nil {
+	if err := ecf.setDirOwnerAndPermission(common.Mode400, true, ecf.savePath); err != nil {
 		hwlog.RunLog.Errorf("failed to set import root.crt permissions mode and owner,err:%s", err.Error())
 		return fmt.Errorf("failed to set import root.crt permissions mode and owner,err:%s", err.Error())
 	}
@@ -273,7 +273,7 @@ func (ecf *ExchangeCaFlow) exportCa() (err error) {
 		hwlog.RunLog.Errorf("check cert [%s] failed: %s, cannot export", ecf.srcPath, err.Error())
 		return fmt.Errorf("check cert [%s] failed", ecf.srcPath)
 	}
-	if err = ecf.setDirOwnerAndPermission(common.Mode600, true, ecf.srcPath); err != nil {
+	if err = ecf.setDirOwnerAndPermission(common.Mode400, true, ecf.srcPath); err != nil {
 		hwlog.RunLog.Errorf("reset apig crt file right failed: %s", err.Error())
 		return errors.New("reset apig crt file right failed")
 	}
