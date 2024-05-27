@@ -7,13 +7,21 @@ import (
 	"context"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"time"
 
+	"huawei.com/mindx/common/backuputils"
+	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 
 	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
+)
+
+const (
+	certModificationCheckInterval = 5 * time.Minute
 )
 
 type handlerFunc func(message *model.Message) common.RespMsg
@@ -22,6 +30,8 @@ type certManager struct {
 	enable bool
 	ctx    context.Context
 }
+
+var certMonitor *common.FileMonitor
 
 // NewCertManager create cert manager
 func NewCertManager(enable bool) model.Module {
@@ -54,6 +64,7 @@ func methodSelect(req *model.Message) *common.RespMsg {
 
 func (cm *certManager) Start() {
 	go certExpireCheck(cm.ctx)
+	go certChangesCheck(cm.ctx)
 	for {
 		select {
 		case _, ok := <-cm.ctx.Done():
@@ -176,4 +187,32 @@ func doCheckProcess(updater CertUpdater) {
 	}
 	go updater.PostCertUpdate()
 	go updater.ForceUpdateCheck()
+}
+
+func certChangesCheck(ctx context.Context) {
+	var certAndCrlPaths = []string{
+		getRootCaPath(common.ImageCertName),
+		getRootCaPath(common.SoftwareCertName),
+		getCrlPath(common.ImageCertName),
+		getCrlPath(common.SoftwareCertName),
+	}
+	certMonitor = common.NewFileMonitor(certModificationCheckInterval, onCertOrCrlChanged, certAndCrlPaths...)
+	certMonitor.Run(ctx)
+}
+
+func onCertOrCrlChanged(changedFiles []string) {
+	for _, filePath := range changedFiles {
+		caName := filepath.Base(filepath.Dir(filePath))
+		operation := common.Update
+		if strings.HasSuffix(filePath, util.CertSuffix) &&
+			!fileutils.IsExist(filePath) && !fileutils.IsExist(caName+backuputils.BackupSuffix) {
+			operation = common.Delete
+		}
+		hwlog.RunLog.Warnf("cert [%s] has been %sd, try to notify clients", caName, operation)
+		if err := updateClientCert(caName, operation); err != nil {
+			hwlog.RunLog.Errorf("cert [%s]: notify clients failed, %v", caName, err)
+			continue
+		}
+		hwlog.RunLog.Infof("cert [%s]: notify clients successfully", caName)
+	}
 }

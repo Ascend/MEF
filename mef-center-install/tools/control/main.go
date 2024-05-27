@@ -443,6 +443,9 @@ Commands:
 	importcrl   	-- improt crl from the Northbound ca
 	alarmconfig 	-- update alarm used configuration 
 	getalarmconfig  -- get alarm used configuration
+	getunusedcert   -- list unused certificates
+	deletecert      -- delete unused certificates
+	restorecert     -- restore ca certificates by unused ones 
 `)
 }
 
@@ -564,15 +567,18 @@ func initLog(installParam *util.InstallParamJsonTemplate) error {
 
 func getOperateMap(operate string) map[string]controller {
 	return map[string]controller{
-		util.StartOperateFlag:   &operateController{operate: operate},
-		util.StopOperateFlag:    &operateController{operate: operate},
-		util.RestartOperateFlag: &operateController{operate: operate},
-		util.UninstallFlag:      &uninstallController{operate: operate},
-		util.UpgradeFlag:        &upgradeController{operate: operate},
-		util.ExchangeCaFlag:     &exchangeCertsController{operate: operate},
-		util.UpdateKmcFlag:      &updateKmcController{operate: operate},
-		util.ImportCrlFlag:      &importCrlController{operate: operate},
-		util.AlarmCfgFlag:       &alarmCfgController{operate: operate},
-		util.GetAlarmCfgFlag:    &getAlarmCfgController{operate: operate},
+		util.StartOperateFlag:         &operateController{operate: operate},
+		util.StopOperateFlag:          &operateController{operate: operate},
+		util.RestartOperateFlag:       &operateController{operate: operate},
+		util.UninstallFlag:            &uninstallController{operate: operate},
+		util.UpgradeFlag:              &upgradeController{operate: operate},
+		util.ExchangeCaFlag:           &exchangeCertsController{operate: operate},
+		util.UpdateKmcFlag:            &updateKmcController{operate: operate},
+		util.ImportCrlFlag:            &importCrlController{operate: operate},
+		util.AlarmCfgFlag:             &alarmCfgController{operate: operate},
+		util.GetAlarmCfgFlag:          &getAlarmCfgController{operate: operate},
+		util.GetUnusedCertOperateFlag: &unusedCertsController{operate: operate},
+		util.RestoreCertOperateFlag:   &unusedCertsController{operate: operate},
+		util.DeleteCertOperateFlag:    &unusedCertsController{operate: operate},
 	}
 }

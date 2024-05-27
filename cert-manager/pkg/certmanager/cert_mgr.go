@@ -206,6 +206,13 @@ func saveCaContent(certName string, caContent []byte) error {
 		hwlog.RunLog.Errorf("create %s ca folder failed, error: %v", certName, err)
 		return fmt.Errorf("create %s ca folder failed, error: %v", certName, err)
 	}
+	oldCaContent, err := certutils.GetCertContentWithBackup(caFilePath)
+	if err == nil {
+		if err := fileutils.WriteData(caFilePath+common.PreviousCertSuffix, oldCaContent); err != nil {
+			hwlog.RunLog.Errorf("write previous ca of %s failed, error: %v", certName, err)
+			return fmt.Errorf("write previous ca of %s failed, error: %v", certName, err)
+		}
+	}
 	if err := fileutils.WriteData(caFilePath, caContent); err != nil {
 		hwlog.RunLog.Errorf("save %s cert file failed, error:%s", certName, err)
 		return fmt.Errorf("save %s ca file failed", certName)

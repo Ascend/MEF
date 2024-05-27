@@ -209,7 +209,8 @@ const (
 
 // TarGzSuffix is the suffix of tar.gz file
 const (
-	TarGzSuffix = ".tar.gz"
+	TarGzSuffix        = ".tar.gz"
+	PreviousCertSuffix = ".pre"
 )
 
 // node specification
