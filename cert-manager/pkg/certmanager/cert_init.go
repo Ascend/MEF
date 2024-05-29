@@ -31,7 +31,7 @@ type certManager struct {
 	ctx    context.Context
 }
 
-var certMonitor *common.FileMonitor
+var certMonitor = newCertMonitor()
 
 // NewCertManager create cert manager
 func NewCertManager(enable bool) model.Module {
@@ -64,7 +64,7 @@ func methodSelect(req *model.Message) *common.RespMsg {
 
 func (cm *certManager) Start() {
 	go certExpireCheck(cm.ctx)
-	go certChangesCheck(cm.ctx)
+	go certMonitor.Run(cm.ctx)
 	for {
 		select {
 		case _, ok := <-cm.ctx.Done():
@@ -189,15 +189,14 @@ func doCheckProcess(updater CertUpdater) {
 	go updater.ForceUpdateCheck()
 }
 
-func certChangesCheck(ctx context.Context) {
+func newCertMonitor() *common.FileMonitor {
 	var certAndCrlPaths = []string{
 		getRootCaPath(common.ImageCertName),
 		getRootCaPath(common.SoftwareCertName),
 		getCrlPath(common.ImageCertName),
 		getCrlPath(common.SoftwareCertName),
 	}
-	certMonitor = common.NewFileMonitor(certModificationCheckInterval, onCertOrCrlChanged, certAndCrlPaths...)
-	certMonitor.Run(ctx)
+	return common.NewFileMonitor(certModificationCheckInterval, onCertOrCrlChanged, certAndCrlPaths...)
 }
 
 func onCertOrCrlChanged(changedFiles []string) {
