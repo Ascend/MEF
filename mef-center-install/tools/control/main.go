@@ -553,12 +553,12 @@ func initLog(installParam *util.InstallParamJsonTemplate) error {
 
 	errLog := fileutils.SetPathPermission(logPathMgr.GetModuleLogPath(), fileutils.Mode700, false, true)
 	if errLog != nil {
-		hwlog.RunLog.Errorf("failed to set permissions for log dir, err:%s", err.Error())
+		hwlog.RunLog.Errorf("failed to set permissions for log dir, err: %s", errLog.Error())
 		return errors.New("failed to set permissions for log dir")
 	}
 	errBackLog := fileutils.SetPathPermission(logPathMgr.GetModuleLogBackupPath(), fileutils.Mode700, false, true)
 	if errBackLog != nil {
-		hwlog.RunLog.Errorf("failed to set permissions for log backup dir, err:%s", err.Error())
+		hwlog.RunLog.Errorf("failed to set permissions for log backup dir, err: %s", errBackLog.Error())
 		return errors.New("failed to set permissions for log backup dir")
 	}
 
