@@ -824,7 +824,7 @@ func updateNodeSoftwareInfo(msg *model.Message) common.RespMsg {
 	}
 
 	nodeInfo.SoftwareInfo = string(softwareInfo)
-	err = NodeServiceInstance().updateNodeInfoBySerialNumber(req.SerialNumber, nodeInfo)
+	err = NodeServiceInstance().updateNodeInfoBySerialNumber(msg.GetPeerInfo().Sn, nodeInfo)
 	if err != nil {
 		hwlog.RunLog.Errorf("update node software info failed: %v", err)
 		return common.RespMsg{Status: "", Msg: "update node software info failed", Data: nil}
