@@ -149,10 +149,11 @@ func getContainers(containerInfos []Container) ([]v1.Container, error) {
 			Resources:       resources,
 			VolumeMounts:    volumes,
 			SecurityContext: &v1.SecurityContext{
-				RunAsUser:              RunAsUser,
-				RunAsGroup:             RunAsGroup,
-				RunAsNonRoot:           &runAsNonRoot,
-				ReadOnlyRootFilesystem: &readOnlyRootFilesystem,
+				AllowPrivilegeEscalation: new(bool),
+				RunAsUser:                RunAsUser,
+				RunAsGroup:               RunAsGroup,
+				RunAsNonRoot:             &runAsNonRoot,
+				ReadOnlyRootFilesystem:   &readOnlyRootFilesystem,
 				Capabilities: &v1.Capabilities{
 					Add:  nil,
 					Drop: []v1.Capability{"All"},
