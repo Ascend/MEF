@@ -98,6 +98,7 @@ func TestDumpMultiNodesLog(t *testing.T) {
 			ApplyFuncReturn(utils.CleanTempFiles, false, nil).
 			ApplyFuncReturn(fileutils.CreateDir, nil).
 			ApplyFuncReturn(fileutils.RealDirCheck, "", nil).
+			ApplyFuncReturn(fileutils.RenameFile, nil).
 			ApplyFunc(createTarGz, mockCreateTarGz)
 		defer patch.Reset()
 

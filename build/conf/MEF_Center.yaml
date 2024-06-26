@@ -120,5 +120,7 @@ compile:
               des: "{{TOP_DIR}}/output/Ascend-mindxedge-mefcenter_{{version}}_linux-{{systemEnv.processor}}"
               prefix: zip
               arch: "{{systemEnv.processor}}"
+        - commands:
+            - command: "sh {{TOP_DIR}}/build/common_utils_dt_exclude.sh"
       exclude:
         - remove: ["{{TOP_DIR}}/savedir"]
