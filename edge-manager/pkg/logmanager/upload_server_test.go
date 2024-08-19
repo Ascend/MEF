@@ -16,6 +16,7 @@ import (
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
+	"huawei.com/mindx/common/fileutils"
 	utils2 "huawei.com/mindx/common/utils"
 
 	"huawei.com/mindxedge/base/common"
@@ -73,6 +74,7 @@ func TestVerifyFile(t *testing.T) {
 			ApplyMethodReturn(env.TaskCtx, "Spec", taskschedule.TaskSpec{Id: "1"})
 		defer patch.Reset()
 		filePath := filepath.Join(constants.LogDumpTempDir, "1"+common.TarGzSuffix)
+		convey.So(fileutils.MakeSureDir(filePath), convey.ShouldBeNil)
 
 		file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, common.Mode600)
 		convey.So(err, convey.ShouldBeNil)
