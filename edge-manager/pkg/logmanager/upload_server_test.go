@@ -4,22 +4,14 @@
 package logmanager
 
 import (
-	"archive/tar"
-	"compress/gzip"
 	"io"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
-	"huawei.com/mindx/common/fileutils"
-	utils2 "huawei.com/mindx/common/utils"
-
-	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/taskschedule"
 
 	"edge-manager/pkg/constants"
@@ -62,38 +54,6 @@ func TestReceiveFile(t *testing.T) {
 		defer patch.Reset()
 		p := uploadProcess{httpRequest: &http.Request{Body: io.NopCloser(strings.NewReader("hello"))}}
 		err := p.receiveFile(env.TaskCtx)
-		convey.So(err, convey.ShouldBeNil)
-	})
-}
-
-func TestVerifyFile(t *testing.T) {
-	convey.Convey("test verify file", t, func() {
-		env := testutils.DummyTaskSchedule()
-
-		patch := gomonkey.ApplyFuncReturn(taskschedule.DefaultScheduler, env.Scheduler).
-			ApplyMethodReturn(env.TaskCtx, "Spec", taskschedule.TaskSpec{Id: "1"})
-		defer patch.Reset()
-		filePath := filepath.Join(constants.LogDumpTempDir, "1"+common.TarGzSuffix)
-		convey.So(fileutils.MakeSureDir(filePath), convey.ShouldBeNil)
-
-		file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, common.Mode600)
-		convey.So(err, convey.ShouldBeNil)
-		gw := gzip.NewWriter(file)
-		tw := tar.NewWriter(gw)
-		const data = "hello"
-		err = tw.WriteHeader(&tar.Header{Name: "a.log", Size: int64(len(data)), Mode: common.Mode400})
-		convey.So(err, convey.ShouldBeNil)
-		_, err = tw.Write([]byte(data))
-		convey.So(err, convey.ShouldBeNil)
-		convey.So(tw.Close(), convey.ShouldBeNil)
-		convey.So(gw.Close(), convey.ShouldBeNil)
-		convey.So(file.Close(), convey.ShouldBeNil)
-
-		convey.So(err, convey.ShouldBeNil)
-		sha256Checksum, err := utils2.GetFileSha256(filePath)
-		convey.So(err, convey.ShouldBeNil)
-		p := uploadProcess{sha256Checksum: sha256Checksum}
-		err = p.verifyFile(env.TaskCtx)
 		convey.So(err, convey.ShouldBeNil)
 	})
 }

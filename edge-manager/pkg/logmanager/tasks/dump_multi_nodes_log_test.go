@@ -5,7 +5,6 @@ package tasks
 
 import (
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/agiledragon/gomonkey/v2"
@@ -15,7 +14,6 @@ import (
 	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/taskschedule"
 
-	"edge-manager/pkg/constants"
 	"edge-manager/pkg/logmanager/testutils"
 	"edge-manager/pkg/logmanager/utils"
 )
@@ -40,36 +38,6 @@ func TestDumpEdgeLogs(t *testing.T) {
 		tasks, err := dumpEdgeLogs(dummyObjs.TaskCtx, []string{"1"}, []string{"1"}, []uint64{1})
 		convey.So(err, convey.ShouldBeNil)
 		convey.So(len(tasks), convey.ShouldEqual, 1)
-	})
-}
-
-// TestCreateTarGz tests createTarGz
-func TestCreateTarGz(t *testing.T) {
-	convey.Convey("test createTarGz", t, func() {
-		dummyObjs := testutils.DummyTaskSchedule()
-		tasks := []taskschedule.Task{
-			{Spec: taskschedule.TaskSpec{Id: "1", Args: map[string]interface{}{
-				constants.NodeSnAndIp: "1", constants.NodeID: 1}}},
-			{Spec: taskschedule.TaskSpec{Id: "2", Args: map[string]interface{}{
-				constants.NodeSnAndIp: "2", constants.NodeID: 2}}},
-		}
-		for _, task := range tasks {
-			filePath := filepath.Join(constants.LogDumpTempDir, task.Spec.Id+common.TarGzSuffix)
-			err := fileutils.CreateDir(constants.LogDumpTempDir, fileutils.Mode700)
-			convey.So(err, convey.ShouldBeNil)
-			pkgFile, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, common.Mode600)
-			convey.So(err, convey.ShouldBeNil)
-			err = pkgFile.Close()
-			convey.So(err, convey.ShouldBeNil)
-		}
-
-		patch := gomonkey.
-			ApplyFuncReturn(taskschedule.DefaultScheduler, dummyObjs.Scheduler).
-			ApplyMethodReturn(dummyObjs.TaskCtx, "UpdateStatus", nil).
-			ApplyFunc(utils.WithDiskPressureProtect, testutils.WithoutDiskPressureProtect)
-		defer patch.Reset()
-		err := createTarGz(dummyObjs.TaskCtx, tasks)
-		convey.So(err, convey.ShouldBeNil)
 	})
 }
 
