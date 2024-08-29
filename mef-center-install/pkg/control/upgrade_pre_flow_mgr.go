@@ -255,11 +255,20 @@ func (upf *UpgradePreFlowMgr) newShErrDeal(returnErr error) {
 
 func prepareVerifyCrl(newCrl string) (bool, string, error) {
 	// when two input parameters are the same, the function can be used to check whether the CRL file is valid
-	newCrlStatus, err := cmsverify.CompareCrls(newCrl, newCrl)
-	if err != nil || int(newCrlStatus) != util.CompareSame {
+	newCrlStatus, err := cmsverify.CheckCrl(newCrl)
+	if err != nil {
 		fmt.Println("new crl file is invalid")
-		hwlog.RunLog.Error("new crl file is invalid")
+		hwlog.RunLog.Errorf("new crl file is invalid, %v", err)
 		return true, "", errors.New("new crl file is invalid")
+	}
+	if newCrlStatus != cmsverify.CompareSame && newCrlStatus != cmsverify.CrlExpiredOnly {
+		fmt.Println("new crl file is invalid")
+		hwlog.RunLog.Error("new crl file is invalid, inconsistency of the same certificate")
+		return true, "", errors.New("new crl file is invalid")
+	}
+	if newCrlStatus == cmsverify.CrlExpiredOnly {
+		fmt.Println("new crl has expired. check it manually")
+		hwlog.RunLog.Warn("new crl has expired. check it manually")
 	}
 
 	const maxCrlSizeInMb = 10
@@ -273,8 +282,8 @@ func prepareVerifyCrl(newCrl string) (bool, string, error) {
 		hwlog.RunLog.Warnf("set crl permission failed, error: %v", err)
 		return true, newCrl, nil
 	}
-	compareStatus, err := cmsverify.CompareCrls(util.CrlOnDevicePath, util.CrlOnDevicePath)
-	if err != nil || int(compareStatus) != util.CompareSame {
+	compareStatus, err := cmsverify.CheckCrl(util.CrlOnDevicePath)
+	if err != nil || (compareStatus != cmsverify.CompareSame && compareStatus != cmsverify.CrlExpiredOnly) {
 		hwlog.RunLog.Warnf("the local crl is invalid, use crl in software package to verify")
 		return true, newCrl, nil
 	}
