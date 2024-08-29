@@ -220,7 +220,7 @@ func (uc *upgradeController) bindFlag() bool {
 func (uc *upgradeController) printExecutingLog(ip, user string) {
 	hwlog.RunLog.Info("-------------------start to upgrade MEF-Center-------------------")
 	hwlog.OpLog.Infof("[%s@%s] start to upgrade MEF-Center", user, ip)
-	fmt.Println(" start to upgrade MEF-Center")
+	fmt.Println("start to upgrade MEF-Center")
 }
 
 func (uc *upgradeController) printFailedLog(ip, user string) {
