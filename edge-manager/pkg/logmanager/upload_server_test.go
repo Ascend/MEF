@@ -6,12 +6,14 @@ package logmanager
 import (
 	"io"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
+	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/common/taskschedule"
 
 	"edge-manager/pkg/constants"
@@ -31,8 +33,8 @@ func TestProcessUpload(t *testing.T) {
 
 		patch := gomonkey.ApplyFuncReturn(taskschedule.DefaultScheduler, env.Scheduler).
 			ApplyMethodReturn(env.TaskCtx, "UpdateStatus", nil).
-			ApplyPrivateMethod(p, "receiveFile", func(uploadProcess, taskschedule.TaskContext) error { return nil }).
-			ApplyPrivateMethod(p, "verifyFile", func(uploadProcess, taskschedule.TaskContext) error { return nil }).
+			ApplyPrivateMethod(p, "receiveFile", func(*uploadProcess, taskschedule.TaskContext) error { return nil }).
+			ApplyPrivateMethod(p, "verifyFile", func(*uploadProcess, taskschedule.TaskContext) error { return nil }).
 			ApplyMethodReturn(p.responseWriter, "Write", 0, nil).
 			ApplyFunc(utils.FeedbackTaskError, func(ctx taskschedule.TaskContext, err error) {})
 		defer patch.Reset()
@@ -45,6 +47,8 @@ func TestProcessUpload(t *testing.T) {
 func TestReceiveFile(t *testing.T) {
 	convey.Convey("test receive file", t, func() {
 		env := testutils.DummyTaskSchedule()
+		err := os.MkdirAll(constants.LogDumpTempDir, common.Mode600)
+		convey.So(err, convey.ShouldBeNil)
 
 		patch := gomonkey.ApplyFuncReturn(taskschedule.DefaultScheduler, env.Scheduler).
 			ApplyMethodReturn(env.TaskCtx, "UpdateStatus", nil).
@@ -53,7 +57,7 @@ func TestReceiveFile(t *testing.T) {
 			ApplyFunc(utils.WithDiskPressureProtect, testutils.WithoutDiskPressureProtect)
 		defer patch.Reset()
 		p := uploadProcess{httpRequest: &http.Request{Body: io.NopCloser(strings.NewReader("hello"))}}
-		err := p.receiveFile(env.TaskCtx)
+		err = p.receiveFile(env.TaskCtx)
 		convey.So(err, convey.ShouldBeNil)
 	})
 }

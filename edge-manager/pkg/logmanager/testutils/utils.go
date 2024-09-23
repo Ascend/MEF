@@ -12,6 +12,7 @@ import (
 	"os"
 
 	"huawei.com/mindx/common/fileutils"
+	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/test"
 
 	"huawei.com/mindxedge/base/common"
@@ -22,7 +23,7 @@ import (
 // PrepareTempDirs prepares temp dirs
 func PrepareTempDirs() error {
 	if err := fileutils.DeleteAllFileWithConfusion("/home/MEFCenter"); err != nil {
-		return fmt.Errorf("delete /home/MEFCenter failed: %s", err.Error())
+		hwlog.RunLog.Errorf("delete /home/MEFCenter failed: %s", err.Error())
 	}
 	dirs := []string{constants.LogDumpTempDir, constants.LogDumpPublicDir}
 	for _, dir := range dirs {

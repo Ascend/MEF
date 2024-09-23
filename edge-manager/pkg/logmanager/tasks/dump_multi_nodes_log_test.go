@@ -5,6 +5,7 @@ package tasks
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/agiledragon/gomonkey/v2"
@@ -44,6 +45,9 @@ func TestDumpEdgeLogs(t *testing.T) {
 // TestDumpMultiNodesLog tests dumpMultiNodesLog
 func TestDumpMultiNodesLog(t *testing.T) {
 	mockCreateTarGz := func(ctx taskschedule.TaskContext, subTasks []taskschedule.Task) error {
+		if err := os.MkdirAll(filepath.Dir(edgeNodesLogTempPath), common.Mode600); err != nil {
+			return err
+		}
 		file, err := os.OpenFile(edgeNodesLogTempPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, common.Mode600)
 		if err != nil {
 			return err
