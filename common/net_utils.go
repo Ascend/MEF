@@ -53,22 +53,17 @@ func GetHostIpV4() ([]net.IP, error) {
 		if ip == nil {
 			continue
 		}
-		if ip[0] != reservedIpv4Part0 && inet.IP.IsPrivate() {
-			continue
-		}
 		ipv4 = append(ipv4, ip)
 	}
 
-	// for k8s pod environment
-	if len(ipv4) == 0 {
-		nodeIpStr := os.Getenv("NODE_IP")
-		if nodeIpStr == "" {
-			return ipv4, nil
-		}
-		nodeIp := net.ParseIP(nodeIpStr)
-		if nodeIp != nil {
-			ipv4 = append(ipv4, nodeIp)
-		}
+	// allow both cluster ip and node ip for nginx manager
+	nodeIpStr := os.Getenv("NODE_IP")
+	if nodeIpStr == "" {
+		return ipv4, nil
+	}
+	nodeIp := net.ParseIP(nodeIpStr)
+	if nodeIp != nil {
+		ipv4 = append(ipv4, nodeIp)
 	}
 	return ipv4, nil
 }
