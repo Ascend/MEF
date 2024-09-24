@@ -137,7 +137,7 @@ func (k *kubeConfig) signCertFormK8s(csr []byte) error {
 	}
 
 	rawCertData, err := envutils.RunCommand(CommandKubectl, envutils.DefCmdTimeoutSec, "get", "csr",
-		EdgeManagerName, "-o", "jsonpath='{.status.certificate}'")
+		EdgeManagerName, "-o", "jsonpath={.status.certificate}")
 	if err != nil {
 		hwlog.RunLog.Errorf("get kubeconfig sign cert failed: %v", err)
 		return err
@@ -220,18 +220,14 @@ func (k *kubeConfig) checkAndSaveCert(rawCertData, certPath string) error {
 		return errors.New("invalid cert data length")
 	}
 
-	// certdata result is like 'xxx', so need split char '
-	res := strings.Split(rawCertData, "'")
-	if len(res) < parceCertMinArrLen {
-		return errors.New("parse cert data error")
-	}
-	certData := res[1]
-
-	cert := make([]byte, base64.StdEncoding.DecodedLen(len([]byte(certData))))
-	if _, err := base64.StdEncoding.Decode(cert, []byte(certData)); err != nil {
+	cert := make([]byte, base64.StdEncoding.DecodedLen(len([]byte(rawCertData))))
+	realCertLen, err := base64.StdEncoding.Decode(cert, []byte(rawCertData))
+	if err != nil {
 		return fmt.Errorf("decode kubeconfig cert failed: %v", err)
 	}
-	cert = cert[:len(cert)-certRestLen]
+	if realCertLen >= 0 && realCertLen < len(cert) {
+		cert = cert[:realCertLen]
+	}
 
 	kmcKeyPath := filepath.Join(k.certPathMgr.GetComponentKmcDirPath(EdgeManagerName), MasterKeyFile)
 	kmcBackKeyPath := k.certPathMgr.GetComponentBackKmcPath(EdgeManagerName)
