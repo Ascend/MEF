@@ -392,7 +392,8 @@ func deleteSingleNode(nodeID uint64) (*NodeInfo, error) {
 
 	nodeRelations, err := NodeServiceInstance().getRelationsByNodeID(nodeID)
 	if err != nil {
-		return nodeInfo, err
+		hwlog.RunLog.Errorf("query node(%d) group info failed, error: %v", nodeID, err)
+		return nodeInfo, fmt.Errorf("query node(%d) group info failed", nodeID)
 	}
 	for _, relation := range *nodeRelations {
 		count, err := getAppInstanceCountByGroupId(relation.GroupID)
