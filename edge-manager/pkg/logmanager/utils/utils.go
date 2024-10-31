@@ -45,8 +45,8 @@ func CleanTempFiles() (bool, error) {
 			return false, fmt.Errorf("failed to read dir %s, %v", dir, err)
 		}
 		if err = deleteTempSubFiles(dir, entries); err != nil {
-			if err = fileHandle.Close(); err != nil {
-				hwlog.RunLog.Errorf("closer dir %s's handle failed: %v", dir, err)
+			if closeErr := fileHandle.Close(); closeErr != nil {
+				hwlog.RunLog.Errorf("closer dir %s's handle failed: %v", dir, closeErr)
 			}
 			return false, err
 		}
