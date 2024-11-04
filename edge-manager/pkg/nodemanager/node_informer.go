@@ -362,7 +362,8 @@ func (s *nodeSyncImpl) GetAvailableResource(nodeID uint64, hostname string) (*No
 	)
 	groups, err := NodeServiceInstance().getGroupsByNodeID(nodeID)
 	if err != nil {
-		return nil, fmt.Errorf("get node all groups failed: %s", err.Error())
+		hwlog.RunLog.Errorf("get node groups by node id [%d] failed, error: %v", nodeID, err)
+		return nil, fmt.Errorf("get node groups by node id [%d] failed", nodeID)
 	}
 	for _, group := range *groups {
 		var res NodeResource
