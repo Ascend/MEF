@@ -6,7 +6,7 @@ package nodemanager
 // NodeInfo is node db table info
 type NodeInfo struct {
 	ID           uint64 `gorm:"primaryKey;autoIncrement:true"  json:"id"`
-	Description  string `gorm:"size:256"                       json:"description"`
+	Description  string `gorm:"size:512"                       json:"description"`
 	NodeType     string `gorm:"size:128"                       json:"nodeType"`
 	NodeName     string `gorm:"size:255;unique;not null"       json:"nodeName"`
 	UniqueName   string `gorm:"size:255;unique;not null"       json:"uniqueName"`
@@ -21,7 +21,7 @@ type NodeInfo struct {
 // NodeGroup is node group db table
 type NodeGroup struct {
 	ID               uint64 `gorm:"primaryKey;autoIncrement:true"  json:"id"`
-	Description      string `gorm:"size:256"                       json:"description"`
+	Description      string `gorm:"size:512"                       json:"description"`
 	GroupName        string `gorm:"size:255;unique;not null"       json:"groupName"`
 	CreatedAt        string `gorm:"not null"                       json:"createdAt"`
 	UpdatedAt        string `gorm:"not null"                       json:"updatedAt"`
