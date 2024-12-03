@@ -527,25 +527,7 @@ func testAddUnManagedNodeErr() {
 	convey.So(res, convey.ShouldBeNil)
 	msg := model.Message{}
 
-	convey.Convey("input error", func() {
-		err := msg.FillContent("")
-		convey.So(err, convey.ShouldBeNil)
-		resp := addUnManagedNode(&msg)
-		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
-	})
-
-	convey.Convey("invalid param: node name is not exist", func() {
-		args := fmt.Sprintf(`{
-			"name": "",
-            "description": "%s",
-            "groupIDs": [],
-            "nodeID": %d
-			}`, node.Description, node.ID)
-		err := msg.FillContent(args)
-		convey.So(err, convey.ShouldBeNil)
-		resp := addUnManagedNode(&msg)
-		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
-	})
+	testAddUnManagedNodeErrInvalidParam(node)
 
 	convey.Convey("groupIDs is not exist", func() {
 		args := fmt.Sprintf(`{
@@ -570,6 +552,42 @@ func testAddUnManagedNodeErr() {
 		convey.So(err, convey.ShouldBeNil)
 		resp := addUnManagedNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
+	})
+}
+
+func testAddUnManagedNodeErrInvalidParam(node *NodeInfo) {
+	msg := model.Message{}
+	convey.Convey("input error", func() {
+		err := msg.FillContent("")
+		convey.So(err, convey.ShouldBeNil)
+		resp := addUnManagedNode(&msg)
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamConvert)
+	})
+
+	convey.Convey("invalid param: node name is not exist", func() {
+		args := fmt.Sprintf(`{
+			"name": "",
+            "description": "%s",
+            "groupIDs": [],
+            "nodeID": %d
+			}`, node.Description, node.ID)
+		err := msg.FillContent(args)
+		convey.So(err, convey.ShouldBeNil)
+		resp := addUnManagedNode(&msg)
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
+	})
+
+	convey.Convey("invalid param: the size of groupIDs is greater than MaxGroupPerNode", func() {
+		args := fmt.Sprintf(`{
+			"name": "%s",
+            "description": "%s",
+            "groupIDs": [1,2,3,4,5,6,7,8,9,10,11],
+            "nodeID": %d
+			}`, node.NodeName, node.Description, node.ID)
+		err := msg.FillContent(args)
+		convey.So(err, convey.ShouldBeNil)
+		resp := addUnManagedNode(&msg)
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 	})
 }
 
