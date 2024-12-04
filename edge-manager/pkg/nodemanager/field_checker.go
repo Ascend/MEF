@@ -52,12 +52,12 @@ func idListChecker(fieldName string, elemChecker *checker.UintChecker) *checker.
 	)
 }
 
-func optionalIDListChecker(fieldName string, elemChecker *checker.UintChecker) *checker.UniqueListChecker {
+func optionalIDListChecker(fieldName string, maxLen int, elemChecker *checker.UintChecker) *checker.UniqueListChecker {
 	return checker.GetUniqueListChecker(
 		fieldName,
 		elemChecker,
 		0,
-		maxListSize,
+		maxLen,
 		false,
 	)
 }

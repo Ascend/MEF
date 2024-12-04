@@ -5,6 +5,8 @@ package nodemanager
 
 import (
 	"huawei.com/mindx/common/checker"
+
+	"huawei.com/mindxedge/base/common"
 )
 
 const (
@@ -15,28 +17,14 @@ const (
 	fieldGroupName     = "GroupName"
 	fieldNodeGroupName = "NodeGroupName"
 	fieldIP            = "IP"
-	fieldID            = "ID"
 	fieldNodeID        = "NodeID"
 	fieldGroupID       = "GroupID"
 	fieldNodeIDs       = "NodeIDs"
 	fieldGroupIDs      = "GroupIDs"
 )
 
-func newCreateEdgeNodeChecker() *checker.AndChecker {
-	return checker.GetAndChecker(
-		descriptionChecker(fieldDescription),
-		nodeNameChecker(fieldNodeName),
-		uniqueNameChecker(fieldUniqueName),
-		optionalIDListChecker(fieldGroupIDs, idChecker("")),
-	)
-}
-
 func newGetNodeDetailIdChecker() *checker.UintChecker {
 	return idChecker("")
-}
-
-func newGetGroupDetailChecker() *checker.UintChecker {
-	return idChecker(fieldID)
 }
 
 func newModifyNodeChecker() *checker.AndChecker {
@@ -84,7 +72,7 @@ func newAddUnManagedNodeChecker() *checker.AndChecker {
 	return checker.GetAndChecker(
 		idChecker(fieldNodeID),
 		nodeNameChecker(fieldNodeName),
-		optionalIDListChecker(fieldGroupIDs, idChecker("")),
+		optionalIDListChecker(fieldGroupIDs, common.MaxGroupPerNode, idChecker("")),
 		descriptionChecker(fieldDescription),
 	)
 }
