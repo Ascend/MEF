@@ -19,7 +19,7 @@ func HandleDownload(ctx *gin.Context) {
 	targetFile := filepath.Join(constants.LogDumpPublicDir, constants.EdgeNodesTarGzFileName)
 	if _, err := fileutils.CheckOriginPath(targetFile); err != nil {
 		hwlog.RunLog.Errorf("failed to handle download, file is abnormal, %v", err)
-		ctx.AbortWithStatusJSON(http.StatusServiceUnavailable, "file is abnormal")
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, "file is abnormal")
 		return
 	}
 	ctx.File(targetFile)
