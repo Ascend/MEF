@@ -173,9 +173,11 @@ func modifyNode(msg *model.Message) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
 	}
 	updatedColumns := map[string]interface{}{
-		"NodeName":    req.NodeName,
-		"Description": req.Description,
-		"UpdatedAt":   time.Now().Format(TimeFormat),
+		"NodeName":  req.NodeName,
+		"UpdatedAt": time.Now().Format(TimeFormat),
+	}
+	if req.Description != nil {
+		updatedColumns["Description"] = req.Description
 	}
 	if cnt, err := NodeServiceInstance().updateNode(*req.NodeID, managed, updatedColumns); err != nil || cnt != 1 {
 		if err != nil && strings.Contains(err.Error(), common.ErrDbUniqueFailed) {

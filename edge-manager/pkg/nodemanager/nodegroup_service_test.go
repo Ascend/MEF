@@ -265,6 +265,7 @@ func testGetGroupDetailErrGetNodeById() {
 
 func TestModifyGroup(t *testing.T) {
 	convey.Convey("modifyGroup should be success", t, testModifyGroup)
+	convey.Convey("modifyGroup should be success, test description", t, testModifyGroupDescription)
 	convey.Convey("modifyGroup should be failed, input error", t, testModifyGroupErrInput)
 	convey.Convey("modifyGroup should be failed, param error", t, testModifyGroupErrParam)
 	convey.Convey("modifyGroup should be failed, update error", t, testModifyGroupErrUpdate)
@@ -328,6 +329,42 @@ func testModifyGroupErrUpdate() {
 	defer p1.Reset()
 	resp := modifyNodeGroup(&model.Message{Content: []byte(args)})
 	convey.So(resp.Status, convey.ShouldEqual, common.ErrorModifyNodeGroup)
+}
+
+func testModifyGroupDescription() {
+	group := &NodeGroup{
+		Description: "test-group-description-19",
+		GroupName:   "test_group_name_19",
+	}
+	res := env.createGroup(group)
+	convey.So(res, convey.ShouldBeNil)
+
+	convey.Convey("test description will not be modified when description is not set", func() {
+		group.GroupName = "test_group_name_19_modified"
+		args := fmt.Sprintf(`
+			{
+				"groupID": %d,
+				"nodeGroupName": "%s"
+			}`, group.ID, group.GroupName)
+		resp := modifyNodeGroup(&model.Message{Content: []byte(args)})
+		convey.So(resp.Status, convey.ShouldEqual, common.Success)
+		verifyRes := env.verifyDbNodeGroup(group, "UpdatedAt")
+		convey.So(verifyRes, convey.ShouldBeNil)
+	})
+
+	convey.Convey("test description will be modified when description is set to empty string", func() {
+		group.Description = ""
+		args := fmt.Sprintf(`
+			{
+				"groupID": %d,
+				"nodeGroupName": "%s",
+				"description": "%s"
+			}`, group.ID, group.GroupName, group.Description)
+		resp := modifyNodeGroup(&model.Message{Content: []byte(args)})
+		convey.So(resp.Status, convey.ShouldEqual, common.Success)
+		verifyRes := env.verifyDbNodeGroup(group, "UpdatedAt")
+		convey.So(verifyRes, convey.ShouldBeNil)
+	})
 }
 
 func TestBatchDeleteGroup(t *testing.T) {
