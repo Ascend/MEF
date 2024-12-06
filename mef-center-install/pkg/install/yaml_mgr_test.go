@@ -59,7 +59,7 @@ func testGetYamlPath() {
 		convey.So(err, convey.ShouldBeNil)
 	}()
 	defer func() {
-		err = fileutils.DeleteAllFileWithConfusion("./test.yaml")
+		err = fileutils.DeleteFile("./test.yaml")
 		convey.So(err, convey.ShouldBeNil)
 	}()
 	_, err = writer.Write([]byte(yamlContent))
