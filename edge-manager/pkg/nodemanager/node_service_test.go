@@ -311,6 +311,7 @@ func testGetNodeDetailErrEvalNodeGroup() {
 
 func TestModifyNode(t *testing.T) {
 	convey.Convey("modifyNode should be success", t, testModifyNode)
+	convey.Convey("modifyNode should be success, test description", t, testModifyNodeDescription)
 	convey.Convey("modifyNode should be failed", t, testModifyNodeErr)
 }
 
@@ -340,6 +341,55 @@ func testModifyNode() {
 		msg := model.Message{}
 		err := msg.FillContent(args)
 		convey.So(err, convey.ShouldBeNil)
+		resp := modifyNode(&msg)
+		convey.So(resp.Status, convey.ShouldEqual, common.Success)
+		verifyRes := env.verifyDbNodeInfo(node, "UpdatedAt")
+		convey.So(verifyRes, convey.ShouldBeNil)
+	})
+}
+
+func testModifyNodeDescription() {
+	node := &NodeInfo{
+		Description:  "test-node-description-19",
+		NodeName:     "test-node-name-19",
+		UniqueName:   "test-node-unique-name-19",
+		SerialNumber: "test-node-serial-number-19",
+		IsManaged:    true,
+		IP:           "0.0.0.0",
+		CreatedAt:    time.Now().Format(TimeFormat),
+		UpdatedAt:    time.Now().Format(TimeFormat),
+	}
+	res := env.createNode(node)
+	convey.So(res, convey.ShouldBeNil)
+
+	msg := model.Message{}
+	convey.Convey("test description will not be modified when description is not set", func() {
+		node.NodeName = "test-modify-node-1-name-modified-20"
+		args := fmt.Sprintf(`
+			{
+    			"nodeName": "%s",
+    			"nodeID": %d
+			}`, node.NodeName, node.ID)
+		err := msg.FillContent(args)
+		convey.So(err, convey.ShouldBeNil)
+
+		resp := modifyNode(&msg)
+		convey.So(resp.Status, convey.ShouldEqual, common.Success)
+		verifyRes := env.verifyDbNodeInfo(node, "UpdatedAt")
+		convey.So(verifyRes, convey.ShouldBeNil)
+	})
+
+	convey.Convey("test description will be modified when description is set to empty string", func() {
+		node.Description = ""
+		args := fmt.Sprintf(`
+			{
+                "description": "%s",
+    			"nodeName": "%s",
+    			"nodeID": %d
+			}`, node.Description, node.NodeName, node.ID)
+		err := msg.FillContent(args)
+		convey.So(err, convey.ShouldBeNil)
+
 		resp := modifyNode(&msg)
 		convey.So(resp.Status, convey.ShouldEqual, common.Success)
 		verifyRes := env.verifyDbNodeInfo(node, "UpdatedAt")
@@ -387,7 +437,6 @@ func testModifyNodeErr() {
 	convey.Convey("empty description", func() {
 		nodeRes := env.createNode(node)
 		convey.So(nodeRes, convey.ShouldBeNil)
-		node.Description = ""
 		args := fmt.Sprintf(`{"nodeName": "%s", "nodeID": %d}`, node.NodeName, node.ID)
 		err := msg.FillContent(args)
 		convey.So(err, convey.ShouldBeNil)

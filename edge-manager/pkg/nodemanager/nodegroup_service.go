@@ -146,9 +146,11 @@ func modifyNodeGroup(msg *model.Message) common.RespMsg {
 		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: checkResult.Reason}
 	}
 	updatedColumns := map[string]interface{}{
-		"GroupName":   req.GroupName,
-		"Description": req.Description,
-		"UpdatedAt":   time.Now().Format(TimeFormat),
+		"GroupName": req.GroupName,
+		"UpdatedAt": time.Now().Format(TimeFormat),
+	}
+	if req.Description != nil {
+		updatedColumns["Description"] = req.Description
 	}
 	originData, err := NodeServiceInstance().getNodeGroupByID(*req.GroupID)
 	if err != nil {

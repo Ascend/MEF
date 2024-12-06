@@ -47,14 +47,14 @@ type DeleteNodeRelationRecord struct {
 type ModifyNodeReq struct {
 	NodeID      *uint64 `json:"nodeID"`
 	NodeName    *string `json:"nodeName"`
-	Description string  `json:"description"`
+	Description *string `json:"description"`
 }
 
 // ModifyNodeGroupReq request object
 type ModifyNodeGroupReq struct {
 	GroupID     *uint64 `json:"groupID"`
 	GroupName   *string `json:"nodeGroupName"`
-	Description string  `json:"description"`
+	Description *string `json:"description"`
 }
 
 // AddNodeToGroupReq Create edge node group
