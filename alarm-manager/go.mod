@@ -1,6 +1,6 @@
 module alarm-manager
 
-go 1.16
+go 1.20
 
 require (
 	github.com/agiledragon/gomonkey/v2 v2.8.0

@@ -1,9 +1,11 @@
 module cert-manager
 
-go 1.16
+go 1.20
 
 require (
+	github.com/agiledragon/gomonkey/v2 v2.8.0
 	github.com/gin-gonic/gin v1.9.1
+	github.com/smartystreets/goconvey v1.7.2
 	huawei.com/mindx/common/backuputils v0.0.1
 	huawei.com/mindx/common/checker v0.0.2
 	huawei.com/mindx/common/fileutils v0.0.14
@@ -11,6 +13,8 @@ require (
 	huawei.com/mindx/common/hwlog v0.10.12
 	huawei.com/mindx/common/kmc v0.1.0
 	huawei.com/mindx/common/modulemgr v0.0.1
+	huawei.com/mindx/common/rand v0.0.1
+	huawei.com/mindx/common/test v0.0.1
 	huawei.com/mindx/common/utils v0.1.13
 	huawei.com/mindx/common/x509 v0.0.12
 	huawei.com/mindxedge/base v0.0.1

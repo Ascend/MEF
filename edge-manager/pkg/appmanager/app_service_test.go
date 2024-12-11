@@ -31,7 +31,7 @@ func TestCreateApp(t *testing.T) {
 	convey.Convey("create app should success", t, testCreateAppError)
 }
 
-func TestQuryApp(t *testing.T) {
+func TestQueryApp(t *testing.T) {
 	convey.Convey("query not exist app should failed", t, testQueryAppNotExist)
 	convey.Convey("query app should success", t, testQueryApp)
 	convey.Convey("query app error input", t, testQueryAppError)
