@@ -149,9 +149,10 @@ func (svc *EdgeSvcCertUpdater) PrepareCertUpdate() error {
 	if err != nil {
 		hwlog.RunLog.Errorf("create temp new cert for [%v] failed: %v", svc.CaCertName, err)
 		svc.cancel()
+		return err
 	}
 	hwlog.RunLog.Infof("create temp new cert for [%v] success", svc.CaCertName)
-	return err
+	return nil
 }
 
 // NotifyCertUpdate send hub_client update notify to edge-manager
@@ -281,9 +282,10 @@ func (ca *EdgeCaCertUpdater) PrepareCertUpdate() error {
 	if err != nil {
 		hwlog.RunLog.Errorf("create temp new cert for [%v] failed: %v", ca.CaCertName, err)
 		ca.cancel()
+		return err
 	}
 	hwlog.RunLog.Infof("create temp new cert for [%v] success", ca.CaCertName)
-	return err
+	return nil
 }
 
 // NotifyCertUpdate send hub_svr update notify to edge-manager
