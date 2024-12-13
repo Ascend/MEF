@@ -8,6 +8,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/agiledragon/gomonkey/v2"
 	"github.com/smartystreets/goconvey/convey"
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/hwlog"
@@ -47,6 +48,32 @@ func TestCheckAndUpdateToken(t *testing.T) {
 		checkAndUpdateToken()
 		_, _, err = ConfigRepositoryInstance().GetToken()
 		convey.So(errors.Is(err, gorm.ErrRecordNotFound), convey.ShouldBeTrue)
+	})
+}
+
+func TestCheckAndUpdateTokenForExpireErr(t *testing.T) {
+	convey.Convey("test checkAndUpdateToken for Expire err", t, func() {
+		//	ensure existing token deleted
+		err := ConfigRepositoryInstance().revokeToken()
+		convey.So(err, convey.ShouldBeNil)
+		patch := gomonkey.ApplyFuncReturn(ConfigRepositoryInstance().ifTokenExpire, false, "false")
+		defer patch.Reset()
+		checkAndUpdateToken()
+		_, _, err = ConfigRepositoryInstance().GetToken()
+		convey.So(errors.Is(err, gorm.ErrRecordNotFound), convey.ShouldBeTrue)
+	})
+}
+
+func TestCheckAndUpdateTokenForRevokeTokenErr(t *testing.T) {
+	convey.Convey("test checkAndUpdateToken for RevokeToken err", t, func() {
+		//	ensure existing token deleted
+		err := ConfigRepositoryInstance().revokeToken()
+		convey.So(err, convey.ShouldBeNil)
+		patch := gomonkey.ApplyFuncReturn(ConfigRepositoryInstance().ifTokenExpire, true, nil)
+		defer patch.Reset()
+		checkAndUpdateToken()
+		_, _, err = ConfigRepositoryInstance().GetToken()
+		convey.So(err, convey.ShouldResemble, errors.New("record not found"))
 	})
 }
 
