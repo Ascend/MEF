@@ -223,13 +223,13 @@ func testCaForceUpdateCheckSucceedCases() {
 
 	convey.Convey("case: do force update for later check", func() {
 		updater := newMockEdgeCaCertUpdater()
-		var invokedFlag bool
 		outputCells := []gomonkey.OutputCell{
 			{Values: gomonkey.Params{true, false, nil}, Times: 1},
 			{Values: gomonkey.Params{false, false, test.ErrTest}, Times: 1},
 			{Values: gomonkey.Params{false, false, nil}, Times: 1},
 			{Values: gomonkey.Params{false, true, nil}, Times: 1},
 		}
+		var invokedFlag bool
 		patches := gomonkey.ApplyFuncReturn(time.NewTicker, time.NewTicker(defaultParallelExecWaitTime)).
 			ApplyFuncSeq(checkCertValidity, outputCells).
 			ApplyPrivateMethod(updater, "DoForceUpdate", func(*EdgeCaCertUpdater) error {
@@ -446,13 +446,13 @@ func testSvcForceUpdateCheckSucceedCases() {
 
 	convey.Convey("case: do force update for later check", func() {
 		updater := newMockEdgeSvcCertUpdater()
-		var invokedFlag bool
 		outputCells := []gomonkey.OutputCell{
 			{Values: gomonkey.Params{true, false, nil}, Times: 1},
 			{Values: gomonkey.Params{false, false, test.ErrTest}, Times: 1},
 			{Values: gomonkey.Params{false, false, nil}, Times: 1},
 			{Values: gomonkey.Params{false, true, nil}, Times: 1},
 		}
+		var invokedFlag bool
 		patches := gomonkey.ApplyFuncReturn(time.NewTicker, time.NewTicker(defaultParallelExecWaitTime)).
 			ApplyFuncSeq(checkCertValidity, outputCells).
 			ApplyPrivateMethod(updater, "DoForceUpdate", func(*EdgeSvcCertUpdater) error {

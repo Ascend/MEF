@@ -16,10 +16,10 @@ import (
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/test"
 	"huawei.com/mindx/common/x509/certutils"
-	"huawei.com/mindxedge/base/common"
-	"huawei.com/mindxedge/base/common/requests"
 
 	"cert-manager/pkg/certmanager/certchecker"
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/requests"
 )
 
 func TestIsCertImported(t *testing.T) {
