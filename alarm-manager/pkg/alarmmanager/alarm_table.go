@@ -11,7 +11,7 @@ import (
 type AlarmInfo struct {
 	Id                  uint64    `gorm:"primaryKey;autoIncrement:true"                    json:"id"`
 	AlarmType           string    `gorm:"type:varchar(64);not null"                        json:"alarmType"`
-	CreatedAt           time.Time `gorm:"type:time;not null"                               json:"createAt"`
+	CreatedAt           time.Time `gorm:"not null"                                         json:"createAt"`
 	SerialNumber        string    `gorm:"type:varchar(64);not null;index:search_alarm"     json:"serialNumber"`
 	Ip                  string    `gorm:"type:varchar(64);not null;"                       json:"ip"`
 	AlarmId             string    `gorm:"type:varchar(64);not null;index:search_alarm"     json:"alarmId"`
