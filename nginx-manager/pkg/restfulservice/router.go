@@ -45,7 +45,7 @@ func updateEdgeMgrSouthCert(ctx *gin.Context) {
 		common.OptPost,
 		common.ResEdgeMgrCertUpdate)
 	if err = msg.FillContent(bodyData); err != nil {
-		hwlog.RunLog.Errorf("fill content failed: %v")
+		hwlog.RunLog.Errorf("fill content failed: %v", err)
 		ctx.JSON(http.StatusBadRequest, errMsg)
 		return
 	}
