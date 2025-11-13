@@ -56,3 +56,19 @@ func TestGetAllocatableResource(t *testing.T) {
 		convey.So(err, convey.ShouldBeNil)
 	})
 }
+
+// TestGetAvailableResource test get available resource
+func TestGetAvailableResource(t *testing.T) {
+	convey.Convey("get available resource should be success", t, func() {
+		var nodeID uint64
+		service := &nodeSyncImpl{}
+
+		convey.Convey("get available resource success", func() {
+			patch := gomonkey.ApplyFuncReturn(NodeServiceInstance().getGroupsByNodeID, nil, nil).
+				ApplyMethodReturn(&nodeSyncImpl{}, "GetAllocatableResource", nil, nil)
+			defer patch.Reset()
+			_, err := service.GetAvailableResource(nodeID, "")
+			convey.So(err, convey.ShouldBeNil)
+		})
+	})
+}

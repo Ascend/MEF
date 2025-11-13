@@ -38,6 +38,12 @@ func DoInstallMgrTest() {
 	convey.Convey("prepareYaml func", PrepareYamlTest)
 	convey.Convey("setInstallJson func", SetInstallJsonTest)
 	convey.Convey("componentInstall func", ComponentsInstallTest)
+	convey.Convey("setCenterMode func", SetCenterModeTest)
+	convey.Convey("prepareInstallPkgDir func", PrepareInstallPkgDirTest)
+	convey.Convey("prepareLogDumpDir func", PrepareLogDumpDirTest)
+	convey.Convey("prepareConfigDir func", PrepareConfigDirTest)
+	convey.Convey("setConfigOwner func", SetConfigOwnerTest)
+	convey.Convey("configBackup func", ConfigBackupTest)
 }
 
 func DoInstallTest() {
@@ -525,5 +531,141 @@ func ComponentsInstallTest() {
 		defer p.Reset()
 		convey.So(ins.componentsInstall(), convey.ShouldResemble,
 			fmt.Errorf("clear component [edge-manager]'s lib dir failed: %s", ErrTest.Error()))
+	})
+}
+
+// SetCenterModeTest tests the success and failure scenarios of setting the center mode.
+func SetCenterModeTest() {
+	ins, err := GetSftInstallMgrIns([]string{"edge-manager"}, "", "", "")
+	convey.So(err, convey.ShouldBeNil)
+	centerModeMgrIns := &util.CenterModeMgr{}
+
+	convey.Convey("test setCenterMode success", func() {
+		patches := gomonkey.ApplyMethodReturn(centerModeMgrIns, "SetWorkDirMode", nil).
+			ApplyMethodReturn(centerModeMgrIns, "SetConfigDirMode", nil).
+			ApplyMethodReturn(centerModeMgrIns, "SetOutter755Mode", nil)
+		defer patches.Reset()
+		convey.So(ins.setCenterMode(), convey.ShouldBeNil)
+	})
+
+	convey.Convey("test setCenterMode set work dir mode failed", func() {
+		patch := gomonkey.ApplyMethodReturn(centerModeMgrIns, "SetWorkDirMode", ErrTest)
+		defer patch.Reset()
+		convey.So(ins.setCenterMode(), convey.ShouldResemble, errors.New("set work dir mode failed"))
+	})
+
+	convey.Convey("test setCenterMode set config dir mode failed", func() {
+		patches := gomonkey.ApplyMethodReturn(centerModeMgrIns, "SetWorkDirMode", nil).
+			ApplyMethodReturn(centerModeMgrIns, "SetConfigDirMode", ErrTest)
+		defer patches.Reset()
+		convey.So(ins.setCenterMode(), convey.ShouldResemble, errors.New("set config dir mode failed"))
+	})
+
+	convey.Convey("test setCenterMode set path mode failed", func() {
+		patches := gomonkey.ApplyMethodReturn(centerModeMgrIns, "SetWorkDirMode", nil).
+			ApplyMethodReturn(centerModeMgrIns, "SetConfigDirMode", nil).
+			ApplyMethodReturn(centerModeMgrIns, "SetOutter755Mode", ErrTest)
+		defer patches.Reset()
+		convey.So(ins.setCenterMode(), convey.ShouldResemble, ErrTest)
+	})
+}
+
+// PrepareInstallPkgDirTest tests the success and failure scenarios of preparing the installation package directory.
+func PrepareInstallPkgDirTest() {
+	ins, err := GetSftInstallMgrIns([]string{"edge-manager"}, "", "", "")
+	convey.So(err, convey.ShouldBeNil)
+
+	convey.Convey("test prepareInstallPkgDir success", func() {
+		patch := gomonkey.ApplyFuncReturn(fileutils.MakeSureDir, nil)
+		defer patch.Reset()
+		convey.So(ins.prepareInstallPkgDir(), convey.ShouldBeNil)
+	})
+
+	convey.Convey("test prepareInstallPkgDir prepare install_package dir failed", func() {
+		patch := gomonkey.ApplyFuncReturn(fileutils.MakeSureDir, ErrTest)
+		defer patch.Reset()
+		convey.So(ins.prepareInstallPkgDir(), convey.ShouldResemble,
+			errors.New("prepare install_package dir failed"))
+	})
+}
+
+// PrepareLogDumpDirTest tests the success and failure scenarios of preparing the log dump directory.
+func PrepareLogDumpDirTest() {
+	ins, err := GetSftInstallMgrIns([]string{"edge-manager"}, "", "", "")
+	convey.So(err, convey.ShouldBeNil)
+
+	convey.Convey("test prepare log dump dir success", func() {
+		patch := gomonkey.ApplyFuncReturn(util.PrepareLogDumpDir, nil)
+		defer patch.Reset()
+		convey.So(ins.prepareLogDumpDir(), convey.ShouldBeNil)
+	})
+
+	convey.Convey("test prepare log dump dir failed", func() {
+		patch := gomonkey.ApplyFuncReturn(util.PrepareLogDumpDir, ErrTest)
+		defer patch.Reset()
+		convey.So(ins.prepareLogDumpDir(), convey.ShouldResemble,
+			fmt.Errorf("prepare log dump dir failed, %v", ErrTest))
+	})
+}
+
+// PrepareConfigDirTest tests the success and failure scenarios of preparing the configuration directory.
+func PrepareConfigDirTest() {
+	ins, err := GetSftInstallMgrIns([]string{"edge-manager"}, "", "", "")
+	convey.So(err, convey.ShouldBeNil)
+
+	configMgr := &util.ConfigMgr{}
+	convey.Convey("test prepare config dir success", func() {
+		patch := gomonkey.ApplyMethodReturn(configMgr, "DoPrepare", nil)
+		defer patch.Reset()
+		convey.So(ins.prepareConfigDir(), convey.ShouldBeNil)
+	})
+
+	convey.Convey("test prepare config dir failed", func() {
+		patch := gomonkey.ApplyMethodReturn(configMgr, "DoPrepare", ErrTest)
+		defer patch.Reset()
+		convey.So(ins.prepareConfigDir(), convey.ShouldResemble,
+			errors.New("prepare config dir failed"))
+	})
+}
+
+// SetConfigOwnerTest tests the success and failure scenarios of setting the configuration owner.
+func SetConfigOwnerTest() {
+	ins, err := GetSftInstallMgrIns([]string{"edge-manager"}, "", "", "")
+	convey.So(err, convey.ShouldBeNil)
+
+	var ownerMgr = util.GetOwnerMgr(ins.InstallPathMgr.ConfigPathMgr)
+	convey.Convey("test set owner for mef-center config success", func() {
+		patch := gomonkey.ApplyMethodReturn(ownerMgr, "SetConfigOwner", nil)
+		defer patch.Reset()
+		convey.So(ins.setConfigOwner(), convey.ShouldBeNil)
+	})
+
+	convey.Convey("test set owner for mef-center config failed", func() {
+		patch := gomonkey.ApplyMethodReturn(ownerMgr, "SetConfigOwner", ErrTest)
+		defer patch.Reset()
+		convey.So(ins.setConfigOwner(), convey.ShouldResemble,
+			fmt.Errorf("set owner for mef-center config faild, %v", ErrTest))
+	})
+}
+
+// ConfigBackupTest tests the success and failure scenarios of creating a backup for the configuration.
+func ConfigBackupTest() {
+	ins, err := GetSftInstallMgrIns([]string{"edge-manager"}, "", "", "")
+	convey.So(err, convey.ShouldBeNil)
+
+	configPath := ins.InstallPathMgr.ConfigPathMgr.GetConfigPath()
+	backup := backuputils.NewBackupDirMgr(configPath, backuputils.JsonFileType, backuputils.CrtFileType,
+		backuputils.CrlFileType, backuputils.KeyFileType)
+	convey.Convey("test create backup for mef-center config success", func() {
+		patch := gomonkey.ApplyMethodReturn(backup, "BackUp", nil)
+		defer patch.Reset()
+		convey.So(ins.configBackup(), convey.ShouldBeNil)
+	})
+
+	convey.Convey("test create backup for mef-center config failed", func() {
+		patch := gomonkey.ApplyMethodReturn(backup, "BackUp", ErrTest)
+		defer patch.Reset()
+		convey.So(ins.configBackup(), convey.ShouldResemble,
+			fmt.Errorf("back up mef-center config failed, %v", ErrTest))
 	})
 }
