@@ -18,6 +18,7 @@ import (
 	"github.com/smartystreets/goconvey/convey"
 	"gorm.io/gorm"
 	"huawei.com/mindx/common/checker"
+	"huawei.com/mindx/common/modulemgr"
 	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/test"
 	"k8s.io/api/core/v1"
@@ -36,6 +37,7 @@ const (
 )
 
 var env environment
+var errTest = errors.New("error test")
 
 type environment struct {
 	shuffledNumbers     []int
@@ -1084,5 +1086,96 @@ func testUpdateNodeSoftwareInfoErr() {
 
 		resp := updateNodeSoftwareInfo(getUpdateNodeSftErrReqMsg())
 		convey.So(resp.Msg, convey.ShouldEqual, "update node software info failed")
+	})
+}
+
+// TestSendDeleteNodeMessageToNode tests the functionality of sending a delete node message
+func TestSendDeleteNodeMessageToNode(t *testing.T) {
+	convey.Convey("send delete message should be success", t, testSendDeleteNodeMessageToNode)
+	convey.Convey("send delete message should be failed", t, testSendDeleteNodeMessageToNodeErr)
+}
+
+func testSendDeleteNodeMessageToNode() {
+	newMsg := model.Message{}
+	convey.Convey("send delete message", func() {
+		patches := gomonkey.ApplyFuncReturn(model.NewMessage, &newMsg, nil).
+			ApplyMethodReturn(&model.Message{}, "FillContent", nil).
+			ApplyFuncReturn(modulemgr.SendMessage, nil)
+		defer patches.Reset()
+		serialNumber := "123"
+		resp := sendDeleteNodeMessageToNode(serialNumber)
+		convey.So(resp, convey.ShouldBeNil)
+	})
+}
+
+func testSendDeleteNodeMessageToNodeErr() {
+	newMsg := model.Message{}
+	convey.Convey("send delete message create new message failed", func() {
+		patch := gomonkey.ApplyFuncReturn(model.NewMessage, &newMsg, errTest)
+		defer patch.Reset()
+		convey.So(sendDeleteNodeMessageToNode("123"), convey.ShouldResemble,
+			fmt.Errorf("create new message failed, error: %v", errTest))
+	})
+
+	convey.Convey("send delete message fill content failed", func() {
+		patches := gomonkey.ApplyFuncReturn(model.NewMessage, &newMsg, nil).
+			ApplyMethodReturn(&model.Message{}, "FillContent", errTest)
+		defer patches.Reset()
+		convey.So(sendDeleteNodeMessageToNode("123"), convey.ShouldResemble,
+			fmt.Errorf("fill content failed: %v", errTest))
+	})
+
+	convey.Convey("send delete message failed", func() {
+		patches := gomonkey.ApplyFuncReturn(model.NewMessage, &newMsg, nil).
+			ApplyMethodReturn(&model.Message{}, "FillContent", nil).
+			ApplyFuncReturn(modulemgr.SendMessage, errTest)
+		defer patches.Reset()
+		convey.So(sendDeleteNodeMessageToNode("123"), convey.ShouldResemble,
+			fmt.Errorf("%s sends message to %s failed, error: %v",
+				common.NodeManagerName, common.CloudHubName, errTest))
+	})
+}
+
+// TestGetRequestItemsOfAddGroup tests the functionality of getting request items for adding a group
+func TestGetRequestItemsOfAddGroup(t *testing.T) {
+	convey.Convey("get request items of add group should be success", t, testGetRequestItemsOfAddGroup)
+	convey.Convey("get request items of add group should be failed", t, testGetRequestItemsOfAddGroupErr)
+}
+
+func testGetRequestItemsOfAddGroup() {
+	var allocatedRes v1.ResourceList
+	var count int64
+	var nodeGroup NodeGroup
+	var err error
+
+	convey.Convey("getRequestItemsOfAddGroup should be success", func() {
+		patch := gomonkey.ApplyFuncReturn(getNodeGroupResReq, allocatedRes, nil).
+			ApplyFuncReturn(getAppInstanceCountByGroupId, count, nil)
+		defer patch.Reset()
+		allocatedRes, count, err = getRequestItemsOfAddGroup(&nodeGroup)
+		convey.So(err, convey.ShouldBeNil)
+	})
+}
+
+func testGetRequestItemsOfAddGroupErr() {
+	var allocatedRes v1.ResourceList
+	var nodeGroup NodeGroup
+	var err error
+	var count int64
+
+	convey.Convey("getRequestItemsOfAddGroup getNodeGroupResReq error", func() {
+		patch := gomonkey.ApplyFuncReturn(getNodeGroupResReq, allocatedRes, errTest)
+		defer patch.Reset()
+		allocatedRes, count, err = getRequestItemsOfAddGroup(&nodeGroup)
+		convey.So(err, convey.ShouldResemble, errTest)
+	})
+
+	convey.Convey("getRequestItemsOfAddGroup count request error", func() {
+		patch := gomonkey.ApplyFuncReturn(getNodeGroupResReq, allocatedRes, nil).
+			ApplyFuncReturn(getAppInstanceCountByGroupId, count, errTest)
+		defer patch.Reset()
+		allocatedRes, count, err = getRequestItemsOfAddGroup(&nodeGroup)
+		convey.So(err, convey.ShouldResemble,
+			fmt.Errorf("get node group id [%d] deployed app count request error", nodeGroup.ID))
 	})
 }
