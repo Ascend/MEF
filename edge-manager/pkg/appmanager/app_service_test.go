@@ -6,7 +6,9 @@ package appmanager
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math"
+	"reflect"
 	"testing"
 
 	"github.com/agiledragon/gomonkey/v2"
@@ -15,6 +17,7 @@ import (
 	"huawei.com/mindx/common/test"
 	"k8s.io/api/apps/v1"
 
+	"edge-manager/pkg/config"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
 	"huawei.com/mindxedge/base/common"
@@ -518,5 +521,102 @@ func TestGetAppInstanceCountByNodeGroup(t *testing.T) {
 			ID: testId,
 		}).Delete(&AppDaemonSet{}).Error
 		convey.So(err, convey.ShouldBeNil)
+	})
+}
+
+// TestUpdateNodeGroupDaemonSet tests success and fails cases of the updateNodeGroupDaemonSet function
+func TestUpdateNodeGroupDaemonSet(t *testing.T) {
+	convey.Convey("Given updateNodeGroupDaemonSet function", t, func() {
+		appInfo := &AppInfo{}
+		nodeGroups := []types.NodeGroupInfo{
+			{NodeGroupID: 1},
+			{NodeGroupID: 2},
+		}
+
+		convey.Convey("When initDaemonSet fails", func() {
+			patches := gomonkey.ApplyFunc(initDaemonSet, func(appInfo *AppInfo, nodeGroupID uint64) (*v1.DaemonSet, error) {
+				return nil, test.ErrTest
+			})
+			defer patches.Reset()
+			err := updateNodeGroupDaemonSet(appInfo, nodeGroups)
+
+			convey.So(err, convey.ShouldResemble,
+				fmt.Errorf("init daemon set failded: %s", test.ErrTest.Error()))
+		})
+
+		convey.Convey("When UpdateDaemonSet fails", func() {
+			patches := gomonkey.ApplyFunc(initDaemonSet, func(appInfo *AppInfo, nodeGroupID uint64) (*v1.DaemonSet, error) {
+				return nil, nil
+			}).ApplyMethod(reflect.TypeOf(&kubeclient.Client{}), "UpdateDaemonSet",
+				func(k *kubeclient.Client, daemonSet *v1.DaemonSet) (*v1.DaemonSet, error) {
+					return nil, test.ErrTest
+				})
+			defer patches.Reset()
+			err := updateNodeGroupDaemonSet(appInfo, nodeGroups)
+
+			convey.So(err, convey.ShouldResemble,
+				fmt.Errorf("update daemon set failded: %s", test.ErrTest.Error()))
+		})
+
+		convey.Convey("When updateNodeGroupDaemonSet success", func() {
+			patches := gomonkey.ApplyFuncReturn(initDaemonSet, nil, nil).
+				ApplyMethodReturn(&kubeclient.Client{}, "UpdateDaemonSet", nil, nil)
+			defer patches.Reset()
+			err := updateNodeGroupDaemonSet(appInfo, nodeGroups)
+
+			convey.So(err, convey.ShouldBeNil)
+		})
+	})
+}
+
+// TestPreCheckForDeployApp test preCheckForDeployApp success and failed cases
+func TestPreCheckForDeployApp(t *testing.T) {
+	convey.Convey("Given preCheckForDeployApp function success", t, testPreCheckForDeployAppSuccess)
+	convey.Convey("Given preCheckForDeployApp function failed", t, testPreCheckForDeployAppFailed)
+}
+
+func testPreCheckForDeployAppSuccess() {
+	convey.Convey("When all checks pass", func() {
+		var maxDsNumber int64 = 1
+		patches := gomonkey.ApplyFunc(AppRepositoryInstance().getAppDaemonSet, func(uint64, uint64) (*AppDaemonSet, error) {
+			return nil, errors.New("not found")
+		})
+		patches.ApplyFunc(getNodeGroupInfos, func([]uint64) ([]types.NodeGroupInfo, error) {
+			return nil, nil
+		})
+		patches.ApplyFunc(AppRepositoryInstance().countDeployedAppByGroupID, func(uint64) (int64, error) {
+			return 0, nil
+		})
+		patches.ApplyGlobalVar(&config.PodConfig.MaxDsNumberPerNodeGroup, maxDsNumber)
+
+		defer patches.Reset()
+		err := preCheckForDeployApp(1, 1)
+
+		convey.So(err, convey.ShouldBeNil)
+	})
+}
+
+func testPreCheckForDeployAppFailed() {
+	convey.Convey("When group id does not exist", func() {
+		patches := gomonkey.ApplyFuncReturn(AppRepositoryInstance().getAppDaemonSet, nil, errors.New("not found")).
+			ApplyFuncReturn(getNodeGroupInfos, nil, errors.New("group id no exist"))
+
+		defer patches.Reset()
+		err := preCheckForDeployApp(1, 1)
+
+		convey.So(err, convey.ShouldNotBeNil)
+		convey.So(err.Error(), convey.ShouldEqual, "group id no exist")
+	})
+
+	convey.Convey("When node group is out of max app limit", func() {
+		patches := gomonkey.ApplyFuncReturn(AppRepositoryInstance().getAppDaemonSet, nil, errors.New("not found")).
+			ApplyFuncReturn(getNodeGroupInfos, nil, nil).
+			ApplyFuncReturn(AppRepositoryInstance().countDeployedAppByGroupID, config.PodConfig.MaxDsNumberPerNodeGroup, nil)
+
+		defer patches.Reset()
+		err := preCheckForDeployApp(1, 1)
+
+		convey.So(err, convey.ShouldNotBeNil)
+		convey.So(err.Error(), convey.ShouldEqual, "node group out of max app limit")
 	})
 }
