@@ -22,7 +22,9 @@ import (
 	"huawei.com/mindx/common/modulemgr/model"
 	"huawei.com/mindx/common/test"
 	"k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 
+	"edge-manager/pkg/config"
 	"edge-manager/pkg/constants"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
@@ -1177,5 +1179,295 @@ func testGetRequestItemsOfAddGroupErr() {
 		allocatedRes, count, err = getRequestItemsOfAddGroup(&nodeGroup)
 		convey.So(err, convey.ShouldResemble,
 			fmt.Errorf("get node group id [%d] deployed app count request error", nodeGroup.ID))
+	})
+}
+
+// TestGetNodeDetailBySn get node details for success and fail cases
+func TestGetNodeDetailBySn(t *testing.T) {
+	convey.Convey("Given a getNodeDetailBySn function success", t, testGetNodeDetailBySnSuccess)
+	convey.Convey("Given a getNodeDetailBySn function err input", t, testGetNodeDetailBySnErrInput)
+	convey.Convey("Given a getNodeDetailBySn function err query db", t, testGetNodeDetailBySnErrQueryDb)
+	convey.Convey("Given a getNodeDetailBySn function err ext", t, testGetNodeDetailBySnErrExt)
+}
+
+func testGetNodeDetailBySnErrInput() {
+	convey.Convey("When the input is not a string", func() {
+		resp := getNodeDetailBySn(123)
+
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorTypeAssert)
+		convey.So(resp.Msg, convey.ShouldEqual, "query node detail convert param failed")
+	})
+}
+
+func testGetNodeDetailBySnErrQueryDb() {
+	convey.Convey("When getNodeBySn returns an error", func() {
+		patches := gomonkey.ApplyFunc(checker.GetSnChecker, func(sn string, flag bool) *checker.RegChecker {
+			return &checker.RegChecker{}
+		})
+		defer patches.Reset()
+
+		patches.ApplyFunc(setNodeExtInfos, func(resp NodeInfoDetail) (NodeInfoDetail, error) {
+			return NodeInfoDetail{}, nil
+		})
+		patches.ApplyPrivateMethod(NodeServiceInstance(), "getNodeBySn",
+			func(sn string) (*NodeInfo, error) {
+				return nil, fmt.Errorf("db query error")
+			},
+		)
+
+		resp := getNodeDetailBySn("valid-sn")
+
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorGetNode)
+		convey.So(resp.Msg, convey.ShouldEqual, "query node in db error")
+	})
+}
+
+func testGetNodeDetailBySnErrExt() {
+	convey.Convey("When setNodeExtInfos returns an error", func() {
+		patches := gomonkey.ApplyFunc(checker.GetSnChecker, func(sn string, flag bool) *checker.RegChecker {
+			return &checker.RegChecker{}
+		})
+		defer patches.Reset()
+
+		patches.ApplyPrivateMethod(NodeServiceInstance(), "getNodeBySn",
+			func(sn string) (*NodeInfo, error) {
+				return &NodeInfo{}, nil
+			},
+		)
+		patches.ApplyFunc(setNodeExtInfos, func(resp NodeInfoDetail) (NodeInfoDetail, error) {
+			return NodeInfoDetail{}, fmt.Errorf("ext info error")
+		})
+
+		resp := getNodeDetailBySn("valid-sn")
+
+		convey.So(resp.Status, convey.ShouldEqual, common.ErrorGetNode)
+		convey.So(resp.Msg, convey.ShouldEqual, "ext info error")
+	})
+}
+
+func testGetNodeDetailBySnSuccess() {
+	convey.Convey("When all operations are successful", func() {
+		patches := gomonkey.ApplyFuncReturn(checker.GetSnChecker, &checker.RegChecker{})
+		patches.ApplyPrivateMethod(NodeServiceInstance(), "getNodeBySn",
+			func(sn string) (*NodeInfo, error) {
+				return &NodeInfo{}, nil
+			},
+		)
+		patches.ApplyFuncReturn(setNodeExtInfos, NodeInfoDetail{}, nil)
+
+		defer patches.Reset()
+		resp := getNodeDetailBySn("valid-sn")
+
+		convey.So(resp.Status, convey.ShouldEqual, common.Success)
+	})
+}
+
+// TestCheckNodePodLimit test check node pod limit for success and fail cases
+func TestCheckNodePodLimit(t *testing.T) {
+	convey.Convey("Given a checkNodePodLimit function success", t, testCheckNodePodLimitSuccess)
+	convey.Convey("Given a checkNodePodLimit function for limit node error", t, testCheckNodePodLimitNodeErr)
+	convey.Convey("Given a checkNodePodLimit function for app count error", t, testCheckNodePodLimitAppCountErr)
+	convey.Convey("Given a checkNodePodLimit function for out of max error", t, testCheckNodePodLimitOutOfMaxErr)
+}
+
+func testCheckNodePodLimitSuccess() {
+	convey.Convey("When the total pod count is within the limit", func() {
+		var maxPodNumber int64 = 100
+		patches := gomonkey.ApplyPrivateMethod(NodeServiceInstance(), "getGroupsByNodeID",
+			func(nodeId uint64) (*[]NodeGroup, error) {
+				return &[]NodeGroup{
+					{ID: 1},
+					{ID: 2},
+				}, nil
+			},
+		)
+		patches.ApplyFunc(getAppInstanceCountByGroupId, func(groupId uint64) (int64, error) {
+			return 5, nil
+		})
+		patches.ApplyGlobalVar(&config.PodConfig.MaxPodNumberPerNode, maxPodNumber)
+
+		defer patches.Reset()
+		err := checkNodePodLimit(5, 1)
+
+		convey.So(err, convey.ShouldBeNil)
+	})
+}
+
+func testCheckNodePodLimitNodeErr() {
+	convey.Convey("When getGroupsByNodeID returns an error", func() {
+		patches := gomonkey.ApplyPrivateMethod(NodeServiceInstance(), "getGroupsByNodeID",
+			func(nodeId uint64) (*[]NodeGroup, error) {
+				return nil, fmt.Errorf("db query error")
+			},
+		)
+		patches.ApplyFunc(getAppInstanceCountByGroupId, func(groupId uint64) (int64, error) {
+			return 5, nil
+		})
+
+		defer patches.Reset()
+		err := checkNodePodLimit(10, 1)
+
+		convey.So(err, convey.ShouldNotBeNil)
+		convey.So(err.Error(), convey.ShouldEqual, "get node groups by node id [1] error")
+	})
+}
+
+func testCheckNodePodLimitAppCountErr() {
+	convey.Convey("When getAppInstanceCountByGroupId returns an error", func() {
+		patches := gomonkey.ApplyPrivateMethod(NodeServiceInstance(), "getGroupsByNodeID",
+			func(nodeId uint64) (*[]NodeGroup, error) {
+				return &[]NodeGroup{
+					{ID: 1},
+				}, nil
+			},
+		)
+		patches.ApplyFunc(getAppInstanceCountByGroupId, func(groupId uint64) (int64, error) {
+			return 0, fmt.Errorf("count error")
+		})
+
+		defer patches.Reset()
+		err := checkNodePodLimit(10, 1)
+
+		convey.So(err, convey.ShouldNotBeNil)
+		convey.So(err.Error(), convey.ShouldEqual, "get deployed app count by node group id [1] error")
+	})
+}
+
+func testCheckNodePodLimitOutOfMaxErr() {
+	convey.Convey("When the total pod count exceeds the limit", func() {
+		var maxPodNumber int64 = 20
+		patches := gomonkey.ApplyPrivateMethod(NodeServiceInstance(), "getGroupsByNodeID",
+			func(nodeId uint64) (*[]NodeGroup, error) {
+				return &[]NodeGroup{
+					{ID: 3},
+				}, nil
+			},
+		)
+		patches.ApplyFunc(getAppInstanceCountByGroupId, func(groupId uint64) (int64, error) {
+			return 5, nil
+		})
+		patches.ApplyGlobalVar(&config.PodConfig.MaxPodNumberPerNode, maxPodNumber)
+
+		defer patches.Reset()
+		err := checkNodePodLimit(100, 3)
+
+		convey.So(err, convey.ShouldNotBeNil)
+		convey.So(err.Error(), convey.ShouldEqual, "pod addedNumber is out of node [3] max allowed addedNumber")
+	})
+}
+
+// TestCheckNodeResource test check node resource for failed errors
+func TestCheckNodeResource(t *testing.T) {
+	convey.Convey("test check node resource get node error", t, testCheckNodeResourceGetNodeErr)
+	convey.Convey("test check node resource do not have enough cpu resources", t, testCheckNodeResourceCpuShort)
+	convey.Convey("test check node resource do not have enough memory resources", t, testCheckNodeResourceMemShort)
+	convey.Convey("test check node resource do not have enough npu resources", t, testCheckNodeResourceNpuShort)
+}
+
+func testCheckNodeResourceGetNodeErr() {
+	convey.Convey("When getNodeByID returns an error", func() {
+		patches := gomonkey.ApplyPrivateMethod(NodeServiceInstance(), "getNodeByID",
+			func(nodeId uint64) (*NodeInfo, error) {
+				return nil, fmt.Errorf("db query error")
+			},
+		)
+		defer patches.Reset()
+
+		req := v1.ResourceList{
+			v1.ResourceCPU:    *resource.NewQuantity(5, resource.DecimalSI),
+			v1.ResourceMemory: *resource.NewQuantity(50, resource.DecimalSI),
+		}
+
+		err := checkNodeResource(req, 1)
+
+		convey.So(err, convey.ShouldNotBeNil)
+		convey.So(err.Error(), convey.ShouldEqual, "get node info by node id [1] error")
+	})
+}
+
+func testCheckNodeResourceCpuShort() {
+	convey.Convey("When the node does not have enough CPU resources", func() {
+		patches := gomonkey.ApplyPrivateMethod(NodeServiceInstance(), "getNodeByID",
+			func(nodeId uint64) (*NodeInfo, error) {
+				return &NodeInfo{
+					ID:         1,
+					UniqueName: "test-node",
+				}, nil
+			},
+		)
+		defer patches.Reset()
+
+		req := v1.ResourceList{
+			v1.ResourceCPU:    *resource.NewQuantity(15, resource.DecimalSI),
+			v1.ResourceMemory: *resource.NewQuantity(50, resource.DecimalSI),
+		}
+
+		patches.ApplyMethodReturn(&nodeSyncImpl{}, "GetAvailableResource", &NodeResource{
+			Cpu: *resource.NewQuantity(10, resource.DecimalSI),
+		}, nil)
+
+		err := checkNodeResource(req, 1)
+
+		convey.So(err, convey.ShouldNotBeNil)
+		convey.So(err.Error(), convey.ShouldEqual, "node [1] do not have enough cpu resources")
+	})
+}
+
+func testCheckNodeResourceMemShort() {
+	convey.Convey("When the node does not have enough memory resources", func() {
+		patches := gomonkey.ApplyPrivateMethod(NodeServiceInstance(), "getNodeByID",
+			func(nodeId uint64) (*NodeInfo, error) {
+				return &NodeInfo{
+					ID:         2,
+					UniqueName: "test-node",
+				}, nil
+			},
+		)
+		defer patches.Reset()
+
+		req := v1.ResourceList{
+			v1.ResourceCPU:    *resource.NewQuantity(5, resource.DecimalSI),
+			v1.ResourceMemory: *resource.NewQuantity(150, resource.DecimalSI),
+		}
+
+		patches.ApplyMethodReturn(&nodeSyncImpl{}, "GetAvailableResource", &NodeResource{
+			Cpu:    *resource.NewQuantity(10, resource.DecimalSI),
+			Memory: *resource.NewQuantity(100, resource.DecimalSI),
+		}, nil)
+
+		err := checkNodeResource(req, 2)
+
+		convey.So(err, convey.ShouldNotBeNil)
+		convey.So(err.Error(), convey.ShouldEqual, "node [2] do not have enough memory resources")
+	})
+}
+
+func testCheckNodeResourceNpuShort() {
+	convey.Convey("When the node does not have enough NPU resources", func() {
+		patches := gomonkey.ApplyPrivateMethod(NodeServiceInstance(), "getNodeByID",
+			func(nodeId uint64) (*NodeInfo, error) {
+				return &NodeInfo{
+					ID:         3,
+					UniqueName: "test-node",
+				}, nil
+			},
+		)
+		defer patches.Reset()
+		req := v1.ResourceList{
+			v1.ResourceCPU:    *resource.NewQuantity(5, resource.DecimalSI),
+			v1.ResourceMemory: *resource.NewQuantity(50, resource.DecimalSI),
+			common.DeviceType: *resource.NewQuantity(10, resource.DecimalSI),
+		}
+
+		patches.ApplyMethodReturn(&nodeSyncImpl{}, "GetAvailableResource", &NodeResource{
+			Cpu:    *resource.NewQuantity(10, resource.DecimalSI),
+			Memory: *resource.NewQuantity(100, resource.DecimalSI),
+			Npu:    *resource.NewQuantity(8, resource.DecimalSI),
+		}, nil)
+
+		err := checkNodeResource(req, 3)
+
+		convey.So(err, convey.ShouldNotBeNil)
+		convey.So(err.Error(), convey.ShouldEqual, "node [3] do not have enough npu resources")
 	})
 }
