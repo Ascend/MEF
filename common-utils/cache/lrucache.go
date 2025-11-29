@@ -1,4 +1,12 @@
-//  Copyright(C) 2022. Huawei Technologies Co.,Ltd.  All rights reserved.
+// Copyright (c) Huawei Technologies Co., Ltd. 2025-2025. All rights reserved.
+// MindEdge is licensed under Mulan PSL v2.
+// You can use this software according to the terms and conditions of the Mulan PSL v2.
+// You may obtain a copy of Mulan PSL v2 at:
+//          http://license.coscl.org.cn/MulanPSL2
+// THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+// EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+// MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+// See the Mulan PSL v2 for more details.
 
 // Package cache implement a memory-based LRU local cache
 package cache
@@ -50,9 +58,10 @@ type ConcurrencyLRUCache struct {
 }
 
 // Set create or update an element using key
-//      key:    The identity of an element
-//      value:  new value of the element
-//      expireTime:    expire time, positive int64 or -1 which means never overdue
+//
+//	key:    The identity of an element
+//	value:  new value of the element
+//	expireTime:    expire time, positive int64 or -1 which means never overdue
 func (cl *ConcurrencyLRUCache) Set(key string, value interface{}, expireTime time.Duration) error {
 	if cl == nil || cl.cacheBuket[0] == nil {
 		return notInitErr
@@ -64,10 +73,11 @@ func (cl *ConcurrencyLRUCache) Set(key string, value interface{}, expireTime tim
 }
 
 // Get get the value of a cached element by key. If key do not exist, this function will return nil and an error msg
-//      key:    The identity of an element
-//      return:
-//          value:  the cached value, nil if key do not exist
-//          err:    error info, nil if value is not nil
+//
+//	key:    The identity of an element
+//	return:
+//	    value:  the cached value, nil if key do not exist
+//	    err:    error info, nil if value is not nil
 func (cl *ConcurrencyLRUCache) Get(key string) (interface{}, error) {
 	if cl == nil || cl.cacheBuket[0] == nil {
 		return nil, notInitErr
