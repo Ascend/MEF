@@ -1,0 +1,24 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#UpdateService",
+  "@odata.id": "/redfish/v1/UpdateService",
+  "@odata.type": "#UpdateService.v1_0_0.UpdateService",
+  "Id": "UpdateService",
+  "Name": "Update Service",
+  "Status": {
+    "Status": null,
+    "Health": null
+  },
+  "ServiceEnabled": null,
+  "Actions": {
+    "#UpdateService.SimpleUpdate": {
+      "target": "/redfish/v1/UpdateService/Actions/UpdateService.SimpleUpdate"
+    },
+    "#UpdateService.Reset": {
+      "target": "/redfish/v1/UpdateService/Actions/UpdateService.Reset"
+    }
+  },
+  "FirmwareInventory": {
+    "@odata.id": "/redfish/v1/UpdateService/FirmwareInventory"
+  }
+}
+

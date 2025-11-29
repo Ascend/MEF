@@ -1,0 +1,23 @@
+[Unit]
+Description=device-plugin
+After=network.target edgecore.service
+PartOf=mef-edge.target
+ConditionPathExists={install_dir}/software/device_plugin/bin/device-plugin
+StartLimitBurst=0
+
+[Service]
+UMask=0027
+User=root
+StandardOutput=null
+StandardError=null
+ExecStartPre={install_dir}/software/device_plugin/script/prepare.sh "{log_dir}" "{log_backup_dir}"
+ExecStart={install_dir}/software/device_plugin/bin/device-plugin  --logFile="{log_dir}/device_plugin/device_plugin_run.log" --useAscendDocker=false --shareDevCount=100
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+KillSignal=SIGTERM
+KillMode=control-group
+TimeoutStopSec=15
+
+[Install]
+Alias=device-plugin.service
+WantedBy=multi-user.target mef-edge.target

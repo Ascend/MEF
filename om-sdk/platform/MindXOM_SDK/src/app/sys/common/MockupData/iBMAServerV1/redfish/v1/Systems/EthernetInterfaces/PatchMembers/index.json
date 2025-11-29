@@ -1,0 +1,13 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#Systems/Members/EthernetInterfaces/Members/$entity",
+  "@odata.id": "/redfish/v1/Systems/EthernetInterfaces/oDataID",
+  "@odata.type": "#EthernetInterface.v1_8_0.EthernetInterface",
+  "Id": "1",
+  "Name": "Set mainboardNIC1Port1 odatainfo",
+  "IPv4Addresses": [],
+  "Oem": {
+    "StartTime": null,
+    "TaskState": "Running",
+    "TaskPercentage": null
+  }
+}

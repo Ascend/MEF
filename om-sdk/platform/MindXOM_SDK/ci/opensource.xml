@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <token>ETMsDgAAAXCGEFv9ABRBRVMvQ0JDL1BLQ1M1UGFkZGluZwCAABAAEBBZ3dlheiYgr+E93Emd0B0AAAJwcdyTK5l4/woGqSJmVVme8e/ELTKvE9g/KCw5rxA6AZaHQFqQPqKtAkxW8f2iCqtzIy84YKU3czXxZ3dLK4GTZtiRBL4nAUIXj4iSOnOFalyDFQQrPA6YCI1LC57vkLvzLsThnq4ntWVeLUjNqrU8281pUowcyAlTeVrrNfoLlMJARUqoRlLdkccNUd6tqnOB9CMS8/I8R3tTd48SadkT1WKXDMFFfbwyPWGSqEl2wyeog3+l+5Y6hhhVbOJSU0TxHbIgb9X/byMdlCeJdFM7c1SLzx7/Ci1OOY3b8Fak8UNQ23Qn4+T50MDjnhHfnQJcnf1bzhg5tjv5M+RPCsp47NKugNS2wY2a2I7NZPFpNrdFnSGz4to4fOQXf7OnBsFdQxUPnphvLpQna4OWHJILSv3rAkRLNEl0rmh8TfPZiyTXVtIFK7RZLybJoErtpWWyzFCu7KZ+p1TUXqyfWSOouP274CRA2MXbtYj9BTT8Z1v4O8I3WQqBFsNy1kcEphYly1iOHFciL/s8pcLQSVMmCXQrFJvvURtgkrEWyu0fixtZRdIn8ngKtwyspsvZw/kSWpUf9mZs67POcJfGu5v2tcKJATVqwV8ebHei8Ve2nT37G48e/T3k6rV5D4/m3PE7t52iJbdJj83mviZKmH9HfI6ER2yUr5iA7cj+3RvUVww4HdSY+igoLKfWwB4vw8lk0xh7sT1+qMURtvoEGEzVwZY3i+cBnKUwYyYjJopCVGOXSD5Da0TjvhINUYds2TuDnzJtYGpyVYHTFPg6cB01hWDvUKt0EMzhwzphdq1IgyeONOsE8e9mcU2LZb4KxUkyABRpg17JmayiVrLnKlSOhZsVLUUDJg==</token>
+    <dest>//usr1/software/centralrepo</dest>
+    <artifacts>
+        <artifact>
+            <softName>click</softName>
+            <softVersion>7.1.1</softVersion>
+            <packages>click-7.1.1.tar.gz</packages>
+            <patchs></patchs>
+            <configs></configs>
+            <copyto>{workspace}/MindXOM_SDK/open_source/click/src/</copyto>
+        </artifact>
+        <!-- 3rd-party -->
+        <artifact>
+            <softName>flask</softName>
+            <softVersion>1.1.1</softVersion>
+            <packages>flask-1.1.1.tar.gz</packages>
+            <patchs></patchs>
+            <configs></configs>
+            <copyto>{workspace}/MindXOM_SDK/open_source/flask/src/</copyto>
+        </artifact>
+        <!-- 3rd-party -->
+        <artifact>
+            <softName>flask-sqlalchemy</softName>
+            <softVersion>2.4.1</softVersion>
+            <packages>flask-sqlalchemy-2.4.1.zip</packages>
+            <patchs></patchs>
+            <configs></configs>
+            <copyto>{workspace}/MindXOM_SDK/open_source/flask_sqlalchemy/src/</copyto>
+        </artifact>
+        <!-- 3rd-party -->
+        <artifact>
+            <softName>inotify-tools</softName>
+            <softVersion>3.20.2.2</softVersion>
+            <packages>inotify-tools-3.20.2.2.tar.gz</packages>
+            <patchs></patchs>
+            <configs></configs>
+            <copyto>{workspace}/MindXOM_SDK/open_source/inotify/src</copyto>
+        </artifact>
+        <!-- 3rd-party -->
+        <artifact>
+            <softName>itsdangerous</softName>
+            <softVersion>1.1.0</softVersion>
+            <packages>itsdangerous-1.1.0.tar.gz</packages>
+            <patchs></patchs>
+            <configs></configs>
+            <copyto>{workspace}/MindXOM_SDK/open_source/itsdangerous/src</copyto>
+        </artifact>
+        <!-- 3rd-party -->
+        <artifact>
+            <softName>Jinja2</softName>
+            <softVersion>2.10.1</softVersion>
+            <packages>Jinja2-2.10.1.tar.gz</packages>
+            <patchs></patchs>
+            <configs></configs>
+            <copyto>{workspace}/MindXOM_SDK/open_source/jinja2/src</copyto>
+        </artifact>
+        <!-- 3rd-party -->
+        <artifact>
+            <softName>libnl3</softName>
+            <softVersion>3.5.0</softVersion>
+            <packages>libnl-3.5.0.tar.gz</packages>
+            <patchs></patchs>
+            <configs></configs>
+            <copyto>{workspace}/MindXOM_SDK/open_source/libnl/src</copyto>
+        </artifact>
+        <!-- 3rd-party -->
+        <artifact>
+            <softName>MarkupSafe</softName>
+            <softVersion>1.1.1</softVersion>
+            <packages>MarkupSafe-1.1.1.tar.gz</packages>
+            <patchs></patchs>
+            <configs></configs>
+            <copyto>{workspace}/MindXOM_SDK/open_source/markupsafe/src</copyto>
+        </artifact>
+        <!-- 3rd-party -->
+        <artifact>
+            <softName>mbed TLS</softName>
+            <softVersion>2.16.8</softVersion>
+            <packages>mbedtls-mbedtls-2.16.8.tar.gz</packages>
+            <patchs></patchs>
+            <configs></configs>
+            <copyto>{workspace}/MindXOM_SDK/open_source/mbedTLS/src</copyto>
+        </artifact>
+        <!-- 3rd-party -->
+        <artifact>
+            <softName>nginx</softName>
+            <softVersion>1.17.9</softVersion>
+            <packages>nginx-1.17.9.tar.gz</packages>
+            <patchs></patchs>
+            <configs></configs>
+            <copyto>{workspace}/MindXOM_SDK/open_source/nginx/src</copyto>
+        </artifact>
+        <!-- 3rd-party -->
+        <artifact>
+            <softName>nginx-upload-module</softName>
+            <softVersion>2.3.0</softVersion>
+            <packages>nginx-upload-module-2.3.0.zip</packages>
+            <patchs></patchs>
+            <configs></configs>
+            <copyto>{workspace}/MindXOM_SDK/open_source/nginx/src</copyto>
+        </artifact>
+        <!-- 3rd-party -->
+        <artifact>
+            <softName>openssh</softName>
+            <softVersion>8.2p1</softVersion>
+            <packages>openssh-8.2p1.tar.gz</packages>
+            <patchs></patchs>
+            <configs></configs>
+            <copyto>{workspace}/MindXOM_SDK/open_source/openssh/src</copyto>
+        </artifact>
+        <!-- 3rd-party -->
+        <artifact>
+            <softName>sqlalchemy</softName>
+            <softVersion>1.3.2</softVersion>
+            <packages>SQLAlchemy-1.3.2.tar.gz</packages>
+            <patchs></patchs>
+            <configs></configs>
+            <copyto>{workspace}/MindXOM_SDK/open_source/sqlalchemy/src</copyto>
+        </artifact>
+        <!-- 3rd-party -->
+        <artifact>
+            <softName>sqlalchemy</softName>
+            <softVersion>1.3.2</softVersion>
+            <packages>sqlalchemy-rel_1_3_2-src.zip</packages>
+            <patchs></patchs>
+            <configs></configs>
+            <copyto>{workspace}/MindXOM_SDK/open_source/sqlalchemy/src</copyto>
+        </artifact>
+        <!-- 3rd-party -->
+        <artifact>
+            <softName>Werkzeug</softName>
+            <softVersion>0.16.0</softVersion>
+            <packages>werkzeug-0.16.0.tar.gz</packages>
+            <patchs></patchs>
+            <configs></configs>
+            <copyto>{workspace}/MindXOM_SDK/open_source/werkzeug/src</copyto>
+        </artifact>
+        <!-- 3rd-party -->
+<!--        <artifact>-->
+<!--            <softName>thrift</softName>-->
+<!--            <softVersion>0.13.0</softVersion>-->
+<!--            <packages>thrift-0.13.0.tar.gz</packages>-->
+<!--            <patchs></patchs>-->
+<!--            <configs></configs>-->
+<!--            <copyto>{workspace}/MindXOM_SDK/open_source/python/thrift</copyto>-->
+<!--        </artifact>-->
+        <!-- 3rd-party -->
+        <artifact>
+            <softName>xmltodict</softName>
+            <softVersion>0.12.0</softVersion>
+            <packages>xmltodict-0.12.0-src.zip</packages>
+            <patchs></patchs>
+            <configs></configs>
+            <copyto>{workspace}/MindXOM_SDK/open_source/python/</copyto>
+        </artifact>
+        <!-- 3rd-party -->
+        <artifact>
+            <softName>mtd-utils</softName>
+            <softVersion>2.1.0</softVersion>
+            <packages>mtd-utils-2.1.0.tar.gz</packages>
+            <patchs></patchs>
+            <configs></configs>
+            <copyto>{workspace}/MindXOM_SDK/open_source/mtd_utils/src/</copyto>
+        </artifact>
+        <artifact>
+            <softName>websockets</softName>
+            <softVersion>8.1</softVersion>
+            <packages>8.1.tar.gz</packages>
+            <patchs></patchs>
+            <configs></configs>
+            <copyto>{workspace}/MindXOM_SDK/open_source/python/websockets/</copyto>
+        </artifact>
+        <artifact>
+            <softName>urllib3</softName>
+            <softVersion>1.25.11</softVersion>
+            <packages>urllib3-1.25.11.tar.gz</packages>
+            <patchs></patchs>
+            <configs></configs>
+            <copyto>{workspace}/MindXOM_SDK/open_source/python/urllib3/</copyto>
+        </artifact>
+    </artifacts>
+</project>
+

@@ -1,0 +1,17 @@
+[Unit]
+Description=mef-edge-init
+
+[Service]
+UMask=0027
+User=root
+ExecStart={install_dir}/software/edge_installer/script/mef_init.sh "{log_dir}"
+ExecReload=/bin/kill -HUP $MAINPID
+RemainAfterExit=true
+KillSignal=SIGTERM
+KillMode=control-group
+TimeoutStopSec=15
+Type=oneshot
+
+[Install]
+Alias=mef-edge-init.service
+WantedBy=multi-user.target

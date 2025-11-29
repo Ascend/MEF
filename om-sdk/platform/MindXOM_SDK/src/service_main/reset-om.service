@@ -1,0 +1,12 @@
+[Unit]
+Description=MindX Edge OM init service depended by all other OM services
+After=network-online.target devm_drv_init.service reset_mefedge.service
+Wants=network-online.target devm_drv_init.service
+
+[Service]
+Type=forking
+ExecStart=/bin/bash /usr/local/mindx/MindXOMReset/scripts/reset_install_om.sh
+TimeoutSec=6000
+
+[Install]
+WantedBy=multi-user.target

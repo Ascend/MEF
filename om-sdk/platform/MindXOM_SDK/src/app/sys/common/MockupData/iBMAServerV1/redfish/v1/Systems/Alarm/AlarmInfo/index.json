@@ -1,0 +1,8 @@
+{
+    "@odata.context": "/redfish/v1/$metadata#Systems/Alarm/AlarmInfo",
+    "@odata.id": "/redfish/v1/Systems/Alarm/AlarmInfo",
+    "@odata.type": "MindXEdgeAlarm.v1_0_0.MindXEdgeAlarm",
+    "Id" : "Alarm Info",
+    "Name": "Alarm Info",
+    "AlarMessages": null
+}

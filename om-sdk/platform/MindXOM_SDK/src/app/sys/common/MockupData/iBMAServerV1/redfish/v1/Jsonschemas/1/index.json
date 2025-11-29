@@ -1,0 +1,19 @@
+{
+    "@odata.context": "/redfish/v1/$metadata#JsonSchemasFile/Members/$entity",
+    "@odata.id": "/redfish/v1/JSONSchemas/oDataID1",
+    "@odata.type": "#JsonSchemaFile.v1_1_4.JsonSchemaFile",
+    "Id": "",
+    "Description": "oDataID2 Schema File Location",
+    "Name": "oDataID2 Schema File",
+    "Languages": [
+        "en"
+    ],
+    "Schema": "#oDataID1.oDataID2",
+    "Location": [
+        {
+            "Language": "en",
+            "Uri": "/redfish/v1/SchemaStore/en/oDataID1.json",
+	        "PublicationUri": "http://redfish.dmtf.org/schemas/v1/oDataID1.json"
+        }
+    ]
+}

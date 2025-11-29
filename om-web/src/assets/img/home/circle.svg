@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1189px" height="788px" viewBox="0 0 1189 788" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>圆地盘</title>
+    <defs>
+        <linearGradient x1="0%" y1="50%" x2="100%" y2="50%" id="linearGradient-1">
+            <stop stop-color="#00D8CB" offset="0%"></stop>
+            <stop stop-color="#3893FE" offset="34.0963724%"></stop>
+            <stop stop-color="#6A2EFF" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="0%" y1="50%" x2="100%" y2="50%" id="linearGradient-2">
+            <stop stop-color="#00D8CB" offset="0%"></stop>
+            <stop stop-color="#3893FE" offset="34.0963724%"></stop>
+            <stop stop-color="#6A2EFF" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="50%" y1="32.4729455%" x2="13.0216399%" y2="60.6661238%" id="linearGradient-3">
+            <stop stop-color="#3BCBFB" stop-opacity="0" offset="0%"></stop>
+            <stop stop-color="#24433D" offset="100%"></stop>
+        </linearGradient>
+        <ellipse id="path-4" cx="491.5" cy="291" rx="491.5" ry="291"></ellipse>
+        <filter x="-17.6%" y="-29.7%" width="135.2%" height="159.5%" filterUnits="objectBoundingBox" id="filter-5">
+            <feMorphology radius="37" operator="dilate" in="SourceAlpha" result="shadowSpreadOuter1"></feMorphology>
+            <feOffset dx="0" dy="0" in="shadowSpreadOuter1" result="shadowOffsetOuter1"></feOffset>
+            <feMorphology radius="38" operator="erode" in="SourceAlpha" result="shadowInner"></feMorphology>
+            <feOffset dx="0" dy="0" in="shadowInner" result="shadowInner"></feOffset>
+            <feComposite in="shadowOffsetOuter1" in2="shadowInner" operator="out" result="shadowOffsetOuter1"></feComposite>
+            <feGaussianBlur stdDeviation="33" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0.305882353   0 0 0 0 1  0 0 0 0.0785014546 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+        <linearGradient x1="29.2569233%" y1="39.0555375%" x2="119.917137%" y2="57.1229274%" id="linearGradient-6">
+            <stop stop-color="#D7E9FF" offset="0%"></stop>
+            <stop stop-color="#5E46FF" offset="100%"></stop>
+        </linearGradient>
+        <ellipse id="path-7" cx="485" cy="248.5" rx="348" ry="209.5"></ellipse>
+        <filter x="-24.8%" y="-41.2%" width="149.6%" height="182.3%" filterUnits="objectBoundingBox" id="filter-8">
+            <feMorphology radius="28.5" operator="dilate" in="SourceAlpha" result="shadowSpreadOuter1"></feMorphology>
+            <feOffset dx="0" dy="0" in="shadowSpreadOuter1" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="29" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0.305882353   0 0 0 0 1  0 0 0 0.0586876502 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="首页" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g transform="translate(-351.000000, -144.000000)" id="编组-3">
+            <g transform="translate(16.000000, 64.000000)">
+                <g id="圆地盘" transform="translate(438.000000, 183.000000)">
+                    <path d="M710.606716,231.849176 L747.53684,233.454203 C748.504073,238.726912 749,244.080221 749,249.5 C749,330.452604 638.359001,396.575659 499.121217,400.786973 L499.042441,372.760964 C617.870632,368.703607 712,313.501818 712,246 C712,241.216688 711.527337,236.495139 710.606716,231.849176 Z" id="形状结合" fill-opacity="0.620451" fill="#243950"></path>
+                    <path d="M432.606716,92.8491758 L469.53684,94.454203 C470.504073,99.7269121 471,105.080221 471,110.5 C471,191.452604 360.359001,257.575659 221.121217,261.786973 L221.042441,233.760964 C339.870632,229.703607 434,174.501818 434,107 C434,102.216688 433.527337,97.495139 432.606716,92.8491758 Z" id="形状结合备份" fill-opacity="0.570451" fill="#243950" transform="translate(346.021221, 177.318074) rotate(-180.000000) translate(-346.021221, -177.318074) "></path>
+                    <g id="编组-4" opacity="0.711834136">
+                        <path d="M970.12,261.255 L970.250791,262.285627 C971.078849,269.03967 971.5,275.874888 971.5,282.784273 C971.5,361.361663 917.04452,434.500182 829.159007,487.760828 C742.462715,540.300779 623.222058,573.5 491.464268,573.5 C359.850486,573.5 241.23513,540.37329 155.075908,487.932758 C67.5452761,434.657523 13.5,361.445761 13.5,282.784273 L13.509,284.215 L13.5683911,284.575293 C25.5344521,355.17905 80.96573,419.162594 163.92965,465.953803 L166.531217,467.41042 C251.953144,514.890686 365.982479,544.2795 491.464268,544.2795 C623.591173,544.2795 742.626887,511.695373 828.938029,459.71696 C913.747513,408.642878 966.950541,338.846371 970.066359,262.833064 L970.12,261.255 Z" id="形状结合备份" stroke="url(#linearGradient-1)"></path>
+                        <ellipse id="椭圆形备份-38" stroke="url(#linearGradient-2)" transform="translate(492.000000, 279.500000) rotate(-360.000000) translate(-492.000000, -279.500000) " cx="492" cy="279.5" rx="477.5" ry="274"></ellipse>
+                        <g id="椭圆形备份-4">
+                            <use fill="black" fill-opacity="1" filter="url(#filter-5)" xlink:href="#path-4"></use>
+                            <ellipse stroke="#27344B" stroke-width="1" stroke-linejoin="square" cx="491.5" cy="291" rx="491" ry="290.5"></ellipse>
+                            <use stroke="url(#linearGradient-3)" stroke-width="1" xlink:href="#path-4"></use>
+                        </g>
+                    </g>
+                    <ellipse id="椭圆形" stroke="#27344B" cx="485" cy="246" rx="226.5" ry="126.5"></ellipse>
+                    <ellipse id="椭圆形备份-2" stroke="url(#linearGradient-6)" opacity="0.410696847" cx="487" cy="250" rx="355.5" ry="217.5"></ellipse>
+                    <g id="椭圆形备份-2" fill="black" fill-opacity="1">
+                        <use filter="url(#filter-8)" xlink:href="#path-7"></use>
+                    </g>
+                    <ellipse id="椭圆形备份-2" stroke="#27344B" stroke-width="3" fill-opacity="0.330173733" fill="#131518" cx="485" cy="248.5" rx="346.5" ry="208"></ellipse>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

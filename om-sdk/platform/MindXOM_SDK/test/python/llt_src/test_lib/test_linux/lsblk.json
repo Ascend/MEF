@@ -1,0 +1,34 @@
+{
+  "blockdevices": [
+    {
+      "name": "sda",
+      "pttype": "gpt",
+      "path": "/dev/sda",
+      "size": 4000787030016,
+      "children": [
+        {
+          "name": "sda1",
+          "path": "/dev/sda1",
+          "fsavail": null,
+          "fssize": null,
+          "fstype": "ext4",
+          "mountpoint": null,
+          "size": 1073742336,
+          "log-sec": 512,
+          "pkname": "sda"
+        },
+        {
+          "name": "sda2",
+          "path": "/dev/sda2",
+          "fsavail": null,
+          "fssize": null,
+          "fstype": "ext4",
+          "mountpoint": null,
+          "size": 536870912,
+          "log-sec": 512,
+          "pkname": "sda"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+<report name="fcv llt">
+    <sessioninfo dump="{start_time}" id="1" start="{start_time}"/>
+    <counter covered="{class_covered}" missed="{class_missed}" type="CLASS"/>
+    <counter covered="{method_covered}" missed="{method_missed}" type="METHOD"/>
+    <counter covered="{line_covered}" missed="{line_missed}" type="LINE"/>
+    <counter covered="{branch_covered}" missed="{branch_missed}" type="BRANCH"/>
+</report>

@@ -1,0 +1,18 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#Systems/Partitions/$entity",
+  "@odata.id": "/redfish/v1/Systems/Partitions",
+  "@odata.type": "#MindXEdgePartitionCollection.MindXEdgePartitionCollection",
+  "Name": "Partition Collection",
+  "Members@odata.count": null,
+  "Members": [
+    {
+      "@odata.id": "/redfish/v1/Systems/Partitions/entityID"
+    }
+  ],
+  "Mount":{
+    "@odata.id": "/redfish/v1/Systems/Partitions/Mount"
+  },
+  "Unmount":{
+    "@odata.id": "/redfish/v1/Systems/Partitions/Unmount"
+  }
+}

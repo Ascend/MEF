@@ -1,0 +1,20 @@
+{
+    "error": {
+    "code": "Base.1.0.errorID",
+    "message": "A oData has occurred. See ExtendedInfo for more information.",
+    "@Message.ExtendedInfo": [
+      {
+        "@odata.type": "#MessageRegistry.v1_0_0.MessageRegistry",
+        "Description": null,
+        "Message": null,
+        "Severity": null,
+        "NumberOfArgs": null,
+        "ParamTypes": null,
+        "Resolution": "None",
+        "Oem": {
+          "status": null
+        }
+      }
+    ]
+  }
+}

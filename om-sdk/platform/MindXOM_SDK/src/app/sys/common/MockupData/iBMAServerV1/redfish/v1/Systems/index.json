@@ -1,0 +1,101 @@
+{
+    "@odata.context": "/redfish/v1/$metadata#Systems",
+    "@odata.id": "/redfish/v1/Systems",
+    "@odata.type": "#ComputerSystem.v1_18_0.ComputerSystem",
+    "Id": "1",
+    "Name": "Computer System",
+    "HostName": "Atlas200",
+    "UUID": "",
+    "Model": "",
+    "SupportModel": "",
+    "SerialNumber": "",
+    "AssetTag": "",
+    "Status": {
+        "Health": null
+    },
+    "Processors": {
+        "@odata.id": "/redfish/v1/Systems/Processors"
+    },
+    "Memory": {
+        "@odata.id": "/redfish/v1/Systems/Memory"
+    },
+    "EthernetInterfaces": {
+        "@odata.id": "/redfish/v1/Systems/EthernetInterfaces"
+    },
+    "LogServices": {
+        "@odata.id": "/redfish/v1/Systems/LogServices"
+    },
+    "SimpleStorages": {
+        "@odata.id": "/redfish/v1/Systems/SimpleStorages"
+    },
+    "Oem": {
+        "PCBVersion": "Ver.C",
+        "Temperature": null,
+        "Power": null,
+        "Voltage": null,
+        "CpuHeating": null,
+        "DiskHeating": null,
+        "UsbHubHeating": null,
+        "AiTemperature": null,
+        "ProcessorArchitecture": null,
+        "OSVersion": null,
+        "KernelVersion": null,
+        "Uptime": null,
+        "Datetime": null,
+        "DateTimeLocalOffset": null,
+        "CpuUsage": null,
+        "MemoryUsage": null,
+        "Firmware": [
+            {
+                "Version": null,
+                "InactiveVersion": null,
+                "Module": null,
+                "BoardId": null,
+                "UpgradeResult": null,
+                "UpgradeProcess": null
+            }
+        ],
+        "InactiveConfiguration": null,
+        "NTPService": {
+            "@odata.id": "/redfish/v1/Systems/NTPService"
+        },
+        "ExtendedDevices": {
+            "@odata.id": "/redfish/v1/Systems/ExtendedDevices"
+        },
+        "LTE": {
+            "@odata.id": "/redfish/v1/Systems/LTE"
+        },
+        "Partitions": {
+            "@odata.id": "/redfish/v1/Systems/Partitions"
+        },
+        "NfsManage": {
+            "@odata.id": "/redfish/v1/Systems/NfsManage"
+        },
+        "SecurityService": {
+            "@odata.id": "/redfish/v1/Systems/SecurityService"
+        },
+        "Alarm": {
+            "@odata.id": "/redfish/v1/Systems/Alarm"
+        },
+        "SystemTime": {
+            "@odata.id": "/redfish/v1/Systems/SystemTime"
+        },
+        "EthIpList": {
+            "@odata.id": "/redfish/v1/Systems/EthIpList"
+        },
+        "Modules": {
+            "@odata.id": "/redfish/v1/Systems/Modules"
+        }
+    },
+    "Actions": {
+        "#ComputerSystem.Reset": {
+            "target": "/redfish/v1/Systems/Actions/ComputerSystem.Reset"
+        },
+        "Oem": {
+            "#RestoreDefaults.Reset": {
+                "target": "/redfish/v1/Systems/Actions/RestoreDefaults.Reset"
+            }
+        }
+    }
+}
+

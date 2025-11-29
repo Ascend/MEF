@@ -1,0 +1,36 @@
+{
+   "@odata.context": "/redfish/v1/$metadata",
+   "value":
+   [
+      {
+         "name": "Systems",
+         "kind": "Singleton",
+         "url": "/redfish/v1/Systems"
+      },
+      {
+         "name": "AccountService",
+         "kind": "Singleton",
+         "url": "/redfish/v1/AccountService"
+      },
+      {
+         "name": "SessionService",
+         "kind": "Singleton",
+         "url": "/redfish/v1/SessionService"
+      },
+      {
+         "name": "UpdateService",
+         "kind": "Singleton",
+         "url": "/redfish/v1/UpdateService"
+      },
+      {
+         "name": "NetManager",
+         "kind": "Singleton",
+         "url": "/redfish/v1/NetManager"
+      },
+      {
+         "name": "EventService",
+         "kind": "Singleton",
+         "url": "/redfish/v1/EventService"
+      }
+   ]
+}

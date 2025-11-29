@@ -1,0 +1,67 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="zh-cn" xml:lang="zh-cn">
+<head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="DC.Type" content="topic">
+<meta name="DC.Title" content="mount_white_path命令">
+<meta name="DC.Format" content="XHTML">
+<meta name="DC.Identifier" content="ZH-CN_TOPIC_0000001447121173">
+<meta name="DC.Language" content="zh-cn">
+<title>mount_white_path命令</title>
+</head>
+<body><a name="ZH-CN_TOPIC_0000001447121173"></a><a name="ZH-CN_TOPIC_0000001447121173"></a>
+
+<h1 class="topictitle1">mount_white_path命令</h1>
+<div id="body1585133170803"><div class="section" id="ZH-CN_TOPIC_0000001447121173__section494485624615"><h4 class="sectiontitle">命令功能</h4><p id="ZH-CN_TOPIC_0000001447121173__p383014575014">该命令用于向挂载路径白名单中导入用户自定义挂载路径。</p>
+<p id="ZH-CN_TOPIC_0000001447121173__p225194110505">用户通过Web进行磁盘挂载时，只能将目录挂载到白名单已有的路径中。如果需要的路径不在白名单，那么通过该命令进行添加。</p>
+</div>
+<div class="section" id="ZH-CN_TOPIC_0000001447121173__section1946125634619"><h4 class="sectiontitle">命令格式</h4><ol id="ZH-CN_TOPIC_0000001447121173__ol208721748193512"><li id="ZH-CN_TOPIC_0000001447121173__li987254863511">执行命令：<strong id="ZH-CN_TOPIC_0000001447121173__b829418933417">cd /usr/local/mindx/MindXOM/tools/</strong>进入脚本文件所在路径。</li><li id="ZH-CN_TOPIC_0000001447121173__li15749145116358">根据需求使用以下命令。<ul id="ZH-CN_TOPIC_0000001447121173__ul162135710469"><li id="ZH-CN_TOPIC_0000001447121173__li162115715460"><strong id="ZH-CN_TOPIC_0000001447121173__b7345714467">./mount_white_path add </strong><em id="ZH-CN_TOPIC_0000001447121173__i73657174613">Absolute_Path</em> 向白名单中添加一个路径。单次最多可添加64个绝对路径到白名单中。添加多条白名单路径时，如果中间存在某条路径添加失败，后续路径不会继续添加。</li><li id="ZH-CN_TOPIC_0000001447121173__li16355744616"><strong id="ZH-CN_TOPIC_0000001447121173__b15319575464">./mount_white_path delete </strong><em id="ZH-CN_TOPIC_0000001447121173__i33135711460">Absolute_Path </em>从白名单中删除一个路径，并且单次只能删除一个路径。已挂载路径不允许从白名单中删除。</li><li id="ZH-CN_TOPIC_0000001447121173__li331157104611"><strong id="ZH-CN_TOPIC_0000001447121173__b18335714618">./mount_white_path display </strong>显示当前白名单所有的路径。</li><li id="ZH-CN_TOPIC_0000001447121173__li1782242811012"><strong id="ZH-CN_TOPIC_0000001447121173__b138771920711">./mount_white_path check</strong> <em id="ZH-CN_TOPIC_0000001447121173__i329217618812">Absolute_Path</em> 检查路径是否在白名单中，并且单次只能检查一个路径。</li><li id="ZH-CN_TOPIC_0000001447121173__li1482817229311"><strong id="ZH-CN_TOPIC_0000001447121173__b825414234311">./mount_white_path </strong><strong id="ZH-CN_TOPIC_0000001447121173__b295423192917">-h</strong><em id="ZH-CN_TOPIC_0000001447121173__i1390520527294">，</em><strong id="ZH-CN_TOPIC_0000001447121173__b96251453132919">--h</strong><em id="ZH-CN_TOPIC_0000001447121173__i2287121173018">，</em><strong id="ZH-CN_TOPIC_0000001447121173__b139441311301">-help</strong>或<strong id="ZH-CN_TOPIC_0000001447121173__b14460101403017">--help</strong> 显示帮助信息。</li></ul>
+</li></ol>
+<div class="note" id="ZH-CN_TOPIC_0000001447121173__note094765624612"><img src="../public_sys-resources/note_3.0-zh-cn.png"><span class="notetitle"> </span><div class="notebody"><ul id="ZH-CN_TOPIC_0000001447121173__ul10682115016538"><li id="ZH-CN_TOPIC_0000001447121173__li19944052155311">白名单中的路径可以直接进行磁盘挂载。</li><li id="ZH-CN_TOPIC_0000001447121173__li2682195095316">白名单中默认的路径为<span class="filepath" id="ZH-CN_TOPIC_0000001447121173__filepath74318176470">“/opt/mount/”</span>和<span class="filepath" id="ZH-CN_TOPIC_0000001447121173__filepath16436103719250">“/var/lib/docker”</span>。</li><li id="ZH-CN_TOPIC_0000001447121173__li121321822105913">白名单中任意两个路径不允许存在父子目录关系。</li><li id="ZH-CN_TOPIC_0000001447121173__li118134614014">白名单列表中最大支持64个绝对路径。</li><li id="ZH-CN_TOPIC_0000001447121173__li14710153763419">白名单路径只能是<span class="filepath" id="ZH-CN_TOPIC_0000001447121173__zh-cn_topic_0000001185965424_filepath062615893110">“/home”</span>和<span class="filepath" id="ZH-CN_TOPIC_0000001447121173__zh-cn_topic_0000001185965424_filepath179511115328">“/opt”</span>目录的子目录或为<span class="filepath" id="ZH-CN_TOPIC_0000001447121173__filepath776881717265">“/var/lib/docker”</span>，且不能是：<span class="filepath" id="ZH-CN_TOPIC_0000001447121173__zh-cn_topic_0000001185965424_filepath1799120181321">“/home/data/cert_backup”</span>、<span class="filepath" id="ZH-CN_TOPIC_0000001447121173__zh-cn_topic_0000001185965424_filepath165511646193216">“/home/data/”</span>、<span class="filepath" id="ZH-CN_TOPIC_0000001447121173__zh-cn_topic_0000001185965424_filepath9312155533210">“/home/log/”</span>、<span class="filepath" id="ZH-CN_TOPIC_0000001447121173__zh-cn_topic_0000001185965424_filepath1836514201711">“/home/admin/”</span>、<span class="filepath" id="ZH-CN_TOPIC_0000001447121173__zh-cn_topic_0000001185965424_filepath135523294711">“/home/AppUser/”</span>、<span class="filepath" id="ZH-CN_TOPIC_0000001447121173__zh-cn_topic_0000001185965424_filepath176341936474">“/home/MindXOM/”</span>、<span class="filepath" id="ZH-CN_TOPIC_0000001447121173__zh-cn_topic_0000001185965424_filepath865612133812">“/home/MEFEdge/”</span>、<span class="filepath" id="ZH-CN_TOPIC_0000001447121173__filepath593244211400">“/home/package/”</span>、<span class="filepath" id="ZH-CN_TOPIC_0000001447121173__filepath1603243204015">“/home/HwHiAiUser/”</span>及以上所有路径的子路径。</li></ul>
+</div></div>
+</div>
+<div class="section" id="ZH-CN_TOPIC_0000001447121173__section39511656144617"><h4 class="sectiontitle">参数说明</h4>
+<div class="tablenoborder"><table cellpadding="4" cellspacing="0" summary="" id="ZH-CN_TOPIC_0000001447121173__table2963185674610" frame="border" border="1" rules="all"><thead align="left"><tr id="ZH-CN_TOPIC_0000001447121173__row1331757134614"><th align="left" class="cellrowborder" valign="top" width="25.252525252525253%" id="mcps1.3.3.2.1.4.1.1"><p id="ZH-CN_TOPIC_0000001447121173__p331057104619">参数</p>
+</th>
+<th align="left" class="cellrowborder" valign="top" width="40.40404040404041%" id="mcps1.3.3.2.1.4.1.2"><p id="ZH-CN_TOPIC_0000001447121173__p13310573468">参数说明</p>
+</th>
+<th align="left" class="cellrowborder" valign="top" width="34.34343434343434%" id="mcps1.3.3.2.1.4.1.3"><p id="ZH-CN_TOPIC_0000001447121173__p7355716463">取值</p>
+</th>
+</tr>
+</thead>
+<tbody><tr id="ZH-CN_TOPIC_0000001447121173__row431657184619"><td class="cellrowborder" valign="top" width="25.252525252525253%" headers="mcps1.3.3.2.1.4.1.1 "><p id="ZH-CN_TOPIC_0000001447121173__p203195714461"><em id="ZH-CN_TOPIC_0000001447121173__i54901516142114">Absolute_Path</em></p>
+</td>
+<td class="cellrowborder" valign="top" width="40.40404040404041%" headers="mcps1.3.3.2.1.4.1.2 "><p id="ZH-CN_TOPIC_0000001447121173__p13105704615">白名单的绝对路径</p>
+</td>
+<td class="cellrowborder" valign="top" width="34.34343434343434%" headers="mcps1.3.3.2.1.4.1.3 "><p id="ZH-CN_TOPIC_0000001447121173__p13315719462">绝对路径信息，路径最大长度为255。</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="ZH-CN_TOPIC_0000001447121173__section2959155684618"><h4 class="sectiontitle">使用指南</h4><p id="ZH-CN_TOPIC_0000001447121173__p4310579467">mount_white_path命令必须使用root帐号执行。切换root帐号请参考<a href="zh-cn_topic_0000001447161197.html">develop命令</a>。</p>
+</div>
+<div class="section" id="ZH-CN_TOPIC_0000001447121173__section3959115612466"><h4 class="sectiontitle">使用实例</h4><p id="ZH-CN_TOPIC_0000001447121173__p3687132095918">执行命令：<strong id="ZH-CN_TOPIC_0000001447121173__b19383139175116">cd /usr/local/mindx/MindXOM/tools/</strong>进入脚本文件所在路径。</p>
+<ul id="ZH-CN_TOPIC_0000001447121173__ul124116411553"><li id="ZH-CN_TOPIC_0000001447121173__li154111048557">示例1：添加白名单路径。<pre class="screen" id="ZH-CN_TOPIC_0000001447121173__screen423571216554">Euler:/usr/local/mindx/MindXOM/tools # ./mount_white_path add /home/test/<strong id="ZH-CN_TOPIC_0000001447121173__b19419874216"> </strong></pre>
+<div class="p" id="ZH-CN_TOPIC_0000001447121173__p17348115519276">回显示例如下：<pre class="screen" id="ZH-CN_TOPIC_0000001447121173__screen1379483286">/home/test/ added successfully</pre>
+</div>
+</li><li id="ZH-CN_TOPIC_0000001447121173__li71501952105514">示例2：删除白名单路径。<pre class="screen" id="ZH-CN_TOPIC_0000001447121173__screen8560716155611">Euler:/usr/local/mindx/MindXOM/tools # ./mount_white_path delete /home/test/</pre>
+<p id="ZH-CN_TOPIC_0000001447121173__p193861633102819">回显示例如下：</p>
+<pre class="screen" id="ZH-CN_TOPIC_0000001447121173__screen1951354192814">/home/test/ deleted successfully</pre>
+</li><li id="ZH-CN_TOPIC_0000001447121173__li5377183145616">示例3：查看当前白名单中所有的路径。<pre class="screen" id="ZH-CN_TOPIC_0000001447121173__screen5847651155">Euler:/usr/local/mindx/MindXOM/tools # ./mount_white_path display</pre>
+<div class="p" id="ZH-CN_TOPIC_0000001447121173__p12605712162919">回显示例如下：<pre class="screen" id="ZH-CN_TOPIC_0000001447121173__screen135571232192916">/opt/mount/</pre>
+</div>
+</li><li id="ZH-CN_TOPIC_0000001447121173__li522918461846">示例4：检查路径是否在白名单中。<pre class="screen" id="ZH-CN_TOPIC_0000001447121173__screen7842194525619">Euler:/usr/local/mindx/MindXOM/tools # ./mount_white_path check /home/test/</pre>
+<div class="p" id="ZH-CN_TOPIC_0000001447121173__p1408578296">回显示例如下：<pre class="screen" id="ZH-CN_TOPIC_0000001447121173__screen13368410153013">/home/test/ does not exist in the list</pre>
+</div>
+</li></ul>
+</div>
+</div>
+
+</body>
+</html>

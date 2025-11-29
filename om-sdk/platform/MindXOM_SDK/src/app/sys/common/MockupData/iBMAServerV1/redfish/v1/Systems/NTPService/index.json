@@ -1,0 +1,13 @@
+{
+    "@odata.type": "#MindXEdgeNTPService.v1_0_0.MindXEdgeNTPService",
+    "@odata.context": "/redfish/v1/$metadata#Systems/NTPService",
+    "@odata.id": "/redfish/v1/Systems/NTPService",
+    "Id" : "NTPService",
+    "Name": "NTPService",
+    "ClientEnabled": null,
+    "ServerEnabled": null,
+    "Port": null,
+    "NTPRemoteServers": null,
+    "NTPRemoteServersbak": null,
+    "NTPLocalServers": null
+}

@@ -1,0 +1,385 @@
+#!/bin/bash
+source /home/data/config/os_cmd.conf
+source /home/data/config/mindx_om_env.conf
+
+export LD_LIBRARY_PATH="${OM_WORK_DIR}"/lib:"${LD_LIBRARY_PATH}"
+export PYTHONPATH="${OM_WORK_DIR}"/software/ibma:"${OM_WORK_DIR}"/software/ibma/opensource/python:"${OM_WORK_DIR}"/scripts/python
+
+MOUNT_ENTRY="${OM_WORK_DIR}"/scripts/python/mount_white_path.py
+
+function usage()
+{
+    echo -e "'$SCR_FILE_NAME' usage: "
+    echo -e "display                        Display mount white path list."
+    echo -e "add  [Absolute path]           Add mount path with specified name to list."
+    echo -e "delete  [Absolute path]        Delete mount path with specified name in list."
+    echo -e "check  [Absolute path]         Check if path exists in list."
+    echo -e "-h, --h, ,-help, --help        Show this usage message."
+}
+
+operlogfile="/var/plog/manager/manager_operate.log"
+MAX_WHITE_PATH_CNT=64
+
+function log()
+{
+    local local_ip
+    local local_name
+
+    #检查操作文件是否存在
+    if [ -L "${operlogfile}" ]; then
+        unlink ${operlogfile}
+    fi
+
+    if [ ! -f "${operlogfile}" ]; then
+        touch ${operlogfile} && chmod 640 ${operlogfile}
+    fi
+
+    local_ip=$(${OS_CMD_WHO} am i | cut -d \( -f 2 | cut -d \) -f 1)
+    if [[ -z "${local_ip}" ]]; then
+        local_ip="LOCAL"
+    fi
+
+    local_name=$(${OS_CMD_WHO} am i | awk '{print $1}' | awk '{gsub(/^\s+|\s+$/, "");print}')
+    if [[ -z "${local_name}" ]]; then
+        local_name=${LOGNAME}
+    fi
+
+    str="$(date +"%Y-%m-%d %H:%M:%S"): User=${local_name}, Location=${local_ip}, $*"
+    logger -p local3.info "${str}"
+
+    cur_date=$(date +"%Y-%m-%d %H:%M:%S,%3N")
+    temp=$(echo "$@" | sed 's/\(\(\/\w\+\)\+\/\)/****\//g')
+    echo "${cur_date} [${local_name}@${local_ip}] ${temp}" >> "${operlogfile}"
+}
+
+function is_real_path()
+{
+    local path=$1
+    local real_path_m
+    local real_path_s
+    local normal_path="${path}"
+
+    if [ "${path: -1}" == "/" ]
+    then
+        normal_path="${path:0:-1}"
+    fi
+
+    real_path_m=$(readlink -m "${path}")
+    real_path_s=$(realpath -sm "${path}")
+    if [[ "${real_path_m}" == "${real_path_s}" ]] && [[ "${real_path_s}" == "${normal_path}" ]]; then
+        return 0
+    fi
+
+    return 1
+}
+
+function conflict_check()
+{
+    local temp=0
+    local temp_file=/run/mountpath.log
+
+    if ! is_real_path "${temp_file}"; then
+        echo "mountpath.log is soft link, unlink it"
+        unlink "${temp_file}"
+    fi
+
+    ps -elf > "${temp_file}"
+    temp=$(< "${temp_file}" grep "${SCR_FILE_NAME}" -c)
+    if [[ "${temp}" -ge 2 ]]
+    then
+        return 1
+    fi
+    rm -f "${temp_file}"
+    return 0
+}
+
+function check_mount_path_valid() {
+    local mount_path="$1"
+    if [[ -z "${mount_path}" ]]; then
+        echo "path is empty"
+        return 1
+    fi
+    if [[ ${mount_path: -1} != "/" ]]; then
+        mount_path="$mount_path/"
+    fi
+    local mount_path_len=${#mount_path}
+    # 路径都要以/结尾
+    local white_path_list=("/opt/" "/home/")
+    local match_white="False"
+    for item in "${white_path_list[@]}"
+    do
+        # 长度必须比白名单路径长
+        local item_len="${#item}"
+        if [[ "${mount_path_len}" -le "${item_len}" ]]; then
+            continue
+        fi
+
+        # 前缀必须和白名单路径一样
+        local mount_path_prefix="${mount_path:0:${item_len}}"
+        if [[ "${mount_path_prefix}" != "${item}" ]]; then
+            continue
+        fi
+
+        match_white="True"
+        break
+    done
+
+    # 不是白名单路径的子路径，直接返回失败
+    if [[ "${match_white}" != "True" ]]; then
+        echo "${mount_path} path is not sub path of white path list"
+        return 1
+    fi
+
+    # 白名单内路径的子路径黑名单，都要以/结尾
+    local black_path_list=(
+        "/home/data/cert_backup/"
+        "/home/data/"
+        "/home/log/"
+        "/home/admin/"
+        "/home/AppUser/"
+        "/home/MindXOM/"
+        "/home/MEFEdge/"
+        "/home/package/"
+        "/home/HwHiAiUser/"
+    )
+    for item in "${black_path_list[@]}"
+    do
+        # path是黑名单路径及其子路径
+        if [[ "${mount_path}" == "${item}"* ]]; then
+            echo "${mount_path} path is a sub path of ${item} path, which is not permitted."
+            return 1
+        fi
+    done
+
+    return 0
+}
+
+function add()
+{
+    local mount_path=$1
+    check_mount_path_valid "${mount_path}"
+    local ret=$?
+    if [[ $ret -ne 0 ]]; then
+        echo "$mount_path added failed"
+        return 1
+    fi
+
+    python3 "${MOUNT_ENTRY}" "add" "-p" "${mount_path}"
+    return $?
+}
+
+function param_check()
+{
+    if [ "${OPER_FLG}" == "add" ] || [ "${OPER_FLG}" == "delete" ] || [ "${OPER_FLG}" == "check" ]; then
+        if [ -z "$2" ]
+        then
+            return 1
+        fi
+    fi
+
+    local count=0
+    local max_argc=65
+
+    while true
+    do
+        count=$((count+1))
+
+        if [ ${count} -gt ${max_argc} ]
+        then
+            echo "The parameter is too long."
+            return 1
+        fi
+
+        if [ -z "$2" ]
+        then
+            break
+        fi
+
+        if ! path_check "$2"
+        then
+            return 1
+        fi
+        shift
+    done
+
+    return 0
+}
+
+function path_check()
+{
+    local path=$1
+    #1.除了字符“/”之外，所有的字符都可以使用，但是要注意，在目录名或文件名中，使用某些特殊字符并不是明智之举。例如，在命名时应避免使用 <、>、？、* 和非打印字符等。如果一个文件名中包含了特殊字符，例如空格，那么在访问这个文件时就需要使用引号将文件名括起来。
+    var=$(echo "$path" | cut -c 1-1)
+    if [ "$var" != "/" ]
+    then
+        echo "$path is invaild.You must specify an absolute path. Try again."
+        return 1
+    fi
+
+    #2.目录名或文件名的是否有特殊字符，长度不能超过 255 个字符
+    if [[ ! "${path}" =~ ^[-0-9a-zA-Z._/]{1,255}$ ]]; then
+        echo -e "Check path failed."
+        return 1
+    fi
+
+    #3.软连接校验
+    is_real_path "${path}"
+    ret=$?
+    if [ ${ret} -ne 0 ]; then
+        echo -e "Path is soft link or illegal characters in path"
+        return 1
+    fi
+
+    return 0
+}
+
+OPER_FLG="$1"
+SCR_FILE_NAME=$(basename "$0")
+
+function check_all_param() {
+    local ret=0
+    if [ $UID -ne 0 ]
+    then
+        echo -e "Permission not allowed"
+        return 1
+    fi
+
+    if [ -z "${OPER_FLG}" ] || [ "${OPER_FLG}" = '--help' ] || [ "${OPER_FLG}" = '-h' ] || \
+        [ "${OPER_FLG}" = '-help' ] || [ "${OPER_FLG}" = '--h' ]
+    then
+        usage
+        return 2
+    fi
+
+    if [ "${OPER_FLG}" == "display" ]; then
+        if [[ $# -gt 1 ]]; then
+            echo "When operation is display, no need extra args."
+            return 1
+        else
+            return 0
+        fi
+    fi
+
+    if ! param_check "$@"
+    then
+        echo "param check failed."
+        return 1
+    fi
+
+    if ! conflict_check
+    then
+        echo "Someone else is working on the list, please wait"
+        return 1
+    fi
+
+    return 0
+}
+
+function do_mount_white() {
+    local ret=0
+    case "$OPER_FLG" in
+        add)
+            if [ $# -gt 65 ];then
+                echo "Path param count is too large at once."
+                return 1
+            fi
+            while true
+            do
+                if [ -z "$2" ]
+                then
+                    break
+                fi
+                add "$2"
+                ret=$?
+                if [[ "${ret}" -ne 0 ]]
+                then
+                    operate_log "$2 failed"
+                    return 1
+                else
+                    operate_log "$2 successfully"
+                fi
+                shift
+            done
+            ;;
+        display)
+            python3 "${MOUNT_ENTRY}" "display"
+            ret=$?
+            ;;
+        delete)
+            if [[ $# -gt 2 ]]; then
+                echo "Can only delete one path at a time."
+                return 1
+            fi
+            python3 "${MOUNT_ENTRY}" "delete" "-p" "$2"
+            ret=$?
+            ;;
+        check)
+            if [[ $# -gt 2 ]]; then
+                echo "Can only check one path at a time."
+                return 1
+            fi
+            python3 "${MOUNT_ENTRY}" "check" "-p" "$2"
+            ret=$?
+            ;;
+        *)
+            usage
+            return 1
+            ;;
+    esac
+
+    return ${ret}
+}
+
+function operate_log() {
+    local ret_info="$1"
+    case "$OPER_FLG" in
+        add)
+            log "Add white list ${ret_info}."
+            ;;
+        display)
+            log "Display white list ${ret_info}."
+            ;;
+        delete)
+            log "Delete white list ${ret_info}."
+            ;;
+        check)
+            log "Check white list ${ret_info}."
+            ;;
+        *)
+            return 0
+            ;;
+    esac
+
+    return 0
+}
+
+main()
+{
+    check_all_param "$@"
+    local ret1=$?
+    if [[ "${ret1}" -ne 0 ]]; then
+        if [[ "${ret1}" -eq 2 ]]; then
+            exit 0
+        fi
+
+        operate_log "failed"
+        exit 1
+    fi
+
+    do_mount_white "$@"
+    ret1=$?
+    if [ "${OPER_FLG}" == "add" ]; then
+        exit "${ret1}"
+    fi
+
+    if [[ "${ret1}" -ne 0 ]]; then
+        operate_log "failed"
+        exit 1
+    fi
+
+    operate_log "successfully"
+
+    exit 0
+}
+
+main "$@"

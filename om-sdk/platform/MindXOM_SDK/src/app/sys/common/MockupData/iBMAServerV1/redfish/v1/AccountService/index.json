@@ -1,0 +1,11 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#AccountService",
+  "@odata.id": "/redfish/v1/AccountService",
+  "@odata.type": "#AccountService.v1_11_0.AccountService",
+  "Id": "AccountService",
+  "Name": "Account Service",
+  "PasswordExpirationDays": null,
+  "Accounts": {
+    "@odata.id": "/redfish/v1/AccountService/Accounts"
+  }
+}

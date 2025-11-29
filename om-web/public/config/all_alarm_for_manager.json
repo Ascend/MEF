@@ -1,0 +1,673 @@
+{
+    "MAJOR_VERSION": "2",
+    "MINOR_VERSION": "8",
+    "AUX_VERSION": "0",
+    "EventSuggestion": [
+        {
+          "innerid": "a000000000",
+          "id": "00000000",
+          "level": "2",
+          "AlarmInstance": "M.2"
+        },
+        {
+          "innerid": "a000000001",
+          "id": "00000001",
+          "level": "2",
+          "AlarmInstance": "M.2"
+        },
+        {
+          "innerid": "a000000002",
+          "id": "00000002",
+          "level": "2",
+          "AlarmInstance": "M.2"
+        },
+        {
+          "innerid": "a000000003",
+          "id": "00000003",
+          "level": "0",
+          "AlarmInstance": "M.2"
+        },
+        {
+          "innerid": "b000000000",
+          "id": "00000000",
+          "level": "2",
+          "AlarmInstance": "HARD_DISK0"
+        },
+        {
+          "innerid": "b000000001",
+          "id": "00000001",
+          "level": "2",
+          "AlarmInstance": "HARD_DISK0"
+        },
+        {
+          "innerid": "b000000002",
+          "id": "00000002",
+          "level": "2",
+          "AlarmInstance": "HARD_DISK0"
+        },
+        {
+          "innerid": "b000000003",
+          "id": "00000003",
+          "level": "0",
+          "AlarmInstance": "HARD_DISK0"
+        },
+        {
+          "innerid": "b000000004",
+          "id": "00000004",
+          "level": "1",
+          "AlarmInstance": "HARD_DISK0"
+        },
+        {
+          "innerid": "b000000005",
+          "id": "00000005",
+          "level": "1",
+          "AlarmInstance": "HARD_DISK0"
+        },
+        {
+          "innerid": "c000000000",
+          "id": "00000000",
+          "level": "2",
+          "AlarmInstance": "HARD_DISK1"
+        },
+        {
+          "innerid": "c000000001",
+          "id": "00000001",
+          "level": "2",
+          "AlarmInstance": "HARD_DISK1"
+        },
+        {
+          "innerid": "c000000002",
+          "id": "00000002",
+          "level": "2",
+          "AlarmInstance": "HARD_DISK1"
+        },
+        {
+          "innerid": "c000000003",
+          "id": "00000003",
+          "level": "0",
+          "AlarmInstance": "HARD_DISK1"
+        },
+        {
+          "innerid": "c000000004",
+          "id": "00000004",
+          "level": "1",
+          "AlarmInstance": "HARD_DISK1"
+        },
+        {
+          "innerid": "c000000005",
+          "id": "00000005",
+          "level": "1",
+          "AlarmInstance": "HARD_DISK1"
+        },
+        {
+          "innerid": "d000000000",
+          "id": "00030000",
+          "level": "0",
+          "AlarmInstance": "eMMC"
+        },
+        {
+          "innerid": "d000000001",
+          "id": "00030001",
+          "level": "1",
+          "AlarmInstance": "eMMC"
+        },
+        {
+          "innerid": "d000000002",
+          "id": "00030002",
+          "level": "2",
+          "AlarmInstance": "eMMC"
+        },
+        {
+          "innerid": "d000000003",
+          "id": "00030003",
+          "level": "0",
+          "AlarmInstance": "eMMC"
+        },
+        {
+          "innerid": "e000000000",
+          "id": "00040000",
+          "level": "2",
+          "AlarmInstance": "SD"
+        },
+        {
+          "innerid": "e000000001",
+          "id": "00040001",
+          "level": "1",
+          "AlarmInstance": "SD"
+        },        
+        {
+          "innerid": "f000000000",
+          "id": "00080000",
+          "level": "1",
+          "AlarmInstance": "DDR"
+        },
+        {
+          "innerid": "g000000000",
+          "id": "00090000",
+          "level": "2",
+          "AlarmInstance": "ETH0"
+        },
+        {
+          "innerid": "g000000001",
+          "id": "00090001",
+          "level": "2",
+          "AlarmInstance": "ETH0"
+        },
+        {
+          "innerid": "g000000002",
+          "id": "00090002",
+          "level": "2",
+          "AlarmInstance": "ETH0"
+        },
+        {
+          "innerid": "g000000003",
+          "id": "00090003",
+          "level": "2",
+          "AlarmInstance": "ETH0"
+        },
+        {
+          "innerid": "h000000000",
+          "id": "00090000",
+          "level": "2",
+          "AlarmInstance": "ETH1"
+        },
+        {
+          "innerid": "h000000001",
+          "id": "00090001",
+          "level": "2",
+          "AlarmInstance": "ETH1"
+        },
+        {
+          "innerid": "h000000002",
+          "id": "00090002",
+          "level": "2",
+          "AlarmInstance": "ETH1"
+        },
+        {
+          "innerid": "h000000003",
+          "id": "00090003",
+          "level": "2",
+          "AlarmInstance": "ETH1"
+        },
+        {
+          "innerid": "i000000000",
+          "id": "000B0000",
+          "level": "2",
+          "AlarmInstance": "PCIe"
+        },
+        {
+          "innerid": "j000000000",
+          "id": "000C0000",
+          "level": "2",
+          "AlarmInstance": "PCIe"
+        },
+        {
+          "innerid": "k000000000",
+          "id": "000D0000",
+          "level": "2",
+          "AlarmInstance": "USB_HUB"
+        },
+        {
+          "innerid": "l000000000",
+          "id": "000E0000",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000001",
+          "id": "000E0001",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000002",
+          "id": "000E0002",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000003",
+          "id": "000E0003",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000004",
+          "id": "000E0004",
+          "level": "2",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000005",
+          "id": "000E0005",
+          "level": "2",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000006",
+          "id": "000E0006",
+          "level": "2",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000007",
+          "id": "000E0007",
+          "level": "2",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000008",
+          "id": "000E0008",
+          "level": "2",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000009",
+          "id": "000E0009",
+          "level": "2",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l00000000a",
+          "id": "000E000A",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l00000000b",
+          "id": "000E000B",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l00000000c",
+          "id": "000E000C",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l00000000d",
+          "id": "000E000D",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l00000000e",
+          "id": "000E000E",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l00000000f",
+          "id": "000E000F",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000010",
+          "id": "000E0010",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000011",
+          "id": "000E0011",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000012",
+          "id": "000E0012",
+          "level": "2",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000013",
+          "id": "000E0013",
+          "level": "2",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000014",
+          "id": "000E0014",
+          "level": "2",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000015",
+          "id": "000E0015",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000016",
+          "id": "000E0016",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000017",
+          "id": "000E0017",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000018",
+          "id": "000E0018",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000019",
+          "id": "000E0019",
+          "level": "2",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l00000001a",
+          "id": "000E001A",
+          "level": "0",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l00000001b",
+          "id": "000E001B",
+          "level": "0",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l00000001c",
+          "id": "000E001C",
+          "level": "0",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l00000001d",
+          "id": "000E001D",
+          "level": "0",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l00000001e",
+          "id": "000E001E",
+          "level": "0",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l00000001f",
+          "id": "000E001F",
+          "level": "0",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000020",
+          "id": "000E0020",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000021",
+          "id": "000E0021",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000022",
+          "id": "000E0022",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000023",
+          "id": "000E0023",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000024",
+          "id": "000E0024",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000025",
+          "id": "000E0025",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000026",
+          "id": "000E0026",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000027",
+          "id": "000E0027",
+          "level": "2",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000028",
+          "id": "000E0028",
+          "level": "2",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000029",
+          "id": "000E0029",
+          "level": "2",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l00000002a",
+          "id": "000E002A",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l00000002b",
+          "id": "000E002B",
+          "level": "2",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l00000002c",
+          "id": "000E002C",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l00000002d",
+          "id": "000E002D",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l00000002e",
+          "id": "000E002E",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l00000002f",
+          "id": "000E002F",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000030",
+          "id": "000E0030",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000031",
+          "id": "000E0031",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000032",
+          "id": "000E0032",
+          "level": "2",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000033",
+          "id": "000E0033",
+          "level": "2",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000034",
+          "id": "000E0034",
+          "level": "2",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000035",
+          "id": "000E0035",
+          "level": "2",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000036",
+          "id": "000E0036",
+          "level": "2",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000037",
+          "id": "000E0037",
+          "level": "2",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000038",
+          "id": "000E0038",
+          "level": "2",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l000000039",
+          "id": "000E0039",
+          "level": "2",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "l00000003a",
+          "id": "000E003A",
+          "level": "1",
+          "AlarmInstance": "NPU"
+        },
+        {
+          "innerid": "m000000000",
+          "id": "000F0000",
+          "level": "1",
+          "AlarmInstance": "MCU"
+        },
+        {
+          "innerid": "m000000001",
+          "id": "000F0001",
+          "level": "1",
+          "AlarmInstance": "MCU"
+        },
+        {
+          "innerid": "m000000002",
+          "id": "000F0002",
+          "level": "2",
+          "AlarmInstance": "MCU"
+        },
+        {
+          "innerid": "m000000003",
+          "id": "000F0003",
+          "level": "1",
+          "AlarmInstance": "MCU"
+        },
+        {
+          "innerid": "m000000004",
+          "id": "000F0004",
+          "level": "2",
+          "AlarmInstance": "MCU"
+        },
+        {
+          "innerid": "n000000000",
+          "id": "00100000",
+          "level": "2",
+          "AlarmInstance": "CPU"
+        },
+        {
+          "innerid": "o000000000",
+          "id": "00110000",
+          "level": "2",
+          "AlarmInstance": "RTC"
+        },
+        {
+          "innerid": "p000000000",
+          "id": "00120000",
+          "level": "1",
+          "AlarmInstance": "MNT"
+        },
+        {
+          "innerid": "p000000001",
+          "id": "00120001",
+          "level": "1",
+          "AlarmInstance": "MNT"
+        },
+        {
+          "innerid": "p000000002",
+          "id": "00120002",
+          "level": "1",
+          "AlarmInstance": "MNT"
+        },
+        {
+          "innerid": "p000000003",
+          "id": "00120003",
+          "level": "1",
+          "AlarmInstance": "MNT"
+        },
+        {
+          "innerid": "p000000004",
+          "id": "00120004",
+          "level": "1",
+          "AlarmInstance": "MNT"
+        },
+        {
+          "innerid": "r000000000",
+          "id": "00140000",
+          "level": "1",
+          "AlarmInstance": "NFS"
+        },
+        {
+          "innerid": "s000000000",
+          "id": "00150000",
+          "level": "1",
+          "AlarmInstance": "Wireless_Module"
+        },
+        {
+          "innerid": "s000000001",
+          "id": "00150001",
+          "level": "1",
+          "AlarmInstance": "Wireless_Module"
+        },
+        {
+          "innerid": "t000000000",
+          "id": "00160000",
+          "level": "2",
+          "AlarmInstance": "MEM OR STORAGE"
+        },
+        {
+          "innerid": "v000000000",
+          "id": "00180000",
+          "level": "1",
+          "AlarmInstance": "CERT"
+        },
+        {
+          "innerid": "w000000000",
+          "id": "00180000",
+          "level": "1",
+          "AlarmInstance": "FD_CERT"
+        }
+    ]
+}

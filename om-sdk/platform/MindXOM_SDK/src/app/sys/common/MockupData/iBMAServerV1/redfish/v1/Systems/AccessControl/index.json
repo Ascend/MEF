@@ -1,0 +1,9 @@
+{
+    "@odata.type": "#AccessControl.v1_15_0.AccessControl",
+    "@odata.context": "/redfish/v1/$metadata#Systems/AccessControl",
+    "@odata.id": "/redfish/v1/Systems/AccessControl",
+    "Id": "AccessControl",
+    "Name": "AccessControl",
+    "web_access" : null,
+    "ssh_access" : null
+}

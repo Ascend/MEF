@@ -1,0 +1,22 @@
+{
+    "system": {
+        "temperature": 0,
+        "power": null,
+        "voltage": null,
+        "cpu_heating": null,
+        "disk_heating": null,
+        "usb_hub_heating": null,
+        "up_time": null,
+        "date_time": null,
+        "time_zone": null,
+        "cpu_usage": null,
+        "memory_usage": null,
+        "health_status": "unknown"
+    },
+    "eth_statistics": [],
+    "partitions": [],
+    "extended_devices": [],
+    "simple_storages": [],
+    "ai_processors": [],
+    "lte_info": []
+}

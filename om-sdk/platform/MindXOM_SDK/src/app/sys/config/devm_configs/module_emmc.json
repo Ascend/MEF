@@ -1,0 +1,75 @@
+{
+    "id": 1,
+    "name": "emmc",
+    "category": "extend",
+    "driver": "/usr/local/lib/libemmc_adapter.so",
+    "dynamic": true,
+    "attributes": {
+        "name": {
+            "description": "emmc name",
+            "type": "string",
+            "id": 1,
+            "accessMode": "Read"
+        },
+        "class": {
+            "description": "emmc class",
+            "type": "string",
+            "id": 2,
+            "accessMode": "Read"
+        },
+        "dev_path": {
+            "description": "emmc device path",
+            "type": "string",
+            "id": 3,
+            "accessMode": "Read"
+        },
+        "vendor": {
+            "description": "emmc vendor",
+            "type": "string",
+            "id": 4,
+            "accessMode": "Read"
+        },
+        "model": {
+            "description": "emmc model",
+            "type": "string",
+            "id": 5,
+            "accessMode": "Read"
+        },
+        "sn": {
+            "description": "emmc sn",
+            "type": "string",
+            "id": 6,
+            "accessMode": "Read"
+        },
+        "location": {
+            "description": "emmc location",
+            "type": "string",
+            "id": 7,
+            "accessMode": "Read"
+        },
+        "status": {
+            "description": "emmc status",
+            "type": "string",
+            "id": 8,
+            "accessMode": "Read"
+        },
+        "version": {
+            "description": "emmc version",
+            "type": "string",
+            "id": 9,
+            "accessMode": "Read"
+        },
+        "health": {
+            "description": "emmc health",
+            "type": "int",
+            "id": 10,
+            "accessMode": "Read"
+        },
+        "extcsd_info": {
+            "description": "emmc life time",
+            "type": "int",
+            "id": 65537,
+            "accessMode": "Read"
+        }
+    }
+}

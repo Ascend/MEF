@@ -1,0 +1,11 @@
+{
+    "@odata.type": "#MindXEdgeLTE.v1_0_0.MindXEdgeLTE",
+    "@odata.context": "/redfish/v1/$metadata#Systems/LTE/ConfigInfo",
+    "@odata.id": "/redfish/v1/Systems/LTE/ConfigInfo",
+    "Id" : "LTE ConfigInfo",
+    "Name": "LTE ConfigInfo",
+    "apn_name": "",
+    "apn_user": "",
+    "auth_type": "",
+    "mode_type": ""
+}

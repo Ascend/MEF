@@ -1,0 +1,26 @@
+<a name="ZH-CN_TOPIC_0000001617047349"></a><a name="ZH-CN_TOPIC_0000001617047349"></a>
+
+<h1 class="topictitle1">恢复默认配置</h1>
+<div id="body0000001617047349"><div class="section" id="ZH-CN_TOPIC_0000001617047349__section188594550104"><h4 class="sectiontitle">使用场景</h4><p id="ZH-CN_TOPIC_0000001617047349__p177739015119">设备运行过程中，当系统配置等信息发生损坏时，可以使用恢复默认配置功能，使设备恢复默认配置。<span id="ZH-CN_TOPIC_0000001617047349__ph175698911269">Atlas IES</span>同时还支持最小系统恢复，最小系统恢复的相关说明和操作请参见<span id="ZH-CN_TOPIC_0000001617047349__ph1624814109715">《FusionDirector 操作指南》</span>。</p>
+<div class="notice" id="ZH-CN_TOPIC_0000001617047349__note858112624010"><span class="noticetitle"><img src="public_sys-resources/notice_3.0-zh-cn.png"> </span><div class="noticebody"><ul id="ZH-CN_TOPIC_0000001617047349__ul1182220816914"><li id="ZH-CN_TOPIC_0000001617047349__li208221682915">恢复默认配置操作不可撤销，请谨慎操作。</li><li id="ZH-CN_TOPIC_0000001617047349__li9341556154714">恢复默认配置将会删除所有配置信息，请选择是否保留IP地址。如果不保留IP，可能存在无法远程访问<span id="ZH-CN_TOPIC_0000001617047349__text236579331">Atlas 500 A2 智能小站</span>的风险。<ul id="ZH-CN_TOPIC_0000001617047349__ul51096438268"><li id="ZH-CN_TOPIC_0000001617047349__li118834013266">恢复默认配置：Web密码、Web超时时间、密码有效天数、证书过期告警天数、NTP使能、告警屏蔽配置、NFS管理、登录规则、挂载白名单（磁盘分区未挂载）、网管模式、加密算法配置、容器相关配置（已开启容器应用管理对接能力项）、web通信证书、网络IP（选择不保留）。</li><li id="ZH-CN_TOPIC_0000001617047349__li96951029142716">保留配置：网络IP（选择保留）、白牌配置、主机名、系统资产标签、系统时间、系统时区地区、系统弱口令、磁盘分区、挂载白名单（磁盘分区已挂载）。</li></ul>
+</li><li id="ZH-CN_TOPIC_0000001617047349__li1514911619581">恢复容器相关配置后，恢复前已部署的容器将会被删除。</li></ul>
+</div></div>
+</div>
+<div class="section" id="ZH-CN_TOPIC_0000001617047349__section18366151710554"><h4 class="sectiontitle">操作步骤</h4><ol id="ZH-CN_TOPIC_0000001617047349__ol2037765675816"><li id="ZH-CN_TOPIC_0000001617047349__li18774829134310"><span>在主菜单中选择<span class="menucascade" id="ZH-CN_TOPIC_0000001617047349__menucascade159881368472">“<span class="uicontrol" id="ZH-CN_TOPIC_0000001617047349__uicontrol12988069471">设置 &gt; 恢复配置</span>”</span>。</span><p><p id="ZH-CN_TOPIC_0000001617047349__p329611374146">进入<span class="wintitle" id="ZH-CN_TOPIC_0000001617047349__wintitle19916630164712">“基础信息”</span>操作页面。</p>
+<div class="fignone" id="ZH-CN_TOPIC_0000001617047349__fig141586119584"><span class="figcap"><b>图1 </b>恢复默认配置</span><br><span><img id="ZH-CN_TOPIC_0000001617047349__image1187104912547" src="figure/zh-cn_image_0000001619721397.png" height="201.495" width="523.6875"></span></div>
+</p></li><li id="ZH-CN_TOPIC_0000001617047349__li837717564588"><span>选择是否保留网络IP地址进行下一次登录。</span><p><ul id="ZH-CN_TOPIC_0000001617047349__ul1975833818420"><li id="ZH-CN_TOPIC_0000001617047349__li7960250102519">是，在“IP地址”处单击“保留”。</li><li id="ZH-CN_TOPIC_0000001617047349__li105379264181">否，在“IP地址”处单击“不保留”。<div class="note" id="ZH-CN_TOPIC_0000001617047349__note16694101511216"><img src="public_sys-resources/note_3.0-zh-cn.png"><span class="notetitle"> </span><div class="notebody"><p id="ZH-CN_TOPIC_0000001617047349__p154291856181811">推荐用户选择保留当前登录系统的IP地址。若选择保留的IP地址与默认网关不在同一网段，恢复默认配置后，会出现保留的IP地址无法远程登录系统的风险。</p>
+<p id="ZH-CN_TOPIC_0000001617047349__p106931515112115">不保留网络IP地址，网络IP地址将恢复为系统默认IP地址，可能无法远程访问设备。</p>
+</div></div>
+</li></ul>
+</p></li><li id="ZH-CN_TOPIC_0000001617047349__li71015210371"><span>在“密码”文本框中输入当前管理员用户密码。</span></li><li id="ZH-CN_TOPIC_0000001617047349__li13437734123715"><span>单击<span class="uicontrol" id="ZH-CN_TOPIC_0000001617047349__uicontrol1753932874915">“保存”</span>。</span><p><p id="ZH-CN_TOPIC_0000001617047349__p19241903416">界面弹出提示对话框，选择“确认”。</p>
+<div class="note" id="ZH-CN_TOPIC_0000001617047349__note198891151599"><img src="public_sys-resources/note_3.0-zh-cn.png"><span class="notetitle"> </span><div class="notebody"><p id="ZH-CN_TOPIC_0000001617047349__p16549103596">恢复默认配置过程，大约等待2分钟左右。恢复默认配置成功后，将自动刷新界面返回至系统登录页面。</p>
+</div></div>
+</p></li></ol>
+</div>
+</div>
+<div>
+<div class="familylinks">
+<div class="parentlink"><strong>父主题：</strong> <a href="help_028.html">设置</a></div>
+</div>
+</div>
+

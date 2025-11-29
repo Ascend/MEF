@@ -1,0 +1,15 @@
+-B  /run/systemd
+-B  /var/lib/docker
+-Br /var/lib/docker/modelfile
+-B  /var/lib/docker/kubelet
+-Br /usr
+-Br /etc/alternatives
+-Br /etc/hosts
+-Br /etc/docker/certs.d
+-Br /var/slogd
+-Br /etc/slog.conf
+-Br /var/dmp_daemon
+-Br /etc/hdcBasic.cfg
+-Br /etc/ld.so.conf.d/mind_so.conf
+-Br /etc/sys_version.conf
+-Br /etc/nsswitch.conf

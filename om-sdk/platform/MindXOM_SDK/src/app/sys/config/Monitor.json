@@ -1,0 +1,30 @@
+{
+    "SecurityService" : {
+        "isLocal" : true,
+        "action" : {
+            "SecurityService_all" : {
+                "hasList" : false
+            }
+        },
+        "description" : "Get SecurityService Info",
+        "enabled" : true,
+        "intervalTime" : 3600,
+        "runTimes" : 0,
+        "minIntervalTime" : 1,
+        "maxIntervalTime" : 86400
+    },
+    "System": {
+        "isLocal": false,
+        "action": {
+            "System_all": {
+                "hasList": false
+            }
+        },
+        "description": "Get System info.",
+        "enabled": true,
+        "intervalTime": 20,
+        "runTimes": 0,
+        "minIntervalTime": 1,
+        "maxIntervalTime": 86400
+    }
+}

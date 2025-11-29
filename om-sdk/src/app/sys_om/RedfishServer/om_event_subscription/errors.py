@@ -1,0 +1,10 @@
+#!/usr/bin/python3
+# -*- coding: UTF-8 -*-
+# Copyright (c) Huawei Technologies Co., Ltd. 2023-2023. All rights reserved.
+
+class KmcDecryptError(Exception):
+    pass
+
+
+class CertsManageError(Exception):
+    pass

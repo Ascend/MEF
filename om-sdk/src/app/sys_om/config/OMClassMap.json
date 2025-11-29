@@ -1,0 +1,6 @@
+{
+    "dflc_info": {"class" : "om_lib.Linux.om_systems.dflc_info.DflcInfo","keys" : ""},
+    "Actions":{"class" : "om_lib.Linux.om_systems.om_actions.OMSystemAction","keys" : ""},
+    "OMRestoreConfig":{"class" : "om_lib.Linux.om_systems.om_restore_config.OMRestoreConfig","keys" : ""},
+    "RecoverMiniOS": {"class": "om_lib.Linux.om_systems.recover_mini_os.RecoverMiniOS", "keys": ""}
+}

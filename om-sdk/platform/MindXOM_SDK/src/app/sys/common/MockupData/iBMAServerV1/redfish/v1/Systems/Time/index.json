@@ -1,0 +1,8 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#Systems/SystemTime",
+  "@odata.id": "/redfish/v1/Systems/SystemTime",
+  "@odata.type": "#MindXEdgeSystemTime.MindXEdgeSystemTime",
+  "Id": "SystemTime",
+  "Name": "SystemTime",
+  "Datetime": null
+}
