@@ -1,0 +1,38 @@
+{
+    "product_info": {
+        "manufacturer": "huawei",
+        "product_name": "Atlas 500",
+        "support_model": null,
+        "serial_number": null,
+        "pcb_version": null,
+        "os_version": null,
+        "kernel_version": null,
+        "software_version": null,
+        "asset_tag": null,
+        "cpuArchitecture": "ARM",
+        "lte_info": null
+    },
+    "system": {
+        "host_name": "Atlas500",
+        "cpu_count": 1,
+        "cpu_model": null,
+        "memory_size": null,
+        "storage_size": null,
+        "inactive_configuration": null,
+        "net_manager_domain": null,
+        "net_manager_account": null,
+        "net_manager_address": null
+    },
+    "ntp_server": {
+        "service_enabled": false,
+        "sync_net_manager": null,
+        "preferred_server": null,
+        "alternate_server": null
+    },
+    "partitions": [],
+    "ai_processors": [],
+    "extended_devices": [],
+    "ethernet_interfaces": [],
+    "simple_storages": [],
+    "firmware_list": []
+}

@@ -1,0 +1,19 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#EventService/ServiceCert/$entity",
+  "@odata.id": "/redfish/v1/EventService/ServiceCert",
+  "@odata.type": "#MindXEdgeSecurityService.v1_0_0.MindXEdgeSecurityService",
+  "Id": "ServiceCert",
+  "Name": "ServiceCert",
+  "RemoteHttpsServerCertChainInfo": [],
+  "Actions": {
+    "#ServiceCert.ImportRemoteHttpsServiceRootCA": {
+      "target": "/redfish/v1/EventService/ServiceCert/Actions/ServiceCert.ImportRemoteHttpsServiceRootCA"
+    },
+    "#ServiceCert.DeleteRemoteHttpsServiceRootCA": {
+      "target": "/redfish/v1/EventService/ServiceCert/Actions/ServiceCert.DeleteRemoteHttpsServiceRootCA"
+    },
+    "#ServiceCert.ImportRemoteHttpsServiceCrl": {
+      "target": "/redfish/v1/EventService/ServiceCert/Actions/ServiceCert.ImportRemoteHttpsServiceCrl"
+    }
+  }
+}

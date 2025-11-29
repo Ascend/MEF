@@ -1,0 +1,169 @@
+{
+    "id": 4,
+    "name": "lte",
+    "category": "extend",
+    "driver": "/usr/local/lib/liblte_adapter.so",
+    "dynamic": false,
+    "attributes": {
+        "name": {
+            "description": "lte name",
+            "type": "string",
+            "id": 1,
+            "accessMode": "Read"
+        },
+        "class": {
+            "description": "lte class",
+            "type": "string",
+            "id": 2,
+            "accessMode": "Read"
+        },
+        "dev_path": {
+            "description": "lte device path",
+            "type": "string",
+            "id": 3,
+            "accessMode": "Read"
+        },
+        "vendor": {
+            "description": "lte vendor",
+            "type": "string",
+            "id": 4,
+            "accessMode": "Read"
+        },
+        "model": {
+            "description": "lte model",
+            "type": "string",
+            "id": 5,
+            "accessMode": "Read"
+        },
+        "sn": {
+            "description": "lte sn",
+            "type": "string",
+            "id": 6,
+            "accessMode": "Read"
+        },
+        "location": {
+            "description": "lte location",
+            "type": "string",
+            "id": 7,
+            "accessMode": "Read"
+        },
+        "status": {
+            "description": "lte status",
+            "type": "string",
+            "id": 8,
+            "accessMode": "Read"
+        },
+        "version": {
+            "description": "lte version",
+            "type": "string",
+            "id": 9,
+            "accessMode": "Read"
+        },
+        "health": {
+            "description": "lte health",
+            "type": "int",
+            "id": 10,
+            "accessMode": "Read"
+        },
+        "type": {
+            "description": "lte type",
+            "type": "int",
+            "id": 65537,
+            "accessMode": "Read"
+        },
+        "dial_up_type": {
+            "description": "lte dail up type",
+            "type": "int",
+            "id": 65538,
+            "accessMode": "ReadWrite"
+        },
+        "present": {
+            "description": "lte present",
+            "type": "int",
+            "id": 65539,
+            "accessMode": "Read"
+        },
+        "sim_state": {
+            "description": "lte sim card state",
+            "type": "bool",
+            "id": 65540,
+            "accessMode": "Read"
+        },
+        "data": {
+            "description": "lte date switch",
+            "type": "bool",
+            "id": 65541,
+            "accessMode": "ReadWrite"
+        },
+        "switch": {
+            "description": "lte date switch",
+            "type": "bool",
+            "id": 65542,
+            "accessMode": "Write"
+        },
+        "apn_info": {
+            "description": "lte apn info",
+            "type": "json",
+            "id": 65543,
+            "accessMode": "ReadWrite",
+            "subAttributes": {
+                "apn_name": {
+                    "accessMode": "ReadWrite",
+                    "description": "apn name",
+                    "type": "string",
+                    "id": 1
+                },
+                "apn_user": {
+                    "accessMode": "ReadWrite",
+                    "description": "apn user",
+                    "type": "string",
+                    "id": 2
+                },
+                "apn_password": {
+                    "accessMode": "ReadWrite",
+                    "description": "apn passwd",
+                    "type": "string",
+                    "id": 3
+                },
+                "auth_type": {
+                    "accessMode": "ReadWrite",
+                    "description": "auth type",
+                    "type": "int",
+                    "id": 4
+                }
+            }
+        },
+        "signal_info": {
+            "description": "lte signal type and strength",
+            "type": "json",
+            "id": 65544,
+            "accessMode": "Read",
+            "subAttributes": {
+                "signal_type": {
+                    "accessMode": "Read",
+                    "description": "signal type",
+                    "type": "int",
+                    "id": 1
+                },
+                "signal_strength": {
+                    "accessMode": "Read",
+                    "description": "signal strength",
+                    "type": "int",
+                    "id": 2
+                }
+            }
+        },
+        "dial_up_authtype": {
+            "description": "lte dial up authtype",
+            "type": "int",
+            "id": 65545,
+            "accessMode": "ReadWrite"
+        },
+        "net_state": {
+            "description": "lte net state",
+            "type": "int",
+            "id": 65546,
+            "accessMode": "Read"
+        }
+    }
+}

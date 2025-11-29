@@ -1,0 +1,10 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#Systems/LogServices/progress",
+  "@odata.type": "#Task.v1_6_0.Task",
+  "@odata.id": "/redfish/v1/Systems/LogServices/progress",
+  "Id": "Log Collection Task",
+  "Name": "Log Collection Task",
+  "Description": "Get download logs progress.",
+  "TaskState": null,
+  "PercentComplete": null
+}

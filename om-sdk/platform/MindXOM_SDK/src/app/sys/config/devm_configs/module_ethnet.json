@@ -1,0 +1,69 @@
+{
+    "id": 2,
+    "name": "ethnet",
+    "category": "extend",
+    "driver": "/usr/lib64/libextend_adapter.so",
+    "dynamic": false,
+    "attributes": {
+        "name": {
+            "description": "ethnet name",
+            "type": "string",
+            "id": 1,
+            "accessMode": "Read"
+        },
+        "class": {
+            "description": "ethnet class",
+            "type": "string",
+            "id": 2,
+            "accessMode": "Read"
+        },
+        "dev_path": {
+            "description": "ethnet device path",
+            "type": "string",
+            "id": 3,
+            "accessMode": "Read"
+        },
+        "vendor": {
+            "description": "ethnet vendor",
+            "type": "string",
+            "id": 4,
+            "accessMode": "Read"
+        },
+        "model": {
+            "description": "ethnet model",
+            "type": "string",
+            "id": 5,
+            "accessMode": "Read"
+        },
+        "sn": {
+            "description": "ethnet sn",
+            "type": "string",
+            "id": 6,
+            "accessMode": "Read"
+        },
+        "location": {
+            "description": "ethnet location",
+            "type": "string",
+            "id": 7,
+            "accessMode": "Read"
+        },
+        "status": {
+            "description": "ethnet status",
+            "type": "string",
+            "id": 8,
+            "accessMode": "Read"
+        },
+        "version": {
+            "description": "ethnet version",
+            "type": "string",
+            "id": 9,
+            "accessMode": "Read"
+        },
+        "health": {
+            "description": "ethnet health",
+            "type": "int",
+            "id": 10,
+            "accessMode": "Read"
+        }
+    }
+}

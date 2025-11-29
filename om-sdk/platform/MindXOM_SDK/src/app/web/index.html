@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html ng-controller="appController">
+	<head>
+        <title ng-bind="title"></title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+		<meta http-equiv="Pragma" content="no-cache" />
+		<meta http-equiv="Expires" content="0" />
+        <link rel="stylesheet" type="text/css" href="./theme/custom/css/framework.css?ts=20190722"/>
+        <link rel="stylesheet" type="text/css" href="./theme/tiny/css/tiny2.min.css?ts=20190722"/>
+        <link rel="stylesheet" type="text/css" href="./theme/custom/css/serverhelp.css?ts=20190722"/>
+        <link type="image/x-icon" href="./theme/custom/img/favicon.ico" rel="icon"/>
+    </head>
+	<body ng-class="{homeBackground: isHome,notHomeBackground : !isHome}">
+		<!--[if lt IE 10]>
+			<div id="browser-support">
+			<h1>Your browser does not support this website.</h1>
+			<p>For a better experience,The browser requirements for serverhelp are described below.</p>
+			<p>
+			  <ol>
+			    <li>Google Chrome (version 69 and Higher)</li>
+			    <li>Internet Explorer (version 10 and Higher). Compatibility mode must be off.</li>			    
+			  </ol>
+			</p>
+			</div>
+			<![endif]-->
+
+		<nav>
+			<div ng-controller="topnavCtrl" ng-include="menus.url" style="height:68px;"></div>
+		</nav>   
+    <div id="content" style="min-height: 650px">
+        <div ui-view ng-animate="{enter:'fade-enter'}"></div>
+    </div>
+        <footer>
+            <div id="footer" ng-controller="footerCtrl" ng-include="footer.url"></div>            
+        </footer>
+        <script type="text/javascript" src="./lib/tiny/echarts.min.js"></script>
+        <script type="text/javascript" src="./lib/tiny/tiny.3lib.min.js?ts=20190722"></script>
+        <script type="text/javascript" src="./lib/tiny/tiny2.min.js?ts=20190722"></script>
+        <script type="text/javascript" src="main.js?ts=20190722"></script>        
+	</body>
+</html>

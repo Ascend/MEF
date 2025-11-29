@@ -1,0 +1,13 @@
+coverage
+mock
+pytest==7.1.1
+pytest-cov
+pytest-html
+pytest-mock
+pytest-asyncio
+jinja2==3.1.6
+flask==3.1.1
+SQLAlchemy==1.4.49
+urllib3==2.5.0
+websockets==15.0
+werkzeug==3.1.3

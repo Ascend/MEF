@@ -1,0 +1,14 @@
+[Unit]
+Description=Platform Application hook
+After=network-online.target start-minid.service om-init.service devm_drv_init.service
+Wants=network-online.target om-init.service
+
+[Service]
+Type=forking
+EnvironmentFile=/home/data/config/mindx_om_env.conf
+ExecStart=/usr/local/mindx/MindXOM/scripts/platform_init.sh
+TimeoutSec=6000
+StandardOutput=null
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,31 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="zh-cn" xml:lang="zh-cn">
+<head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="DC.Type" content="topic">
+<meta name="DC.Title" content="强制下电再上电后，偶现Docker服务启动失败">
+<meta name="DC.Format" content="XHTML">
+<meta name="DC.Identifier" content="ZH-CN_TOPIC_0000001751312942">
+<meta name="DC.Language" content="zh-cn">
+<title>强制下电再上电后，偶现Docker服务启动失败</title>
+</head>
+<body><a name="ZH-CN_TOPIC_0000001751312942"></a><a name="ZH-CN_TOPIC_0000001751312942"></a>
+
+<h1 class="topictitle1">强制下电再上电后，偶现Docker服务启动失败</h1>
+<div id="body0000001751312942"><div class="section" id="ZH-CN_TOPIC_0000001751312942__section129951955141214"><h4 class="sectiontitle">问题描述</h4><p id="ZH-CN_TOPIC_0000001751312942__p10719025205119">在进行强制下电再上电操作后，偶现Docker服务启动失败。</p>
+</div>
+<div class="section" id="ZH-CN_TOPIC_0000001751312942__section121401534151"><h4 class="sectiontitle">可能原因</h4><p id="ZH-CN_TOPIC_0000001751312942__p13411332185710">强制下电再上电后导致dockerd的PID冲突，Docker服务启动失败。</p>
+</div>
+<div class="section" id="ZH-CN_TOPIC_0000001751312942__section12173104094911"><h4 class="sectiontitle">解决措施</h4><p id="ZH-CN_TOPIC_0000001751312942__p152491148195416">通过以下两种方式之一进行操作。</p>
+<ul id="ZH-CN_TOPIC_0000001751312942__ul5578175714554"><li id="ZH-CN_TOPIC_0000001751312942__li145781657145513">以root用户登录后台环境，执行以下命令，重启Docker服务即可解决。<pre class="screen" id="ZH-CN_TOPIC_0000001751312942__screen14885135916553">systemctl restart docker</pre>
+</li><li id="ZH-CN_TOPIC_0000001751312942__li178561424560">在<span id="ZH-CN_TOPIC_0000001751312942__ph2601824175613">Atlas IES</span>的Web界面，选择<span class="menucascade" id="ZH-CN_TOPIC_0000001751312942__menucascade183450861311">“<span class="uicontrol" id="ZH-CN_TOPIC_0000001751312942__uicontrol1434510820131">管理 &gt; 复位控制</span>”</span>，单击<span class="uicontrol" id="ZH-CN_TOPIC_0000001751312942__uicontrol12269247134">“重启系统”</span>，重新启动系统服务。<div class="fignone" id="ZH-CN_TOPIC_0000001751312942__fig181117386162"><span class="figcap"><b>图1 </b>复位控制</span><br><span><img id="ZH-CN_TOPIC_0000001751312942__image12051646102718" src="../images/zh-cn_image_0000001751402986.png" height="199.4202" width="469.49"></span></div>
+</li></ul>
+</div>
+</div>
+
+</body>
+</html>

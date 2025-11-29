@@ -1,0 +1,17 @@
+{
+  "manager": {
+    "network": true,
+    "time": true,
+    "registration": true,
+    "disk": true,
+    "alarm": true,
+    "journal": true,
+    "update": true,
+    "reload": true,
+    "information": true,
+    "extendModule": true
+  },
+  "setting": {
+    "safety": true
+  }
+}

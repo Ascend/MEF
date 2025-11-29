@@ -1,0 +1,12 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#EventService/Subscriptions/$entity",
+  "@odata.id": "/redfish/v1/EventService/Subscriptions",
+  "@odata.type": "#EventDestination.v1_1_1.EventDestination",
+  "Id": null,
+  "Name": "EventSubscription 1",
+  "Destination": null,
+  "EventTypes": null,
+  "HttpHeaders":null,
+  "Protocol": "Redfish",
+  "Context": "event subscription context string"
+}

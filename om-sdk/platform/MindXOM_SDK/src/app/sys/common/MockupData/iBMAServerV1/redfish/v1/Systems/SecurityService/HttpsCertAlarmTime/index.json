@@ -1,0 +1,6 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#Systems/SecurityService/$entity",
+  "@odata.id": "/redfish/v1/Systems/SecurityService/HttpsCertAlarmTime",
+  "@odata.type": "#MindXEdgeSecurityService.v1_0_0.MindXEdgeSecurityService",
+  "CertAlarmTime": null
+}

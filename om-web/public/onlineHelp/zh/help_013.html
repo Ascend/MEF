@@ -1,0 +1,122 @@
+<a name="ZH-CN_TOPIC_0000001579405594"></a><a name="ZH-CN_TOPIC_0000001579405594"></a>
+
+<h1 class="topictitle1">网管注册</h1>
+<div id="body8662426"><div class="section" id="ZH-CN_TOPIC_0000001579405594__zh-cn_topic_0176113890_section59143716545"><h4 class="sectiontitle">使用场景</h4><div class="p" id="ZH-CN_TOPIC_0000001579405594__p2796121811220"><span id="ZH-CN_TOPIC_0000001579405594__ph884614719226">边缘管理系统</span>支持以下几种网管模式：<ul id="ZH-CN_TOPIC_0000001579405594__ul1573510563516"><li id="ZH-CN_TOPIC_0000001579405594__li673612560513">点对点Web管理<p id="ZH-CN_TOPIC_0000001579405594__p17941157101112"><a name="ZH-CN_TOPIC_0000001579405594__li673612560513"></a><a name="li673612560513"></a>用来单独管理一台<span id="ZH-CN_TOPIC_0000001579405594__ph5757655153614">边缘设备</span>，系统默认采用该模式。如果希望批量管理边缘设备，需要将网管模式切换为“<span id="ZH-CN_TOPIC_0000001579405594__ph1490516620123">FusionDirector</span>管理”，以便纳入中心管理系统<span id="ZH-CN_TOPIC_0000001579405594__ph113580400138">FusionDirector</span>统一管理。</p>
+</li><li id="ZH-CN_TOPIC_0000001579405594__li1072819551969"><span id="ZH-CN_TOPIC_0000001579405594__ph1976354291311">FusionDirector</span>管理<p id="ZH-CN_TOPIC_0000001579405594__p4133246151618"><span id="ZH-CN_TOPIC_0000001579405594__ph18302194417131">FusionDirector</span>是用来对服务器和华为边缘设备进行统一运维管理的软件，提供对边缘设备的纳管、设备配置、固件升级等全生命周期的管理能力，有效帮助运维人员提高运维效率、降低运维成本。关于<span id="ZH-CN_TOPIC_0000001579405594__ph18852249121310">FusionDirector</span>的详细介绍请参见<span id="ZH-CN_TOPIC_0000001579405594__ph1624814109715">《FusionDirector 操作指南》</span>。</p>
+<p id="ZH-CN_TOPIC_0000001579405594__p14861416171216">通过将网管模式切换为“<span id="ZH-CN_TOPIC_0000001579405594__ph8527185471311">FusionDirector</span>管理”，使<span id="ZH-CN_TOPIC_0000001579405594__ph1688114763914">边缘设备</span>与<span id="ZH-CN_TOPIC_0000001579405594__ph129116116145">FusionDirector</span>对接，实现FusionDirector对批量<span id="ZH-CN_TOPIC_0000001579405594__ph7594554123911">边缘设备</span>的统一管理。</p>
+<p id="ZH-CN_TOPIC_0000001579405594__p11990157121511">如果用户部署了<span id="ZH-CN_TOPIC_0000001579405594__ph8405154146">FusionDirector</span>软件，可以使用该模式。</p>
+</li></ul>
+</div>
+</div>
+<div class="section" id="ZH-CN_TOPIC_0000001579405594__zh-cn_topic_0176113890_section19916167145410"><h4 class="sectiontitle">操作步骤</h4><ol id="ZH-CN_TOPIC_0000001579405594__zh-cn_topic_0176113890_ol2098497165420"><li id="ZH-CN_TOPIC_0000001579405594__zh-cn_topic_0176113890_li974918376427"><span>在主菜单中选择“管理 &gt; 网管注册”。</span><p><div class="fignone" id="ZH-CN_TOPIC_0000001579405594__fig1275533354217"><span class="figcap"><b>图1 </b>配置网管注册</span><br><span><img id="ZH-CN_TOPIC_0000001579405594__image93251210163210" src="figure/zh-cn_image_0000001655086421.png" height="221.7775" width="469.49"></span></div>
+</p></li><li id="ZH-CN_TOPIC_0000001579405594__zh-cn_topic_0176113890_li1098511725418"><span>在“配置信息”区域，选择网管模式。</span><p><ul id="ZH-CN_TOPIC_0000001579405594__zh-cn_topic_0176113890_ul15451103725511"><li id="ZH-CN_TOPIC_0000001579405594__zh-cn_topic_0176113890_li14451113795518">点对点Web管理：<span id="ZH-CN_TOPIC_0000001579405594__ph877537112710">边缘管理系统</span>默认采用点对点Web管理方式单独管理一台<span id="ZH-CN_TOPIC_0000001579405594__ph1526675813915">边缘设备</span>，通过浏览器输入<span id="ZH-CN_TOPIC_0000001579405594__ph9883112194017">边缘设备</span>的管理IP地址，进行点对点的设备管理。</li><li id="ZH-CN_TOPIC_0000001579405594__zh-cn_topic_0176113890_li1145113713552"><span id="ZH-CN_TOPIC_0000001579405594__ph15589117151412">FusionDirector</span>管理：<span id="ZH-CN_TOPIC_0000001579405594__ph757911619400">边缘设备</span>作为边缘节点，与中心管理系统FusionDirector连接，纳入<span id="ZH-CN_TOPIC_0000001579405594__ph160214126149">FusionDirector</span>统一管理。根据实际的应用场景设置以下参数。<div class="fignone" id="ZH-CN_TOPIC_0000001579405594__fig1219173672412"><span class="figcap"><b>图2 </b><span id="ZH-CN_TOPIC_0000001579405594__ph17703151631418">FusionDirector</span>管理</span><br><span><img id="ZH-CN_TOPIC_0000001579405594__image136742981813" src="figure/zh-cn_image_0000001579245814.png" height="282.5851" width="469.49"></span></div>
+<div class="note" id="ZH-CN_TOPIC_0000001579405594__note3666745111314"><img src="public_sys-resources/note_3.0-zh-cn.png"><span class="notetitle"> </span><div class="notebody"><ol type="a" id="ZH-CN_TOPIC_0000001579405594__ol13293437346"><li id="ZH-CN_TOPIC_0000001579405594__li93291243163415">如果同一网卡上配置了多个IP地址，纳管到<span id="ZH-CN_TOPIC_0000001579405594__ph9413119191419">FusionDirector</span>上显示的IP是随机的，无法确定是哪个设备。如果想要指定纳管到<span id="ZH-CN_TOPIC_0000001579405594__ph16848824151413">FusionDirector</span>上的IP地址，可以通过绑定出口路由的方式实现。例如：假设<span id="ZH-CN_TOPIC_0000001579405594__ph1357732811417">FusionDirector</span>的IP地址为192.168.100.15，设备上同一网卡上有2个IP地址192.168.1.100和192.168.1.101，如果要指定192.168.1.100纳管到<span id="ZH-CN_TOPIC_0000001579405594__ph1040373951418">FusionDirector</span>上，则通过命令<strong id="ZH-CN_TOPIC_0000001579405594__zh-cn_topic_0000001433864389_zh-cn_topic_0000001256575975_b78461515132817">ip route add 192.168.100.15 via 192.168.1.1 src 192.168.1.100</strong>配置即可实现。</li><li id="ZH-CN_TOPIC_0000001579405594__li193301743173413">当已纳管<span id="ZH-CN_TOPIC_0000001579405594__ph124881745111418">FusionDirector</span>处于就绪时，Web界面不允许上传<span id="ZH-CN_TOPIC_0000001579405594__ph12833174991411">FusionDirector</span>根证书，需要去纳管就绪的<span id="ZH-CN_TOPIC_0000001579405594__ph13682575143">FusionDirector</span>上导入其他<span id="ZH-CN_TOPIC_0000001579405594__ph967175341410">FusionDirector</span>的根证书，以实现<span id="ZH-CN_TOPIC_0000001579405594__ph434616081516">FusionDirector</span>之间的网管切换。</li></ol>
+</div></div>
+
+<div class="tablenoborder"><table cellpadding="4" cellspacing="0" summary="" id="ZH-CN_TOPIC_0000001579405594__table10769144061711" frame="border" border="1" rules="all"><caption><b>表1 </b>参数说明</caption><thead align="left"><tr id="ZH-CN_TOPIC_0000001579405594__row4770114091712"><th align="left" class="cellrowborder" valign="top" width="15%" id="mcps1.3.2.2.2.2.1.2.6.2.4.1.1"><p id="ZH-CN_TOPIC_0000001579405594__p1271035018170">参数</p>
+</th>
+<th align="left" class="cellrowborder" valign="top" width="15%" id="mcps1.3.2.2.2.2.1.2.6.2.4.1.2"><p id="ZH-CN_TOPIC_0000001579405594__p6710185011711">是否必选</p>
+</th>
+<th align="left" class="cellrowborder" valign="top" width="70%" id="mcps1.3.2.2.2.2.1.2.6.2.4.1.3"><p id="ZH-CN_TOPIC_0000001579405594__p2071112502171">说明</p>
+</th>
+</tr>
+</thead>
+<tbody><tr id="ZH-CN_TOPIC_0000001579405594__row6770164016170"><td class="cellrowborder" valign="top" width="15%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.1 "><p id="ZH-CN_TOPIC_0000001579405594__p1171118504172">节点ID</p>
+</td>
+<td class="cellrowborder" valign="top" width="15%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.2 "><p id="ZH-CN_TOPIC_0000001579405594__p1371155031718">必选（自动识别）</p>
+</td>
+<td class="cellrowborder" valign="top" width="70%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.3 "><p id="ZH-CN_TOPIC_0000001579405594__p13711185071711">本设备对接<span id="ZH-CN_TOPIC_0000001579405594__ph14711125015177">FusionDirector</span>的节点ID，使用默认参数。</p>
+<p id="ZH-CN_TOPIC_0000001579405594__p20711155010171">修改该参数需要填写满足UUID（通用唯一标识符）格式的字符串。UUID是一个长度为128位的标识符，通常用来表示网络中的实体。</p>
+<p id="ZH-CN_TOPIC_0000001579405594__p9711165020171">该参数格式为由数字和字母a~f组成，包含8个数字和字母组成的一组（32位），使用“-”分隔，再由4个数字和字母组成的一组（16位），使用“-”分隔；再由4个数字和字母组成的一组（16位），使用“-”分隔，再由4个数字和字母组成的一组（16位），使用“-”分隔，最后是包含12个数字和字母组成的一组（48位）。</p>
+<p id="ZH-CN_TOPIC_0000001579405594__p1571115017171">参考格式为1aab2222-abc3-de45-123d-56789abcfdff。</p>
+<div class="note" id="ZH-CN_TOPIC_0000001579405594__note171165019177"><span class="notetitle"> 说明： </span><div class="notebody"><p id="ZH-CN_TOPIC_0000001579405594__p147114503175">若<span id="ZH-CN_TOPIC_0000001579405594__ph184277974017">边缘设备</span>发生故障，更换后的<span id="ZH-CN_TOPIC_0000001579405594__ph11795214134011">边缘设备</span>节点ID应和原始<span id="ZH-CN_TOPIC_0000001579405594__ph11666721154019">边缘设备</span>节点ID配置一致。通过<span id="ZH-CN_TOPIC_0000001579405594__ph167115503171">FusionDirector</span>界面选择<span class="menucascade" id="ZH-CN_TOPIC_0000001579405594__menucascade137111850181711">“<span class="uicontrol" id="ZH-CN_TOPIC_0000001579405594__uicontrol3711650121714">菜单</span> &gt; <span class="uicontrol" id="ZH-CN_TOPIC_0000001579405594__uicontrol371113505177">设备</span> &gt; <span class="uicontrol" id="ZH-CN_TOPIC_0000001579405594__uicontrol1871195091718">设备列表</span> &gt; <span class="uicontrol" id="ZH-CN_TOPIC_0000001579405594__uicontrol571185019174">边缘设备</span>”</span>，在设备列表中查看故障设备的节点ID。</p>
+</div></div>
+</td>
+</tr>
+<tr id="ZH-CN_TOPIC_0000001579405594__row19770194051717"><td class="cellrowborder" valign="top" width="15%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.1 "><p id="ZH-CN_TOPIC_0000001579405594__p5711105071716">服务器名称</p>
+</td>
+<td class="cellrowborder" valign="top" width="15%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.2 "><p id="ZH-CN_TOPIC_0000001579405594__p13711165051718">可选</p>
+</td>
+<td class="cellrowborder" valign="top" width="70%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.3 "><p id="ZH-CN_TOPIC_0000001579405594__p1571105011712">如果用户在<span id="ZH-CN_TOPIC_0000001579405594__ph17111150101711">FusionDirector</span>上导入自定义的服务证书，则需要在边缘设备上导入对应签发机构的根证书（通过Web界面上<span class="uicontrol" id="ZH-CN_TOPIC_0000001579405594__uicontrol1571155010173">“FusionDirector根证书文件”</span>字段可以导入），用于校验<span id="ZH-CN_TOPIC_0000001579405594__ph97111550151713">FusionDirector</span>的自定义服务证书，同时还需要填写<span class="uicontrol" id="ZH-CN_TOPIC_0000001579405594__uicontrol1171265019173">“服务器名称”</span>字段校验<span id="ZH-CN_TOPIC_0000001579405594__ph671255031719">FusionDirector</span>自定义服务证书的域名。该字段要求与<span id="ZH-CN_TOPIC_0000001579405594__ph197121850171717">FusionDirector</span>自定义服务证书的CN（Common Name）字段保持一致。</p>
+<p id="ZH-CN_TOPIC_0000001579405594__p871285013178">如果用户使用的是华为初始的服务证书，则无需填写此字段。</p>
+<div class="notice" id="ZH-CN_TOPIC_0000001579405594__note47121507178"><span class="noticetitle"> 须知： </span><div class="noticebody"><p id="ZH-CN_TOPIC_0000001579405594__p1712145011712">用户自定义服务证书的CN字段不能包含关键字“huawei”，否则会导致设备与<span id="ZH-CN_TOPIC_0000001579405594__ph17712155041711">FusionDirector</span>对接失败。</p>
+<p id="ZH-CN_TOPIC_0000001579405594__p15712850101713">如果服务器名称输入以“*.”开头的域名，保存配置后，“*.”会被替换成“fd.”。</p>
+</div></div>
+</td>
+</tr>
+<tr id="ZH-CN_TOPIC_0000001579405594__row1677015405175"><td class="cellrowborder" valign="top" width="15%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.1 "><p id="ZH-CN_TOPIC_0000001579405594__p871265015172">对接IP地址</p>
+</td>
+<td class="cellrowborder" valign="top" width="15%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.2 "><p id="ZH-CN_TOPIC_0000001579405594__p271255041713">必选</p>
+</td>
+<td class="cellrowborder" valign="top" width="70%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.3 "><p id="ZH-CN_TOPIC_0000001579405594__p9712250131714">表示<span id="ZH-CN_TOPIC_0000001579405594__ph117121050151718">FusionDirector</span>的访问IP地址，取值为IPv4地址。</p>
+</td>
+</tr>
+<tr id="ZH-CN_TOPIC_0000001579405594__row17770840111720"><td class="cellrowborder" valign="top" width="15%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.1 "><p id="ZH-CN_TOPIC_0000001579405594__p18712125020173">对接端口号</p>
+</td>
+<td class="cellrowborder" valign="top" width="15%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.2 "><p id="ZH-CN_TOPIC_0000001579405594__p1771275041716">必选</p>
+</td>
+<td class="cellrowborder" valign="top" width="70%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.3 "><p id="ZH-CN_TOPIC_0000001579405594__p7712050181711">表示<span id="ZH-CN_TOPIC_0000001579405594__ph1712350171712">FusionDirector</span>对接端口号，取值在[1, 65535]，目前只支持443。</p>
+</td>
+</tr>
+<tr id="ZH-CN_TOPIC_0000001579405594__row6770240101710"><td class="cellrowborder" valign="top" width="15%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.1 "><p id="ZH-CN_TOPIC_0000001579405594__p1371235011711">对接帐号</p>
+</td>
+<td class="cellrowborder" valign="top" width="15%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.2 "><p id="ZH-CN_TOPIC_0000001579405594__p18712165014175">必选</p>
+</td>
+<td class="cellrowborder" valign="top" width="70%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.3 "><p id="ZH-CN_TOPIC_0000001579405594__p471255061718">表示<span id="ZH-CN_TOPIC_0000001579405594__ph97127504171">FusionDirector</span>对接帐号，默认账号为EdgeAccount。</p>
+<div class="note" id="ZH-CN_TOPIC_0000001579405594__note117121850101713"><span class="notetitle"> 说明： </span><div class="notebody"><p id="ZH-CN_TOPIC_0000001579405594__p07125508176">采用默认EdgeAccount对接成功之后，对接账号会自动采用<span id="ZH-CN_TOPIC_0000001579405594__ph1871265021720">FusionDirector</span>下发的新的一机一密重新对接。一机一密账户和密码由<span id="ZH-CN_TOPIC_0000001579405594__ph4712125013178">FusionDirector</span>的业务微服务自生成，详细信息请参考<span id="ZH-CN_TOPIC_0000001579405594__ph19712050151710">《FusionDirector 维护指南》</span>。</p>
+</div></div>
+</td>
+</tr>
+<tr id="ZH-CN_TOPIC_0000001579405594__row1977013403171"><td class="cellrowborder" valign="top" width="15%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.1 "><p id="ZH-CN_TOPIC_0000001579405594__p197121950131712">对接密码</p>
+</td>
+<td class="cellrowborder" valign="top" width="15%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.2 "><p id="ZH-CN_TOPIC_0000001579405594__p1071265016171">必选</p>
+</td>
+<td class="cellrowborder" valign="top" width="70%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.3 "><div class="p" id="ZH-CN_TOPIC_0000001579405594__p15713155041713">表示<span id="ZH-CN_TOPIC_0000001579405594__ph571365011715">FusionDirector</span>对接密码。<ul id="ZH-CN_TOPIC_0000001579405594__ul16713205031714"><li id="ZH-CN_TOPIC_0000001579405594__li8713125016179">如果对接的<span id="ZH-CN_TOPIC_0000001579405594__ph1571305014179">FusionDirector</span>版本为1.7及以上版本，密码请参见<span id="ZH-CN_TOPIC_0000001579405594__ph6713115061712">《FusionDirector 操作指南》</span>中的“设备快速入门 &gt; 边缘设备 &gt; 添加边缘设备”章节。</li><li id="ZH-CN_TOPIC_0000001579405594__li20713205071713">如果对接的<span id="ZH-CN_TOPIC_0000001579405594__ph1471365051715">FusionDirector</span>版本为1.7以下版本，密码请参见《<a href="https://support.huawei.com/enterprise/zh/doc/EDOC1100136147/f8839568" target="_blank" rel="noopener noreferrer">FusionDirector 操作指南</a>》中的“设备快速入门 &gt; 边缘设备 &gt; 注册FusionDirector网管信息”章节。</li></ul>
+</div>
+</td>
+</tr>
+<tr id="ZH-CN_TOPIC_0000001579405594__row377184020175"><td class="cellrowborder" valign="top" width="15%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.1 "><p id="ZH-CN_TOPIC_0000001579405594__p147131950171717"><span id="ZH-CN_TOPIC_0000001579405594__ph771365013175">FusionDirector</span>根证书文件</p>
+</td>
+<td class="cellrowborder" valign="top" width="15%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.2 "><p id="ZH-CN_TOPIC_0000001579405594__p271355015172">可选</p>
+</td>
+<td class="cellrowborder" valign="top" width="70%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.3 "><p id="ZH-CN_TOPIC_0000001579405594__p12713165031716">第一次对接<span id="ZH-CN_TOPIC_0000001579405594__ph197135507172">FusionDirector</span>必须上传根证书文件。点击<span><img id="ZH-CN_TOPIC_0000001579405594__image195175440528" src="figure/zh-cn_image_0000001596500490.png"></span>，上传根证书文件。如果是多级证书，需要合并成一个证书文件导入，建议上级证书放在后面。</p>
+<div class="p" id="ZH-CN_TOPIC_0000001579405594__p4713195021711">该参数为可选参数，使用系统初始证书时可以不配置该参数。出于安全考虑，建议用户使用自己的证书和公私钥对，并定期更新，保证证书的有效性和安全性。当证书过期或者被吊销导致设备与<span id="ZH-CN_TOPIC_0000001579405594__ph157131950161715">FusionDirector</span>对接不上时，请重新导入根证书文件。为了保证根证书的安全性，根证书使用的非对称加密算法和密钥长度要求如下：<ul id="ZH-CN_TOPIC_0000001579405594__ul1371345011170"><li id="ZH-CN_TOPIC_0000001579405594__li197138509171">如果使用RSA算法，建议使用3072位及以上密钥。</li><li id="ZH-CN_TOPIC_0000001579405594__li18713750121717">如果使用椭圆曲线EC算法，建议使用256位及以上密钥。</li></ul>
+</div>
+<div class="p" id="ZH-CN_TOPIC_0000001579405594__p2930124819420">证书其他格式要求如下：<ul id="ZH-CN_TOPIC_0000001579405594__ul1974318613435"><li id="ZH-CN_TOPIC_0000001579405594__li974319617437">证书需要是PEM格式。</li><li id="ZH-CN_TOPIC_0000001579405594__li33921721154312">根CA证书中签名正确。</li><li id="ZH-CN_TOPIC_0000001579405594__li449853434312">根CA证书处于有效期内。</li><li id="ZH-CN_TOPIC_0000001579405594__li6948265446">摘要算法可以是SHA256、SHA384、SHA512。</li><li id="ZH-CN_TOPIC_0000001579405594__li2973123418459">签名算法可以是sha256WithRSAEncryption、sha384WithRSAEncryption、sha512WithRSAEncryption、ecdsa-with-SHA256。</li><li id="ZH-CN_TOPIC_0000001579405594__li202745714318">证书须为X.509 V3数字证书，根CA证书的“基本限制”扩展域须标明为“CA”，“密钥用法”扩展域中须包含“证书签名”。</li><li id="ZH-CN_TOPIC_0000001579405594__li159082162497">证书扩展域需要带有“使用者可选名称SAN”字段，且包含IP值。</li></ul>
+</div>
+<p id="ZH-CN_TOPIC_0000001579405594__p77131550111713">建议使用用户自定义的根证书。另外华为也提供了根证书，获取方法如下：</p>
+<p id="ZH-CN_TOPIC_0000001579405594__p8713950171716">登录<span id="ZH-CN_TOPIC_0000001579405594__ph1771305091719">FusionDirector</span>，在<span id="ZH-CN_TOPIC_0000001579405594__ph177131650161712">FusionDirector</span>界面上方依次选择“菜单 &gt;系统管理 &gt; 安全管理 &gt; 证书管理"，点击“服务证书”，单击“FusionDirectorServer”栏目里的<span class="uicontrol" id="ZH-CN_TOPIC_0000001579405594__uicontrol6713105091714">“导出”</span>，下载证书压缩包（rootCerts.zip）到本地。解压下载的证书压缩包，获取需要的证书rootCertChain.crt。</p>
+<div class="note" id="ZH-CN_TOPIC_0000001579405594__note171315500172"><span class="notetitle"> 说明： </span><div class="notebody"><p id="ZH-CN_TOPIC_0000001579405594__p187132505172">若设备处于已纳管状态，则不能再次上传证书。</p>
+</div></div>
+</td>
+</tr>
+<tr id="ZH-CN_TOPIC_0000001579405594__row677174015171"><td class="cellrowborder" valign="top" width="15%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.1 "><p id="ZH-CN_TOPIC_0000001579405594__p19713950151720"><span id="ZH-CN_TOPIC_0000001579405594__ph1071345001712">FusionDirector</span>吊销列表文件</p>
+</td>
+<td class="cellrowborder" valign="top" width="15%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.2 "><p id="ZH-CN_TOPIC_0000001579405594__p6713195001718">可选</p>
+</td>
+<td class="cellrowborder" valign="top" width="70%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.3 "><p id="ZH-CN_TOPIC_0000001579405594__p1971415011170">为了安全起见，上传<span id="ZH-CN_TOPIC_0000001579405594__ph6714195011719">FusionDirector</span>根证书后，建议导入证书吊销列表，用来校验<span id="ZH-CN_TOPIC_0000001579405594__ph20714195021716">FusionDirector</span>证书是否被吊销，如果<span id="ZH-CN_TOPIC_0000001579405594__ph1971465051712">FusionDirector</span>证书已被吊销，则设备与<span id="ZH-CN_TOPIC_0000001579405594__ph147141850131715">FusionDirector</span>将不能对接。该证书由用户自行提供。</p>
+</td>
+</tr>
+<tr id="ZH-CN_TOPIC_0000001579405594__row11771114021710"><td class="cellrowborder" valign="top" width="15%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.1 "><p id="ZH-CN_TOPIC_0000001579405594__p1071413501179"><span id="ZH-CN_TOPIC_0000001579405594__ph10714175014174">FusionDirector</span>对接测试</p>
+</td>
+<td class="cellrowborder" valign="top" width="15%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.2 "><p id="ZH-CN_TOPIC_0000001579405594__p10714135081716">必选</p>
+</td>
+<td class="cellrowborder" valign="top" width="70%" headers="mcps1.3.2.2.2.2.1.2.6.2.4.1.3 "><p id="ZH-CN_TOPIC_0000001579405594__p18714195021715">系统默认选择对接测试。</p>
+<ul id="ZH-CN_TOPIC_0000001579405594__ul1971445014176"><li id="ZH-CN_TOPIC_0000001579405594__li371425051711">如果选择对接测试，会对节点ID和设备与<span id="ZH-CN_TOPIC_0000001579405594__ph1071415001717">FusionDirector</span>的连通性进行测试，如果测试不通过，则<span id="ZH-CN_TOPIC_0000001579405594__ph177147503179">FusionDirector</span>网管切换失败。</li><li id="ZH-CN_TOPIC_0000001579405594__li18714350151718">如果选择不测试，不会对节点ID和设备与<span id="ZH-CN_TOPIC_0000001579405594__ph471465091719">FusionDirector</span>的连通性进行测试，<span id="ZH-CN_TOPIC_0000001579405594__ph371475015173">FusionDirector</span>网管切换成功，但这可能会导致<span id="ZH-CN_TOPIC_0000001579405594__ph11714145020173">FusionDirector</span>纳管失败。</li></ul>
+<p id="ZH-CN_TOPIC_0000001579405594__p2714175071711">在<span id="ZH-CN_TOPIC_0000001579405594__ph17498152516403">边缘设备</span>离线集中配置（无法连接<span id="ZH-CN_TOPIC_0000001579405594__ph107148509178">FusionDirector</span>）的场景下，可以选择不测试，但需要保证<span id="ZH-CN_TOPIC_0000001579405594__ph117141150101717">FusionDirector</span>参数的有效性，即节点ID不能在<span id="ZH-CN_TOPIC_0000001579405594__ph2714105021711">FusionDirector</span>上重复，且IP地址、用户名和密码有效。 其他场景建议都进行测试，避免输入错误导致纳管失败。</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</li></ul>
+</p></li><li id="ZH-CN_TOPIC_0000001579405594__zh-cn_topic_0176113890_li85159481717"><span>单击“保存”。</span><p><p id="ZH-CN_TOPIC_0000001579405594__p15489120182713">页面提示“网管模式切换成功”，表示配置网管注册成功。</p>
+</p></li></ol>
+</div>
+</div>
+<div>
+<div class="familylinks">
+<div class="parentlink"><strong>父主题：</strong> <a href="help_008.html">管理</a></div>
+</div>
+</div>
+

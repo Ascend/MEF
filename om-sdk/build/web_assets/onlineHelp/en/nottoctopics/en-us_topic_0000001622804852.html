@@ -1,0 +1,29 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en-us" xml:lang="en-us">
+<head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="DC.Type" content="topic">
+<meta name="DC.Title" content="Partition Created Successfully but Failed to Be Mounted">
+<meta name="DC.Format" content="XHTML">
+<meta name="DC.Identifier" content="EN-US_TOPIC_0000001622804852">
+<meta name="DC.Language" content="en-us">
+<title>Partition Created Successfully but Failed to Be Mounted</title>
+</head>
+<body><a name="EN-US_TOPIC_0000001622804852"></a><a name="EN-US_TOPIC_0000001622804852"></a>
+
+<h1 class="topictitle1">Partition Created Successfully but Failed to Be Mounted</h1>
+<div id="body0000001622804852"><div class="section" id="EN-US_TOPIC_0000001622804852__section129951955141214"><h4 class="sectiontitle">Symptom</h4><p id="EN-US_TOPIC_0000001622804852__p10719025205119">A partition is successfully created on the <span id="EN-US_TOPIC_0000001622804852__ph75770119262">Atlas IES</span> WebUI, but the partition format is not ext4. At the same time, the partition fails to be mounted.</p>
+</div>
+<div class="section" id="EN-US_TOPIC_0000001622804852__section121401534151"><h4 class="sectiontitle">Possible Cause</h4><p id="EN-US_TOPIC_0000001622804852__p13411332185710">After a partition is created, the system runs the partition formatting command to format the partition to ext4. However, due to system resource problems, the partition ID may fail to be obtained. As a result, the formatting fails, and the created partition is not in ext4 format. A partition in non-ext4 format will fail to be mounted.</p>
+</div>
+<div class="section" id="EN-US_TOPIC_0000001622804852__section1562916712169"><h4 class="sectiontitle">Solution</h4><ol id="EN-US_TOPIC_0000001622804852__ol42709992617"><li id="EN-US_TOPIC_0000001622804852__li15226153210272"><span>Log in to the background environment as the <strong id="EN-US_TOPIC_0000001622804852__b366955711348">root</strong> user.</span></li><li id="EN-US_TOPIC_0000001622804852__li172703952615"><span>Run the following command to format the partition to ext4:</span><p><pre class="screen" id="EN-US_TOPIC_0000001622804852__screen875393532616">mke2fs -t ext4 /dev/<em id="EN-US_TOPIC_0000001622804852__i91671814113514">{Name of the new partition}</em></pre>
+</p></li><li id="EN-US_TOPIC_0000001622804852__li112702962620"><span>Return to the <span id="EN-US_TOPIC_0000001622804852__ph1717955962612">Atlas IES</span> WebUI and mount the partition again.</span></li></ol>
+</div>
+</div>
+
+</body>
+</html>

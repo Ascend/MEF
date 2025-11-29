@@ -1,0 +1,12 @@
+{
+    "@odata.context": "/redfish/v1/$metadata#NetManager/ImportFdCert",
+    "@odata.id": "/redfish/v1/NetManager/ImportFdCert",
+    "@odata.type": "#MindXEdgeNetManager.v1_0_0.MindXEdgeNetManager",
+    "Id": "ImportFdCert",
+    "Name": "ImportFdCert",
+    "Issuer": "",
+    "Subject": "",
+    "Date": "",
+    "SerialNum": "",
+    "Fingerprint": ""
+}

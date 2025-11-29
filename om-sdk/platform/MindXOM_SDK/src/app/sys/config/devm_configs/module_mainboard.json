@@ -1,0 +1,69 @@
+{
+    "id": 9,
+    "name": "mainboard",
+    "category": "internal",
+    "driver": "/usr/local/lib/libmainboard_adapter.so",
+    "dynamic": false,
+    "attributes": {
+        "board_type": {
+            "description": "mainboard type",
+            "type": "int",
+            "id": 65537,
+            "accessMode": "Read"
+        },
+        "board_id": {
+            "description": "mainboard id",
+            "type": "int",
+            "id": 65538,
+            "accessMode": "Read"
+        },
+        "pcb_id": {
+            "description": "mainboard pcb id",
+            "type": "int",
+            "id": 65539,
+            "accessMode": "Read"
+        },
+        "bom_id": {
+            "description": "mainboard bom id",
+            "type": "int",
+            "id": 65540,
+            "accessMode": "Read"
+        },
+        "board_voltage": {
+            "description": "mainboard voltage",
+            "type": "float",
+            "id": 65541,
+            "accessMode": "Read"
+        },
+        "board_power_info": {
+            "description": "mainboard power consumption info",
+            "type": "float",
+            "id": 65542,
+            "accessMode": "Read"
+        },
+        "temperature": {
+            "description": "mainborad temperature",
+            "type": "int",
+            "id": 65543,
+            "accessMode": "Read"
+        },
+        "hot_cold_cpu_state": {
+            "description": "heating and cooling state of cpu",
+            "type": "int",
+            "id": 65544,
+            "accessMode": "Read"
+        },
+        "hot_cold_disk_state": {
+            "description": "heating and cooling state of disk",
+            "type": "int",
+            "id": 65545,
+            "accessMode": "Read"
+        },
+        "hot_cold_usb_hub_state": {
+            "description": "heating and cooling state of usb-hub",
+            "type": "int",
+            "id": 65547,
+            "accessMode": "Read"
+        }
+    }
+}

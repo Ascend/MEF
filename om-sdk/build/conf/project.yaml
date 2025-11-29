@@ -1,0 +1,72 @@
+projects:
+  x86-gcc4:
+    category: build
+    compiler: gcc    # blk_toolchain_{gcc}.cmake  CMAKE_TOOLCHAIN_FILE: gcc
+    default_build_type: release
+    arch: x86
+    bitwide: 64
+
+  arm-gcc4-unit:
+    category: unittest
+    compiler: gcc
+    default_build_type: release
+    arch: ARM
+    bitwide: 64
+
+  x86-gcc7:
+    category: build
+    compiler: gcc7   
+    default_build_type: release
+    arch: x86
+    bitwide: 64
+
+  arm-gcc7:
+    category: build
+    compiler: gcc7
+    default_build_type: release
+    arch: ARM
+    bitwide: 64
+
+  arm-gcc4:
+    category: build
+    compiler: gcc
+    default_build_type: release
+    arch: ARM
+    bitwide: 64
+
+# 源码目录约定
+sourceDir:
+  build: ./build
+  src: ./src
+  out: ./output
+  test: ./test
+
+# 编译类型定义
+buildType:
+  - DEBUG
+  - RELEASE
+  - TEST
+
+# CPU架构定义
+osArch:
+  ARM_64: linux-aarch64
+  x86_64: linux-x86_64
+
+gccType:
+  gcc4: sys
+  gcc7: scl7
+
+bepChoices: false
+
+compilerSwitch:
+  systemEnv:
+    - ASEND_HOME
+    - ASCEND_VERSION
+  Linux:
+    gcc7:
+      cmd_prefixs: [ "source /opt/rh/devtoolset-7/enable" ]
+    gcc:
+      cmd_prefixs: []
+
+
+

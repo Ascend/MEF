@@ -1,0 +1,28 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#Systems/Processors/Members/$entity",
+  "@odata.id": "/redfish/v1/Systems/Processors/AiProcessor",
+  "@odata.type": "#Processor.v1_15_0.Processor",
+  "Name": "AiProcessor",
+  "Id": "AiProcessor",
+  "Manufacturer":null,
+  "Model": null,
+  "NpuVersion": null,
+  "Status": {
+    "Health": null,
+    "State": null
+  },
+  "Oem": {
+    "Count": null,
+    "Capability": {
+      "Calc": null,
+      "Ddr": null
+    },
+    "OccupancyRate": {
+      "AiCore": null,
+      "AiCpu": null,
+      "CtrlCpu": null,
+      "DdrUsage": null,
+      "DdrBandWidth": null
+    }
+  }
+}

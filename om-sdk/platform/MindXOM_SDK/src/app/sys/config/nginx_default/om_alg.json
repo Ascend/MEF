@@ -1,0 +1,5 @@
+{
+    "sdp_alg_id": "9",
+    "hmac_alg_id": "2054",
+    "cert_check_period": "86400"
+}

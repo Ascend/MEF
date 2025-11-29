@@ -1,0 +1,6 @@
+{
+  "product_capability": [
+    "pod_config",
+    "support_udp_container_port"
+  ]
+}

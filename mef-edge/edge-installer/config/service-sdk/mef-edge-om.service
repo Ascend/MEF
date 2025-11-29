@@ -1,0 +1,22 @@
+[Unit]
+Description=mef-edge-om
+After=network.target
+PartOf=mef-edge.target
+ConditionPathExists={install_dir}/software/edge_om/bin/edge-om
+StartLimitBurst=0
+MefEdgeSoftwareDir={software_dir}
+
+[Service]
+UMask=0027
+User=root
+Environment="LD_LIBRARY_PATH={install_dir}/software/lib:$LD_LIBRARY_PATH"
+ExecStart={install_dir}/software/edge_om/bin/edge-om
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+KillSignal=SIGTERM
+KillMode=control-group
+TimeoutStopSec=15
+
+[Install]
+Alias=mef-edge-om.service
+WantedBy=multi-user.target mef-edge.target

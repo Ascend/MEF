@@ -1,0 +1,17 @@
+[Unit]
+Description=reset_mefedge
+After=network.target devm_drv_init.service
+
+[Service]
+User=root
+ExecStart={pkg_dir}/software/edge_installer/script/reset_install.sh
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=no
+StartLimitBurst=0
+KillSignal=SIGTERM
+KillMode=control-group
+TimeoutStopSec=15
+
+[Install]
+Alias=reset_mefedge.service
+WantedBy=multi-user.target

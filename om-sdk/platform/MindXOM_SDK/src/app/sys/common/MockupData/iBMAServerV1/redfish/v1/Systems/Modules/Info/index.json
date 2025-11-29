@@ -1,0 +1,14 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#Systems/Modules/Members/$entity",
+  "@odata.id": "/redfish/v1/Systems/Modules/oDataID",
+  "@odata.type": "#MindXEdgeModuleInfoCollection.MindXEdgeModuleInfoCollection",
+  "Id": null,
+  "Name": "Device Module Info",
+  "Members@odata.count": null,
+  "Members": [
+      {
+          "@odata.id": "/redfish/v1/Systems/Modules/oDataPrefixID/entityID"
+      }
+  ],
+  "ModuleInfo": null
+}

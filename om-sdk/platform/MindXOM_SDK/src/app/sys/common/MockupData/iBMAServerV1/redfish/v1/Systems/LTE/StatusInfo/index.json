@@ -1,0 +1,15 @@
+{
+    "@odata.type": "#MindXEdgeLTE.v1_0_0.MindXEdgeLTE",
+    "@odata.context": "/redfish/v1/$metadata#Systems/LTE/StatusInfo",
+    "@odata.id": "/redfish/v1/Systems/LTE/StatusInfo",
+    "Id" : "LTE StatusInfo",
+    "Name": "LTE StatusInfo",
+    "default_gateway": false,
+    "lte_enable": false,
+    "sim_exist": false,
+    "state_lte": null,
+    "state_data": null,
+    "network_signal_level": null,
+    "network_type": null,
+    "ip_addr": null
+}

@@ -1,0 +1,73 @@
+{
+  "primary_partitions": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "usb_hub_id": "",
+  "extend_info": {
+    "u-disk": [
+      {
+        "platform": "a5080000.hiusbc1",
+        "location": "usb2",
+        "name": "u-disk2"
+      },
+      {
+        "platform": "a5100000.hiusbc2",
+        "location": "usb1",
+        "name": "u-disk1"
+      },
+      {
+        "platform": "a5180000.hiusbc3",
+        "location": "usb0",
+        "name": "u-disk0"
+      }
+    ],
+    "eMMC": [
+      {
+        "platform": "82000000.sdhci0",
+        "location": "eMMC1",
+        "name": "eMMC"
+      },
+      {
+        "platform": "82010000.sdhci1",
+        "location": "SDIO1",
+        "name": "SD-card"
+      }
+    ],
+    "DISK": [
+      {
+        "platform": "a6000000.sata",
+        "device": "0:0:0:0",
+        "location": "PCIE-0",
+        "name": "disk m.2"
+      },
+      {
+        "platform": "a6000000.sata",
+        "device": "1:0:0:0",
+        "location": "PCIE-1",
+        "name": "disk0"
+      },
+      {
+        "platform": "a6000000.sata",
+        "device": "2:0:0:0",
+        "location": "PCIE-2",
+        "name": "disk1"
+      }
+    ],
+    "ethnet": [
+      {
+        "platform": "a7100000.xge0",
+        "location": "PORT1",
+        "name": "eth0"
+      },
+      {
+        "platform": "a7200000.xge1",
+        "location": "PORT2",
+        "name": "eth1"
+      }
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#Systems/SecurityService",
+  "@odata.id": "/redfish/v1/Systems/SecurityService",
+  "@odata.type": "#MindXEdgeSecurityService.v1_0_0.MindXEdgeSecurityService",
+  "Id": "Security Service",
+  "Name": "Security Service",
+  "HttpsCert": {
+    "@odata.id": "/redfish/v1/Systems/SecurityService/HttpsCert"
+  },
+  "DownloadCSRFile": {
+    "@odata.id": "/redfish/v1/Systems/SecurityService/downloadCSRFile"
+  },
+  "HttpsCertAlarmTime": {
+    "@odata.id": "/redfish/v1/Systems/SecurityService/HttpsCertAlarmTime"
+  },
+  "SecurityLoad": {
+    "@odata.id": "/redfish/v1/Systems/SecurityService/SecurityLoad"
+  },
+  "Actions": {
+    "#SecurityService.PunyDictImport": {
+      "target": "/redfish/v1/Systems/SecurityService/Actions/SecurityService.PunyDictImport"
+    },
+    "#SecurityService.PunyDictExport": {
+      "target": "/redfish/v1/Systems/SecurityService/Actions/SecurityService.PunyDictExport"
+    },
+    "#SecurityService.PunyDictDelete": {
+      "target": "/redfish/v1/Systems/SecurityService/Actions/SecurityService.PunyDictDelete"
+    }
+  }
+}

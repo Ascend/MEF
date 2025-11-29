@@ -1,0 +1,34 @@
+[Unit]
+Description=Docker Application Container Engine
+After=network-online.target firewalld.service
+Wants=network-online.target
+
+[Service]
+Type=notify
+EnvironmentFile=-/etc/sysconfig/docker
+EnvironmentFile=-/etc/sysconfig/docker-storage
+EnvironmentFile=-/etc/sysconfig/docker-network
+Environment=GOTRACEBACK=crash
+RootDirectory=/var/lib/docker/root_dir
+NotifyAccess=all
+PrivateTmp=yes
+MountAPIVFS=yes
+ProtectSystem=yes
+ProtectHome=read-only
+PrivateMounts=yes
+NoNewPrivileges=yes
+ExecStart=/docker_entrypoint.sh  $OPTIONS \
+                           $DOCKER_STORAGE_OPTIONS \
+                           $DOCKER_NETWORK_OPTIONS \
+                           $INSECURE_REGISTRY
+ExecReload=/bin/kill -s HUP $MAINPID
+LimitNOFILE=1048576
+LimitNPROC=1048576
+LimitCORE=infinity
+# set delegate yes so that systemd does not reset the cgroups of docker containers
+Delegate=yes
+# kill only the docker process, not all processes in the cgroup
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target

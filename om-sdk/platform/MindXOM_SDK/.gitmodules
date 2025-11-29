@@ -1,0 +1,4 @@
+[submodule "generic_lib"]
+	path = platform/python/generic_lib
+	url = https://codehub-dg-y.huawei.com/mindx_edge/commcomponent/PyGenericLibrary.git
+	branch = master

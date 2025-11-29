@@ -1,0 +1,147 @@
+body {
+    margin: 0;
+    height: 100vh;
+    font-family: 'HarmonyOS_Sans_SC_Regular', serif;
+}
+
+html.dark {
+    --el-bg-color: #181b20;
+    --el-bg-color-overlay: #1f2329;
+    --el-bg-color-tip: #183453;
+    --el-bg-warn-tip: #4a3423;
+    --el-text-color-regular: #ffffff;
+    --el-text-color-secondary: #8D98AA;
+    --el-text-customize-color-primary: #0077FF;
+    --el-text-customize-black-color: #0A0B0D;
+    --el-text-customize-gray-color: #4F5661;
+    --el-text-customize-blue-bg-color: #B8D9FF;
+    --el-customize-pwd-bg-color: #B3BFD3;
+    --el-customize-pwd-medium-bg-color: #EBAF00;
+    --el-customize-pwd-high-bg-color: #24AB36;
+    --el-color-primary: #0077FF;
+    --dialog-div-background: #2A2F37;
+    --el-color-warning: #F97611;
+    --el-color-danger: #E32020;
+    --el-customize-deep-blue-btn-bg-color: #052D5A;
+    --el-customize-tip-text-color: #D3DCE9;
+}
+
+.el-main {
+    --el-main-padding: 0 20px;
+}
+
+.el-tabs__content {
+    overflow: auto;
+}
+
+.el-card {
+    color: var(--el-text-color-regular);
+}
+
+.el-table th.el-table__cell {
+    background-color: var(--el-bg-color-overlay);
+}
+
+.el-dialog__title {
+    color: var(--el-text-color-regular);
+}
+
+.el-tabs__item {
+    color: var(--el-text-color-regular);
+}
+
+@font-face{
+    font-family: 'HarmonyOS_Sans_SC_Black';
+    src : url('@/assets/font/HarmonyOS_Sans_SC_Black.ttf');
+}
+
+@font-face{
+    font-family: 'HarmonyOS_Sans_SC_Bold';
+    src : url('@/assets/font/HarmonyOS_Sans_SC_Bold.ttf');
+}
+
+@font-face{
+    font-family: 'HarmonyOS_Sans_SC_Light';
+    src : url('@/assets/font/HarmonyOS_Sans_SC_Light.ttf');
+}
+
+@font-face{
+    font-family: 'HarmonyOS_Sans_SC_Medium';
+    src : url('@/assets/font/HarmonyOS_Sans_SC_Medium.ttf');
+}
+
+@font-face{
+    font-family: 'HarmonyOS_Sans_SC_Regular';
+    src : url('@/assets/font/HarmonyOS_Sans_SC_Regular.ttf');
+}
+
+@font-face{
+    font-family: 'HarmonyOS_Sans_SC_Thin';
+    src : url('@/assets/font/HarmonyOS_Sans_SC_Thin.ttf');
+}
+
+.black-font {
+    font-family: 'HarmonyOS_Sans_SC_Black', serif;
+}
+
+.bold-font {
+    font-family: 'HarmonyOS_Sans_SC_Bold', serif;
+}
+
+.light-font {
+    font-family: 'HarmonyOS_Sans_SC_Light', serif;
+}
+
+.medium-font {
+    font-family: 'HarmonyOS_Sans_SC_Medium', serif;
+}
+
+.regular-font {
+    font-family: 'HarmonyOS_Sans_SC_Regular', serif;
+}
+
+.thin-font {
+    font-family: 'HarmonyOS_Sans_SC_Thin', serif;
+}
+
+.tab-title {
+    font-family: 'HarmonyOS_Sans_SC_Bold', serif;
+    font-size: 16px;
+    color: var(--el-text-color-regular);
+    line-height: 24px;
+    font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.container-title {
+    font-family: 'HarmonyOS_Sans_SC_Regular', serif;
+    font-size: 16px;
+    color: var(--el-text-color-regular);
+    letter-spacing: 0;
+    line-height: 24px;
+    font-weight: 400;
+    margin-bottom: 20px;
+}
+
+.error-text {
+  color: var(--el-color-danger);
+  font-size: 12px;
+  line-height: 1;
+  padding-top: 2px;
+  position: absolute;
+  top: 100%;
+  left: 0;
+}
+
+.el-form-item.required::before {
+    content: "*";
+    color: var(--el-color-danger);
+    margin-right: 4px;
+    line-height: 32px;
+}
+
+.el-form-item.not-required::before {
+    content: "*";
+    color: #ffffff00!important;
+    margin-right: 4px;
+}

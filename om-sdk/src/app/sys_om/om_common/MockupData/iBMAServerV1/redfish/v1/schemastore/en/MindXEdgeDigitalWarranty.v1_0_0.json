@@ -1,0 +1,90 @@
+{
+    "$schema": "http://redfish.dmtf.org/schemas/v1/redfish-schema.v1_1_0.json",
+    "title": "#MindXEdgeDigitalWarranty.v1_0_0.MindXEdgeDigitalWarranty",
+    "$ref": "#/definitions/MindXEdgeDigitalWarranty",
+    "definitions": {
+        "MindXEdgeDigitalWarranty": {
+            "type": "object",
+            "patternProperties": {
+                "^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message|Privileges)\\.[a-zA-Z_][a-zA-Z0-9_.]+$": {
+                    "type": [
+                        "array",
+                        "boolean",
+                        "number",
+                        "null",
+                        "object",
+                        "string",
+                        "integer"
+                    ],
+                    "description": "This property shall specify a valid odata or Redfish property."
+                }
+            },
+            "additionalProperties": false,
+            "properties": {
+                "@odata.context": {
+                    "$ref": "http://redfish.dmtf.org/schemas/v1/odata.4.0.0.json#/definitions/context"
+                },
+                "@odata.id": {
+                    "$ref": "http://redfish.dmtf.org/schemas/v1/odata.4.0.0.json#/definitions/id"
+                },
+                "@odata.type": {
+                    "$ref": "http://redfish.dmtf.org/schemas/v1/odata.4.0.0.json#/definitions/type"
+                },
+                "Id": {
+                    "$ref": "http://redfish.dmtf.org/schemas/v1/Resource.json#/definitions/Id"
+                },
+                "Description": {
+                    "anyOf": [
+                        {"$ref": "http://redfish.dmtf.org/schemas/v1/Resource.json#/definitions/Description"},
+                        {"type": "null"}
+                    ]
+                },
+                "Name": {
+                    "$ref": "http://redfish.dmtf.org/schemas/v1/Resource.json#/definitions/Name"
+                },
+                "ProductName": {
+                    "type": "string",
+                    "readonly": true,
+                    "description": "Name of Product."
+                },
+                "SerialNumber": {
+                    "type": "string",
+                    "readonly": true,
+                    "description": "Product serial number."
+                },
+                "ItemId": {
+                    "type": "string",
+                    "readonly": true,
+                    "description": "Product Number."
+                },
+                "StartPoint": {
+                    "type": "string",
+                    "readonly": true,
+                    "description": "Product service start time."
+                },
+                "LifeSpan": {
+                    "type": "integer",
+                    "readonly": true,
+                    "description": "Service life of product."
+                },
+                "ManufactureDate": {
+                    "type": "string",
+                    "readonly": true,
+                    "description": "Date of production."
+                },
+                "Version": {
+                    "type": "string",
+                    "readonly": true,
+                    "description": "Product Version."
+                }
+            },
+            "required": [
+                "Id",
+                "Name"
+            ],
+            "description": "Used for DigitalWarranty Information.",
+            "longDescription": "Used for DigitalWarranty Information."
+        }
+    },
+    "copyright": "Copyright © Huawei Technologies Co., Ltd. 2022. All rights reserved."
+}

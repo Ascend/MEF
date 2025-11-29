@@ -1,0 +1,775 @@
+{
+    "MAJOR_VERSION": "2",
+    "MINOR_VERSION": "8",
+    "AUX_VERSION": "0",
+    "EventSuggestion": [
+        {
+            "id": "00000000",
+            "name": "硬盘温度过高",
+            "dealSuggestion": "1、检查是否存在TEC告警。@#AB2、使用测温工具检测设备周围环境是否超过60度。@#AB3、重启智能小站，查看告警是否消失。@#AB4、联系供应商技术支持",
+            "detailedInformation": "硬盘温度超过门限。",
+            "reason": "环境温度过高。",
+            "impact": "可能影响系统运行的可靠性。"
+        },
+        {
+            "id": "00000001",
+            "name": "硬盘寿命到期预警",
+            "dealSuggestion": "1、重启智能小站，查看告警是否消失。@#AB2、备份数据后更换硬盘，查看告警是否消失。@#AB3、联系供应商技术支持。",
+            "detailedInformation": "硬盘磨损严重。",
+            "reason": "硬盘坏块。",
+            "impact": "可能导致数据丢失。"
+        },
+        {
+            "id": "00000002",
+            "name": "硬盘不在位",
+            "dealSuggestion": "1、查看是否安装硬盘盒。@#AB2、拆卸并重新安装硬盘盒后，查看是否有“存储设备丢失”或“存储设备分区丢失”告警。@#AB3、登录Web界面，查看“本地磁盘管理”页签下磁盘列表中对应磁盘是否存在。@#AB4、更换硬盘，查看告警是否消失。@#AB5、联系供应商技术支持",
+            "detailedInformation": "检测不到硬盘在位信号。",
+            "reason": "硬盘不在位或没有插稳，或出现严重故障。",
+            "impact": "可能导致数据丢失。"
+        },
+        {
+            "id": "00000003",
+            "name": "硬盘访问阻塞",
+            "dealSuggestion": "1、重启智能小站，查看告警是否消失。@#AB2、备份数据后更换硬盘，查看告警是否消失。@#AB3、联系供应商技术支持。",
+            "detailedInformation": "访问硬盘无响应。",
+            "reason": "硬盘坏块或出现严重故障。",
+            "impact": "可能导致数据丢失。"
+        },
+        {
+            "id": "00000004",
+            "name": "不稳定扇区数临界预警",
+            "dealSuggestion": "1、重启智能小站，查看告警是否消失。@#AB2、备份数据后更换硬盘，查看告警是否消失。@#AB3、联系供应商技术支持。",
+            "detailedInformation": "硬盘的不稳定扇区计数达到或超过临界状态。",
+            "reason": "硬盘坏块。",
+            "impact": "可能导致硬盘访问性能下降或数据丢失。"
+        },
+        {
+            "id": "00000005",
+            "name": "剩余备用扇区不足",
+            "dealSuggestion": "1、重启智能小站，查看告警是否消失。@#AB2、备份数据后更换硬盘，查看告警是否消失。@#AB3、联系供应商技术支持。",
+            "detailedInformation": "硬盘剩余备用扇区数量接近或已达到临界值。",
+            "reason": "硬盘坏块。",
+            "impact": "可能导致硬盘访问性能下降或数据丢失。"
+        },
+        {
+            "id": "00030000",
+            "name": "eMMC寿命到期预警",
+            "dealSuggestion": "1、备份数据。@#AB2、更换 智能小站，查看告警是否消失。@#AB3、联系供应商技术支持。",
+            "detailedInformation": "eMMC磨损严重。",
+            "reason": "eMMC的擦写次数接近器件寿命。",
+            "impact": "数据丢失甚至系统无法开机。"
+        },
+        {
+            "id": "00030001",
+            "name": "eMMC平均写入量超标",
+            "dealSuggestion": "1、收集日志。详细信息请参见《智能边缘管理系统 用户指南》中“日志收集”章节。@#AB2、联系供应商技术支持。",
+            "detailedInformation": "eMMC连续三天的平均写入量超过门限。",
+            "reason": "存在频繁或大量向eMMC写数据的程序。",
+            "impact": "写入量超标会加快eMMC介质的磨损。"
+        },
+        {
+            "id": "00030002",
+            "name": "eMMC每日写入量超标",
+            "dealSuggestion": "1、收集日志。详细信息请参见《智能边缘管理系统 用户指南》中“日志收集”章节。@#AB2、联系供应商技术支持。",
+            "detailedInformation": "eMMC每日写入量超过门限。",
+            "reason": "存在频繁或大量向eMMC写数据的程序。",
+            "impact": "每日写入量超标会加快eMMC介质的磨损。"
+        },
+        {
+            "id": "00030003",
+            "name": "eMMC可用预留块不足",
+            "dealSuggestion": "1.备份数据。@#AB2.更换智能小站，查看告警是否消失。@#AB3.联系供应商技术支持工程师协助解决。",
+            "detailedInformation": "eMMC可用预留块不足。",
+            "reason": "eMMC的可用预留块不足。",
+            "impact": "可能触发系统只读数据，无法再写入数据。"
+        },
+        {
+            "id": "00040000",
+            "name": "SD卡挂载失败",
+            "dealSuggestion": "1、查看是否安装SD卡。@#AB2、拆卸并重新安装SD卡后，查看是否有“存储设备丢失”或“存储设备分区丢失”告警。@#AB3、登录Web界面，查看“本地磁盘管理”页签下磁盘列表中是否存在/dev/mmcblk1。@#AB4、更换SD卡，查看告警是否消失。@#AB5、联系供应商技术支持。",
+            "detailedInformation": "SD卡挂载失败。",
+            "reason": "1、SD卡不在位。@#AB2、SD卡损坏。",
+            "impact": "可能无法正常使用外接存储设备。"
+        },
+        {
+            "id": "00040001",
+            "name": "SD卡寿命到期预警",
+            "dealSuggestion": "1、重启智能小站，查看告警是否消失。@#AB2、备份数据后更换SD卡，查看告警是否消失。@#AB3、联系供应商技术支持。",
+            "detailedInformation": "SD卡寿命到期预警。",
+            "reason": "SD卡损坏。",
+            "impact": "可能导致数据丢失。"
+        },        
+        {
+            "id": "00080000",
+            "name": "内存异常",
+            "dealSuggestion": "1、重启智能小站，查看告警是否消失。@#AB2、对 智能小站进行上下电，查看告警是否消失。@#AB3、更换 智能小站，查看告警是否消失。@#AB4、联系供应商技术支持。",
+            "detailedInformation": "DDR被损坏。",
+            "reason": "CPU和DDR的数据线异常。",
+            "impact": "DDR不可用，导致系统无法启动或概率复位。"
+        },
+        {
+            "id": "00090000",
+            "name": "网口接收错包",
+            "dealSuggestion": "1、排查网线是否插稳。@#AB2、排查对端设备是否故障。@#AB3、联系供应商技术支持。",
+            "detailedInformation": "网口收到CRC错包。",
+            "reason": "对端器件故障或网线故障。",
+            "impact": "可能影响网口通讯。"
+        },
+        {
+            "id": "00090001",
+            "name": "网口发送错包",
+            "dealSuggestion": "1、重启智能小站，查看告警是否消失。@#AB2、联系供应商技术支持。",
+            "detailedInformation": "网口发送CRC错包。",
+            "reason": "网口故障。",
+            "impact": "可能影响网口通讯。"
+        },
+        {
+            "id": "00090002",
+            "name": "网口链路断开",
+            "dealSuggestion": "1、插拔网线，查看告警是否消失。@#AB2、更换网线，查看告警是否消失。@#AB3、使用PC直连 智能小站网口，查看告警是否消失。@#AB4、更换 智能小站。",
+            "detailedInformation": "网口link状态由up变成down。",
+            "reason": "插拔网线，或网线松动。",
+            "impact": "网口断开，无法通讯。"
+        },
+        {
+            "id": "00090003",
+            "name": "网口设备故障",
+            "dealSuggestion": "1、重启智能小站，查看告警是否消失。@#AB2、联系供应商技术支持。",
+            "detailedInformation": "网口无法正常访问。",
+            "reason": "网口设备出现故障。",
+            "impact": "网口断开，无法通讯。"
+        },
+        {
+            "id": "000B0000",
+            "name": "PCIe switch异常",
+            "dealSuggestion": "1、重启智能小站，查看告警是否消失。@#AB2、对 智能小站进行上下电，查看告警是否消失。@#AB3、更换 智能小站，查看告警是否消失。@#AB4、联系供应商技术支持。",
+            "detailedInformation": "PCIe Switch出现故障。",
+            "reason": "PCIe Switch故障。",
+            "impact": "无法访问NPU和硬盘。"
+        },
+        {
+            "id": "000C0000",
+            "name": "PCIe链路异常",
+            "dealSuggestion": "1、重启智能小站，查看告警是否消失。@#AB2、对 智能小站进行上下电，查看告警是否消失。@#AB3、更换 智能小站，查看告警是否消失。@#AB4、联系供应商技术支持。",
+            "detailedInformation": "PCIe链路出现故障。",
+            "reason": "PCIe链路故障。",
+            "impact": "无法访问NPU和硬盘。"
+        },
+        {
+            "id": "000D0000",
+            "name": "USB Hub异常",
+            "dealSuggestion": "1、重启智能小站，查看告警是否消失。@#AB2、对 智能小站进行上下电，查看告警是否消失。@#AB3、更换 智能小站，查看告警是否消失。@#AB4、联系供应商技术支持。",
+            "detailedInformation": "USB集线器被损坏。",
+            "reason": "USB集线器故障。",
+            "impact": "无法访问通过USB接入的设备。"
+        },
+        {
+            "id": "000E003A",
+            "name": "NPU温度检测异常",
+            "dealSuggestion": "1、使用测温工具检测设备周围环境是否超过60度。@#AB2、重启智能小站，查看告警是否消失。@#AB3、联系供应商技术支持。",
+            "detailedInformation": "NPU温度检测异常。",
+            "reason": "NPU温度过高。",
+            "impact": "可能影响NPU运行的可靠性。"
+        },
+        {
+            "id": "000F0000",
+            "name": "MCU温度检测异常",
+            "dealSuggestion": "1、使用测温工具检测设备周围环境是否超过60度。@#AB2、重启智能小站，查看告警是否消失。@#AB3、联系供应商技术支持。",
+            "detailedInformation": "MCU通过传感器检测温度点的温度是否超过告警门限。",
+            "reason": "环境温度过高。",
+            "impact": "可能影响系统运行的可靠性。"
+        },
+        {
+            "id": "000F0001",
+            "name": "MCU电压检测异常",
+            "dealSuggestion": "1、检查电源接口两侧的螺钉是否拧紧。@#AB2、对 智能小站进行上下电，查看告警是否消失。@#AB3、联系供应商技术支持。",
+            "detailedInformation": "系统内部的电压测试点出现电压不稳定情况。",
+            "reason": "系统供电不稳定。",
+            "impact": "系统可能无法正常运行。"
+        },
+        {
+            "id": "000F0002",
+            "name": "MCU TEC故障",
+            "dealSuggestion": "1、重启智能小站，查看告警是否消失。@#AB2、对 智能小站进行上下电，查看告警是否消失。@#AB3、更换 智能小站，查看告警是否消失。@#AB4、联系供应商技术支持。",
+            "detailedInformation": "TEC不能正常工作。",
+            "reason": "TEC故障。",
+            "impact": "在高温和低温场景影响硬盘的工作。"
+        },
+        {
+            "id": "000F0003",
+            "name": "MCU心跳检测异常",
+            "dealSuggestion": "1、重启智能小站，查看告警是否消失。@#AB2、对 智能小站进行上下电，查看告警是否消失。@#AB3、更换 智能小站，查看告警是否消失。@#AB4、联系供应商技术支持。",
+            "detailedInformation": "MCU心跳检测上报异常。",
+            "reason": "MCU软件出现故障。",
+            "impact": "系统可能无法正常运行。"
+        },
+        {
+            "id": "000F0004",
+            "name": "MCU系统芯片故障",
+            "dealSuggestion": "1、重启智能小站，查看告警是否消失。@#AB2、对 智能小站进行上下电，查看告警是否消失。@#AB3、更换 智能小站，查看告警是否消失。@#AB4、联系供应商技术支持。",
+            "detailedInformation": "MCU系统芯片检测到故障。",
+            "reason": "I2C器件出现故障。",
+            "impact": "系统可能无法正常运行。"
+        },
+        {
+            "id": "00100000",
+            "name": "CPU温度检测异常",
+            "dealSuggestion": "1、检查是否存在TEC告警。@#AB2、使用测温工具检测设备周围环境是否超过60度。@#AB3、重启智能小站，查看告警是否消失。@#AB4、联系供应商技术支持。",
+            "detailedInformation": "CPU温度检测异常。",
+            "reason": "环境温度过高。",
+            "impact": "可能影响系统运行的可靠性。"
+        },
+        {
+            "id": "00110000",
+            "name": "RTC时钟电池电压过低",
+            "dealSuggestion": "1、重启智能小站，查看告警是否消失。@#AB2、更换 智能小站，查看告警是否消失。@#AB3、联系供应商技术支持。",
+            "detailedInformation": "RTC电池电压过低。",
+            "reason": "RTC电池电量耗尽。",
+            "impact": "在系统下电后，可能会出现RTC的时间丢失，影响业务。"
+        },
+        {
+            "id": "00120000",
+            "name": "存储设备挂载配置异常",
+            "dealSuggestion": "1、查看固件版本是否为2.2.200.010及以上版本。@#AB2、检查挂载的配置文件是否错误。\n\t 2.1、登录IES命令行界面，进入develop模式。\n\t 2.2、执行cat /var/plog/ibma_edge/om_scripts_run.log命令，查看回显信息中是否有[0x1]相关信息。@#AB3、删除“/home/data/ies/DockerMount.ini”、“/home/data/ies/DockerMountSite.ini”、“/home/data/ies/mountCnf.ini”、“/home/data/ies/mountCnf_site.ini”文件中带有/dev/xxx信息的记录。\n（“xxx”表示步骤2.2中查询到的[0x1]相关信息。）@#AB4、等待5分钟后，查看告警是否消失。@#AB5、重启智能小站，查看告警是否消失。@#AB6、更换 智能小站，查看告警是否消失。@#AB7、联系供应商技术支持。",
+            "detailedInformation": "设备mount配置文件错误。",
+            "reason": "配置文件格式错误，或者配置文件描述的设备信息有误。",
+            "impact": "设备mount的配置失效。"
+        },
+        {
+            "id": "00120001",
+            "name": "存储设备分区丢失",
+            "dealSuggestion": "1、查看固件版本是否为2.2.200.010及以上版本。@#AB2、检查设备分区是否丢失。\n\t 2.1、登录IES命令行界面，进入develop模式。\n\t 2.2、执行cat /var/plog/ibma_edge/om_scripts_run.log命令，查看回显信息中是否有[0x2]相关信息。@#AB3、重新挂载步骤2中丢失分区。详细配置操作请参见《 智能边缘管理系统（V2.2.200.010及以上）用户指南（型号 3000, 3010）》中“磁盘”章节。@#AB4、等待5分钟后，查看告警是否消失。@#AB5、重启智能小站，查看告警是否消失。@#AB6、更换 智能小站，查看告警是否消失。@#AB7、联系供应商技术支持。",
+            "detailedInformation": "外接存储设备的分区丢失。",
+            "reason": "1、设备分区表被修改或者损坏。@#AB2、用户更新设备后，没有进行分区。",
+            "impact": "当前的mount配置失效。"
+        },
+        {
+            "id": "00120002",
+            "name": "存储设备丢失",
+            "dealSuggestion": "1、查看固件版本是否为2.2.200.010及以上版本。@#AB2、检查存储设备是否丢失。\n\t 2.1、登录IES命令行界面，进入develop模式。\n\t 2.2、执行cat /var/plog/ibma_edge/om_scripts_run.log命令，查看回显信息中是否有[0x4]相关信息。@#AB3、检查对应的存储介质是否被拔出。@#AB4、等待5分钟后，查看告警是否消失。@#AB5、重启智能小站，查看告警是否消失。@#AB6、更换 智能小站，查看告警是否消失。@#AB7、联系供应商技术支持。",
+            "detailedInformation": "外接存储设备丢失。",
+            "reason": "1、设备被拔出。@#AB2、设备损坏。",
+            "impact": "影响存储设备的使用。"
+        },
+        {
+            "id": "00120003",
+            "name": "存储设备挂载失败",
+            "dealSuggestion": "1、收集日志。详细信息请参见《智能边缘管理系统（V2.2.200.010及以上）用户指南（型号 3000, 3010）》中“日志收集”章节。@#AB2、联系供应商技术支持。",
+            "detailedInformation": "外接存储设备挂载失败。",
+            "reason": "1、设备文件系统被破坏。@#AB2、设备存储介质损坏。",
+            "impact": "影响存储设备的使用。"
+        },
+        {
+            "id": "00120004",
+            "name": "存储设备挂载点异常",
+            "dealSuggestion": "1、收集日志。详细信息请参见《智能边缘管理系统（V2.2.200.010及以上）用户指南（型号 3000, 3010）》中“日志收集”章节。@#AB2、联系供应商技术支持。",
+            "detailedInformation": "外接设备的挂接点错误。",
+            "reason": "通过ssh登录命令行，执行挂载命令，导致挂载点被占用，自动挂载无法实现。",
+            "impact": "可能无法正常使用外接存储设备。"
+        },
+        {
+            "id": "00140000",
+            "name": "NFS异常",
+            "dealSuggestion": "1、检查网络是否异常。@#AB2、检查NFS服务器是否异常。@#AB3、联系供应商技术支持工程师协助解决。",
+            "detailedInformation": "NFS挂载状态异常。",
+            "reason": "1、设备到NFS服务器的网络故障。@#AB2、NFS服务器配置错误或者状态异常。",
+            "impact": "无法正常使用NFS扩展的存储空间。"
+        },
+        {
+            "id": "00150000",
+            "name": "Wireless_Module 网络不可用",
+            "dealSuggestion": "1、查看是否安装SIM卡。@#AB2、拆卸并重新安装SIM卡后，查看告警是否消失。@#AB3、检查天线连接是否异常。@#AB4、重启智能小站，查看告警是否消失。@#AB5、对 智能小站进行上下电，查看告警是否消失。@#AB6、更换 智能小站，查看告警是否消失。@#AB7、联系供应商技术支持。",
+            "detailedInformation": "Wireless_Module 网络不可用。",
+            "reason": "1、SIM卡不在位。@#AB2、天线连接故障。",
+            "impact": "无法正常使用4G/5G网络。"
+        },
+        {
+            "id": "00150001",
+            "name": "Wireless_Module开关打开失败",
+            "dealSuggestion": "1、手动打开Wireless_Module开关进行恢复。@#AB2、重启智能小站，查看告警是否消失。@#AB3、对 智能小站进行上下电，查看告警是否消失。@#AB4、更换 智能小站，查看告警是否消失。@#AB5、联系供应商技术支持。",
+            "detailedInformation": "Wireless_Module 开关打开失败。",
+            "reason": "Wireless_Module异常。",
+            "impact": "无法正常使用4G/5G网络。"
+        },
+        {
+            "id": "00160000",
+            "name": "目录空间满",
+            "dealSuggestion": "1、查看哪些目录存储空间不足。@#AB2、备份数据后处理目录空间不足的文件，释放空间。",
+            "detailedInformation": "目录空间满。",
+            "reason": "1、目录中存放大量文件。@#AB2、目录中异常生成大量文件。",
+            "impact": "可能导致访问该目录操作失败。"
+        },
+        {
+            "id": "00180000",
+            "name": "证书告警",
+            "dealSuggestion": "1、检查证书是否即将过期或者已经过期，并及时更换新的证书。@#AB2、web证书被替换后不支持重启自动更新，需自行更换新的证书。@#AB3、联系供应商技术支持。",
+            "detailedInformation": "证书即将过期或者已经过期。",
+            "reason": "证书即将过期或者已经过期。",
+            "impact": "会导致通信异常，如无法访问WebUI等。"
+        },
+        {
+            "id": "000E0000",
+            "name": "TEEDrv硬件模块错误",
+            "detailedInformation": "TEEDrv硬件模块错误。",
+            "impact": "Flash操作失败，比如固件升级功能失败等。",
+            "reason": "SFC模块对Flash的擦写失败，Flash硬件故障。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0001",
+            "name": "TEEDrv侧硬件多bit ECC错误",
+            "detailedInformation": "TEEDrv侧硬件多bit ECC错误。",
+            "impact": "Flash操作失败，比如固件升级功能失败等。",
+            "reason": "SFC模块硬件Memery硬失效出现多bit ECC错误。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0002",
+            "name": "TS心跳检测异常",
+            "detailedInformation": "TS心跳检测异常。",
+            "impact": "TS子系统不可用，AI任务无法正常调度。",
+            "reason": "TS子系统异常。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0003",
+            "name": "TS多bit ECC错误",
+            "detailedInformation": "TS多bit ECC错误。",
+            "impact": "系统无响应，数据错误或可能出现一致性错误。",
+            "reason": "Doorbell内部SRAM多bit ECC错误。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0004",
+            "name": "slogd心跳检测异常",
+            "detailedInformation": "slogd心跳检测异常。",
+            "impact": "进程对应模块功能不可用，日志记录有影响，重启前的文件句柄都会失效。",
+            "reason": "进程拉起失败（权限不足、资源不足等）、异常退出（资源不足等）或无法响应（资源不足等）。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0005",
+            "name": "dmp_daemon心跳检测异常",
+            "detailedInformation": "dmp_daemon心跳检测异常。",
+            "impact": "进程对应模块功能不可用，影响对应的设备管理功能，包括DSMI访问故障等。",
+            "reason": "进程拉起失败（权限不足、资源不足等）、异常退出（资源不足等）或无法响应（资源不足等）。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0006",
+            "name": "log-daemon心跳检测异常",
+            "detailedInformation": "log-daemon心跳检测异常。",
+            "impact": "进程对应模块功能不可用，日志记录有影响，重启前的文件句柄都会失效。",
+            "reason": "进程拉起失败（权限不足、资源不足等）、异常退出（资源不足等）或无法响应（资源不足等）。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0007",
+            "name": "sklogd心跳检测异常",
+            "detailedInformation": "sklogd心跳检测异常。",
+            "impact": "进程对应模块功能不可用，日志记录有影响，重启前的文件句柄都会失效。",
+            "reason": "进程拉起失败（权限不足、资源不足等）、异常退出（资源不足等）或无法响应（资源不足等）。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0008",
+            "name": "Iammgr心跳检测异常",
+            "detailedInformation": "Iammgr心跳检测异常。",
+            "impact": "进程对应模块功能不可用，Group内进程状态监控失效，比如心跳检测等。",
+            "reason": "进程拉起失败（权限不足、资源不足等）、异常退出（资源不足等）或无法响应（资源不足等）。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0009",
+            "name": "ProcLauncher心跳检测异常",
+            "detailedInformation": "ProcLauncher心跳检测异常。",
+            "impact": "1、进程对应模块功能不可用，影响对应的功能。@#AB2、业务进程状态监控失效，比如心跳检测等。",
+            "reason": "进程拉起失败（权限不足、资源不足等）、异常退出（资源不足等）或无法响应（资源不足等）。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E000A",
+            "name": "ProcMgr心跳检测异常",
+            "detailedInformation": "ProcMgr心跳检测异常。",
+            "impact": "1、进程对应模块功能不可用，影响对应的功能，比如进程访问的鉴权。@#AB2、业务进程状态监控失效，比如对子进程进行监控和恢复。",
+            "reason": "进程拉起失败（权限不足、资源不足等）、异常退出（资源不足等）或无法响应（资源不足等）。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E000B",
+            "name": "非致命高温异常告警",
+            "detailedInformation": "非致命高温异常告警(不包括DDR/HBM 颗粒)。",
+            "impact": "温度继续上升可能会导致掉电。",
+            "reason": "系统散热异常，低功耗软件检测芯片温度超过高温告警门限。",
+            "dealSuggestion": "1、检查系统散热情况，加强散热，降低芯片温度，查看告警是否消失。@#AB2、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB3、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E000C",
+            "name": "LPM子系统心跳检测异常",
+            "detailedInformation": "LPM子系统心跳检测异常。",
+            "impact": "低功耗所有业务不可用（温保，EDP，AVS, PMU异常管理）。",
+            "reason": "1.低功耗业务初始化失败。@#AB2.BIOS加载LPFW镜像失败。@#AB3. 运行业务出现LP子系统panic或者挂死。@#AB4. IPC通道阻塞。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E000D",
+            "name": "LPM检测到调压功能异常",
+            "detailedInformation": "LPM检测到调压功能异常。",
+            "impact": "系统温保,EDP控制功能受影响，影响系统可靠性。",
+            "reason": "电源模块异常，导致调频调压异常。",
+            "dealSuggestion": "1、建议检测电源，进行电源检修，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E000E",
+            "name": "LPM检测到调频功能异常",
+            "detailedInformation": "LPM检测到调频功能异常。",
+            "impact": "系统温保,EDP控制功能受影响，影响系统可靠性。",
+            "reason": "主状态机在进行dvfs时，导致返回idle.dfs状态机超时异常。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E000F",
+            "name": "LPM检测到芯片电流检测功能异常",
+            "detailedInformation": "LPM检测到芯片电流检测功能异常。",
+            "impact": "过流保护功能受影响，无法检测电流，对应电源域电流无法获取，过流无法触发软件电流控制。会影响业务的性能。",
+            "reason": "1、电流探头访问异常。@#AB2、电源上报异常。@#AB3、软件配置错误。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0010",
+            "name": "LPM检测到Tsensor模块异常",
+            "detailedInformation": "LPM检测到Tsensor模块异常。",
+            "impact": "获取温度失败，可能会导致系统超温。",
+            "reason": "Tsensor模块异常。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0011",
+            "name": "LPM检测到检测到pmbus模块异常",
+            "detailedInformation": "LPM检测到pmbus模块异常。",
+            "impact": "影响系统稳定性。",
+            "reason": "1.pmbus硬件通路损坏。@#AB2、2.mcu切走了pmbus通路。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0012",
+            "name": "AIC多bit ECC错误",
+            "detailedInformation": "AIC多bit ECC错误。",
+            "impact": "当前AI任务失败，如果该AIC没有恢复正常，则后续AI任务也失败。",
+            "reason": "AIC内部RAM多bit ECC错误。",
+            "dealSuggestion": "1、AI训练任务退出重新执行；重新发起推理请求，查看告警是否消失。@#AB2、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB3、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0013",
+            "name": "AIC检测到外部输入错误",
+            "detailedInformation": "AIC检测到外部输入错误。",
+            "impact": "当前AI任务失败，如果该AIC没有恢复正常，则后续AI任务也失败。",
+            "reason": "APP输入错误，算子实现错误。",
+            "dealSuggestion": "1、AI训练任务退出重新执行，重新发起推理请求，查看告警是否消失。@#AB2、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB3、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0014",
+            "name": "AIC总线访问错误",
+            "detailedInformation": "AIC总线访问错误。",
+            "impact": "当前AI任务失败，如果该AIC没有恢复正常，则后续AI任务也失败。",
+            "reason": "总线译码错误.",
+            "dealSuggestion": "1、建议AI训练任务退出重新执行；重新发起推理请求。查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0015",
+            "name": "AIC Dispatch多bit ECC错误",
+            "detailedInformation": "AIC总线访问错误。",
+            "impact": "系统无响应，数据错误或可能出现一致性错误。",
+            "reason": "AIC Dispatch多bit ECC错误。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0016",
+            "name": "AIC Dispatch输入错误",
+            "detailedInformation": "AIC Dispatch输入错误。",
+            "impact": "系统无响应，数据错误或可能出现一致性错误。",
+            "reason": "AIC Dispatch输入错误。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0017",
+            "name": "AO Dispatch多bit ECC错误",
+            "detailedInformation": "AO Dispatch多bit ECC错误。",
+            "impact": "系统无响应，数据错误或可能出现一致性错误。",
+            "reason": "AO Dispatch多bit ECC错误。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0018",
+            "name": "AO Dispatch输入错误",
+            "detailedInformation": "AO Dispatch输入错误。",
+            "impact": "系统无响应，数据错误或可能出现一致性错误。",
+            "reason": "AO Dispatch输入错误。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0019",
+            "name": "TaishanCore多bit ECC错误",
+            "detailedInformation": "TaishanCore多bit ECC错误。",
+            "impact": "系统无响应，数据错误或可能出现一致性错误。",
+            "reason": "CPU core片内SRAM多bit ECC错误。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E001A",
+            "name": "DDR内存颗粒多bit ECC错误",
+            "detailedInformation": "DDR内存颗粒多bit ECC错误。",
+            "impact": "返回错误数据，可能导致NPU启动失败或者业务异常。",
+            "reason": "芯片DDR内存颗粒多bit ECC错误。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E001B",
+            "name": "DDRA多bit ECC错误",
+            "detailedInformation": "DDRA多bit ECC错误。",
+            "impact": "可能导致系统卡死或返回错误数据。",
+            "reason": "DDRA内部SRAM多bit ECC错误。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E001C",
+            "name": "来自DDRC的错误响应",
+            "detailedInformation": "来自DDRC的错误响应。",
+            "impact": "芯片无响应。。",
+            "reason": "DDRC出现了错误。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E001D",
+            "name": "DDRC硬件模块内部逻辑异常",
+            "detailedInformation": "DDRC硬件模块内部逻辑异常。",
+            "impact": "可能导致系统卡死或返回错误数据。",
+            "reason": "DDRC硬件模块内部逻辑异常，包括DDR失效,链路信号质量或链路出现问题。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E001E",
+            "name": "DDRC总线访问错误",
+            "detailedInformation": "DDRC总线访问错误。",
+            "impact": "可能导致系统卡死或返回错误数据。",
+            "reason": "系统（各种master）访问DDR内存地址、时机不对（如访问非法物理地址，reboot中ddr初始化前提前访问内存）。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E001F",
+            "name": "DDRC多bit ECC错误",
+            "detailedInformation": "DDRC多bit ECC错误。",
+            "impact": "可能导致系统卡死或返回错误数据。",
+            "reason": "DDRC内部SRAM多bit ECC错误。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0020",
+            "name": "DDR颗粒高温异常：非致命高温异常告警",
+            "detailedInformation": "DDR颗粒高温异常：非致命高温异常告警。",
+            "impact": "DDR高温进入保护状态，会导致掉电，需要提前采取进入安全态措施。",
+            "reason": "DDR颗粒散热异常，环境温度过高。",
+            "dealSuggestion": "1、建议检查系统散热情况，加强散热，降低芯片温度。@#AB2、如果不能降低温度，建议重启后重新检测温度。@#AB3、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0021",
+            "name": "DVPP Dispatch多bit ECC错误",
+            "detailedInformation": "DVPP Dispatch多bit ECC错误。",
+            "impact": "系统无响应，数据错误或可能出现一致性错误。",
+            "reason": "DVPP Dispatch多bit ECC错误。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0022",
+            "name": "DVPP Dispatch输入错误",
+            "detailedInformation": "DVPP Dispatch输入错误。",
+            "impact": "系统无响应，数据错误或可能出现一致性错误。",
+            "reason": "DVPP Dispatch输入错误。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0023",
+            "name": "HSM密钥管理模块错误",
+            "detailedInformation": "HSM密钥管理模块错误。",
+            "impact": "影响使用HSM提供的密码派生等密钥功能的业务，导致业务无法使用相应的密钥。",
+            "reason": "HSM密钥管理模块硬件Memery硬失效出现多bit ECC错误、读写总线错误等",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0024",
+            "name": "HSM密码算法模块错误",
+            "detailedInformation": "HSM密码算法模块错误。",
+            "impact": "影响使用HSM提供的密码派生等密钥功能的业务，导致业务无法使用相应的密钥。",
+            "reason": "HSM密码算法模块硬件Memery硬失效出现多bit ECC错误、读写总线错误等。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0025",
+            "name": "HWTS总线访问错误",
+            "detailedInformation": "HWTS总线访问错误。",
+            "impact": "系统无响应，数据错误或可能出现一致性错误。",
+            "reason": "HWTS的访问操作地址错误。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0026",
+            "name": "HWTS多bit ECC错误",
+            "detailedInformation": "HWTS多bit ECC错误。",
+            "impact": "系统无响应，数据错误或可能出现一致性错误。",
+            "reason": "HWTS模块内部内存多bit ECC错误。",
+            "dealSuggestion": "1、重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0027",
+            "name": "JPEGD总线访问错误",
+            "detailedInformation": "JPEGD总线访问错误。",
+            "impact": "影响JPEGD解码性能。",
+            "reason": "JPEGD总线访问错误",
+            "dealSuggestion": "无需操作。"
+        },
+        {
+            "id": "000E0028",
+            "name": "JPEGE硬件编码异常",
+            "detailedInformation": "JPEGE硬件编码异常。",
+            "impact": "影响JPEGE编码。",
+            "reason": "JPEGE硬件编码异常",
+            "dealSuggestion": "1、建议AI训练任务退出重新执行，重新发起推理请求，查看告警是否消失。@#AB2、联系华为技术支持服务商处理"
+        },
+        {
+            "id": "000E0029",
+            "name": "JPEGE总线访问错误",
+            "detailedInformation": "JPEGE总线访问错误。",
+            "impact": "影响JPEGE编码。",
+            "reason": "JPEGE总线访问错误",
+            "dealSuggestion": "1、建议AI训练任务退出重新执行，重新发起推理请求，查看告警是否消失。@#AB2、联系华为技术支持服务商处理"
+        },
+        {
+            "id": "000E002A",
+            "name": "L2BUFF多bit ECC错误",
+            "detailedInformation": "L2BUFF多bit ECC错误。",
+            "impact": "系统无响应，数据错误或可能出现一致性错误。",
+            "reason": "片内SRAM软失效，导致L2BUFF多bit错误。",
+            "dealSuggestion": "1、建议重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理"
+        },
+        {
+            "id": "000E002B",
+            "name": "L2BUFF内部软件配置错误",
+            "detailedInformation": "L2BUFF内部软件配置错误。",
+            "impact": "数据错误或可能出现一致性错误。",
+            "reason": "1、平台软件配置非预期错误。@#AB2、硬件失效等导致地址非法。",
+            "dealSuggestion": "无需操作"
+        },
+        {
+            "id": "000E002C",
+            "name": "L3D多bit ECC错误",
+            "detailedInformation": "L3D多bit ECC错误。",
+            "impact": "系统无响应，数据错误或可能出现一致性错误。",
+            "reason": "L3D片内SRAM多bit ECC错误。",
+            "dealSuggestion": "1、建议重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理"
+        },
+        {
+            "id": "000E002D",
+            "name": "L3T多bit ECC错误",
+            "detailedInformation": "L3T多bit ECC错误。",
+            "impact": "系统无响应，数据错误或可能出现一致性错误。",
+            "reason": "L3T片内SRAM多bit ECC错误。",
+            "dealSuggestion": "1、建议重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB2、联系华为技术支持服务商处理"
+        },
+        {
+            "id": "000E002E",
+            "name": "NIC多bit ECC错误",
+            "detailedInformation": "NIC多bit ECC错误。",
+            "impact": "报文内容出错或丢失。",
+            "reason": "NIC的SSU各MEMORY多bit ECC错误。",
+            "dealSuggestion": "1、建议AI任务退出重新执行，查看告警是否消失。@#AB2、若AI任务重新执行异常则建议重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB3、联系华为技术支持服务商处理"
+        },
+        {
+            "id": "000E002F",
+            "name": "NIC模块异常",
+            "detailedInformation": "NIC模块异常。",
+            "impact": "可能存在错包，性能不准，网口挂死。",
+            "reason": "NIC模块SSU异常。",
+            "dealSuggestion": "1、建议AI任务退出重新执行，查看告警是否消失。@#AB2、若AI任务重新执行异常则建议重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB3、联系华为技术支持服务商处理"
+        },
+        {
+            "id": "000E0030",
+            "name": "PERI Dispatch多bit ECC错误",
+            "detailedInformation": "PERI Dispatch多bit ECC错误。",
+            "impact": "系统无响应，数据错误或可能出现一致性错误。",
+            "reason": "PERI Dispatch多bit ECC错误。",
+            "dealSuggestion": "1、建议AI训练任务退出重新执行，重新发起推理请求，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0031",
+            "name": "PERI Dispatch输入错误",
+            "detailedInformation": "PERI Dispatch输入错误。",
+            "impact": "系统无响应，数据错误或可能出现一致性错误。",
+            "reason": "PERI Dispatch输入错误。",
+            "dealSuggestion": "1、建议AI训练任务退出重新执行，重新发起推理请求，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0032",
+            "name": "SDMA多bit ECC错误",
+            "detailedInformation": "SDMA多bit ECC错误。",
+            "impact": "SDMA发生多bit ECC，单个任务执行失败。",
+            "reason": "片内SRAM颗粒失效。",
+            "dealSuggestion": "1、建议AI训练任务退出重新执行，重新发起推理请求，查看告警是否消失。@#AB2、若AI任务重新执行异常则建议重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB3、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0033",
+            "name": "SDMA模块bus error",
+            "detailedInformation": "SDMA模块bus error。",
+            "impact": "SDMA发生bus error，单个任务执行失败。",
+            "reason": "SDMA模块写CQE出现总线异常，导致硬件故障。",
+            "dealSuggestion": "1、建议AI训练任务退出重新执行，重新发起推理请求，查看告警是否消失。@#AB2、若AI任务重新执行异常则建议重启Atlas 500 A2 智能小站，查看告警是否消失。@#AB3、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0034",
+            "name": "VDEC多bit ECC错误",
+            "detailedInformation": "VDEC多bit ECC错误。",
+            "impact": "影响VDEC解码。",
+            "reason": "VDEC内部SRAM多bit ECC错误。",
+            "dealSuggestion": "1、建议AI训练任务退出重新执行，重新发起推理请求，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0035",
+            "name": "VENC硬件编码超时",
+            "detailedInformation": "VENC硬件编码超时。",
+            "impact": "影响VENC编码。",
+            "reason": "1、软件配置错误。@#AB2、硬件故障。",
+            "dealSuggestion": "1、建议AI训练任务退出重新执行，重新发起推理请求，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0036",
+            "name": "VENC硬件编码异常",
+            "detailedInformation": "VENC硬件编码异常。",
+            "impact": "影响VENC编码。",
+            "reason": "VENC硬件编码异常。",
+            "dealSuggestion": "1、建议AI训练任务退出重新执行，重新发起推理请求，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0037",
+            "name": "VPC图像处理硬件异常",
+            "detailedInformation": "VPC图像处理硬件异常。",
+            "impact": "影响VPC图像处理。",
+            "reason": "VPC总线访问异常。",
+            "dealSuggestion": "1、建议AI训练任务退出重新执行，重新发起推理请求，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0038",
+            "name": "VPC图像处理配置异常",
+            "detailedInformation": "VPC图像处理配置异常。",
+            "impact": "影响VPC图像处理。",
+            "reason": "芯片寄存器配置顺序错误。",
+            "dealSuggestion": "1、建议AI训练任务退出重新执行，重新发起推理请求，查看告警是否消失。@#AB2、联系华为技术支持服务商处理。"
+        },
+        {
+            "id": "000E0039",
+            "name": "VPC多bit ECC错误",
+            "detailedInformation": "VPC多bit ECC错误。",
+            "impact": "影响VPC图像处理。",
+            "reason": "VPC内部SRAM多bit ECC错误。",
+            "dealSuggestion": "1、无需操作"
+        }
+    ]
+}

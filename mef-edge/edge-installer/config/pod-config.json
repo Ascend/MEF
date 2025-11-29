@@ -1,0 +1,11 @@
+{
+  "hostPid": false,
+  "capability": false,
+  "privileged": false,
+  "allowPrivilegeEscalation": false,
+  "allowReadWriteRootFs": false,
+  "runAsRoot": false,
+  "useHostNetwork": false,
+  "useSeccomp": false,
+  "useDefaultContainerCap": false
+}

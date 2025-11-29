@@ -1,0 +1,121 @@
+{
+    "id": 10,
+    "name": "npu",
+    "category": "internal",
+    "driver": "/usr/lib64/libnpu_adapter.so",
+    "dynamic": false,
+    "attributes": {
+        "temperature": {
+            "description": "npu temperature",
+            "type": "int",
+            "id": 65537,
+            "accessMode": "Read"
+        },
+        "health": {
+            "description": "npu health",
+            "type": "int",
+            "id": 65538,
+            "accessMode": "Read"
+        },
+        "memory": {
+            "description": "npu memory",
+            "type": "long long",
+            "id": 65539,
+            "accessMode": "Read"
+        },
+        "utilization_rate": {
+            "description": "npu chip utilization rate info",
+            "type": "json",
+            "id": 65540,
+            "accessMode": "Read",
+            "subAttributes": {
+                "ddr": {
+                    "accessMode": "Read",
+                    "description": "npu chip utilization rate info of DDR",
+                    "type": "int",
+                    "id": 1
+                },
+                "ai_core": {
+                    "accessMode": "Read",
+                    "description": "npu chip utilization rate info of AI CORE",
+                    "type": "int",
+                    "id": 2
+                },
+                "ai_cpu": {
+                    "accessMode": "Read",
+                    "description": "npu chip utilization rate info of AI CPU",
+                    "type": "int",
+                    "id": 3
+                },
+                "ctrl_cpu": {
+                    "accessMode": "Read",
+                    "description": "npu chip utilization rate info of CTRL CPU",
+                    "type": "int",
+                    "id": 4
+                },
+                "ctrl_ddr_bandwidth": {
+                    "accessMode": "Read",
+                    "description": "npu chip utilization rate info of DDR bandwidth",
+                    "type": "int",
+                    "id": 5
+                }
+            }
+        },
+        "present": {
+            "description": "npu present",
+            "type": "int",
+            "id": 65541,
+            "accessMode": "Read"
+        },
+        "chip_info": {
+            "description": "the chip info of npu",
+            "type": "json",
+            "id": 65542,
+            "accessMode": "Read",
+            "subAttributes": {
+                "vendor": {
+                    "accessMode": "Read",
+                    "description": "npu chip info vendor",
+                    "type": "string",
+                    "id": 1
+                },
+                "model": {
+                    "accessMode": "Read",
+                    "description": "npu chip info model",
+                    "type": "string",
+                    "id": 2
+                },
+                "ability": {
+                    "accessMode": "Read",
+                    "description": "npu chip info ability",
+                    "type": "string",
+                    "id": 3
+                },
+                "type": {
+                    "accessMode": "Read",
+                    "description": "npu chip info type",
+                    "type": "string",
+                    "id": 4
+                },
+                "name": {
+                    "accessMode": "Read",
+                    "description": "npu chip info name",
+                    "type": "string",
+                    "id": 5
+                },
+                "version": {
+                    "accessMode": "Read",
+                    "description": "npu chip info version",
+                    "type": "string",
+                    "id": 6
+                }
+            }
+        },
+        "npu_version": {
+            "description": "npu version",
+            "type": "string",
+            "id": 65543,
+            "accessMode": "Read"
+        }
+    }
+}

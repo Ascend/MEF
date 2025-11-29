@@ -1,0 +1,12 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#Systems/Processors/Members/$entity",
+  "@odata.id": "/redfish/v1/Systems/Processors/CPU",
+  "@odata.type": "#Processor.v1_15_0.Processor",
+  "Name": "CPU",
+  "Id": "CPU",
+  "Manufacturer": null,
+  "Oem": {
+    "CPUModel": null,
+    "Count": null
+  }
+}

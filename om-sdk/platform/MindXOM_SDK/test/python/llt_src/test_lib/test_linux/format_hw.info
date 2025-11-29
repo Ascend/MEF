@@ -1,0 +1,5 @@
+name:Atlas 200A2;class:NPU;devname:/dev/davinci_manager;vendor:Huawei Technologies Co., Ltd;model:Atlas 200A2;serialnumber:ff-ff-ff-ff-ff-ff-ff-ff;location:N/A;status:active;fw_version:23.0.rc2.2.b010
+name:eth0;class:ethnet;devname:/sys/devices/platform/a7100000.xge0/net/eth0/;vendor:Hisilicon;model:higmac;serialnumber:N/A;location:PORT1;status:active;fw_version: 5.10.0+
+name:eth1;class:ethnet;devname:/sys/devices/platform/a7200000.xge1/net/eth1;vendor:Hisilicon;model:higmac;serialnumber:N/A;location:PORT2;status:active;fw_version: 5.10.0+
+name:eMMC;class:eMMC;devname:/dev/mmcblk0;vendor:YMTC;model:Y2P032;serialnumber:0xb8ce3dfc;location:eMMC1;status:active;fw_version:1;capacity:32 GB
+name:disk0;class:DISK;devname:/dev/sda;vendor:SEAGATE;model:ST4000NM000A-2HZ100;serialnumber:ST4000NM000A-2HZ100_WS20NW6V;location:PCIE3-1;status:active;fw_version:TN03;capacity:4.00 TB

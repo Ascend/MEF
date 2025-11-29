@@ -1,0 +1,10 @@
+{
+    "@odata.type": "#Memory.v1_15_0.Memory",
+    "@odata.context": "/redfish/v1/$metadata#Systems/Memory",
+    "@odata.id": "/redfish/v1/Systems/Memory",
+    "Id": "Memory",
+    "Name": "Memory",
+    "Oem": {
+        "TotalSystemMemoryGiB": null
+    }
+}

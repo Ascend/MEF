@@ -1,0 +1,30 @@
+{
+  "esp_enable": true,
+  "product_capability": [
+    "profile",
+    "Assettag",
+    "restart",
+    "firmware_install",
+    "info_collect",
+    "rearm",
+    "hostname_config",
+    "ntp_server_config",
+    "partition_config",
+    "static_host_config",
+    "name_server_config",
+    "nfs_config",
+    "net_manager_config",
+    "password_config",
+    "password_validity_config",
+    "cold_reset",
+    "configuration_restore",
+    "digital_warranty",
+    "cert_mgmt",
+    "lte_config",
+    "access_control",
+    "min_recovery",
+    "session_timeout_config",
+    "cert_alarm_time_config",
+    "security_load_config"
+  ]
+}

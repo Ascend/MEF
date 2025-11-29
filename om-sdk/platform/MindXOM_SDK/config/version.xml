@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FirmwarePackage version="V1">
+<!--Upgrade packages description-->
+    <Package>
+        <FileName>Ascend-mindxedge-om_3.0.RC2_linux-aarch64.zip</FileName>
+        <OutterName>MindXOM</OutterName>
+        <Version>3.0.RC2</Version>
+        <FileType>Firmware</FileType>
+        <Module>MindXOM</Module>
+        <Vendor>huawei</Vendor>
+        <MaxUpgradeTime>3600</MaxUpgradeTime>
+        <!--UpgradeTimeout:unit second-->
+        <ActiveMode>ResetOS</ActiveMode>
+        <MaxActivetime>600</MaxActivetime>
+        <SupportModel>Atlas 200I A2</SupportModel>
+        <ProcessorArchitecture>ARM</ProcessorArchitecture>
+        <UpgradeAgent>OM</UpgradeAgent>
+    </Package>
+</FirmwarePackage>

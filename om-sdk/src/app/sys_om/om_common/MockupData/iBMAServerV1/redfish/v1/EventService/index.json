@@ -1,0 +1,15 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#EventService",
+  "@odata.id": "/redfish/v1/EventService",
+  "@odata.type": "#EventService.v1_8_0.EventService",
+  "Id": "EventService",
+  "Name": "EventService",
+  "Subscriptions": {
+      "@odata.id": "/redfish/v1/EventService/Subscriptions"
+    },
+  "Oem": {
+    "ServiceCert": {
+      "@odata.id": "/redfish/v1/EventService/ServiceCert"
+    }
+  }
+}
