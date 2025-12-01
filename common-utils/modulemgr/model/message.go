@@ -1,4 +1,12 @@
-// Copyright (c)  2022. Huawei Technologies Co., Ltd.  All rights reserved.
+// Copyright (c) Huawei Technologies Co., Ltd. 2025-2025. All rights reserved.
+// MindEdge is licensed under Mulan PSL v2.
+// You can use this software according to the terms and conditions of the Mulan PSL v2.
+// You may obtain a copy of Mulan PSL v2 at:
+//          http://license.coscl.org.cn/MulanPSL2
+// THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+// EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+// MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+// See the Mulan PSL v2 for more details.
 
 // Package model to start module_manager model
 package model
@@ -310,7 +318,8 @@ func UnformatMsg(data []byte) []byte {
 // twice. It converts a structure into a final Json-formatted string.
 // It mainly used for integrating with certain edgecore/FD messages.
 // eg: {"name":"someone"} is the final content if the input is a struct and  transferStructIntoStr is false.
-//     "{\"name\":\"someone\"}" is the final content if the input is a struct and  transferStructIntoStr is true.
+//
+//	"{\"name\":\"someone\"}" is the final content if the input is a struct and  transferStructIntoStr is true.
 func (msg *Message) FillContent(content interface{}, transferStructIntoStr ...bool) error {
 	if bytes, ok := content.([]byte); ok {
 		msg.Content = bytes
