@@ -8,8 +8,10 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"os/user"
 	"path"
 	"path/filepath"
+	"strconv"
 	"syscall"
 
 	"huawei.com/mindx/common/envutils"
@@ -134,10 +136,14 @@ func GetBoolPointer(value bool) *bool {
 
 // ReducePriv reduce privilege
 func ReducePriv() error {
-	mefUid, mefGid, err := GetMefId()
+	mefUid, mefGid, groups, err := GetMefInfo()
 	if err != nil {
 		hwlog.RunLog.Errorf("get mef uid and gid failed, error: %v", err)
 		return errors.New("get mef uid and gid failed")
+	}
+	if err = syscall.Setgroups(groups); err != nil {
+		hwlog.RunLog.Errorf("set groups failed, error: %v", err)
+		return errors.New("set groups failed")
 	}
 	if err = syscall.Setegid(int(mefGid)); err != nil {
 		hwlog.RunLog.Errorf("set egid failed, error: %v", err)
@@ -151,6 +157,41 @@ func ReducePriv() error {
 	return nil
 }
 
+// GetMefInfo get mefuid, mefgid, mefgroups
+func GetMefInfo() (uint32, uint32, []int, error) {
+	mefUid, mefGid, err := GetMefId()
+	if err != nil {
+		hwlog.RunLog.Errorf("get mef uid and gid failed, error: %v", err)
+		return 0, 0, nil, fmt.Errorf("get mef uid and gid failed, %v", err)
+	}
+	groups, err := GetGroupIdsByName(MefCenterName)
+	if err != nil {
+		return 0, 0, nil, fmt.Errorf("get mef groups failed, %v", err)
+	}
+	return mefUid, mefGid, groups, nil
+}
+
+// GetGroupIdsByName get groups by username
+func GetGroupIdsByName(userName string) ([]int, error) {
+	u, err := user.Lookup(userName)
+	if err != nil {
+		return nil, err
+	}
+	groups, err := u.GroupIds()
+	if err != nil {
+		return nil, err
+	}
+	list := make([]int, 0, len(groups))
+	for _, gidStr := range groups {
+		gid, aToiErr := strconv.Atoi(gidStr)
+		if aToiErr != nil {
+			return nil, aToiErr
+		}
+		list = append(list, gid)
+	}
+	return list, nil
+}
+
 // ResetPriv reset privilege
 func ResetPriv() error {
 	if err := syscall.Setegid(RootGid); err != nil {
@@ -160,6 +201,14 @@ func ResetPriv() error {
 	if err := syscall.Seteuid(RootUid); err != nil {
 		hwlog.RunLog.Errorf("set euid failed, error: %v", err)
 		return errors.New("set euid failed")
+	}
+
+	groups, err := GetGroupIdsByName(RootUserName)
+	if err != nil {
+		return fmt.Errorf("get root groups failed, %v", err)
+	}
+	if err := syscall.Setgroups(groups); err != nil {
+		return fmt.Errorf("set groups failed, %v", err)
 	}
 
 	return nil
