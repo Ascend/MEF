@@ -1,0 +1,27 @@
+{
+    "@odata.context": "/redfish/v1/$metadata#NetManager",
+    "@odata.id": "/redfish/v1/NetManager",
+    "@odata.type": "#MindXEdgeNetManager.v1_0_0.MindXEdgeNetManager",
+    "Id": "NetManager",
+    "Name": "NetManager",
+    "NetManager": "",
+    "NetIP": "",
+    "Port": "",
+    "NetAccount": "",
+    "ServerName": "",
+    "ConnectStatus": "not_configured",
+    "NodeID": {
+        "@odata.id": "/redfish/v1/NetManager/NodeID"
+    },
+    "QueryFdCert": {
+        "@odata.id": "/redfish/v1/NetManager/QueryFdCert"
+    },
+    "Actions": {
+        "#ImportFdCert": {
+            "target": "/redfish/v1/NetManager/ImportFdCert"
+        },
+        "#ImportFdCrl": {
+            "target": "/redfish/v1/NetManager/ImportFdCrl"
+        }
+    }
+}

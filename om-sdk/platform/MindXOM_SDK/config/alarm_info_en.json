@@ -1,0 +1,775 @@
+{
+    "MAJOR_VERSION": "2",
+    "MINOR_VERSION": "8",
+    "AUX_VERSION": "0",
+    "EventSuggestion": [
+        {
+            "id": "00000000",
+            "name": "Drive Overtemperature",
+            "dealSuggestion": "1. Check whether a TEC alarm is generated. @#AB2. Check whether the ambient temperature of the device exceeds 60°C.@#AB3. Restart the system. Then check whether the alarm is cleared.@#AB4. Contact Vendor technical support.",
+            "detailedInformation": "The component temperature exceeds the threshold.",
+            "reason": " The ambient temperature is excessively high.",
+            "impact": " The system reliability may be affected."
+        },
+        {
+            "id": "00000001",
+            "name": "Drive Service Life Prewarning",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Back up data and replace the drive. Then check whether the alarm is cleared. @#AB3. Contact Vendor technical support.",
+            "detailedInformation": "The drive is severely worn.",
+            "reason": " The hard drive has bad blocks.",
+            "impact": "Data may be lost."
+        },
+        {
+            "id": "00000002",
+            "name": "Drive Not Found",
+            "dealSuggestion": "1. Check whether the drive is properly installed. @#AB2. Remove and reinstall the drive module, and check whether an alarm is generated indicating that the storage device is lost or the storage device partition is lost. @#AB3. Log in to the webUI and check whether the drive exists in the drive list on the local drive management tab page. @#AB4. Replace the drive. Then check whether the alarm is cleared. @#AB5. Contact Vendor technical support.",
+            "detailedInformation": "The drive presence signal cannot be detected.",
+            "reason": " The drive is not properly installed or is severely faulty.",
+            "impact": " Data may be lost."
+        },
+        {
+            "id": "00000003",
+            "name": "Drive access blocking",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Back up data and replace the drive. Then check whether the alarm is cleared. @#AB3. Contact Vendor technical support.",
+            "detailedInformation": " Hanging to death",
+            "reason": " Drive bad block or serious failure.",
+            "impact": " may cause data loss."
+        },
+        {
+            "id": "00000004",
+            "name": "Number of Unstable Sectors Reaches the Threshold",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Back up data and replace the drive. Then check whether the alarm is cleared. @#AB3. Contact Vendor technical support.",
+            "detailedInformation": " The number of unstable sectors on the hard disk reaches or exceeds the threshold.",
+            "reason": " The hard drive has bad blocks.",
+            "impact": " The drive access performance deteriorates or data loss may occur."
+        },
+        {
+            "id": "00000005",
+            "name": "Insufficient Spare Sectors",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Back up data and replace the drive. Then check whether the alarm is cleared. @#AB3. Contact Vendor technical support.",
+            "detailedInformation": " The number of spare sectors remaining on the drive is close to or has reached the threshold.",
+            "reason": "The hard drive has bad blocks.",
+            "impact": " The drive access performance deteriorates or data loss may occur."
+        },
+        {
+            "id": "00030000",
+            "name": "eMMC Service Life Prewarning",
+            "dealSuggestion": "1. Back up data. @#AB2. Replace the system. Then, check whether the alarm is cleared. @#AB3. Contact Vendor technical support.",
+            "detailedInformation": "The eMMC is severely worn.",
+            "reason": " The number of erase times of the eMMC is close to the eMMC service life.",
+            "impact": " Data is lost or the system fails to start."
+        },
+        {
+            "id": "00030001",
+            "name": "High Average Amount of Writes",
+            "dealSuggestion": "1. Collect log information.Detailed information please see the edge of the intelligent management system user guide \"log collection\" in the chapter. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "The average amount of data written to the eMMC for three consecutive days exceeds the threshold.",
+            "reason": " Programs that frequently write data to the eMMC or that write a large amount of data to the eMMC exist.",
+            "impact": " Excessive data writes may shorten the lifespan of the eMMC."
+        },
+        {
+            "id": "00030002",
+            "name": "High Daily Amount of Writes",
+            "dealSuggestion": "1. Collect log information. Detailed information please see the edge of the intelligent management system user guide \"log collection\" in the chapter. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "The amount of data written to the eMMC every day exceeds the threshold.",
+            "reason": " Programs that frequently write data to the eMMC or that write a large amount of data to the eMMC exist.",
+            "impact": " Excessive data writes may shorten the lifespan of the eMMC."
+        },
+        {
+            "id": "00030003",
+            "name": "Insufficient Blocks Reserved",
+            "dealSuggestion": "1. Back up data. @#AB2. Replace the Intelligent Edge System. Then, check whether the alarm is cleared. @#AB3. Contact Vendor technical support engineers to help solve the problem. ",
+            "detailedInformation": "The available blocks reserved for the eMMC are insufficient.",
+            "reason": " The available blocks reserved for the eMMC are insufficient. ",
+            "impact": " The system will be triggered to allow data read only. "
+        },
+        {
+            "id": "00040000",
+            "name": "SD Card Mounting Failure",
+            "dealSuggestion": "1. Check whether an SD card has been installed. @#AB2. Remove and reinstall the SD card, and check whether an alarm is generated indicating that the storage device is lost or the storage device partition is lost. @AB3. og in to the webUI and check whether /dev/mmcblk1 exists in the drive list on the local drive management tab page. @AB4. Replace the SD card and check whether the alarm is cleared. @AB5. Contact Vendor technical support.",
+            "detailedInformation": "Failed to mount the SD card.",
+            "reason": "1. The SD card is not in position. @#AB2. The SD card is damaged.",
+            "impact": "The external storage device may not work properly."
+        },
+        {
+            "id": "00040001",
+            "name": "SD Card Service Life Prewarning",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Back up data and replace the SD card. Then check whether the alarm is cleared. @#AB3. Contact Vendor technical support.",
+            "detailedInformation": "SD Card Service Life Prewarning.",
+            "reason": "The SD card is damaged.",
+            "impact": "Data may be lost."
+        },        
+        {
+            "id": "00080000",
+            "name": "Memory Fault",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Power cycle the system. Then check whether the alarm is cleared. @#AB3. Replace the system. Then check whether the alarm is cleared. @#AB4. Contact Vendor technical support.",
+            "detailedInformation": "The DDR is damaged.",
+            "reason": "The data line between the CPU and DDR is abnormal.",
+            "impact": "The DDR is unavailable. As a result, the system fails to start or resets occasionally."
+        },
+        {
+            "id": "00090000",
+            "name": " RX CRC Error",
+            "dealSuggestion": "1. Check whether the network cable is installed properly. @#AB2. Check whether the peer device is faulty. @#AB3. Contact Vendor technical support.",
+            "detailedInformation": " The network port receives CRC error packets.",
+            "reason": " The peer device or network cable is faulty.",
+            "impact": " The network port communication may be affected."
+        },
+        {
+            "id": "00090001",
+            "name": " TX CRC Error",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "The network port sends CRC error packets.",
+            "reason": "The network port is faulty.",
+            "impact": " The network port communication may be affected."
+        },
+        {
+            "id": "00090002",
+            "name": " Link Down",
+            "dealSuggestion": "1. Remove and reinstall the network cable. Then check whether the alarm is cleared. @#AB2. Replace the network cable. Then check whether the alarm is cleared. @#AB3. Use a PC to directly connect to the network port of the system. Then check whether the alarm is cleared. @#AB4. Contact Vendor technical support.",
+            "detailedInformation": "The link state of the network port changes from up to down.",
+            "reason": " The network cable is removed and then installed, or the network cable is loose.",
+            "impact": " The network port is disconnected, and communication fails."
+        },
+        {
+            "id": "00090003",
+            "name": "Network Port Fault",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": " The network port cannot be accessed.",
+            "reason": "The network port is faulty.",
+            "impact": " The network port is disconnected, and communication fails."
+        },
+        {
+            "id": "000B0000",
+            "name": "PCIe Switch Fault",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Power cycle the system. Then check whether the alarm is cleared. @#AB3. Replace the system. Then check whether the alarm is cleared. @#AB4. Contact Vendor technical support.",
+            "detailedInformation": "The PCIe switch is faulty.",
+            "reason": "The PCIe switch is faulty.",
+            "impact": "The NPU and drives cannot be accessed."
+        },
+        {
+            "id": "000C0000",
+            "name": "PCIe Link Fault",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Power cycle the system. Then check whether the alarm is cleared. @#AB3. Replace the system. Then check whether the alarm is cleared. @#AB4. Contact Vendor technical support.",
+            "detailedInformation": "The PCIe link is faulty.",
+            "reason": "The PCIe link is faulty.",
+            "impact": "The NPU or drives cannot be accessed."
+        },
+        {
+            "id": "000D0000",
+            "name": "USB Hub Fault",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Power cycle the system. Then check whether the alarm is cleared. @#AB3. Replace the system. Then check whether the alarm is cleared. @#AB4. Contact Vendor technical support.",
+            "detailedInformation": "The USB hub is damaged.",
+            "reason": "The USB hub is faulty.",
+            "impact": "The USB peripherals cannot be accessed."
+        },
+        {
+            "id": "000E0000",
+            "name": "TEEDrv Hardware Module Error",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "The TEEDrv hardware module is faulty.",
+            "reason": "The SFC module fails to erase and write the flash memory, and the flash hardware is faulty.",
+            "impact": "Flash-related operations, for example, firmware upgrade, will fail."
+        },
+        {
+            "id": "000E0001",
+            "name": "Multi-bit ECC Error in the TEEDrv Hardware",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "A multi-bit ECC error occurs in the TEEDrv hardware.",
+            "reason": "A hardware memory hard error occurs on the SFC module, causing multi-bit ECC errors.",
+            "impact": "Flash-related operations, for example, firmware upgrade, will fail"
+        },
+        {
+            "id": "000E0002",
+            "name": "TS Heartbeat Detection Abnormal",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "TS heartbeat error.",
+            "reason": "The TS subsystem does not work properly.",
+            "impact": "The TS subsystem is unavailable, and AI jobs cannot be scheduled properly."
+        },
+        {
+            "id": "000E0003",
+            "name": "TS Multi-bit ECC Error",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "A TS multi-bit ECC error occurs.",
+            "reason": "A multi-bit ECC error occurs in the SRAM of the Doorbell.",
+            "impact": "The system does not respond. Data is incorrect or a consistency error occurs."
+        },
+        {
+            "id": "000E0004",
+            "name": "slogd Heartbeat Detection Abnormal",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "slogd heartbeat error.",
+            "reason": "The process fails to be started (due to insufficient permission or resources), exits abnormally (due to insufficient resources), or fails to respond (due to insufficient resources).",
+            "impact": "The corresponding module's functions are unavailable, logging is affected, and file handles before the restart become invalid."
+        },
+        {
+            "id": "000E0005",
+            "name": "dmp_daemon Heartbeat Detection Abnormal",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "dmp_daemon heartbeat error.",
+            "reason": "The process fails to be started (due to insufficient permission or resources), exits abnormally (due to insufficient resources), or fails to respond (due to insufficient resources).",
+            "impact": "The corresponding module's functions are unavailable, logging is affected, and file handles before the restart become invalid."
+        },
+        {
+            "id": "000E0006",
+            "name": "log-daemon Heartbeat Detection Abnormal",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "log-daemon heartbeat error.",
+            "reason": "The process fails to be started (due to insufficient permission or resources), exits abnormally (due to insufficient resources), or fails to respond (due to insufficient resources).",
+            "impact": "The corresponding module's functions are unavailable, logging is affected, and file handles before the restart become invalid."
+        },
+        {
+            "id": "000E0007",
+            "name": "sklogd Heartbeat Detection Abnormal",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "sklogd heartbeat error.",
+            "reason": "The process fails to be started (due to insufficient permission or resources), exits abnormally (due to insufficient resources), or fails to respond (due to insufficient resources).",
+            "impact": "The corresponding module's functions are unavailable, logging is affected, and file handles before the restart become invalid."
+        },
+        {
+            "id": "000E0008",
+            "name": "Iammgr Heartbeat Detection Abnormal",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "Iammgr heartbeat error.",
+            "reason": "The process fails to be started (due to insufficient permission or resources), exits abnormally (due to insufficient resources), or fails to respond (due to insufficient resources).",
+            "impact": "The corresponding module's functions are unavailable, and process status monitoring in the Group, such as heartbeat detection, fails."
+        },
+        {
+            "id": "000E0009",
+            "name": "ProcLauncher Heartbeat Detection Abnormal",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "ProcLauncher heartbeat error.",
+            "reason": "The process fails to be started (due to insufficient permission or resources), exits abnormally (due to insufficient resources), or fails to respond (due to insufficient resources).",
+            "impact": "1. The corresponding module's functions are unavailable. 2. Service process status monitoring, such as heartbeat detection, fails."
+        },
+        {
+            "id": "000E000A",
+            "name": "ProcMgr Heartbeat Detection Abnormal",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "ProcMgr heartbeat error.",
+            "reason": "The process fails to be started (due to insufficient permission or resources), exits abnormally (due to insufficient resources), or fails to respond (due to insufficient resources).",
+            "impact": "1. The corresponding module's functions are unavailable, such as the process access authentication function. 2. Service process status monitoring fails. For example, sub-processes cannot be monitored or recovered."
+        },
+        {
+            "id": "000E000B",
+            "name": "Non-fatal High Temperature",
+            "dealSuggestion": "1. Check the heat dissipation of the system and decrease the chip temperature. Then check whether the alarm is cleared. @#AB2. Restart the system. Then check whether the alarm is cleared. @#AB3. Contact Vendor technical support.",
+            "detailedInformation": "A non-fatal high temperature alarm (excluding DDR/HBM chips) is generated.",
+            "reason": "The heat dissipation of the system is abnormal. The low-power software detects that the chip temperature exceeds the high temperature alarm threshold.",
+            "impact": "If the temperature continues to rise, a power failure may occur."
+        },
+        {
+            "id": "000E000C",
+            "name": "LPM Sub-system Heartbeat Detection Abnormal",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "LPM sub-system heartbeat error.",
+            "reason": "1.The initialization of low-power services fails. @#AB2. The BIOS fails to load the LPFW image. @#AB3. The LP subsystem panics or does not respond during service running. @#AB4. The IPC channel is blocked.",
+            "impact": "All low-power services (such as temperature protection, EDP, AVS, and PMU exception management) are unavailable."
+        },
+        {
+            "id": "000E000D",
+            "name": "Abnormal Voltage Adjustment Detected by the LPM",
+            "dealSuggestion": "1. Check and repair the power supply. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "The LPM detects that the voltage adjustment function is abnormal.",
+            "reason": "The power module is abnormal, resulting in frequency and voltage adjustment exceptions.",
+            "impact": "The system overtemperature protection and EDP control will be affected, thus affecting system reliability."
+        },
+        {
+            "id": "000E000E",
+            "name": "Abnormal Frequency Adjustment Detected by the LPM",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "The LPM detects that the frequency adjustment function is abnormal.",
+            "reason": "When the main state machine is performing DVFS, returning idle.dfs times out.",
+            "impact": "The system overtemperature protection and EDP control will be affected, thus affecting system reliability."
+        },
+        {
+            "id": "000E000F",
+            "name": "Chip Current Abnormal Detected by the LPM",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "The LPM detects that the chip current detection function is abnormal.",
+            "reason": "1. Current probe access exception. @#AB2. Power supply exception reported. @#AB3. Incorrect software configuration.",
+            "impact": "Overcurrent protection is affected. As a result, current cannot be detected, and information about the current of the corresponding power domain cannot be obtained, so software current control cannot be triggered in case of overcurrent. Service performance is affected."
+        },
+        {
+            "id": "000E0010",
+            "name": "Tsensor Module Exception Detected by the LPM",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "The LPM detects that the Tsensor module is abnormal.",
+            "reason": "The Tsensor module is abnormal.",
+            "impact": "Failed to obtain the temperature, which may cause system overtemperature."
+        },
+        {
+            "id": "000E0011",
+            "name": "PMBUS Module Exception Detected by the LPM",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "The LPM detects that the PMBUS module is abnormal.",
+            "reason": "1. The PMBUS hardware path is damaged. @#AB2. The MCU switches to the PMBUS path.",
+            "impact": "System stability will be affected."
+        },
+        {
+            "id": "000E0012",
+            "name": "AIC Multi-bit ECC Error",
+            "dealSuggestion": "1. Exit the AI training job and execute it again. Initiate an inference request again. Then check whether the alarm is cleared. @AB2. Restart the system. Then check whether the alarm is cleared  @#AB3. Contact Vendor technical support.",
+            "detailedInformation": "An AIC multi-bit ECC error occurs.",
+            "reason": "AIC internal RAM multi-bit ECC error",
+            "impact": "The current AI job fails. If the AIC is not restored, subsequent AI jobs will fail."
+        },
+        {
+            "id": "000E0013",
+            "name": "External Input Error Detected by the AIC",
+            "dealSuggestion": "1. Exit the AI training job and execute it again. Initiate an inference request again. Then check whether the alarm is cleared. @AB2. Restart the system. Then check whether the alarm is cleared  @#AB3. Contact Vendor technical support.",
+            "detailedInformation": "The AIC detects an external input error.",
+            "reason": "Incorrect app input and incorrect operator implementation.",
+            "impact": "The current AI job fails. If the AIC is not restored, subsequent AI jobs will fail."
+        },
+        {
+            "id": "000E0014",
+            "name": "AIC Bus Access Error",
+            "dealSuggestion": "1. Exit the AI training job and execute it again. Initiate an inference request again. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "An AIC bus access error occurs.",
+            "reason": "A bus decoding error occurs.",
+            "impact": "The current AI job fails. If the AIC is not restored, subsequent AI jobs will fail."
+        },
+        {
+            "id": "000E0015",
+            "name": "AIC Dispatch Multi-bit ECC Error",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "An AIC bus access error occurs.",
+            "reason": "AIC dispatch multi-bit ECC error.",
+            "impact": "The system does not respond. Data is incorrect or a consistency error occurs."
+        },
+        {
+            "id": "000E0016",
+            "name": "AIC Dispatch Input Error",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "An AIC dispatch input error occurs.",
+            "reason": "AIC dispatch input error.",
+            "impact": "The system does not respond. Data is incorrect or a consistency error occurs."
+        },
+        {
+            "id": "000E0017",
+            "name": "AO Dispatch Multi-bit ECC Error",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "An AO dispatch multi-bit ECC error occurs.",
+            "reason": "AO dispatch multi-bit ECC error.",
+            "impact": "The system does not respond. Data is incorrect or a consistency error occurs."
+        },
+        {
+            "id": "000E0018",
+            "name": "AO Dispatch Input Error",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "An AO dispatch input error occurs.",
+            "reason": "AO dispatch input error.",
+            "impact": "The system does not respond. Data is incorrect or a consistency error occurs."
+        },
+        {
+            "id": "000E0019",
+            "name": "TaishanCore Multi-bit ECC Error",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "A TaishanCore multi-bit ECC error occurs.",
+            "reason": "Multi-bit ECC errors occur in the on-chip SRAM of the CPU core.",
+            "impact": "The system does not respond. Data is incorrect or a consistency error occurs."
+        },
+        {
+            "id": "000E001A",
+            "name": "DDR Memory Chip Multi-bit ECC Error",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "A multi-bit ECC error occurs on the DDR memory chip.",
+            "reason": "Multi-bit ECC errors on the DDR memory chip.",
+            "impact": "Incorrect data is returned, which may cause NPU startup failures or service exceptions."
+        },
+        {
+            "id": "000E001B",
+            "name": "DDRA Multi-bit ECC Error",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "A DDRA multi-bit ECC error occurs.",
+            "reason": "Multi-bit ECC errors in the SRAM of the DDRA.",
+            "impact": "The system may not respond or incorrect data is returned."
+        },
+        {
+            "id": "000E001C",
+            "name": "Error Response from DDRC",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "Error response received from the DDRC.",
+            "reason": "An error occurs in the DDRC.",
+            "impact": "The chip does not respond."
+        },
+        {
+            "id": "000E001D",
+            "name": "DDRC Hardware Internal Logic Exception",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "An internal logic exception occurs on the DDRC hardware module.",
+            "reason": "Internal logic exceptions occur on the DDRC hardware module, for example, DDR failures, poor link signal quality, or link faults.",
+            "impact": "The system may not respond or incorrect data is returned."
+        },
+        {
+            "id": "000E001E",
+            "name": "DDRC Bus Access Error",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "A DDRC bus access error occurs.",
+            "reason": "The system (various masters) accesses an incorrect DDR memory address or at an incorrect time. For example, the system accesses an invalid physical address or accesses the memory before the DDR is initialized during reboot.",
+            "impact": "The system may not respond or incorrect data is returned."
+        },
+        {
+            "id": "000E001F",
+            "name": "DDRC Multi-bit ECC Error",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "A DDRC multi-bit ECC error occurs.",
+            "reason": "Multi-bit ECC errors occur in the SRAM of DDRC.",
+            "impact": "The system may not respond or incorrect data is returned."
+        },
+        {
+            "id": "000E0020",
+            "name": "DDR Chip High Temperature: Non-fatal High Temperature",
+            "dealSuggestion": "1. Check the system heat dissipation, enhance heat dissipation to lower the chip temperature. @#AB2.If the temperature cannot be lowered, restart the device and check the temperature again. @#AB3. Contact Vendor technical support.",
+            "detailedInformation": "A non-fatal high temperature alarm is generated for the DDR chip.",
+            "reason": "The heat dissipation of the DDR chip is abnormal, and the ambient temperature is too high.",
+            "impact": "If the DDR enters the protection state at a high temperature, it will be powered off. Take measures to enter the secure state in advance."
+        },
+        {
+            "id": "000E0021",
+            "name": "DVPP Dispatch Multi-bit ECC Error",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "DVPP dispatch multi-bit ECC error.",
+            "reason": "DVPP dispatch multi-bit ECC errors occur.",
+            "impact": "The system does not respond. Data is incorrect or a consistency error occurs."
+        },
+        {
+            "id": "000E0022",
+            "name": "DVPP Dispatch Input Error",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "A DVPP Dispatch input error occurs.",
+            "reason": "A DVPP dispatch input error occurs.",
+            "impact": "The system does not respond. Data is incorrect or a consistency error occurs."
+        },
+        {
+            "id": "000E0023",
+            "name": "HSM Key Management Module Error",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "An error occurs in the HSM key management module.",
+            "reason": "A hardware memory hard error occurs on the HSM key management module, causing multi-bit ECC errors and read/write bus errors.",
+            "impact": "Services that use the key functions provided by the HSM, such as password derivation, are affected. As a result, the services cannot use the corresponding keys."
+        },
+        {
+            "id": "000E0024",
+            "name": "HSM Cryptographic Algorithm Module Error",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "An error occurs in the HSM cryptographic algorithm module.",
+            "reason": "A hardware memory hard error occurs on the HSM key management module, causing multi-bit ECC errors and read/write bus errors.",
+            "impact": "Services that use the key functions provided by the HSM, such as password derivation, are affected. As a result, the services cannot use the corresponding keys."
+        },
+        {
+            "id": "000E0025",
+            "name": "HWTS Bus Access Error",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "An HWTS bus access error occurs.",
+            "reason": "Incorrect access operation address of HWTS.",
+            "impact": "The system does not respond. Data is incorrect or a consistency error occurs."
+        },
+        {
+            "id": "000E0026",
+            "name": "HWTS Multi-bit ECC Error",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "An HWTS multi-bit ECC error occurs.",
+            "reason": "Multi-bit ECC errors occur in the internal memory of the HWTS module.",
+            "impact": "The system does not respond. Data is incorrect or a consistency error occurs."
+        },
+        {
+            "id": "000E0027",
+            "name": "JPEGD Bus Access Error",
+            "dealSuggestion": "No operation is required.",
+            "detailedInformation": "A JPEGD bus access error occurs.",
+            "reason": "JPEGD bus access error.",
+            "impact": "The JPEGD decoding performance is affected."
+        },
+        {
+            "id": "000E0028",
+            "name": "JPEGE Hardware Encoding Exception",
+            "dealSuggestion": "1. Exit the AI training task and execute it again. Initiate an inference request again. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "The JPEGE hardware encoding is abnormal.",
+            "reason": "JPEGE hardware encoding exception.",
+            "impact": "JPEGE encoding is affected."
+        },
+        {
+            "id": "000E0029",
+            "name": "JPEGE Bus Access Error",
+            "dealSuggestion": "1. Exit the AI training task and execute it again. Initiate an inference request again. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "A JPEGE bus access error occurs.",
+            "reason": "JPEGE bus access error.",
+            "impact": "JPEGE encoding is affected."
+        },
+        {
+            "id": "000E002A",
+            "name": "L2BUFF Multi-bit ECC Error",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "An L2BUFF multi-bit ECC error occurs.",
+            "reason": "Soft errors occur on the chip SRAM, causing the L2BUFF multi-bit errors.",
+            "impact": "The system does not respond. Data is incorrect or a consistency error occurs."
+        },
+        {
+            "id": "000E002B",
+            "name": "L2BUFF Internal Software Configuration Error",
+            "dealSuggestion": "No operation is required.",
+            "detailedInformation": "The internal software configuration of the L2BUFF is incorrect.",
+            "reason": "1. An unexpected error occurs in the platform software configuration. 2. Invalid address due to hardware failure.",
+            "impact": "Data error or data inconsistency occurs."
+        },
+        {
+            "id": "000E002C",
+            "name": "L3D Multi-bit ECC Error",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "An L3D multi-bit ECC error occurs.",
+            "reason": "L3D on-chip SRAM multi-bit ECC error occurs.",
+            "impact": "The system does not respond. Data is incorrect or a consistency error occurs."
+        },
+        {
+            "id": "000E002D",
+            "name": "L3T Multi-bit ECC Error",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "An L3T multi-bit ECC error occurs.",
+            "reason": "Multi-bit ECC errors occur in the L3T on-chip SRAM.",
+            "impact": "The system does not respond. Data is incorrect or a consistency error occurs."
+        },
+        {
+            "id": "000E002E",
+            "name": "NIC Multi-bit ECC Error",
+            "dealSuggestion": "1. Exit the AI task and execute it again. Then check whether the alarm is cleared. @AB2. Restart the system. Then check whether the alarm is cleared  @#AB3. Contact Vendor technical support.",
+            "detailedInformation": "A NIC multi-bit ECC error occurs.",
+            "reason": "Multi-bit ECC errors occur in each SSU memory of the NIC.",
+            "impact": "The packet content is incorrect or lost."
+        },
+        {
+            "id": "000E002F",
+            "name": "NIC Module Abnormal",
+            "dealSuggestion": "1. Exit the AI task and execute it again. Then check whether the alarm is cleared. @AB2. Restart the system. Then check whether the alarm is cleared  @#AB3. Contact Vendor technical support.",
+            "detailedInformation": "The NIC module is abnormal.",
+            "reason": "The SSU of the NIC module is abnormal.",
+            "impact": "Error packets may exist, the performance is inaccurate, and the network port does not respond."
+        },
+        {
+            "id": "000E0030",
+            "name": "PERI Dispatch Multi-bit ECC Error",
+            "dealSuggestion": "1. Exit the AI training task and execute it again. Initiate an inference request again. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "A PERI dispatch multi-bit ECC error occurs.",
+            "reason": "PERI dispatch multi-bit ECC error.",
+            "impact": "The system does not respond. Data is incorrect or a consistency error occurs."
+        },
+        {
+            "id": "000E0031",
+            "name": "PERI Dispatch Input Error",
+            "dealSuggestion": "1. Exit the AI training task and execute it again. Initiate an inference request again. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "A PERI dispatch input error occurs.",
+            "reason": "PERI dispatch input error.",
+            "impact": "The system does not respond. Data is incorrect or a consistency error occurs."
+        },
+        {
+            "id": "000E0032",
+            "name": "SDMA Multi-bit ECC Error",
+            "dealSuggestion": "1. Exit the AI training task and execute it again. Initiate an inference request again. Then check whether the alarm is cleared. @#AB2. Restart the system. Then check whether the alarm is cleared. @#AB3. Contact Vendor technical support.",
+            "detailedInformation": "An SDMA multi-bit ECC error occurs.",
+            "reason": "On-chip SRAM failure.",
+            "impact": "SDMA has a multi-bit ECC error, resulting in single task failure."
+        },
+        {
+            "id": "000E0033",
+            "name": "SDMA Module Bus Error",
+            "dealSuggestion": "1. Exit the AI training task and execute it again. Initiate an inference request again. Then check whether the alarm is cleared. @#AB2. Restart the system. Then check whether the alarm is cleared. @#AB3. Contact Vendor technical support.",
+            "detailedInformation": "A bus error occurs in the SDMA module.",
+            "reason": "When the SDMA module writes the CQE, the bus is abnormal. As a result, the hardware is faulty.",
+            "impact": "A bus error occurs in the SDMA, and a single task fails to be executed."
+        },
+        {
+            "id": "000E0034",
+            "name": "VDEC Multi-bit ECC Error",
+            "dealSuggestion": "1. Exit the AI training task and execute it again. Initiate an inference request again. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "A VDEC multi-bit ECC error occurs.",
+            "reason": "Multi-bit ECC errors in the SRAM of VDEC.",
+            "impact": "VDEC decoding is affected."
+        },
+        {
+            "id": "000E0035",
+            "name": "VENC Hardware Encoding Timeout",
+            "dealSuggestion": "1. Exit the AI training task and execute it again. Initiate an inference request again. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "The VENC hardware encoding times out.",
+            "reason": "The software configuration is incorrect. A hardware error occurs.",
+            "impact": "VDEC decoding is affected."
+        },
+        {
+            "id": "000E0036",
+            "name": "VENC Hardware Encoding Exception",
+            "dealSuggestion": "1. Exit the AI training task and execute it again. Initiate an inference request again. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "The VENC hardware encoding is abnormal.",
+            "reason": "VENC hardware encoding exception.",
+            "impact": "VDEC decoding is affected."
+        },
+        {
+            "id": "000E0037",
+            "name": "VPC Image Processing Hardware Exception",
+            "dealSuggestion": "1. Exit the AI training task and execute it again. Initiate an inference request again. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "The VPC image processing hardware is abnormal.",
+            "reason": "The VPC bus access is abnormal.",
+            "impact": "VPC image processing is affected."
+        },
+        {
+            "id": "000E0038",
+            "name": "VPC Image Processing Configuration Exception",
+            "dealSuggestion": "1. Exit the AI training task and execute it again. Initiate an inference request again. Then check whether the alarm is cleared. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "The VPC image processing configuration is abnormal.",
+            "reason": "The chip register configuration sequence is incorrect.",
+            "impact": "VPC image processing is affected."
+        },
+        {
+            "id": "000E0039",
+            "name": "VPC Multi-bit ECC Error",
+            "dealSuggestion": "No operation is required.",
+            "detailedInformation": "A VPC multi-bit ECC error occurs.",
+            "reason": "Multi-bit ECC errors in the SRAM of VPC.",
+            "impact": "VPC image processing is affected."
+        },
+        {
+            "id": "000E003A",
+            "name": "NPU Overtemperature",
+            "dealSuggestion": "1. Check whether the ambient temperature of the device exceeds 60°C. @#AB2. Restart the system. Then check whether the alarm is cleared. @#AB3. Contact Vendor technical support.",
+            "detailedInformation": "The NPU temperature is abnormal.",
+            "reason": "The NPU temperature is too high.",
+            "impact": "The reliability of the NPU may be affected."
+        },
+        {
+            "id": "000F0000",
+            "name": "MCU Overtemperature",
+            "dealSuggestion": "1. Check whether the ambient temperature of the device exceeds 60°C. @#AB2. Restart the system. Then check whether the alarm is cleared. @#AB3. Contact Vendor technical support.",
+            "detailedInformation": "The MCU uses sensors to check whether the temperatures at temperature measurement points exceed the alarm threshold. ",
+            "reason": " The ambient temperature is excessively high.\t",
+            "impact": " The system reliability may be affected."
+        },
+        {
+            "id": "000F0001",
+            "name": "Unstable MCU Voltage",
+            "dealSuggestion": "1. Check whether the screws on both sides of the power port are tightened. @#AB2. Power cycle the system. Then check whether the alarm is cleared. @#AB3. Contact Vendor technical support.",
+            "detailedInformation": "A voltage test point inside the system detects an unstable voltage.",
+            "reason": "The system power supply is unstable.",
+            "impact": "The system may not run properly."
+        },
+        {
+            "id": "000F0002",
+            "name": "MCU TEC Error",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Power cycle the system. Then check whether the alarm is cleared. @#AB3. Replace the system. Then check whether the alarm is cleared. @#AB4. Contact Vendor technical support.",
+            "detailedInformation": "The TEC does not operate properly.",
+            "reason": "The TEC is faulty.",
+            "impact": "Drives cannot operate properly in high and low temperature scenarios."
+        },
+        {
+            "id": "000F0003",
+            "name": "MCU Heartbeat Detection Abnormal",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Power cycle the system. Then check whether the alarm is cleared. @#AB3. Replace the system. Then check whether the alarm is cleared. @#AB4. Contact Vendor technical support.",
+            "detailedInformation": "The MCU heartbeat detection is abnormal.",
+            "reason": " The MCU software is faulty.",
+            "impact": " The system may not run properly."
+        },
+        {
+            "id": "000F0004",
+            "name": "MCU System Chip Fault",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Power cycle the system. Then check whether the alarm is cleared. @#AB3. Replace the system. Then check whether the alarm is cleared. @#AB4. Contact Vendor technical support.",
+            "detailedInformation": "The MCU system chip detected a fault.",
+            "reason": "The I2C is faulty.",
+            "impact": "The system may not run properly."
+        },
+        {
+            "id": "00100000",
+            "name": "CPU Overtemperature",
+            "dealSuggestion": "1. Check whether a TEC alarm is generated. @#AB2. Check whether the ambient temperature of the device exceeds 60°C. @#AB3. Restart the system. Then check whether the alarm is cleared. @#AB3. Contact Vendor technical support. ",
+            "detailedInformation": "CPU temperature exception.",
+            "reason": "The ambient temperature is excessively high.",
+            "impact": "The system reliability may be affected."
+        },
+        {
+            "id": "00110000",
+            "name": " Low RTC Battery Voltage ",
+            "dealSuggestion": "1. Restart the system. Then check whether the alarm is cleared. @#AB2. Replace the system. Then check whether the alarm is cleared. @#AB3. Contact Vendor technical support.",
+            "detailedInformation": "The RTC battery voltage is too low.",
+            "reason": "The RTC battery is exhausted.",
+            "impact": " After the system is powered off, the RTC time may be lost, affecting services."
+        },
+        {
+            "id": "00120000",
+            "name": " Mount Configuration File Error",
+            "dealSuggestion": "1. Check whether the firmware version is 2.2.200.010 or later.@#AB2. Check whether the mount configuration file is correct.\n\t2.1 Log in to the IES CLI and enter the develop mode.\n\t2.2 Run the cat /var/plog/ibma_edge/om_scripts_run.log command and check whether the command output contains [0x1].@#AB3. Delete the records containing /dev/xxx from the /home/data/ies/DockerMount.ini, /home/data/ies/DockerMountSite.ini,  /home/data/ies/mountCnf_site.ini files.\n(xxx indicates the [0x1] information queried in Step 2.2.)@#AB4. After 5 minutes, check whether the alarm is cleared.@#AB5. Restart the system and check whether the alarm is cleared.@#AB6. Replace the system. Then, check whether the alarm is cleared.@#AB7. Contact the service provider.",
+            "detailedInformation": "Device mount configuration file error.",
+            "reason": "1. The configuration file format is incorrect. @#AB2. The device information described in the configuration file is incorrect.",
+            "impact": "The mount configuration of the device is invalid."
+        },
+        {
+            "id": "00120001",
+            "name": "Device Partition Lost",
+            "dealSuggestion": "1. Check whether the firmware version is 2.2.200.010 or later.@#AB2. Check whether the mount configuration file is correct.\n\t2.1 Log in to the IES CLI and enter the develop mode.\n\t2.2 Run the cat /var/plog/ibma_edge/om_scripts_run.log command and check whether the command output contains [0x2].@#AB3. Remount the partition that is lost in Step 2. @#AB4. After 5 minutes, check whether the alarm is cleared.@#AB5. Restart the system and check whether the alarm is cleared.@#AB6. Replace the system. Then, check whether the alarm is cleared.@#AB7. Contact the service provider.",
+            "detailedInformation": "The partitions of the external storage device are lost.",
+            "reason": " 1. The device partition table is modified or damaged. @#AB2. A user changes the device but does not partition the device.",
+            "impact": "The current mount configuration is invalid."
+        },
+        {
+            "id": "00120002",
+            "name": "Device Lost",
+            "dealSuggestion": "1. Check whether the firmware version is 2.2.200.010 or later.@#AB2. Check whether the mount configuration file is correct.\n\t2.1 Log in to the IES CLI and enter the develop mode.\n\t2.2 Run the cat /var/plog/ibma_edge/om_scripts_run.log command and check whether the command output contains [0x4].@#AB3. Check whether the storage medium is removed. @#AB4. After 5 minutes, check whether the alarm is cleared.@#AB5. Restart the system and check whether the alarm is cleared.@#AB6. Replace the system. Then, check whether the alarm is cleared.@#AB7. Contact the service provider.",
+            "detailedInformation": "The external storage device is lost.",
+            "reason": " 1. The device is removed. @#AB2. The device is damaged..",
+            "impact": "The use of the storage device is affected."
+        },
+        {
+            "id": "00120003",
+            "name": " Device Not Mounted",
+            "dealSuggestion": "1. Collect log information.Detailed information please see the edge of the intelligent management system user guide \"log collection\" in the chapter. @#AB2. Contact Vendor technical support.",
+            "detailedInformation": "Failed to mount the external storage device.",
+            "reason": " 1. The file system of the device is damaged. @#AB2. The storage media of the device is damaged.",
+            "impact": "The use of the storage device is affected."
+        },
+        {
+            "id": "00120004",
+            "name": " Device Mount Point Error",
+            "dealSuggestion": "1. Collect log information.Detailed information please see the edge of the intelligent management system user guide \"log collection\" in the chapter.@#AB2. Contact Vendor technical support.",
+            "detailedInformation": "The mount point of the external storage device is incorrect.",
+            "reason": "After you log in to the CLI using SSH and run the mount command, the mount point is occupied and automatic mounting cannot be implemented.",
+            "impact": "The external storage device may not work properly."
+        },
+        {
+            "id": "00140000",
+            "name": "NFS Error",
+            "dealSuggestion": "1. Check whether the network is abnormal. @#AB2. Check whether the NFS server is abnormal.@#AB3. Contact Vendor technical support.",
+            "detailedInformation": "The NFS mounting status is abnormal.",
+            "reason": "1. The network between the device and the NFS server is faulty. @#AB2. The NFS server configuration is incorrect or the NFS server is abnormal.",
+            "impact": "The storage space extended by using the NFS cannot be used."
+        },
+        {
+            "id": "00150000",
+            "name": "Wireless Module Network Unavailable",
+            "dealSuggestion": "1. Check whether a SIM card has been installed. @#AB2. Remove and reinstall the SIM card. Then check whether the alarm is cleared. @#AB3. Check whether the antenna connection is abnormal. @#AB4. Restart the system. Then check whether the alarm is cleared. @#AB5. Power cycle the system. Then check whether the alarm is cleared. @#AB6. Replace the system. Then check whether the alarm is clearedCheck whether the antenna connection is abnormal. @#AB7. Contact Vendor technical support.",
+            "detailedInformation": "The Wireless Module network is unavailable.",
+            "reason": "1. The SIM card is not in position. @#AB2. The antenna connection is abnormal.",
+            "impact": "The 4G/5G network cannot be used properly."
+        },
+        {
+            "id": "00150001",
+            "name": "Wireless Module switch open failed",
+            "dealSuggestion": "1. Manually enable the Wireless Module function. @#AB2. Restart the system. Then check whether the alarm is cleared. @#AB3. Power cycle the system. Then check whether the alarm is cleared. @#AB4. Replace the system. Then check whether the alarm is cleared. @#AB5. Contact Vendor technical support.",
+            "detailedInformation": "Failed to enable Wireless Module.",
+            "reason": "The Wireless Module is abnormal.",
+            "impact": "The 4G/5G network cannot be used properly."
+        },
+        {
+            "id": "00160000",
+            "name": "Insufficient Directory Space",
+            "dealSuggestion": "1. Check which directories have insufficient storage space. @#AB2. Release space for the directories that have insufficient space.",
+            "detailedInformation": "The space of the directory is used up.",
+            "reason": "1. A large number of files are stored in the directory. @#AB2. A large number of files are generated abnormally in the directory.",
+            "impact": "The directory may fail to be accessed."
+        },
+        {
+            "id": "00180000",
+            "name": "Certificate alarm",
+            "dealSuggestion": "1. Check whether the certificate is about to expire or has expired. @#AB2. Contact Vendor technical support..",
+            "detailedInformation": "The certificate is about to expire or has expired.",
+            "reason": "The certificate is about to expire or has expired.",
+            "impact": "After the certificate has expired, the web interface will be affected."
+        }
+    ]
+}

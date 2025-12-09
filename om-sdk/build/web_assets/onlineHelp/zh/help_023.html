@@ -1,0 +1,57 @@
+<a name="ZH-CN_TOPIC_0000001447121153"></a><a name="ZH-CN_TOPIC_0000001447121153"></a>
+
+<h1 class="topictitle1">固件升级</h1>
+<div id="body8662426"><p id="ZH-CN_TOPIC_0000001447121153__zh-cn_topic_0176113889_p71221934132312">本文档只提供在<span id="ZH-CN_TOPIC_0000001447121153__ph15786811606">Atlas IES</span>界面中进行固件升级的操作指引。关于固件升级所需要的软件包、文档和升级后的验证方法，请参考<span id="ZH-CN_TOPIC_0000001447121153__ph162569281027">《<a href="https://support.huawei.com/enterprise/zh/ascend-computing/atlas-500-a2-pid-254412305?category=installation-upgrade&amp;subcategory=upgrade-guide" target="_blank" rel="noopener noreferrer">Atlas 500 A2 智能小站 升级指导书</a>》</span>。</p>
+<div class="note" id="ZH-CN_TOPIC_0000001447121153__note1253413018575"><img src="public_sys-resources/note_3.0-zh-cn.png"><span class="notetitle"> </span><div class="notebody"><p id="ZH-CN_TOPIC_0000001447121153__p753433010574">当前版本暂不支持硬件固盘升级。</p>
+</div></div>
+<div class="section" id="ZH-CN_TOPIC_0000001447121153__section1956018351272"><h4 class="sectiontitle">获取升级包</h4><p id="ZH-CN_TOPIC_0000001447121153__p10226145419528">软件升级前，请根据下表获取软件包及其数字签名文件。</p>
+
+<div class="tablenoborder"><table cellpadding="4" cellspacing="0" summary="" id="ZH-CN_TOPIC_0000001447121153__zh-cn_topic_0000001260139071_zh-cn_topic_0000001221821271_table1124510124215" frame="border" border="1" rules="all"><caption><b>表1 </b>获取软件包</caption><thead align="left"><tr id="ZH-CN_TOPIC_0000001447121153__zh-cn_topic_0000001260139071_zh-cn_topic_0000001221821271_row9245612142113"><th align="left" class="cellrowborder" valign="top" width="40%" id="mcps1.3.3.3.2.4.1.1"><p id="ZH-CN_TOPIC_0000001447121153__zh-cn_topic_0000001260139071_zh-cn_topic_0000001221821271_p1924617124211">软件包</p>
+</th>
+<th align="left" class="cellrowborder" valign="top" width="40%" id="mcps1.3.3.3.2.4.1.2"><p id="ZH-CN_TOPIC_0000001447121153__zh-cn_topic_0000001260139071_zh-cn_topic_0000001221821271_p924611212219">说明</p>
+</th>
+<th align="left" class="cellrowborder" valign="top" width="20%" id="mcps1.3.3.3.2.4.1.3"><p id="ZH-CN_TOPIC_0000001447121153__zh-cn_topic_0000001260139071_zh-cn_topic_0000001221821271_p124681220213">获取地址</p>
+</th>
+</tr>
+</thead>
+<tbody><tr id="ZH-CN_TOPIC_0000001447121153__row523334274611"><td class="cellrowborder" valign="top" width="40%" headers="mcps1.3.3.3.2.4.1.1 "><p id="ZH-CN_TOPIC_0000001447121153__p123412426467">Ascend-hdk-310b-npu-soc_<em id="ZH-CN_TOPIC_0000001447121153__i984864244117">{version}</em>_linux-aarch64.zip</p>
+</td>
+<td class="cellrowborder" valign="top" width="40%" headers="mcps1.3.3.3.2.4.1.2 "><p id="ZH-CN_TOPIC_0000001447121153__p13234154294619"><span id="ZH-CN_TOPIC_0000001447121153__text1028410353479"><span id="ZH-CN_TOPIC_0000001447121153__text82841835114719">Atlas 500 A2 智能小站</span></span>升级包，用于NPU固件整体升级。</p>
+</td>
+<td class="cellrowborder" rowspan="3" valign="top" width="20%" headers="mcps1.3.3.3.2.4.1.3 "><p id="ZH-CN_TOPIC_0000001447121153__p1310145515813"><a href="https://support.huawei.com/enterprise/zh/ascend-computing/atlas-500-a2-pid-254412305/software" target="_blank" rel="noopener noreferrer">获取链接</a></p>
+</td>
+</tr>
+<tr id="ZH-CN_TOPIC_0000001447121153__row202911466468"><td class="cellrowborder" valign="top" headers="mcps1.3.3.3.2.4.1.1 "><p id="ZH-CN_TOPIC_0000001447121153__p13300151419413">Ascend-hdk-310b-mcu_<em id="ZH-CN_TOPIC_0000001447121153__i066219202419">{version}</em>.zip</p>
+</td>
+<td class="cellrowborder" valign="top" headers="mcps1.3.3.3.2.4.1.2 "><p id="ZH-CN_TOPIC_0000001447121153__p19306462461"><span id="ZH-CN_TOPIC_0000001447121153__text529513644718"><span id="ZH-CN_TOPIC_0000001447121153__text42952369471">Atlas 500 A2 智能小站</span></span>升级包，用于MCU固件整体升级。</p>
+</td>
+</tr>
+<tr id="ZH-CN_TOPIC_0000001447121153__zh-cn_topic_0000001260139071_row16923581717"><td class="cellrowborder" valign="top" headers="mcps1.3.3.3.2.4.1.1 "><p id="ZH-CN_TOPIC_0000001447121153__p1812075311412">A500-A2-firmware_<em id="ZH-CN_TOPIC_0000001447121153__i4206195904115">{version}</em>.zip</p>
+</td>
+<td class="cellrowborder" valign="top" headers="mcps1.3.3.3.2.4.1.2 "><p id="ZH-CN_TOPIC_0000001447121153__zh-cn_topic_0000001260139071_p29212591717"><span id="ZH-CN_TOPIC_0000001447121153__zh-cn_topic_0000001260139071_text15359155371214"><span id="ZH-CN_TOPIC_0000001447121153__text1443639479">Atlas 500 A2 智能小站</span></span>升级包，用于设备OM和固件整体升级。</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="note" id="ZH-CN_TOPIC_0000001447121153__note32854817167"><img src="public_sys-resources/note_3.0-zh-cn.png"><span class="notetitle"> </span><div class="notebody"><p id="ZH-CN_TOPIC_0000001447121153__p62847820165"><em id="ZH-CN_TOPIC_0000001447121153__i128013121313">{</em><em id="ZH-CN_TOPIC_0000001447121153__i036471618263">version</em><em id="ZH-CN_TOPIC_0000001447121153__i168081223115">}</em>为软件包的版本号，请用户根据实际需要获取对应的软件包。</p>
+</div></div>
+</div>
+<div class="section" id="ZH-CN_TOPIC_0000001447121153__zh-cn_topic_0000001221821271_section9848194271920"><h4 class="sectiontitle">软件数字签名验证</h4><p id="ZH-CN_TOPIC_0000001447121153__zh-cn_topic_0000001079598552_zh-cn_topic_0274456457_zh-cn_topic_0273567955_p18639617175415">为了防止软件包在传递过程或存储期间被恶意篡改，下载软件包时需下载对应的数字签名文件用于完整性验证。</p>
+<p id="ZH-CN_TOPIC_0000001447121153__zh-cn_topic_0000001079598552_zh-cn_topic_0274456457_zh-cn_topic_0273567955_p54841038205412">在软件包下载之后，请参考《OpenPGP签名验证指南》，对从Support网站下载的软件包进行PGP数字签名校验。如果校验失败，请不要使用该软件包，先联系华为技术支持工程师解决。</p>
+<p id="ZH-CN_TOPIC_0000001447121153__zh-cn_topic_0000001079598552_zh-cn_topic_0274456457_zh-cn_topic_0273567955_p13893847155415">使用软件包安装/升级之前，也需要按上述过程先验证软件包的数字签名，确保软件包未被篡改。</p>
+<p id="ZH-CN_TOPIC_0000001447121153__zh-cn_topic_0000001079598552_zh-cn_topic_0274456457_zh-cn_topic_0273567955_p4191415813">运营商客户请访问：<a href="https://support.huawei.com/carrier/digitalSignatureAction" target="_blank" rel="noopener noreferrer">https://support.huawei.com/carrier/digitalSignatureAction</a></p>
+<p id="ZH-CN_TOPIC_0000001447121153__zh-cn_topic_0000001079598552_zh-cn_topic_0274456457_zh-cn_topic_0273567955_p19515494">企业客户请访问：<a href="https://support.huawei.com/enterprise/zh/tool/pgp-verify-TL1000000054" target="_blank" rel="noopener noreferrer">https://support.huawei.com/enterprise/zh/tool/pgp-verify-TL1000000054</a></p>
+</div>
+</div>
+<div>
+<ul class="ullinks">
+<li class="ulchildlink"><strong><a href="help_024.html">系统升级</a></strong><br>
+</li>
+</ul>
+
+<div class="familylinks">
+<div class="parentlink"><strong>父主题：</strong> <a href="help_008.html">管理</a></div>
+</div>
+</div>
+

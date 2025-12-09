@@ -1,0 +1,8 @@
+{
+    "@odata.context": "/redfish/v1/$metadata#NetManager/NodeID/$entity",
+    "@odata.id": "/redfish/v1/NetManager/NodeID",
+    "@odata.type": "#MindXEdgeNetManager.v1_0_0.MindXEdgeNetManager",
+    "Id": "NodeID",
+    "Name": "NodeID",
+    "NodeConnectID": ""
+}

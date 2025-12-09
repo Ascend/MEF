@@ -1,0 +1,18 @@
+[Unit]
+Description=Platform Application hook
+After=network-online.target devm_drv_init.service om-init.service
+Before=docker.service
+Wants=network-online.target om-init.service
+
+[Service]
+Type=forking
+EnvironmentFile=/home/data/config/mindx_om_env.conf
+ExecStartPre=/usr/local/mindx/MindXOM/scripts/platform_init_pre.sh
+ExecStart=/usr/local/mindx/MindXOM/scripts/platform_init.sh
+TimeoutSec=6000
+StandardOutput=null
+MemoryLimit=100M
+CPUQuota=30%
+
+[Install]
+WantedBy=multi-user.target

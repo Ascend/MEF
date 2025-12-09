@@ -1,0 +1,34 @@
+# Copyright (c) Huawei Technologies Co., Ltd. 2025-2025. All rights reserved.
+# MindEdge is licensed under Mulan PSL v2.
+# You can use this software according to the terms and conditions of the Mulan PSL v2.
+# You may obtain a copy of Mulan PSL v2 at:
+#          http://license.coscl.org.cn/MulanPSL2
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+# EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+# MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+# See the Mulan PSL v2 for more details.
+[Unit]
+Description=device-plugin
+After=network.target edgecore.service
+PartOf=mef-edge.target
+ConditionPathExists={install_dir}/software/device_plugin/bin/device-plugin
+StartLimitBurst=0
+
+[Service]
+UMask=0027
+User=root
+StandardOutput=null
+StandardError=null
+ExecStartPre={install_dir}/software/device_plugin/script/prepare.sh "{log_dir}" "{log_backup_dir}"
+ExecStart={install_dir}/software/device_plugin/bin/device-plugin  --logFile="{log_dir}/device_plugin/device_plugin_run.log" --useAscendDocker=false --shareDevCount=100
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+KillSignal=SIGTERM
+KillMode=control-group
+TimeoutStopSec=15
+CPUQuota=5%
+MemoryLimit=50M
+
+[Install]
+Alias=device-plugin.service
+WantedBy=multi-user.target mef-edge.target

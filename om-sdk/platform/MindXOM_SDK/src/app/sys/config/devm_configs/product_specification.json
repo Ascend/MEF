@@ -1,0 +1,35 @@
+{
+    "name": "Atlas 500",
+    "modules": {
+        "npu": {
+            "devices": ["davinci0"]
+        },
+        "cpu": {
+            "devices": ["cpu0"]
+        },
+        "mainboard": {
+            "devices": ["mainboard0"]
+        },
+        "system": {
+            "devices": ["system0"]
+        },
+        "elabel": {
+            "devices": ["elabel0"]
+        },
+        "ethnet": {
+            "devices": ["eth0", "eth1"]
+        },
+        "disk": {
+            "devices": ["disk", "disk0", "disk1", "disk m.2"]
+        },
+        "lte": {
+            "devices": ["Wireless_Module"]
+        },
+        "emmc": {
+            "devices": []
+        },
+        "u-disk": {
+            "devices": []
+        }
+    }
+}

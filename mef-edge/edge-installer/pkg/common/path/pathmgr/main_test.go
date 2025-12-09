@@ -1,0 +1,32 @@
+// Copyright (c) Huawei Technologies Co., Ltd. 2025-2025. All rights reserved.
+// MindEdge is licensed under Mulan PSL v2.
+// You can use this software according to the terms and conditions of the Mulan PSL v2.
+// You may obtain a copy of Mulan PSL v2 at:
+//          http://license.coscl.org.cn/MulanPSL2
+// THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+// EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+// MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+// See the Mulan PSL v2 for more details.
+
+// Package pathmgr for package main test
+package pathmgr
+
+import (
+	"testing"
+
+	"huawei.com/mindx/common/test"
+)
+
+const (
+	testInstallRootDir     = "/tmp"
+	testInstallationPkgDir = "/installation"
+	testLogRootDir         = "/tmp/log"
+	testLogBackupRootDir   = "/tmp/log_backup"
+)
+
+var pathMgr *PathManager
+
+func TestMain(m *testing.M) {
+	tcBase := &test.TcBase{}
+	test.RunWithPatches(tcBase, m, nil)
+}

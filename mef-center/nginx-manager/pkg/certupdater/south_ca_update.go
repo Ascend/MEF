@@ -1,0 +1,65 @@
+// Copyright (c) Huawei Technologies Co., Ltd. 2025-2025. All rights reserved.
+// MindEdge is licensed under Mulan PSL v2.
+// You can use this software according to the terms and conditions of the Mulan PSL v2.
+// You may obtain a copy of Mulan PSL v2 at:
+//          http://license.coscl.org.cn/MulanPSL2
+// THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+// EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+// MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+// See the Mulan PSL v2 for more details.
+
+// Package certupdater dynamic update cloudhub server's tls ca and service certs
+package certupdater
+
+import (
+	"fmt"
+
+	"huawei.com/mindx/common/fileutils"
+	"huawei.com/mindx/common/hwlog"
+	"huawei.com/mindx/common/x509"
+
+	"nginx-manager/pkg/nginxcom"
+)
+
+func updateSouthCaCert(payload *CertUpdatePayload) error {
+	var optErr error
+	newCaCert := payload.CaContent
+	if newCaCert == "" {
+		optErr = fmt.Errorf("no invalid ca cert content")
+		hwlog.RunLog.Error(optErr)
+		return optErr
+	}
+	if err := x509.CheckPemCertChain([]byte(newCaCert)); err != nil {
+		optErr = fmt.Errorf("root ca cert check failed: %v", err)
+		hwlog.RunLog.Error(optErr)
+		return optErr
+	}
+	certData, err := fileutils.LoadFile(nginxcom.SouthernCertFile)
+	if err != nil {
+		optErr = fmt.Errorf("load south ca cert error: %v", err)
+		hwlog.RunLog.Error(optErr)
+		return optErr
+	}
+	// if force flag is true (force update or finished), use new ca cert only, otherwise use both new and old cert
+	if payload.ForceUpdate {
+		certData = []byte(newCaCert)
+		hwlog.RunLog.Info("write final south root ca cert data")
+	} else {
+		certData = append(certData, newCaCert...)
+		hwlog.RunLog.Info("append temporary south root ca cert data")
+	}
+
+	if err = fileutils.WriteData(nginxcom.SouthernCertFile, certData); err != nil {
+		optErr = fmt.Errorf("write new south ca cert error: %v", err)
+		hwlog.RunLog.Error(optErr)
+		return optErr
+	}
+	hwlog.RunLog.Info("update south root ca certs success")
+	if err = reloadNginxConf(); err != nil {
+		optErr = fmt.Errorf("reload nginx configuration error: %v", err)
+		hwlog.RunLog.Error(optErr)
+		return optErr
+	}
+	hwlog.RunLog.Info("reload nginx configuration success")
+	return nil
+}

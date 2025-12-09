@@ -1,0 +1,25 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#Systems/Partitions/Members/$entity",
+  "@odata.id": "/redfish/v1/Systems/Partitions/oDataID",
+  "@odata.type": "#MindXEdgePartition.v1_0_0.MindXEdgePartition",
+  "Id": null,
+  "Name": null,
+  "CapacityBytes": null,
+  "FreeBytes": null,
+  "Links": [
+      {
+        "Device": {
+              "@odata.id": null
+        },
+        "DeviceName":null,
+        "Location":null
+      }
+  ],
+  "MountPath":null,
+  "Primary": false,
+  "FileSystem": null,
+  "Status": {
+    "State": null,
+    "Health": null
+  }
+}

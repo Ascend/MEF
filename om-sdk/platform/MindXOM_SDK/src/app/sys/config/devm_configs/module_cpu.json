@@ -1,0 +1,41 @@
+{
+    "id": 8,
+    "name": "cpu",
+    "category": "internal",
+    "driver": "/usr/lib64/libcpu_adapter.so",
+    "dynamic": false,
+    "attributes": {
+        "chip_info": {
+            "description": "the chip info of cpu",
+            "type": "json",
+            "id": 65537,
+            "accessMode": "Read",
+            "subAttributes": {
+                "vendor": {
+                    "accessMode": "Read",
+                    "description": "cpu chip info vendor",
+                    "type": "string",
+                    "id": 1
+                },
+                "model": {
+                    "accessMode": "Read",
+                    "description": "cpu chip info model",
+                    "type": "string",
+                    "id": 2
+                },
+                "core_num": {
+                    "accessMode": "Read",
+                    "description": "cpu chip info core number",
+                    "type": "string",
+                    "id": 7
+                },
+                "frequency": {
+                    "accessMode": "Read",
+                    "description": "cpu chip info frequency",
+                    "type": "string",
+                    "id": 8
+                }
+            }
+        }
+    }
+}

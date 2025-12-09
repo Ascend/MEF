@@ -1,0 +1,221 @@
+{
+    "@Redfish.Copyright": "Copyright © 2014-2015. All rights reserved.",
+    "@odata.type": "#MessageRegistry.1.0.0.MessageRegistry",
+    "ID": "Base.1.0",
+    "Name": "Base Message Registry",
+    "Language": "en",
+    "Description": "This registry defines the base messages for Redfish",
+    "RegistryPrefix": "Base",
+    "RegistryVersion":  "1.0",
+    "OwningEntity": "DMTF",
+    "Messages": {
+        "GeneralError": {
+            "Description": "Indicates that a general error has occurred.",
+            "Message": "A general error has occurred. See ExtendedInfo for more information.",
+            "Severity": "Critical",
+            "ErrCode":400
+        },
+        "PropertyValueTypeError": {
+            "Description": "Indicates that a property was given the wrong value type.",
+            "Message": "The value id for the property member_id is of a different type than the property can accept.",
+            "Severity": "Warning",
+            "NumberOfArgs": 1,
+            "ParamTypes": [
+                "string"
+            ],
+            "Resolution": "Correct the value for the property in the request params and resubmit the request if the operation failed.",
+            "ErrCode":400
+        },
+        "PropertyValueUnknownError": {
+            "Description": "Indicates that the value of the attribute does not exist.",
+            "Message": "The value id for the property id does not exist.",
+            "Severity": "Warning",
+            "NumberOfArgs": 1,
+            "ParamTypes": [
+                "string"
+            ],
+            "Resolution": "Correct the value for the property in the request params and resubmit the request if the operation failed.",
+            "ErrCode":400
+        },
+        "MalformedJSON": {
+            "Description": "Indicates that the request body was malformed JSON.  Could be duplicate, syntax error,etc.",
+            "Message": "The request body submitted was malformed JSON and could not be parsed by the receiving service.",
+            "Severity": "Critical",
+            "NumberOfArgs": 0,
+            "Resolution": "Ensure that the request body is valid JSON and resubmit the request.",
+            "ErrCode":400
+        },
+        "PropertyUnknown": {
+            "Description": "Indicates that an unknown property was included in the request body.",
+            "Message": "The property oData is not in the list of valid properties for the resource.",
+            "Severity": "Warning",
+            "NumberOfArgs": 1,
+            "ParamTypes": [
+                "string"
+            ],
+            "Resolution": "Remove the unknown property from the request body and resubmit the request if the operation failed.",
+            "ErrCode":400
+        },
+        "PropertyValueFormatError": {
+            "Description": "Indicates that a property was given the correct value type but the value of that property was not supported.  This includes value size/length exceeded.",
+            "Message": "The value OValue for the property oData is of a different format than the property can accept.",
+            "Severity": "Warning",
+            "NumberOfArgs": 1,
+            "ParamTypes": [
+                "string"
+            ],
+            "Resolution": "Correct the value for the property in the request body and resubmit the request if the operation failed.",
+            "ErrCode":400
+        },
+        "ResourceDoesNotExists": {
+            "Description": "Indicates that a resource change or creation was attempted but that the operation cannot proceed because the resource does not exists.",
+            "Message": "The requested resource does not exists.",
+            "Severity": "Critical",
+            "NumberOfArgs": 0,
+            "Resolution": "Resource does not exists",
+            "ErrCode":404
+        },
+        "ResourceAlreadyExists": {
+            "Description": "Indicates that a resource change or creation was attempted but that the operation cannot proceed because the resource already exists.",
+            "Message": "The requested resource already exists.",
+            "Severity": "Critical",
+            "NumberOfArgs": 0,
+            "Resolution": "Do not repeat the create operation as the resource has already been created.",
+            "ErrCode":400
+        },
+        "PropertyValueNotInList": {
+            "Description": "Indicates that a property was given the correct value type but the value of that property was not supported.  This values not in an enumeration",
+            "Message": "The value OValue for the property oData is not in the list of acceptable values.",
+            "Severity": "Warning",
+            "NumberOfArgs": 1,
+            "ParamTypes": [
+                "string"
+            ],
+            "Resolution": "Choose a value from the enumeration list that the implementation can support and resubmit the request if the operation failed.",
+            "ErrCode":400
+        },
+        "PropertyMissing": {
+            "Description": "Indicates that a required property was not supplied as part of the request.",
+            "Message": "The property oData is a required property and must be included in the request.",
+            "Severity": "Warning",
+            "NumberOfArgs": 1,
+            "ParamTypes": [
+                "string"
+            ],
+            "Resolution": "Ensure that the property is in the request body or headers and has a valid value and resubmit the request if the operation failed.",
+            "ErrCode":400
+        },
+        "AccountForSessionNoLongerExists": {
+            "Description": "Indicates that the account for the session has been removed, thus the session has been removed as well.",
+            "Message": "The account for the current session has been removed, thus the current session has been removed as well.",
+            "Severity": "OK",
+            "NumberOfArgs": 0,
+            "Resolution": "Attempt to connect with a valid account.",
+            "ErrCode":400
+        },
+        "SessionTimeLimitExceeded": {
+            "Description": "Indicates that the session has timed out.",
+            "Message": "The session establishment failed due to the session has timed out.",
+            "Severity": "Critical",
+            "NumberOfArgs": 0,
+            "Resolution": "Try to create a new session(if supported).",
+            "ErrCode":400
+        },
+        "UserNopermission":{
+            "Description": "Indicates that the user does not have permission to operate on this resource.",
+            "Message": "The resource deletion failed due to the user does not have permission to operate on this resource.",
+            "Severity": "Critical",
+            "NumberOfArgs": 0,
+            "Resolution": "Try to apply for your permission.",
+            "ErrCode":403
+        },
+        "UserNamePasswordError":{
+            "Description": "Indicates that the user name or password is entered incorrectly",
+            "Message": "Resource creation failed due to user password input error.",
+            "Severity": "Warning",
+            "NumberOfArgs": 1,
+            "Resolution": "Attempt to connect with a valid account.",
+            "ErrCode":400
+        },
+        "UserHasBeenLocked":{
+            "Description": "Indicates that the user has been locked",
+            "Message": "Resource creation failed due to user has been locked.",
+            "Severity": "Warning",
+            "NumberOfArgs": 1,
+            "Resolution": "Attempt to connect with a valid account.",
+            "ErrCode":400
+        },
+        "Duplicatepassworderror":{
+            "Description": "The duplicate password is the same as the new password",
+            "Message": "The duplicate password is the same as the new password.",
+            "Severity": "Warning",
+            "NumberOfArgs": 1,
+            "Resolution": "Attempt to connect with a valid account.",
+            "ErrCode":400
+        },
+        "SameHistoryPassword":{
+            "Description": "Same as the default/history password",
+            "Message": "Same as the default password.",
+            "Severity": "Warning",
+            "NumberOfArgs": 1,
+            "Resolution": "Attempt to connect with a valid account.",
+            "ErrCode":400
+        },
+        "SameHistoryUserName":{
+            "Description": "Same as the history username",
+            "Message": "Same as the history username.",
+            "Severity": "Warning",
+            "NumberOfArgs": 1,
+            "Resolution": "Attempt to connect with a valid account.",
+            "ErrCode":400
+        },
+        "DictionaryVerificationFailed":{
+            "Description": "Dictionary verification Failed",
+            "Message": "Dictionary verification Failed.",
+            "Severity": "Warning",
+            "NumberOfArgs": 1,
+            "Resolution": "Attempt to connect with a valid account.",
+            "ErrCode":400
+        },
+        "PasswordValidDaysError":{
+            "Description": "PasswordValidDays is 0,please modify password",
+            "Message": "The remaining validity period of the password is already 0. Please change the password in time.",
+            "Severity": "Warning",
+            "NumberOfArgs": 0,
+            "Resolution": "Try changing your password.",
+            "ErrCode":400
+        },
+        "ModifyOsUserFailed":{
+            "Description": "Modify os user failed, please closed ssh connection and try again.",
+            "Message": "Modify os user failed, please closed ssh connection and try again.",
+            "Severity": "Warning",
+            "NumberOfArgs": 0,
+            "Resolution": "Closed ssh connection and try again.",
+            "ErrCode":400
+        },
+        "ModifyOsPwdFailed":{
+            "Description": "Modify os password failed, please try again later.",
+            "Message": "Modify os password failed, please try again later.",
+            "Severity": "Warning",
+            "NumberOfArgs": 0,
+            "Resolution": "Try again later.",
+            "ErrCode":400
+        },
+        "SecurityLoadCheckFailed":{
+            "Description": "Security load configure is not met.",
+            "Message": "Security load configure is not met.",
+            "Severity": "Warning",
+            "NumberOfArgs": 0,
+            "Resolution": "Change you login time or ip.",
+            "ErrCode":400
+        },
+        "AuthenticationFailed":{
+            "Description": "User authentication failed.",
+            "Message": "User authentication failed.",
+            "Severity": "Warning",
+            "NumberOfArgs": 0,
+            "Resolution": "Attempt to connect with a valid account.",
+            "ErrCode":400
+        }
+    }
+}

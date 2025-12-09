@@ -1,0 +1,57 @@
+component: MEF_Edge_SDK
+product: MEF_Edge_SDK
+systemEnv:
+  - workspace
+  - processor
+  - version
+TOP_DIR: "{{systemEnv.workspace}}/{{component}}"
+INSTALLER_NAME: "edge-installer"
+INSTALLER_DIR: "{{systemEnv.workspace}}/{{component}}/{{INSTALLER_NAME}}"
+compile:
+  input:
+    dependency:
+      - name: MEF_Dependency_SDK
+        version: "1.0"
+        type: opensource
+        buildFile: "{{TOP_DIR}}/build/conf"
+      - name: "{{INSTALLER_NAME}}"
+        version: "1.0"
+        type: opensource
+        buildFile: "{{INSTALLER_DIR}}/build/conf_sdk"
+    include:
+      - commands:
+          - command: "cd {{INSTALLER_DIR}} && go mod tidy"
+  process:
+    language: go
+    compilePath:
+    parameters:
+  output:
+    files:
+      include:
+        - copy:
+            src:
+              - '{{INSTALLER_DIR}}/output/*.tar.gz'
+            des: "{{TOP_DIR}}/output/"
+        - commands:
+            - command: "fakeroot rm -rf {{TOP_DIR}}/output/lib {{TOP_DIR}}/output/include"
+            - command: "bash {{ systemEnv.workspace }}/../CI/CleanCode/script/signature.sh MEF_Edge_SDK"
+        - copy:
+            src:
+              - '{{INSTALLER_DIR}}/output/*.tar.gz'
+            des: "{{TOP_DIR}}/output/"
+        - commands:
+            - command: "cp {{TOP_DIR}}/output/crldata.crl {{TOP_DIR}}/output/software.xml.crl"
+            - command: "mv {{TOP_DIR}}/output/crldata.crl {{TOP_DIR}}/output/Ascend-mindxedge-mefedgesdk_{{version}}_linux-{{systemEnv.processor}}.tar.gz.crl"
+        - mode:
+            src:
+              - "{{TOP_DIR}}/output/*"
+            mode: "400"
+        - commands:
+            - command: "fakeroot rm -rf {{TOP_DIR}}/output/lib {{TOP_DIR}}/output/software.xml*"
+        - makeArchive:
+            - src: "{{TOP_DIR}}/output/"
+              des: "{{TOP_DIR}}/output/Ascend-mindxedge-mefedgesdk_{{version}}_linux-{{systemEnv.processor}}"
+              prefix: zip
+              arch: "{{systemEnv.processor}}"
+        - commands:
+            - command: "sh {{TOP_DIR}}/build/common_utils_dt_exclude.sh"

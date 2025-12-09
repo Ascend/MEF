@@ -1,0 +1,243 @@
+component: edge-installer
+product: MEF_Edge
+systemEnv:
+  - workspace
+  - processor
+  - version
+TOP_DIR: "{{systemEnv.workspace}}/{{product}}/edge-installer"
+TOP_DIR_EDGE: "{{systemEnv.workspace}}/{{product}}"
+WORK_DIR: "{{systemEnv.workspace}}/{{product}}"
+CONF_DIR: "{{TOP_DIR}}/build/conf"
+SRC_INSTALL_SHELL_PATH: "{{TOP_DIR}}/script/install.sh"
+SRC_SERVICE_DIR: "{{TOP_DIR}}/config/service"
+SRC_SERVICE_A500_DIR: "{{TOP_DIR}}/config/service-a500"
+SRC_CORE_CONFIG_PATH: "{{TOP_DIR}}/config/edgecore.json"
+SRC_CAP_CONFIG_PATH: "{{TOP_DIR}}/config/capability.json"
+SRC_KMC_CONFIG_PATH: "{{TOP_DIR}}/config/kmc-config.json"
+SRC_POD_CONFIG_PATH: "{{TOP_DIR}}/config/pod-config.json"
+SRC_CONTAINER_CONFIG_PATH: "{{TOP_DIR}}/config/container-config.json"
+SRC_VERSION_PATH: "{{TOP_DIR}}/config/version.xml"
+SRC_DEVICE_SHELL_DIR: "{{TOP_DIR}}/script/device-plugin"
+SRC_CORE_SHELL_DIR: "{{TOP_DIR}}/script/edge-core"
+SRC_INSTALLER_SHELL_DIR: "{{TOP_DIR}}/script/edge-installer"
+SRC_INSTALLER_A500_SHELL_DIR: "{{TOP_DIR}}/script/edge-installer-a500"
+SRC_CTL_BIN_PATH: "{{TOP_DIR}}/tool/edgectl/edgectl"
+SRC_INSTALL_BIN_PATH: "{{TOP_DIR}}/tool/install/install"
+SRC_MAIN_BIN_PATH: "{{TOP_DIR}}/cmd/edge-main/edge-main"
+SRC_OM_BIN_PATH: "{{TOP_DIR}}/cmd/edge-om/edge-om"
+SRC_UPGRADE_BIN_PATH: "{{TOP_DIR}}/tool/upgrade/upgrade"
+SRC_DEVICE_BIN_PATH: "{{TOP_DIR_EDGE}}/ascend-device-plugin/output/device-plugin"
+SRC_CORE_BIN_PATH: "{{TOP_DIR_EDGE}}/output/edgecore"
+SRC_RUN_SH: "{{TOP_DIR}}/script/run.sh"
+
+SRC_PAUSE_PATH: "{{TOP_DIR}}/build/pause/pause.tar.gz"
+
+DST_INSTALLER_DIR: "{{TOP_DIR}}/output/software/edge_installer"
+DST_SFW_DIR: "{{TOP_DIR}}/output/software"
+DST_MAIN_DIR: "{{TOP_DIR}}/output/software/edge_main"
+DST_OM_DIR: "{{TOP_DIR}}/output/software/edge_om"
+DST_CORE_DIR: "{{TOP_DIR}}/output/software/edge_core"
+DST_DEVICE_DIR: "{{TOP_DIR}}/output/software/device_plugin"
+DST_CONFIG_DIR: "{{TOP_DIR}}/output/config"
+DST_INSTALLER_BIN_DIR: "{{DST_INSTALLER_DIR}}/bin"
+DST_INSTALLER_SCRIPT_DIR: "{{DST_INSTALLER_DIR}}/script"
+DST_MAIN_BIN_DIR: "{{DST_MAIN_DIR}}/bin"
+DST_OM_BIN_DIR: "{{DST_OM_DIR}}/bin"
+DST_CORE_BIN_DIR: "{{DST_CORE_DIR}}/bin"
+DST_CORE_SCRIPT_DIR: "{{DST_CORE_DIR}}/script"
+DST_DEVICE_SCRIPT_DIR: "{{DST_DEVICE_DIR}}/script"
+DST_DEVICE_BIN_DIR: "{{DST_DEVICE_DIR}}/bin"
+DST_CONFIG_INSTALLER_DIR: "{{DST_CONFIG_DIR}}/edge_installer"
+DST_CONFIG_CORE_DIR: "{{DST_CONFIG_DIR}}/edge_core"
+DST_CONFIG_MAIN_DIR: "{{DST_CONFIG_DIR}}/edge_main"
+DST_CONFIG_OM_DIR: "{{DST_CONFIG_DIR}}/edge_om"
+DST_CORE_CONFIG_DIR: "{{DST_CONFIG_DIR}}/edge_core/"
+DST_VERSION_DIR: "{{TOP_DIR}}/output/"
+DST_SERVICE_DIR: "{{DST_INSTALLER_DIR}}/service"
+DST_LIB_DIR: "{{DST_SFW_DIR}}/lib"
+
+DIR_MOD: "700"
+
+compile:
+  input:
+    dependency:
+      - name: edgectl
+        version: "1.0"
+        type: opensource
+        buildFile: "{{CONF_DIR}}"
+      - name: install
+        version: "1.0"
+        type: opensource
+        buildFile: "{{CONF_DIR}}"
+      - name: edge-om
+        version: "1.0"
+        type: opensource
+        buildFile: "{{CONF_DIR}}"
+      - name: upgrade
+        version: "1.0"
+        type: opensource
+        buildFile: "{{CONF_DIR}}"
+      - name: innerctl
+        version: "1.0"
+        type: opensource
+        buildFile: "{{CONF_DIR}}"
+    envVariables:
+      GO111MODULE: "on"
+      GONOSUMDB: "*"
+      GOPROXY: "https://cmc.centralrepo.rnd.huawei.com/artifactory/go-central-repo,direct"
+      CGO_ENABLED: "1"
+      CGO_CFLAGS: "-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
+      CGO_CPPFLAGS: "-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
+    files:
+      exclude:
+        - remove: [ "{{TOP_DIR}}/output/" ]
+  process:
+    language: go
+    compilePath: "{{TOP_DIR}}/cmd/edge-main"
+    parameters: [ [ 'buildmode', "pie" ],
+                  [ "mod", "mod" ],
+                  [ "tags", "MEFEdge_A500" ],
+                  [ 'ldflags', '-X "main.BuildName=edge-main" -X "main.BuildVersion={{version}}_linux-{{systemEnv.processor}}" -s -linkmode=external -extldflags=-Wl,-z,now' ],
+                  [ "o", "edge-main" ],
+                  [ 'trimpath',"" ], ]
+  output:
+    files:
+      include:
+        - commands:
+            - command: "rm -rf {{WORK_DIR}}/ascend-device-plugin/doc"
+            - command: "commit_id=$(git --git-dir {{systemEnv.workspace}}/{{product}}/.git rev-parse HEAD) && sed -i s/{commit_id}/${commit_id}/g {{TOP_DIR}}/config/version.xml"
+            - command: "cd {{TOP_DIR_EDGE}}/ascend-device-plugin/build/ && sh build_edge.sh nokmc"
+            - command: "sh {{TOP_DIR}}/build/build_core.sh"
+        - sed:
+            option: "-i"
+            srcstr: "s/{version}/{{version}}/g"
+            curfile: "{{TOP_DIR}}/config/version.xml"
+        - sed:
+            option: "-i"
+            srcstr: "s/{version}/{{version}}/g"
+            curfile: "{{TOP_DIR}}/config/software.xml"
+        - sed:
+            option: "-i"
+            srcstr: "s/{arch}/{{systemEnv.processor}}/g"
+            curfile: "{{TOP_DIR}}/config/version.xml"
+        - sed:
+            option: "-i"
+            srcstr: "s/{arch}/{{systemEnv.processor}}/g"
+            curfile: "{{TOP_DIR}}/config/software.xml"
+        - makedir:
+            path: "{{DST_INSTALLER_BIN_DIR}}"
+        - makedir:
+            path: "{{DST_MAIN_BIN_DIR}}"
+        - makedir:
+            path: "{{DST_CORE_BIN_DIR}}"
+        - makedir:
+            path: "{{DST_DEVICE_BIN_DIR}}"
+        - makedir:
+            path: "{{DST_CONFIG_INSTALLER_DIR}}"
+        - makedir:
+            path: "{{DST_CONFIG_CORE_DIR}}"
+        - makedir:
+            path: "{{DST_CONFIG_MAIN_DIR}}"
+        - makedir:
+            path: "{{DST_CONFIG_OM_DIR}}"
+        - makedir:
+            path: "{{DST_CORE_SCRIPT_DIR}}"
+        - makedir:
+            path: "{{DST_DEVICE_SCRIPT_DIR}}"
+        - makedir:
+            path: "{{DST_SERVICE_DIR}}"
+        - makedir:
+            path: "{{DST_LIB_DIR}}"
+        - makedir:
+            path: "{{DST_INSTALLER_SCRIPT_DIR}}"
+
+        - copy:
+            src: [ "{{SRC_INSTALL_SHELL_PATH}}" ]
+            des: "{{TOP_DIR}}/output"
+        - copy:
+            src: [ "{{SRC_SERVICE_DIR}}/*" ]
+            des: "{{DST_SERVICE_DIR}}"
+        - copy:
+            src: [ "{{SRC_SERVICE_A500_DIR}}/*" ]
+            des: "{{DST_SERVICE_DIR}}"
+        - copy:
+            src: [ "{{SRC_INSTALLER_SHELL_DIR}}/*" ]
+            des: "{{DST_INSTALLER_SCRIPT_DIR}}"
+        - copy:
+            src: [ "{{SRC_INSTALLER_A500_SHELL_DIR}}/*" ]
+            des: "{{DST_INSTALLER_SCRIPT_DIR}}"
+        - copy:
+            src: [ "{{SRC_CORE_SHELL_DIR}}/*" ]
+            des: "{{DST_CORE_SCRIPT_DIR}}"
+        - copy:
+            src: [ "{{SRC_DEVICE_SHELL_DIR}}/*" ]
+            des: "{{DST_DEVICE_SCRIPT_DIR}}"
+        - copy:
+            src: [ "{{SRC_CTL_BIN_PATH}}" ]
+            des: "{{DST_INSTALLER_BIN_DIR}}"
+        - copy:
+            src: [ "{{SRC_INSTALL_BIN_PATH}}" ]
+            des: "{{DST_INSTALLER_BIN_DIR}}"
+        - copy:
+            src: [ "{{TOP_DIR}}/tool/innerctl/innerctl" ]
+            des: "{{DST_INSTALLER_BIN_DIR}}"
+        - copy:
+            src: [ "{{SRC_MAIN_BIN_PATH}}" ]
+            des: "{{DST_MAIN_BIN_DIR}}"
+        - copy:
+            src: [ "{{SRC_OM_BIN_PATH}}" ]
+            des: "{{DST_OM_BIN_DIR}}"
+        - copy:
+            src: [ "{{SRC_CORE_CONFIG_PATH}}" ]
+            des: "{{DST_CORE_CONFIG_DIR}}"
+        - copy:
+            src: [ "{{SRC_KMC_CONFIG_PATH}}" ]
+            des: "{{DST_CONFIG_MAIN_DIR}}"
+        - copy:
+            src: [ "{{SRC_CAP_CONFIG_PATH}}" ]
+            des: "{{DST_CONFIG_MAIN_DIR}}"
+        - copy:
+            src: [ "{{SRC_KMC_CONFIG_PATH}}" ]
+            des: "{{DST_CONFIG_OM_DIR}}"
+        - copy:
+            src: [ "{{SRC_KMC_CONFIG_PATH}}" ]
+            des: "{{DST_CONFIG_CORE_DIR}}"
+        - copy:
+            src: [ "{{SRC_POD_CONFIG_PATH}}" ]
+            des: "{{DST_CONFIG_OM_DIR}}"
+        - copy:
+            src: [ "{{SRC_CONTAINER_CONFIG_PATH}}" ]
+            des: "{{DST_CONFIG_OM_DIR}}"
+        - copy:
+            src: [ "{{SRC_VERSION_PATH}}" ]
+            des: "{{DST_VERSION_DIR}}"
+        - copy:
+            src: [ "{{SRC_UPGRADE_BIN_PATH}}" ]
+            des: "{{DST_INSTALLER_BIN_DIR}}"
+        - copy:
+            src: [ "{{SRC_PAUSE_PATH}}" ]
+            des: "{{DST_CORE_BIN_DIR}}"
+        - copy:
+            src: [ '{{systemEnv.workspace}}/lib/*' ]
+            des: "{{DST_LIB_DIR}}"
+        - copy:
+            src: [ "{{WORK_DIR}}/output/lib/*" ]
+            des: "{{DST_LIB_DIR}}"
+        - copy:
+            src: [ "{{SRC_RUN_SH}}" ]
+            des: "{{DST_SFW_DIR}}"
+        - move:
+            src: [ "{{SRC_DEVICE_BIN_PATH}}" ]
+            des: "{{DST_DEVICE_BIN_DIR}}"
+        - move:
+            src: [ "{{SRC_CORE_BIN_PATH}}" ]
+            des: "{{DST_CORE_BIN_DIR}}"
+
+        - mode:
+            src:
+              - "{{TOP_DIR}}/output"
+            mode: "{{DIR_MOD}}"
+        - commands:
+            - command: "bash -x {{TOP_DIR}}/build/chmod_prepare.sh {{TOP_DIR}}/output"
+            - command: "fakeroot chown -R root:root {{TOP_DIR}}/output/"
+            - command: "cd {{TOP_DIR}}/output/ && fakeroot tar -zcvf Ascend-mindxedge-mefedge_{{version}}_linux-{{systemEnv.processor}}.tar.gz *"

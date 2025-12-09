@@ -1,0 +1,14 @@
+{
+    "@odata.context": "/redfish/v1/$metadata#Systems/DigitalWarranty",
+    "@odata.id": "/redfish/v1/Systems/DigitalWarranty",
+    "@odata.type": "#MindXEdgeDigitalWarranty.v1_0_0.MindXEdgeDigitalWarranty",
+    "Description": "Digital Warranty",
+    "Name": "DigitalWarranty",
+    "Id": "DigitalWarranty",
+    "ProductName": null,
+    "SerialNumber": null,
+    "ItemId": null,
+    "StartPoint":null,
+    "LifeSpan": 0,
+    "ManufactureDate": null
+}

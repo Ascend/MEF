@@ -1,0 +1,132 @@
+{
+    "$schema": "http://redfish.dmtf.org/schemas/v1/redfish-schema.v1_1_0.json",
+    "title": "#MindXEdgeLTE.v1_0_0.MindXEdgeLTE",
+    "$ref": "#/definitions/MindXEdgeLTE",
+    "definitions": {
+        "MindXEdgeLTE": {
+            "type": "object",
+            "patternProperties": {
+                "^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message|Privileges)\\.[a-zA-Z_][a-zA-Z0-9_.]+$": {
+                    "type": [
+                        "array",
+                        "boolean",
+                        "number",
+                        "null",
+                        "object",
+                        "string",
+                        "integer"
+                    ],
+                    "description": "This property shall specify a valid odata or Redfish property."
+                }
+            },
+            "additionalProperties": false,
+            "properties": {
+                "@odata.context": {
+                    "$ref": "http://redfish.dmtf.org/schemas/v1/odata.4.0.0.json#/definitions/context"
+                },
+                "@odata.id": {
+                    "$ref": "http://redfish.dmtf.org/schemas/v1/odata.4.0.0.json#/definitions/id"
+                },
+                "@odata.type": {
+                    "$ref": "http://redfish.dmtf.org/schemas/v1/odata.4.0.0.json#/definitions/type"
+                },
+                "Id": {
+                    "$ref": "http://redfish.dmtf.org/schemas/v1/Resource.json#/definitions/Id"
+                },
+                "Description": {
+                    "anyOf": [
+                        {"$ref": "http://redfish.dmtf.org/schemas/v1/Resource.json#/definitions/Description"},
+                        {"type": "null"}
+                    ]
+                },
+                "Name": {
+                    "$ref": "http://redfish.dmtf.org/schemas/v1/Resource.json#/definitions/Name"
+                },
+                "StatusInfo": {
+                    "description": "TThe access path of the LTE interface status resource.",
+                    "longDescription": "The access path of the LTE interface status resource.",
+                    "readonly": true
+                },
+                "ConfigInfo": {
+                    "description": "LTE APN interface resource access path.",
+                    "longDescription": "LTE APN interface resource access path.",
+                    "readonly": true
+                },
+                "default_gateway": {
+                    "type": "boolean",
+                    "readonly": false,
+                    "description": "Whether to configure the default gateway for eth0 or eth1."
+                },
+                "lte_enable": {
+                    "type": "boolean",
+                    "readonly": false,
+                    "description": "Whether to enable LTE."
+                },
+                "sim_exist": {
+                    "type": "boolean",
+                    "readonly": false,
+                    "description": "Whether the SIM card is installed."
+                },
+                "state_lte": {
+                    "type": "boolean",
+                    "readonly": false,
+                    "description": "LTE switch status."
+                },
+                "state_data": {
+                    "type": "boolean",
+                    "readonly": false,
+                    "description": "Switch status of mobile data."
+                },
+                "network_signal_level": {
+                    "type": "integer",
+                    "readonly": false,
+                    "description": "Strength of signal."
+                },
+                "network_type": {
+                    "type": "string",
+                    "readonly": false,
+                    "description": "Network Status."
+                },
+                "apn_name": {
+                    "type": "string",
+                    "readonly": false,
+                    "description": "APN name used for LTE dial-up. The value can be null."
+                },
+                "apn_user": {
+                    "type": "string",
+                    "readonly": false,
+                    "description": "APN user name used for LTE dial-up. The value can be null."
+                },
+                "auth_type": {
+                    "type": "string",
+                    "readonly": false,
+                    "description": "Authentication type.",
+                    "enum": [
+                        "0",
+                        "1",
+                        "2",
+                        "3"
+                    ]
+                },
+                "mode_type": {
+                    "type": "integer",
+                    "readonly": false,
+                    "description": "LTE Module Types.",
+                    "enum": [
+                        -1,
+                        0,
+                        1,
+                        2
+                    ]
+                }
+            },
+            "required": [
+                "Id",
+                "Name"
+            ],
+            "description": "Used for LTE Information.",
+            "longDescription": "Used for LTE Information."
+        }
+    },
+    "copyright": "Copyright © Huawei Technologies Co., Ltd. 2022. All rights reserved."
+}

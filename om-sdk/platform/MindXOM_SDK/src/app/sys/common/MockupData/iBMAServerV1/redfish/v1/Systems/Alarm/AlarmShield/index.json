@@ -1,0 +1,14 @@
+{
+    "@odata.context": "/redfish/v1/$metadata#Systems/Alarm/AlarmShield",
+    "@odata.id": "/redfish/v1/Systems/Alarm/AlarmShield",
+    "@odata.type": "MindXEdgeAlarm.v1_0_0.MindXEdgeAlarm",
+    "Id" : "Alarm Shield",
+    "Name": "Alarm Shield",
+    "AlarmShieldMessages":[],
+    "Increase":{
+        "@odata.id": "/redfish/v1/Systems/Alarm/AlarmShield/Increase"
+    },
+    "Decrease":{
+        "@odata.id": "/redfish/v1/Systems/Alarm/AlarmShield/Decrease"
+    }
+}

@@ -1,0 +1,6 @@
+{
+  "disable_all": false,
+  "allow": {
+    "mef_config": true
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#Systems/ExtendedDevices",
+  "@odata.id": "/redfish/v1/Systems/ExtendedDevices",
+  "@odata.type": "#MindXEdgeExtendedDevice.v1_0_0.MindXEdgeExtendedDevice",
+  "Name": "ExtendedDevice Collection",
+  "Members@odata.count": null,
+  "Members": [
+    {
+      "@odata.id": "/redfish/v1/Systems/ExtendedDevices/entityID"
+    }
+  ]
+}

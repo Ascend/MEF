@@ -1,0 +1,33 @@
+{
+    "id": 12,
+    "name": "elabel",
+    "category": "internal",
+    "driver": "/usr/lib64/libelabel_adapter.so",
+    "dynamic": false,
+    "attributes": {
+        "board_sn": {
+            "description": "elabel board_sn",
+            "type": "string",
+            "id": 65537,
+            "accessMode": "Read"
+        },
+        "product_sn": {
+            "description": "elabel product_sn",
+            "type": "string",
+            "id": 65538,
+            "accessMode": "Read"
+        },
+        "asstag": {
+            "description": "elabel asstag",
+            "type": "string",
+            "id": 65539,
+            "accessMode": "ReadWrite"
+        },
+        "mfg_date": {
+            "description": "elabel mfg_date",
+            "type": "string",
+            "id": 65540,
+            "accessMode": "Read"
+        }
+    }
+}

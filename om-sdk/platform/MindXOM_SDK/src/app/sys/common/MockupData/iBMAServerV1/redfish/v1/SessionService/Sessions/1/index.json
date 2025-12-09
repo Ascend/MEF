@@ -1,0 +1,14 @@
+{
+    "@odata.context": "/redfish/v1/$metadata#Session.Session",
+    "@odata.id": "/redfish/v1/SessionService/Sessions/oDataID",
+    "@odata.type": "#Session.v1_4_0.Session",
+    "Id": "461360e420ee911d",
+    "Name": "User Session",
+    "UserName": "test1",
+    "Oem":
+    {
+        "UserId": "1",
+        "AccountInsecurePrompt": false,
+        "message": "[id:name]"
+    }
+}

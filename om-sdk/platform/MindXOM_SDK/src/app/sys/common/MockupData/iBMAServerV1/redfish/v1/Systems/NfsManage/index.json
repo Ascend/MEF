@@ -1,0 +1,16 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#Systems/Members/NfsManage",
+  "@odata.type": "#MindXEdgeNfsManage.v1_0_0.MindXEdgeNfsManage",
+  "@odata.id": "/redfish/v1/Systems/NfsManage",
+  "Id": "1",
+  "Name": "Nfs Manage",
+  "nfsList": [],
+  "Actions": {
+    "#NfsManage.Mount": {
+      "target": "/redfish/v1/Systems/NfsManage/Actions/NfsManage.Mount"
+    },
+    "#NfsManage.Unmount": {
+      "target": "/redfish/v1/Systems/NfsManage/Actions/NfsManage.Unmount"
+    }
+  }
+}

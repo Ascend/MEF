@@ -1,0 +1,64 @@
+{
+    "$schema": "http://redfish.dmtf.org/schemas/v1/redfish-schema.v1_1_0.json",
+    "title": "#MindXEdgeEthIpList.v1_0_0.MindXEdgeEthIpList",
+    "$ref": "#/definitions/MindXEdgeEthIpList",
+    "definitions": {
+        "MindXEdgeEthIpList": {
+            "type": "object",
+            "patternProperties": {
+                "^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message|Privileges)\\.[a-zA-Z_][a-zA-Z0-9_.]+$": {
+                    "type": [
+                        "array",
+                        "boolean",
+                        "number",
+                        "null",
+                        "object",
+                        "string"
+                    ],
+                    "description": "This property shall specify a valid odata or Redfish property."
+                }
+            },
+            "additionalProperties": false,
+            "properties": {
+                "@odata.context": {
+                    "$ref": "http://redfish.dmtf.org/schemas/v1/odata.4.0.0.json#/definitions/context"
+                },
+                "@odata.id": {
+                    "$ref": "http://redfish.dmtf.org/schemas/v1/odata.4.0.0.json#/definitions/id"
+                },
+                "@odata.type": {
+                    "$ref": "http://redfish.dmtf.org/schemas/v1/odata.4.0.0.json#/definitions/type"
+                },
+                "Id": {
+                    "$ref": "http://redfish.dmtf.org/schemas/v1/Resource.json#/definitions/Id"
+                },
+                "Description": {
+                    "anyOf": [
+                        {"$ref": "http://redfish.dmtf.org/schemas/v1/Resource.json#/definitions/Description"},
+                        {"type": "null"}
+                    ]
+                },
+                "Name": {
+                    "$ref": "http://redfish.dmtf.org/schemas/v1/Resource.json#/definitions/Name"
+                },
+                "ip_addr_list": {
+                    "type": "object",
+                    "readonly": true,
+                    "description": "List of mappings between user configured network device names and IP addresses."
+                },
+                "noGatewayIP": {
+                    "type": "array",
+                    "readonly": true,
+                    "description": "The small station is used to restore the set of IP addresses that do not match the default gateway."
+                }
+            },
+            "required": [
+                "Id",
+                "Name"
+            ],
+            "description": "Used for EthIpList Information.",
+            "longDescription": "Used for EthIpList Information."
+        }
+    },
+    "copyright": "Copyright © Huawei Technologies Co., Ltd. 2022. All rights reserved."
+}

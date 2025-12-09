@@ -1,0 +1,63 @@
+// Copyright (c) Huawei Technologies Co., Ltd. 2025-2025. All rights reserved.
+// MindEdge is licensed under Mulan PSL v2.
+// You can use this software according to the terms and conditions of the Mulan PSL v2.
+// You may obtain a copy of Mulan PSL v2 at:
+//          http://license.coscl.org.cn/MulanPSL2
+// THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+// EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+// MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+// See the Mulan PSL v2 for more details.
+
+// Package utils
+package utils
+
+import (
+	"bytes"
+	"syscall"
+	"testing"
+
+	"github.com/agiledragon/gomonkey/v2"
+	"github.com/smartystreets/goconvey/convey"
+
+	"huawei.com/mindxedge/base/common"
+)
+
+func TestDiskPressureProtection(t *testing.T) {
+	convey.Convey("test disk pressure protection", t, func() {
+		type testcase struct {
+			stat   syscall.Statfs_t
+			result bool
+		}
+		runner := func(tc testcase) {
+			patch := gomonkey.ApplyFunc(syscall.Statfs, func(path string, statfs *syscall.Statfs_t) error {
+				*statfs = tc.stat
+				return nil
+			})
+			defer patch.Reset()
+
+			var buffer bytes.Buffer
+			protectedWriter := WithDiskPressureProtect(&buffer, "")
+			_, err := protectedWriter.Write([]byte("hello"))
+			assertion := convey.ShouldNotBeNil
+			if tc.result {
+				assertion = convey.ShouldBeNil
+			}
+			convey.So(err, assertion)
+		}
+
+		const (
+			size10  = 10
+			size20  = 20
+			size21  = 21
+			size100 = 100
+		)
+		testcases := []testcase{
+			{stat: syscall.Statfs_t{Bsize: size20 * common.MB, Blocks: size100, Bavail: size20}},
+			{stat: syscall.Statfs_t{Bsize: size20 * common.MB, Blocks: size100, Bavail: size21}, result: true},
+			{stat: syscall.Statfs_t{Bsize: size10 * common.MB, Blocks: size20, Bavail: size20}},
+		}
+		for _, tc := range testcases {
+			runner(tc)
+		}
+	})
+}

@@ -1,0 +1,12 @@
+[Unit]
+Description=MindX Edge OM sys files sync service after upgrade os
+After=network-online.target
+Before=devm_drv_init.service
+
+[Service]
+Type=forking
+ExecStart=/bin/bash -c 'if [[ -f "/home/data/upgrade/rootfs_active" ]]; then touch /home/data/om_sync_flag; fi'
+TimeoutSec=6000
+
+[Install]
+WantedBy=multi-user.target

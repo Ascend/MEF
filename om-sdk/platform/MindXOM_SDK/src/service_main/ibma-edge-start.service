@@ -1,0 +1,20 @@
+[Unit]
+Description=IBMA-EDGE start
+After=devm_drv_init.service om-init.service platform-app.service
+Wants=network-online.target om-init.service platform-app.service
+
+[Service]
+Type=forking
+EnvironmentFile=/home/data/config/mindx_om_env.conf
+ExecStart=/usr/local/mindx/MindXOM/scripts/ibma_edge_start.sh
+ExecStartPost=/usr/local/mindx/MindXOM/scripts/ibma_edge_start_post.sh
+ExecStopPost=/usr/local/mindx/MindXOM/scripts/stop_redfish.sh
+Restart=always
+StandardOutput=null
+KillMode=control-group
+MemoryLimit=4G
+CPUQuota=65%
+
+[Install]
+WantedBy=multi-user.target
+

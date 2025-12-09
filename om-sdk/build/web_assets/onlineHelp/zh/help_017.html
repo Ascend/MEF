@@ -1,0 +1,73 @@
+<a name="ZH-CN_TOPIC_0000001447281485"></a><a name="ZH-CN_TOPIC_0000001447281485"></a>
+
+<h1 class="topictitle1">NFS管理</h1>
+<div id="body8662426"><p id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_p177343243471">用户除可以使用本地磁盘外，还可以使用NFS挂载存储服务器共享目录来扩展存储空间，用于存储业务数据。</p>
+<div class="note" id="ZH-CN_TOPIC_0000001447281485__note44691920104715"><img src="public_sys-resources/note_3.0-zh-cn.png"><span class="notetitle"> </span><div class="notebody"><ul id="ZH-CN_TOPIC_0000001447281485__ul1727919268472"><li id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0000001231605023_li206541053947">NFS协议为不安全协议，没有用户认证机制，数据在网络上明文传输，存在一定的安全风险，建议仅在受信任的安全区域中使用，且不要传输敏感数据，默认使用V4协议。</li><li id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0000001231605023_li1965420534419">NFS挂载的共享目录本地路径会同步NFS服务器共享目录的权限、属主和属组，请用户使用前确保NFS存储服务器安全，使用的目录和文件权限符合业务安全诉求。</li></ul>
+<ul id="ZH-CN_TOPIC_0000001447281485__ul1627972611470"><li id="ZH-CN_TOPIC_0000001447281485__li1428072612472">NFS挂载的共享目录中如果有特殊权限位（setuid、setgid）的文件或者可执行文件，在挂载的本地路径中，该文件的特殊权限位无法生效、也无法执行该可执行文件。</li><li id="ZH-CN_TOPIC_0000001447281485__li1496519206268">若Web界面长时间显示NFS挂载异常，可能是由于NFS服务端异常或关闭，导致<span id="ZH-CN_TOPIC_0000001447281485__ph1958545212105">Atlas 500 A2 智能小站</span>与NFS服务端网络不通，建议对长时间显示异常的NFS挂载进行解挂操作。</li></ul>
+</div></div>
+<div class="section" id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_section6543171824516"><h4 class="sectiontitle">创建共享目录</h4><ol id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_ol1329834013555"><li id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_li10468954122810"><span>在主菜单中选择<span class="menucascade" id="ZH-CN_TOPIC_0000001447281485__menucascade3590526104816">“<span class="uicontrol" id="ZH-CN_TOPIC_0000001447281485__uicontrol759018266483">管理 &gt; 存储配置 &gt; NFS管理</span>”</span>。</span><p><div class="fignone" id="ZH-CN_TOPIC_0000001447281485__fig142131018102013"><span class="figcap"><b>图1 </b>NFS管理</span><br><span><img id="ZH-CN_TOPIC_0000001447281485__image1897115562212" src="figure/zh-cn_image_0000001510793692.png" height="158.60250000000002" width="469.49"></span></div>
+</p></li><li id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_li22381123217"><span>单击<span class="uicontrol" id="ZH-CN_TOPIC_0000001447281485__uicontrol117454244813">“创建共享目录”</span>，弹出<span class="wintitle" id="ZH-CN_TOPIC_0000001447281485__wintitle166291146155211">“创建共享目录”</span>对话框。</span><p><div class="fignone" id="ZH-CN_TOPIC_0000001447281485__fig19902182415512"><span class="figcap"><b>图2 </b>创建共享目录</span><br><span><img id="ZH-CN_TOPIC_0000001447281485__image1573559193813" src="figure/zh-cn_image_0000001487683756.png" height="210.47250000000003" width="469.49"></span></div>
+</p></li><li id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_li10380103917317"><span>根据界面提示配置参数，配置项参考<a href="#ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_table679313132119">表1</a>。</span><p>
+<div class="tablenoborder"><a name="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_table679313132119"></a><a name="zh-cn_topic_0187226980_table679313132119"></a><table cellpadding="4" cellspacing="0" summary="" id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_table679313132119" frame="border" border="1" rules="all"><caption><b>表1 </b>创建共享目录参数说明</caption><thead align="left"><tr id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_row2794183142110"><th align="left" class="cellrowborder" valign="top" width="33.33333333333333%" id="mcps1.3.3.2.3.2.1.2.4.1.1"><p id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_p1921723518502">参数名称</p>
+</th>
+<th align="left" class="cellrowborder" valign="top" width="33.33333333333333%" id="mcps1.3.3.2.3.2.1.2.4.1.2"><p id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_p1721793545017">参数说明</p>
+</th>
+<th align="left" class="cellrowborder" valign="top" width="33.33333333333333%" id="mcps1.3.3.2.3.2.1.2.4.1.3"><p id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_p734653515239">取值样例</p>
+</th>
+</tr>
+</thead>
+<tbody><tr id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_row19794103112113"><td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.3.3.2.3.2.1.2.4.1.1 "><p id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_p11794935219">服务器IP地址</p>
+</td>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.3.3.2.3.2.1.2.4.1.2 "><p id="ZH-CN_TOPIC_0000001447281485__p17651247105415">NFS服务器IP地址。</p>
+<p id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_p1979418312219">取值为IPv4地址。</p>
+</td>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.3.3.2.3.2.1.2.4.1.3 "><p id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_p534663514234">192.168.1.192</p>
+</td>
+</tr>
+<tr id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_row167953312116"><td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.3.3.2.3.2.1.2.4.1.1 "><p id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_p279513382114">共享路径</p>
+</td>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.3.3.2.3.2.1.2.4.1.2 "><p id="ZH-CN_TOPIC_0000001447281485__p1691974185411">NFS服务器共享路径。</p>
+<p id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_p3795133142118">支持的最大取值长度为256，可由大小写字母（a~z、A~Z）、数字（0~9）和其他字符（/_-）组成，且以/开头。</p>
+</td>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.3.3.2.3.2.1.2.4.1.3 "><p id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_p193461935112319">/home/nfssharedir</p>
+</td>
+</tr>
+<tr id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_row12795133142112"><td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.3.3.2.3.2.1.2.4.1.1 "><p id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_p97952322111">本地挂载点</p>
+</td>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.3.3.2.3.2.1.2.4.1.2 "><p id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_p157951310214"><span id="ZH-CN_TOPIC_0000001447281485__text420515045">Atlas 500 A2 智能小站</span>本地挂载路径。</p>
+<p id="ZH-CN_TOPIC_0000001447281485__p815343814543">支持的最大取值长度为256，可由大小写字母（a~z、A~Z）、数字（0~9）和其他字符（/_-）组成，且需要以/开头。</p>
+<div class="note" id="ZH-CN_TOPIC_0000001447281485__note826323671312"><span class="notetitle"> 说明： </span><div class="notebody"><p id="ZH-CN_TOPIC_0000001447281485__p751627195920">挂载路径只支持<span class="filepath" id="ZH-CN_TOPIC_0000001447281485__filepath1028883814916">“/opt/mount”</span>目录。</p>
+</div></div>
+</td>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.3.3.2.3.2.1.2.4.1.3 "><p id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_p53478350237">/opt/mount</p>
+</td>
+</tr>
+<tr id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_row1379563142112"><td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.3.3.2.3.2.1.2.4.1.1 "><p id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_p779533152117">NFS协议版本</p>
+</td>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.3.3.2.3.2.1.2.4.1.2 "><p id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_p547222718253">NFS协议的版本信息。</p>
+<p id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_p57955316212">目前仅支持版本NFS4。</p>
+</td>
+<td class="cellrowborder" valign="top" width="33.33333333333333%" headers="mcps1.3.3.2.3.2.1.2.4.1.3 "><p id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_p034703520234">NFS4</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</p></li><li id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_li203021747192814"><span>单击<span class="uicontrol" id="ZH-CN_TOPIC_0000001447281485__uicontrol1649352165014">“确认”</span>。</span><p><p id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_p205851230153018">在展示区域中，显示服务器IP地址、共享路径、挂载路径、总容量、剩余容量、健康状态和操作等信息。</p>
+<div class="note" id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_note13750239123619"><img src="public_sys-resources/note_3.0-zh-cn.png"><span class="notetitle"> </span><div class="notebody"><ul id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_ul1121135594011"><li id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_li156891533418">“健康状态”列展示信息为共享目录的工作状态。</li><li id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_li1734110589414">如果<span id="ZH-CN_TOPIC_0000001447281485__text1917829221">Atlas 500 A2 智能小站</span>与存储服务器之间存在网络故障或者NFS服务器状态异常，创建共享目录操作会在等待一段时间后显示失败，需要用户根据告警信息排查故障后再创建共享目录。具体处理方式可参考<span id="ZH-CN_TOPIC_0000001447281485__ph11255192820214">《<a href="https://support.huawei.com/enterprise/zh/ascend-computing/atlas-500-a2-pid-254412305?category=troubleshooting&amp;subcategory=alarm-handling" target="_blank" rel="noopener noreferrer">Atlas 500 A2 智能边缘管理系统 告警处理</a>》</span>中的“ALM 0x00140000 NFS异常”告警。</li><li id="ZH-CN_TOPIC_0000001447281485__li10991421890">挂载点目录的默认权限为755，目录下的文件权限用户需要自己审视并保证合理性。用户可通过登录develop模式下执行<strong id="ZH-CN_TOPIC_0000001447281485__b280063313481">chmod</strong>命令来修改权限。</li></ul>
+</div></div>
+</p></li></ol>
+</div>
+<div class="section" id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_section5827436193519"><h4 class="sectiontitle">解除挂载</h4><div class="note" id="ZH-CN_TOPIC_0000001447281485__note19285157205119"><img src="public_sys-resources/note_3.0-zh-cn.png"><span class="notetitle"> </span><div class="notebody"><p id="ZH-CN_TOPIC_0000001447281485__p132851257165115">解除挂载会导致已挂载到该分区的容器应用不可用，请谨慎操作。如需解除挂载，请在没有容器应用使用该共享目录的情况下，执行此操作。</p>
+</div></div>
+<ol id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_ol0174314895"><li id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_li14622181113102"><span>在主菜单中选择<span class="menucascade" id="ZH-CN_TOPIC_0000001447281485__menucascade11225327115410">“<span class="uicontrol" id="ZH-CN_TOPIC_0000001447281485__uicontrol16225727145418">管理 &gt; 存储配置 &gt; NFS管理</span>”</span>。</span><p><div class="fignone" id="ZH-CN_TOPIC_0000001447281485__fig19125101311415"><span class="figcap"><b>图3 </b>NFS管理</span><br><span><img id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0000001447281485_image1897115562212" src="figure/zh-cn_image_0000001510793692.png" height="158.60250000000002" width="469.49"></span></div>
+</p></li><li id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_li20585112216461"><span>在需解挂载目录的“操作”列单击<span class="uicontrol" id="ZH-CN_TOPIC_0000001447281485__uicontrol8322441145419">“解挂”</span>，弹出操作确认提示框。</span><p><div class="fignone" id="ZH-CN_TOPIC_0000001447281485__fig124819512015"><span class="figcap"><b>图4 </b>解挂载目录</span><br><span><img id="ZH-CN_TOPIC_0000001447281485__image18389516384" src="figure/zh-cn_image_0000001614848897.png" height="128.7706" width="469.49"></span></div>
+</p></li><li id="ZH-CN_TOPIC_0000001447281485__zh-cn_topic_0187226980_li57251623095"><span>单击<span class="uicontrol" id="ZH-CN_TOPIC_0000001447281485__uicontrol17936561544">“确认”</span>。</span></li></ol>
+</div>
+</div>
+<div>
+<div class="familylinks">
+<div class="parentlink"><strong>父主题：</strong> <a href="help_015.html">存储配置</a></div>
+</div>
+</div>
+

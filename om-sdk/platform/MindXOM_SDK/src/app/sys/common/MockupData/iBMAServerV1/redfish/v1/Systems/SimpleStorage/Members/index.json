@@ -1,0 +1,13 @@
+{
+  "@odata.context":   "/redfish/v1/$metadata#Systems/SimpleStorages/Members/$entity",
+  "@odata.id": "/redfish/v1/Systems/SimpleStorages/oDataID",
+  "@odata.type": "#SimpleStorage.v1_3_1.SimpleStorage",
+  "Id": null,
+  "Name": null,
+  "Description": null,
+  "Status": {
+    "State":null,
+    "Health": null
+  },
+  "Devices": []
+}

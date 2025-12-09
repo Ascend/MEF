@@ -1,0 +1,83 @@
+{
+    "id": 11,
+    "name": "system",
+    "category": "internal",
+    "driver": "/usr/local/lib/libsystem_adapter.so",
+    "dynamic": false,
+    "attributes": {
+        "health": {
+            "description": "system health",
+            "type": "int",
+            "id": 65537,
+            "accessMode": "Read"
+        },
+        "cold_reset_system": {
+            "description": "cold reset system by mcu",
+            "type": "int",
+            "id": 65539,
+            "accessMode": "Write"
+        },
+        "alarm_level": {
+            "description": "system set alarm level",
+            "type": "int",
+            "id": 65540,
+            "accessMode": "Write"
+        },
+        "init_led_blink": {
+            "description": "system init set led blink",
+            "type": "int",
+            "id": 65541,
+            "accessMode": "Write"
+        },
+        "service_life": {
+            "description": "system dflc service life",
+            "type": "int",
+            "id": 65543,
+            "accessMode": "ReadWrite"
+        },
+        "first_power_on_time": {
+            "description": "system dflc first power on time",
+            "type": "string",
+            "id": 65544,
+            "accessMode": "Read"
+        },
+        "service_start_time": {
+            "description": "system dflc service start time",
+            "type": "string",
+            "id": 65545,
+            "accessMode": "ReadWrite"
+        },
+        "system_version": {
+            "description": "system version",
+            "type": "string",
+            "id": 65547,
+            "accessMode": "Read"
+        },
+        "mcu_version": {
+            "description": "mcu version",
+            "type": "string",
+            "id": 65548,
+            "accessMode": "Read"
+        },
+        "user_info": {
+            "description": "user info",
+            "type": "json",
+            "id": 65549,
+            "accessMode": "Write",
+            "subAttributes": {
+                "user_name": {
+                    "accessMode": "Write",
+                    "description": "user name",
+                    "type": "string",
+                    "id": 1
+                },
+                "passwd_info": {
+                    "accessMode": "Write",
+                    "description": "passwd info",
+                    "type": "string",
+                    "id": 2
+                }
+            }
+        }
+    }
+}

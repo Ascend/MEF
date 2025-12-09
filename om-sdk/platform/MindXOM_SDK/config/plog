@@ -1,0 +1,159 @@
+/var/plog/upgrade.log
+{
+    daily
+    missingok
+    notifempty
+    size +512k
+    create 640 root root
+    postrotate
+       /usr/local/mindx/MindXOM/scripts/log_tar_save.sh /var/plog upgrade /home/log/plog 20
+    endscript
+}
+/var/plog/ntp_service.log
+{
+    daily
+    missingok
+    notifempty
+    size +512k
+    create 640 root root
+    postrotate
+       /usr/local/mindx/MindXOM/scripts/log_tar_save.sh /var/plog ntp_service /home/log/plog 5
+    endscript
+}
+/var/plog/web_edge/access.log
+{
+    daily
+    dateext
+    dateformat _%Y%m%d%s
+    compress
+    rotate 20
+    copytruncate
+    olddir /home/log/plog/web_edge
+    missingok
+    notifempty
+    size +512k
+    postrotate
+       kill -USR1 $(/usr/bin/cat /usr/local/mindx/MindXOM/software/nginx/logs/nginx.pid) 2> /dev/null || true
+    endscript
+}
+/var/plog/web_edge/error.log
+{
+    daily
+    dateext
+    dateformat _%Y%m%d%s
+    compress
+    rotate 20
+    copytruncate
+    olddir /home/log/plog/web_edge
+    missingok
+    notifempty
+    size +512k
+    postrotate
+       kill -USR1 $(/usr/bin/cat /usr/local/mindx/MindXOM/software/nginx/logs/nginx.pid) 2> /dev/null || true
+    endscript
+}
+/var/plog/web_edge/web_edge_run.log
+{
+    daily
+    dateext
+    dateformat _%Y%m%d%s
+    compress
+    rotate 20
+    copytruncate
+    olddir /home/log/plog/web_edge
+    missingok
+    notifempty
+    size +512k
+    postrotate
+       kill -USR1 $(/usr/bin/cat /usr/local/mindx/MindXOM/software/nginx/logs/nginx.pid) 2> /dev/null || true
+    endscript
+}
+/var/plog/ibma_edge/seceye_agent_run.log
+{
+    daily
+    missingok
+    notifempty
+    size +512k
+    create 640 root root
+    postrotate
+       /usr/local/mindx/MindXOM/scripts/log_tar_save.sh /var/plog/ibma_edge seceye_agent_run /home/log/plog/ibma_edge 20
+    endscript
+}
+
+/var/plog/ibma_edge/om_platform_run.log
+{
+    daily
+    missingok
+    notifempty
+    size +512k
+    create 640 root root
+    postrotate
+       /usr/local/mindx/MindXOM/scripts/log_tar_save.sh /var/plog/ibma_edge om_platform_run /home/log/plog/ibma_edge 20
+    endscript
+}
+/var/plog/ibma_edge/om_scripts_run.log
+{
+    daily
+    missingok
+    notifempty
+    size +512k
+    create 640 root root
+    postrotate
+       /usr/local/mindx/MindXOM/scripts/log_tar_save.sh /var/plog/ibma_edge om_scripts_run /home/log/plog/ibma_edge 20
+    endscript
+}
+/var/plog/redfish/redfish_platform_run.log
+{
+    daily
+    missingok
+    notifempty
+    size +512k
+    create 600 MindXOM MindXOM
+    postrotate
+       /usr/local/mindx/MindXOM/scripts/log_tar_save.sh /var/plog/redfish redfish_platform_run /home/log/plog/redfish 20
+    endscript
+}
+/var/plog/redfish/redfish_run.log
+{
+    daily
+    missingok
+    notifempty
+    size +512k
+    create 600 MindXOM MindXOM
+    postrotate
+       /usr/local/mindx/MindXOM/scripts/log_tar_save.sh /var/plog/redfish redfish_run /home/log/plog/redfish 20
+    endscript
+}
+/var/plog/redfish/redfish_operate.log
+{
+    daily
+    missingok
+    notifempty
+    size +512k
+    create 600 MindXOM MindXOM
+    postrotate
+       /usr/local/mindx/MindXOM/scripts/log_tar_save.sh /var/plog/redfish redfish_operate /home/log/plog/redfish 20
+    endscript
+}
+/var/plog/manager/manager_run.log
+{
+    daily
+    missingok
+    notifempty
+    size +512k
+    create 600 root root
+    postrotate
+       /usr/local/mindx/MindXOM/scripts/log_tar_save.sh /var/plog/manager manager_run /home/log/plog/manager 20
+    endscript
+}
+/var/plog/manager/manager_operate.log
+{
+    daily
+    missingok
+    notifempty
+    size +512k
+    create 600 root root
+    postrotate
+       /usr/local/mindx/MindXOM/scripts/log_tar_save.sh /var/plog/manager manager_operate /home/log/plog/manager 20
+    endscript
+}

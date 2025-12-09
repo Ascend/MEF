@@ -1,0 +1,12 @@
+{
+    "@odata.context": "/redfish/v1/$metadata#NetManager/QueryFdCert",
+    "@odata.id": "/redfish/v1/NetManager/QueryFdCert",
+    "@odata.type": "#MindXEdgeNetManager.v1_0_0.MindXEdgeNetManager",
+    "Id": "QueryFdCert",
+    "Name": "QueryFdCert",
+    "Issuer": "",
+    "Subject": "",
+    "Date": "",
+    "SerialNum": "",
+    "Fingerprint": ""
+}

@@ -1,0 +1,21 @@
+[Unit]
+Description=nginx service
+After=network-online.target devm_drv_init.service platform-app.service
+Wants=network-online.target devm_drv_init.service platform-app.service
+Before=ibma-edge-start.service
+
+[Service]
+Type=forking
+GuessMainPID=false
+EnvironmentFile=/home/data/config/mindx_om_env.conf
+ExecStart=/bin/bash -c /usr/local/mindx/MindXOM/scripts/nginx_init.sh
+ExecStartPost=/usr/local/mindx/MindXOM/scripts/nginx_post.sh
+ExecStopPost=/usr/local/mindx/MindXOM/scripts/stop_nginx.sh
+TimeoutSec=6000
+StandardOutput=null
+Restart=always
+MemoryLimit=100M
+CPUQuota=30%
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,9 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#Systems/EthIpList",
+  "@odata.id": "/redfish/v1/Systems/EthIpList",
+  "@odata.type": "#MindXEdgeEthIpList.v1_0_0.MindXEdgeEthIpList",
+  "Id": "Ethernet Ip List",
+  "Name": "Ethernet Ip List",
+  "ip_addr_list": null,
+  "noGatewayIP": []
+}

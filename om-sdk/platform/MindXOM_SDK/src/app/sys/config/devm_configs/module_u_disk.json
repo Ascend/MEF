@@ -1,0 +1,69 @@
+{
+    "id": 7,
+    "name": "u-disk",
+    "category": "extend",
+    "driver": "/usr/lib64/libextend_adapter.so",
+    "dynamic": true,
+    "attributes": {
+        "name": {
+            "description": "u_disk name",
+            "type": "string",
+            "id": 1,
+            "accessMode": "Read"
+        },
+        "class": {
+            "description": "u_disk class",
+            "type": "string",
+            "id": 2,
+            "accessMode": "Read"
+        },
+        "dev_path": {
+            "description": "u_disk device path",
+            "type": "string",
+            "id": 3,
+            "accessMode": "Read"
+        },
+        "vendor": {
+            "description": "u_disk vendor",
+            "type": "string",
+            "id": 4,
+            "accessMode": "Read"
+        },
+        "model": {
+            "description": "u_disk model",
+            "type": "string",
+            "id": 5,
+            "accessMode": "Read"
+        },
+        "sn": {
+            "description": "u_disk sn",
+            "type": "string",
+            "id": 6,
+            "accessMode": "Read"
+        },
+        "location": {
+            "description": "u_disk location",
+            "type": "string",
+            "id": 7,
+            "accessMode": "Read"
+        },
+        "status": {
+            "description": "u_disk status",
+            "type": "string",
+            "id": 8,
+            "accessMode": "Read"
+        },
+        "version": {
+            "description": "u_disk version",
+            "type": "string",
+            "id": 9,
+            "accessMode": "Read"
+        },
+        "health": {
+            "description": "u_disk health",
+            "type": "int",
+            "id": 10,
+            "accessMode": "Read"
+        }
+    }
+}

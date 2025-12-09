@@ -1,0 +1,4 @@
+DEVPATH=/devices/platform/a6000000.sata/ata2/host1/target1:0:0/1:0:0:0/block/sda/sda2
+PARTN=1
+ID_PART_ENTRY_OFFSET=204800
+DEVLINKS=/dev/disk/by-path/platform-a6000000.sata-ata-2.0-part1 /dev/disk/by-uuid/6033dc93-8266-44d8-981f-77b5ece46e85 /dev/disk/by-id/wwn-0x5000c500d5dfd1e3-part1 /dev/disk/by-path/platform-a6000000.sata-ata-2-part1 /dev/disk/by-partlabel/primary /dev/disk/by-id/scsi-SATA_ST4000NM000A-2HZ_WS20NW6V-part1 /dev/disk/by-partuuid/7cbae160-f190-434e-9309-4aff957bf63e /dev/hdisk0p1 /dev/disk/by-id/ata-ST4000NM000A-2HZ100_WS20NW6V-part1

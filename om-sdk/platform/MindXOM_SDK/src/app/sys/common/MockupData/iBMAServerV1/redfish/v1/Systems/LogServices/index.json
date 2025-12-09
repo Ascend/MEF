@@ -1,0 +1,22 @@
+{
+    "@odata.context": "/redfish/v1/$metadata#Systems/LogServices/$entity",
+    "@odata.id": "/redfish/v1/Systems/LogServices",
+    "@odata.type": "#LogServiceCollection.LogServiceCollection",
+    "Name": "LogService Collection",
+    "Members@odata.count": null,
+    "Members": [
+        {
+            "@odata.id": "/redfish/v1/Systems/LogServices/entityID"
+        }
+    ],
+    "Oem": {
+        "progress": {
+            "@odata.id": "redfish/v1/Systems/LogServices/progress"
+        },
+        "Actions": {
+            "#download": {
+                "target": "/redfish/v1/Systems/LogServices/Actions/download"
+            }
+        }
+    }
+}

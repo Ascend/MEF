@@ -1,0 +1,112 @@
+// Copyright (c) Huawei Technologies Co., Ltd. 2025-2025. All rights reserved.
+// MindEdge is licensed under Mulan PSL v2.
+// You can use this software according to the terms and conditions of the Mulan PSL v2.
+// You may obtain a copy of Mulan PSL v2 at:
+//          http://license.coscl.org.cn/MulanPSL2
+// THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+// EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+// MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+// See the Mulan PSL v2 for more details.
+
+// Package hwlog provides the capability of processing Huawei log rules.
+package hwlog
+
+import (
+	"fmt"
+	"sync"
+	"time"
+
+	"huawei.com/mindx/common/cache"
+)
+
+const (
+	// MaxCacheSize indicates the maximum log cache size
+	MaxCacheSize = 100 * 1024
+	// MaxExpiredTime indicates the maximum log cache expired time
+	MaxExpiredTime = 60 * 60
+	// DefaultCacheSize indicates the default log cache size
+	DefaultCacheSize = 10 * 1024
+	// DefaultExpiredTime indicates the default log cache expired time
+	DefaultExpiredTime = 1
+	cutPreLen          = 46
+)
+
+// LogLimiter encapsulates Logs and provides the log traffic limiting capability
+// to prevent too many duplicate logs.
+type LogLimiter struct {
+	// Logs is a log rotate instance
+	Logs     *Logs
+	logCache *cache.ConcurrencyLRUCache
+	logMu    sync.Mutex
+	doOnce   sync.Once
+
+	logExpiredTime time.Duration
+	// CacheSize indicates the size of log cache
+	CacheSize int
+	// ExpiredTime indicates the expired time of log cache
+	ExpiredTime int
+}
+
+// Write implements io.Writer. It encapsulates the Write method of Los and uses
+// the lru cache to prevent duplicate log writing.
+func (l *LogLimiter) Write(d []byte) (int, error) {
+	if l == nil {
+		return 0, fmt.Errorf("log limiter pointer does not exist")
+	}
+
+	l.logMu.Lock()
+	defer l.logMu.Unlock()
+
+	if l.ExpiredTime == 0 || l.CacheSize == 0 {
+		return l.Logs.Write(d)
+	}
+
+	l.doOnce.Do(func() {
+		l.validateLimiterConf()
+		l.logCache = cache.New(l.CacheSize)
+		l.logExpiredTime = time.Duration(int64(l.ExpiredTime) * int64(time.Second))
+	})
+
+	if l.logCache == nil {
+		l.logCache = cache.New(DefaultCacheSize)
+	}
+	if !l.logCache.SetIfNX(string(d[cutPreLen:]), "v", l.logExpiredTime) {
+		return 0, nil
+	}
+
+	return l.Logs.Write(d)
+}
+
+// Close implements io.Closer. It encapsulates the Close method of Logs.
+func (l *LogLimiter) Close() error {
+	if l == nil {
+		return fmt.Errorf("log limiter pointer does not exist")
+	}
+
+	l.logMu.Lock()
+	defer l.logMu.Unlock()
+
+	return l.Logs.Close()
+}
+
+// Flush encapsulates the Flush method of Logs.
+func (l *LogLimiter) Flush() error {
+	if l == nil {
+		return fmt.Errorf("log limiter pointer does not exist")
+	}
+
+	l.logMu.Lock()
+	defer l.logMu.Unlock()
+
+	return l.Logs.Flush()
+}
+
+// validateLimiterConf verifies the external input parameters in the LogLimiter.
+func (l *LogLimiter) validateLimiterConf() {
+	if l.CacheSize < 0 || l.CacheSize > MaxCacheSize {
+		l.CacheSize = DefaultCacheSize
+	}
+	if l.ExpiredTime < 0 || l.ExpiredTime > MaxExpiredTime {
+		l.ExpiredTime = DefaultExpiredTime
+	}
+}

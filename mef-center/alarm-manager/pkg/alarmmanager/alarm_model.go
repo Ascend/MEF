@@ -1,0 +1,216 @@
+// Copyright (c) Huawei Technologies Co., Ltd. 2025-2025. All rights reserved.
+// MindEdge is licensed under Mulan PSL v2.
+// You can use this software according to the terms and conditions of the Mulan PSL v2.
+// You may obtain a copy of Mulan PSL v2 at:
+//          http://license.coscl.org.cn/MulanPSL2
+// THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+// EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+// MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+// See the Mulan PSL v2 for more details.
+
+// Package alarmmanager for alarm-manager module db operation
+package alarmmanager
+
+import (
+	"crypto/rand"
+	"errors"
+	"math"
+	"math/big"
+	"strings"
+	"sync"
+
+	"gorm.io/gorm"
+	"huawei.com/mindx/common/database"
+	"huawei.com/mindx/common/hwlog"
+
+	"huawei.com/mindxedge/base/common"
+	"huawei.com/mindxedge/base/common/alarms"
+)
+
+var (
+	alarmSingleton sync.Once
+	alarmDb        *AlarmDbHandler
+)
+
+const (
+	// obtainIdRetryTime max retry times for generating random id for alarm
+	obtainIdRetryTime = 5
+	maxOldEventCount  = 100
+)
+
+// AlarmDbHandler is the struct to deal with alarm db
+type AlarmDbHandler struct {
+}
+
+// AlarmDbInstance is a singleton instance
+func AlarmDbInstance() *AlarmDbHandler {
+	alarmSingleton.Do(func() {
+		alarmDb = &AlarmDbHandler{}
+	})
+	return alarmDb
+}
+
+func (adh *AlarmDbHandler) db() *gorm.DB {
+	return database.GetDb()
+}
+
+func (adh *AlarmDbHandler) addAlarmInfo(data *AlarmInfo) error {
+	// add records with random id to avoid collisions and overflow uint32,
+	for i := 0; i < obtainIdRetryTime; i++ {
+		randId, err := rand.Int(rand.Reader, big.NewInt(math.MaxUint32))
+		if err != nil {
+			return errors.New("failed to generate available id for new alarm")
+		}
+		// rand.Int returns a uniform random value in [0, max). It panics if max <= 0.
+		newId := (*randId).Uint64() + 1
+		data.Id = newId
+		if err := adh.db().Model(AlarmInfo{}).Create(data).Error; err == nil {
+			return nil
+		} else if strings.Contains(err.Error(), common.ErrDbUniqueFailed) {
+			// if id was taken already,try again
+			hwlog.RunLog.Warn("random id has already been taken, will retry")
+			continue
+		}
+		return errors.New("failed to create new alarm")
+	}
+	return nil
+}
+
+func (adh *AlarmDbHandler) getNodeAlarmCount(sn string) (int, error) {
+	var count int64
+	return int(count), adh.db().Model(AlarmInfo{}).Where("serial_number = ? and alarm_type = ?", sn, alarms.AlarmType).
+		Count(&count).Error
+}
+
+func (adh *AlarmDbHandler) getNodeEventCount(sn string) (int, error) {
+	var count int64
+	return int(count), adh.db().Model(AlarmInfo{}).Where("serial_number = ? and alarm_type = ?", sn, alarms.EventType).
+		Count(&count).Error
+}
+
+func (adh *AlarmDbHandler) getNodeOldEvent(sn string, offset int) ([]AlarmInfo, error) {
+	var ret []AlarmInfo
+	// for every new event delete old events,at most for 100 records each time
+	err := adh.db().Model(AlarmInfo{}).Where("serial_number = ? and alarm_type = ?", sn, alarms.EventType).
+		Order("created_at DESC").Offset(offset).Limit(maxOldEventCount).Find(&ret).Error
+	return ret, err
+}
+
+func (adh *AlarmDbHandler) getAlarmInfo(alarmId string, sn string) ([]AlarmInfo, error) {
+	var ret []AlarmInfo
+	return ret, adh.db().Model(AlarmInfo{}).Where("alarm_id = ? and serial_number = ?", alarmId, sn).Find(&ret).Error
+}
+
+func (adh *AlarmDbHandler) deleteAlarm(data *AlarmInfo) error {
+	return adh.db().Model(AlarmInfo{}).Where("alarm_id = ? and serial_number = ?", data.AlarmId,
+		data.SerialNumber).Delete(&data).Error
+}
+
+func (adh *AlarmDbHandler) deleteAlarms(data []AlarmInfo) error {
+	return adh.db().Model(AlarmInfo{}).Delete(&data).Error
+}
+
+func (adh *AlarmDbHandler) deleteBySn(sn string) error {
+	return adh.db().Model(AlarmInfo{}).Where("serial_number = ?", sn).Delete(AlarmInfo{}).Error
+}
+
+// DeleteAlarmTable is the func to delete all alarm table
+func (adh *AlarmDbHandler) DeleteAlarmTable() error {
+	return database.DropTableIfExist(&AlarmInfo{})
+}
+
+// DeleteEdgeAlarm is the func to delete all alarm from MEFEdge
+func (adh *AlarmDbHandler) DeleteEdgeAlarm() error {
+	return adh.db().Model(AlarmInfo{}).Where("serial_number != ?", alarms.CenterSn).Delete(AlarmInfo{}).Error
+}
+
+func (adh *AlarmDbHandler) listCenterAlarmsOrEventsDb(pageNum, pageSize uint64, queryType string) (
+	[]AlarmInfo, error) {
+	var alarmInfo []AlarmInfo
+	return alarmInfo, adh.db().Scopes(getAlarmNodeScopes(pageNum, pageSize, alarms.CenterSn, queryType)).
+		Find(&alarmInfo).Error
+}
+
+func (adh *AlarmDbHandler) listEdgeAlarmsOrEventsDb(pageNum, pageSize uint64, sn string, queryType string) (
+	[]AlarmInfo, error) {
+	var alarmInfo []AlarmInfo
+	return alarmInfo, adh.db().Scopes(getAlarmNodeScopes(pageNum, pageSize, sn, queryType)).Find(&alarmInfo).Error
+}
+
+func (adh *AlarmDbHandler) listAllAlarmsOrEventsDb(pageNum, pageSize uint64, queryType string) ([]AlarmInfo, error) {
+	var alarmInfo []AlarmInfo
+	return alarmInfo, adh.db().Scopes(getPagedScopes(pageNum, pageSize, queryType)).Find(&alarmInfo).Error
+}
+
+func (adh *AlarmDbHandler) listAllEdgeAlarmsOrEventsDb(pageNum, pageSize uint64, queryType string) (
+	[]AlarmInfo, error) {
+	var alarmInfo []AlarmInfo
+	return alarmInfo, adh.db().Scopes(getPagedEdgeScopes(pageNum, pageSize, queryType)).Find(&alarmInfo).Error
+}
+
+func (adh *AlarmDbHandler) getAlarmOrEventInfoByAlarmInfoId(Id uint64) (*AlarmInfo, error) {
+	var alarm AlarmInfo
+	return &alarm, adh.db().Model(AlarmInfo{}).Where("id=?", Id).First(&alarm).Error
+}
+
+func (adh *AlarmDbHandler) listAlarmsOrEventsOfGroup(pageNum, pageSize uint64, sns []string,
+	queryType string) ([]AlarmInfo, error) {
+	var alarmInfo []AlarmInfo
+	if len(sns) == 0 {
+		return alarmInfo, nil
+	}
+	return alarmInfo, adh.db().Scopes(getAlarmGroupScopes(pageNum, pageSize, sns, queryType)).Find(&alarmInfo).Error
+}
+
+func getPagedEdgeScopes(pageNum, pageSize uint64, queryType string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Scopes(common.Paginate(pageNum, pageSize)).Where("alarm_type=? and serial_number <> ?",
+			queryType, alarms.CenterSn)
+	}
+}
+
+// scopes
+func getPagedScopes(pageNum, pageSize uint64, queryType string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Scopes(common.Paginate(pageNum, pageSize)).Where("alarm_type=?", queryType)
+	}
+}
+
+func getAlarmNodeScopes(page, pageSize uint64, sn string, queryType string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Scopes(common.Paginate(page, pageSize)).Where("alarm_type=? and serial_number=?", queryType, sn)
+	}
+}
+
+func getAlarmGroupScopes(page, pageSize uint64, sns []string, queryType string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Scopes(common.Paginate(page, pageSize)).Where("alarm_type=? and serial_number in (?)", queryType, sns)
+	}
+}
+
+// counters
+func (adh *AlarmDbHandler) countAlarmsOrEventsBySn(sn string, queryType string) (int64, error) {
+	count := int64(0)
+	return count, adh.db().Model(AlarmInfo{}).Where("serial_number = ? and alarm_type=?", sn,
+		queryType).Count(&count).Error
+}
+
+func (adh *AlarmDbHandler) countAlarmsOrEventsBySns(sns []string, queryType string) (int64, error) {
+	if len(sns) == 0 {
+		return 0, nil
+	}
+	count := int64(0)
+	return count, adh.db().Model(AlarmInfo{}).Where("serial_number in (?) and alarm_type=?", sns,
+		queryType).Count(&count).Error
+}
+
+func (adh *AlarmDbHandler) countEdgeAlarmsOrEvents(queryType string) (int64, error) {
+	count := int64(0)
+	return count, adh.db().Model(AlarmInfo{}).Where("serial_number != ? and alarm_type=?", alarms.CenterSn,
+		queryType).Count(&count).Error
+}
+
+func (adh *AlarmDbHandler) countAlarmsOrEventsFullNodes(queryType string) (int64, error) {
+	count := int64(0)
+	return count, adh.db().Model(AlarmInfo{}).Where("alarm_type=?", queryType).Count(&count).Error
+}

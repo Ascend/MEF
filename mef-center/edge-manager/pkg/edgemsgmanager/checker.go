@@ -1,0 +1,197 @@
+// Copyright (c) Huawei Technologies Co., Ltd. 2025-2025. All rights reserved.
+// MindEdge is licensed under Mulan PSL v2.
+// You can use this software according to the terms and conditions of the Mulan PSL v2.
+// You may obtain a copy of Mulan PSL v2 at:
+//          http://license.coscl.org.cn/MulanPSL2
+// THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+// EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+// MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+// See the Mulan PSL v2 for more details.
+
+// Package edgemsgmanager handler
+package edgemsgmanager
+
+import (
+	"fmt"
+	"math"
+
+	"huawei.com/mindx/common/checker"
+
+	"huawei.com/mindxedge/base/common"
+)
+
+// NewDownloadChecker is the struct to init a DownloadChecker
+func NewDownloadChecker() *DownloadChecker {
+	return &DownloadChecker{}
+}
+
+// DownloadChecker is the checker to check the message of download request
+type DownloadChecker struct {
+	modelChecker checker.ModelChecker
+}
+
+func (d *DownloadChecker) init() {
+	d.modelChecker.Checker = checker.GetAndChecker(
+		checker.GetUniqueListChecker("SerialNumbers",
+			checker.GetRegChecker("", `^[a-zA-Z0-9]([-_a-zA-Z0-9]{0,62}[a-zA-Z0-9])?$`, true),
+			1, common.MaxNode, true),
+		checker.GetStringChoiceChecker("SoftwareName",
+			[]string{common.MEFEdge}, true),
+		GetDownloadInfoChecker("DownloadInfo", true),
+	)
+}
+
+// Check is the main func for a checker to execute checking operation
+func (d *DownloadChecker) Check(data interface{}) checker.CheckResult {
+	d.init()
+
+	checkResult := d.modelChecker.Check(data)
+	if !checkResult.Result {
+		return checker.NewFailedResult(fmt.Sprintf("software downloadinfo check failed: %s", checkResult.Reason))
+	}
+
+	return checker.NewSuccessResult()
+}
+
+type downloadInfoChecker struct {
+	modelChecker checker.ModelChecker
+}
+
+func (d *downloadInfoChecker) init() {
+	const minPwdLength = 8
+	const maxPwdLength = 20
+	d.modelChecker.Checker = checker.GetAndChecker(
+		checker.GetHttpsUrlChecker("Package", true, false),
+		checker.GetHttpsUrlChecker("SignFile", true, false),
+		checker.GetHttpsUrlChecker("CrlFile", true, false),
+		checker.GetRegChecker("UserName", "^[a-zA-Z0-9]{6,32}$", true),
+		checker.GetListChecker("Password",
+			checker.GetUintChecker("", 0, math.MaxUint8, true),
+			minPwdLength,
+			maxPwdLength,
+			true,
+		),
+	)
+}
+
+// Check [method] check main function
+func (d *downloadInfoChecker) Check(data interface{}) checker.CheckResult {
+	d.init()
+
+	checkResult := d.modelChecker.Check(data)
+	if !checkResult.Result {
+		return checker.NewFailedResult(fmt.Sprintf("software downloadinfo check failed: %s", checkResult.Reason))
+	}
+
+	return checker.NewSuccessResult()
+}
+
+// GetDownloadInfoChecker [method] software download info checker
+func GetDownloadInfoChecker(field string, required bool) *downloadInfoChecker {
+	return &downloadInfoChecker{
+		modelChecker: checker.ModelChecker{Field: field, Required: required},
+	}
+}
+
+type upgradeChecker struct {
+	modelChecker checker.ModelChecker
+}
+
+func newUpgradeChecker() *upgradeChecker {
+	return &upgradeChecker{}
+}
+
+func (u *upgradeChecker) init() {
+	u.modelChecker.Checker = checker.GetAndChecker(
+		checker.GetUniqueListChecker("SerialNumbers",
+			checker.GetRegChecker("", `^[a-zA-Z0-9]([-_a-zA-Z0-9]{0,62}[a-zA-Z0-9])?$`, true),
+			1, common.MaxNode, true),
+		checker.GetStringChoiceChecker("SoftwareName",
+			[]string{common.MEFEdge}, true),
+	)
+}
+
+func (u *upgradeChecker) Check(data interface{}) checker.CheckResult {
+	u.init()
+
+	checkResult := u.modelChecker.Check(data)
+	if !checkResult.Result {
+		return checker.NewFailedResult(fmt.Sprintf("software downloadinfo check failed: %s", checkResult.Reason))
+	}
+
+	return checker.NewSuccessResult()
+}
+
+type certNameChecker struct {
+}
+
+func newCertNameChecker() *certNameChecker {
+	return &certNameChecker{}
+}
+
+func (c *certNameChecker) Check(certName string) bool {
+	certSupportList := []string{common.SoftwareCertName, common.ImageCertName}
+	for _, certSupport := range certSupportList {
+		if certName == certSupport {
+			return true
+		}
+	}
+	return false
+}
+
+type downloadResChecker struct {
+	modelChecker checker.ModelChecker
+}
+
+func newDownloadResChecker() *downloadResChecker {
+	return &downloadResChecker{}
+}
+
+func (u *downloadResChecker) init() {
+	u.modelChecker.Checker = checker.GetAndChecker(
+		checker.GetRegChecker("SerialNumber", `^[a-zA-Z0-9]([-_a-zA-Z0-9]{0,62}[a-zA-Z0-9])?$`, true),
+		getProgressInfoChecker("ProgressInfo", true),
+	)
+}
+
+func (u *downloadResChecker) Check(data interface{}) checker.CheckResult {
+	u.init()
+
+	checkResult := u.modelChecker.Check(data)
+	if !checkResult.Result {
+		return checker.NewFailedResult(fmt.Sprintf("software download res check failed: %s", checkResult.Reason))
+	}
+
+	return checker.NewSuccessResult()
+}
+
+type progressInfoChecker struct {
+	modelChecker checker.ModelChecker
+}
+
+func getProgressInfoChecker(field string, required bool) *progressInfoChecker {
+	return &progressInfoChecker{
+		modelChecker: checker.ModelChecker{Field: field, Required: required},
+	}
+}
+
+func (u *progressInfoChecker) init() {
+	const maxProgress = 100
+	u.modelChecker.Checker = checker.GetAndChecker(
+		checker.GetUintChecker("Progress", 0, maxProgress, true),
+		checker.GetStringChoiceChecker("Res", []string{"failed", "success"}, true),
+		checker.GetRegChecker("Msg", "^[\\S ]{0,512}$", true),
+	)
+}
+
+// Check [method] check main function
+func (d *progressInfoChecker) Check(data interface{}) checker.CheckResult {
+	d.init()
+
+	checkResult := d.modelChecker.Check(data)
+	if !checkResult.Result {
+		return checker.NewFailedResult(fmt.Sprintf("progress info check failed: %s", checkResult.Reason))
+	}
+
+	return checker.NewSuccessResult()
+}

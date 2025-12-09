@@ -1,0 +1,25 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#Systems/SecurityService/HttpsCert/$entity",
+  "@odata.id": "/redfish/v1/Systems/SecurityService/HttpsCert",
+  "@odata.type": "#MindXEdgeHttpsCert.v1_0_0.MindXEdgeHttpsCert",
+  "Id": "HttpsCert",
+  "Name": "Https cert info",
+  "X509CertificateInformation": {
+    "ServerCert": {
+      "Subject": null,
+      "Issuer": null,
+      "ValidNotBefore": null,
+      "ValidNotAfter": null,
+      "SerialNumber": null,
+      "FingerPrint": null,
+      "HttpsCertEable": null,
+      "ExpiredDayRemaining": null
+    }
+  },
+  "CertificateSigningRequest": null,
+  "Actions": {
+    "#HttpsCert.ImportServerCertificate": {
+      "target": "/redfish/v1/Systems/SecurityService/HttpsCert/Actions/HttpsCert.ImportServerCertificate"
+    }
+  }
+}

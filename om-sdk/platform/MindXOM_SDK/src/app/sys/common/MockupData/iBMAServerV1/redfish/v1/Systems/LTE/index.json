@@ -1,0 +1,13 @@
+{
+    "@odata.type": "#MindXEdgeLTE.v1_0_0.MindXEdgeLTE",
+    "@odata.context": "/redfish/v1/$metadata#Systems/LTE",
+    "@odata.id": "/redfish/v1/Systems/LTE",
+    "Id" : "LTE",
+    "Name": "LTE",
+    "StatusInfo": {
+        "@odata.id": "/redfish/v1/Systems/LTE/StatusInfo"
+    },
+    "ConfigInfo": {
+        "@odata.id": "/redfish/v1/Systems/LTE/ConfigInfo"
+    }
+}

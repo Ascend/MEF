@@ -1,0 +1,20 @@
+{
+  "model": "Atlas 200I A2",
+  "systemName": {
+    "zh": "智能边缘管理系统",
+    "en": "Intelligent Edge System"
+  },
+  "websiteTitle": {
+    "zh": "Atlas 200I DK A2",
+    "en": "Atlas 200I DK A2"
+  },
+  "userGuide": {
+    "zh": "《OM SDK 应用指南》",
+    "en": "OM SDK User Guide"
+  },
+  "copyRight": {
+    "zh": "",
+    "en": ""
+  }
+}
+
