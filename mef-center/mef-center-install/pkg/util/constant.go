@@ -131,6 +131,7 @@ const (
 	RootGid           = 0
 	MefCenterName     = "MEFCenter"
 	MefCenterGroup    = "MEFCenter"
+	RootUserName      = "root"
 	DockerTag         = "v1"
 	ModeUmask0277     = 0277
 )
