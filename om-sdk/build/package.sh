@@ -22,9 +22,7 @@ function make_zip_package()
     local atlasedge=$(ls $OUTPUT_PATH/*-om*.tar.gz)
     local atlasedge1=${atlasedge##*/}
     local atlasedge_release=${atlasedge1%.*.*}
-    local chmod_prepare_script="${CURDIR}/chmod_prepare.sh"
     echo $atlasedge_release
-
 
     cd ${OUTPUT_PATH}
 
@@ -41,8 +39,6 @@ function make_zip_package()
     cp -rfd ${OUTPUT_PATH}/version.xml.crl ${package_file}/
     cp -rfd ${OUTPUT_PATH}/version.xml.cms ${package_file}/
     cp -rfd ${OUTPUT_PATH}/version.xml ${package_file}/
-
-    sh "${chmod_prepare_script}" "${package_file}"
 
     cd $package_file
     zip $atlasedge_release.zip \

@@ -24,7 +24,7 @@ export function queryAllEthernetInfo(isShowLoading = true) {
 
 export function querySingleEthernetInfo(params) {
   // 功能描述：查询以太网接口资源信息
-  const url = `/redfish/v1/Systems/EthernetInterfaces/${params}`;
+  const url = '/redfish/v1/Systems/EthernetInterfaces/' + params
   return $get(url);
 }
 

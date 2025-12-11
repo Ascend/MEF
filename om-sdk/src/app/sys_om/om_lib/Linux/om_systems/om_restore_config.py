@@ -47,9 +47,8 @@ class OMRestoreConfig:
     SHIELD_ALARM_INI = "/home/data/ies/shield_alarm.ini"
     CERT_DIR_PATH = "/home/data/config/default"
     OM_ALG_JSON_PATH = os.path.join(CERT_DIR_PATH, "om_alg.json")
-    WEB_CERT_COLLECTIONS = (
-        "om_cert_backup.keystore", "om_cert.keystore", "server_kmc.cert", "server_kmc.priv", "server_kmc.psd",
-    )
+    WEB_CERT_COLLECTIONS = ("om_cert_backup.keystore", "om_cert.keystore",
+                            "server_kmc.cert", "server_kmc.priv", "server_kmc.psd")
     RESTORE_IP_SCRIPT_PATH = "/usr/local/scripts/save_netcfg.sh"
     MEF_RESTORE_SCRIPT_PATH = os.path.join(os.path.realpath(CommonConstants.A500_MEF_INSTALL_PATH),
                                            "edge_installer", "script", "restore_config.sh")

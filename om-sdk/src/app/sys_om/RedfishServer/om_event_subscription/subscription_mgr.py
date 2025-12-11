@@ -16,10 +16,8 @@ from sqlalchemy import func
 
 from common.db.base_models import Base
 from common.log.logger import run_log
-from net_manager.checkers.contents_checker import CertContentsChecker
 from om_event_subscription.constants import MIN_SUBSCRIPTION_ID, MAX_SUBSCRIPTION_ID
-from om_event_subscription.errors import CertsManageError
-from om_event_subscription.models import Subscription, SubscriptionCert, SubsPreCert
+from om_event_subscription.models import Subscription, SubscriptionCert
 from redfish_db.session import session_maker
 
 
@@ -148,52 +146,3 @@ class SubscriptionsCertMgr(BaseManager):
     def update_crt_with_crl(self, crt: str, crl: Dict) -> NoReturn:
         with session_maker() as session:
             session.query(self.model).filter_by(cert_contents=crt).update(crl)
-
-
-class PreSubCertMgr(BaseManager):
-    pre_cert_model = SubsPreCert
-    cert_model = SubscriptionCert
-    model_checker = CertContentsChecker
-
-    def get_using_cert(self):
-        with session_maker() as session:
-            cert_obj = session.query(self.cert_model).first()
-            if cert_obj:
-                session.expunge(cert_obj)
-            return cert_obj
-
-    def backup_pre_subs_cert(self):
-        cert_obj = self.get_using_cert()
-        if not cert_obj:
-            return
-
-        with session_maker() as session:
-            session.query(self.pre_cert_model).delete()
-            session.add(self.pre_cert_model.from_dict(cert_obj.to_dict()))
-
-        run_log.info("Backup previous subscription cert successfully.")
-
-    def get_pre_subs_cert(self) -> SubsPreCert:
-        with session_maker() as session:
-            cert_obj = session.query(self.pre_cert_model).first()
-            if not cert_obj:
-                run_log.warning("Subscriptions previous cert no exist.")
-                raise CertsManageError("Subscriptions previous cert no exist.")
-            session.expunge(cert_obj)
-            return cert_obj
-
-    def check_cert(self, data):
-        if not self.model_checker("cert").check_dict({"cert": data}):
-            run_log.error("Subscriptions previous cert is invalid.")
-            raise CertsManageError("Subscriptions previous cert is invalid.")
-
-    def restore_pre_subs_cert(self):
-        pre_cert: SubsPreCert = self.get_pre_subs_cert()
-        self.check_cert(pre_cert.cert_contents)
-        with session_maker() as session:
-            session.query(self.cert_model).delete()
-            session.add(self.cert_model.from_dict(pre_cert.to_dict()))
-
-    def delete_cert(self) -> int:
-        with session_maker() as session:
-            return session.query(self.pre_cert_model).delete()

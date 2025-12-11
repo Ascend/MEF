@@ -23,5 +23,4 @@ INIT_COLUMNS: Dict[str, Iterable[str]] = {
     "active_alarm": ("id", "alarm_id", "alarm_instance", "alarm_name", "type", "severity", "create_time"),
     "alarm_report_task": ("id", "subscriber_id", "event_type", "event_id", "event_name", "severity", "event_detail",
                           "reason", "extra_column", "event_timestamp", "task_status"),
-    "subs_pre_cert": ("id", "root_cert_id", "type", "cert_contents", "crl_contents"),
 }

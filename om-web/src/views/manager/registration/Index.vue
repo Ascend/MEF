@@ -406,16 +406,15 @@ export default defineComponent({
           formElement.resetFields();
           await init();
         } catch (err) {
+          if (err && err.response && err.response.data && err.response.data.error) {
+            let status = err.response.data.error['@Message.ExtendedInfo'][0].Oem.status;
+            if (Object.prototype.hasOwnProperty.call(errorTipMapper, status)) {
+              showErrorAlert(t(errorTipMapper[status]))
+            } else {
+              showErrorAlert(t('registration.nms.switchFailedTip'))
+            }
+          }
           fdForm.value.password = ''
-          if (!err?.response?.data?.error) {
-            return;
-          }
-          let status = err.response.data.error['@Message.ExtendedInfo'][0].Oem.status;
-          if (Object.prototype.hasOwnProperty.call(errorTipMapper, status)) {
-            showErrorAlert(t(errorTipMapper[status]))
-          } else {
-            showErrorAlert(t('registration.nms.switchFailedTip'))
-          }
         }
       })
     }
@@ -428,14 +427,13 @@ export default defineComponent({
         await modifyNetManagerInfo(params);
         AppMessage.success(t('registration.nms.switchSuccessTip'))
       } catch (err) {
-        if (!err?.response?.data?.error) {
-          return;
-        }
-        let status = err.response.data.error['@Message.ExtendedInfo'][0].Oem.status;
-        if (status === errorCode.SESSION.ERROR_USER_NOT_MATCH_PASSWORD) {
-          showErrorAlert(t('registration.nms.userNotMatchPassword'))
-        } else {
-          showErrorAlert(t('registration.nms.switchFailedTip'))
+        if (err && err.response && err.response.data && err.response.data.error) {
+          let status = err.response.data.error['@Message.ExtendedInfo'][0].Oem.status;
+          if (status === errorCode.SESSION.ERROR_USER_NOT_MATCH_PASSWORD) {
+            showErrorAlert(t('registration.nms.userNotMatchPassword'))
+          } else {
+            showErrorAlert(t('registration.nms.switchFailedTip'))
+          }
         }
       } finally {
         await init();

@@ -54,12 +54,10 @@ CFLAG="-Wall -O2 -fstack-protector-strong -fPIE"
 LDFLAG="-Wl,-z,relro,-z,now,-z,noexecstack -pie -s"
 
 ./auto/configure --prefix=${OM_WORK_DIR}/software/nginx --with-pcre=$TOP_DIR/opensource/pcre/ \
-        --with-openssl="${TOP_DIR}"/opensource/openssl/ \
         --with-http_ssl_module \
         --with-cc-opt="$CFLAG" --with-ld-opt="$LDFLAG" --without-http_auth_basic_module \
         --without-http_autoindex_module --without-http_map_module --without-http_fastcgi_module \
         --without-http_memcached_module --without-http_empty_gif_module --without-http_upstream_ip_hash_module \
-        --with-openssl-opt='-Wall -fPIC -fstack-protector-all -O2 -fomit-frame-pointer' \
         --with-pcre-opt='-Wall -fPIC -fstack-protector-all -O2 -fomit-frame-pointer' \
         --http-client-body-temp-path=${OM_WORK_DIR}/software/nginx/client_body_temp
 

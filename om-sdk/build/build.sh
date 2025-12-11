@@ -112,17 +112,7 @@ function package_om()
 function tar_package()
 {
     # 将om代码打包成A500-A2-om.tar.gz
-    local chmod_prepare_script="${CUR_DIR}/chmod_prepare.sh"
-    dos2unix "${chmod_prepare_script}"
-    chmod u+x "${chmod_prepare_script}"
-
     cd "${OUTPUT_PACKAGE_DIR}"
-    sh "${chmod_prepare_script}" "${OUTPUT_PACKAGE_DIR}"
-    if [ $? -ne 0 ];then
-        echo "chmod_prepare failed!"
-        exit 1
-    fi
-
     tar -czf A500-A2-om.tar.gz *
 
     mv A500-A2-om.tar.gz "${OUTPUT_DIR}"
@@ -130,11 +120,6 @@ function tar_package()
 
     # 将om代码和omsdk代码打包
     cd "${OUTPUT_DIR}"
-    sh "${chmod_prepare_script}" "${OUTPUT_DIR}"
-    if [ $? -ne 0 ];then
-        echo "chmod_prepare failed!"
-        exit 1
-    fi
     tar -czf ${ATLASEDGE_RELEASE_FILE} *
 
     # 删除已经被打包的内容

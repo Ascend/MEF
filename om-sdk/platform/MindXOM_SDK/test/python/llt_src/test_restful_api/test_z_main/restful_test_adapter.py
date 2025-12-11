@@ -1,15 +1,12 @@
 import os
+
 from unittest.mock import patch
-
 from flask.testing import FlaskClient
-
-from ut_utils.models import MockPrivilegeAuth
-
-with patch("token_auth.get_privilege_auth", return_value=MockPrivilegeAuth):
-    from ibma_redfish_urls import RedfishURIs
 
 from common.ResourceDefV1.service_root import RfServiceRoot
 from common.utils.ability_policy import AbilityConfig
+from ut_utils.models import MockPrivilegeAuth
+from ibma_redfish_urls import RedfishURIs
 
 
 class RestfulTestAdapter:

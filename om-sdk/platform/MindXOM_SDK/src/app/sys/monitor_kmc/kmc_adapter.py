@@ -37,9 +37,3 @@ class DevmConfigAdapter(TableAdapter):
     session = session_maker
     filter_by = "filename"
     cols = ("cfg_sha256",)
-
-
-class WebPreviousCertAdapter(FilesAdapter):
-
-    def encrypted_files(self) -> Iterable[str]:
-        yield os.path.join(CommonConstants.WEB_PRE_DIR, "server_kmc.psd")

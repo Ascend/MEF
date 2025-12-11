@@ -56,7 +56,7 @@ export function validateIp(rule, value, callback) {
     callback(new Error(i18n.global.t('common.errorFormatTip')));
     return;
   }
-  const pattern = /^(((\d)|([1-9]\d)|(1\d{2})|(2[0-4]\d)|(25[0-5]))\.){3}((\d)|([1-9]\d)|(1\d{2})|(2[0-4]\d)|(25[0-5]))$/;
+  const pattern = /^(((\d{1,2})|(1\d{2})|(2[0-4]\d)|(25[0-5]))\.){3}((\d{1,2})|(1\d{2})|(2[0-4]\d)|(25[0-5]))$/;
   if (!pattern.test(value)) {
     callback(new Error(i18n.global.t('common.errorFormatTip')))
   } else {
@@ -212,6 +212,8 @@ export function validatePasswordExpirationDays(rule, value, callback) {
   }
 }
 
+
+
 /**
 * validate usage field in the network-wired config form
 */
@@ -264,7 +266,7 @@ export function validateServerPath(rule, value, callback) {
 /**
 * validate ApnName field in Wireless page.
 */
-export function validateApnName(rule, value, callback) {
+export function validateApnName (rule, value, callback) {
   if (!value) {
     callback()
     return;

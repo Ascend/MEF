@@ -7,18 +7,18 @@
 # EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
+from common.checkers import ExtensionChecker
+from common.checkers import PasswordComplexityChecker
+from common.checkers.param_checker import FdIpChecker
 from common.checkers import BoolChecker
 from common.checkers import CheckResult
 from common.checkers import ExistsChecker
-from common.checkers import ExtensionChecker
 from common.checkers import ModelChecker
-from common.checkers import PasswordComplexityChecker
 from common.checkers import PortChecker
 from common.checkers import RegexStringChecker
 from common.checkers import StringBinaryChecker
 from common.checkers import StringChoicesChecker
 from common.checkers import StringExcludeWordsChecker
-from common.checkers.param_checker import FdIpChecker
 
 FILE_NAME_PATTERN = r"^[a-zA-Z0-9_.-]{1,255}$"
 STRING_INCLUDE_BLACKLIST = ("..",)
@@ -32,16 +32,6 @@ class CertUploadChecker(ModelChecker):
             StringExcludeWordsChecker("imgfile", words=STRING_INCLUDE_BLACKLIST),
             RegexStringChecker("imgfile", match_str=FILE_NAME_PATTERN),
             ExtensionChecker("imgfile", choices=("crt",)),
-        )
-
-
-class CertNameChecker(ModelChecker):
-    """与FD导入证书时校验规则保持一致，Web导入的默认为FD.crt，满足该校验规则"""
-
-    class Meta:
-        fields = (
-            RegexStringChecker("cert_name", match_str=r"^[0-9a-zA-Z_.]+$", min_len=4, max_len=64),
-            StringExcludeWordsChecker("cert_name", words=STRING_INCLUDE_BLACKLIST),
         )
 
 

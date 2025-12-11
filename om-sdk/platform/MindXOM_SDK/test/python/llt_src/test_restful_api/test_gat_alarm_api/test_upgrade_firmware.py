@@ -10,7 +10,7 @@
 import json
 
 from test_restful_api.test_z_main.restful_test_base import PostTest
-from ut_utils.models import MockPrivilegeAuth
+from upgrade_service.upgrade_blueprint import privilege_auth
 
 
 class TestUpgradeFirmwareFailed(PostTest):
@@ -30,7 +30,7 @@ class TestUpgradeFirmwareFailed(PostTest):
 
 
 def test_upgrade_firmware(mocker):
-    mocker.patch("token_auth.get_privilege_auth", return_value=MockPrivilegeAuth)
+    mocker.patch.object(privilege_auth, "token_required")
     TestUpgradeFirmwareFailed(
         expect_ret=json.dumps(
             {"error": {"code": "Base.1.0.GeneralError",

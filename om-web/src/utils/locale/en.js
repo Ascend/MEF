@@ -284,7 +284,6 @@ export default {
       gatewayNotMatchTip: 'IP address, subnet mask, and default gateway do not match',
       duplicateGatewayTip: 'The same network port can only have at most one IP address with a default gateway',
       sameSegmentIpTip: 'The same network segment IP ({ipAddress}) exists in the [{ethNum}] network configuration. Please ensure that the configured IP address is correct. Continued configuration may cause network abnormalities.',
-      sameRemoteTestIpTip: 'Cannot be the same as the "IP Address"',
       existOtherEthTip: 'The network segment to which the IP address belongs already exists in one NIC configuration. If the configuration continues, an exception may occur.',
       checkTagFailedTip: 'Check tag info failed',
       ethFailedTip: 'Deal with EthernetInterface failed',
@@ -370,7 +369,7 @@ export default {
       healthStatus: 'Health Status',
       unmount: 'Unmount',
       unmountReminder: 'Unmount Reminder',
-      serverPathTip: 'The total length cannot be greater than 256 characters. It must start with "/". The string cannot contain spaces. Only numbers, uppercase and lowercase letters, "_", "-", and "/" are allowed',
+      serverPathTip: 'The total length cannot be greater than 256 characters. It must start with '/'. The string cannot contain spaces. Only numbers, uppercase and lowercase letters, "_", "-", and "/" are allowed',
     },
     localDiskManagement: {
       tabName: 'Storage Management',

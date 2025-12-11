@@ -45,7 +45,6 @@ function make_zip_package()
     local om_tar_gz="$(find "${OUTPUT_PATH}" -maxdepth 1 -type f | grep "Ascend-mindxedge-om.\{1,\}.tar.gz$")"
     local om_basename="$(basename "${om_tar_gz}" ".tar.gz")"
     local package_dir="${OUTPUT_PATH}/package"
-    local chmod_prepare_script="${CURDIR}/chmod_prepare.sh"
     rm -rf "${package_dir}"
     mkdir -p "${package_dir}"
     cp "${OUTPUT_PATH}/crldata.crl" "${package_dir}/${om_basename}.tar.gz.crl"
@@ -68,7 +67,6 @@ function make_zip_package()
         mv "${file}" "${package_dir}"
     done
     cp -f "${OUTPUT_PATH}/crldata.crl" "${package_dir}/vercfg.xml.crl"
-    sh "${chmod_prepare_script}" "${package_dir}"
     cd "${package_dir}"
     zip "${om_basename}.zip" *
     mv "${package_dir}/${om_basename}.zip" "${OUTPUT_PATH}/${om_basename}.zip"

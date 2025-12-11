@@ -298,22 +298,9 @@ export default defineComponent({
         callback()
         return;
       }
-      const pattern = /^((254|252|248|240|224|192|128|0)\.0\.0\.0|255\.(254|252|248|240|224|192|128|0)\.0\.0|255\.255\.(254|252|248|240|224|192|128|0)\.0|255\.255\.255\.(255|254|252|248|240|224|192|128|0))$/;
+      const pattern = /^(254|252|248|240|224|192|128|0)\.0\.0\.0|255\.(254|252|248|240|224|192|128|0)\.0\.0|255\.255\.(254|252|248|240|224|192|128|0)\.0|255\.255\.255\.(255|254|252|248|240|224|192|128|0)$/;
       if (!pattern.test(value)) {
         callback(new Error(t('common.errorFormatTip')))
-        return;
-      }
-      callback();
-    }
-
-    const validateRemoteTestIp = (rule, value, callback) => {
-      if (!value) {
-        callback();
-        return;
-      }
-
-      if (value === addIpForm.value.Address) {
-        callback(new Error(t('network.networkWired.sameRemoteTestIpTip')));
         return;
       }
       callback();
@@ -366,10 +353,6 @@ export default defineComponent({
         },
         {
           validator: validateIp,
-          trigger: 'blur',
-        },
-        {
-          validator: validateRemoteTestIp,
           trigger: 'blur',
         },
       ],

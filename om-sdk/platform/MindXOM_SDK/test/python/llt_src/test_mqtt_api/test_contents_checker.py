@@ -12,7 +12,7 @@
 from collections import namedtuple
 from datetime import datetime
 
-from net_manager.checkers.contents_checker import CertInfoValidator, CertContentsChecker
+from net_manager.checkers.contents_checker import CrlContentsChecker, CertContentsChecker
 
 
 class TestUtils:
@@ -22,11 +22,16 @@ class TestUtils:
 
 
 class TestGetJsonInfoObj:
+    CheckDictCase = namedtuple("CheckDictCase", "tested_class, param_key, input_param, excepted_success")
     CheckCertInfoCase = namedtuple("CheckCertInfoCase",
                                    "expected, is_ca, ca_sign_valid, key_cert_sign, start_time, end_time, cert_version,"
                                    "pubkey_type, signature_len, chain_nums, signature_algorithm")
     CheckDictCase1 = namedtuple("CheckDictCase1", "tested_class, param_key, input_param, excepted_success")
     use_cases = {
+        "test_check_dict": {
+            "not_exists_checker_is_existed": (CrlContentsChecker, "1", {"1": "1"}, False),
+            "not_exists_checker_not_existed": (CrlContentsChecker, "2", {"1": "1"}, False),
+        },
         "test_check_cert_info": {
             "is_ca": (False, 0, True, 1, datetime(2020, 7, 3, 6, 36, 39, 135677),
                       datetime(2029, 7, 3, 6, 36, 39, 135677), 1, 0, 1, 10, ""),
@@ -57,6 +62,10 @@ class TestGetJsonInfoObj:
         },
     }
 
+    def test_check_dict(self, model: CheckDictCase):
+        ret = model.tested_class(model.param_key).check_dict(model.input_param)
+        assert model.excepted_success == ret.success
+
     def test_check_cert_info(self, model: CheckCertInfoCase):
         class TestUtilsCertVversion:
             is_ca = model.is_ca
@@ -67,15 +76,10 @@ class TestGetJsonInfoObj:
             pubkey_type = model.pubkey_type
             signature_len = model.signature_len
             signature_algorithm = model.signature_algorithm
-            chain_num = model.chain_nums
+            chain_nums = model.chain_nums
             ca_sign_valid = model.ca_sign_valid
 
-        ret = True
-        try:
-            CertInfoValidator().check_cert_info(TestUtilsCertVversion)
-        except Exception:
-            ret = False
-        assert ret == model.expected
+        assert bool(CertContentsChecker.check_cert_info(CertContentsChecker, TestUtilsCertVversion)) == model.expected
 
     def test_check_dict1(self, model: CheckDictCase1):
         ret = model.tested_class(model.param_key).check_dict(model.input_param)

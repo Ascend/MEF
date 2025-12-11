@@ -133,7 +133,6 @@ function init_env()
     # 文件拷贝
     sudo mkdir -p /home/data
     sudo mkdir -p /home/data/ies
-    sudo mkdir -p /run/web
     sudo chmod 755 /home/data -R
     sudo mkdir -p /home/data/config
     sudo chmod 644 /home/data/config -R
@@ -200,8 +199,7 @@ function run_tests_of_mgs()
     --self-contained-html \
     --durations=${TEST_SLOWEST_NUMBER} \
     --cov-branch \
-    --verbose \
-    --asyncio-mode=strict
+    --verbose
 
     py_test_ret=$?
     if ((${py_test_ret} == 0)); then

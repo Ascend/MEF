@@ -12,21 +12,26 @@
 
 import json
 import threading
+from typing import Iterable, NoReturn
 from urllib import parse
 
 from flask import request
 
-from cert_manager.parse_tools import CrlChainParser
+from cert_manager.parse_tools import ParseCrlInfo
 from common.constants.base_constants import CommonConstants
+from common.constants.error_codes import SecurityServiceErrorCodes
 from common.log.logger import run_log
 from ibma_redfish_globals import RedfishGlobals
 from ibma_redfish_serializer import SuccessMessageResourceSerializer
+from net_manager.checkers.contents_checker import CertContentsChecker
+from net_manager.exception import DataCheckException
+from net_manager.models import CertManager
 from om_event_subscription.constants import MAX_SUBSCRIPTION_ID, MIN_SUBSCRIPTION_ID
 from om_event_subscription.models import Subscription, SubscriptionCert
 from om_event_subscription.param_checker import (GetOrDelSubscriptionChecker, CreateSubscriptionChecker,
                                                  ImportHttpCertChecker, DeleteHttpRootCertChecker,
                                                  ImportHttpCrlChecker)
-from om_event_subscription.subscription_mgr import SubscriptionsMgr, SubscriptionsCertMgr, PreSubCertMgr
+from om_event_subscription.subscription_mgr import SubscriptionsMgr, SubscriptionsCertMgr
 from om_event_subscription.subscription_serializer import (DetailSubscriptionSerializer, CreateSubscriptionSerializer,
                                                            GetSubscriptionCollectionsSerializer,
                                                            EventSubscriptionSerializer,
@@ -35,7 +40,6 @@ from token_auth import get_privilege_auth
 
 subs_mgr = SubscriptionsMgr()
 subs_cert_mgr = SubscriptionsCertMgr()
-pre_subs_cert_mgr = PreSubCertMgr()
 privilege_auth = get_privilege_auth()
 
 CREATE_SUBSCRIPTION_LOCK = threading.Lock()
@@ -256,7 +260,7 @@ def rf_import_root_cert():
         message = "Import https transmission server root cert failed because lock is locked."
         run_log.error(message)
         ret_dict = {"status": CommonConstants.ERR_CODE_400, "message": message}
-        return ret_dict, CommonConstants.ERR_GENERAL_INFO
+        return RedfishGlobals.return_error_info_message(ret_dict, CommonConstants.ERR_GENERAL_INFO)
 
     with IMPORT_HTTPS_CRT_LOCK:
         try:
@@ -276,6 +280,13 @@ def rf_import_root_cert():
                 run_log.error("Check external parameter failed, Because of %s", check_ret.reason)
                 return error_response, CommonConstants.ERR_GENERAL_INFO
 
+            try:
+                check_multi_cert(request_data_dict.get("Content"))
+            except Exception as err:
+                error_response = {"status": CommonConstants.ERR_CODE_400, "message": "Parameter is invalid."}
+                run_log.error("Check external parameter failed, Because of %s", str(err))
+                return error_response, CommonConstants.ERR_GENERAL_INFO
+
             subs_cert_dict = {
                 "root_cert_id": request_data_dict.get("RootCertId"),
                 "type": request_data_dict.get("Type"),
@@ -283,7 +294,6 @@ def rf_import_root_cert():
             }
 
             try:
-                pre_subs_cert_mgr.backup_pre_subs_cert()
                 subs_cert_mgr.overwrite_subs_cert(SubscriptionCert.from_dict(subs_cert_dict))
             except Exception as err:
                 run_log.error("Import https root cert failed. Because of %s", err)
@@ -309,10 +319,9 @@ def rf_delete_root_cert(root_cert_id: int):
     """
     message = "Delete https root cert failed."
     if DELETE_HTTPS_CRT_LOCK.locked():
-        message = "Delete https root cert is busy."
-        run_log.error(message)
-        ret_dict = {"status": CommonConstants.ERR_CODE_400, "message": message}
-        return ret_dict, CommonConstants.ERR_GENERAL_INFO
+        error_msg = "Delete https root cert is busy."
+        run_log.error(error_msg)
+        return RedfishGlobals.make_response(error_msg, CommonConstants.ERR_CODE_500)
 
     with DELETE_HTTPS_CRT_LOCK:
         try:
@@ -348,10 +357,9 @@ def rf_import_root_crl():
     """
     message = "Import https crl failed."
     if IMPORT_HTTPS_CRL_LOCK.locked():
-        message = "Import https crl is busy."
-        run_log.error(message)
-        ret_dict = {"status": CommonConstants.ERR_CODE_400, "message": message}
-        return ret_dict, CommonConstants.ERR_GENERAL_INFO
+        error_msg = "Import https crl is busy."
+        run_log.error(error_msg)
+        return RedfishGlobals.make_response(error_msg, CommonConstants.ERR_CODE_500)
 
     with IMPORT_HTTPS_CRL_LOCK:
         try:
@@ -377,31 +385,51 @@ def rf_import_root_crl():
                 ret_dict = {"status": CommonConstants.ERR_CODE_400, "message": message}
                 return ret_dict, CommonConstants.ERR_GENERAL_INFO
 
+            tmp_cert_mgr = CertManager().from_dict({"CertContents": subs_cert.cert_contents})
             crl_contents = request_data_dict.get("Content")
-            error_response = {"status": CommonConstants.ERR_CODE_400, "message": "Parameter is invalid."}
             # 检查该吊销列表是否由对应证书签发
-            crl_chain_parser = CrlChainParser(crl_contents)
-            if not crl_chain_parser.node_num:
-                run_log.error("The number of crl is 0.")
-                return error_response, CommonConstants.ERR_GENERAL_INFO
+            with ParseCrlInfo(crl_contents) as parse_crl:
+                verify_result = parse_crl.verify_crl_buffer_by_ca([tmp_cert_mgr])
+                if not verify_result:
+                    error_message = "Verify crl against CA certificate failed."
+                    run_log.error(error_message)
+                    ret_dict = {"status": CommonConstants.ERR_CODE_400, "message": message}
+                    return ret_dict, CommonConstants.ERR_GENERAL_INFO
 
-            if crl_chain_parser.node_num > crl_chain_parser.MAX_CHAIN_NUMS:
-                run_log.error("The number of crl is greater than %s.", crl_chain_parser.MAX_CHAIN_NUMS)
-                return error_response, CommonConstants.ERR_GENERAL_INFO
-
-            if not crl_chain_parser.verify_crl_chain_by_cert_chain(subs_cert.cert_contents):
-                error_message = "Verify crl against CA certificate failed."
-                run_log.error(error_message)
-                ret_dict = {"status": CommonConstants.ERR_CODE_400, "message": message}
-                return ret_dict, CommonConstants.ERR_GENERAL_INFO
-
-            SubscriptionsCertMgr().update_crt_with_crl(subs_cert.cert_contents, {"crl_contents": crl_contents})
-            message = "Import https crl success."
-            ret_dict = {"status": CommonConstants.ERR_CODE_200}
-            run_log.info(message)
-            return ret_dict, resp_json
+                SubscriptionsCertMgr().update_crt_with_crl(subs_cert.cert_contents, {"crl_contents": crl_contents})
+                message = "Import https crl success."
+                ret_dict = {"status": CommonConstants.ERR_CODE_200}
+                run_log.info(message)
+                return ret_dict, resp_json
 
         except Exception as err:
             run_log.error("%s reason is: %s", message, err)
             ret_dict = {"status": CommonConstants.ERR_CODE_400, "message": message}
             return ret_dict, CommonConstants.ERR_GENERAL_INFO
+
+
+def node_generator(cert_list: str) -> Iterable[str]:
+    sep = "-----END CERTIFICATE-----"
+    for node in cert_list.split(sep):
+        if not node.split():
+            continue
+        yield "".join((node, sep))
+
+
+def check_multi_cert(cert_list: str) -> NoReturn:
+    root_ca = 0
+    for cert in node_generator(cert_list):
+        try:
+            check_ret = CertContentsChecker("Content").check({"Content": cert})
+        except Exception as err:
+            raise DataCheckException(f"cert content checked failed, {err}") from err
+
+        if check_ret.success:
+            root_ca += 1
+        elif check_ret.err_code != SecurityServiceErrorCodes.ERROR_CERTIFICATE_CA_SIGNATURE_INVALID.code:
+            raise DataCheckException(f"cert content checked failed, {check_ret.reason}", err_code=check_ret.err_code)
+
+    if root_ca == 0:
+        raise DataCheckException("The certificate chain has no root certificates.")
+    elif root_ca > 1:
+        raise DataCheckException("The certificate chain contains multiple root certificates.")

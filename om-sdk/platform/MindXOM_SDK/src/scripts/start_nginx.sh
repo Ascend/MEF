@@ -102,7 +102,7 @@ if ! copy_nginx_cert_to_redfish; then
     exit 1
 fi
 
-# 拷贝nginx配置文件
+# 拷贝一份nginx证书到nginx目录
 if ! copy_nginx_conf; then
     logger_error "Copy nginx conf failed."
     exit 1

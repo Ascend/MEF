@@ -12,7 +12,3 @@
 
 class KmcDecryptError(Exception):
     pass
-
-
-class CertsManageError(Exception):
-    pass

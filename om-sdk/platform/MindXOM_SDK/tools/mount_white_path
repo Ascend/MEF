@@ -76,20 +76,14 @@ function is_real_path()
 function conflict_check()
 {
     local temp=0
-    local temp_file=/run/mountpath.log
-
-    if ! is_real_path "${temp_file}"; then
-        echo "mountpath.log is soft link, unlink it"
-        unlink "${temp_file}"
-    fi
-
-    ps -elf > "${temp_file}"
-    temp=$(< "${temp_file}" grep "${SCR_FILE_NAME}" -c)
+    #判断是否有2个脚本在执行
+    ps -elf >/run/mountpath.log
+    temp=$(< /run/mountpath.log grep "${SCR_FILE_NAME}" -c)
     if [[ "${temp}" -ge 2 ]]
     then
         return 1
     fi
-    rm -f "${temp_file}"
+    rm -f /run/mountpath.log
     return 0
 }
 

@@ -35,7 +35,6 @@ class TestAlarm(TestBase):
         assert model.expect == Alarm.getallalarmdev()
 
     def test_get_file_info(self, mocker: MockerFixture, model: AlarmCase):
-        mocker.patch.object(Alarm, "get_shield_flag_by_inner_id", return_value=False)
         mock_read_data(mocker, model.read_data)
         mock_check_input_path_valid(mocker, model.path_valid)
         mock_path_exists(mocker, model.exists)

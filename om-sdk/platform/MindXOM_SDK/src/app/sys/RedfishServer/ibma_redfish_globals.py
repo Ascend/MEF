@@ -228,7 +228,7 @@ class RedfishGlobals(object):
         return True
 
     @staticmethod
-    def check_upload_file_size(filename, file_size):
+    def check_upload_file_size(filename, file_size, fd_cert=False):
         if not file_size:
             return True
 
@@ -245,11 +245,16 @@ class RedfishGlobals(object):
             run_log.error(f"upload file failed: {err}")
             return False
 
-        ext = os.path.splitext(filename)[1].lstrip(".").lower()
-        file_max_size = UploadConstants.FILE_MAX_SIZE.get(ext)
-        if file_size > file_max_size:
-            run_log.error("upload file failed: over max size")
-            return False
+        if not fd_cert:
+            ext = os.path.splitext(filename)[1].lstrip(".").lower()
+            file_max_size = UploadConstants.FILE_MAX_SIZE.get(ext)
+            if file_size > file_max_size:
+                run_log.error("upload file failed: over max size")
+                return False
+        else:
+            if file_size > CommonConstants.MAX_CERT_LIMIT:
+                run_log.error("upload file failed: over max size")
+                return False
 
         return True
 
@@ -522,7 +527,7 @@ class RedfishGlobals(object):
         response.headers['Strict-Transport-Security'] = "max-age=31536000; includeSubDomains"
         response.headers['Pragma'] = 'no-cache'
         response.headers["X-Frame-Options"] = 'DENY'
-        response.headers["Content-Security-Policy"] = "script-src 'self' 'unsafe-eval'; " \
+        response.headers["Content-Security-Policy"] = "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " \
                                                       "form-action 'self'; frame-ancestors 'self'; plugin-types 'none'"
         response.headers["Referrer-Policy"] = "same-origin"
         response.headers["Cache-control"] = "no-cache, no-store, must-revalidate"

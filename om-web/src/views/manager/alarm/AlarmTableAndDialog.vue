@@ -25,13 +25,13 @@
       ref="alarmDataRef"
       @selection-change="handleSelectionChange"
       row-key="UniquelyIdentifies"
-      @sort-change="sortSeverity"
     >
       <el-table-column type="selection" width="55" :reserve-selection="true" />
       <el-table-column :label="$t('alarm.common.alarmId')" prop="AlarmId" />
       <el-table-column
         :label="$t('alarm.common.severity')"
-        sortable="custom"
+        :filters='severityFilter'
+        :filter-method='filterPerceivedSeverity'
         prop='PerceivedSeverity'
       >
         <template #default='props'>
@@ -131,18 +131,25 @@ export default defineComponent({
     const buttonText = ref();
     const dialogText = ref();
     const dialogTitle = ref();
-
-    const refreshAlarmData = () => {
-      alarmData.value = filterData.value.slice(
-        pageSize.value * (pageNum.value - 1),
-        pageSize.value * pageNum.value
-      );
-    }
+    const severityFilter = [
+      {
+        text: t('alarm.common.emergency'),
+        value: '0',
+      },
+      {
+        text: t('alarm.common.serious'),
+        value: '1',
+      },
+      {
+        text: t('alarm.common.normal'),
+        value: '2',
+      },
+    ]
 
     const searchAlarmTable = () => {
-      alarmDataRef.value.clearSort();
+      pageNum.value = 1;
       if (!alarmQuery.value) {
-        filterData.value = [].concat(props.tableData);
+        filterData.value = props.tableData;
       } else {
         filterData.value = props.tableData.filter((item) => {
           let hasAlarmId = item.AlarmId.indexOf(alarmQuery.value) !== -1;
@@ -151,7 +158,10 @@ export default defineComponent({
           return Boolean(hasAlarmId || hasAlarmInstance || hasAlarmName)
         });
       }
-      refreshAlarmData();
+      alarmData.value = filterData.value.slice(
+        pageSize.value * (pageNum.value - 1),
+        pageSize.value * pageNum.value
+      );
     }
 
     const refreshAlarmTable = async () => {
@@ -196,26 +206,21 @@ export default defineComponent({
     )
     const handleSizeChange = (value) => {
       pageSize.value = value
-      refreshAlarmData();
+      alarmData.value = filterData.value.slice(
+        pageSize.value * (pageNum.value - 1),
+        pageSize.value * pageNum.value
+      );
     }
 
     const handleCurrentChange = (value) => {
       pageNum.value = value
-      refreshAlarmData();
+      alarmData.value = filterData.value.slice(
+        pageSize.value * (pageNum.value - 1),
+        pageSize.value * pageNum.value
+      );
     }
 
-    let sortSeverityOrder = null;
-    const sortSeverity = ({ column, prop, order }) => {
-      sortSeverityOrder = order;
-      if (order === 'descending') {
-        filterData.value.sort((a, b) => parseInt(a[prop]) - parseInt(b[prop]));
-      } else if (order === 'ascending') {
-        filterData.value.sort((a, b) => parseInt(b[prop]) - parseInt(a[prop]));
-      } else {
-        searchAlarmTable();
-      }
-      refreshAlarmData();
-    }
+    const filterPerceivedSeverity = (value, row) => row.PerceivedSeverity === value
 
     const handleSelectionChange = (value) => {
       selectedAlarm.value = value;
@@ -274,11 +279,12 @@ export default defineComponent({
       buttonText,
       dialogText,
       dialogTitle,
-      sortSeverity,
+      severityFilter,
       searchAlarmTable,
       refreshAlarmTable,
       handleSizeChange,
       handleCurrentChange,
+      filterPerceivedSeverity,
       handleSelectionChange,
       clickOperationButton,
       confirmDialog,

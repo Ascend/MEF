@@ -84,6 +84,7 @@ class Server:
             run_log.error(f'{err_info}')
             raise Exception(err_info)
 
+        context.options &= ~ssl.OP_NO_TLSv1_2
         decrypted = None
         # Monitor与Redfish进程之间通过uds通信，Redfish客户端需要校验Monitor服务端证书
         context.verify_mode = ssl.CERT_REQUIRED

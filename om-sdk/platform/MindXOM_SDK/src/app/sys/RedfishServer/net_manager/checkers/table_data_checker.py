@@ -7,14 +7,60 @@
 # EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
-from common.checkers import (ModelChecker, RegexStringChecker, PortChecker, StringChoicesChecker, ExistsChecker,
-                             CheckResult)
+from common.checkers import DateChecker
 from common.checkers.param_checker import FdIpChecker
+from common.checkers import CheckResult
+from common.checkers import ExistsChecker
+from common.checkers import ModelChecker
+from common.checkers import PortChecker
+from common.checkers import RegexStringChecker
+from common.checkers import StringChoicesChecker
+from net_manager.checkers.contents_checker import CertContentsChecker
+from net_manager.checkers.contents_checker import CrlContentsChecker
 from net_manager.constants import NetManagerConstants
+from net_manager.models import CertManager
 from net_manager.models import NetManager
+
+NAME_MIN_LEN = 4
+NAME_MAX_LEN = 64
+
+
+class CertManagerDataChecker(ModelChecker):
+
+    class Meta:
+        fields = (
+            RegexStringChecker("name", "^[A-Za-z0-9-_.]+$", min_len=NAME_MIN_LEN, max_len=NAME_MAX_LEN),
+            StringChoicesChecker("source", ("Web", "FusionDirector",)),
+            DateChecker("update_time"),
+            CertContentsChecker("cert_contents", min_len=0),
+            CrlContentsChecker("crl_contents", min_len=0),
+        )
+
+
+class CertManagerChecker(ExistsChecker):
+    def __init__(self, attr_name: str = None, required: bool = True):
+        super().__init__(attr_name, required)
+
+    def check_dict(self, data: dict) -> CheckResult:
+        result = super().check_dict(data)
+        if not result.success:
+            return result
+
+        cert_manager: CertManager = self.raw_value(data)
+        if not cert_manager:
+            msg_format = f"Cert manager checkers: cert_manager is null."
+            return CheckResult.make_failed(msg_format)
+
+        check_ret = CertManagerDataChecker().check(cert_manager.to_dict())
+        if not check_ret.success:
+            msg_format = f"Cert manager checkers: {check_ret.reason}."
+            return CheckResult.make_failed(msg_format, err_code=check_ret.err_code)
+
+        return CheckResult.make_success()
 
 
 class NetManagerCfgFdChecker(ModelChecker):
+
     class Meta:
         fields = (
             RegexStringChecker("server_name", "^[A-Za-z0-9-.]{0,64}$"),

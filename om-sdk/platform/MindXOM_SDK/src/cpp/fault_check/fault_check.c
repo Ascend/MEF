@@ -337,7 +337,7 @@ static unsigned int calc_slip_index(FAULT_LV2_MAPPING_STRU *sub_item_fault, unsi
             return -1;
         }
         sub_item_fault->slip_status_long[sub_item_fault->slip_long_index] = sub_item_fault->slip_seq_id;
-        if ((sub_item_fault->slip_long_index + 1) >= (unsigned int)sub_item_fault->item_cfg.slip_occur_thresh) {
+        if ((sub_item_fault->slip_long_index + 1) >= sub_item_fault->item_cfg.slip_occur_thresh) {
             sub_item_fault->slip_long_index = 0;
         } else {
             sub_item_fault->slip_long_index += 1;
@@ -403,9 +403,9 @@ static int fault_flush_status(FAULT_LV2_MAPPING_STRU *sub_item_fault, unsigned s
         }
     } else {
         ulnum = calc_sliding_window_value(sub_item_fault, status);
-        if (ulnum >= (unsigned int)sub_item_fault->item_cfg.slip_occur_thresh) {
+        if (ulnum >= sub_item_fault->item_cfg.slip_occur_thresh) {
             status_curr = FAULT_STATUS_ERR;
-        } else if (ulnum <= (unsigned int)sub_item_fault->item_cfg.slip_resum_thresh) {
+        } else if (ulnum <= sub_item_fault->item_cfg.slip_resum_thresh) {
             status_curr = FAULT_STATUS_OK;
         } else {
             return EDGE_OK;
@@ -418,7 +418,6 @@ static int fault_flush_status(FAULT_LV2_MAPPING_STRU *sub_item_fault, unsigned s
 
 static int fault_data_report(unsigned char *alarm_buff, unsigned int len)
 {
-    (void)len;
     if (alarm_buff == NULL) {
         FAULT_LOG_ERR("input null.");
         return EDGE_ERR;
@@ -660,10 +659,10 @@ static int get_cert_check_period_configure(const char *sectionName)
 
     char certCheckStr[CERT_CHECK_SECURE_LEN] = {0};
     if (access(CERT_CHECKTIME_CONFIGURE_FILE, F_OK) == 0) {
-        if (check_cert_security(CERT_CHECKTIME_CONFIGURE_FILE) == VOS_ERR) {
+        if (check_cert_security(CERT_CHECKTIME_CONFIGURE_FILE) == 1) {
             return certCheckPeriod;
         }
-        if (GetJsonKeyString(sectionName, CERT_CHECKTIME_CONFIGURE_FILE, certCheckStr, CERT_CHECK_SECURE_LEN) == VOS_ERR) {
+        if (GetJsonKeyString(sectionName, CERT_CHECKTIME_CONFIGURE_FILE, certCheckStr, CERT_CHECK_SECURE_LEN) == 1) {
             return certCheckPeriod;
         }
         certCheckPeriod = StrToInt(certCheckStr, CERT_CHECK_SECURE_LEN) * CERT_CHECK_PERIOD_TIME_RATE;
@@ -838,9 +837,6 @@ int fault_check_stop(void)
 int fault_get_sd_persent_temp(unsigned int fault_id, unsigned int sub_id, unsigned short *temp)
 {
     static char store_dev_persent[FAULT_STORE_BUTT] = {0};
-
-    (void)sub_id;
-    (void)fault_id;
 
     if (temp == NULL) {
         FAULT_LOG_ERR("fault_get_sd_persent_temp value is NULL!");

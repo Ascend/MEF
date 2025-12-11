@@ -9,29 +9,30 @@
 # See the Mulan PSL v2 for more details.
 import json
 import os
-import ssl
 import time
 import uuid
 from dataclasses import dataclass, field
+from datetime import datetime
 from functools import partial
-from typing import Optional
+from typing import Optional, List
 
+from cert_manager.parse_tools import ParseCertInfo
 from common.constants.base_constants import RecoverMiniOSConstants
-from common.file_utils import FileUtils, FileCopy, FileCheck
+from common.file_utils import FileUtils, FileCopy
 from common.log.logger import run_log
 from common.schema import AdapterResult
 from common.schema import BaseModel
 from common.utils.app_common_method import AppCommonMethod
-from common.utils.result_base import Result
 from common.utils.timer import RepeatingTimer
 from fd_msg_process.config import Config
+from common.utils.result_base import Result
 from lib_restful_adapter import LibRESTfulAdapter
 from net_manager.checkers.fd_param_checker import FdMsgChecker
 from net_manager.constants import NetManagerConstants
 from net_manager.manager.fd_cert_manager import FdCertManager
-from net_manager.manager.import_manager import ImportCert, ImportCrl
-from net_manager.manager.net_cfg_manager import NetCfgManager, CertMgr
-from net_manager.models import NetManager
+from net_manager.manager.net_cfg_manager import NetCfgManager, NetCertManager
+from net_manager.manager.import_manager import CertImportManager
+from net_manager.models import NetManager, CertManager
 from net_manager.schemas import HeaderData
 from net_manager.schemas import RouteData
 from net_manager.schemas import SystemInfo
@@ -39,14 +40,14 @@ from net_manager.schemas import SystemInfo
 
 class FdCfgManager:
     """FusionDirector配置管理类"""
-    EXPIRATION_THRESHOLD_DAY: int = 10
+    EXPIRATION_THRESHOLD_DAY: int = 15
     MONITOR_PERIOD = 24 * 60 * 60  # one day 24 * 60 * 60
 
     adapter = partial(LibRESTfulAdapter.lib_restful_interface, "System")
 
     def __init__(self):
         self.net_manager = NetCfgManager().get_net_cfg_info()
-        self.cert_mgr = CertMgr()
+        self.cert_manager = NetCertManager()
 
     @staticmethod
     def get_cur_fd_ip():
@@ -100,15 +101,21 @@ class FdCfgManager:
         """获取MEF需要的FD配置信息"""
         try:
             net_cfg = NetCfgManager().get_net_cfg_info()
-            return {
-                "ip": net_cfg.ip,
-                "domain": net_cfg.server_name,
-                "port": net_cfg.port,
-                "ca_content": FdCertManager(net_cfg.ip, net_cfg.port).cert_to_mef()
-            }
         except Exception as err:
             run_log.warning("Get net manger info from db failed, will use default server name. Reason: %s", err)
             return {}
+
+        cert_manager = FdCertManager(net_cfg.ip, net_cfg.port).get_current_using_cert()
+        if not cert_manager:
+            run_log.error("Get current using cert failed.")
+            return {}
+
+        return {
+            "ip": net_cfg.ip,
+            "domain": net_cfg.server_name,
+            "port": net_cfg.port,
+            "ca_content": cert_manager.cert_contents
+        }
 
     @staticmethod
     def update_etc_hosts(fd_ip, old_server_name, new_server_name):
@@ -165,13 +172,7 @@ class FdCfgManager:
             with open(net_manage_file, "r") as file:
                 net_manage_json = json.loads(file.read())
             for cert in net_manage_json["cert"]:
-                ImportCert(cert["source"], cert["name"]).import_deal(cert["cert_contents"])
-                if not cert["crl_contents"]:
-                    continue
-                try:
-                    ImportCrl().import_deal(cert["crl_contents"])
-                except Exception as err:
-                    run_log.error("Restore crl failed, %s.", err)
+                CertImportManager(cert["cert_contents"], cert["source"], cert["name"]).import_deal()
             NetCfgManager().update_net_cfg_info(net_manage_json["config"])
             run_log.info("Restore fd config after recover mini os successfully.")
         except Exception:
@@ -194,18 +195,11 @@ class FdCfgManager:
             run_log.info("Reset netmanager status successfully.")
 
     @staticmethod
-    def modify_alarm(fd_cert_name_list: list):
-        request_data_dict = {"FdCertNameList": fd_cert_name_list}
+    def modify_alarm(cert_name_list: list):
+        request_data_dict = {"CertNameList": cert_name_list}
         ret = LibRESTfulAdapter.lib_restful_interface("ModifyAlarm", "POST", request_data_dict)
         if LibRESTfulAdapter.check_status_is_ok(ret):
             run_log.info("Modify alarm succeed")
-
-    @staticmethod
-    def clean_fd_cert_alarm():
-        request_data_dict = {}
-        ret = LibRESTfulAdapter.lib_restful_interface("ModifyAlarm", "POST", request_data_dict)
-        if LibRESTfulAdapter.check_status_is_ok(ret):
-            run_log.info("Clean FD certificate alarm succeed")
 
     def check_status_is_ready(self):
         return self.net_manager.status == "ready"
@@ -245,37 +239,31 @@ class FdCfgManager:
         try:
             self._check_cert_status()
         except Exception as err:
-            run_log.error("Failed to verify the validity period of certificates: %s", err)
+            run_log.error("Failed to verify the validity period of FD certificate: %s", err)
 
     def start_cert_status_monitor(self):
         RepeatingTimer(self.MONITOR_PERIOD, self.check_cert_status).start()
 
     def _check_cert_status(self):
         """
-        检查证书有效期
+        检查FD证书有效期
         """
-        fd_cert_name_list = []
-        expiration_time = self._get_cert_expiration_time()
-        run_log.info("Start to check certificates for expire alarm, current expiration time [%d] days", expiration_time)
-
         # 判断是FD纳管就绪状态
-        if self.check_status_is_ready():
-            for cert_info in self.cert_mgr.get_expire_certs(expiration_time):
-                fd_cert_name_list.append(cert_info.name)
-                run_log.info("Add %s FD certificate about to expire alarm", cert_info.name)
+        if not FdCfgManager().check_status_is_ready():
+            return
 
-            if self.cert_mgr.is_crl_expired(expiration_time):
-                fd_cert_name_list.append(self.cert_mgr.FD_CRL_NAME)
-                run_log.info("Add %s FD CRL about to expire alarm", self.cert_mgr.FD_CRL_NAME)
+        cert_managers: List[CertManager] = self.cert_manager.get_all_contain_expired()
+        cert_name_list = []
+        time_now = datetime.utcnow()
+        for cert in cert_managers:
+            with ParseCertInfo(cert.cert_contents) as cert_info:
+                delta = cert_info.end_time - time_now
+            if delta.days < self.EXPIRATION_THRESHOLD_DAY:
+                cert_name_list.append(cert.name)
+                run_log.info("Add %s FD certificate about to expire alarm", cert.name)
 
-        self.modify_alarm(fd_cert_name_list)
+        self.modify_alarm(cert_name_list)
         run_log.info("Check the validity period of the FD certificate succeed")
-
-    def _get_cert_expiration_time(self) -> int:
-        ret_dict = LibRESTfulAdapter.lib_restful_interface("CertAlarmTime", "GET", None, False)
-        if LibRESTfulAdapter.check_status_is_ok(ret_dict) and isinstance(ret_dict.get("message"), dict):
-            return ret_dict.get("message").get("CertAlarmTime")
-        return self.EXPIRATION_THRESHOLD_DAY
 
 
 @dataclass
@@ -335,9 +323,9 @@ class FdConfigData:
         }
         return headers
 
-    def gen_client_ssl_context(self, set_state=False) -> Optional[ssl.SSLContext]:
+    def gen_client_ssl_context(self) -> Result:
         """生成连接服务端的安全SSLContext"""
-        return FdCertManager(self.server_ip, self.server_port).get_client_ssl_context(set_state)
+        return FdCertManager(self.server_ip, self.server_port).get_client_ssl_context()
 
 
 class FdMsgException(Exception):

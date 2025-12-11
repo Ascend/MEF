@@ -18,7 +18,6 @@ import urllib3
 from common.utils.result_base import Result
 
 from common.log.logger import run_log
-from net_manager.exception import NetManagerException
 from net_manager.manager.fd_cfg_manager import FdCfgManager
 from net_manager.manager.fd_cfg_manager import FdConfigData
 from wsclient.ws_client_mgr import WsClientMgr
@@ -93,14 +92,12 @@ class FdConnectCheck:
         if not headers:
             return Result(False, err_msg="connect test failed")
 
-        try:
-            ssl_context = config.gen_client_ssl_context()
-        except Exception as err:
-            if isinstance(err, NetManagerException):
-                run_log.warning(err)
+        ssl_context_ret = config.gen_client_ssl_context()
+        if not ssl_context_ret:
             WsClientMgr().set_connect_result(WsClientMgr.ERR_INVALID_FD_CERT)
             return Result(result=False, err_msg="connect test failed")
 
+        ssl_context = ssl_context_ret.data
         https = urllib3.PoolManager(ssl_context=ssl_context, assert_hostname=False, timeout=5, retries=1)
         resp = https.request("GET", config.test_url, headers=headers, preload_content=False)
         try:

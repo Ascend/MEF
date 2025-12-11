@@ -77,7 +77,7 @@ class WebNetSwitchManager(NetSwitchManagerBase):
         WsClientMef.stop_mef_process()
         FdConnectStatus().trans_to_not_configured()
         # 切换成web时，消除掉所有fd证书的告警
-        FdCfgManager.clean_fd_cert_alarm()
+        FdCfgManager.modify_alarm([])
         run_log.info("Switch Web manage success.")
         return [0, ""]
 

@@ -67,6 +67,8 @@ class MefConfigData(BaseModel):
             err_info = "get client ssl context error."
             run_log.error(err_info)
             return Result(False, err_msg=err_info)
+        # 兼容性支持TLS1.2
+        ctx.options &= ~ssl.OP_NO_TLSv1_2
         # 需要校验对端证书
         ctx.verify_mode = ssl.CERT_REQUIRED
         decrypted = None

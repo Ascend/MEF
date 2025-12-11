@@ -23,7 +23,6 @@ class Alarm:
     ALARM_FILE = "/run/all_active_alarm"
     ALARM_FILE_EXTEND = "/run/all_active_alarm_extend"
     SHIELD_ALARM_FILE_PATH = "/home/data/ies/shield_alarm.ini"
-    FD_CERT_SIGN = "FD CERT"
 
     def __init__(self):
         """
@@ -78,7 +77,8 @@ class Alarm:
 
     def get_all_info(self):
         self.get_file_info(self.ALARM_FILE)
-        self.get_file_info(self.ALARM_FILE_EXTEND)
+        if not self.get_shield_flag_by_inner_id('w000000000'):
+            self.get_file_info(self.ALARM_FILE_EXTEND)
 
     def get_file_info(self, alarm_file):
         # 告警文件不存在时，直接返回，避免日志刷屏
@@ -95,7 +95,7 @@ class Alarm:
                 if line is None or len(line) > 256 or line_count > 256:
                     break
                 list_alarm = line.split("@")
-                if len(list_alarm) != 6 or "aabb" not in list_alarm[5] or self._is_shield_alarm(line):
+                if len(list_alarm) != 6 or "aabb" not in list_alarm[5]:
                     continue
                 message_dict = {
                     "AlarmId": list_alarm[0],
@@ -105,8 +105,3 @@ class Alarm:
                     "PerceivedSeverity": list_alarm[4],
                 }
                 self.AlarMessages.append(message_dict)
-
-    def _is_shield_alarm(self, line: str) -> bool:
-        if self.get_shield_flag_by_inner_id('w000000000') and self.FD_CERT_SIGN in line:
-            return True
-        return False

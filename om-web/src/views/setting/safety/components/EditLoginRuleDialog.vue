@@ -121,9 +121,7 @@ export default {
     const timeChecker = (rule, value, callback) => {
       let hasStart = Boolean(ruleForm.startTime);
       let hasEnd = Boolean(ruleForm.endTime);
-      let hasStartAndEnd = hasStart && hasEnd;
-      let noStartAndEnd = !hasStart && !hasEnd;
-      if (hasStartAndEnd || noStartAndEnd) {
+      if ((hasStart && hasEnd) || (!hasStart && !hasEnd)) {
         callback();
       } else {
         callback(new Error(t('safety.loginRules.timeWrongTip')));
@@ -218,8 +216,8 @@ export default {
       if (!date) {
         return null;
       }
-      let hour = String(date.getHours()).padStart(2, '0');
-      let min = String(date.getMinutes()).padStart(2, '0');
+      let hour = (date.getHours() + '').padStart(2, '0');
+      let min = (date.getMinutes() + '').padStart(2, '0');
       return `${hour}:${min}`;
     }
 

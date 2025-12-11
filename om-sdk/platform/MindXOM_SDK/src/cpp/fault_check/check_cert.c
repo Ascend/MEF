@@ -95,8 +95,6 @@ int fault_check_cert_warn(unsigned int fault_id, unsigned int sub_id, unsigned s
 {
     unsigned int state;
     static unsigned short alarm_state = FAULT_STATUS_OK;
-    (void)fault_id;
-    (void)sub_id;
     if (value == NULL) {
         FAULT_LOG_ERR("input value is NULL!");
         return EDGE_ERR;

@@ -42,7 +42,7 @@ export function exportLoginRules(params) {
     url,
     { ...params },
     {
-      timeout: constants.MINUTE_TIMEOUT,
+      timeout: 1 * constants.MINUTE_TIMEOUT,
     }
   );
 }

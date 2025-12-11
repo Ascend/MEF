@@ -34,11 +34,10 @@ from routes.upgrade.upgrade_route import UpgradeRoute
 # log_services(日志), lte, nfs,
 # simple_storage(存储), partitions(分区),
 # nic, security_service(安全服务), upgrade(升级)
-SUPPORT_COMPONENTS = {
-    "systems": [SystemRoute, ActionRoute, AlarmRoute, ExtendDevicesRoute,
-                ProcessorsRoute, NtpRoute, MemoryRoute, LogServicesRoute, LteRoute, NfsRoute,
-                SimpleStorageRoute, PartitionsRoute, NicRoute, SecurityServiceRoute],
-    "session": [SessionRoute, ],
-    "account": [AccountRoute, ],
-    "upgrade": [UpgradeRoute, ],
-}
+SUPPORT_COMPONENTS = {"systems": [SystemRoute, ActionRoute, AlarmRoute, ExtendDevicesRoute,
+                                  ProcessorsRoute, NtpRoute, MemoryRoute, LogServicesRoute, LteRoute, NfsRoute,
+                                  SimpleStorageRoute, PartitionsRoute, NicRoute, SecurityServiceRoute],
+                      "session": [SessionRoute, ],
+                      "account": [AccountRoute, ],
+                      "upgrade": [UpgradeRoute, ]
+                      }

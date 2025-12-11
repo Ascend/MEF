@@ -45,25 +45,7 @@ class ProcessLogger(Singleton):
         return logging.getLogger(name) if name in logging.Logger.manager.loggerDict else None
 
 
-def init_terminal_logger(log_type: str, log_format: str) -> logging.Logger:
-    """将日志信息输出到终端"""
-    logger = logging.getLogger(log_type)
-    logger.setLevel(logging.INFO)
-    terminal_logger = logging.StreamHandler()
-    terminal_logger.setFormatter(logging.Formatter(log_format, "%Y-%m-%d %H:%M:%S"))
-    logger.addHandler(terminal_logger)
-    return logger
-
-
-def get_terminal_print_logger() -> logging.Logger:
-    terminal_output_format = "%(message)s"
-    return init_terminal_logger("shell", terminal_output_format)
-
-
 # 不同进程中Logger的单例，operate_log由operate_flag决定是否初始化，可能不存在，根据进程初始化情况酌情使用
 process_log_object = ProcessLogger()
 run_log = process_log_object.get_custom_logger("run")
 operate_log = process_log_object.get_custom_logger("operate")
-
-# 后台脚本输出到终端的logger
-terminal_print = get_terminal_print_logger()

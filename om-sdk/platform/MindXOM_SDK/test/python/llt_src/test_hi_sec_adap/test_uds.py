@@ -1,14 +1,10 @@
-import os
 from collections import namedtuple
 
 import pytest
 from pytest_mock import MockerFixture
 
 from bin.HiSecAdap.uds import MsgDeal, UdsServer
-from bin.HiSecAdap.uds import start_uds
 from conftest import TestBase
-from ut_utils.mock_utils import mock_check_input_path_valid
-from ut_utils.mock_utils import mock_path_exists
 
 
 class TestMsgDeal(TestBase):
@@ -47,34 +43,20 @@ class TestUdsServer(TestBase):
             "cur_msg_buffer_len_is_gt_max_msg_buffer_len": (None, b'1' * 10 * 1024 * 1025),
             "cur_msg_body_len_is_gt_max_msg_body_len": (None, b'1' * 16)
         },
-        "test_start_uds": {
-            "socket_exist_but_invalid": (None, True, False),
-            "socket_exist_and_valid": (None, True, True)
-        },
     }
 
     UdsServerCase1 = namedtuple("UdsServerCase", "expect, input_para1")
     UdsServerCase2 = namedtuple("UdsServerCase", "expect, input_para1, input_para2")
     UdsServerCase3 = namedtuple("UdsServerCase", "expect, input_para1, input_para2, input_para3")
-    StartUdsCase = namedtuple("StartUdsCase", "expect, exists, path_valid")
 
-    @staticmethod
-    def test_init_server(mocker: MockerFixture, model: UdsServerCase2):
+    def test_init_server(self, mocker: MockerFixture, model: UdsServerCase2):
         instance = UdsServer()
         mocker.patch.object(UdsServer, "_start_socket_server", return_value=None)
         assert model.expect == instance.init_server(model.input_para1, model.input_para2)
 
-    @staticmethod
-    def test_get_one_msg_and_deal(model: UdsServerCase1):
+    def test_get_one_msg_and_deal(self, model: UdsServerCase1):
         instance = UdsServer()
         instance._msg_buffer = model.input_para1
         with pytest.raises(ValueError):
             instance._get_one_msg_and_deal()
 
-    @staticmethod
-    def test_start_uds(mocker: MockerFixture, model: StartUdsCase):
-        mock_path_exists(mocker, return_value=model.exists)
-        mock_check_input_path_valid(mocker, return_value=model.path_valid)
-        mocker.patch.object(os, "remove")
-        mocker.patch.object(UdsServer, "_start_socket_server", return_value=None)
-        assert start_uds() == model.expect

@@ -9,9 +9,7 @@
 # See the Mulan PSL v2 for more details.
 import configparser
 import json
-import os
 from pathlib import Path
-from tempfile import TemporaryDirectory, NamedTemporaryFile
 from typing import NamedTuple, Optional, Iterable, List, Tuple, Type, Any
 
 import pytest
@@ -24,7 +22,6 @@ from lib.Linux.systems.disk.errors import (PartMounted, PathNotInWhite, MountPat
                                            PartNotMount, UmountDockerFailed, UmountFailed, MountPathExisted)
 from lib.Linux.systems.disk.partition import Partition, ERROR_MESSAGE
 from common.common_methods import CommonMethods
-from lib.Linux.systems.nfs.models import NfsCfg
 
 
 class PartIdCheckModel(NamedTuple):
@@ -188,13 +185,6 @@ class TestPartition:
     }
 
     @staticmethod
-    def test_remove_mount_path():
-        tmp_path = TemporaryDirectory()
-        Partition.remove_mount_path(tmp_path.name)
-        assert not os.path.exists(tmp_path.name)
-        tmp_path.cleanup()
-
-    @staticmethod
     def test_partition_id_check(model: PartIdCheckModel):
         assert bool(Partition._partition_id_check(model.part_id)) == model.expect
 
@@ -301,60 +291,3 @@ class TestPartition:
         part = Partition()
         part.part_cache.append("sda")
         assert part.patch_request(model.request, model.part_name) == model.expect
-
-    @staticmethod
-    def test_persist_mount_path():
-        tmp_cfg = NamedTemporaryFile(suffix=".ini", delete=False)
-        config = configparser.ConfigParser()
-        config["sda_test"] = {
-            "/dev/sda_test": "/tmp/test",
-        }
-        mode = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
-        with os.fdopen(os.open(tmp_cfg.name, mode, 0o640), "w") as fd:
-            config.write(fd)
-
-        Partition.persist_mount_path("sda", "/tmp/test1", tmp_cfg.name)
-        config.read(tmp_cfg.name)
-        assert config.get("sda", "/dev/sda") == "/tmp/test1"
-        os.unlink(tmp_cfg.name)
-        tmp_cfg.close()
-
-    @staticmethod
-    def test_persist_mount_path_is_none():
-        tmp_cfg = NamedTemporaryFile(suffix=".ini", delete=False)
-        config = configparser.ConfigParser()
-        config["sda_test"] = {
-            "/dev/sda_test": "/tmp/test",
-        }
-        mode = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
-        with os.fdopen(os.open(tmp_cfg.name, mode, 0o640), "w") as fd:
-            config.write(fd)
-
-        Partition.persist_mount_path("sda_test", None, tmp_cfg.name)
-        assert os.path.getsize(tmp_cfg.name) == 0
-        os.unlink(tmp_cfg.name)
-        tmp_cfg.close()
-
-    @staticmethod
-    def test_init_whitelist(mocker: MockerFixture):
-        nfs_cfg = NfsCfg("127.0.0.1", "/tmp/server", "/tmp/local", "GPT")
-        mocker.patch("lib.Linux.systems.nfs.cfg_mgr.query_nfs_configs").return_value = nfs_cfg
-        mocker.patch("lib.Linux.systems.disk.mount_mgr.add_whitelist_paths")
-        Partition.init_whitelist()
-
-    @staticmethod
-    def test_check_path_whitelist(mocker: MockerFixture):
-        mocker.patch.object(FileCheck, "check_input_path_valid").return_value = True
-        mocker.patch("lib.Linux.systems.disk.mount_mgr.path_in_whitelist").return_value = True
-        Partition.check_path_whitelist("/tmp/test")
-
-    @staticmethod
-    def test_check_path_is_permitted(mocker: MockerFixture):
-        mocker.patch.object(FileCheck, "check_path_is_root").return_value = True
-        Partition.check_path_is_permitted("/var/lib/docker/")
-
-    @staticmethod
-    def test_check_mount_path_is_subdirectory_of_mounted_path(mocker: MockerFixture):
-        nfs_cfg = NfsCfg("127.0.0.1", "/tmp/server", "/tmp/local", "GPT")
-        mocker.patch("lib.Linux.systems.nfs.cfg_mgr.query_nfs_configs").return_value = nfs_cfg
-        Partition.check_mount_path_is_subdirectory_of_mounted_path("/tmp/test")

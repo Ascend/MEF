@@ -11,21 +11,20 @@
 # See the Mulan PSL v2 for more details.
 import os
 import re
+import shutil
 import threading
 from datetime import datetime
 
 import common.common_methods as commMethods
-from common.constants.base_constants import CommonConstants
 from common.constants.error_codes import SecurityServiceErrorCodes
 from common.constants.upload_constants import UploadConstants
-from common.file_utils import FileCheck, FilePermission
+from common.file_utils import FileCheck
 from common.file_utils import FileCopy
 from common.file_utils import FileCreate
 from common.file_utils import FileUtils
+from common.log.logger import run_log
 from common.kmc_lib.kmc import Kmc
 from common.kmc_lib.tlsconfig import TlsConfig
-from common.log.logger import run_log
-from common.utils.result_base import Result
 
 CERT_PATH = "/home/data/config/default"
 CERT_BACKUP_PATH = "/home/data/cert_backup"
@@ -117,43 +116,53 @@ class SecurityService:
     def import_cert(custom_certificate_filepath, kmc: Kmc):
         try:
             from lib.Linux.systems.security_service.security_service_clib import certificate_verification, \
-                ERR_SIGNATURE_LEN_NOT_ENOUGH, CERT_CHECK_SUCCESS, check_cert_expired
+                ERR_SIGNATURE_LEN_NOT_ENOUGH, check_cert_expired
         except Exception as err:
             run_log.error("Import custom certificate failed. The reason is: %s", err)
             return [commMethods.CommonMethods.ERROR, "Import custom certificate failed."]
 
-        legality_info = SecurityService._verify_certificate_legitimacy(kmc, custom_certificate_filepath)
-        if legality_info:
-            return legality_info
+        # 判断证书有效期
+        check_ret = check_cert_expired(custom_certificate_filepath)
+        if not check_ret:
+            if SecurityServiceErrorCodes.ERROR_CERTIFICATE_IS_INVALID.code == check_ret.error_code:
+                run_log.error("The certificate is invalid.")
+                return [SecurityServiceErrorCodes.ERROR_CERTIFICATE_IS_INVALID.code, "The certificate is invalid"]
+            run_log.error("The certificate has expired.")
+            return [SecurityServiceErrorCodes.ERROR_CERTIFICATE_HAS_EXPIRED.code, "the certificate has expired"]
 
+        # 判断证书私钥是否匹配
+        pkey_file = os.path.join(COPY_CUSTOM_CERT_PATH, "server_kmc.priv")
+        psd_file = os.path.join(COPY_CUSTOM_CERT_PATH, "server_kmc.psd")
+        if not SecurityService.check_cert_pkey_match(kmc, custom_certificate_filepath, pkey_file, psd_file):
+            run_log.error("Import custom certificate failed: the certificate does not match the private key.")
+            return [SecurityServiceErrorCodes.ERROR_CERTIFICATE_DOES_NOT_MATCH.code,
+                    "the certificate does not match the private key"]
+
+        # 判断证书合法性
+        cert_check_result = certificate_verification(custom_certificate_filepath)
+        if cert_check_result not in (0, ERR_SIGNATURE_LEN_NOT_ENOUGH,):
+            run_log.error("Import custom certificate type error.")
+            return [commMethods.CommonMethods.ERROR, "Import custom certificate type error."]
+
+        # 复制证书到目录
         file_list = (
-            "server_kmc.cert", "server_kmc.priv", "server_kmc.psd",
-            "om_cert.keystore", "om_cert_backup.keystore", "om_alg.json"
+            "server_kmc.priv", "server_kmc.psd", "om_cert.keystore", "om_cert_backup.keystore", "om_alg.json"
         )
-
-        # 备份当前正在使用的web证书及配套kmc
-        for file_name in file_list:
-            file_path = os.path.join(CERT_PATH, file_name)
-            new_file_path = os.path.join(CommonConstants.WEB_PRE_DIR, file_name)
-            FileCopy.copy_file(file_path, new_file_path, 0o600, "root", "root")
-
-        run_log.info("Backup current web cert succeed!")
-
-        # 将新导入的证书及配套kmc拷贝到工作目录
         for file_name in file_list:
             file_path = os.path.join(COPY_CUSTOM_CERT_PATH, file_name)
             new_file_path = os.path.join(CERT_PATH, file_name)
-            if file_name == "server_kmc.cert":
-                FileCopy.copy_file(custom_certificate_filepath, new_file_path, 0o600, "nobody", "nobody")
-            else:
-                FileCopy.copy_file(file_path, new_file_path, 0o600, "nobody", "nobody")
+            FileCopy.copy_file(file_path, new_file_path, 0o600, "nobody", "nobody")
             FileUtils.delete_file_or_link(file_path)
 
+        new_cert_path = os.path.join(CERT_PATH, "server_kmc.cert")
+        FileCopy.copy_file(custom_certificate_filepath, new_cert_path, 0o600, "nobody", "nobody")
         run_log.info("Importing a custom certificate success")
 
         # 删除csr下载标志和csr文件
-        FileUtils.delete_file_or_link(os.path.join(COPY_CUSTOM_CERT_PATH, "csr_flag"))
-        FileUtils.delete_file_or_link(os.path.join(COPY_CUSTOM_CERT_PATH, "x509Req.pem"))
+        is_download_csr = os.path.join(COPY_CUSTOM_CERT_PATH, "csr_flag")
+        FileUtils.delete_file_or_link(is_download_csr)
+        x509_csr = os.path.join(COPY_CUSTOM_CERT_PATH, "x509Req.pem")
+        FileUtils.delete_file_or_link(x509_csr)
 
         if cert_check_result == ERR_SIGNATURE_LEN_NOT_ENOUGH:
             run_log.info("Legality of Certificate is risky")
@@ -175,8 +184,8 @@ class SecurityService:
         try:
             with open(psd_file, "r") as file:
                 pwd = kmc_inst.decrypt(file.read())
-        except Exception as err:
-            run_log.error("decrypt pwd failed, caught exception: %s", err.__class__.__name__)
+        except Exception:
+            run_log.error("decrypt pwd failed, caught exception")
             return False
 
         ret, err_msg = TlsConfig.get_ssl_context(None, cert_file, pkey_file, pwd)
@@ -196,21 +205,6 @@ class SecurityService:
         return True
 
     @staticmethod
-    def check_pre_web_cert_dir_is_valid():
-        if not os.path.exists(CommonConstants.WEB_PRE_DIR):
-            if not FileCreate.create_dir(CommonConstants.WEB_PRE_DIR, 0o700) or \
-                    not FilePermission.set_path_owner_group(CommonConstants.WEB_PRE_DIR, "root"):
-                return Result(result=False, err_msg="create previous cert backup path failed.")
-
-        if not FileCheck.check_input_path_valid(CommonConstants.WEB_PRE_DIR):
-            return Result(result=False, err_msg="previous cert backup path is invalid.")
-
-        if not FilePermission.set_path_owner_group(CommonConstants.WEB_PRE_DIR, "root"):
-            return Result(result=False, err_msg="chown previous cert backup path failed.")
-
-        return Result(result=True)
-
-    @staticmethod
     def _set_cert_sum():
         cert_flag = os.path.join(CERT_BACKUP_PATH, "cert_flag")
 
@@ -223,43 +217,9 @@ class SecurityService:
             with os.fdopen(os.open(cert_flag, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "w"):
                 run_log.info("creat cert_flag success.")
         except Exception as err:
-            run_log.error("creat cert_flag failed, err: %s", err.__class__.__name__)
+            run_log.error(f'{err}')
 
         return True
-
-    @staticmethod
-    def _verify_certificate_legitimacy(kmc, cert_path):
-
-        # 判断证书有效期
-        check_ret = check_cert_expired(cert_path)
-        if not check_ret:
-            if SecurityServiceErrorCodes.ERROR_CERTIFICATE_IS_INVALID.code == check_ret.error_code:
-                run_log.error("The certificate is invalid.")
-                return [SecurityServiceErrorCodes.ERROR_CERTIFICATE_IS_INVALID.code, "The certificate is invalid"]
-            run_log.error("The certificate has expired.")
-            return [SecurityServiceErrorCodes.ERROR_CERTIFICATE_HAS_EXPIRED.code, "the certificate has expired"]
-
-        # 判断证书私钥是否匹配
-        pkey_file = os.path.join(COPY_CUSTOM_CERT_PATH, "server_kmc.priv")
-        psd_file = os.path.join(COPY_CUSTOM_CERT_PATH, "server_kmc.psd")
-        if not SecurityService.check_cert_pkey_match(kmc, cert_path, pkey_file, psd_file):
-            run_log.error("Import custom certificate failed: the certificate does not match the private key.")
-            return [SecurityServiceErrorCodes.ERROR_CERTIFICATE_DOES_NOT_MATCH.code,
-                    "the certificate does not match the private key"]
-
-        # 判断证书合法性
-        cert_check_result = certificate_verification(cert_path)
-        if cert_check_result not in (CERT_CHECK_SUCCESS, ERR_SIGNATURE_LEN_NOT_ENOUGH,):
-            run_log.error("Import custom certificate type error.")
-            return [commMethods.CommonMethods.ERROR, "Import custom certificate type error."]
-
-        ret = SecurityService.check_pre_web_cert_dir_is_valid()
-        if not ret:
-            run_log.error("Import custom certificate failed. Error: %s", ret.error)
-            return [commMethods.CommonMethods.ERROR, "web cert backup dir is valid."]
-
-        return None
-
 
     def get_all_info(self, cert_type=None):
         if cert_type is None:

@@ -46,8 +46,6 @@ typedef struct {
 
 static int giMountStatus = 0;
 
-static char* parse_nfs_status_line(char* line_buff);
-
 static void process_pipe_in_info(int pipe_in, char *out_buf, unsigned int out_len)
 {
     ssize_t count = 0;
@@ -103,7 +101,6 @@ static int check_task_exit_status(pid_t pid)
 static void child_task_process(int fd_out[2], int fd_err[2], const char *path, char * const cmd[], char num)
 {
     char * const envs[] = {NULL};
-    (void)num;
 
     close(fd_out[0]);
     close(fd_err[0]);
@@ -338,9 +335,8 @@ int fault_check_mount_point_err(unsigned int fault_id, unsigned int sub_id, unsi
 int fault_check_nfs_mount_err(unsigned int fault_id, unsigned int sub_id, unsigned short *value)
 {
     char *ptr = NULL;
+    char *tmp_ptr = NULL;
     char line_buff[NFS_MAX_LINE_SIZE] = {0};
-    (void)sub_id;
-    (void)fault_id;
 
     if (value == NULL) {
         FAULT_LOG_ERR("nfs check parameter invalid!");
@@ -371,7 +367,17 @@ int fault_check_nfs_mount_err(unsigned int fault_id, unsigned int sub_id, unsign
             break;
         }
 
-        ptr = parse_nfs_status_line(line_buff);
+        tmp_ptr = line_buff;
+        while (tmp_ptr != NULL) {
+            tmp_ptr = strstr(tmp_ptr, NFS_INFO_SPLIT_CHAR);
+            if (tmp_ptr == NULL) {
+                break;
+            }
+
+            tmp_ptr = tmp_ptr + strlen(NFS_INFO_SPLIT_CHAR);
+            ptr = tmp_ptr;
+        }
+
         if (ptr == NULL) {
             FAULT_LOG_ERR("nfs info line (%d) have no = char!", i);
             continue;
@@ -388,21 +394,4 @@ int fault_check_nfs_mount_err(unsigned int fault_id, unsigned int sub_id, unsign
     }
 
     return EDGE_OK;
-}
-
-static char* parse_nfs_status_line(char* line_buff)
-{
-    char *ptr = NULL;
-    char *tmp_ptr = line_buff;
-
-    while (tmp_ptr != NULL) {
-        tmp_ptr = strstr(tmp_ptr, NFS_INFO_SPLIT_CHAR);
-        if (tmp_ptr == NULL) {
-            break;
-        }
-
-        tmp_ptr = tmp_ptr + strlen(NFS_INFO_SPLIT_CHAR);
-        ptr = tmp_ptr;
-    }
-    return ptr;
 }

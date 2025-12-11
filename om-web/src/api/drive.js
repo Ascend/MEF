@@ -44,8 +44,8 @@ export function createPartitions(params) {
 }
 
 export function deletePartition(partitionId) {
-  // 功能描述：删除磁盘分区
-  const url = `/redfish/v1/Systems/Partitions/${partitionId}`;
+  // 功能描述：查询磁盘分区集合信息
+  const url = '/redfish/v1/Systems/Partitions/' + partitionId
   return $delete(url);
 }
 

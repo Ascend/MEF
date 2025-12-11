@@ -284,7 +284,6 @@ export default {
       gatewayNotMatchTip: 'IP地址、子网掩码和默认网关不匹配',
       duplicateGatewayTip: '同一网口最多只能有1个IP地址有默认网关',
       sameSegmentIpTip: '[{ethNum}]的网络配置中存在相同网段IP({ipAddress})，请确保配置的IP地址正确，继续配置可能导致网络异常。',
-      sameRemoteTestIpTip: '不能和“IP地址”相同',
       existOtherEthTip: '该IP地址所属网段已存在于某一网卡配置中，如果继续配置，可能会出现异常。',
       checkTagFailedTip: '校验用途信息失败',
       ethFailedTip: '处理以太网接口失败',

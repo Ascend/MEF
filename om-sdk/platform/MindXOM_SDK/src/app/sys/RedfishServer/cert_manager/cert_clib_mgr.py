@@ -10,33 +10,34 @@
 # See the Mulan PSL v2 for more details.
 import os
 from ctypes import CDLL, POINTER, pointer, cast, c_char, c_ulong, c_int, c_char_p, create_string_buffer
-from datetime import datetime
+from dataclasses import dataclass
 
-from cert_manager.schemas import CertInfoSchema, CrlInfoSchema
 from common.constants.base_constants import CommonConstants
 from common.file_utils import FileCheck
 
-# 时间转化格式
-TM_FMT = "%b %d %H:%M:%S %Y"
+
+@dataclass
+class CrlInfo:
+    last_update: str
+    next_update: str
 
 
 class CertClibMgr:
-    CLIB_PATH = "software/RedfishServer/lib/c/libcertmanage.so"
+    CLIB_PATH = os.path.join(CommonConstants.OM_WORK_DIR_PATH, "software/RedfishServer/lib/c/libcertmanage.so")
 
-    def __init__(self, file_path: str, work_dir: str = CommonConstants.OM_WORK_DIR_PATH):
-        self.clib_path = os.path.join(work_dir, self.CLIB_PATH)
+    def __init__(self, file_path: str):
         self.file_path = file_path
         self.file_path_check()
-        self.clib_cert = CDLL(self.clib_path)
+        self.clib_cert = CDLL(self.CLIB_PATH)
 
     def file_path_check(self):
-        if not os.path.exists(self.clib_path):
-            raise FileNotFoundError(f"Load clib filed, check [{self.clib_path}] does not exist.")
+        if not os.path.exists(self.CLIB_PATH):
+            raise FileNotFoundError(f"Load clib filed, check [{self.CLIB_PATH}] does not exist.")
 
         if not FileCheck.check_path_is_exist_and_valid(self.file_path):
             raise ValueError(f"Load clib filed, check path [{self.file_path}] is invalid.")
 
-    def get_cert_info(self) -> CertInfoSchema:
+    def get_cert_info(self) -> list:
         cert_path = self.file_path.encode(encoding="utf-8")
         cert_file = cast(cert_path, POINTER(c_char * 64))
 
@@ -66,7 +67,12 @@ class CertClibMgr:
         clib_get_extend_cert_info.restype = c_int
         signature_algorithm, signature_algorithm_len = (c_char * 64)(), c_ulong(64)
         fingerprint, fingerprint_len = (c_char * 128)(), c_ulong(128)
-        pubkey_len, pubkey_type, cert_version, key_usage, is_ca, chain_nums = (c_ulong() for _ in range(6))
+        pubkey_len = c_ulong()
+        pubkey_type = c_ulong()
+        cert_version = c_ulong()
+        key_usage = c_ulong()
+        is_ca = c_ulong()
+        chain_nums = c_ulong()
         ret_value = clib_get_extend_cert_info(
             cert_path, pointer(signature_algorithm), signature_algorithm_len, fingerprint, fingerprint_len,
             pointer(pubkey_len), pointer(pubkey_type), pointer(cert_version), pointer(key_usage), pointer(is_ca),
@@ -75,18 +81,13 @@ class CertClibMgr:
         if ret_value != 0:
             raise ValueError(f"Load clib filed, clib function [get_extend_certinfo] return value is [{ret_value}].")
 
-        return CertInfoSchema(
-            subject=subj.value.decode(), issuer=issuer.value.decode(),
-            serial_num=hex(int(serial_num.value.decode()))[2:].upper(),
-            signature_algorithm=signature_algorithm.value.decode(), signature_len=pubkey_len.value,
-            cert_version=cert_version.value + 1, pubkey_type=pubkey_type.value,
-            fingerprint=fingerprint.value.decode(), key_cert_sign=key_usage.value, chain_num=chain_nums.value,
-            is_ca=is_ca.value, ca_sign_valid=is_ca.value and self.verify_ca_signature_valid(),
-            start_time=datetime.strptime(" ".join(not_begin.value.decode().split()[:-1]), TM_FMT),
-            end_time=datetime.strptime(" ".join(not_after.value.decode().split()[:-1]), TM_FMT),
-        )
+        return [
+            subj.value, issuer.value, not_begin.value, not_after.value, serial_num.value, signature_algorithm.value,
+            pubkey_len.value, cert_version.value, pubkey_type.value, fingerprint.value, key_usage.value, is_ca.value,
+            chain_nums.value
+        ]
 
-    def get_crl_info(self) -> CrlInfoSchema:
+    def get_crl_info(self) -> CrlInfo:
         crl_path = self.file_path.encode(encoding="utf-8")
         clib_get_crl_info = self.clib_cert.get_crl_info
         clib_get_crl_info.argtypes = [
@@ -112,10 +113,7 @@ class CertClibMgr:
         if ret_value != 0:
             raise ValueError(f"Load clib filed, clib function [get_crl_info] return value is [{ret_value}].")
 
-        return CrlInfoSchema(
-            last_update=datetime.strptime(" ".join(last_update.value.decode().split()[:-1]), TM_FMT),
-            next_update=datetime.strptime(" ".join(next_update.value.decode().split()[:-1]), TM_FMT),
-        )
+        return CrlInfo(last_update=last_update.value.decode("utf-8"), next_update=next_update.value.decode("utf-8"))
 
     def verify_cert_available(self, cert_path) -> int:
         crl_path = self.file_path.encode(encoding="utf-8")
@@ -135,9 +133,3 @@ class CertClibMgr:
         verify_ca_cert_sign.restype = c_int
         ca_path_p = create_string_buffer(self.file_path.encode(encoding="utf-8"))
         return verify_ca_cert_sign(ca_path_p) == 0
-
-    def cert_chain_verify(self) -> int:
-        chain_verify_func = self.clib_cert.CertChainVerify
-        chain_verify_func.args = [c_char_p]
-        chain_verify_func.restype = c_int
-        return chain_verify_func(create_string_buffer(self.file_path.encode(encoding="utf-8")))

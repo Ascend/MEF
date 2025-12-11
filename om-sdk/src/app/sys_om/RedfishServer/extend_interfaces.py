@@ -14,12 +14,12 @@ from typing import Callable, Type, Iterable, Dict
 
 from common.db.database import DataBase
 from common.kmc_lib.kmc_updater import MultiKmcUpdater
-from common.utils.result_base import Result
 from om_kmc_update.om_kmc_updater import extend_om_updater_and_adapters
 from om_redfish_db.init_structure import INIT_COLUMNS
 from om_redfish_db.register import register_extend_om_models
 from om_redfish_service.om_redfish_public import ExtendSchemaCollection
-from redfish_extend_funcs import start_extend_funcs, extend_redfish_cert_manage
+from redfish_extend_funcs import start_extend_funcs
+
 
 # 新增组件信息查询函数，用于静态信息上报FD
 EXTEND_COMPONENTS_INFO_FUNC_PATHS = ["om_fd_msg_process.midware_tasks.get_digital_warranty"]
@@ -38,6 +38,3 @@ EXTEND_REDFISH_SCHEMA = ExtendSchemaCollection.get_extend_schema_list()
 
 # 扩展主仓的Kmc更新注册函数
 extend_updater_and_adapters: Callable[[Type[MultiKmcUpdater]], None] = extend_om_updater_and_adapters
-
-# 扩展证书管理功能
-extend_certs_manager_funcs: Callable[[str], Result] = extend_redfish_cert_manage

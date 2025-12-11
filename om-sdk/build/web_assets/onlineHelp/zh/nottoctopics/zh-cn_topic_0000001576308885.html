@@ -1,0 +1,70 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="zh-cn" xml:lang="zh-cn">
+<head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="DC.Type" content="topic">
+<meta name="DC.Title" content="打开Wireless_Module前配置网口路由信息">
+<meta name="DC.Format" content="XHTML">
+<meta name="DC.Identifier" content="ZH-CN_TOPIC_0000001576308885">
+<meta name="DC.Language" content="zh-cn">
+<title>打开Wireless_Module前配置网口路由信息</title>
+</head>
+<body><a name="ZH-CN_TOPIC_0000001576308885"></a><a name="ZH-CN_TOPIC_0000001576308885"></a>
+
+<h1 class="topictitle1">打开Wireless_Module前配置网口路由信息</h1>
+<div id="body8662426"><div class="section" id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_section1858716118469"><h4 class="sectiontitle">操作场景</h4><p id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_p4440626316">该任务指导用户在网口0或网口1~4跨网段对外通信场景下，打开Wireless_Module网络前正确配置网口0或网口1~4的路由信息。</p>
+</div>
+<div class="section" id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_section192549215467"><h4 class="sectiontitle">组网示例</h4><p id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_p010810764817">以<a href="#ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_fig16381238144718">图1</a>为例，假设<span id="ZH-CN_TOPIC_0000001576308885__text618383215">Atlas 500 A2 智能小站</span> 网口0或网口1~4所在网段为172.16.32.xx网段，需要与172.17.22.xx网段进行通信，请按照<a href="#ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_section9818135324817">操作步骤</a>进行配置。</p>
+<div class="fignone" id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_fig16381238144718"><a name="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_fig16381238144718"></a><a name="zh-cn_topic_0201081113_fig16381238144718"></a><span class="figcap"><b>图1 </b>组网</span><br><span><img id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_image163814383473" src="../images/zh-cn_image_0000001576309045.png" height="228.4275" width="523.6875"></span></div>
+</div>
+<div class="section" id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_section9818135324817"><a name="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_section9818135324817"></a><a name="zh-cn_topic_0201081113_section9818135324817"></a><h4 class="sectiontitle">操作步骤</h4><ol id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_ol944212375215"><li id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_li825843811524"><span>使用与<span id="ZH-CN_TOPIC_0000001576308885__text1035172063">Atlas 500 A2 智能小站</span> 网口0或网口1~4同网段的PC，登录<span id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0000001396921398_ph15786811606">Atlas IES</span>命令行界面，详细信息请参见<a href="zh-cn_topic_0000001525988832.html">使用PuTTY登录设备（网口方式）</a>。</span></li><li id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0240049165_zh-cn_topic_0173591765_li285395853010"><span>进入develop模式。</span><p><ol type="a" id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0000001389273064_zh-cn_topic_0173591765_ol893109173219"><li id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0000001389273064_zh-cn_topic_0173591765_li774923517373">执行<strong id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0000001389273064_zh-cn_topic_0173591765_b15749635183712">develop</strong>命令，获取root权限。<p id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0000001389273064_zh-cn_topic_0173591765_p174983517378">回显信息如下：</p>
+<pre class="screen" id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0000001389273064_zh-cn_topic_0173591765_screen3749103512371">input root passwd
+Password:
+Last login: Tue Jun  4 15:38:59 UTC 2019 on pts/0 
+Euler:<font style="font-size:8pt" Face="Courier New" >~</font> #</pre>
+</li><li id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0000001389273064_zh-cn_topic_0173591765_li1619372419547">按提示输入root密码。默认密码请参见<span id="ZH-CN_TOPIC_0000001576308885__ph343465331014">《<a href="https://support.huawei.com/enterprise/zh/doc/EDOC1100235027" target="_blank" rel="noopener noreferrer">Atlas 系列硬件产品 账户清单</a>》</span>中的“<span id="ZH-CN_TOPIC_0000001576308885__text652727666">Atlas 500 A2 智能小站</span>”章节。</li></ol>
+</p></li><li id="ZH-CN_TOPIC_0000001576308885__li9170114217185"><span>删除网口0或网口1~4已经配置的默认网关。</span><p><ol type="a" id="ZH-CN_TOPIC_0000001576308885__ol81711442111815"><li id="ZH-CN_TOPIC_0000001576308885__li101711242191816">执行以下命令，删除默认网关。<pre class="screen" id="ZH-CN_TOPIC_0000001576308885__screen6171144216181">route delete default</pre>
+</li><li id="ZH-CN_TOPIC_0000001576308885__li191713424187">进入<span class="filepath" id="ZH-CN_TOPIC_0000001576308885__filepath18171104218188">“/etc/sysconfig/”</span>路径，执行<strong id="ZH-CN_TOPIC_0000001576308885__b1717111423183">vi network</strong>命令，设置GATEWAY的值为空，示例如下：<pre class="screen" id="ZH-CN_TOPIC_0000001576308885__screen19171114231811">NETWORKING=yes
+HOSTNAME=Aaron
+GATEWAY=</pre>
+</li><li id="ZH-CN_TOPIC_0000001576308885__li2982135341316">执行<strong id="ZH-CN_TOPIC_0000001576308885__b1990622931413">:wq</strong>命令保存并退出。</li></ol>
+</p></li><li id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_li7486850145220"><span>配置路由信息。</span><p><ol type="a" id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_ol68891723163317"><li id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_li1643044814359">执行以下命令，查看路由表是否为空。<pre class="screen" id="ZH-CN_TOPIC_0000001576308885__screen176722218279"><strong id="ZH-CN_TOPIC_0000001576308885__b106824210275">policy_based_routing.sh ip route show table</strong> 200    # 200表示具体的路由表</pre>
+<p id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_p154601754133518">显示如下信息，表示路由表为空。</p>
+<pre class="screen" id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_screen6752945175319">Euler:<font style="font-size:8pt" Face="Courier New" >~</font> #</pre>
+</li><li id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_li163070395425">选择一个空路由表，配置路由信息。<ol class="substepthirdol" id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_ol197226217451"><li id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_li4765206491">在路由表中增加一条到目的网络的路由，下一跳网关为网口0或网口1~4的网关。<pre class="screen" id="ZH-CN_TOPIC_0000001576308885__screen10933754132817"><strong id="ZH-CN_TOPIC_0000001576308885__b69441654162813">policy_based_routing.sh ip route add </strong><em id="ZH-CN_TOPIC_0000001576308885__i4944165417287">目的网络</em><strong id="ZH-CN_TOPIC_0000001576308885__b1094418542288"> table </strong><em id="ZH-CN_TOPIC_0000001576308885__i11944254152819">路由表</em><strong id="ZH-CN_TOPIC_0000001576308885__b8944554152810"> via </strong><em id="ZH-CN_TOPIC_0000001576308885__i189441254182813">eth0/eth1的网关</em></pre>
+<p id="ZH-CN_TOPIC_0000001576308885__p13274620142914">示例如下：</p>
+<pre class="screen" id="ZH-CN_TOPIC_0000001576308885__screen35351626122912"><strong id="ZH-CN_TOPIC_0000001576308885__b2053612614295">policy_based_routing.sh ip route add 172.16.0.0/8 table 200 via 172.16.32.1</strong></pre>
+</li><li id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_li8225353164818">在路由表中增加策略路由配置。<pre class="screen" id="ZH-CN_TOPIC_0000001576308885__screen118146482293"><strong id="ZH-CN_TOPIC_0000001576308885__b158242484299">policy_based_routing.sh</strong> <strong id="ZH-CN_TOPIC_0000001576308885__b178241648122915">ip rule add </strong><strong id="ZH-CN_TOPIC_0000001576308885__b8824548152920">to</strong><em id="ZH-CN_TOPIC_0000001576308885__i38241148172917">目的网络</em><strong id="ZH-CN_TOPIC_0000001576308885__b12824134852913"> table </strong><em id="ZH-CN_TOPIC_0000001576308885__i128244484296">路由表</em><strong id="ZH-CN_TOPIC_0000001576308885__b78249487296"></strong></pre>
+<p id="ZH-CN_TOPIC_0000001576308885__p66051757102915">示例如下：</p>
+<pre class="screen" id="ZH-CN_TOPIC_0000001576308885__screen1151118318308"><strong id="ZH-CN_TOPIC_0000001576308885__b05211136301">policy_based_routing.sh ip rule add to 172.16.0.0/8 table 200</strong></pre>
+</li></ol>
+</li></ol>
+</p></li><li id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_li16354185685410"><span>执行如下命令，确认跨越网关网络通信是否正常。</span><p><pre class="screen" id="ZH-CN_TOPIC_0000001576308885__screen1895902714300"><strong id="ZH-CN_TOPIC_0000001576308885__b0970327153012">ping</strong> <em id="ZH-CN_TOPIC_0000001576308885__i497042773020">IP地址</em></pre>
+<p id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_p195911297172">显示如下信息，表示跨越网关网络通信正常。</p>
+<pre class="screen" id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_screen1867922617558">PING 172.17.22.164 (172.17.22.164) 56(84) bytes of date.
+64 bytes from 172.17.22.164:icmp_seq=1 ttl=125 time=5.48 ms
+64 bytes from 172.17.22.164:icmp_seq=2 ttl=125 time=1.96 ms
+64 bytes from 172.17.22.164:icmp_seq=3 ttl=125 time=2.07 ms</pre>
+</p></li><li id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_li12206036586"><span>保存路由配置并持久化。</span><p><ol type="a" id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_ol125434522018"><li id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_li157971192516">保存路由表的路由配置至配置文件路由文件中。<pre class="screen" id="ZH-CN_TOPIC_0000001576308885__screen7542127123114"><strong id="ZH-CN_TOPIC_0000001576308885__b105521174318">policy_based_routing.sh</strong> '<strong id="ZH-CN_TOPIC_0000001576308885__b555211716314">ip route save table</strong> <em id="ZH-CN_TOPIC_0000001576308885__i25527733118">路由表</em>' <strong id="ZH-CN_TOPIC_0000001576308885__b1755257143111">export</strong><em id="ZH-CN_TOPIC_0000001576308885__i155536753116"> 路由配置文件</em></pre>
+<p id="ZH-CN_TOPIC_0000001576308885__p1625451319318">示例如下：</p>
+<pre class="screen" id="ZH-CN_TOPIC_0000001576308885__screen11294143216314"><strong id="ZH-CN_TOPIC_0000001576308885__b173042328319">policy_based_routing.sh</strong> <strong id="ZH-CN_TOPIC_0000001576308885__b530423216317">'ip route save table 200' export route_table_200</strong></pre>
+</li><li id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_li26482314252">对已保存的路由配置文件进行持久化。<pre class="screen" id="ZH-CN_TOPIC_0000001576308885__screen17751194393118"><strong id="ZH-CN_TOPIC_0000001576308885__b975218431319">policy_based_routing.sh</strong> <strong id="ZH-CN_TOPIC_0000001576308885__b07529436319">ip route </strong><strong id="ZH-CN_TOPIC_0000001576308885__b15752174343119">persist</strong> <em id="ZH-CN_TOPIC_0000001576308885__i37521043103114">路由配置文件</em></pre>
+<p id="ZH-CN_TOPIC_0000001576308885__p822194914315">示例如下：</p>
+<pre class="screen" id="ZH-CN_TOPIC_0000001576308885__screen11630105319316"><strong id="ZH-CN_TOPIC_0000001576308885__b14641135311313">policy_based_routing.sh ip route </strong><strong id="ZH-CN_TOPIC_0000001576308885__b8641053143120">persist route_table_200</strong></pre>
+</li><li id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_li10421112103111">保存路由策略配置至路由策略配置文件中。<pre class="screen" id="ZH-CN_TOPIC_0000001576308885__screen55586016326"><strong id="ZH-CN_TOPIC_0000001576308885__b17568506326">policy_based_routing.sh</strong> <strong id="ZH-CN_TOPIC_0000001576308885__b356817015329">'ip rule save' export</strong> <em id="ZH-CN_TOPIC_0000001576308885__i165681013215">路由策略配置文件</em></pre>
+<p id="ZH-CN_TOPIC_0000001576308885__p74691112329">示例如下：</p>
+<pre class="screen" id="ZH-CN_TOPIC_0000001576308885__screen1176817153326"><strong id="ZH-CN_TOPIC_0000001576308885__b137791915183211">policy_based_routing.sh 'ip rule save' export rule_config_200</strong></pre>
+</li><li id="ZH-CN_TOPIC_0000001576308885__zh-cn_topic_0201081113_li89588176339">对已保存的策略配置文件进行持久化。<pre class="screen" id="ZH-CN_TOPIC_0000001576308885__screen106711423143219"><strong id="ZH-CN_TOPIC_0000001576308885__b146821223163213">policy_based_routing.sh ip rule </strong><strong id="ZH-CN_TOPIC_0000001576308885__b126823235321">persist</strong> <em id="ZH-CN_TOPIC_0000001576308885__i86825234323">路由策略配置文件</em></pre>
+<p id="ZH-CN_TOPIC_0000001576308885__p10519341123215">示例如下：</p>
+<pre class="screen" id="ZH-CN_TOPIC_0000001576308885__screen154541433163215"><strong id="ZH-CN_TOPIC_0000001576308885__b1546423316321">policy_based_routing.sh ip rule persist rule_config_200</strong></pre>
+</li></ol>
+</p></li></ol>
+</div>
+</div>
+
+</body>
+</html>

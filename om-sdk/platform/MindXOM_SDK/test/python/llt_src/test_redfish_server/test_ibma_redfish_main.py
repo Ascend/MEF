@@ -1,19 +1,17 @@
 import threading
-from unittest.mock import patch
 
 import pytest
 from pytest_mock import MockerFixture
 
+from common.utils.timer import RepeatingTimer
 from fd_msg_process.midware_proc import MidwareProc
 from fd_msg_process.midware_urls import MidwareUris
 from mef_msg_process.mef_proc import MefProc
 from net_manager.manager.fd_cfg_manager import FdCfgManager
 from net_manager.manager.net_cfg_manager import NetCfgManager
 from test_mqtt_api.get_log_info import GetLogInfo
-from ut_utils.models import MockPrivilegeAuth
 
-with patch("token_auth.get_privilege_auth", return_value=MockPrivilegeAuth):
-    from ibma_redfish_urls import RedfishURIs
+from ibma_redfish_urls import RedfishURIs
 from ibma_redfish_main import RedfishMain, LibRESTfulAdapter, RedfishGlobals, UploadMarkFile
 from wsclient.ws_monitor import WsMonitor
 

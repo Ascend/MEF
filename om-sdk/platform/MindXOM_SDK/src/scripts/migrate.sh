@@ -36,11 +36,6 @@ function main()
     fi
     logger_info "migrate monitor_edge.db finish."
 
-    # 初始化/run/web目录，迁移时会用到该目录
-    source "${OM_UPGRADE_DIR}"/scripts/safe_common.sh
-    mkdir -p /run/web && safe_change_mode 700 /run/web
-    safe_change_owner MindXOM MindXOM /run/web
-
     # 执行redfish数据库迁移
     logger_info "start migrate redfish_edge.db"
     su - MindXOM -s "$(which bash)" -c "/bin/bash ${REDFISH_MIGRATE_ENTRY} ${operate}"

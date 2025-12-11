@@ -158,6 +158,8 @@
         <el-table-column :label='$t("information.systemInfo.model")' prop='model' />
         <el-table-column
           :label='$t("information.systemInfo.healthStatus")'
+          :filters='healthStatusFilter'
+          :filter-method='filterHealthStatus'
           width='140'
           prop='healthStatus'
         >
@@ -168,6 +170,8 @@
         </el-table-column>
         <el-table-column
           :label='$t("information.systemInfo.startupStatus")'
+          :filters='startupStatusFilter'
+          :filter-method='filterStartupStatus'
           width='140'
           prop='startupStatus'
         >
@@ -219,7 +223,27 @@ export default defineComponent({
       pageNum: 1,
       pageSize: 10,
     })
+    const startupStatusFilter = [
+      {
+        text: 'Enabled',
+        value: 'Enabled',
+      },
+      {
+        text: 'Disabled',
+        value: 'Disabled',
+      },
+    ];
 
+    const healthStatusFilter = [
+      {
+        text: 'OK',
+        value: 'OK',
+      },
+      {
+        text: 'Critical',
+        value: 'Critical',
+      },
+    ];
     const systemInfo = ref({
       hostName: '',
       os: '',
@@ -434,6 +458,10 @@ export default defineComponent({
       isEditAssetLabel.value = false;
     }
 
+    const filterHealthStatus = (value, row) => row.healthStatus === value
+
+    const filterStartupStatus = (value, row) => row.startupStatus === value
+
     const isHealthStatusOk = (value) => value?.toLowerCase() === 'ok'
 
     const isStartupStatusEnabled = (value) => value?.toLowerCase() === 'enabled'
@@ -458,6 +486,8 @@ export default defineComponent({
     return {
       constants,
       snQuery,
+      healthStatusFilter,
+      startupStatusFilter,
       isEditHostname,
       isEditAssetLabel,
       systemInfo,
@@ -479,6 +509,8 @@ export default defineComponent({
       saveEditAssetLabel,
       cancelEditAssetLabel,
       refreshDeviceTable,
+      filterHealthStatus,
+      filterStartupStatus,
       isHealthStatusOk,
       isStartupStatusEnabled,
       handleSizeChange,

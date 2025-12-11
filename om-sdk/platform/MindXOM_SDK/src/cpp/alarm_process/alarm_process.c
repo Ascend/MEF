@@ -27,7 +27,7 @@
 #define ALARM_OFFSET_BITS 16
 #define ALAM_FILE_HEAD_SIZE (64)
 
-ALARM_GLOBAL_INFO g_alarm_global_info = { { 0 }, { NULL }, PTHREAD_MUTEX_INITIALIZER };
+ALARM_GLOBAL_INFO g_alarm_global_info = { { 0 }, { NULL } };
 
 // 清除指定归属的故障状态
 static void clear_fault_status(ALARM_ATTR_MARK flag)
@@ -165,23 +165,6 @@ int fault_record_to_file(unsigned int *active_num, int *alarm_level)
     *alarm_level = alarm_level_tmp;
     return ret;
 }
-// 创建新的告警节点
-ALARM_LV1_STRU *create_new_alarm()
-{
-    ALARM_LV1_STRU *cur_fault_stru = malloc(sizeof(ALARM_LV1_STRU));
-    if (cur_fault_stru == NULL) {
-        ALARM_LOG_ERR("report_fault_info:cur_fault_stru malloc failed.");
-        return cur_fault_stru;
-    }
-    if (memset_s(cur_fault_stru, sizeof(ALARM_LV1_STRU), 0, sizeof(ALARM_LV1_STRU)) != 0) {
-        ALARM_LOG_ERR("memset_s error!");
-        free(cur_fault_stru);
-        cur_fault_stru = NULL;
-        return cur_fault_stru;
-    }
-    cur_fault_stru->next = NULL;
-    return cur_fault_stru;
-}
 
 // 根据cur_fault_info的信息到g_fault_stru中找到对应的节点，没有找到就新增，失败返回NULL
 ALARM_LV1_STRU *search_item_by_info(const ALARM_MSG_FAULT_INFO *cur_fault_info, int is_shield)
@@ -224,10 +207,18 @@ ALARM_LV1_STRU *search_item_by_info(const ALARM_MSG_FAULT_INFO *cur_fault_info, 
 
     // 没找到节点需要新增
     if (cur_fault_stru == NULL) {
-        cur_fault_stru = create_new_alarm();
+        cur_fault_stru = malloc(sizeof(ALARM_LV1_STRU));
         if (cur_fault_stru == NULL) {
+            ALARM_LOG_ERR("report_fault_info:cur_fault_stru malloc failed.");
             return cur_fault_stru;
         }
+        if (memset_s(cur_fault_stru, sizeof(ALARM_LV1_STRU), 0, sizeof(ALARM_LV1_STRU)) != 0) {
+            ALARM_LOG_ERR("memset_s error!");
+            free(cur_fault_stru);
+            cur_fault_stru = NULL;
+            return cur_fault_stru;
+        }
+        cur_fault_stru->next = NULL;
     }
 
     // cur_fault_stru->fault_info和cur_fault_info都是ALARM_MSG_FAULT_INFO类型，无需判断返回值

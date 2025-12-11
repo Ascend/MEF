@@ -31,15 +31,14 @@ class ModifyAlarm:
     SECURITY_LOCK = threading.Lock()
 
     @staticmethod
-    def rewrite_alarm(fd_cert_name_list: list):
+    def rewrite_alarm(cert_name_list: list):
         """
         Rewrite the run alarm file.
-        :param fd_cert_name_list: Fd certificate name list
+        :param cert_name_list:Certificate name list
         """
         lines = []
         alarm_time = int(time.time())
-
-        for cert_name in fd_cert_name_list:
+        for cert_name in cert_name_list:
             alarm_content = f"{CERT_ALARM_ID}@Certificate alarm@{cert_name} FD CERT@{alarm_time}@1@aabb\n"
             lines.append(alarm_content)
             run_log.info("Add %s FD certificate about to expire alarm", cert_name)
@@ -73,29 +72,10 @@ class ModifyAlarm:
                 return False
         return True
 
-    @staticmethod
-    def clean_fd_cert_alarm():
-        if not FileCheck.check_is_link(ALARM_FILE_EXTEND) or not FileCheck.is_exists(ALARM_FILE_EXTEND):
-            run_log.error("Clean FD certification alarm failed, all_active_alarm_extend file is not valid")
-            return
-        with open(ALARM_FILE_EXTEND, "r") as file:
-            lines = file.readlines()
-        new_lines = []
-        for line in lines:
-            if "FD CERT" not in line:
-                new_lines.append(line)
-        try:
-            with os.fdopen(os.open(ALARM_FILE_EXTEND, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), 'w') as new_file:
-                new_file.writelines(new_lines)
-        except Exception as err:
-            run_log.error("Rewrite all_active_alarm_extend failed. %s", err)
-            return
-        return
-
-    def modify_alarm_file(self, fd_cert_name_list: list):
+    def modify_alarm_file(self, cert_name_list: list):
         """
         Modify the run alarm file.
-        :param fd_cert_name_list: Fd certificate name list
+        :param cert_name_list:Certificate name list
         """
         if not FileCheck.check_is_link(ALARM_FILE_EXTEND):
             return
@@ -109,7 +89,7 @@ class ModifyAlarm:
         if os.path.getsize(ALARM_FILE_EXTEND) > FILE_MAX_SIZE:
             run_log.error("This %s file is too large.", ALARM_FILE_EXTEND)
             return
-        self.rewrite_alarm(fd_cert_name_list)
+        self.rewrite_alarm(cert_name_list)
 
     def post_request(self, request_data):
         if ModifyAlarm.SECURITY_LOCK.locked():
@@ -117,14 +97,10 @@ class ModifyAlarm:
             return [CommonMethods.ERROR, "Modify alarm failed"]
 
         with ModifyAlarm.SECURITY_LOCK:
-            if not request_data:
-                self.clean_fd_cert_alarm()
-                return [CommonMethods.OK, "Modify alarm succeed"]
-
-            fd_cert_name_list = request_data.get("FdCertNameList")
-            if not self.check_parameter(fd_cert_name_list):
+            cert_name_list = request_data.get("CertNameList")
+            if not self.check_parameter(cert_name_list):
                 return [CommonMethods.ERROR, "Modify alarm failed"]
 
-            self.modify_alarm_file(fd_cert_name_list)
+            self.modify_alarm_file(cert_name_list)
             run_log.info("Check the validity period of the FD certificate succeed")
             return [CommonMethods.OK, "Modify alarm succeed"]

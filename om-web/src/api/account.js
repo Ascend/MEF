@@ -28,13 +28,13 @@ export function deleteSession(sessionId) {
 
 export function getUserInfo(userId) {
   // 功能描述：获取指定用户信息
-  const url = `/redfish/v1/AccountService/Accounts/${userId}`;
+  const url = '/redfish/v1/AccountService/Accounts/' + userId
   return $get(url)
 }
 
 export function modifyUserInfo(userId, params) {
   // 功能描述：修改指定用户信息
-  const url = `/redfish/v1/AccountService/Accounts/${userId}`;
+  const url = '/redfish/v1/AccountService/Accounts/' + userId
   return $patch(url, {
     ...params,
   })

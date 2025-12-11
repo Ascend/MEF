@@ -166,7 +166,7 @@ static int ens_conf_parse_file(int fd, int fsize)
         bremain = bsize - bpos;
         try_rn = (fremain < bremain) ? fremain : bremain;
         act_rn = read(fd, buf, try_rn);
-        if ((size_t)act_rn != try_rn) {
+        if (act_rn != try_rn) {
             ENS_LOG_ERR("Failed read config file.");
             free(buf);
             buf = NULL;
