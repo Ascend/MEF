@@ -13,11 +13,11 @@
 import sys
 from urllib.parse import urlparse
 
-from common.checkers import AttrCheckerInterface
+from common.checkers import ModelChecker, StringChoicesChecker, ListChecker, IntegerChecker
 from common.checkers import CheckResult, RegexStringChecker
-from common.checkers import ModelChecker, StringChoicesChecker, ListChecker, IntegerChecker, StringLengthChecker
+from common.checkers import AttrCheckerInterface
 from common.checkers import PasswordComplexityChecker
-from net_manager.checkers.contents_checker import CertContentsChecker
+from net_manager.checkers.contents_checker import CertContentsChecker, CrlContentsChecker
 from om_event_subscription.constants import MIN_SUBSCRIPTION_ID, MAX_SUBSCRIPTION_ID, EventTypes, Protocol, \
     CERT_CRL_FILE_MAX_SIZE_BYTES
 
@@ -138,6 +138,6 @@ class ImportHttpCrlChecker(ModelChecker):
     class Meta:
         fields = (
             StringChoicesChecker("Type", choices=("text",)),
-            StringLengthChecker("Content", min_len=1, max_len=CERT_CRL_FILE_MAX_SIZE_BYTES),
+            CrlContentsChecker("Content", min_len=1, max_len=CERT_CRL_FILE_MAX_SIZE_BYTES),
             IntegerChecker("RootCertId", min_value=MIN_SUBSCRIPTION_ID, max_value=MAX_SUBSCRIPTION_ID, restrict=True),
         )

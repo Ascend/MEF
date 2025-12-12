@@ -48,7 +48,7 @@ static int ens_module_load_work(const char *module_file, char *name, int len)
     unsigned int ret = 0;
     char intf_name[ENS_MODULE_INTF_NAME_MAXLEN];
     char *symbol = intf_name;
-    if ((module_file == NULL) || (name == NULL) || (len > ENS_MODULE_FULLPATH_MAXLEN)) {
+    if ((module_file == NULL) || (name == NULL)) {
         return ENS_ERR;
     }
 

@@ -41,7 +41,6 @@ from common.log.logger import run_log
 from ibma_redfish_globals import RedfishGlobals
 from ibma_redfish_serializer import SuccessMessageResourceSerializer
 from lib_restful_adapter import LibRESTfulAdapter
-from net_manager.manager.fd_cfg_manager import FdCfgManager
 from system_service.systems_common import make_error_dict
 from system_service.systems_serializer import HttpsCertAlarmTimeResourceSerializer
 from system_service.systems_serializer import HttpsCertResourceSerializer
@@ -450,7 +449,6 @@ def rf_modify_system_https_cert_alarm_time():
 
             ret_status_is_ok = LibRESTfulAdapter.check_status_is_ok(ret_dict)
             if ret_status_is_ok:
-                FdCfgManager().check_cert_status()
                 return ret_dict, httpscert_alarm_time_resource
 
             return ret_dict, CommonConstants.ERR_GENERAL_INFO

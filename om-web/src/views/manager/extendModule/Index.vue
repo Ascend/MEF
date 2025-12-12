@@ -281,6 +281,7 @@ export default defineComponent({
           errorText: null,
         })
       })
+
     }
 
     const isHiddenAttr = (row) => Boolean(row?.accessMode.toLowerCase().indexOf('hide') > -1 && row?.valueType !== 'bool')

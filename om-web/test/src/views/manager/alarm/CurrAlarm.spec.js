@@ -51,9 +51,6 @@ describe('test manager alarm CurrAlarm searchAlarmTable', () => {
   it('by AlarmId', async () => {
     wrapper.vm.alarmQuery = '00000002';
     const { searchAlarmTable } = wrapper.vm;
-    wrapper.vm.alarmDataRef = {
-      clearSort: vi.fn(),
-    };
     await searchAlarmTable();
 
     expect(wrapper.vm.filterData).toStrictEqual(tableDataMock);
@@ -63,9 +60,6 @@ describe('test manager alarm CurrAlarm searchAlarmTable', () => {
   it('by AlarmInstance', async () => {
     wrapper.vm.alarmQuery = 'HARD_DISK0';
     const { searchAlarmTable } = wrapper.vm;
-    wrapper.vm.alarmDataRef = {
-      clearSort: vi.fn(),
-    };
     await searchAlarmTable();
 
     expect(wrapper.vm.filterData).toStrictEqual(tableDataMock);
@@ -75,9 +69,6 @@ describe('test manager alarm CurrAlarm searchAlarmTable', () => {
   it('by AlarmName', async () => {
     wrapper.vm.alarmQuery = 'Drive Not Found';
     const { searchAlarmTable } = wrapper.vm;
-    wrapper.vm.alarmDataRef = {
-      clearSort: vi.fn(),
-    };
     await searchAlarmTable();
 
     expect(wrapper.vm.filterData).toStrictEqual(tableDataMock);
@@ -99,4 +90,13 @@ it('test manager alarm CurrAlarm confirmStop', async () => {
   expect(wrapper.vm.selectedAlarmItem.isShowDetailDrawer).toBe(true);
   expect(wrapper.vm.isStartRefresh).toBe(false);
   expect(wrapper.vm.isShowDetailDialog).toBe(false);
+});
+
+it('test manager alarm CurrAlarm filterPerceivedSeverity', async () => {
+  const { filterPerceivedSeverity } = wrapper.vm;
+  const row = {
+    PerceivedSeverity: 10,
+  };
+  const rest = filterPerceivedSeverity(10, row);
+  expect(rest).toBe(true);
 });

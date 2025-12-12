@@ -21,21 +21,21 @@ from queue import Empty
 from socket import create_connection
 from typing import Optional
 
+import websockets
 from websockets.exceptions import ConnectionClosedError
 from websockets.legacy.client import WebSocketClientProtocol
-from websockets.legacy.client import connect
 
-from common.constants.base_constants import MefNetStatus, MefOperate
+from common.constants.base_constants import MefOperate, MefNetStatus
 from common.log.logger import run_log
 from common.token_bucket import TokenBucket
 from common.utils.ability_policy import OmAbility
 from common.utils.ability_policy import is_allow
 from common.utils.app_common_method import AppCommonMethod
-from common.utils.result_base import Result
 from common.utils.singleton import Singleton
+from common.utils.result_base import Result
 from lib_restful_adapter import LibRESTfulAdapter
 from mef_msg_process.mef_config_mgr import MefConfigData
-from mef_msg_process.msg_que import alarm_que_from_mef, msg_que_to_mef
+from mef_msg_process.msg_que import msg_que_to_mef, alarm_que_from_mef
 from net_manager.checkers.contents_checker import CertContentsChecker
 from net_manager.manager.fd_cfg_manager import FdCfgManager
 from wsclient.ws_client_mgr import WsClientMgr
@@ -361,7 +361,8 @@ class WsClientMef(Singleton):
 
         ssl_context = ssl_context_ret.data
         try:
-            async with connect(uri=config.wss_uri, ssl=ssl_context, ping_interval=10, ping_timeout=5) as client:
+            async with websockets.connect(uri=config.wss_uri, ssl=ssl_context, ping_interval=10,
+                                          ping_timeout=5) as client:
                 run_log.info("Websocket connect to MEF successfully.")
                 self.failed_reason: FailedReason = FailedReason.EMPTY
                 self.client_obj = client

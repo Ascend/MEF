@@ -31,17 +31,6 @@ INIT_COLUMNS: Dict[str, Iterable[str]] = {
     "cert_manager": ("id", "name", "source", "update_time", "cert_contents", "crl_contents"),
     "net_manager": ("id", "net_mgmt_type", "node_id", "server_name", "ip", "port", "cloud_user", "cloud_pwd", "status"),
     "last_login_info": ("id", "ip"),
-    "cert_info": (
-        "id", "name", "subject", "issuer", "serial_num", "signature_algorithm", "signature_len", "cert_version",
-        "pubkey_type", "fingerprint", "is_ca", "chain_num", "start_time", "end_time", "last_update", "next_update",
-        "in_use", "key_cert_sign",
-    ),
-    "fd_previous_cert": ("id", "name", "source", "update_time", "cert_contents", "crl_contents"),
-    "pre_cert_info": (
-        "id", "name", "subject", "issuer", "serial_num", "signature_algorithm", "signature_len", "cert_version",
-        "pubkey_type", "fingerprint", "is_ca", "chain_num", "start_time", "end_time", "last_update", "next_update",
-        "in_use", "key_cert_sign",
-    ),
 }
 
 # 尝试导入扩展，其他仓如果没有在对应的文件中实现扩展则会导入失败

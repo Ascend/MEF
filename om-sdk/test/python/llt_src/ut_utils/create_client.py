@@ -1,12 +1,6 @@
-from flask import Flask, Blueprint, g
+from flask import Flask, Blueprint
 
 app = Flask(__name__)
-
-
-@app.before_request
-def before_request():
-    # 给 g.user_id 打桩
-    g.user_id = 123
 
 
 class TestUtils:

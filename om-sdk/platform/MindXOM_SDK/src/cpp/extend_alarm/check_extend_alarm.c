@@ -106,13 +106,9 @@ static unsigned int g_fault_minid_errcode_cfg[FAULT_MINID_BUTT] = {
     0x80DD8008
 };
 
-static int parse_hard_disk_age_info(unsigned short *status);
-
 // 硬盘在位检查
 int get_disk_persent(unsigned short fault_id, unsigned short sub_id, unsigned short *status)
 {
-    (void)sub_id;
-
     if (status == NULL) {
         EXTEND_ALARM_LOG_ERR("status is null");
         return EXTEND_ALARM_ERROR;
@@ -142,12 +138,10 @@ int get_hard_disk_temp(unsigned short fault_id, unsigned short sub_id, unsigned 
     FILE *temp_fd = NULL;
     char file_buff[32] = {0};
     size_t result_len;
-    char cmd_temp[] = "smartctl -l scttemp %s | grep 'Current Temperature' | grep Celsius | awk '{print $3}' > /run/hard_disk_temp_info";
+    char cmd_temp[] = "smartctl -a %s | grep Temperature_Ce | awk '{print $10}' > /run/hard_disk_temp_info";
     char cmd_info[CMD_SIZE] = {0};
     char *endptr;
     long int temp_curr;
-
-    (void)sub_id;
 
     if (status == NULL) {
         EXTEND_ALARM_LOG_ERR("status is null");
@@ -201,11 +195,13 @@ int get_hard_disk_temp(unsigned short fault_id, unsigned short sub_id, unsigned 
 // 获取硬盘年限
 int get_hard_disk_age(unsigned short fault_id, unsigned short sub_id, unsigned short *status)
 {
+    FILE *fp = NULL;
     char cmd_temp[] = "smartctl -H %s > /run/hard_disk_age_info";
     char cmd_info[256] = {0};
+    char line_info[LINE_INFO_SIZE] = {0};
+    char last_line[LINE_INFO_SIZE] = {0};
     int ret = 0;
-
-    (void)sub_id;
+    int line_count = 0;
 
     if (status == NULL) {
         EXTEND_ALARM_LOG_ERR("status is null");
@@ -234,19 +230,6 @@ int get_hard_disk_age(unsigned short fault_id, unsigned short sub_id, unsigned s
     }
 
     (void)system(cmd_info);
-    ret = parse_hard_disk_age_info(status);
-    (void)unlink("/run/hard_disk_age_info");
-
-    return ret;
-}
-
-static int parse_hard_disk_age_info(unsigned short *status)
-{
-    FILE *fp = NULL;
-    char line_info[LINE_INFO_SIZE] = {0};
-    char last_line[LINE_INFO_SIZE] = {0};
-    int line_count = 0;
-
     fp = safety_fopen("/run/hard_disk_age_info", "r");
     if (fp == NULL) {
         EXTEND_ALARM_LOG_ERR("get hard disk age failed, safety_fopen file failed!");
@@ -277,6 +260,7 @@ static int parse_hard_disk_age_info(unsigned short *status)
         *status = FAULT_STATUS_OK;
     }
     (void)fclose(fp);
+    (void)unlink("/run/hard_disk_age_info");
 
     if (strstr(last_line, "ATTRIBUTE_NAME") != NULL) {
         *status = FAULT_STATUS_OK;
@@ -294,9 +278,6 @@ int get_usb_hub_alarm(unsigned short fault_id, unsigned short sub_id, unsigned s
     FILE *temp_fd = NULL;
     char file_buff[32] = {0};
     char usb_hub_info[256] = {0};
-
-    (void)sub_id;
-    (void)fault_id;
 
     if (status == NULL) {
         return EXTEND_ALARM_ERROR;
@@ -401,8 +382,6 @@ int check_extcsd_info(unsigned short fault_id, unsigned short sub_id, unsigned s
     int ret;
     char device[] = "/dev/mmcblk0";
     unsigned char ext_csd[EXT_CSD_REG_NUM];
-    (void)sub_id;
-    (void)fault_id;
     count++;
 
     if (status == NULL) {
@@ -494,8 +473,6 @@ int get_minid_alarm(unsigned short fault_id, unsigned short sub_id, unsigned sho
     unsigned int err_code;
     unsigned int err_code_curr;
     unsigned int has_find = 0;
-    (void)sub_id;
-    (void)fault_id;
     if (status == NULL) {
         EXTEND_ALARM_LOG_ERR("Input args is NULL.");
         return EXTEND_ALARM_ERROR;
@@ -539,8 +516,6 @@ int check_minid_temperature(unsigned short fault_id, unsigned short sub_id, unsi
     int temp = 0;
     static unsigned short last_status = 0;
     int ret;
-    (void)sub_id;
-    (void)fault_id;
     // minid在位检测
     if (g_fault_minid_present_flag != MINID_EXIST) {
         return EXTEND_ALARM_ERROR;

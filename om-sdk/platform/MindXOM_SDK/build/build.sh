@@ -101,75 +101,24 @@ function prepare()
     mkdir -p $TOP_DIR/output/opensource/python
 }
 
-function prepare_sqlalchemy() {
-    SQLALCHEMY_VERSION="1.4.48"
-    SQLALCHEMY_DIR="${TOP_DIR}"/opensource/sqlalchemy
-    SQLALCHEMY_UNPACK_PATH="${SQLALCHEMY_DIR}"/SQLAlchemy-${SQLALCHEMY_VERSION}
-
-    cd "${SQLALCHEMY_DIR}" || { echo "${SQLALCHEMY_DIR} does not exist."; return 3;}
-    rm -rf "${SQLALCHEMY_UNPACK_PATH}"
-    tar -zxvf SQLAlchemy-${SQLALCHEMY_VERSION}.tar.gz
-    declare patch_files=(0001-fix-none-type-judge.patch \
-                         huawei-remove-greenlet.patch)
-    cd "${SQLALCHEMY_UNPACK_PATH}" || { echo "${SQLALCHEMY_UNPACK_PATH} does not exist."; return 3;}
-
-    for i in "${!patch_files[@]}"
-    do
-        if [ ! -e "${SQLALCHEMY_DIR}"/"${patch_files[i]}" ]; then
-            echo "${SQLALCHEMY_DIR}"/"${patch_files[i]}" not exist
-        fi
-
-        patch -Np1 < "${SQLALCHEMY_DIR}"/"${patch_files[i]}"
-        if [ $? != 0 ]; then
-            echo patch "${patch_files[i]}" failed
-            exit 0
-        else
-            echo "patch ${patch_files[i]} success"
-        fi
-    done
-    echo "patch all file successfully"
-
-    cp -rf "${SQLALCHEMY_UNPACK_PATH}"/* "${SQLALCHEMY_DIR}"
-}
-
-function poetry_install_dependencies() {
-    cd ${CUR_DIR}
-    poetry config certificates.cmcrepo.cert false
-    poetry env use python3.11
-    poetry lock --no-update
-    poetry install
-
-    DEPENDENCIES_PATH=$(find "$(poetry env info | grep Path | awk 'NR==1 {print $2}')" -name site-packages | awk 'NR==1 {print $1}')
-    cp -r "${DEPENDENCIES_PATH}"/*  "${TOP_DIR}"/opensource
-}
-
-
 function build_opensource_python()
 {
-    # openeuler:sqlalchemy repository is made of tar.gz file and patches
-    # openeuler:sqlalchemy仓库仅包含压缩包和patch文件，单独适配
-    prepare_sqlalchemy
-
     declare -a opensource_python=(
-        # 通过源码下载，多层目录
+        "urllib3/src/urllib3"
+        "click/src/click"
+        "jinja2/src/jinja2"
+        "werkzeug/src/werkzeug"
+        "flask/src/flask"
         "sqlalchemy/lib/sqlalchemy"
         "websockets/src/websockets"
-        # 通过poetry下载，单层目录
-        "urllib3"
-        "flask"
-        "jinja2"
-        "werkzeug"
         "itsdangerous"
         "markupsafe"
-        "blinker"
-        "click"
     )
-
-    # 通过poetry安装flask及其相关依赖
-    poetry_install_dependencies
 
     mkdir -p "${TOP_DIR}"/opensource/python
     cd "${TOP_DIR}"/opensource || { echo "${TOP_DIR}/opensource does not exist."; return 3;}
+    # flask的依赖使用pip3 install
+    pip3 install -r "${CUR_DIR}"/requirements.txt --no-compile --target="${TOP_DIR}"/opensource
 
     # 检查当前opensource python是否都已经存在
     for ((j = 0; j < "${#opensource_python[@]}"; j++)); do
@@ -179,29 +128,27 @@ function build_opensource_python()
         fi
     done
 
-    cp -arf urllib3 "${TOP_DIR}"/output/opensource/python
+    cp -arf urllib3/src/urllib3 "${TOP_DIR}"/output/opensource/python
 
-    rm -f click/shell_completion.py
-    rm -f click/testing.py
-    rm -f click/_textwrap.py
-    rm -f click/_winconsole.py
-    cp -arf click "${TOP_DIR}"/output/opensource/python
+    rm -f click/src/click/shell_completion.py
+    rm -f click/src/click/testing.py
+    rm -f click/src/click/_textwrap.py
+    rm -f click/src/click/_winconsole.py
+    cp -arf click/src/click "${TOP_DIR}"/output/opensource/python
 
-    rm -f jinja2/debug.py
-    cp -arf jinja2/ "${TOP_DIR}"/output/opensource/python
+    rm -f jinja2/src/jinja2/debug.py
+    cp -arf jinja2/src/jinja2 "${TOP_DIR}"/output/opensource/python
 
-    rm -f werkzeug/testapp.py
-    rm -rf werkzeug/debug
-    rm -rf werkzeug/middleware
-    cp -arf werkzeug/ "${TOP_DIR}"/output/opensource/python
-    # werkzeug 3.0.1必须依赖werkzeug.dist-info目录，否则无法正常运行
-    mkdir "${TOP_DIR}"/output/opensource/python/werkzeug.dist-info
+    rm -f werkzeug/src/werkzeug/testapp.py
+    rm -rf werkzeug/src/werkzeug/debug
+    rm -rf werkzeug/src/werkzeug/middleware
+    cp -arf werkzeug/src/werkzeug "${TOP_DIR}"/output/opensource/python
 
-    rm -f flask/debughelpers.py
-    rm -f flask/__main__.py
-    rm -f flask/testing.py
-    rm -f flask/views.py
-    cp -arf flask/ "${TOP_DIR}"/output/opensource/python
+    rm -f flask/src/flask/debughelpers.py
+    rm -f flask/src/flask/__main__.py
+    rm -f flask/src/flask/testing.py
+    rm -f flask/src/flask/views.py
+    cp -arf flask/src/flask/ "${TOP_DIR}"/output/opensource/python
 
     rm -f sqlalchemy/lib/sqlalchemy/dialects/sqlite/provision.py
     rm -rf sqlalchemy/lib/sqlalchemy/dialects/firebird
@@ -222,8 +169,6 @@ function build_opensource_python()
 
     rm -f markupsafe/_speedups.*.so
     cp -arf markupsafe "${TOP_DIR}"/output/opensource/python
-
-    cp -arf blinker "${TOP_DIR}"/output/opensource/python
     echo "build_opensource_python done."
 
 }
@@ -279,14 +224,6 @@ function package_sdk()
 
 function tar_package()
 {
-    local chmod_prepare_script="${CUR_DIR}/chmod_prepare.sh"
-    dos2unix "${chmod_prepare_script}"
-    chmod u+x "${chmod_prepare_script}"
-    sh "${chmod_prepare_script}" "${OUTPUT_PACKAGE_DIR}"
-    if [ $? -ne 0 ];then
-        echo "chmod_prepare failed!"
-        exit 1
-    fi
     cd "${OUTPUT_PACKAGE_DIR}"
     tar -czf "${ATLASEDGE_RELEASE_FILE}" *
     echo "packet MindXOM file successfully!"

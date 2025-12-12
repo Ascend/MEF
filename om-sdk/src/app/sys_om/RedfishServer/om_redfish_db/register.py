@@ -13,8 +13,8 @@
 from typing import Type
 
 from common.db.database import DataBase
-from om_event_subscription.models import Subscription, SubscriptionCert, ActiveAlarm, AlarmReportTask, SubsPreCert
+from om_event_subscription.models import Subscription, SubscriptionCert, ActiveAlarm, AlarmReportTask
 
 
 def register_extend_om_models(database: Type[DataBase]):
-    database.register_models(Subscription, SubscriptionCert, ActiveAlarm, AlarmReportTask, SubsPreCert)
+    database.register_models(Subscription, SubscriptionCert, ActiveAlarm, AlarmReportTask)

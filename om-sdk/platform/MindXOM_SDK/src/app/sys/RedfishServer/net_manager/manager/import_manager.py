@@ -8,115 +8,171 @@
 # EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
-import threading
-from typing import Literal, NoReturn, Iterable, List, Tuple
+from abc import ABC, abstractmethod
+from typing import NoReturn, List, Type, Iterable
 
-from cert_manager.parse_tools import CertChainParser, CrlChainParser
-from cert_manager.schemas import CertInfoSchema
-from common.log.logger import run_log
-from net_manager.checkers.contents_checker import CertInfoValidator
+from common.checkers import StringLengthChecker
+from cert_manager.parse_tools import ParseCertInfo, ParseCrlInfo
+from common.constants.error_codes import SecurityServiceErrorCodes
+from net_manager.checkers.contents_checker import CertContentsChecker, CrlContentsChecker
 from net_manager.constants import NetManagerConstants
-from net_manager.exception import DataCheckException, LockedError
-from net_manager.manager.net_cfg_manager import CertMgr
+from net_manager.exception import DataCheckException
+from net_manager.manager.fd_cert_manager import FdCertManager
+from net_manager.manager.net_cfg_manager import NetCertManager
 from net_manager.manager.net_cfg_manager import NetCfgManager
-from net_manager.models import CertManager, CertInfo
+from net_manager.models import CertManager
 
 
-class ImportCert(CertMgr, CertInfoValidator):
-    """根证书导入管理类"""
-    lock = threading.Lock()
+class ImportManagerBase(ABC):
+    """导入管理基类"""
 
-    def __init__(self, source: Literal["Web", "FusionDirector"] = NetManagerConstants.WEB,
-                 cert_name: str = NetManagerConstants.FD_CERT_NAME):
+    checker_class: Type[StringLengthChecker]
+    contents_name: str
+
+    def __init__(self, contents: str, source: str):
+        self.contents = contents
         self.source = source
+        self.cert_manager = NetCertManager()
+
+    @abstractmethod
+    def import_deal(self) -> dict:
+        pass
+
+    @abstractmethod
+    def update_contents(self) -> NoReturn:
+        pass
+
+    def check_contents(self) -> NoReturn:
+        try:
+            check_ret = self.checker_class(self.contents_name).check({self.contents_name: self.contents})
+        except Exception as err:
+            raise DataCheckException(f"{self.contents_name} check failed, {err}") from err
+
+        if not check_ret.success:
+            raise DataCheckException(f"{self.contents_name} check failed, {check_ret.reason}",
+                                     err_code=check_ret.err_code)
+
+
+class CertImportManager(ImportManagerBase):
+    """根证书导入管理类"""
+
+    checker_class = CertContentsChecker
+    contents_name = "cert_contents"
+    sep = "-----END CERTIFICATE-----"
+
+    def __init__(self, contents: str, source=NetManagerConstants.WEB, cert_name=NetManagerConstants.FD_CERT_NAME):
+        super().__init__(contents, source)
         self.cert_name = cert_name
-        self._necessary()
 
-    def check_cert_info(self, cert_info: CertInfoSchema) -> NoReturn:
-        super().check_cert_info(cert_info)
-        if not cert_info.ca_sign_valid:
+    @staticmethod
+    def check_status_is_ready() -> bool:
+        return NetCfgManager().get_net_cfg_info().status == "ready"
+
+    def check_contents(self):
+        self.check_multi_cert()
+        if self.source == NetManagerConstants.WEB:
             return
+
         # 新导入证书和已存在证书指纹比较，来源于FD的不允许导入相同指纹的证书
-        if self.source == NetManagerConstants.FUSION_DIRECTOR and self._finger_already_existed(cert_info.fingerprint):
-            raise DataCheckException("import cert finger already existed.")
+        with ParseCertInfo(self.contents) as cert_info:
+            new_fingerprint = cert_info.fingerprint
 
-    def import_deal(self, contents: str) -> dict:
-        if self.lock.locked():
-            raise LockedError("Import cert is busy.")
-        with self.lock:
-            cert_chain_parser = CertChainParser(contents)
-            return self._add_cert(cert_chain_parser.get_root_ca_schema(self.check_cert_info), contents)
+        cert_managers: List[CertManager] = self.cert_manager.get_all()
+        for cert in cert_managers:
+            with ParseCertInfo(cert.cert_contents) as cert_info:
+                old_fingerprint = cert_info.fingerprint
 
-    def _finger_already_existed(self, finger: str) -> int:
-        with self.session_maker() as session:
-            return session.query(self.cert_info).filter_by(fingerprint=finger).count()
+            if new_fingerprint == old_fingerprint:
+                raise DataCheckException(f"import cert finger is the same with local cert name [{cert.name}].")
 
-    def _necessary(self) -> NoReturn:
-        if self.source == NetManagerConstants.WEB and NetCfgManager().get_net_cfg_info().status == "ready":
+    def import_deal(self) -> dict:
+        if self.source == NetManagerConstants.WEB and self.check_status_is_ready():
             raise DataCheckException("Current net manage status is 'ready', upload certificate is not allowed.")
 
-    def _add_cert(self, cert_schema: CertInfoSchema, cert_contents: str) -> dict:
-        with self.session_maker() as session:
-            # 备份当前使用的证书
-            self.backup_previous_cert()
-            # 保存新导入的证书
-            self.del_by_name(name=self.cert_name, session=session)
-            cert_info = self.cert_info(name=self.cert_name)
-            cert_info.update_by_schema(cert_schema)
-            session.bulk_save_objects((
-                self.cert(name=self.cert_name, source=self.source, cert_contents=cert_contents),
-                cert_info,
-            ))
+        self.check_contents()
+        self.update_contents()
+        with ParseCertInfo(self.contents) as cert_info:
             return cert_info.to_dict()
 
+    def update_contents(self) -> NoReturn:
+        data = {
+            "CertName": self.cert_name,
+            "Source": self.source,
+            "CertContents": self.contents,
+        }
+        # 根据证书名删除已存在名字的对象
+        self.cert_manager.delete_obj_by_name(self.cert_name)
+        # 插入新的数据对象
+        self.cert_manager.add_objs(self.cert_manager.model.from_dict(data))
 
-class ImportCrl(CertMgr):
-    """导入crl处理类"""
-    lock = threading.Lock()
+    def node_generator(self) -> Iterable[str]:
+        for node in self.contents.split(self.sep):
+            if not node.split():
+                continue
+            yield "".join((node, self.sep))
 
-    def __init__(self):
-        super().__init__()
-        self._necessary()
+    def check_multi_cert(self):
+        root_ca = 0
+        for cert in self.node_generator():
+            try:
+                check_ret = self.checker_class(self.contents_name).check({self.contents_name: cert})
+            except Exception as err:
+                raise DataCheckException(f"{self.contents_name} check failed, {err}") from err
 
-    def import_deal(self, contents: str) -> dict:
-        if self.lock.locked():
-            raise LockedError("Import crl is busy.")
-        with self.lock:
-            return self._import_deal(contents)
+            if check_ret.success:
+                root_ca += 1
+            elif check_ret.err_code != SecurityServiceErrorCodes.ERROR_CERTIFICATE_CA_SIGNATURE_INVALID.code:
+                raise DataCheckException(f"{self.contents_name} check failed, {check_ret.reason}",
+                                         err_code=check_ret.err_code)
 
-    def _import_deal(self, contents: str) -> dict:
-        crl_chain_parser = CrlChainParser(contents)
-        if not crl_chain_parser.node_num:
-            raise DataCheckException("The number of crl is 0.")
+        if root_ca == 0:
+            raise DataCheckException("The certificate chain has no root certificates.")
+        elif root_ca > 1:
+            raise DataCheckException("The certificate chain contains multiple root certificates.")
 
-        if crl_chain_parser.node_num != crl_chain_parser.buffer.count(crl_chain_parser.sep):
-            raise DataCheckException("Duplicate chain in crl list.")
 
-        if crl_chain_parser.node_num > crl_chain_parser.MAX_CHAIN_NUMS:
-            raise DataCheckException(f"The number of crl is greater than {crl_chain_parser.MAX_CHAIN_NUMS}.")
-        cert_names = list(self._verified_cert_names(crl_chain_parser))
-        if not cert_names:
-            raise DataCheckException("Verify CRL does not match against the CA certificate.")
-        self._update_to_certs(cert_names, contents)
+class CrlImportManager(ImportManagerBase):
+    """吊销列表导入管理类"""
+    checker_class = CrlContentsChecker
+    contents_name = "crl_contents"
+
+    def __init__(self, contents: str, source: str = NetManagerConstants.WEB):
+        super().__init__(contents, source)
+        self.cert_id = 0
+
+    @staticmethod
+    def compare_crl_issuing_date(old_last_update, new_last_update) -> NoReturn:
+        if old_last_update >= new_last_update:
+            err_msg = f"The last update time [{new_last_update}] of the uploaded CRL file is earlier " \
+                      f"than or equal to the last update time [{old_last_update}] of the existing CRL file."
+            raise DataCheckException(err_msg)
+
+    def check_contents(self):
+        super().check_contents()
+        # 验证吊销列表是否匹配到对应根证书
+        verify_result = FdCertManager().verify_crl_against_ca(self.contents, self.source)
+        if not verify_result:
+            raise DataCheckException(verify_result.error)
+
+        self.cert_id = verify_result.data
+        # 检查该根证书是否已上传吊销列表，若已上传则和新上传的时间作对比
+        crl_contents = self.cert_manager.get_obj_by_id(self.cert_id).crl_contents
+        if not crl_contents:
+            return
+
+        with ParseCrlInfo(crl_contents) as parse_crl:
+            old_last_update = parse_crl.last_update
+
+        with ParseCrlInfo(self.contents) as parse_crl:
+            new_last_update = parse_crl.last_update
+
+        self.compare_crl_issuing_date(old_last_update, new_last_update)
+
+    def import_deal(self) -> dict:
+        self.check_contents()
+        self.update_contents()
         return {"Message": "import crl success."}
 
-    def _necessary(self) -> NoReturn:
-        if not self._number_of_certs():
-            raise DataCheckException("Check certificate is null. Please check and upload certificate.")
-
-    def _certs_for_against_crl(self, chain_num: int) -> Iterable[Tuple[CertManager, CertInfo]]:
-        with self.session_maker() as session:
-            yield from self._certs_within_the_validity_period(session).filter(
-                self.cert_info.chain_num == chain_num,
-            ).limit(NetManagerConstants.CERT_FORM_FD_AND_WEB_LIMIT_NUM)
-
-    def _verified_cert_names(self, parser: CrlChainParser) -> Iterable[str]:
-        for cert, _ in self._certs_for_against_crl(parser.node_num):
-            if not parser.verify_crl_chain_by_cert_chain(cert.cert_contents):
-                run_log.warning("%s does not match CRL.", cert.name)
-                continue
-            yield cert.name
-
-    def _update_to_certs(self, names: List[str], contents: str) -> NoReturn:
-        with self.session_maker() as session:
-            session.query(self.cert).filter(self.cert.name.in_(names)).update({"crl_contents": contents})
+    def update_contents(self) -> NoReturn:
+        # 根据其CA证书数据对象id插入crl_contents
+        self.cert_manager.update_obj_by_id(self.cert_id, {"crl_contents": self.contents})

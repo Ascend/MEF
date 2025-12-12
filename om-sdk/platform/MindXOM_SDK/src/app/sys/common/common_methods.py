@@ -83,7 +83,7 @@ class CommonMethods(object):
         2017-02-08 修改 value 为 None,直接返回 None
         """
 
-        if not value or len(value) > 2048:
+        if not value:
             return ""
 
         if is_find:

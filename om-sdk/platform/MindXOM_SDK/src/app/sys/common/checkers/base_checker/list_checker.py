@@ -11,8 +11,6 @@
 # See the Mulan PSL v2 for more details.
 import sys
 from abc import ABC
-from collections import Counter
-from typing import Union
 
 from common.checkers.base_checker.basic_attr_checker import ExistsCheckerWithMinMax
 from common.checkers.base_checker.basic_attr_checker import _ListChecker
@@ -113,48 +111,3 @@ class OrChecker(_ListChecker):
                 checker_description = ret.check_description
             failed_msg.append(ret.reason)
         return CheckResult.make_failed("\n".join(failed_msg), checker_description)
-
-
-class PartitionListChecker(ExistsCheckerWithMinMax):
-    def __init__(
-        self,
-        attr_name: str = None,
-        elem_checker: AttrCheckerInterface = None,
-        min_len=0,
-        max_len=16,
-        required: bool = True,
-    ):
-        super().__init__(attr_name, min_len, max_len, required)
-        self.elem_checker = elem_checker
-
-    def check_dict(self, data: dict) -> CheckResult:
-        ret = super().check_dict(data)
-        if not ret.success:
-            return ret
-        value_list = self.raw_value(data)
-        if value_list is None:
-            return CheckResult.make_success()
-        if type(value_list) not in [tuple, list]:
-            msg_format = "Partition List Checker: invalid list type of {}"
-            return CheckResult.make_failed(msg_format.format(self.name()))
-        ret = self.check_elem_in_list(value_list)
-        if not ret.success:
-            return ret
-        return self.check_min_max(value_list)
-
-    def check_elem_in_list(self, value_list):
-        if self.elem_checker is None:
-            return CheckResult.make_success()
-        for value in value_list:
-            ret = self.elem_checker.check_dict(value)
-            if not ret.success:
-                return ret
-        return CheckResult.make_success()
-
-    def check_min_max(self, value: Union[tuple, list]):
-        location_counter = Counter(item.get("device").get("device_location") for item in value)
-        msg_format = "Partition List Checker: the value of {} is out of range [{}, {}]"
-        for item in location_counter.values():
-            if item > self.max_value or item < self.min_value:
-                return CheckResult.make_failed(msg_format.format(self.name(), self.min_value, self.max_value))
-        return CheckResult.make_success()

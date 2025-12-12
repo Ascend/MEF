@@ -1,7 +1,6 @@
 import ssl
 from collections import namedtuple
 from unittest.mock import mock_open
-from unittest.mock import patch
 
 import pytest
 from pytest_mock import MockerFixture
@@ -16,11 +15,7 @@ from common.kmc_lib.tlsconfig import TlsConfig
 from common.utils.app_common_method import AppCommonMethod
 from common.utils.result_base import Result
 from ibma_redfish_globals import RedfishGlobals
-from ut_utils.models import MockPrivilegeAuth
-
-with patch("token_auth.get_privilege_auth", return_value=MockPrivilegeAuth):
-    from ibma_redfish_urls import RedfishURIs
-
+from ibma_redfish_urls import RedfishURIs
 from system_service.systems_common import lib_rest_check_status, modify_null_tag_to_default
 
 GetUserLockedStateCase = namedtuple("GetUserLockedStateCase", "expected, ret_dict")

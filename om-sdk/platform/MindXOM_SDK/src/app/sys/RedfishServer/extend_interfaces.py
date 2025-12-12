@@ -11,7 +11,6 @@ from typing import Callable, Type, Dict, Iterable
 
 from common.db.database import DataBase
 from common.kmc_lib.kmc_updater import MultiKmcUpdater
-from common.utils.result_base import Result
 
 # 新增组件信息查询函数，用于静态信息上报FD
 EXTEND_COMPONENTS_INFO_FUNC_PATHS = []
@@ -30,7 +29,3 @@ EXTEND_REDFISH_SCHEMA = []
 
 # 扩展主仓的Kmc更新注册函数
 extend_updater_and_adapters: Callable[[Type[MultiKmcUpdater]], None] = lambda updater: None
-
-# 扩展证书管理功能
-extend_certs_manager_funcs: Callable[[str], Result] = \
-    lambda action: Result(False, err_msg="Extend manage func not exists.")

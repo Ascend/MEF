@@ -7,7 +7,6 @@ Wants=network-online.target devm_drv_init.service
 Type=forking
 ExecStart=/bin/bash -c '/usr/local/mindx/MindXOMUpgrade/scripts/om_init.sh || /usr/local/mindx/MindXOM/scripts/om_init.sh'
 TimeoutSec=6000
-RemainAfterExit=yes
 
 [Install]
 WantedBy=multi-user.target

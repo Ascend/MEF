@@ -31,7 +31,5 @@ SERVICE_ROOT = OMRfServiceRoot(MOCKUP_PATH, ROOT_PATH)
 MODEL = "Atlas 500 A2"
 
 # 下载接口
-DOWNLOAD_FUNC: tuple = (
-    "systems.rf_system_log_download", "systems.rf_export_system_puny_dict",
-    "systems.rf_download_csr_file", "systems.rf_export_security_load",
-)
+DOWNLOAD_FUNC: tuple = ("systems.rf_system_log_download", "systems.rf_export_system_puny_dict",
+                        "systems.rf_download_csr_file", "systems.rf_export_security_load",)

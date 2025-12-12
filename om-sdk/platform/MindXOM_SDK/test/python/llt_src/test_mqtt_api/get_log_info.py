@@ -13,11 +13,6 @@ class GetLogInfo:
 
         return decorator
 
-    def clear_log(self):
-        if os.path.exists(self.file):
-            with open(self.file, mode='w') as file2:
-                file2.write('')
-
     def get_log(self):
         res = ""
         if os.path.exists(self.file):

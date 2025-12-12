@@ -26,10 +26,9 @@ from fd_msg_process.fd_common_methods import publish_ws_msg
 from ibma_redfish_globals import RedfishGlobals
 from lib_restful_adapter import LibRESTfulAdapter
 from net_manager.constants import NetManagerConstants
-from net_manager.exception import NetManagerException
-from net_manager.manager.fd_cert_manager import FdCertManager
 from net_manager.manager.fd_cfg_manager import FdCfgManager
 from net_manager.manager.fd_cfg_manager import FdMsgData
+from net_manager.manager.net_cfg_manager import NetCertManager
 from net_manager.manager.net_cfg_manager import NetCfgManager
 from net_manager.models import NetManager
 from net_manager.schemas import PayloadPublish
@@ -220,19 +219,22 @@ class OMFDMessageHandler:
         return net_manager
 
     @staticmethod
-    def fetch_cert_manager_config(net_manager):
+    def fetch_cert_manager_config():
         try:
-            return [FdCertManager(net_manager.ip, net_manager.port).cert_for_restore_mini_os(), ]
-        except NetManagerException as err:
-            raise RecoverError(str(err)) from err
+            cert_list = NetCertManager().get_all()
         except Exception:
             raise RecoverError("Get certmanager info from db failed")
 
+        if not cert_list:
+            raise RecoverError("The net manager cert list is empty.")
+
+        return cert_list
+
     @staticmethod
-    def save_fd_config_files(net_manager, cert_list):
+    def save_fd_config_files(net_manager, cert_manager):
         net_manager_dict = {
             "config": net_manager.to_dict_for_update(),
-            "cert": cert_list
+            "cert": [cert.to_dict() for cert in cert_manager]
         }
 
         redfish_path = os.path.join(CommonConstants.CONFIG_HOME_PATH, "redfish")
@@ -290,7 +292,7 @@ class OMFDMessageHandler:
 
                 # 获取对接信息和证书列表，保存下来
                 net_manager = self.fetch_net_manager_config()
-                cert_list = self.fetch_cert_manager_config(net_manager)
+                cert_list = self.fetch_cert_manager_config()
                 self.save_fd_config_files(net_manager, cert_list)
                 run_log.info("Save config for recover mini os successfully.")
 

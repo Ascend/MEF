@@ -40,6 +40,13 @@ export function resetFirmware(params) {
   });
 }
 
+export function queryHddInfo(hddId) {
+  // 功能描述：查询硬盘固件
+  const url = '/redfish/v1/UpdateHddService/HddInfo/' + hddId
+  return $get(url);
+}
+
+
 export function updateHdd(params) {
   // 功能描述：升级硬盘固件
   const url = '/redfish/v1/UpdateHddService/Actions/UpdateHddService.SimpleUpdate'
@@ -47,6 +54,8 @@ export function updateHdd(params) {
     ...params,
   });
 }
+
+
 
 export function queryHddUpgradeInfo(hddId) {
   const url = '/redfish/v1/UpdateHddService/Actions/UpdateHddService.infos'

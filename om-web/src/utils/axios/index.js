@@ -19,13 +19,13 @@ import setConfig from '@/utils/axios/config'
 import { handleResponseError } from '@/utils/axios/handleResponseError'
 import i18n from '@/utils/locale';
 
-export const intactRequest = setConfig(axios);
-export const request = intactRequest.create();
+export let intactRequest = setConfig(axios);
+export let request = intactRequest.create();
 
 request.interceptors.request.use(
   (config) => {
     if (config.headers && Object.prototype.hasOwnProperty.call(config.headers, 'AutoRefresh')) {
-      config.headers.AutoRefresh = String(config.headers.AutoRefresh);
+      config.headers.AutoRefresh = config.headers.AutoRefresh + ''
     }
     request.config = Object.assign({}, config);
     if (config?.customParams.isShowLoading) {

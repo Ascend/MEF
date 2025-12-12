@@ -11,7 +11,6 @@
 import glob
 import json
 import os
-import re
 import threading
 import time
 from typing import Dict
@@ -66,49 +65,6 @@ class Devm(Singleton):
         return ret
 
     @staticmethod
-    def check_production_json(cfg_file):
-        """
-        check "product_specification.json" file's fields
-        """
-        with open(cfg_file) as stream:
-            try:
-                content = json.load(stream)
-            except Exception:
-                run_log.error("product_specification.json file content has invalid json format")
-                return False
-
-        if not isinstance(content, dict):
-            run_log.error("The content of product specification is not a dict.")
-            return False
-
-        modules = content.get("modules")
-        if not isinstance(modules, dict):
-            run_log.error("The 'modules' field in product specification is invalid.")
-            return False
-
-        device_pattern = r"^[a-zA-Z0-9\.\-\_\s]{1,127}$"
-        for module, module_spec in modules.items():
-            if not isinstance(module, str) or not isinstance(module_spec, dict):
-                run_log.error("key or value of 'modules' is invalid.")
-                return False
-
-            devices = module_spec.get("devices")
-            if not isinstance(devices, list):
-                run_log.error("'devices' in modules is empty or not a list.")
-                return False
-
-            for device in devices:
-                if not isinstance(device, str):
-                    run_log.error("'devices' in modules should be a string.")
-                    return False
-
-                res = re.fullmatch(device_pattern, device)
-                if res is None or res.group(0) != device:
-                    run_log.error("'devices' in modules is invalid.")
-                    return False
-        return True
-
-    @staticmethod
     def get_5g_device():
         cmd = 'lsusb | grep "2c7c:0900"'
         ret = ExecCmd.exec_cmd_use_pipe_symbol(cmd, wait=10)
@@ -158,7 +114,7 @@ class Devm(Singleton):
         """
         product_file = os.path.join(config_dir, "product_specification.json")
         ret = self.check_cfg_file_valid(product_file)
-        if not ret or not self.check_production_json(product_file):
+        if not ret:
             run_log.error("%s product file invalid", product_file)
             raise DeviceManagerError("product file invalid")
 

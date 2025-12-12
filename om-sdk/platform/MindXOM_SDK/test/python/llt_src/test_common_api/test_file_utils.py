@@ -1,6 +1,3 @@
-import os
-import tarfile
-import zipfile
 from collections import namedtuple
 from configparser import ConfigParser
 from typing import BinaryIO, IO
@@ -12,91 +9,8 @@ from pytest_mock import MockerFixture
 from common.utils.result_base import Result
 
 from common.exception.biz_exception import BizException
-from common.file_utils import FileUtils, FilePermission, FileCopy, FileWriter, CompressedFileCheckUtils, FileCreate, \
-    FileOperator
+from common.file_utils import FileUtils, FilePermission, FileCopy, FileWriter
 from common.file_utils import FileCheck
-
-
-class TestFileCheckUtils:
-    TMP_DIR = "/tmp/tmp_dir"
-    TMP_ZIP_FILE = "/tmp/tmp.zip"
-    TMP_FILE1 = "/tmp/tmp1.txt"
-    TMP_FILE2 = "/tmp/tmp2.txt"
-    TMP_TAR_FILE = "/tmp/tmp.tar.gz"
-
-    def setup_method(self):
-        self.write_file()
-        self.create_zip_file()
-        self.create_tar_file()
-
-    def teardown_method(self):
-        for clear_file in self.TMP_FILE1, self.TMP_FILE2, self.TMP_ZIP_FILE, self.TMP_TAR_FILE:
-            if os.path.exists(clear_file):
-                os.remove(clear_file)
-
-    def write_file(self):
-        for file in self.TMP_FILE1, self.TMP_FILE2:
-            with os.fdopen(os.open(file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "w") as fd:
-                fd.write("test")
-
-    def create_zip_file(self):
-        with zipfile.ZipFile(self.TMP_ZIP_FILE, "w") as zip_fd:
-            for file in self.TMP_FILE1, self.TMP_FILE2:
-                zip_fd.write(file)
-
-    def create_tar_file(self):
-        with tarfile.open(self.TMP_TAR_FILE, 'w:gz') as tar_fd:
-            for file in self.TMP_FILE1, self.TMP_FILE2:
-                tar_fd.add(file)
-
-    def test_get_zip_file_info(self):
-        self.create_zip_file()
-        ret = CompressedFileCheckUtils().get_zip_file_info(self.TMP_ZIP_FILE)
-        assert ret.data == [8, ['tmp/tmp1.txt', 'tmp/tmp2.txt']]
-
-    def test_get_tar_file_info(self):
-        ret = CompressedFileCheckUtils().get_tar_file_info(self.TMP_TAR_FILE, file_mode="r")
-        assert ret.data == [8, ['tmp/tmp1.txt', 'tmp/tmp2.txt']]
-
-    def test_check_compressed_file_valid_tarfile(self):
-        ret = CompressedFileCheckUtils().check_compressed_file_valid(self.TMP_TAR_FILE)
-        assert bool(ret) is True
-
-    def test_check_compressed_file_valid_zipfile(self):
-        ret = CompressedFileCheckUtils().check_compressed_file_valid(self.TMP_ZIP_FILE)
-        assert bool(ret) is True
-
-    def test_create_file(self):
-        ret = FileCreate().create_file(self.TMP_FILE1, 0o600)
-        assert bool(ret) is True
-
-    def test_create_dir(self):
-        ret = FileCreate().create_dir(self.TMP_DIR, 0o700)
-        assert bool(ret) is True
-
-    def test_extra_tar_file(self):
-        ret = FileOperator().extra_tar_file(self.TMP_TAR_FILE, "/tmp")
-        assert bool(ret) is True
-
-    def test_extra_zip_file(self):
-        ret = FileOperator().extra_zip_file(self.TMP_ZIP_FILE, "/tmp")
-        assert bool(ret) is True
-
-    def test_delete_file_or_link(self):
-        FileUtils().delete_file_or_link(self.TMP_FILE2)
-
-    def test_write_file_with_lock(self):
-        def inner_write_function(file, content):
-            file.write(content)
-
-        FileUtils().write_file_with_lock(self.TMP_FILE1, inner_write_function, "xxx")
-
-    def test_delete_full_dir(self):
-        FileUtils().delete_full_dir(self.TMP_DIR)
-
-    def test_check_script_file_valid(self):
-        ret = FileUtils().check_script_file_valid(self.TMP_FILE2)
-        assert bool(ret) is True
 
 
 class TestFileUtils:

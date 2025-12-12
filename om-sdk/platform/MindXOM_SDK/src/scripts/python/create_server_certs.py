@@ -41,10 +41,6 @@ class CertMgr:
         self.server_cert_file = os.path.join(cert_dir, f"{CertInfo.CERT_NAME}.cert")
         self.server_key_file = os.path.join(cert_dir, f"{CertInfo.CERT_NAME}.priv")
         self.server_pwd_file = os.path.join(cert_dir, f"{CertInfo.CERT_NAME}.psd")
-        # uds client certificate
-        self.client_cert_file = os.path.join(cert_dir, "client_kmc.cert")
-        self.client_key_file = os.path.join(cert_dir, "client_kmc.priv")
-        self.client_pwd_file = os.path.join(cert_dir, "client_kmc.psd")
 
     def is_cert_ok(self, cert_dir):
         cert_list = []
@@ -58,10 +54,9 @@ class CertMgr:
         if cert_dir == CertInfo.UDS_CERT_DIR or cert_dir == CertInfo.UDS_CERT_UPGRADE_DIR:
             cert_list = [
                 self.root_cert_file, self.server_cert_file, self.server_key_file, self.server_pwd_file,
-                self.client_cert_file, self.client_key_file, self.client_pwd_file, self.primary_keystore_file,
-                self.backup_keystore_file
+                self.primary_keystore_file, self.backup_keystore_file
             ]
-            cert_file_list = [self.root_cert_file, self.server_cert_file, self.client_cert_file]
+            cert_file_list = [self.root_cert_file, self.server_cert_file]
         for file in cert_list:
             if not FileCheck.check_path_is_exist_and_valid(file):
                 return False
@@ -74,11 +69,8 @@ class CertMgr:
         return True
 
     def remove_old_cert_files(self):
-        remove_files = (
-            self.root_cert_file, self.root_key_file, self.root_pwd_file, self.server_cert_file, self.server_key_file,
-            self.server_pwd_file, self.client_cert_file, self.client_key_file, self.client_pwd_file
-        )
-        for file in remove_files:
+        for file in (self.root_cert_file, self.root_key_file, self.root_pwd_file,
+                     self.server_cert_file, self.server_key_file, self.server_pwd_file):
             if os.path.exists(file):
                 FileConfusion.confusion_path(file, True)
                 os.remove(file)

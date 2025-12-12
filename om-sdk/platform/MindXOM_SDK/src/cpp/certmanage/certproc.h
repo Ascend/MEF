@@ -62,6 +62,5 @@ int replace_server_kmc_psd(const char *path, char *pwd_buf, int pwd_buf_len, con
 int create_server_cert(const char *cert_path, unsigned long is_client, const char *ca_domain_name,
                        const char *server_domain_name, const char *client_domain_name);
 int create_cert_sign_request(const char *cert_path, const char *domain_name);
-signed long CertChainVerify(const char *certFile);
 
 #endif

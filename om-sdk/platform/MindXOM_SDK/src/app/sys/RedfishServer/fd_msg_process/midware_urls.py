@@ -24,6 +24,7 @@ from typing import List
 
 import urllib3
 
+from cert_manager.parse_tools import ParseCertInfo
 from common.checkers.fd_param_checker import ComputerSystemResetChecker
 from common.checkers.fd_param_checker import FdCertDeleteChecker
 from common.checkers.fd_param_checker import FdCertImportChecker
@@ -46,7 +47,6 @@ from common.constants.product_constants import LOG_MODULES_MAP
 from common.constants.product_constants import SERVICE_ROOT
 from common.file_utils import FileCheck, FileCreate, FileUtils
 from common.init_cmd import cmd_constants
-from common.kmc_lib.kmc import Kmc
 from common.log.logger import operate_log
 from common.log.logger import run_log
 from common.utils.app_common_method import AppCommonMethod
@@ -62,16 +62,17 @@ from fd_msg_process.fd_common_methods import publish_ws_msg
 from fd_msg_process.midware_proc import MidwareProc
 from fd_msg_process.midware_route import MidwareRoute
 from fd_msg_process.schemas import Firmware
+from common.kmc_lib.kmc import Kmc
 from ibma_redfish_globals import RedfishGlobals
 from lib_restful_adapter import LibRESTfulAdapter
 from net_manager.common_methods import docker_root_is_mounted
-from net_manager.constants import NetManagerConstants
 from net_manager.exception import NetManagerException
 from net_manager.manager.fd_cert_manager import FdCertManager
 from net_manager.manager.fd_cfg_manager import FdCfgManager
 from net_manager.manager.fd_cfg_manager import FdMsgData
-from net_manager.manager.import_manager import ImportCert
-from net_manager.manager.import_manager import ImportCrl
+from net_manager.manager.import_manager import CertImportManager
+from net_manager.manager.import_manager import CrlImportManager
+from net_manager.manager.net_cfg_manager import NetCertManager
 from net_manager.manager.net_cfg_manager import NetCfgManager
 from net_manager.models import NetManager
 from net_manager.schemas import PayloadPublish
@@ -1338,15 +1339,17 @@ class MidwareUris:
                         payload_publish.reason = f"ERR.{MidwareErrCode.midware_import_cert_error}, {err_msg}"
                         return [-1, payload_publish.to_dict()]
 
-                    if FdCertManager().cert_is_in_using(payload.get("cert_name")):
+                    net_manager = NetCfgManager().get_net_cfg_info()
+                    cert_manager = FdCertManager(net_manager.ip, net_manager.port).get_current_using_cert()
+                    if cert_manager and cert_manager.name == payload.get("cert_name"):
                         run_log.error("cert is using, cannot update the certificate with the same name.")
                         payload_publish.reason = f"ERR.{MidwareErrCode.midware_import_cert_error}, " \
                                                  f"cert is using, cannot update the certificate with the same name."
                         return [-1, payload_publish.to_dict()]
 
-                    ImportCert(NetManagerConstants.FUSION_DIRECTOR, payload.get("cert_name")).import_deal(
-                        base64.b64decode(payload.get("content")).decode()
-                    )
+                    cert_contents = base64.b64decode(payload.get("content")).decode()
+                    cert_name = payload.get("cert_name")
+                    CertImportManager(cert_contents, "FusionDirector", cert_name).import_deal()
                     # 导入证书时查询一次FD证书即将过期告警
                     FdCfgManager().check_cert_status()
                     run_log.info("fd cert import handle success")
@@ -1384,7 +1387,8 @@ class MidwareUris:
                     if check_ret[0] != 0:
                         return check_ret
 
-                    ImportCrl().import_deal(base64.b64decode(payload.get("content")).decode())
+                    crl_content = base64.b64decode(payload.get("content")).decode()
+                    CrlImportManager(crl_content, "FusionDirector").import_deal()
                     run_log.info("fd crl import handle success")
                     payload_publish.percentage = "100%"
                     payload_publish.result = "success"
@@ -1417,13 +1421,14 @@ class MidwareUris:
                     if check_ret[0] != 0:
                         return check_ret
 
-                    cert_mgr = FdCertManager()
-                    if cert_mgr.cert_is_in_using(payload.get("cert_name")):
+                    net_manager = NetCfgManager().get_net_cfg_info()
+                    cert_manager = FdCertManager(net_manager.ip, net_manager.port).get_current_using_cert()
+                    if cert_manager and cert_manager.name == payload.get("cert_name"):
                         run_log.error("cert is using, cannot be delete")
                         payload_publish.reason = "cert is using, cannot be delete"
                         return [-1, payload_publish.to_dict()]
 
-                    result = cert_mgr.del_by_name(payload.get("cert_name"))
+                    result = NetCertManager().delete_obj_by_name(payload.get("cert_name"))
                     if result == 0:
                         run_log.error("not found %s cert", payload.get("cert_name"))
                         return [-1, payload_publish.to_dict()]
@@ -1446,10 +1451,12 @@ class MidwareUris:
         @midWare.route(r'espmanager/cert_query')
         @FdCommonMethod.fd_operational_log("Query cert info")
         def fd_cert_query_handle(payload):
+            cert_is_full = False
+            cert_lists = []
             payload_publish = {
                 "root_certificate": {
-                    "cert_is_full": False,
-                    "cert_lists": [],
+                    "cert_is_full": cert_is_full,
+                    "cert_lists": cert_lists,
                 }
             }
             if MidwareUris.cert_query_lock.locked():
@@ -1459,13 +1466,19 @@ class MidwareUris:
             try:
                 with MidwareUris.cert_query_lock:
                     run_log.info("start query cert handle")
-                    cert_lists = list(FdCertManager().cert_info_for_fd_generator())
-                    if not cert_lists:
+                    cert_managers = NetCertManager().get_all()
+                    if not cert_managers:
                         run_log.error("cert content is empty, please check and upload CA certificate")
                         return [-1, payload_publish]
 
+                    for cert_manager in cert_managers:
+                        is_import_crl = bool(cert_manager.crl_contents)
+                        with ParseCertInfo(cert_manager.cert_contents) as cert_info:
+                            cert_lists.append(cert_info.content_to_dict(cert_manager.name, is_import_crl))
+
                     run_log.info("query cert handle success")
-                    payload_publish["root_certificate"]["cert_is_full"] = FdCertManager().is_cert_pool_full()
+                    cert_is_full = FdCertManager().is_cert_pool_full()
+                    payload_publish["root_certificate"]["cert_is_full"] = cert_is_full
                     payload_publish["root_certificate"]["cert_lists"] = cert_lists
                     return [0, payload_publish]
             except NetManagerException as err:
@@ -2425,8 +2438,6 @@ class MidwareUris:
                         MidwareUris.get_cert_alarm_time()
                         FdCommonMethod.sec_cfg_check_done = True
                         message = "Modify cert alarm time successfully."
-                        # 更新证书告警时间之后执行一次证书状态检查
-                        FdCfgManager().check_cert_status()
                         return True
 
                     run_log.error("cert alarm time config failed: %s", ret_dict.get("message"))

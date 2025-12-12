@@ -245,6 +245,8 @@ class RedfishURIs:
             err_info = "get ssl context error."
             run_log.error(f'{err_info}')
             raise Exception(err_info)
+        # 兼容性支持TLS1.2
+        ctx.options &= ~ssl.OP_NO_TLSv1_2
         decrypted = None
         return ctx
 

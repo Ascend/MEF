@@ -16,14 +16,14 @@ from functools import partial
 from pathlib import Path
 from typing import List, NoReturn, Tuple, Dict, Iterator
 
-from common.common_methods import CommonMethods
 from common.init_cmd import cmd_constants
 from common.log.logger import run_log
 from common.utils.exception_utils import OperateBaseError
 from common.utils.exec_cmd import ExecCmd
-from common.yaml.yaml_methods import YamlMethod
 from lib.Linux.systems.nic.models import NetConfig
 from lib.Linux.systems.nic.nic_mgr import NetConfigMgr
+from common.common_methods import CommonMethods
+from common.yaml.yaml_methods import YamlMethod
 
 
 class OperationRetCode(object):
@@ -91,7 +91,7 @@ class NginxConfig:
             run_log.warning("Get [%s] ipv6 addr info failed.", eth_name)
             return ""
 
-        ret = re.findall(r"\binet6\b\s+(\S+)", ret[1])
+        ret = re.findall(r"\binet6\b\s+([^\s]+)", ret[1])
         if not ret:
             run_log.warning("Get [%s] ipv6 addr info failed.", eth_name)
             return ""
@@ -181,17 +181,17 @@ class NginxConfig:
             try:
                 socket.inet_pton(socket.AF_INET, ip_address)
             except Exception as err:
-                run_log.warning("Check ipv4 [%s] failed, because of %s.", ip_address, err)
+                run_log.warning("Check ipv4 %s failed: %s, not a valid ip", ip_address, err)
                 continue
             yield ip_address
 
-    def set_nginx_config(self, nginx_file: str) -> NoReturn:
+    def set_nginx_config(self, nginx_file: str, operate_type: str) -> NoReturn:
         """
         获取nginx监听ip，写入到nginx配置文件中
         :param nginx_file: nginx配置文件路径
         """
         # 更新数据库
-        self.update_database()
+        self.update_database(operate_type)
 
         # 从数据库中获取监听IP
         all_listen_ip = []
@@ -204,7 +204,7 @@ class NginxConfig:
 
         self._write_nginx_config(all_listen_ip, nginx_file)
 
-    def update_database(self) -> NoReturn:
+    def update_database(self, operate_type) -> NoReturn:
         """
         检测网卡的连接状态是否正常，如果多个网卡都处于连接状态，
         按照eth0->eth1的顺序，获取该网卡所有的ip地址，并将其中一个ipv4地址写入到数据库，
@@ -212,14 +212,7 @@ class NginxConfig:
         """
         eth_li = self._get_link_state()
         for eth_name in eth_li:
-            # 系统配置与数据库不一致时，删除数据库配置
-            try:
-                ipv4_li = self._get_ipv4_info_from_file(eth_name)
-            except WebIpError as err:
-                run_log.warning("Get ipv4 addr from [%s] failed. Because of %s", eth_name, err)
-                NetConfigMgr.delete_specific_eth_config(name=eth_name)
-                continue
-
+            ipv4_li = self._get_ipv4_info_from_file(eth_name)
             if "dhcp" in ipv4_li:
                 NetConfigMgr.delete_specific_eth_config(name=eth_name)
                 NetConfigMgr.save_net_config([NetConfig(name=eth_name, ipv4="dhcp", tag="web")])
@@ -297,7 +290,7 @@ class NginxConfig:
 
         ipv4_li = ipv4_info_handler_dic.get(cmd_constants.OS_NAME)()
         if not ipv4_li:
-            raise WebIpError(f"Ethernet [{eth_name}] does not have ipv4 address.")
+            raise WebIpError("get ipv4 addr failed")
 
         return ipv4_li
 
@@ -336,13 +329,15 @@ def para_check(argv: List[str]) -> NoReturn:
     校验参数是否合法
     :param argv: 命令行参数
     """
-    if len(argv) != 2:
+    if len(argv) != 3:
         raise WebIpError("Para num error.")
 
     if not os.path.exists(argv[1]):
         raise WebIpError("Nginx config file not exist.")
 
-    return argv[1]
+    if argv[2] not in ("Start", "Install"):
+        raise WebIpError("Operate type error.")
+    return argv[1], argv[2]
 
 
 def main(argv: List[str]) -> int:
@@ -352,7 +347,8 @@ def main(argv: List[str]) -> int:
     :return: 成功 or 失败的返回码
     """
     try:
-        NginxConfig().set_nginx_config(para_check(argv))
+        nginx_file, operate_type = para_check(argv)
+        NginxConfig().set_nginx_config(nginx_file, operate_type)
     except Exception as err:
         run_log.error("config web ip failed: %s", err)
         return OperationRetCode.FAILED_OPERATION

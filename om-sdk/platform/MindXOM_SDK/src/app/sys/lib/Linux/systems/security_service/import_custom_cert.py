@@ -23,7 +23,7 @@ from common.utils.result_base import Result
 from lib.Linux.systems.security_service.create_custom_csr import CustomCrtMgr
 from lib.Linux.systems.security_service.custom_cert_info import CustomCertInfo
 from lib.Linux.systems.security_service.security_service import SecurityService
-from lib.Linux.systems.security_service.security_service_clib import ERR_SIGNATURE_LEN_NOT_ENOUGH, CERT_CHECK_SUCCESS
+from lib.Linux.systems.security_service.security_service_clib import ERR_SIGNATURE_LEN_NOT_ENOUGH
 from lib.Linux.systems.security_service.security_service_clib import certificate_verification
 from common.common_methods import CommonMethods
 
@@ -118,7 +118,7 @@ class ImportCrtMgr(CustomCrtMgr):
             return Result(result=False, err_msg="check cert pkey match failed")
 
         cert_check_result = certificate_verification(self._server_cert)
-        if cert_check_result not in (CERT_CHECK_SUCCESS, ERR_SIGNATURE_LEN_NOT_ENOUGH,):
+        if cert_check_result not in (0, ERR_SIGNATURE_LEN_NOT_ENOUGH,):
             run_log.error("Import custom certificate type error.")
             return cert_check_result
 

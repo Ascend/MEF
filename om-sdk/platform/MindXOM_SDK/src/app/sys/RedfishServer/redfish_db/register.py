@@ -10,14 +10,12 @@
 # See the Mulan PSL v2 for more details.
 from common.db.database import DataBase
 from common.log.logger import run_log
-from net_manager.models import NetManager, CertManager, CertInfo, FdPreCert, PreCertInfo
+from net_manager.models import NetManager, CertManager
 from user_manager.models import EdgeConfig, HisPwd, Session, User, LastLoginInfo
 
 
 def register_models():
-    DataBase.register_models(
-        User, Session, HisPwd, EdgeConfig, CertManager, NetManager, LastLoginInfo, CertInfo, FdPreCert, PreCertInfo
-    )
+    DataBase.register_models(User, Session, HisPwd, EdgeConfig, CertManager, NetManager, LastLoginInfo)
     try:
         from extend_interfaces import register_extend_models
         register_extend_models(DataBase)

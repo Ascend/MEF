@@ -56,8 +56,11 @@ class TlsConfig(object):
         pwd:      私钥文件的口令。可以传入明文、密文、或者装有密文的文件
         """
         context = ssl.SSLContext()
-        context.minimum_version = ssl.TLSVersion.TLSv1_2
-        context.maximum_version = ssl.TLSVersion.TLSv1_3
+        context.options |= ssl.OP_NO_SSLv2
+        context.options |= ssl.OP_NO_SSLv3
+        context.options |= ssl.OP_NO_TLSv1
+        context.options |= ssl.OP_NO_TLSv1_1
+        context.options |= ssl.OP_NO_TLSv1_2
         context.set_ciphers(':'.join(SAFE_CIPHER_SUITES))
         try:
             if cafile is not None:
@@ -70,8 +73,10 @@ class TlsConfig(object):
     @staticmethod
     def _get_init_context():
         context = ssl.SSLContext()
-        context.minimum_version = ssl.TLSVersion.TLSv1_2
-        context.maximum_version = ssl.TLSVersion.TLSv1_3
+        context.options |= ssl.OP_NO_SSLv2
+        context.options |= ssl.OP_NO_SSLv3
+        context.options |= ssl.OP_NO_TLSv1
+        context.options |= ssl.OP_NO_TLSv1_1
         context.set_ciphers(':'.join(SAFE_CIPHER_SUITES))
         context.verify_mode = ssl.CERT_REQUIRED
         return context

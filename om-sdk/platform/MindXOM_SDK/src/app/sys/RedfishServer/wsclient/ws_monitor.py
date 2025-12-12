@@ -16,15 +16,15 @@ import time
 from asyncio import CancelledError
 from typing import Optional
 
-from websockets.legacy.client import connect
+import websockets
+
+from common.utils.result_base import Result
 
 from common.log.logger import run_log
-from common.utils.result_base import Result
 from common.utils.singleton import Singleton
 from common.utils.timer import DynamicRepeatingTimer
 from common.utils.timer import RepeatingTimer
 from fd_msg_process.config import SysInfoTaskStatus
-from net_manager.exception import NetManagerException
 from net_manager.manager.fd_cfg_manager import FdCfgManager
 from net_manager.manager.fd_cfg_manager import FdConfigData
 from net_manager.manager.net_cfg_manager import NetCfgManager
@@ -246,15 +246,15 @@ class WsMonitor(Singleton):
 
         # 2.发起websocket连接
         headers = config.gen_extra_headers()
-        try:
-            ssl_context = config.gen_client_ssl_context(set_state=True)
-        except NetManagerException as err:
-            run_log.error("Invalid ssl context, catch %s", err)
+        ssl_context_ret = config.gen_client_ssl_context()
+        if not ssl_context_ret:
+            run_log.error("Invalid ssl context: %s.", ssl_context_ret.error)
             return Result(False)
 
+        ssl_context = ssl_context_ret.data
         try:
-            async with connect(uri=config.wss_uri, ssl=ssl_context, extra_headers=headers,
-                               klass=WsClientProtocol) as client:
+            async with websockets.connect(uri=config.wss_uri, ssl=ssl_context, extra_headers=headers,
+                                          klass=WsClientProtocol) as client:
                 run_log.info("Websocket connect to FD %s successfully.", config.server_ip)
 
                 # 更新/etc/hosts

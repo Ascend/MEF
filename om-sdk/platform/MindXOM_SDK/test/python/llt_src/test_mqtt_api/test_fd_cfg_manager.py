@@ -16,21 +16,28 @@ import mock
 import pytest
 from pytest_mock import MockerFixture
 
+from common.file_utils import FileCheck
 from common.file_utils import FileUtils
 from common.schema import AdapterResult
 from common.utils.app_common_method import AppCommonMethod
-from common.utils.result_base import Result
 from fd_msg_process.config import Config
+from common.utils.result_base import Result
 from lib_restful_adapter import LibRESTfulAdapter
 from net_manager.checkers.fd_param_checker import FdMsgChecker
 from net_manager.constants import NetManagerConstants
+from net_manager.manager.fd_cert_manager import FdCertManager
 from net_manager.manager.fd_cfg_manager import FdCfgManager
 from net_manager.manager.fd_cfg_manager import FdConfigData, FdMsgData, FdMsgException
-from net_manager.manager.import_manager import ImportCrl
+from net_manager.manager.import_manager import CertImportManager
 from net_manager.manager.net_cfg_manager import NetCfgManager
 from net_manager.models import NetManager
 from net_manager.schemas import WebNetInfo
 from test_mef_msg import TestUtils as TestUtils_
+from test_table_data_checker import TestUtils1 as TestUtils11
+
+
+class TestUtils5(TestUtils11, FdConfigData):
+    pass
 
 
 class TestUtils:
@@ -118,6 +125,8 @@ class TestUtils3(TestUtils4):
 
 class TestGetJsonInfoObj:
     CheckGetCurFdIpCase = namedtuple("CheckGetCurFdIpCase", "expected, get_net_cfg_info")
+    CheckGetFdInfoToMefCase = namedtuple("CheckGetFdInfoToMefCase",
+                                         "expected, get_net_cfg_info, get_current_using_cert")
     CheckUpDateEtcHostsCase = namedtuple("CheckUpDateEtcHostsCase", "expected, check_status_is_ok")
     CheckRestoreMiniOsConfigCase = namedtuple("CheckRestoreMiniOsConfigCase", "exists, import_deal")
     CheckGetSysInfoCase = namedtuple("CheckGetSysInfoCase", "expected, class1")
@@ -139,6 +148,11 @@ class TestGetJsonInfoObj:
         "test_check_manager_type_is_web": {
             "first": (False, [TestUtils(1)]),
             "all": (True, Exception()),
+        },
+        "test_get_fd_info_to_mef": {
+            "first": ({}, [TestUtils(1), ], [False, ]),
+            "second": ({}, Exception(), [False, ]),
+            "third": ({'ip': '1', 'domain': '', 'port': '403', 'ca_content': '123'}, [TestUtils(1), ], [TestUtils4, ]),
         },
         "test_update_etc_hosts": {
             "first": (False, [False, False]),
@@ -190,6 +204,12 @@ class TestGetJsonInfoObj:
         ret = FdCfgManager.check_manager_type_is_web()
         assert ret == model.expected
 
+    def test_get_fd_info_to_mef(self, mocker: MockerFixture, model: CheckGetFdInfoToMefCase):
+        mocker.patch.object(NetCfgManager, "get_net_cfg_info").side_effect = model.get_net_cfg_info
+        mocker.patch.object(FdCertManager, "get_current_using_cert").side_effect = model.get_current_using_cert
+        ret = FdCfgManager.get_fd_info_to_mef()
+        assert ret == model.expected
+
     def test_update_etc_hosts(self, mocker: MockerFixture, model: CheckUpDateEtcHostsCase):
         mocker.patch.object(LibRESTfulAdapter, "lib_restful_interface").side_effect = [True, True]
         mocker.patch.object(AppCommonMethod, "check_status_is_ok").side_effect = model.check_status_is_ok
@@ -201,7 +221,7 @@ class TestGetJsonInfoObj:
     def test_restore_mini_os_config(self, mocker: MockerFixture, model: CheckRestoreMiniOsConfigCase):
         mocker.patch("os.path.exists", return_value=model.exists)
         mocker.patch("builtins.open", mock_open(read_data="model.read_data"))
-        mocker.patch.object(ImportCrl, "import_deal").side_effect = model.import_deal
+        mocker.patch.object(CertImportManager, "import_deal").side_effect = model.import_deal
         mocker.patch.object(NetCfgManager, "update_net_cfg_info").side_effect = [True, ]
         mocker.patch.object(FileUtils, "delete_dir_content").side_effect = [True, ]
         assert not FdCfgManager.restore_mini_os_config()
@@ -248,6 +268,23 @@ class TestGetJsonInfoObj:
     def test_start_cert_status_monitor(self):
         assert not FdCfgManager.start_cert_status_monitor(FdCfgManager)
 
+    def test_check_cert_status_basic(self, mocker: MockerFixture):
+        mocker.patch.object(FdCfgManager, "check_status_is_ready").side_effect = "ready"
+        mocker.patch("os.open")
+        mocker.patch("os.fdopen").return_value.__enter__.return_value.write.side_effect = "abc"
+        mocker.patch.object(FileCheck, "check_path_is_exist_and_valid", return_value=Result(True))
+        mocker.patch.object(NetCfgManager, "_get_data_to_first").side_effect = [True, ]
+        mocker.patch.object(NetCfgManager, "table_data_checker").side_effect = [True, ]
+
+    def test_check_cert_status_ex(self, mocker: MockerFixture):
+        self.test_check_cert_status_basic(mocker)
+        with pytest.raises(OSError):
+            FdCfgManager._check_cert_status(TestUtils3)
+
+    def test__check_cert_status(self, mocker: MockerFixture):
+        self.test_check_cert_status_basic(mocker)
+        assert not FdCfgManager._check_cert_status(TestUtils2)
+
     def test_post_init(self):
         assert not FdConfigData.__post_init__(FdConfigData)
 
@@ -255,7 +292,10 @@ class TestGetJsonInfoObj:
         assert FdConfigData.from_dict(**{"net": TestUtils0, "sys": FdConfigData})
 
     def test_gen_extra_headers(self):
-        assert FdConfigData(cloud_pwd="abc", cloud_user="abc").gen_extra_headers()
+        assert FdConfigData.gen_extra_headers(TestUtils5)
+
+    def test_gen_client_ssl_context(self):
+        assert not FdConfigData.gen_client_ssl_context(TestUtils5)
 
     def test_from_str_raise(self, mocker: MockerFixture, model: CheckFromStrCase):
         mocker.patch("json.loads", side_effect=[model.loads, ])

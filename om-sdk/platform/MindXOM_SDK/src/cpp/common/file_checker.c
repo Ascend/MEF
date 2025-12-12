@@ -224,7 +224,7 @@ static int check_path_format(const char *path)
     regfree(&reg);
 
     size_t len = strlen(path);
-    if ((pmatch.rm_eo - pmatch.rm_so) != (int)len) {
+    if ((pmatch.rm_eo - pmatch.rm_so) != len) {
         SYS_LOG_ERROR("reg cmp failed");
         return COMMON_ERROR;
     }
@@ -390,7 +390,7 @@ int get_full_valid_path(char* full_path, int full_path_len, const char* dir_path
         return COMMON_INVALID_PARAM;
     }
 
-    if ((strlen(full_path) + strlen(part_path) + 1) > (size_t)full_path_len) {
+    if ((strlen(full_path) + strlen(part_path) + 1) > full_path_len) {
         SYS_LOG_ERROR("buf len check failed! full_path_len:%d", full_path_len);
         return COMMON_INVALID_PARAM;
     }

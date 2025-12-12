@@ -102,9 +102,10 @@ class TestNic:
             "normal": ("listen :443 ssl;\n", )
         },
         "test_para_check": {
-            "normal": (False, ("config_web_ip.py", "nginx.conf"), True),
-            "not_2": (True, ("config_web_ip.py", "nginx.conf", "Start"), True),
-            "not_exist": (True, ("config_web_ip.py", "nginx.conf"), False),
+            "normal": (False, ("config_web_ip.py", "nginx.conf", "Start"), True),
+            "not_3": (True, ("config_web_ip.py", "nginx.conf"), True),
+            "not_exist": (True, ("config_web_ip.py", "nginx.conf", "Start"), False),
+            "not_in": (True, ("config_web_ip.py", "nginx.conf", "Upgrade"), True),
         },
         "test_main": {
             "normal": (0, )
@@ -209,7 +210,7 @@ class TestNic:
         mocker.patch.object(NetConfigMgr, "delete_specific_eth_config")
         mocker.patch.object(NetConfigMgr, "query_info_with_condition").side_effect = [[NetConfig(ipv4="1.1.1.1")]]
         mocker.patch.object(NginxConfig, "_update_old_tag_ini")
-        NginxConfig().update_database()
+        NginxConfig().update_database(model.operate)
 
     @staticmethod
     def test_set_nginx_config(mocker: MockFixture, model: SetNginxConfig):
@@ -217,7 +218,7 @@ class TestNic:
         mocker.patch.object(NginxConfig, "_get_nginx_listen_ipv6").return_value = model.ipv6
         mocker.patch.object(NginxConfig, "_write_nginx_config")
         mocker.patch.object(NginxConfig, "update_database")
-        NginxConfig().set_nginx_config("nginx.conf")
+        NginxConfig().set_nginx_config("nginx.conf", "Start")
 
     @staticmethod
     def test_write_nginx_config(mocker: MockFixture, model: WriteNginxConfig):
@@ -237,7 +238,7 @@ class TestNic:
 
     @staticmethod
     def test_main(mocker: MockFixture, model: Main):
-        mocker.patch("lib.Linux.systems.nic.config_web_ip.para_check").return_value = "nginx.conf"
+        mocker.patch("lib.Linux.systems.nic.config_web_ip.para_check").return_value = ("nginx.conf", "Install")
         mocker.patch.object(NginxConfig, "update_database")
         mocker.patch.object(NginxConfig, "set_nginx_config")
-        assert model.expect == main(["config_web_ip.py", "nginx.conf"])
+        assert model.expect == main(["config_web_ip.py", "nginx.conf", "Start"])

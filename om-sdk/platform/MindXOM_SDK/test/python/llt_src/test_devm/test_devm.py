@@ -10,11 +10,9 @@
 # See the Mulan PSL v2 for more details.
 import json
 import os.path
-from collections import namedtuple
 
 from pytest_mock import MockerFixture
 
-from common.utils.exec_cmd import ExecCmd
 from devm.devm_configs import DevmConfigMgr
 from ut_utils.mock_utils import mock_cdll
 
@@ -23,7 +21,6 @@ with mock_cdll():
 
 
 class TestDevm:
-    Get5GDeviceCase = namedtuple("Get5GDeviceCase", ["expect", "cmd_result"])
     cur_path = os.path.dirname(os.path.realpath(__file__))
     product_file = os.path.join(cur_path, "product_specification.json")
     module_files = [os.path.join(cur_path, "module_abc.json")]
@@ -89,18 +86,9 @@ class TestDevm:
         },
     ]
 
-    valid_5g_device_info = "Bus 002 Device 003: ID 2c7c:0900 Quectel Wireless Solutions Co., Ltd. RM500U-CN"
     use_cases = {
-        "test_get_5g_device": {
-            "valid_5g_device": (valid_5g_device_info, [0, valid_5g_device_info]),
-            "invalid_5g_device": ("", [1, ""])
-        }
-    }
 
-    @staticmethod
-    def test_get_5g_device(mocker: MockerFixture, model: Get5GDeviceCase):
-        mocker.patch.object(ExecCmd, "exec_cmd_use_pipe_symbol").return_value = model.cmd_result
-        assert Devm.get_5g_device() == model.expect
+    }
 
     def setup_class(self):
         with os.fdopen(os.open(self.product_file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "w") as tmp_file:

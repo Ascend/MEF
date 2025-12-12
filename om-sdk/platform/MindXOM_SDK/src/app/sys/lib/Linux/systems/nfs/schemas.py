@@ -194,5 +194,7 @@ def valid_path(path):
 
 
 def is_whitelist_and_permitted(path):
-    if path != "/opt/mount":
-        raise errors.MountPathInvalid("Mount path is not permitted.")
+    if path == "/var/lib/docker":
+        raise errors.MountPathInvalid("Mount path is not in whitelist.")
+    if not Partition.check_path_whitelist(path) or not Partition.check_path_is_permitted(path):
+        raise errors.MountPathInvalid("Mount path is not in whitelist.")

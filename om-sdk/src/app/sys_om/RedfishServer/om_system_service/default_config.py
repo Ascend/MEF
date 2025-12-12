@@ -21,7 +21,7 @@ from common.utils.date_utils import DateUtils
 from common.utils.exception_utils import OperateBaseError
 from lib_restful_adapter import LibRESTfulAdapter
 from net_manager.manager.net_switch_manager import WebNetSwitchManager
-from net_manager.models import CertManager, CertInfo
+from net_manager.models import CertManager
 from redfish_db.session import session_maker
 from user_manager.models import User, default_pw, HisPwd, EdgeConfig, Session
 
@@ -84,8 +84,7 @@ class DefaultConfig:
         HistoryPasswordRestoreDefault.restore_default(session)
 
         # 重置网管模式，清空FD证书数据库
-        FDCertRestoreDefault.clear_config(session)
-        FDCertInfoRestoreDefault.restore_default(session)
+        FDCertRestoreDefault.restore_default(session)
 
         # 重置web超时时间、密码有效期
         SessionRestoreDefault.restore_default(session)
@@ -173,14 +172,6 @@ class FDCertRestoreDefault(RedfishRestoreDefaults):
     def clear_config(cls, session):
         WebNetSwitchManager({}).switch_deal()
         super().clear_config(session)
-
-
-class FDCertInfoRestoreDefault(RedfishRestoreDefaults):
-    model = CertInfo
-
-    @classmethod
-    def save_defaults(cls, session) -> NoReturn:
-        pass
 
 
 class SessionRestoreDefault(RedfishRestoreDefaults):

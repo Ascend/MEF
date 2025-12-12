@@ -199,7 +199,7 @@ export default defineComponent({
           return;
         }
         let params = {
-          CapacityBytes: String(partitionForm.value.capacity),
+          CapacityBytes: partitionForm.value.capacity + '',
           FileSystem: 'ext4',
           Number: partitionForm.value.number,
           Links: [{

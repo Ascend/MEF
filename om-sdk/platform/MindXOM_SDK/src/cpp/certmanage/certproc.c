@@ -471,7 +471,7 @@ static signed long transfer_format(char *tmpBuf, char *dest, unsigned long dest_
             (s[3] == '='))))) ||  //  3为字符数组索引3
             (*s == '\0')) {
             i = s - c;
-            if ((unsigned long)(curr_spot + i) >= dest_length) {
+            if (curr_spot + i >= dest_length) {
                 return VOS_ERR;
             }
             ret = strncpy_s(dest + curr_spot, dest_length - curr_spot, c, i);
@@ -480,7 +480,7 @@ static signed long transfer_format(char *tmpBuf, char *dest, unsigned long dest_
             }
             curr_spot += i;
 
-            if ((unsigned long)(curr_spot + INNER_NUMBER_TWO) >= dest_length) {
+            if (curr_spot + INNER_NUMBER_TWO >= dest_length) {
                 return VOS_ERR;
             }
             c = s + 1; /* skip following slash */
@@ -749,7 +749,7 @@ signed long get_extend_certinfo(const char *certinfo_file, char signature_algori
     unsigned char md[EVP_MAX_MD_SIZE];
     unsigned int md_len;
     X509_digest(cert, EVP_sha256(), md, &md_len);
-    for (unsigned int i = 0; i < md_len && i < EVP_MAX_MD_SIZE; i++) {
+    for (int i = 0; i < md_len && i < EVP_MAX_MD_SIZE; i++) {
         char tmp[EVP_MAX_MD_SIZE] = {0};
         if (sprintf_s(tmp, EVP_MAX_MD_SIZE - 1, "%02X:", md[i]) < 0) {
             OM_LOG_ERROR("sprintf_s md failed.");
@@ -1015,7 +1015,7 @@ static unsigned long GenerateSingleRandNum(void)
         return ret;
     }
 
-    while ((size_t)randomLen < sizeof(unsigned long)) {
+    while (randomLen < sizeof(unsigned long)) {
         result = read(fd, ((char *)&ret) + randomLen, (sizeof(unsigned long) - randomLen));
         if (result < 0) {
             OM_LOG_ERROR("read failed");
@@ -1165,123 +1165,4 @@ int StrToInt(char *buf, int buf_size)
 
     buf[buf_size - 1] = '\0';
     return (int)strtol(buf, &end, BASE_DECIMAL_SYSTEM);
-}
-
-static int init_resources(X509_STORE **store, STACK_OF(X509) **certs)
-{
-    *store = X509_STORE_new();
-    *certs = sk_X509_new_null();
-
-    if (*store == NULL || *certs == NULL) {
-        OM_LOG_ERROR("Failed to initialize X509 resources.");
-        return VOS_ERR;
-    }
-
-    return VOS_OK;
-}
-
-static int load_certificates(const char *certFile, BIO **bio, X509_STORE *store, STACK_OF(X509) *certs)
-{
-    *bio = BIO_new_file(certFile, "r");
-    if (*bio == NULL) {
-        OM_LOG_ERROR("Failed to open certificate file: %s", certFile);
-        return VOS_ERR;
-    }
-
-    X509 *cert = NULL;
-    while ((cert = PEM_read_bio_X509(*bio, NULL, NULL, NULL))) {
-        if (!sk_X509_push(certs, cert)) {
-            OM_LOG_ERROR("Failed to push X509 cert into stack.");
-            X509_free(cert);
-            return VOS_ERR;
-        }
-        if (!X509_STORE_add_cert(store, cert)) {
-            OM_LOG_ERROR("Failed to add X509 cert to store.");
-            X509_free(cert);
-            return VOS_ERR;
-        }
-        X509_free(cert);
-    }
-
-    if (sk_X509_num(certs) == 0) {
-        OM_LOG_ERROR("No certificates found in file.");
-        return VOS_ERR;
-    }
-
-    return VOS_OK;
-}
-
-static int verify_certificate_chain(X509_STORE *store, STACK_OF(X509) *certs, long *ret)
-{
-    X509_STORE_CTX *ctx = NULL;
-
-    for (int i = 0; i < sk_X509_num(certs); ++i) {
-        ctx = X509_STORE_CTX_new();
-        if (ctx == NULL || !X509_STORE_CTX_init(ctx, store, sk_X509_value(certs, i), certs)) {
-            OM_LOG_ERROR("X509_STORE_CTX_init failed.");
-            X509_STORE_CTX_free(ctx);
-            *ret = VOS_ERR;
-            return VOS_ERR;
-        }
-
-        if (X509_verify_cert(ctx) != 1) {
-            long errCode = X509_STORE_CTX_get_error(ctx);
-            const char *errMsg = X509_verify_cert_error_string(errCode);
-            OM_LOG_ERROR("X509_verify_cert failed: error code [%ld], message: %s", errCode, errMsg);
-            X509_STORE_CTX_free(ctx);
-            *ret = VOS_ERR;
-            return VOS_ERR;
-        }
-        X509_STORE_CTX_free(ctx);
-    }
-
-    *ret = VOS_OK;
-    return VOS_OK;
-}
-
-void cleanup_resources(
-    BIO *bio,
-    X509_STORE *store,
-    X509_STORE_CTX *ctx,
-    STACK_OF(X509) *certs,
-    X509 *cert,
-    long ret)
-{
-    BIO_free(bio);
-    X509_free(cert);
-    X509_STORE_free(store);
-    X509_STORE_CTX_free(ctx);
-    sk_X509_pop_free(certs, X509_free);
-    OM_LOG_INFO("Certificate chain verification done, return code is [%d].", ret);
-}
-
-/*
-* 函数名：CertChainVerify
-* 功能：CA证书链校验
-* 参数：certFile待验证CA证书链路径
-* 返回值：0:success -1:fail
-*/
-signed long CertChainVerify(const char *certFile)
-{
-    OM_LOG_INFO("Certificate chain verification start.");
-
-    if (certFile == NULL) {
-        OM_LOG_ERROR("Certificate file path is NULL.");
-        return VOS_ERR;
-    }
-
-    X509_STORE *store = NULL;
-    STACK_OF(X509) *certs = NULL;
-    BIO *bio = NULL;
-    long ret = VOS_ERR;
-
-    if (init_resources(&store, &certs) != VOS_OK ||
-        load_certificates(certFile, &bio, store, certs) != VOS_OK ||
-        verify_certificate_chain(store, certs, &ret) != VOS_OK )  {
-        cleanup_resources(bio, store, NULL, certs, NULL, ret);
-        return ret;
-    }
-
-    cleanup_resources(bio, store, NULL, certs, NULL, ret);
-    return ret;
 }

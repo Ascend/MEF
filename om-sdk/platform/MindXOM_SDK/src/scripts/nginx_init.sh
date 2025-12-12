@@ -77,7 +77,7 @@ function main() {
 
   # Check and refresh nginx config
   export PYTHONPATH="${OM_WORK_DIR}"/software/ibma:"${OM_WORK_DIR}"/software/ibma/opensource/python
-  if ! python3 "${OM_WORK_DIR}"/software/ibma/lib/Linux/systems/nic/config_web_ip.py "${OM_WORK_DIR}"/config/nginx.conf; then
+  if ! python3 "${OM_WORK_DIR}"/software/ibma/lib/Linux/systems/nic/config_web_ip.py "${OM_WORK_DIR}"/config/nginx.conf "Start"; then
       logger_error "Check and refresh nginx config failed. please check /var/plog/manager/manager_run.log."
       return 1
   fi

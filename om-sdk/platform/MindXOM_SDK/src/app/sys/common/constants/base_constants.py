@@ -98,8 +98,9 @@ class CommonConstants(object):
     # 200外设配置路径
     DEVICE_CFG_PATH = os.path.join(OM_WORK_DIR_PATH, "software", "ibma", "lib", "Linux", "config", "device_config.json")
 
-    # Redfish临时文件目录
-    REDFISH_TMP_DIR = "/run/web"
+    # Redfish进程证书和吊销列表临时文件
+    REDFISH_CERT_TMP_FILE = "/run/web/tmp_crt.crt"
+    REDFISH_CRL_TMP_FILE = "/run/web/tmp_crl.crl"
 
     # 硬件形态
     ATLAS_A200_A2 = "Atlas A200 A2"
@@ -125,9 +126,6 @@ class CommonConstants(object):
     TYPE_IMPORT = "import"
     TYPE_EXPORT = "export"
     TYPE_DELETE = "delete"
-
-    # 前web证书备份路径
-    WEB_PRE_DIR = "/home/data/config/default_previous"
 
 
 class LoggerConstants:

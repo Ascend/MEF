@@ -246,6 +246,8 @@ class RedfishMain:
         # 启动fd对接监控任务
         WsMonitor.start_fd_connect_monitor()
         MefProc.start_mef_connect_timer()
+        # 解决多线程解析证书冲突问题
+        time.sleep(5)
         # 定期检查证书是否即将过期
         FdCfgManager().start_cert_status_monitor()
         run_log.info("start monitor tasks done")

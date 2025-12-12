@@ -539,7 +539,7 @@ export default defineComponent({
         'Important warning': t('home.system.alarm'),
         'Urgent warning': t('home.system.critical'),
         'Unknown mistake': t('home.system.unknown'),
-      }[data?.Status?.Health ?? 'OK'];
+      }[data?.Status?.Health ?? 'OK'] ;
       stationInfo.value.cpuUtilizationRate.rate = data?.Oem?.CpuUsage ?? 0;
 
       let versions = data?.Oem?.Firmware;

@@ -25,6 +25,7 @@ from common.log.logger import run_log
 from common.utils.app_common_method import AppCommonMethod
 from common.utils.exec_cmd import ExecCmd
 from common.utils.result_base import Result
+from net_manager.constants import NetManagerConstants
 from net_manager.manager.fd_cert_manager import FdCertManager
 from net_manager.manager.net_cfg_manager import NetCfgManager
 
@@ -112,12 +113,12 @@ class UrlConnect(object):
     @staticmethod
     def get_context() -> Result:
         net_manager = NetCfgManager().get_net_cfg_info()
-        try:
-            ctx = FdCertManager(net_manager.ip, net_manager.port).get_client_ssl_context()
-        except Exception:
-            return Result(False, err_msg="No available certificates found.")
+        ret = FdCertManager(net_manager.ip, int(net_manager.port or NetManagerConstants.PORT)).get_client_ssl_context()
+        if not ret:
+            run_log.error("get cert context failed: %s", ret.error)
+            return Result(False, err_msg="get client ssl context failed.")
 
-        return Result(result=True, data=ctx)
+        return Result(result=True, data=ret.data)
 
     @staticmethod
     def _make_range_string(n_range_start, n_range_end):

@@ -90,7 +90,6 @@ extern ALARM_GLOBAL_INFO g_alarm_global_info;
 int set_clear_shield_alarm_flag(const char *filename, int alarm_option_type);
 void *fault_manager_shield_alarm_thread(void *p_void);
 int fault_record_to_file(unsigned int *active_num, int *alarm_level);
-ALARM_LV1_STRU *create_new_alarm();
 ALARM_LV1_STRU *search_item_by_info(const ALARM_MSG_FAULT_INFO *cur_fault_info, int is_shield);
 void publish_alarm_event(int alarm_level);
 int alarm_report(const unsigned char *info);

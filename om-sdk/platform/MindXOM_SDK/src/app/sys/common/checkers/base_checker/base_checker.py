@@ -203,18 +203,6 @@ class GatewayChecker(StringLengthChecker):
         return CheckResult.make_success()
 
 
-class RemoteTestIpChecker(StringLengthChecker):
-    """远端ip检查"""
-    def check_dict(self, data: dict) -> CheckResult:
-        value = self.raw_value(data)
-        remote_test_ip = value["RemoteTestIp"]
-        address = value["Address"]
-        if remote_test_ip == address:
-            msg_format = "The remote test ip is the same as network address"
-            return CheckResult.make_failed(msg_format)
-        return CheckResult.make_success()
-
-
 class SubnetMaskChecker(RegexStringChecker):
     """子网检查"""
 
@@ -280,7 +268,6 @@ class Ipv4AddressItemChecker(ModelChecker):
                             BoolEqualChecker("ConnectTest", equal_value=True),
                             StringLengthChecker("RemoteTestIp", min_len=0, max_len=128),
                             IPV4Checker("RemoteTestIp"),
-                            RemoteTestIpChecker(),
                         )
                     )
                 ),

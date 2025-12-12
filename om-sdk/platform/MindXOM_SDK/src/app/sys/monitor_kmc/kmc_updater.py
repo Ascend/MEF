@@ -11,21 +11,19 @@
 import sys
 
 from common.constants.base_constants import CommonConstants
-from common.kmc_lib.kmc_updater import KmcUpdater, MultiKmcUpdater
 from common.log.logger import run_log
-from monitor_kmc.kmc_adapter import NginxPsdAdapter, UdsPsdAdapter, DevmConfigAdapter, WebPreviousCertAdapter
+from common.kmc_lib.kmc_updater import KmcUpdater, MultiKmcUpdater
+from monitor_kmc.kmc_adapter import NginxPsdAdapter, UdsPsdAdapter, DevmConfigAdapter
 
 
 def register_key_update_tasks():
     MultiKmcUpdater.register_updaters(
         KmcUpdater(CommonConstants.NGINX_KS_DIR, task_name="nginx"),
         KmcUpdater(CommonConstants.UDS_KS_DIR, task_name="uds"),
-        KmcUpdater(CommonConstants.WEB_PRE_DIR, task_name="web_pre_cert"),
     )
 
     MultiKmcUpdater.extend_adapters("nginx", NginxPsdAdapter)
     MultiKmcUpdater.extend_adapters("uds", DevmConfigAdapter, UdsPsdAdapter)
-    MultiKmcUpdater.extend_adapters("web_pre_cert", WebPreviousCertAdapter)
 
     # 扩展adapter与updater
     try:

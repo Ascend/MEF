@@ -173,37 +173,3 @@ class AlarmReportTask(Base):
             "reason": self.reason,
             "extra_column": self.extra_column,
         }
-
-
-class SubsPreCert(Base):
-
-    __tablename__ = "subs_pre_cert"
-
-    id = Column(Integer, primary_key=True, comment="自增id")
-    root_cert_id = Column(Integer, comment="根证书ID")
-    type = Column(String(16), default="", comment="证书导入方式")
-    cert_contents = Column(String(), default="", comment="根证书内容")
-    crl_contents = Column(String(), default="", comment="吊销列表内容")
-
-    @classmethod
-    def from_dict(cls, data: dict):
-        return cls(
-            root_cert_id=data.get("root_cert_id"),
-            type=data.get("type"),
-            cert_contents=data.get("cert_contents"),
-            crl_contents=data.get("crl_contents"),
-        )
-
-    def to_dict(self):
-        return {
-            "root_cert_id": self.root_cert_id,
-            "type": self.type,
-            "cert_contents": self.cert_contents,
-            "crl_contents": self.crl_contents,
-        }
-
-    def get_cert_crl(self):
-        return {
-            "cert contents": self.cert_contents,
-            "crl contents": self.crl_contents,
-        }

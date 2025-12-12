@@ -7,24 +7,34 @@
 # EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
+import os
 import threading
-from typing import Union
 
 from flask import Blueprint, request, g
 
 from common.constants.base_constants import CommonConstants
+from common.constants.upload_constants import UploadConstants
+from common.exception.biz_exception import BizException
+from common.file_utils import FileCheck
+from common.file_utils import FileCopy
+from common.file_utils import FileCreate
+from common.file_utils import FileReader
+from common.file_utils import FileUtils
 from common.log.logger import run_log
+from common.utils.common_check import CommonCheck
+from common.kmc_lib.tlsconfig import TlsConfig
+from ibma_redfish_globals import RedfishGlobals
 from net_manager.checkers.external_params_checker import NetManageConfigChecker, CertUploadChecker, CrlUploadChecker
 from net_manager.common_methods import ApiHelper
 from net_manager.constants import NetManagerConstants
-from net_manager.exception import LockedError, ValidateParamsError
+from net_manager.exception import NetManagerException, LockedError, FileCheckException, ValidateParamsError
 from net_manager.manager.fd_cert_manager import FdCertManager
-from net_manager.manager.import_manager import ImportCrl, ImportCert
+from net_manager.manager.import_manager import CertImportManager, CrlImportManager
 from net_manager.manager.net_cfg_manager import NetCfgManager
 from net_manager.manager.net_switch_manager import WebNetSwitchManager, FdNetSwitchManager, NetSwitchManagerBase
 from net_manager.models import NetManager
-from net_manager.serializers import (GetNetManageConfigSerializer, GetNodeIdSerializer,
-                                     GetFdCertSerializer, ImportFdCrlSerializer, ImportFdCertSerializer)
+from net_manager.serializers import GetNetManageConfigSerializer, GetNodeIdSerializer, \
+    GetFdCertSerializer, ImportFdCrlSerializer, ImportFdCertSerializer
 from token_auth import get_privilege_auth
 
 privilege_auth = get_privilege_auth()
@@ -129,8 +139,7 @@ def rf_get_fd_cert():
     功能描述：查询 FD 根证书内容
     """
     net_manager: NetManager = NetCfgManager().get_net_cfg_info()
-    cert_info = FdCertManager(net_manager.ip, net_manager.port).get_cert_info(net_manager.net_mgmt_type,
-                                                                              net_manager.status)
+    cert_info = FdCertManager(net_manager.ip, net_manager.port).get_cert_info(net_manager.net_mgmt_type)
     return GetFdCertSerializer().make_200_response(cert_info, CommonConstants.ERR_CODE_200)
 
 
@@ -144,8 +153,60 @@ def rf_import_fd_cert():
         raise LockedError("Importing FD cert is busy.")
 
     with import_cert_lock:
-        info = ImportCert().import_deal(import_contents(CommonConstants.MAX_CERT_LIMIT, CertUploadChecker()))
-        return ImportFdCertSerializer().make_200_response(info, CommonConstants.ERR_CODE_200)
+        file_save_path = ""
+        try:
+            if not FileCreate.create_dir(UploadConstants.NET_MANAGER_UPLOAD_DIR, 0o1700):
+                raise FileCheckException("Make file dir failed.")
+
+            err_msg = "Parameter is invalid."
+
+            # 从表单的 imgfile 字段获取文件
+            try:
+                file = request.files['imgfile']
+            except Exception as err:
+                raise ValidateParamsError(err_msg) from err
+
+            try:
+                check_ret = CertUploadChecker().check({"imgfile": file.filename})
+            except Exception as err:
+                raise ValidateParamsError(err_msg) from err
+
+            if not check_ret.success:
+                raise ValidateParamsError(check_ret.reason)
+
+            # 与FD导入证书保持一致，限制1M大小
+            if not RedfishGlobals.check_upload_file_size(file.filename, request.form.get("size"), fd_cert=True):
+                run_log.error("Upload net manager cert file failed, because file size is invalid.")
+                raise FileCheckException("file size is invalid.")
+
+            # 保存文件
+            file_save_path = os.path.join(UploadConstants.NET_MANAGER_UPLOAD_DIR, "FD.crt")
+            if not FileCheck.check_is_link(file_save_path):
+                run_log.error("Check %s is link file.", file_save_path)
+                raise FileCheckException("Check file path is link.")
+
+            try:
+                RedfishGlobals.save_content(file_save_path, file, CommonConstants.MAX_CERT_LIMIT)
+            except BizException as err:
+                FileUtils.delete_file_or_link(file_save_path)
+                raise FileCheckException("file size is invalid.") from err
+
+            # 校验文件状态
+            res = CommonCheck.check_file_stat(file_save_path)
+            if not res:
+                run_log.error("the cert file [%s] is invalid, %s", file_save_path, res.error)
+                raise NetManagerException(f"Check {file_save_path} is invalid")
+
+            ret, msg = TlsConfig.get_client_ssl_context(file_save_path)
+            if not ret:
+                run_log.error("the cert file [%s] is not available, %s", file_save_path, msg)
+                raise NetManagerException(f"Check {file_save_path} is not available")
+
+            info = CertImportManager(FileReader(file_save_path).read().data).import_deal()
+            return ImportFdCertSerializer().make_200_response(info, CommonConstants.ERR_CODE_200)
+        finally:
+            if file_save_path:
+                FileCopy.remove_path(file_save_path)
 
 
 @net_manager_bp.route("/ImportFdCrl", methods=["POST"])
@@ -154,31 +215,57 @@ def rf_import_fd_crl():
     """
     功能描述：导入 FD 吊销列表
     """
+    message = "Upload net manager crl file failed."
     if import_crl_lock.locked():
         raise LockedError("Importing FD crl is busy.")
 
     with import_crl_lock:
-        info = ImportCrl().import_deal(import_contents(CommonConstants.MAX_CRL_LIMIT, CrlUploadChecker()))
-        return ImportFdCrlSerializer().make_200_response(info, CommonConstants.ERR_CODE_200)
+        file_save_path = ""
+        try:
+            if not FileCreate.create_dir(UploadConstants.NET_MANAGER_UPLOAD_DIR, 0o1700):
+                raise FileCheckException("Make file dir failed.")
 
+            err_msg = "Parameter is invalid."
 
-def import_contents(max_content_length: int, checker: Union[CrlUploadChecker, CertUploadChecker]) -> str:
-    try:
-        img_file = request.files["imgfile"]
-        check_ret = checker.check({"imgfile": img_file.filename})
-    except Exception as err:
-        raise ValidateParamsError("Parameter is invalid.") from err
-    if not check_ret.success:
-        raise ValidateParamsError(check_ret.reason)
-    content_size = img_file.seek(0, 2)
-    img_file.seek(0, 0)
-    if not 0 < content_size <= max_content_length:
-        raise ValidateParamsError("upload file failed: invalid file size.")
-    # size为冗余字段，前端未传入，但需要保留该字段用作兼容，判断逻辑与之前版本一致
-    f_size = request.form.get("size")
-    if f_size is not None and not (f_size.isdigit() and 0 < int(f_size) <= max_content_length):
-        raise ValidateParamsError("upload file failed: invalid file size.")
-    try:
-        return img_file.stream.read().decode()
-    except Exception as err:
-        raise ValidateParamsError("upload file failed: invalid contents.") from err
+            # 从表单的 imgfile 字段获取文件
+            try:
+                file = request.files['imgfile']
+            except Exception as err:
+                raise ValidateParamsError(err_msg) from err
+
+            try:
+                check_ret = CrlUploadChecker().check({"imgfile": file.filename})
+            except Exception as err:
+                raise ValidateParamsError(err_msg) from err
+
+            if not check_ret.success:
+                raise ValidateParamsError(check_ret.reason)
+
+            # 检查文件大小
+            if not RedfishGlobals.check_upload_file_size(file.filename, request.form.get('size')):
+                run_log.error("%s, because file size is invalid.", message)
+                raise FileCheckException("file size is invalid.")
+
+            # 保存文件
+            file_save_path = os.path.join(UploadConstants.NET_MANAGER_UPLOAD_DIR, "FD.crl")
+            if not FileCheck.check_is_link(file_save_path):
+                run_log.error("Check %s is link file.", file_save_path)
+                raise FileCheckException("Check file path is link.")
+
+            try:
+                RedfishGlobals.save_content(file_save_path, file, UploadConstants.CERT_MAX_SIZE)
+            except BizException as err:
+                FileUtils.delete_file_or_link(file_save_path)
+                raise FileCheckException("file size is invalid.") from err
+
+            # 校验文件状态
+            res = CommonCheck.check_file_stat(file_save_path)
+            if not res:
+                run_log.error("the crl file [%s] is invalid, %s", file_save_path, res.error)
+                raise NetManagerException(f"Check {file_save_path} is invalid")
+
+            info = CrlImportManager(FileReader(file_save_path).read().data).import_deal()
+            return ImportFdCrlSerializer().make_200_response(info, CommonConstants.ERR_CODE_200)
+        finally:
+            if file_save_path:
+                FileCopy.remove_path(file_save_path)

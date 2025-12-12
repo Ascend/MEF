@@ -1,6 +1,6 @@
 import { expect, it, vi } from 'vitest';
 import * as httpModule from '@/api/http';
-import { queryHddUpgradeInfo, queryUpdateStatus, queryUpgradeFlag, resetFirmware, updateFirmware, updateHdd } from '@/api/update';
+import { queryHddInfo, queryHddUpgradeInfo, queryUpdateStatus, queryUpgradeFlag, resetFirmware, updateFirmware, updateHdd } from '@/api/update';
 
 
 const params = { key: 'value' };
@@ -48,6 +48,17 @@ it('resetFirmware test', async () => {
   expect($postMock).toHaveBeenCalledWith(url, params);
 
   $postMock.mockRestore();
+});
+
+it('queryHddInfo test', async () => {
+  $getMock.mockResolvedValue(mockResponse);
+
+  const result = await queryHddInfo(hddId);
+  expect(result).toEqual(mockResponse);
+  const url = '/redfish/v1/UpdateHddService/HddInfo/' + hddId;
+  expect($getMock).toHaveBeenCalledWith(url);
+
+  $getMock.mockRestore();
 });
 
 it('updateHdd test', async () => {

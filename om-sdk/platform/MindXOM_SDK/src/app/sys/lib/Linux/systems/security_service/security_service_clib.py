@@ -34,14 +34,11 @@ ERR_CERT_VALIDITY_WARN = '0x20140009'  # 证书有效期告警
 ERR_CERT_EARLY_USE_WARN = '0x20140010'  # 证书过早使用
 ERR_CERT_PASSWD_TOO_LONG = '0x20140011'  # 证书密码过长
 
-CERT_CHECK_SUCCESS = 0
-ERR_GET_CERT_INFO = -1
 ERR_ALGORITHM = 1
 ERR_SIGNATURE_LEN = 2
 ERR_ALGORITHM_NOT_SAFE = 3
 ERR_SIGNATURE_LEN_NOT_ENOUGH = 4
 ERR_SIGNATURE_VERSION_NOT_SAFE = 5
-ERR_CERT_TYPE_CA = 6
 
 X509_V3 = 3
 RSA_LEN_LIMIT = 4096
@@ -192,7 +189,7 @@ def get_verify_cert_info(cert_file_path):
     if ret < 0:
         raise ValueError("Get https cert info for libcertmanage.so failed")
 
-    return [signature_algorithm.value.decode("utf-8"), pubkey_len.value, cert_version.value, is_ca.value,
+    return [signature_algorithm.value.decode("utf-8"), pubkey_len.value, cert_version.value, pubkey_type.value,
             fingerprint.value.decode("utf-8")]
 
 
@@ -218,16 +215,16 @@ def get_http_cert_effective(default_cert_path):
 
 def certificate_verification(cert_path):
     """
-    功能描述：校验web证书是否符合安全要求
+    功能描述：校验证书是否符合安全要求
     参数：无
-    返回值：0,1,2,3,4,5,6,-1
+    返回值：0,1,2,3,4,5,-1
     异常描述：NA
     """
     try:
-        cert_signature, cert_signature_len, cert_version, is_ca, _ = get_verify_cert_info(cert_path)
+        cert_signature, cert_signature_len, cert_version, _, _ = get_verify_cert_info(cert_path)
     except Exception as err:
         run_log.error("load certificate error, because {}.".format(err))
-        return ERR_GET_CERT_INFO
+        return -1
 
     cert_version = cert_version + 1
 
@@ -247,21 +244,16 @@ def certificate_verification(cert_path):
         run_log.error("x509 version is not safe.")
         return ERR_SIGNATURE_VERSION_NOT_SAFE
 
-    if is_ca:
-        run_log.error("web cert can not be ca.")
-        return ERR_CERT_TYPE_CA
-
-    # 允许的导入的风险提示场景的校验需要放在最后
     if cert_signature == "sha256WithRSAEncryption" and cert_signature_len < RSA_LEN_LIMIT:
-        run_log.error("signature sha256WithRSAEncryption length is not safe.")
+        run_log.error("signature length is not safe.")
         return ERR_SIGNATURE_LEN_NOT_ENOUGH
 
     if cert_signature == "ecdsa-with-SHA256" and cert_signature_len < ECDSA_LEN_LIMIT:
-        run_log.error("signature ecdsa-with-SHA256 length is not safe.")
+        run_log.error("signature length is not safe.")
         return ERR_SIGNATURE_LEN_NOT_ENOUGH
 
     run_log.info("signature algorithm and signature length and signature version is ok.")
-    return CERT_CHECK_SUCCESS
+    return 0
 
 
 def check_cert_expired(cert_path: str) -> Result:

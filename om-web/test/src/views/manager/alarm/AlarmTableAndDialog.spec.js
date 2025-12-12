@@ -37,10 +37,6 @@ const wrapper = shallowMount(AlarmTableAndDialog, {
 
 it('test manager alarm AlarmTableAndDialog searchAlarmTable', async () => {
   const { searchAlarmTable } = wrapper.vm;
-  wrapper.vm.alarmDataRef = {
-    clearSort: vi.fn(),
-  };
-
   await searchAlarmTable();
   expect(wrapper.vm.pageNum).toBe(1);
   expect(wrapper.vm.filterData).toStrictEqual(tableDataMock);
@@ -65,6 +61,15 @@ it('test manager alarm AlarmTableAndDialog handleCurrentChange', async () => {
   await handleCurrentChange(10);
   expect(wrapper.vm.pageNum).toBe(10);
   expect(wrapper.vm.alarmData).toStrictEqual([]);
+});
+
+it('test manager alarm AlarmTableAndDialog filterPerceivedSeverity', async () => {
+  const { filterPerceivedSeverity } = wrapper.vm;
+  const rowMock = {
+    PerceivedSeverity: 10,
+  };
+  const rest = filterPerceivedSeverity(10, rowMock);
+  expect(rest).toBe(true);
 });
 
 it('test manager alarm AlarmTableAndDialog handleSelectionChange', async () => {

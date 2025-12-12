@@ -175,7 +175,7 @@ export default defineComponent({
     }
 
     const onUploadChange = (file) => {
-      if (file.status === 'ready') {
+      if (file.status === 'ready'){
         form.fileName = file.name;
       }
     }

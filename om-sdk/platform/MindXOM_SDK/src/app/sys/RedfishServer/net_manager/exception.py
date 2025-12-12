@@ -10,12 +10,9 @@
 import inspect
 from pathlib import Path
 
-from common.constants.error_codes import ErrorCode
-
 
 class NetManagerException(Exception):
     """网管模块异常基类."""
-
     def __init__(self, err_msg: str, err_code=None):
         self.err_msg = err_msg
         # 用于保存与前端约定的错误码
@@ -42,12 +39,6 @@ class DbOperateException(NetManagerException):
 class DataCheckException(NetManagerException):
     """数据校验异常类."""
     pass
-
-
-class InvalidCertInfo(DataCheckException):
-
-    def __init__(self, error: ErrorCode):
-        super().__init__(err_msg=error.messageKey, err_code=error.code)
 
 
 class FileCheckException(NetManagerException):

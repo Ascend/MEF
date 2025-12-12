@@ -72,8 +72,14 @@ class OMUpgradeProcessor:
     @staticmethod
     def copy_encrypt_file() -> NoReturn:
         # 保证Nginx配置目录存在，不存在就创建
-        OMUpgradeProcessor.create_nginx_dir(OMUpgradeConstants.NGINX_CONFIG_DIR, user=CommonConstants.NGINX_USER)
-        OMUpgradeProcessor.create_nginx_dir(CommonConstants.WEB_PRE_DIR, user="root")
+        if not os.path.exists(OMUpgradeConstants.NGINX_CONFIG_DIR):
+            ret = FileCreate.create_dir(OMUpgradeConstants.NGINX_CONFIG_DIR, 0o700)
+            if not ret:
+                raise UpgradeOMError(f"create dir failed, {ret.error}")
+
+        ret = Chown.set_path_owner_group(OMUpgradeConstants.NGINX_CONFIG_DIR, user=CommonConstants.NGINX_USER)
+        if not ret:
+            raise UpgradeOMError(f"chown {OMUpgradeConstants.NGINX_CONFIG_DIR} failed, because {ret.error}")
 
         # 如果存在用户配置文件om_alg.json，则保留，不使用默认的
         if not os.path.exists(os.path.join(OMUpgradeConstants.NGINX_CONFIG_DIR, OMUpgradeConstants.OM_ALG_JSON)):
@@ -102,30 +108,6 @@ class OMUpgradeProcessor:
             shutil.copytree(OMUpgradeConstants.WHITEBOX_BACKUP_DIR, nginx_wb_dir)
         except Exception as err:
             raise UpgradeOMError(f"copy whitebox config to upgrade dir failed, {err}") from err
-
-    @staticmethod
-    def create_nginx_dir(directory: str, user: str) -> NoReturn:
-        if not os.path.exists(directory):
-            ret = FileCreate.create_dir(directory, 0o700)
-            if not ret:
-                raise UpgradeOMError(f"create dir failed, {ret.error}")
-
-        ret = Chown.set_path_owner_group(directory, user=user)
-        if not ret:
-            raise UpgradeOMError(f"chown {directory} failed, because {ret.error}")
-
-    @staticmethod
-    def _clean_up_sensitivity_files(cert_dir: str) -> None:
-        #混淆并删除敏感文件，防止泄露
-        sensitive_files = (
-            OMUpgradeConstants.ROOT_CA_PRIV,
-            OMUpgradeConstants.ROOT_CA_PSD,
-        )
-        for file in sensitive_files:
-            file_path = os.path.join(cert_dir, file)
-            if not os.path.islink(file_path):
-                FileConfusion.confusion_path(file_path)
-            FileUtils.delete_file_or_link(file_path)
 
     @staticmethod
     def _create_uds_cert() -> NoReturn:
@@ -180,7 +162,20 @@ class OMUpgradeProcessor:
             if not ret:
                 raise UpgradeOMError(f"copy {file} failed, {ret.error}")
 
-        OMUpgradeProcessor._clean_up_sensitivity_files(cert_dir)
+        # 清除不再使用的文件
+        useless_files = (
+            OMUpgradeConstants.CLIENT_KMC_CERT,
+            OMUpgradeConstants.CLIENT_KMC_PRIV,
+            OMUpgradeConstants.CLIENT_KMC_PSD,
+            OMUpgradeConstants.ROOT_CA_PRIV,
+            OMUpgradeConstants.ROOT_CA_PSD,
+        )
+        for file in useless_files:
+            file_path = os.path.join(cert_dir, file)
+            if not os.path.islink(file_path):
+                FileConfusion.confusion_path(file_path)
+
+            FileUtils.delete_file_or_link(file_path)
 
     @staticmethod
     def _copy_cert(scr_dir: str, dest_dir: str, user: str) -> NoReturn:

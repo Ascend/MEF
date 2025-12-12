@@ -25,7 +25,6 @@ from common.checkers import StringLengthChecker
 from common.checkers import NotExistsChecker, SecurityLoadCfgChecker
 from common.checkers import PasswordComplexityChecker
 from common.checkers import DateChecker
-from common.checkers.base_checker.list_checker import PartitionListChecker
 from common.checkers.param_checker import LTEConfigInfoChecker
 
 STRING_INCLUDE_BLACKLIST = ("..",)
@@ -284,7 +283,10 @@ class SysConfigInfoChecker(ModelChecker):
     class Meta:
         fields = (
             SysConfigNtpServerChecker("ntp_server", required=False),
-            PartitionListChecker("partitions", elem_checker=SysConfigPartitionChecker(required=False), required=False),
+            ListChecker(
+                "partitions", elem_checker=SysConfigPartitionChecker(required=False),
+                min_len=0, max_len=16, required=False
+            ),
             ListChecker("static_host_list", elem_checker=SysConfigStaticHostChecker(), max_len=128, required=False),
             ListChecker("name_server", elem_checker=SysConfigNameServerChecker(), max_len=3, required=False),
             ListChecker("lte_info", elem_checker=SysConfigLteInfoChecker(), min_len=1, max_len=1, required=False),

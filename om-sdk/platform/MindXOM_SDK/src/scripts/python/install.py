@@ -138,11 +138,11 @@ class OMInstaller(OMUpgradeProcessor):
             raise InstallError(f"copy om_env.conf failed, {ret.error}")
 
     @staticmethod
-    def set_nginx_ip() -> NoReturn:
+    def set_nginx_ip(upgrade_type: str) -> NoReturn:
         # 局部导入，保证安装场景os_cmd.conf已经存在
         from lib.Linux.systems.nic import config_web_ip
         nginx_conf_path = os.path.join(CommonConstants.OM_UPGRADE_DIR_PATH, "config", OMUpgradeConstants.NGINX_CONF)
-        if config_web_ip.main(["config_web_ip.py", nginx_conf_path]) != 0:
+        if config_web_ip.main(["config_web_ip.py", nginx_conf_path, upgrade_type]) != 0:
             raise InstallError("config web ip failed")
 
     def effect_om(self) -> NoReturn:
@@ -293,7 +293,7 @@ class OMInstaller(OMUpgradeProcessor):
         yield self.init_database
 
         # 设置nginx监听IP
-        yield self.set_nginx_ip
+        yield partial(self.set_nginx_ip, "Install")
 
         # 设置OM升级成功标记
         yield partial(self.create_flag_file, OMUpgradeConstants.UPGRADE_FINISHED_FLAG)

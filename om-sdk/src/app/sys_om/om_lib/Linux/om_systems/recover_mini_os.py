@@ -41,12 +41,8 @@ class RecoverOSError(Exception):
 
 
 class RecoverMiniOS:
-    TAR_FILES = (
-        "Ascend-mindx-toolbox_*.tar.gz",
-        "Ascend-cann-nnrt_*.tar.gz",
-        "Ascend-mindxedge-om_*_linux-aarch64.tar.gz",
-        "Ascend-mindxedge-mefedge_*_linux-aarch64.tar.gz",
-    )
+    TAR_FILES = ("Ascend-mindx-toolbox_*.tar.gz", "Ascend-cann-nnrt_*.tar.gz",
+                 "Ascend-mindxedge-om_*_linux-aarch64.tar.gz", "Ascend-mindxedge-mefedge_*_linux-aarch64.tar.gz")
     FILE_MAX_SIZE_BYTES = 300 * 1024 * 1024
 
     RECOVER_MINI_OS_LOCK = GlobalExclusiveController()

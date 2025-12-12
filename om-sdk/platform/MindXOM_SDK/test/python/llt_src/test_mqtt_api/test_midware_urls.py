@@ -12,8 +12,8 @@ import json
 import mock
 from pytest_mock import MockerFixture
 
-from common.checkers.fd_param_checker import SysAssetTagChecker
 from common.file_utils import FileCheck
+from common.utils.app_common_method import AppCommonMethod
 from common.utils.url_downloader import UrlConnect
 from fd_msg_process.common_redfish import CommonRedfish
 from fd_msg_process.midware_urls import MidwareErrCode
@@ -24,7 +24,6 @@ from net_manager.manager.fd_cfg_manager import FdCfgManager
 from test_mqtt_api.get_log_info import GetLogInfo
 from test_mqtt_api.get_log_info import GetOperationLog
 from user_manager.user_manager import UserManager
-from user_manager.user_manager import SessionManager
 
 getLog = GetLogInfo()
 getOplog = GetOperationLog()
@@ -56,182 +55,6 @@ class FakePoolManager:
 
 
 class TestMidwareUrls:
-
-    @staticmethod
-    def test_check_external_param_should_ok():
-        param_data = {"asset_tag": "abcd123A[]"}
-        payload_publish = {
-            "topic": "tag",
-            "percentage": "0%",
-            "result": "failed",
-            "reason": ""
-        }
-        err_info = "Set system tag failed. %s"
-        ret = MidwareUris.check_external_param(SysAssetTagChecker, param_data, payload_publish, err_info)
-        assert ret[0] == 0
-
-    @staticmethod
-    def test_check_external_param_should_failed():
-        param_data = {"asset_tag": "abcd123A[]。"}
-        payload_publish = {
-            "topic": "tag",
-            "percentage": "0%",
-            "result": "failed",
-            "reason": ""
-        }
-        err_info = "Set system tag failed. %s"
-        ret = MidwareUris.check_external_param(SysAssetTagChecker, param_data, payload_publish, err_info)
-        assert ret[0] == -1
-
-    @staticmethod
-    def test_check_capacity_bytes_valid_pass_empty_param():
-        ret = MidwareUris.check_capacity_bytes_valid([])
-        assert ret
-
-    @staticmethod
-    def test_check_capacity_bytes_valid_pass_param_should_ok():
-        permit_unit = 512 * 1024 * 1024
-        partition_cfg = [
-            {
-                "capacity_bytes": permit_unit,
-            }
-        ]
-        ret = MidwareUris.check_capacity_bytes_valid(partition_cfg)
-        assert ret
-
-    @staticmethod
-    def test_check_capacity_bytes_valid_pass_param_should_failed():
-        permit_unit = 512 * 1024 * 1024 + 1024
-        partition_cfg = [
-            {
-                "capacity_bytes": permit_unit,
-            }
-        ]
-        ret = MidwareUris.check_capacity_bytes_valid(partition_cfg)
-        assert not ret
-
-    @staticmethod
-    @mock.patch.object(SessionManager, "get_all_info", mock.Mock(return_value={"message": {"SessionTimeout": 40}}))
-    @mock.patch.object(CommonRedfish, 'check_status_is_ok', mock.Mock(return_value=True))
-    def test_get_session_timeout():
-        MidwareUris.resp_json_sys_info["security_policy"] = dict()
-        MidwareUris.get_session_timeout()
-        assert MidwareUris.resp_json_sys_info["security_policy"]["session_timeout"] == "40"
-
-    @staticmethod
-    @mock.patch.object(LibRESTfulAdapter, 'lib_restful_interface',
-                       mock.Mock(return_value={"message": {"CertAlarmTime": 40}}))
-    @mock.patch.object(CommonRedfish, 'check_status_is_ok', mock.Mock(return_value=True))
-    def test_get_cert_alarm_time():
-        MidwareUris.resp_json_sys_info["security_policy"] = dict()
-        MidwareUris.get_cert_alarm_time()
-        assert MidwareUris.resp_json_sys_info["security_policy"]["cert_alarm_time"] == "40"
-
-    @staticmethod
-    @mock.patch.object(LibRESTfulAdapter, 'lib_restful_interface',
-                       mock.Mock(return_value={"message": {"load_cfg": []}}))
-    @mock.patch.object(CommonRedfish, 'check_status_is_ok', mock.Mock(return_value=True))
-    def test_get_security_load_config():
-        MidwareUris.resp_json_sys_info["security_policy"] = dict()
-        MidwareUris.get_security_load_config()
-        assert not MidwareUris.resp_json_sys_info["security_policy"]["security_load"]
-
-    @staticmethod
-    @mock.patch.object(LibRESTfulAdapter, 'lib_restful_interface',
-                       mock.Mock(return_value={"message": {}}))
-    @mock.patch.object(CommonRedfish, 'check_status_is_ok', mock.Mock(return_value=True))
-    def test_get_lte_info_failed():
-        MidwareUris.get_lte_info()
-        assert not MidwareUris.resp_json_sys_status["lte_info"]
-
-    @staticmethod
-    @mock.patch("json.loads", mock.Mock(
-        return_value={"default_gateway": "default gateway", "lte_enable": "lte enable", "sim_exist": "sim exist",
-                      "state_lte": "state lte", "state_data": "state data",
-                      "network_signal_level": "network signal level",
-                      "network_type": "network type", "ip_addr": "ip addr"}))
-    @mock.patch.object(LibRESTfulAdapter, 'lib_restful_interface',
-                       mock.Mock(return_value={"message": {"lte_enable": True}}))
-    @mock.patch.object(CommonRedfish, 'check_status_is_ok', mock.Mock(return_value=True))
-    @mock.patch.object(CommonRedfish, 'update_json_of_list', mock.Mock(return_value=Result(True)))
-    @mock.patch.object(MidwareUris, 'get_apn_info', mock.Mock(
-        return_value={"apn_name": "apn name", "apn_user": "apn user",
-                      "auth_type": "auth type", "mode_type": "mode type"}))
-    def test_get_lte_info_ok():
-        MidwareUris.get_lte_info()
-        assert MidwareUris.resp_json_sys_status["lte_info"] == [
-            {"default_gateway": "default gateway", "lte_enable": "lte enable", "sim_exist": "sim exist",
-             "state_lte": "state lte", "state_data": "state data",
-             "network_signal_level": "network signal level",
-             "network_type": "network type", "ip_addr": "ip addr",
-             "apn_info": [{"apn_name": "apn name", "apn_user": "apn user",
-                           "auth_type": "auth type", "mode_type": "mode type"}]}
-        ]
-
-    @staticmethod
-    @mock.patch("json.loads", mock.Mock(
-        return_value={"apn_name": "apn name", "apn_user": "apn user",
-                      "auth_type": "auth type", "mode_type": "mode type"}))
-    @mock.patch.object(LibRESTfulAdapter, 'lib_restful_interface', mock.Mock(return_value={"message": None}))
-    @mock.patch.object(CommonRedfish, 'check_status_is_ok', mock.Mock(return_value=True))
-    @mock.patch.object(CommonRedfish, 'update_json_of_list', mock.Mock(return_value=Result(True)))
-    def test_get_apn_info():
-        ret = MidwareUris.get_apn_info()
-        assert ret == {"apn_name": "apn name", "apn_user": "apn user",
-                       "auth_type": "auth type", "mode_type": "mode type"}
-
-    @staticmethod
-    @mock.patch("json.loads", mock.Mock(return_value={"web_access": "web access", "ssh_access": "ssh access"}))
-    @mock.patch.object(LibRESTfulAdapter, 'lib_restful_interface', mock.Mock(return_value={"message": None}))
-    @mock.patch.object(CommonRedfish, 'check_status_is_ok', mock.Mock(return_value=True))
-    @mock.patch.object(CommonRedfish, 'update_json_of_list', mock.Mock(return_value=Result(True)))
-    def test_get_access_control_info():
-        MidwareUris.resp_json_sys_info["security_policy"] = dict()
-        MidwareUris.get_access_control_info()
-        assert MidwareUris.resp_json_sys_info["security_policy"]["web_access"] == "web access" and \
-               MidwareUris.resp_json_sys_info["security_policy"]["ssh_access"] == "ssh access"
-
-    @staticmethod
-    @mock.patch("json.loads", mock.Mock(
-        return_value={"ClientEnabled": "ClientEnabled", "ServerEnabled": "ServerEnabled", "Port": "Port",
-                      "NTPRemoteServers": "NTPRemoteServers", "NTPRemoteServersbak": "NTPRemoteServersbak",
-                      "NTPLocalServers": "NTPLocalServers"}))
-    @mock.patch.object(LibRESTfulAdapter, 'lib_restful_interface', mock.Mock(return_value={"message": None}))
-    @mock.patch.object(CommonRedfish, 'update_json_of_list', mock.Mock(return_value=Result(True)))
-    @mock.patch.object(CommonRedfish, 'check_status_is_ok', mock.Mock(return_value=True))
-    def test_get_ntp_config_ok():
-        assert MidwareUris.get_ntp_config()[0] == 0
-
-    @staticmethod
-    @mock.patch.object(CommonRedfish, 'update_json_of_list', mock.Mock(return_value=Result(True)))
-    @mock.patch.object(CommonRedfish, 'check_status_is_ok', mock.Mock(return_value=False))
-    def test_get_ntp_config_failed():
-        ret = MidwareUris.get_ntp_config()
-        assert ret[0] == -1 and getLog.get_log() is not None
-
-    @staticmethod
-    @mock.patch.object(LibRESTfulAdapter, 'lib_restful_interface', mock.Mock(return_value={"message": None}))
-    @mock.patch.object(CommonRedfish, 'check_status_is_ok', mock.Mock(return_value=True))
-    def test_set_ntp_config_ok():
-        ntp_server_ip = "1.1.1.1"
-        ret = MidwareUris.set_ntp_config(ntp_server_ip)
-        assert ret[0] == 0 and ntp_server_ip in ret[1]
-
-    @staticmethod
-    @mock.patch.object(CommonRedfish, 'check_status_is_ok', mock.Mock(return_value=False))
-    def test_set_ntp_config_failed():
-        ntp_server_ip = "1.1.1.1"
-        ret = MidwareUris.set_ntp_config(ntp_server_ip)
-        assert ret[0] == -1 and \
-               str(MidwareErrCode.midware_config_ntp_common_err) in ret[1] and \
-               getLog.get_log() is not None
-
-    @staticmethod
-    @mock.patch("os.path.exists", mock.Mock(return_value=True))
-    @mock.patch.object(MidwareUris, "get_ntp_config", mock.Mock(return_value=[0, {"NTPRemoteServers": "1.1.1.1"}]))
-    @mock.patch.object(FdCfgManager, "get_cur_fd_ip", mock.Mock(return_value="1.1.1.1"))
-    def test_snyc_ntp_config():
-        assert MidwareUris.snyc_ntp_config()[0] == 0
 
     def test_midware_generate_err_msg(self):
         ret = MidwareErrCode.midware_generate_err_msg(1, "info")

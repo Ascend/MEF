@@ -527,65 +527,48 @@ static int parse_storage_config(char *info, EXTEND_STORAGE_CONFIG *config)
     return SUCCESS;
 }
 
-// 提取字符串中usb_hub_id字段
-static int parse_usb_hub_id(char *line_info, char *save_ptr)
-{
-    (void)strtok_r(line_info, "=", &save_ptr);
-    char *usb_hub_id = strtok_r(NULL, "=", &save_ptr);
-    if (usb_hub_id == NULL) {
-        EXTEND_ALARM_LOG_WARN("usb_hub_id is NULL.");
-        return SUCCESS;
-    }
-    size_t result_len = strlen(usb_hub_id);
-    if (result_len > 0) {
-        usb_hub_id[result_len - 1] = (usb_hub_id[result_len - 1] == '\n') ? '\0' : usb_hub_id[result_len - 1];
-    }
-
-    if (strcpy_s(USB_HUB_ID, sizeof(USB_HUB_ID) - 1, usb_hub_id) != 0) {
-        EXTEND_ALARM_LOG_ERR("strcpy_s usb_hub_id failed.");
-        return EXTEND_ALARM_ERROR;
-    }
-    return SUCCESS;
-}
-
-// 分配并初始化新配置结构
-static EXTEND_STORAGE_CONFIG* create_config(char* line_info)
-{
-    char line_copy[LINE_INFO_SIZE] = {0};
-    if (strcpy_s(line_copy, LINE_INFO_SIZE, line_info) != 0) {
-        EXTEND_ALARM_LOG_ERR("strcpy_s failed.");
-        return NULL;
-    }
-
-    EXTEND_STORAGE_CONFIG* config = (EXTEND_STORAGE_CONFIG*)malloc(sizeof(EXTEND_STORAGE_CONFIG));
-    if (!config) {
-        EXTEND_ALARM_LOG_ERR("malloc config failed.");
-        return NULL;
-    }
-
-    if (memset_s(config, sizeof(EXTEND_STORAGE_CONFIG), 0, sizeof(EXTEND_STORAGE_CONFIG)) != 0) {
-        free(config);
-        EXTEND_ALARM_LOG_ERR("memset_s failed.");
-        return NULL;
-    }
-
-    return config;
-}
-
 static int generate_extend_storage_config(char* line_info, int line_len)
 {
+    char line_temp[LINE_INFO_SIZE] = {0};
     char *temp = NULL;
     char *save_ptr = NULL;
+    char *usb_hub_id = NULL;
     if (line_info == NULL || line_len > LINE_INFO_SIZE || line_len < 0) {
         EXTEND_ALARM_LOG_ERR("param of line length input failed.");
         return EXTEND_ALARM_ERROR;
     }
     if (strstr(line_info, "usb_hub_id")) {
-        return parse_usb_hub_id(line_info, save_ptr);
+        (void)strtok_r(line_info, "=", &save_ptr);
+        usb_hub_id = strtok_r(NULL, "=", &save_ptr);
+        if (usb_hub_id == NULL) {
+            EXTEND_ALARM_LOG_WARN("usb_hub_id is null.");
+            return SUCCESS;
+        }
+        size_t result_len = strlen(usb_hub_id);
+        if (result_len > 0) {
+            usb_hub_id[result_len - 1] = (usb_hub_id[result_len - 1] == '\n') ? '\0' : usb_hub_id[result_len - 1];
+        }
+
+        if (strcpy_s(USB_HUB_ID, sizeof(USB_HUB_ID) - 1, usb_hub_id) != 0) {
+            EXTEND_ALARM_LOG_ERR("strcpy_s usb_hub_id failed.");
+            return EXTEND_ALARM_ERROR;
+        }
+        return SUCCESS;
     }
 
-    EXTEND_STORAGE_CONFIG* config = create_config(line_info);
-    if (!config) {
+    if (strcpy_s(line_temp, LINE_INFO_SIZE, line_info) != 0) {
+        EXTEND_ALARM_LOG_ERR("strcpy_s line_info failed.");
+        return EXTEND_ALARM_ERROR;
+    }
+    EXTEND_STORAGE_CONFIG* config = (EXTEND_STORAGE_CONFIG*)malloc(sizeof(EXTEND_STORAGE_CONFIG));
+    if (config == NULL) {
+        EXTEND_ALARM_LOG_ERR("malloc config failed");
+        return EXTEND_ALARM_ERROR;
+    }
+    if (memset_s(config, sizeof(EXTEND_STORAGE_CONFIG), 0, sizeof(EXTEND_STORAGE_CONFIG)) != 0) {
+        EXTEND_ALARM_LOG_ERR("memset_s failed.");
+        free(config);
+        config = NULL;
         return EXTEND_ALARM_ERROR;
     }
 

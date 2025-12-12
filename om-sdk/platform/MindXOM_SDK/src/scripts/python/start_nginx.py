@@ -14,10 +14,9 @@ import threading
 import time
 
 from common.constants.base_constants import CommonConstants
-from common.file_utils import FilePermission as Chmod
-from common.kmc_lib.kmc import Kmc
 from common.log.logger import run_log
 from common.utils.exec_cmd import ExecCmd
+from common.kmc_lib.kmc import Kmc
 
 
 class ResultCode(object):
@@ -29,8 +28,7 @@ class StartNginxOperator:
     def __init__(self):
         self.nginx_path = os.path.join(CommonConstants.OM_WORK_DIR_PATH, "software/nginx/sbin/nginx")
         self.nginx_conf_path = os.path.join(CommonConstants.OM_WORK_DIR_PATH, "software/nginx/conf/nginx.conf")
-        self.nginx_pid = os.path.join(CommonConstants.OM_WORK_DIR_PATH, "software/nginx/logs/nginx.pid")
-        self.nginx_error_log_path = "/var/plog/web_edge/error.log"
+        self.nginx_prefix_path = os.path.join(CommonConstants.OM_WORK_DIR_PATH, "software/nginx")
         self.fifo_file_name = "/run/nginx/nginxfifo"
         self.cert_primary_ksf = "/home/data/config/default/om_cert.keystore"
         self.cert_standby_ksf = "/home/data/config/default/om_cert_backup.keystore"
@@ -51,7 +49,7 @@ class StartNginxOperator:
                 run_log.info("Remove fifo file %s success.", self.fifo_file_name)
 
     def start_nginx(self):
-        start_nginx_cmd = [self.nginx_path, "-c", self.nginx_conf_path, "-e", self.nginx_error_log_path]
+        start_nginx_cmd = [self.nginx_path, "-c", self.nginx_conf_path, "-p", self.nginx_prefix_path]
         ret = ExecCmd.exec_cmd_get_output(start_nginx_cmd, wait=5)
         if ret[0] != 0:
             run_log.error("Exec start nginx cmd failed: %s.", ret[1])
@@ -92,12 +90,6 @@ class StartNginxOperator:
             file.write(psd_data)
 
         time.sleep(3)
-
-        ret = Chmod.set_path_permission(self.nginx_pid, 0o640)
-        if not ret:
-            run_log.error("Change nginx.pid permission failed.")
-            return ResultCode.FAILED_OPERATION
-
         # 查看nginx的worker进程是否启动
         master_cmd = f"ps -ef | grep -w {self.nginx_path} | grep 'nginx: master process' | grep -v grep"
         master_cmd += " | awk '{print $2}'"

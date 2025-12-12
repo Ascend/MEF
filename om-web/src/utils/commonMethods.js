@@ -16,7 +16,7 @@ import errorTipMapper from '@/api/errorTipMapper';
 import { fetchJson } from '@/api/common';
 
 export function convertToGB(value) {
-  return `${(value / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+  return (value / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
 }
 
 export function dateFormat(date, format) {
@@ -196,7 +196,7 @@ export function isFulfilled(item) {
   return item.status === 'fulfilled'
 }
 
-export function checkUrlsResponse(allResponse, AutoRefresh = false) {
+export function checkUrlsResponse(allResponse, AutoRefresh=false) {
   // 用于检测调用了 getUrls() 方法的接口是否有失败响应
   // 只要有一个接口请求失败就会出现错误提示
   if (!allResponse.every(item => isFulfilled(item)) && !AutoRefresh) {

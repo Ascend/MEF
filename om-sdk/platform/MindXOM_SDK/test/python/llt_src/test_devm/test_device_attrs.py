@@ -10,28 +10,20 @@
 # See the Mulan PSL v2 for more details.
 import struct
 from collections import namedtuple
-from enum import Enum
 
 import pytest
 
 from devm.config import MAX_STRING_BUFFER_SIZE_BYTE
 from devm.constants import DeviceAttrTypeEnum
 from devm.device_attrs import DeviceAttr
-from devm.device_attrs import DeviceAttrInt
-from devm.device_attrs import DeviceAttrJson
 from devm.device_attrs import attr_factory
-from devm.exception import UnsupportedDeviceAttrTypeError
 
-
-class InvalidDeviceAttrTypeEnum(Enum):
-    UINT = "unsigned int"
-    XML = "xml"
+DeviceAttrCase = namedtuple("DeviceAttrCase", ["expect", "value"])
 
 
 class TestDeviceAttr:
     LoadTagCase = namedtuple("LoadTagCase", ["expect", "tag_buff"])
     GetValueLenCase = namedtuple("GetValueLenCase", ["expect", "attr_type", "attr_name", "attr_info", "value"])
-    AttrFactoryCase = namedtuple("AttrFactoryCase", ["expect", "attr_type", "attr_name", "attr_info"])
     use_cases = {
         "test_load_tag_normal": {
             "tag_buff_len_4_should_ok": (1, b"\x01\x00\x00\x00"),
@@ -96,45 +88,19 @@ class TestDeviceAttr:
                      },
                      b"\x0a\x00\x00\x00\x01\x00\x00\x00\x01"),
         },
-        "test_attr_factory_will_raise_exception_when_invalid_attr_type": {
-            "unsigned int": (UnsupportedDeviceAttrTypeError, InvalidDeviceAttrTypeEnum.UINT, "attr_uint",
-                             {"id": 1, "type": "unsigned int", "accessMode": "ReadWrite"}),
-            "xml": (UnsupportedDeviceAttrTypeError, InvalidDeviceAttrTypeEnum.XML, "attr_xml",
-                    {"id": 1, "type": "xml", "accessMode": "ReadWrite"}),
-        },
-        "test_attr_factory_will_ok_when_valid_attr_type": {
-            "int": (DeviceAttrInt, DeviceAttrTypeEnum.INT, "attr_int",
-                    {"id": 1, "type": "int", "accessMode": "ReadWrite"}),
-            "json": (DeviceAttrJson, DeviceAttrTypeEnum.JSON, "attr_json",
-                     {"id": 1, "type": "json", "accessMode": "ReadWrite"}),
-        },
     }
 
-    @staticmethod
-    def test_load_tag_normal(model: LoadTagCase):
+    def test_load_tag_normal(self, model: LoadTagCase):
         assert DeviceAttr.load_tag(model.tag_buff) == model.expect
 
-    @staticmethod
-    def test_load_tag_error(model: LoadTagCase):
+    def test_load_tag_error(self, model: LoadTagCase):
         with pytest.raises(model.expect):
             assert DeviceAttr.load_tag(model.tag_buff)
 
-    @staticmethod
-    def test_get_val_len(model: GetValueLenCase):
+    def test_get_val_len(self, model: GetValueLenCase):
         attr_inst = attr_factory(model.attr_type, model.attr_name, model.attr_info)
         assert attr_inst.get_val_len(model.value) == model.expect
 
-    @staticmethod
-    def test_load_val(model: GetValueLenCase):
+    def test_load_val(self, model: GetValueLenCase):
         attr_inst = attr_factory(model.attr_type, model.attr_name, model.attr_info)
         assert attr_inst.load_val(model.value) == model.expect
-
-    @staticmethod
-    def test_attr_factory_will_raise_exception_when_invalid_attr_type(model: AttrFactoryCase):
-        with pytest.raises(model.expect):
-            attr_factory(model.attr_type, model.attr_name, model.attr_info)
-
-    @staticmethod
-    def test_attr_factory_will_ok_when_valid_attr_type(model: AttrFactoryCase):
-        attr_inst = attr_factory(model.attr_type, model.attr_name, model.attr_info)
-        assert isinstance(attr_inst, model.expect)

@@ -93,7 +93,6 @@ function set_file_immutable_attr()
         find "${OM_WORK_DIR}"/ -name "*.py" -exec chattr +i {} \;
         find "${OM_WORK_DIR}"/ -name "*.so*" -type f -exec chattr +i {} \;
         find "${OM_WORK_DIR}"/ -name "*.xml" -exec chattr +i {} \;
-        chattr +i "${OM_WORK_DIR}"/tools/*
         logger_info "set file immutable attr success"
     else
         logger_info "${OM_WORK_DIR} not exist, skip setting file immutable attr"

@@ -7,71 +7,88 @@
 # EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
-from pytest_mock import MockerFixture
+from collections import namedtuple
 
-from ibma_redfish_globals import RedfishGlobals
-from net_manager.checkers.table_data_checker import NetManagerCfgFdChecker, NetManagerCfgChecker
-from net_manager.models import NetManager
+from net_manager.checkers.table_data_checker import CertManagerChecker, NetManagerCfgChecker
 
 
-class TestNetManagerCfgFdChecker:
-    @staticmethod
-    def test_net_manager_cfg_fd_checker_failed():
-        ret = RedfishGlobals.check_external_parameter(NetManagerCfgFdChecker, {"server_name": "12"})
-        assert ret == {"status": 400, "message": [100024, "Parameter is invalid."]}
-
-    @staticmethod
-    def test_net_manager_cfg_fd_checker_success():
-        param_dict = {
-            "server_name": "123",
-            "server_ip": "1.1.1.1",
-            "server_port": 443,
-            "cloud_user": "cloudUser",
-            "cloud_pwd": "cloudPwd",
-            "status": "connecting",
-        }
-        assert not RedfishGlobals.check_external_parameter(NetManagerCfgFdChecker, param_dict)
-
-
-class TestNetManagerCfgChecker:
-    @staticmethod
-    def test_check_web_cfg_failed():
-        assert not NetManagerCfgChecker().check_web_cfg(NetManager(port="443")).success
+class TestUtils1:
+    node_id = "3c7a6b5d-8f1e-4a3d-9b5c-2c6d8e1f0a4b"
+    success = True
+    net_mgmt_type = "FusionDirector"
+    server_name = "FusionDirector"
+    ip = "127.0.1.1"
+    port = "403"
+    cloud_user = "123"
+    cloud_pwd = "123"
+    status = "ready"
 
     @staticmethod
-    def test_check_web_cfg_success():
-        assert NetManagerCfgChecker().check_web_cfg(NetManager()).success
+    def to_dict():
+        return {"name": "a"}
 
     @staticmethod
-    def test_check_fd_cfg_failed():
-        assert not NetManagerCfgChecker().check_fd_cfg(NetManager()).success
+    def name():
+        return ""
 
-    @staticmethod
-    def test_check_fd_cfg_success():
-        net_manager = NetManager(
-            server_name="123",
-            ip="1.1.1.1",
-            port="443",
-            cloud_user="cloudUser",
-            cloud_pwd="cloudPwd",
-            status="connecting",
-        )
-        assert NetManagerCfgChecker().check_fd_cfg(net_manager).success
 
-    @staticmethod
-    def test_check_net_cfg_with_invalid_mgmt_type():
-        assert not NetManagerCfgChecker().check_net_cfg(NetManager()).success
+class TestUtils:
+    node_id = ""
+    net_mgmt_type = ""
+    server_name = ""
+    ip = ""
+    port = ""
+    cloud_user = ""
+    cloud_pwd = ""
+    status = ""
 
-    @staticmethod
-    def test_check_net_cfg_with_invalid_node_id():
-        net_manager = NetManager(net_mgmt_type="FusionDirector", node_id="/*-")
-        assert not NetManagerCfgChecker().check_net_cfg(net_manager).success
 
-    @staticmethod
-    def test_check_net_cfg_success():
-        net_manager = NetManager(net_mgmt_type="Web", node_id="e6a47e30-3a09-11ea-9218-a8494df5f123")
-        assert NetManagerCfgChecker().check_net_cfg(net_manager).success
+class TestGetJsonInfoObj:
+    CheckDictCase = namedtuple("CheckDictCase", "tested_class, param_key, input_param, excepted_success, check")
+    CheckWebCfgCase = namedtuple("CheckWebCfgCase", "net_manager, excepted_success")
+    CheckFdCfgCase = namedtuple("CheckFdCfgCase", "net_manager, excepted_success")
+    CheckNetCfgCase = namedtuple("CheckNetCfgCase", "net_manager, excepted_success")
+    use_cases = {
+        "test_check_net_cfg": {
+            "False": (TestUtils, False),
+            "True": (TestUtils1, True),
+        },
+        "test_check_fd_cfg": {
+            "False": (TestUtils, False),
+            "True": (TestUtils1, True),
+        },
+        "test_check_web_cfg": {
+            "False": (TestUtils1, False),
+            "True": (TestUtils, True),
+        },
+        "test_check_dict": {
+            "not_exists_checker_is_existed": (CertManagerChecker, "1", {"1": TestUtils1}, False, TestUtils1),
+            "not_exists_checker_not_existed": (CertManagerChecker, "2", {"1": "1"}, False, TestUtils1),
+            "not net_manager": (CertManagerChecker, None, {}, False, TestUtils1),
+        },
+        "test_check_dict1": {
+            "not_exists_checker_is_existed": (NetManagerCfgChecker, "1", {"1": TestUtils1}, True, TestUtils1),
+            "not_exists_checker_not_existed": (NetManagerCfgChecker, "2", {"1": "1"}, False, TestUtils1),
+            "not net_manager": (NetManagerCfgChecker, None, {}, False, TestUtils1),
+        },
+    }
 
-    @staticmethod
-    def test_check_dict_with_empty_param():
-        assert not NetManagerCfgChecker().check_dict(dict()).success
+    def test_check_dict(self, model: CheckDictCase):
+        ret = model.tested_class(model.param_key).check_dict(model.input_param)
+        assert model.excepted_success == ret.success
+
+    def test_check_web_cfg(self, model: CheckWebCfgCase):
+        ret = NetManagerCfgChecker.check_web_cfg(model.net_manager)
+        assert model.excepted_success == ret.success
+
+    def test_check_fd_cfg(self, model: CheckFdCfgCase):
+        ret = NetManagerCfgChecker.check_fd_cfg(model.net_manager)
+        assert model.excepted_success == ret.success
+
+    def test_check_net_cfg(self, model: CheckNetCfgCase):
+        ret = NetManagerCfgChecker.check_net_cfg(NetManagerCfgChecker, model.net_manager)
+        assert model.excepted_success == ret.success
+
+    def test_check_dict1(self, model: CheckDictCase):
+        ret = model.tested_class(model.param_key).check_dict(model.input_param)
+        assert model.excepted_success == ret.success

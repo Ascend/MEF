@@ -11,13 +11,9 @@
 # See the Mulan PSL v2 for more details.
 import json
 import threading
-from enum import Enum
-from typing import Dict, Callable
 
 from common.log.logger import run_log
-from common.utils.result_base import Result
 from om_event_subscription.report_alarm_task import ReportTaskManager
-from om_event_subscription.subscription_mgr import PreSubCertMgr
 
 
 def start_esight_report_timer():
@@ -35,56 +31,3 @@ def start_esight_report_timer():
 
 def start_extend_funcs():
     start_esight_report_timer()
-
-
-class Action(Enum):
-    GETUNUSED = "getunusedcert"
-    RESTORE = "restorecert"
-    DELETE = "deletecert"
-
-
-def get_unused_cert() -> Result:
-    try:
-        ret = PreSubCertMgr().get_pre_subs_cert()
-    except Exception:
-        run_log.error("Get unused subscriptions cert failed.")
-        return Result(False, err_msg="Get unused subscriptions cert failed.")
-
-    run_log.info("Get unused subscriptions cert successfully.")
-    return Result(True, data=json.dumps(ret.get_cert_crl()))
-
-
-def restore_cert() -> Result:
-    try:
-        PreSubCertMgr().restore_pre_subs_cert()
-    except Exception:
-        run_log.error("Restore subscriptions cert failed.")
-        return Result(False, err_msg="Restore subscriptions cert failed.")
-
-    run_log.info("Restore subscriptions cert successfully.")
-    return Result(True, data="Restore subscriptions cert successfully.")
-
-
-def delete_cert() -> Result:
-    if not get_unused_cert():
-        run_log.error("Delete unused subscriptions cert failed. Because unused subscriptions cert not exist.")
-        return Result(False, err_msg="Delete unused subscriptions cert failed.")
-
-    if PreSubCertMgr().delete_cert():
-        run_log.info("Delete unused subscriptions cert successfully.")
-        return Result(True, data="Delete unused subscriptions cert successfully.")
-
-    run_log.error("Delete unused subscriptions cert failed.")
-    return Result(False, err_msg="Delete subscriptions unused cert failed.")
-
-
-OPERATE: Dict[str, Callable[[], Result]] = {
-    Action.GETUNUSED.value: get_unused_cert,
-    Action.RESTORE.value: restore_cert,
-    Action.DELETE.value: delete_cert,
-}
-
-
-def extend_redfish_cert_manage(action: str) -> Result:
-    operate = OPERATE[action]
-    return operate()

@@ -183,11 +183,7 @@ export default defineComponent({
       
       const subject = parsingStrings(subjectStr)
       
-      return subject?.C === 'CN' && subject?.O === 'Huawei'
-          && (
-              (subject?.OU === 'CPL Ascend' && subject?.CN.startsWith('MindXOM-'))
-              || (subject?.OU === 'Ascend' && subject?.CN === 'huawei')
-          );
+      return subject?.C === 'CN' && subject?.O === 'Huawei' && subject?.OU === 'CPL Ascend' && subject?.CN.startsWith('MindXOM-');
     }
     
     const parsingStrings = (str) => {

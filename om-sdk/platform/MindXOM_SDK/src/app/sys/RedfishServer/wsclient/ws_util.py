@@ -12,8 +12,8 @@ from typing import Tuple
 
 from websockets import datastructures
 from websockets.datastructures import Headers
+from websockets.exceptions import InvalidStatusCode
 from websockets.legacy.client import WebSocketClientProtocol
-from websockets.legacy.exceptions import InvalidStatusCode
 
 
 class WsInvalidStatusCode(InvalidStatusCode):

@@ -1,5 +1,3 @@
-import json
-import os
 import socket
 from collections import namedtuple
 
@@ -7,26 +5,22 @@ from pytest_mock import MockerFixture
 
 from bin.monitor_config import SystemSetting
 from common.file_utils import FileCheck
-from common.init_cmd import cmd_constants
 from common.utils.exec_cmd import ExecCmd
 from common.utils.system_utils import SystemUtils
 from common.utils.result_base import Result
 from common.common_methods import CommonMethods
-from lib.Linux.systems.extend import Extend
 from ut_utils.mock_utils import mock_cdll, mock_write_file_with_os_open, mock_read_data, mock_npu_smi_board_type, \
     mock_npu_smi_npu_version
 
 with mock_cdll():
     with mock_npu_smi_board_type():
         with mock_npu_smi_npu_version():
-            from lib.Linux.systems.systems import SystemInfo, get_main_board_instance
+            from lib.Linux.systems.systems import SystemInfo
             from devm.device_mgr import DEVM, Device
+            from devm.exception import DeviceManagerError
 
 CheckRequestData = namedtuple("CheckRequestData", "expect, request")
 ELabelCheck = namedtuple("ELabelCheck", "expect, info")
-SaveTimeZone = namedtuple("SaveTimeZone", "expect, time_zone")
-GetCapacity = namedtuple("GetCapacity", "expect, value, unit")
-SetHostName = namedtuple("SetHostName", "expect, request_data")
 PatchRequest = namedtuple("PatchRequest", "expect, request, lock, tags, mcu, offset")
 SetDatetimeLocalOffset = namedtuple("SetDatetimeLocalOffset", "expect, cmd")
 GetTimeZone = namedtuple("GetTimeZone", "expect, cmd")
@@ -51,36 +45,12 @@ FormatTime = namedtuple("SetTime", "expect, time")
 SetOSTime = namedtuple("SetTime", "expect, cmd")
 
 
-def test_get_main_board_instance(mocker: MockerFixture):
-    mocker.patch.object(DEVM, "get_device")
-    get_main_board_instance()
-
-
 class TestSystem:
     use_cases = {
         "test_check_request_data": {
             "null request": (False, None),
             "empty request": (False, ""),
             "valid request": (True, {})
-        },
-        "test_elabel_check": {
-            "check failed": (False, ""),
-            "check success": (True, "666"),
-        },
-        "test_save_time_zone_config": {
-            "empty": (None, ""),
-            "normal": (None, "666")
-        },
-        "test_get_capacity": {
-            "-1": (-1, "[]", "kb"),
-            "value is int": (2.0, 2, "kb"),
-            "value is str and len eq 1": (0.0, "20", "gb"),
-            "value is str and len eq 2": (20.0, "20 GB", "gb")
-        },
-        "test_set_host_name": {
-            "host name is invalid.": ([400, "ERR.01006,Set hostname failed"], {"HostName": "---"}),
-            "EulerOS": ([200, ], {"HostName":"hostname"}),
-            "OpenEuler": ([200, ], {"HostName":"hostname"})
         },
         "test_patch_request": {
             "busy": ([CommonMethods.ERROR, "System modify is busy"], None, True, None, None, None),
@@ -185,97 +155,6 @@ class TestSystem:
         assert SystemInfo.check_request_data(model.request) == model.expect
 
     @staticmethod
-    def test_elabel_check(model: ELabelCheck):
-        assert SystemInfo.elabel_check(model.info) == model.expect
-
-    @staticmethod
-    def test_get_model_from_web_file(mocker: MockerFixture):
-        mocker.patch.object(FileCheck, "check_path_is_exist_and_valid").return_value = True
-        mocker.patch.object(os.path, "getsize").return_value = 1025
-        mocker.patch("builtins.open")
-        mocker.patch.object(json, "load").return_value = {"model": "big"}
-        assert SystemInfo.get_model_from_web_file() == "big"
-
-    @staticmethod
-    def test_save_time_zone_config(model: SaveTimeZone):
-        assert SystemInfo.save_time_zone_config(model.time_zone) == model.expect
-
-    @staticmethod
-    def test_get_capacity(model: GetCapacity):
-        assert SystemInfo.get_capacity(model.value, model.unit) == model.expect
-
-    @staticmethod
-    def test_euler_set_host_name(mocker: MockerFixture):
-        mocker.patch.object(ExecCmd, "exec_cmd").return_value = 0
-        mocker.patch.object(FileCheck, "check_is_link").return_value = True
-        mocker.patch.object(os, "fdopen")
-        assert SystemInfo.euler_set_host_name("hahaha")
-
-    @staticmethod
-    def test_openos_set_host_name(mocker: MockerFixture):
-        mocker.patch.object(ExecCmd, "exec_cmd").return_value = 0
-        assert SystemInfo.openos_set_host_name("hahaha")
-
-    @staticmethod
-    def test_get_file_content(mocker: MockerFixture):
-        mocker.patch.object(FileCheck, "check_path_is_exist_and_valid").return_value = True
-        mocker.patch("builtins.open")
-        assert SystemInfo.get_file_content("/hahaha/hahah")
-
-    @staticmethod
-    def test_get_kernel_version(mocker: MockerFixture):
-        mocker.patch.object(FileCheck, "check_path_is_exist_and_valid").return_value = True
-        mocker.patch("os.path.getsize").return_value = 1024
-        mocker.patch("builtins.open")
-        assert SystemInfo.get_kernel_version()
-
-    @staticmethod
-    def test_set_sys_electronic_tags(mocker: MockerFixture):
-        mocker.patch.object(DEVM, "get_device")
-        assert SystemInfo.set_sys_electronic_tags("xxx", "xxxx")
-
-    @staticmethod
-    def test_set_host_name(mocker: MockerFixture, model: SetHostName):
-        mocker.patch.object(cmd_constants, "OS_NAME", "EulerOS")
-        assert SystemInfo().set_host_name(model.request_data) == model.expect
-
-    @staticmethod
-    def test_get_time_zone(mocker: MockerFixture):
-        mocker.patch.object(ExecCmd, "exec_cmd_use_pipe_symbol").return_value = [0, "Time zone: Asia/Beijing"]
-        SystemInfo().get_time_zone()
-
-    @staticmethod
-    def test_get_firmware_version():
-        SystemInfo().get_firmware_version()
-
-    @staticmethod
-    def test_get_model(mocker: MockerFixture):
-        system_info = SystemInfo()
-        system_info.get_model()
-        mocker.patch.object(os.path, "exists").return_value = True
-        system_info.get_model()
-
-    @staticmethod
-    def test_get_dynamic_info():
-        SystemInfo().get_dynamic_info()
-
-    @staticmethod
-    def test_get_processor_architecture():
-        SystemInfo().get_processor_architecture()
-
-    @staticmethod
-    def test_get_sys_health_status_1(mocker: MockerFixture):
-        mocker.patch.object(DEVM, "get_device").return_value.get_attribute.return_value = -2
-        mocker.patch.object(Extend, "valid_fmt_info_generator")
-        SystemInfo().get_sys_health_status()
-
-    @staticmethod
-    def test_get_sys_health_status_2(mocker: MockerFixture):
-        mocker.patch.object(DEVM, "get_device").return_value.get_attribute.return_value = 1
-        mocker.patch.object(Extend, "valid_fmt_info_generator")
-        SystemInfo().get_sys_health_status()
-
-    @staticmethod
     def test_patch_request(mocker: MockerFixture, model: PatchRequest):
         mocker.patch.object(SystemInfo, "SYSTEM_LOCK").locked.return_value = model.lock
         mocker.patch.object(SystemInfo, "set_sys_electronic_tags", return_value=model.tags)
@@ -377,37 +256,6 @@ class TestSystem:
         info.main_board = Device
         info.get_mcu_voltage()
         assert info.Voltage == model.expect
-
-    @staticmethod
-    def test_get_mcu_hot_cold_status(mocker: MockerFixture):
-        info = SystemInfo()
-        mocker.patch.object(info, "main_board").return_value.get_attribute.return_value = 0
-        info.get_mcu_hot_cold_status()
-
-    @staticmethod
-    def test_get_h3559_info(mocker: MockerFixture):
-        mocker.patch.object(DEVM, "get_device_list_by_module").return_value = "cpu_name"
-        mocker.patch.object(DEVM, "get_device").return_value.get_attribute.return_value = {
-            "vendor": "Huawei", "model": "Atlas 500 A2", "core_num": 16, "frequency": 666
-        }
-        SystemInfo().get_h3559_info()
-
-    @staticmethod
-    def test_get_sys_product_num(mocker: MockerFixture):
-        SystemSetting().board_type = "Atlas 500 A2"
-        mocker.patch.object(DEVM, "get_device").return_value.get_attribute.return_value = "20240130S"
-        SystemInfo().get_sys_product_num()
-
-    @staticmethod
-    def test_get_sys_product_num_01(mocker: MockerFixture):
-        SystemSetting().board_type = "Atlas 200"
-        mocker.patch.object(SystemUtils, "get_sn_by_npu_smi").return_value = "20240130S"
-        SystemInfo().get_sys_product_num()
-
-    @staticmethod
-    def test_set_asset_tag(mocker: MockerFixture):
-        mocker.patch.object(SystemInfo, "set_sys_electronic_tags").return_value = [200, "OK"]
-        assert SystemInfo().set_asset_tag({}, "xxxx") == [200, ""]
 
     @staticmethod
     def test_get_power(mocker: MockerFixture, model: GetPower):

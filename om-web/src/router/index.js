@@ -71,6 +71,7 @@ const addA200DynamicRoute = async () => {
     // 防止在A500上请求扩展模组的接口失败导致页面不可访问
     return
   }
+
 }
 
 const addExtendModuleRoute = () => {
@@ -89,7 +90,7 @@ const addExtendModuleRoute = () => {
 
 const handleBeforeEnter = (to, from, next, route) => {
   const firstChild = to.matched[0].children[0];
-  if (firstChild && to.fullPath === `/${route}`) {
+    if (firstChild && to.fullPath === `/${route}`) {
     // 如果存在第一个子路由，则重定向到该路由
     next({ path: `/${route}/${firstChild.path}` });
   } else {
