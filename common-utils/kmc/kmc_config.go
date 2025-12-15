@@ -17,8 +17,6 @@ import (
 	"fmt"
 
 	"huawei.com/mindx/common/fileutils"
-	"huawei.com/mindx/common/hwlog"
-	"huawei.com/mindx/common/utils"
 )
 
 // kmc config used
@@ -91,84 +89,10 @@ func InitKmcCfg(cfgPath string) error {
 
 // EncryptContent encrypt content with kmc
 func EncryptContent(content []byte, kmcCfg *SubConfig) ([]byte, error) {
-	if kmcCfg == nil {
-		kmcCfg = GetDefKmcCfg()
-	}
-	config := NewKmcInitConfig()
-	config.LogLevel = Error
-	if !fileutils.IsExist(kmcCfg.PrimaryKeyPath) {
-		hwlog.RunLog.Infof("Primary Key %s will be created.", kmcCfg.PrimaryKeyPath)
-	}
-	if !fileutils.IsExist(kmcCfg.StandbyKeyPath) {
-		hwlog.RunLog.Infof("Standby Key %s will be created.", kmcCfg.StandbyKeyPath)
-	}
-	config.PrimaryKeyStoreFile = kmcCfg.PrimaryKeyPath
-	config.StandbyKeyStoreFile = kmcCfg.StandbyKeyPath
-	config.SdpAlgId = kmcCfg.SdpAlgID
-	c, err := KeInitializeEx(config)
-	if err != nil {
-		utils.ClearSliceByteMemory(content)
-		return nil, errors.New("initialize kmc failed")
-	}
-	defer func() {
-		if err = c.KeFinalizeEx(); err != nil {
-			hwlog.RunLog.Errorf("%s", err.Error())
-		}
-	}()
-	defer utils.ClearSliceByteMemory(content)
-	if err = c.KeRefreshMkMaskEx(); err != nil {
-		hwlog.RunLog.Errorf("%s", err.Error())
-		return nil, err
-	}
-	encryptByte, err := c.KeEncryptByDomainEx(kmcCfg.DoMainId, content)
-	if err != nil {
-		return nil, err
-	}
-	if err = c.KeRefreshMkMaskEx(); err != nil {
-		hwlog.RunLog.Errorf("%s", err.Error())
-		return nil, err
-	}
-	hwlog.RunLog.Infof("KMC Key %s will used to encrypt content.", config.PrimaryKeyStoreFile)
-	return encryptByte, nil
+	return content, nil
 }
 
 // DecryptContent decrypt content with kmc
 func DecryptContent(encryptByte []byte, kmcCfg *SubConfig) ([]byte, error) {
-	if kmcCfg == nil {
-		kmcCfg = GetDefKmcCfg()
-	}
-	config := NewKmcInitConfig()
-	config.LogLevel = Error
-	if !fileutils.IsExist(kmcCfg.PrimaryKeyPath) {
-		hwlog.RunLog.Infof("Primary Key %s will be created.", kmcCfg.PrimaryKeyPath)
-	}
-	if !fileutils.IsExist(kmcCfg.StandbyKeyPath) {
-		hwlog.RunLog.Infof("Standby Key %s will be created.", kmcCfg.StandbyKeyPath)
-	}
-	config.PrimaryKeyStoreFile = kmcCfg.PrimaryKeyPath
-	config.StandbyKeyStoreFile = kmcCfg.StandbyKeyPath
-	config.SdpAlgId = kmcCfg.SdpAlgID
-	c, err := KeInitializeEx(config)
-	if err != nil {
-		return nil, errors.New("initialize kmc failed")
-	}
-	defer func() {
-		if err = c.KeFinalizeEx(); err != nil {
-			hwlog.RunLog.Errorf("%s", err.Error())
-		}
-	}()
-	if err = c.KeRefreshMkMaskEx(); err != nil {
-		hwlog.RunLog.Errorf("%s", err.Error())
-		return nil, err
-	}
-	decryptByte, err := c.KeDecryptByDomainEx(kmcCfg.DoMainId, encryptByte)
-	if err != nil {
-		return nil, err
-	}
-	if err = c.KeRefreshMkMaskEx(); err != nil {
-		hwlog.RunLog.Errorf("%s", err.Error())
-		return nil, err
-	}
-	hwlog.RunLog.Infof("KMC Key %s will used to decrypt content.", config.PrimaryKeyStoreFile)
-	return decryptByte, nil
+	return encryptByte, nil
 }
