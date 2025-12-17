@@ -11,13 +11,11 @@
 set -e
 CUR_DIR=$(dirname $(readlink -f $0))
 TOP_DIR=$(realpath "${CUR_DIR}"/..)
-ROOT_DIR=$(realpath "${TOP_DIR}"/..)
 
 TEST_MODE=$1
 
 function call_component_test() {
     echo "************************component($1) test start..."
-    tar -mxf "${ROOT_DIR}"/mindxdl-kmc_*linux-x86_64.tar.gz
     export LD_LIBRARY_PATH="${CUR_DIR}/lib":$LD_LIBRARY_PATH
 
     cd "${TOP_DIR}"/$1/build

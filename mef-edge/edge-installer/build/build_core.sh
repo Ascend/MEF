@@ -72,7 +72,9 @@ function mv_file() {
   chmod 500 "${TOP_MEF_DIR}/output/${OUTPUT_NAME}"
 }
 function main() {
+  echo "------------------------ start build edgecore ------------------------"
   build
   mv_file
+  echo "------------------------ end build edgecore ------------------------"
 }
 main
