@@ -35,7 +35,6 @@ def get_privilege_auth():
     参数：db数据库对象，Session表对象
     返回值：
     异常描述：NA
-    修改记录：2019-3-5创建
     """
 
     class PrivilegeAuth:

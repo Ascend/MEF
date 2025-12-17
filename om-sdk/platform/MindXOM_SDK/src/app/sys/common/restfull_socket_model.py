@@ -11,7 +11,6 @@
 # See the Mulan PSL v2 for more details.
 """
 功    能：Socket 模型，用于socket通讯使用
-修改记录：2017-01-02 创建
 """
 import json
 from common.utils.app_common_method import AppCommonMethod
@@ -21,7 +20,6 @@ class RestFullSocketModel(object):
     """
     功能描述：socket 模型
     接口：NA
-    修改记录：2017-01-02 创建
     """
 
     def __init__(self, method, model_name, request_type=None, request_data=None,
@@ -38,7 +36,6 @@ class RestFullSocketModel(object):
              item4 第四级资源
                      返回值：无
                      异常描述：NA
-                     修改记录：2017-01-02 创建，通过socket进行通讯
         """
         self.method = method
         self.model_name = model_name
@@ -57,7 +54,6 @@ class RestFullSocketModel(object):
         参数：json_data json数据
         返回值：Socket对象
         异常描述：NA
-        修改记录：2020-04-15 创建
         """
         method = json_data.get("method", None)
         if method:
@@ -72,7 +68,6 @@ class RestFullSocketModel(object):
         参数：jsonData json数据
         返回值：Socket对象
         异常描述：NA
-        修改记录：2017-01-02 创建
         """
         method = json_data.get("method", None)
         model_name = json_data.get("model_name", None)
@@ -93,7 +88,6 @@ class RestFullSocketModel(object):
         参数：NA
         返回值：字符串
         异常描述：NA
-        修改记录：2017-01-02 创建
         """
         r_dict = AppCommonMethod.get_json_info(self)
         return json.dumps(r_dict)

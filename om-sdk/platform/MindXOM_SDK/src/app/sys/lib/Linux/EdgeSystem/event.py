@@ -9,11 +9,9 @@
 # See the Mulan PSL v2 for more details.
 import datetime
 import os
-import queue
 from itertools import islice
 from pathlib import Path
 
-from bin.HiSecAdap.sec_event import hisec_event_message_que
 from common.constants.base_constants import CommonConstants
 from common.file_utils import FileCheck
 from common.init_cmd import cmd_constants
@@ -26,7 +24,6 @@ class Event:
     """
     功能描述：事件上报
     接口：NA
-    修改记录：2022-8-26 创建
     """
     RESTART_FLAG = "/run/restart_flag"
     RESTARTING_FLAG = "/run/restarting_flag"
@@ -61,12 +58,8 @@ class Event:
         self.clear_or_write_hdd_config(self.get_hdd_dev_sn())
 
     def get_all_info(self, event_type="all"):
-        if event_type not in ("all", "hisec"):
+        if event_type not in ("all"):
             run_log.error("invalid event type parameter")
-            return
-
-        if event_type == "hisec":
-            self.get_hisec_events()
             return
 
         self.event_time = self.get_event_generation_time()
@@ -132,14 +125,6 @@ class Event:
             run_log.error('rename restarting flag failed %s', ex)
             return
         self.result.append(payload_publish)
-
-    def get_hisec_events(self):
-        """获取主机入侵消息"""
-        while not hisec_event_message_que.empty():
-            try:
-                self.result.append(hisec_event_message_que.get_nowait())
-            except queue.Empty:
-                break
 
     def get_hdd_removal_event(self) -> bool:
         check_tec_cmd = f"{cmd_constants.OS_CMD_NPU_SMI} info -t temp -i 0 | grep TEC_TEM"

@@ -12,7 +12,6 @@
 
 """
 功    能：插件适配，用于调用底层实现，以及反馈结果
-修改记录：2016-10-31 创建
 """
 import importlib
 import json
@@ -40,7 +39,6 @@ class LibAdapter(object):
     """
     功能描述：插件适配
     接口：NA
-    修改记录：2016-10-31 创建
     """
 
     # 定义互斥锁
@@ -94,7 +92,6 @@ class LibAdapter(object):
         参数：无
         返回值：是否成功
         异常描述：NA
-        修改记录：2016-11-23 创建
         """
         try:
             LibAdapter.mutex.acquire()
@@ -122,8 +119,6 @@ class LibAdapter(object):
         参数：classPath 资源信息
         返回值：是否成功
         异常描述：NA
-        修改记录：2016-12-06 创建
-                2017-01-03 添加对子对象的资源锁初始化，防止出现不缓存的情况
         """
         # 初始化各自的资源锁，用于互斥操作
         for key in class_path.keys():
@@ -172,7 +167,6 @@ class LibAdapter(object):
         参数：request_data 请求的数据
         返回值：调用底层接口获取数据并返回
         异常描述：NA
-        修改记录：2017-01-02 创建
         """
 
         # 首先将传入的参数转成 json
@@ -205,10 +199,6 @@ class LibAdapter(object):
         item4 第四级资源
         返回值：无
         异常描述：NA
-        修改记录：2016-11-07 创建
-                2016-11-15 增加 request_data 参数，用于POST、PATCH数据传输
-                2016-12-13 将底层发送命令调整到 lib_request_interface
-                函数中，以便支持内部的 Start、Stop 指令
         """
         if request_type is None:
             return CommonMethods.object_to_json(CommonMethods.ERROR, "Request type can not be none.")
@@ -248,9 +238,6 @@ class LibAdapter(object):
         item4 第四级资源
         返回值：无
         异常描述：NA
-        修改记录：2016-12-13 创建
-                2016-11-15 增加 request_data 参数，用于POST、PATCH数据传输
-                2016-12-23 判断传入的 requestData参数是否满足要求
         """
         if request_type is None:
             return CommonMethods.object_to_json(CommonMethods.ERROR, "Unsupported request type.")
@@ -339,10 +326,6 @@ class LibAdapter(object):
             CyclesTimes 循环次数，用于底层进行数据缓存
         返回值：获取到的信息
         异常描述：NA
-        修改记录：2016-11-08 创建
-                2016-12-02 调整参数，调用存储接口，存储资源信息；
-                调用比较接口判断资源信息是否有变化
-                2017-01-23 增加底层数据缓存
         """
         if need_list:
             func_key = "all"
@@ -383,9 +366,6 @@ class LibAdapter(object):
             CyclesTimes 循环次数，用于底层进行数据缓存
         返回值：获取到的信息
         异常描述：NA
-        修改记录：2016-12-04 创建
-                2017-01-14 获取缓存成功后，需要删除变更中的事件信息
-                2017-01-23 增加底层数据缓存
         """
         source_key = LibAdapter.get_key_name(model_name, item1, item2, item3, item4)
 
@@ -454,7 +434,6 @@ class LibAdapter(object):
             needList 是否是一个列表，True 或 False
         返回值：资源键值
         异常描述：NA
-        修改记录：2016-12-07 创建
         """
         key = func_key
         if need_list:
@@ -469,7 +448,6 @@ class LibAdapter(object):
         参数：无
         返回值：无
         异常描述：NA
-        修改记录：2016-11-30 创建
         """
         return LibAdapter.iBMAClassPath
 
@@ -480,9 +458,7 @@ class LibAdapter(object):
         参数：params 获得参数的路径
         返回值：无
         异常描述：NA
-        修改记录：2016-11-30 创建
-                2017-01-14 修改资源查询方式
-                2017-01-18 参数判断时，把键值和类名分开
+
         """
         # `not` on empty dict should return True
         if params is None or not LibAdapter.iBMAResources:
@@ -517,10 +493,6 @@ class LibAdapter(object):
             needCache 是否需要从缓存中获取数据
         返回值：函数对象
         异常描述：NA
-        修改记录：2016-11-14 创建
-                2017-01-19 增加缓存
-                2017-02-26 增加对对象的初始化，避免出现key不存在的情况
-                2017-03-02 将初始化放在互斥锁之外
 
         # funcName有2类：
         1.startrequest,stoprequest,postrequest,patchrequest
@@ -645,7 +617,6 @@ class LibAdapter(object):
             item4 第四级资源
         返回值：资源信息
         异常描述：NA
-        修改记录：2017-01-25 创建
         """
         if model_name is None or model_name not in LibAdapter.iBMAClassPath:
             return
@@ -676,8 +647,6 @@ class LibAdapter(object):
             item4 第四级资源
         返回值：资源信息
         异常描述：NA
-        修改记录：2016-12-04 创建
-                2017-01-14 调整资源信息的获取方式
         """
         if model_name not in LibAdapter.ResourceLock:
             return None
@@ -716,9 +685,6 @@ class LibAdapter(object):
             item4 第四级资源
         返回值：资源信息
         异常描述：NA
-        修改记录：2016-12-05 创建
-                2017-01-14 调整资源列表的信息
-                2017-02-16 增加异常捕获，防止引起定时器异常退出
         """
         # 互斥锁不存在，说明不支持资源信息缓存
         if model_name not in LibAdapter.ResourceLock:
@@ -783,9 +749,6 @@ class LibAdapter(object):
             item4 第四级资源
         返回值：资源信息
         异常描述：NA
-        修改记录：2016-12-07 创建
-                2017-01-15 添加类的资源，需要先获取，等待缓存完成后，
-                再上报事件变化
         """
         ret = LibAdapter.check_resources(old_resource, resource, old_is_all)
         if ret[0] != 1:
@@ -848,9 +811,6 @@ class LibAdapter(object):
             item4 第四级资源
         返回值：资源信息
         异常描述：NA
-        修改记录：2016-12-07 创建
-                2016-12-16 调整删除代码，增加对子节点路径的控制
-                2017-01-14 调整键值的方式
         """
         if c_path is None:
             return
@@ -894,7 +854,6 @@ class LibAdapter(object):
         返回值：0：没有变化
             1：有变化，如果资源是列表的话，则需要返回添加、删除的资源
         异常描述：NA
-        修改记录：2016-12-06 创建
         """
         ret = [0, ""]
 
@@ -949,7 +908,6 @@ class LibAdapter(object):
         返回值：0：没有变化
             1：有变化，如果资源是列表的话，则需要返回添加、删除的资源
         异常描述：NA
-        修改记录：2016-12-06 创建
         """
         ret = [0, {}]
         # 保存变化的属性
@@ -1038,7 +996,6 @@ class LibAdapter(object):
         返回值：0：没有变化
             1：有变化，如果资源是列表的话，则需要返回添加、删除的资源
         异常描述：NA
-        修改记录：2016-12-06 创建
         """
         ret = [0, {}]
         if len(old_value) != len(new_value):
@@ -1088,7 +1045,6 @@ class LibAdapter(object):
             item4 第四级资源
         返回值：无
         异常描述：NA
-        修改记录：2017-01-14 创建
         """
         event_key = LibAdapter.get_key_name(model_name, item1, item2, item3, item4)
         try:
@@ -1109,8 +1065,6 @@ class LibAdapter(object):
             item4 第四级资源
         返回值：无
         异常描述：NA
-        修改记录：2017-01-14 创建
-                2017-03-02 调整创建的key值
         """
         return f"{model_name}_{item1}_{item2}_{item3}_{item4}"
 
@@ -1122,7 +1076,6 @@ class LibAdapter(object):
             cMsg 修改的资源信息
         返回值：替换后的资源
         异常描述：NA
-        修改记录：2016-12-09 创建
         """
         if all_resource is None or msg is None:
             return {}
@@ -1143,7 +1096,6 @@ class LibAdapter(object):
         参数：timers 定时器信息
         返回值：无
         异常描述：NA
-        修改记录：2017-01-20 创建
         """
         LibAdapter.ibma_timers = timers
 
@@ -1154,7 +1106,6 @@ class LibAdapter(object):
         参数：无
         返回值：无
         异常描述：NA
-        修改记录：2017-01-20 创建
         """
         return LibAdapter.ibma_timers_cfg
 
@@ -1165,6 +1116,5 @@ class LibAdapter(object):
         参数：timersCfg 定时器配置文件信息
         返回值：无
         异常描述：NA
-        修改记录：2017-01-20 创建
         """
         LibAdapter.ibma_timers_cfg = timers_cfg

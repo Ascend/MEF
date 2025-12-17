@@ -25,7 +25,6 @@ class CertAlarmTime:
     """
     功能描述：证书过期提醒时间
     接口：NA
-    修改记录：2019-12-23 创建
     """
     CERT_ALARM_TIME_MANAGE_LOCK = threading.Lock()
     CommonCertAlarmTimeFile = "/home/data/ies/certWarnTime.ini"
@@ -39,7 +38,6 @@ class CertAlarmTime:
         参数：NA
         返回值：无
         异常描述：NA
-        修改记录：2019-3-20 创建
         """
 
         self.CertAlarmTime = int(self.DefaultCertAlarmTime)

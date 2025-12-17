@@ -12,7 +12,6 @@
 
 """
 功    能：任务服务资源定义
-修改记录：2018-07-24 创建
 """
 
 import os
@@ -24,7 +23,6 @@ class RfTaskServiceObj(RfResource):
     """
     功能描述：任务配置资源处理
     接口：NA
-    修改记录：2018-07-24 创建
     """
     def create_sub_objects(self, base_path, rel_path):
 

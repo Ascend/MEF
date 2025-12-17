@@ -39,7 +39,6 @@ class Module:
         参数：module_id 模组名 为None是获取模组列表
         返回值：list
         异常描述：NA
-        修改记录：2022-11-18 创建
         """
         self.get_module_list()
         if module_id is None:
@@ -104,7 +103,6 @@ class Device:
         参数：module_id 模组名 device_id 设备名
         返回值：list
         异常描述：NA
-        修改记录：2022-11-18 创建
         """
         module_obj = Module()
         if module_id not in module_obj.items:
@@ -126,7 +124,6 @@ class Device:
              module_id为模组名称，device_id为设备名称
         返回值：是否成功的列表信息
         异常描述：
-        修改记录：2022-11-19 创建
         """
         module_obj = Module()
         if module_id not in module_obj.items:

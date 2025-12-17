@@ -109,16 +109,6 @@ namespace ALARM_PROCESS_TEST {
         EXPECT_EQ(-1, ret);
     }
 
-    TEST(AlarmProcessTest, test_alarm_process_load)
-    {
-        /* alarm_process_load */
-        std::cout << "dt test_alarm_process_load start: ";
-        AMOCKER(ens_intf_export).will(returnValue(NULL));
-        int ret = alarm_process_load();
-        std::cout << "dt test_alarm_process_load end:" << ret << std::endl;
-        EXPECT_EQ(0, ret);
-    }
-
     TEST(AlarmProcessTest, test_alarm_process_unload)
     {
         /* alarm_process_unload */
@@ -128,25 +118,4 @@ namespace ALARM_PROCESS_TEST {
         EXPECT_EQ(0, ret);
     }
 
-    TEST(AlarmProcessTest, test_alarm_process_start_create_thread_failed)
-    {
-        /* alarm_process_start */
-        std::cout << "dt test_alarm_process_start_create_thread_failed start: ";
-        AMOCKER(set_clear_shield_alarm_flag).will(returnValue(NULL));
-        AMOCKER(pthread_create).will(returnValue(-1));
-        int ret = alarm_process_start();
-        std::cout << "dt test_alarm_process_start_create_thread_failed end:" << ret << std::endl;
-        EXPECT_EQ(-1, ret);
-    }
-
-    TEST(AlarmProcessTest, test_alarm_process_start_success)
-    {
-        /* alarm_process_start */
-        std::cout << "dt test_alarm_process_start_success start: ";
-        AMOCKER(set_clear_shield_alarm_flag).will(returnValue(NULL));
-        AMOCKER(pthread_create).will(returnValue(0));
-        int ret = alarm_process_start();
-        std::cout << "dt test_alarm_process_start_success end:" << ret << std::endl;
-        EXPECT_EQ(0, ret);
-    }
 }

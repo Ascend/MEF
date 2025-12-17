@@ -24,7 +24,6 @@ class AlarmShield(object):
     """
     功能描述：告警屏蔽
     接口：NA
-    修改记录：2020-04-14 创建
     """
     sysLock = threading.Lock()
     shield_alarm_file_path = "/home/data/ies/shield_alarm.ini"

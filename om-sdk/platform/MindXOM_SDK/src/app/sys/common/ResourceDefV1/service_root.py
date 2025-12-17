@@ -12,7 +12,6 @@
 
 """
 功    能：Redfish Server 根服务资源定义
-修改记录：2016-10-18 创建
 """
 import os
 
@@ -32,7 +31,6 @@ class RfServiceRoot(RfResource):
     """
     功能描述：创建该根服务下的所有资源
     接口：NA
-    修改记录：2016-10-18 创建
     """
 
     class RfOdataServiceDoc(RfResource):

@@ -33,24 +33,17 @@ function make_zip_package()
 
     local package_file=${OUTPUT_PATH}/package
     [ ! -d "${package_file}" ] && mkdir ${package_file}
-    cp -rfd ${OUTPUT_PATH}/crldata.crl $OUTPUT_PATH/${atlasedge_release}.tar.gz.crl
     mv $atlasedge_release.* $package_file
-    cp -rfd ${OUTPUT_PATH}/crldata.crl ${OUTPUT_PATH}/version.xml.crl
-    cp -rfd ${OUTPUT_PATH}/version.xml.crl ${package_file}/
-    cp -rfd ${OUTPUT_PATH}/version.xml.cms ${package_file}/
     cp -rfd ${OUTPUT_PATH}/version.xml ${package_file}/
 
     cd $package_file
+    dos2unix *.xml
     zip $atlasedge_release.zip \
         $atlasedge_release.tar.gz \
-        $atlasedge_release.tar.gz.cms \
-        $atlasedge_release.tar.gz.crl \
-        version.xml \
-        version.xml.cms \
-        version.xml.crl
+        version.xml
     mv $package_file/$atlasedge_release.zip ${OUTPUT_PATH}/$atlasedge_release.zip
     echo "zip $atlasedge_release success!"
-    [[ -d "${package_file}" ]] && sudo rm -rf $package_file
+    [[ -d "${package_file}" ]] && rm -rf $package_file
 
     return 0
 }

@@ -18,7 +18,7 @@ from fd_msg_process.config import Topic
 from fd_msg_process.fd_common_methods import FdCommonMethod
 from fd_msg_process.fd_common_methods import message_thread_pool, publish_ws_msg
 from fd_msg_process.midware_route import MidwareRoute
-from fd_msg_process.om_msg_queue import fd_message_que, hisec_event_message_que
+from fd_msg_process.om_msg_queue import fd_message_que
 from common.utils.result_base import Result
 from mef_msg_process.msg_que import msg_que_to_mef, msg_que_from_mef
 from mef_msg_process.mef_proc import MefProc
@@ -73,7 +73,7 @@ class FDMessageHandler:
         MefProc.stop_mef_connect_timer()
 
         # 清空om、mef消息队列
-        FDMessageHandler.clear_fd_msg_queue([msg_que_to_mef, msg_que_from_mef, fd_message_que, hisec_event_message_que])
+        FDMessageHandler.clear_fd_msg_queue([msg_que_to_mef, msg_que_from_mef, fd_message_que])
         WsMonitor.start_fd_connect_monitor()
         # 切换FD后，重新与MEF建立连接，保证MEF获取的是新的FD地址
         MefProc.start_mef_connect_timer()

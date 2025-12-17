@@ -12,7 +12,6 @@
 
 """
 功    能：Redfish Server主程序，提供httpServer启动参数解析运行，资源对象初始化功能
-修改记录：2016-10-18 创建
 """
 import importlib
 import os
@@ -52,7 +51,6 @@ class RedfishMain:
     """
     功能描述：HTTP服务的主入口函数
     接口：NA
-    修改记录：2016-10-31 创建
     """
 
     @staticmethod
@@ -65,7 +63,6 @@ class RedfishMain:
         rfProfile JSON模板路径
         返回值：无
         异常描述：NA
-        修改记录：2016-10-18 创建
         """
         if rf_profile == "ResourceDefV1":
 
@@ -90,7 +87,6 @@ class RedfishMain:
         参数：sig 信号值, frame 栈帧. (暂时都未使用)
         返回值：无.
         异常描述：NA
-        修改记录：2022-05-25 创建
         """
         os.kill(os.getpid(), signal.SIGKILL)
 
@@ -241,8 +237,6 @@ class RedfishMain:
         RedfishMain.mid_ware_task()
         threading.Thread(target=RedfishMain.start_monitor_timer).start()
         threading.Thread(target=MidwareProc.dispatch_fd_messages).start()
-        RepeatingTimer(5, MidwareProc.start_hisec_event_task).start()
-        threading.Thread(target=MidwareProc.pop_and_dispatch_event_task).start()
         # 启动fd对接监控任务
         WsMonitor.start_fd_connect_monitor()
         MefProc.start_mef_connect_timer()
@@ -263,7 +257,6 @@ class RedfishMain:
         参数：无
         返回值：无
         异常描述：NA
-        修改记录：2016-10-18 创建
         """
         # 注册退出信号的中断处理函数. systemctl stop 服务时可杀死进程.
         signal.signal(signal.SIGINT, RedfishMain.stop_handler)

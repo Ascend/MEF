@@ -36,7 +36,6 @@ def rf_get_session_service_collection():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    修改记录：2019-1-28 创建
     """
     message = "Get timeout period failed."
     try:
@@ -70,7 +69,6 @@ def rf_patch_session_service_collection():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    修改记录：2019-1-28 创建
     """
     if SESSION_SERVICE_LOCK.locked():
         message = "Modify session info failed because SessionViews modify is busy."
@@ -239,7 +237,6 @@ def rf_session_id(member_id):
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    修改记录：2019-1-28 创建
     """
     message = "Logout failed."
     if SESSION_DELETE_LOCK.locked():

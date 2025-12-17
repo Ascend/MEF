@@ -24,7 +24,6 @@ class TokenVerification(object):
     """
     功能描述：Token合法性校验
     接口：NA
-    修改记录：2020-04-11 创建
     """
     def __init__(self):
         self.user_name: Optional[str] = None

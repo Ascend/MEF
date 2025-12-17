@@ -26,7 +26,6 @@ class OMSystemAction(SystemAction):
     """
     功能描述：系统action
     接口：NA
-    修改记录：2018-3-18 创建
     """
     @classmethod
     def force_restart(cls):

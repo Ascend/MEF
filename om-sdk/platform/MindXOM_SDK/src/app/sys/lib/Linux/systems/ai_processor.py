@@ -21,7 +21,6 @@ class AiProcessorInfo:
     """
     功能描述：AI处理器资源信息
     接口：NA
-    修改记录：2018-3-20 创建
     """
 
     def __init__(self):

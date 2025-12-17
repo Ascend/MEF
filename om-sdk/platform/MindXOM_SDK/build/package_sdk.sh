@@ -8,6 +8,8 @@
 # EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
+set -e
+
 CUR_DIR=$(dirname $(readlink -f "$0"))
 TOP_DIR="${CUR_DIR}"/..
 OUTPUT_PACKAGE_DIR="${TOP_DIR}"/output/package
@@ -35,9 +37,9 @@ function package_config_dir()
 function package_lib_dir()
 {
     cp -f "${TOP_DIR}"/output/lib/libcertmanage.so "${OUTPUT_PACKAGE_DIR}"/lib
-    cp -f "${TOP_DIR}"/platform/SecurityService/lib/lib*.so* "${OUTPUT_PACKAGE_DIR}"/lib
+    cp -f "${TOP_DIR}"/output/lib/libssl.so* "${OUTPUT_PACKAGE_DIR}"/lib
+    cp -f "${TOP_DIR}"/output/lib/libcrypto.so* "${OUTPUT_PACKAGE_DIR}"/lib
     cp -f "${TOP_DIR}"/output/lib/libsecurec.so "${OUTPUT_PACKAGE_DIR}"/lib
-    cp -f "${TOP_DIR}"/output/lib/libverify.so "${OUTPUT_PACKAGE_DIR}"/lib
     cp -f "${TOP_DIR}"/output/lib/libcommon.so "${OUTPUT_PACKAGE_DIR}"/lib
     cp -f "${TOP_DIR}"/output/lib/liblpeblock.so "${OUTPUT_PACKAGE_DIR}"/lib
 }
@@ -84,12 +86,9 @@ function package_redfishserver_dir()
     mkdir -p "${lib_c_dir}"
     cp -f "${TOP_DIR}"/output/lib/libcertmanage.so "${lib_c_dir}"
     cp -f "${TOP_DIR}"/output/lib/libsecurec.so "${lib_c_dir}"
-    cp -f "${TOP_DIR}"/output/lib/libverify.so "${lib_c_dir}"
     cp -f "${TOP_DIR}"/output/lib/libcommon.so "${lib_c_dir}"
-    cp -f "${TOP_DIR}"/platform/SecurityService/lib/libkmc*.so* "${lib_c_dir}"
-    cp -f "${TOP_DIR}"/platform/SecurityService/lib/libcrypto.so* "${lib_c_dir}"
-    cp -f "${TOP_DIR}"/platform/SecurityService/lib/libsdp.so* "${lib_c_dir}"
-    cp -f "${TOP_DIR}"/platform/SecurityService/lib/libssl.so* "${lib_c_dir}"
+    cp -f "${TOP_DIR}"/output/lib/libcrypto.so* "${lib_c_dir}"
+    cp -f "${TOP_DIR}"/output/lib/libssl.so* "${lib_c_dir}"
 }
 
 function package_software_dir()
@@ -110,13 +109,6 @@ function package_software_dir()
     cp -rf "${TOP_DIR}"/output/opensource/python/* "${OUTPUT_PACKAGE_DIR}"/software/ibma/opensource/python
 
     cp -rf "${TOP_DIR}"/src/app/sys/config "${OUTPUT_PACKAGE_DIR}"/software/ibma
-
-    local sec_agent_dir="${OUTPUT_PACKAGE_DIR}"/software/sec_agent
-    mkdir -p "${sec_agent_dir}"
-    tar --no-same-owner -zxvf "${TOP_DIR}"/platform/Ascend/arm/HostSec*.tar.gz -C "${sec_agent_dir}" > /dev/null 2>&1
-    cp -f "${TOP_DIR}"/config/default_policy.dat "${sec_agent_dir}"
-    cp -f "${TOP_DIR}"/config/policy.dat "${sec_agent_dir}"
-    chmod 750 "${sec_agent_dir}"
 
     mkdir -p "${OUTPUT_PACKAGE_DIR}"/software/
     # package ens
@@ -151,20 +143,8 @@ function package_nginx_dir() {
     local lib_c_dir="${OUTPUT_PACKAGE_DIR}"/software/nginx/lib
     mkdir -p "${lib_c_dir}"
     cp -f "${TOP_DIR}"/output/lib/libsecurec.so "${lib_c_dir}"
-    cp -f "${TOP_DIR}"/platform/SecurityService/lib/libkmc*.so* "${lib_c_dir}"
-    cp -f "${TOP_DIR}"/platform/SecurityService/lib/libcrypto.so* "${lib_c_dir}"
-    cp -f "${TOP_DIR}"/platform/SecurityService/lib/libsdp.so* "${lib_c_dir}"
-    cp -f "${TOP_DIR}"/platform/SecurityService/lib/libssl.so* "${lib_c_dir}"
-}
-
-function modify_files()
-{
-    find "${OUTPUT_PACKAGE_DIR}" -name "*.c" -exec rm -f {} \; 2>/dev/null
-    find "${OUTPUT_PACKAGE_DIR}" -name "*.cpp" -exec rm -f {} \; 2>/dev/null
-
-    # 此处强制设置构建包权限用于解决CI扫描时本次构建和上次构建文件权限不一致而报错的问题
-    find "${OUTPUT_PACKAGE_DIR}" -maxdepth 20 -type d -exec chmod 700 {} \; 2> /dev/null
-    find "${OUTPUT_PACKAGE_DIR}" -maxdepth 20 -type f -exec chmod 600 {} \; 2> /dev/null
+    cp -f "${TOP_DIR}"/output/lib/libssl.so* "${lib_c_dir}"
+    cp -f "${TOP_DIR}"/output/lib/libcrypto.so* "${lib_c_dir}"
 }
 
 function main()
@@ -177,7 +157,6 @@ function main()
     package_software_dir
     package_nginx_dir
     package_redfishserver_dir
-    modify_files
 }
 
 main

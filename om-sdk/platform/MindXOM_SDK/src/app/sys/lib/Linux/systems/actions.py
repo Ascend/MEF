@@ -36,7 +36,6 @@ class SystemAction:
     """
     功能描述：系统action
     接口：NA
-    修改记录：2018-3-18 创建
     """
     EDGE_SYSTEM_ACTION_LOCK = GlobalExclusiveController()
     LOCK_TIMEOUT = 60
@@ -94,7 +93,6 @@ class RestoreDefaultsAction:
     """
     功能描述：恢复出厂设置
        接口：NA
-       修改记录：2020-07-20 创建
     """
     RESTORE_LOCK = GlobalExclusiveController()
     IP_LIST = None

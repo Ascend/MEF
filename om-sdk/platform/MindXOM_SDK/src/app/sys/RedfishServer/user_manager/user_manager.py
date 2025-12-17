@@ -226,7 +226,6 @@ class UserManager(object):
         参数：无
         返回值：
         异常描述：NA
-        修改记录：2019-2-1 创建
         """
         user_id = NumberUtils.is_int_maxsize(user_id, "user_id")
         user_one = UserManager.find_user_by_id(NumberUtils.is_int_maxsize(user_id, "user_id"))
@@ -507,7 +506,6 @@ class SessionManager(object):
         参数：index
         返回值：
         异常描述：NA
-        修改记录：2019-2-1 创建
         """
         # 校验用户表中是否存在该用户
 
@@ -613,7 +611,6 @@ class SessionManager(object):
          参数：request_data　request_ip
          返回值：
          异常描述：NA
-         修改记录：2019-2-1 创建
         """
         column_map = {}
         user_id: Optional[int] = None

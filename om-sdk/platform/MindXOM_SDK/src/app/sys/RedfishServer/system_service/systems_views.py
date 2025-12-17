@@ -12,7 +12,6 @@
 
 """
 功    能：系统资源 URL处理模块
-修改记录：2022-10-29 创建
 """
 import threading
 import json
@@ -38,7 +37,6 @@ def rf_get_system_collection():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    修改记录：2019-3-18 创建
     """
     message = "Query system resources failed."
     try:
@@ -66,7 +64,6 @@ def rf_patch_system_collection():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    修改记录：2019-3-18 创建
     """
     if SYSTEM_LOCK.locked():
         message = "Modify system failed because lock is locked."
@@ -115,7 +112,6 @@ def rf_get_system_time():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    修改记录：2022-12-2 创建
     """
     date = time.ctime()
     ret = {"status": RedfishGlobals.SuccessfullyCode, "message": {"Datetime": date}}

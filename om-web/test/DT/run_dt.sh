@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+set -e
+
 CUR_PATH=$(cd "$(dirname "$0")" || exit 1;pwd)
 echo "CUR_PATH=${CUR_PATH}"
 ROOT_PATH=$(readlink -f "${CUR_PATH}/../../")
@@ -7,7 +9,6 @@ COV_PATH="${ROOT_PATH}/test/coverage"
 
 function prepare_env()
 {
-    npm config set registry https://cmc.centralrepo.rnd.huawei.com/artifactory/api/npm/npm-central-repo/
     npm ci
 }
 

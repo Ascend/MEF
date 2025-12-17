@@ -31,7 +31,6 @@ def rf_get_system_partitions():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    记录：2019-4-1 创建
     """
     message = "Query system partitions failed."
     try:
@@ -57,7 +56,6 @@ def rf_create_system_partitions():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    记录：2019-4-1 创建
     """
     if CREATE_PARTITION_LOCK.locked():
         message = "Create system partition failed because PartitionView modify is busy."
@@ -109,7 +107,6 @@ def rf_get_system_partition_info(partition_id):
     参数：partition_id
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    记录：2019-4-1 创建
     """
     message = "Query partition (patition_id: {}) failed.".format(partition_id)
     try:
@@ -143,7 +140,6 @@ def rf_mount_system_partition():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    记录：2023-2-9 创建
     """
     if MOUNT_PARTITION_LOCK.locked():
         message = "Mount partition failed because Partition View mount is busy."
@@ -201,7 +197,6 @@ def rf_unmount_system_partition():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    记录：2023-2-9 创建
     """
     if UNMOUNT_PARTITION_LOCK.locked():
         message = "Unmount partition failed because Partition View unmount is busy."
@@ -258,7 +253,6 @@ def rf_delete_system_partition(partition_id):
     参数：partition_id
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    记录：2019-4-1 创建
     """
     message = "Delete partition failed."
     try:

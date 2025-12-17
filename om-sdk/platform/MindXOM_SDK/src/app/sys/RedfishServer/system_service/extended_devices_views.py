@@ -29,7 +29,6 @@ def rf_system_extended_devices_collection():
     参数：无
     返回值：http response
     异常描述：NA
-    记录：2019-3-26 创建
     """
     input_err_info = "Query system extended device resources failed."
     try:
@@ -55,7 +54,6 @@ def rf_system_extended_device_info(extend_id):
     参数：无
     返回值：http response
     异常描述：NA
-    记录：2019-3-26 创建
     """
     input_err_info = "Query extended device by extend id failed."
     try:

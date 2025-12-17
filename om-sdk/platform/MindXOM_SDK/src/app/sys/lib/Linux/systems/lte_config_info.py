@@ -31,7 +31,6 @@ class LteConfigInfo:
     """
     功能描述：Lte配置信息
     接口：NA
-    修改记录：2019-9-25 创建
     """
     LTE_CONFIG_LOCK = threading.Lock()
 

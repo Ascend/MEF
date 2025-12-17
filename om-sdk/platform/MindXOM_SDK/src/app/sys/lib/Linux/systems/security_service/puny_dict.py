@@ -31,7 +31,6 @@ from common.common_methods import CommonMethods
 class PunyDict:
     """
     功能描述：弱字典配置
-    修改记录：2023-05-24 重构
     """
 
     PUNY_DICT_ERROR_MESSAGE = {

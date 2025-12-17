@@ -26,7 +26,6 @@
 #include <openssl/pem.h>
 #include <openssl/err.h>
 
-#include "security_service.h"
 #include "securec.h"
 #include "log_common.h"
 #include "file_checker.h"

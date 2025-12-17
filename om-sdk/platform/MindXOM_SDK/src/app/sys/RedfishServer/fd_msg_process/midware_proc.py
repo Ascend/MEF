@@ -22,7 +22,6 @@ from fd_msg_process.fd_common_methods import publish_ws_msg
 from fd_msg_process.fd_configs import MSG_HANDLING_MAPPING
 from fd_msg_process.midware_route import MidwareRoute
 from fd_msg_process.om_msg_queue import fd_message_que
-from fd_msg_process.om_msg_queue import hisec_event_message_que
 from net_manager.manager.fd_cfg_manager import FdCfgManager
 from net_manager.manager.fd_cfg_manager import FdMsgData
 from wsclient.ws_client_mgr import WsClientMgr
@@ -101,62 +100,6 @@ class MidwareProc(MidwareRoute):
         # 发布告警上报topic
         publish_ws_msg(msg)
         run_log.info("publish topic: %s, send message: %s", msg.topic, payload_publish)
-
-    @staticmethod
-    def push_hisec_event_task(msg):
-        if hisec_event_message_que.full():
-            run_log.warning("hisec event message queue is full, will be cleared")
-            hisec_event_message_que.queue.clear()
-        try:
-            hisec_event_message_que.put(msg, False)
-        except Exception as err:
-            run_log.error("put hisec event message to queue failed: %s", err)
-
-    @staticmethod
-    def pop_and_dispatch_event_task():
-        while True:
-            # FD纳管就绪状态且ws客户端就绪之后，才处理数据
-            if not FdCfgManager().check_status_is_ready() or not WsClientMgr().ready_for_send_msg():
-                time.sleep(5)
-                continue
-
-            try:
-                msg = hisec_event_message_que.get_nowait()
-            except queue.Empty:
-                time.sleep(0.5)
-                continue
-
-            try:
-                event_time = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc).isoformat()
-            except Exception as err:
-                run_log.error("report hisec event error: {}".format(err))
-                continue
-
-            msg["alarm"][0]["timestamp"] = event_time
-            try:
-                MidwareProc.report_event_to_fd(msg)
-            except Exception as ex:
-                run_log.error("deal fd message failed: %s", ex)
-
-            # 延时事件上报, 使时间戳错开，以避免上报FD的时间戳(秒为单位)一样导致记录只显示一条
-            time.sleep(2)
-
-    @staticmethod
-    def start_hisec_event_task():
-        """定时从Monitor查询主机入侵事件"""
-        try:
-            # 判断是FD纳管就绪状态，获取数据
-            if FdCfgManager().check_status_is_ready():
-                ret = MidwareProc.view_functions["espmanager/Event"]("hisec")
-                if isinstance(ret, list) and ret[0] != 0:
-                    run_log.error("report event error. %s", ret)
-                    return
-
-                report_list = ret[1]
-                for payload_publish in report_list:
-                    MidwareProc.push_hisec_event_task(payload_publish)
-        except Exception as err:
-            run_log.error("Failed to execute hisec event task, catch %s", err.__class__.__name__)
 
     @staticmethod
     def report_event():

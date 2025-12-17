@@ -11,7 +11,6 @@
 # See the Mulan PSL v2 for more details.
 """
 功    能：MidWareSocket模型，用于socket通讯使用
-修改记录：2020-04-15 创建
 """
 import json
 from common.utils.app_common_method import AppCommonMethod
@@ -21,7 +20,6 @@ class MidWareSocketModel(object):
     """
     功能描述：MidWareSocket模型
     接口：NA
-    修改记录：2020-04-20 创建
     """
 
     def __init__(self, header, route, content=None):
@@ -32,7 +30,6 @@ class MidWareSocketModel(object):
               content 内容信息
         返回值：无
         异常描述：NA
-        修改记录：2020-04-15 创建，通过socket进行通讯
         """
         self.header = header
         self.route = route
@@ -45,7 +42,6 @@ class MidWareSocketModel(object):
         参数：json_data json数据
         返回值：Socket对象
         异常描述：NA
-        修改记录：2020-04-20 创建
         """
         header = json_data.get("header", None)
         route = json_data.get("route", None)
@@ -62,7 +58,6 @@ class MidWareSocketModel(object):
         参数：json_data json数据
         返回值：Socket对象
         异常描述：NA
-        修改记录：2020-04-20 创建
         """
 
         header = json_data.get("header", None)
@@ -77,7 +72,6 @@ class MidWareSocketModel(object):
         参数：NA
         返回值：字符串
         异常描述：NA
-        修改记录：2020-04-20 创建
         """
         ret_dict = AppCommonMethod.get_json_info(self)
 

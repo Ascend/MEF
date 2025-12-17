@@ -16,7 +16,7 @@ def test_lte_patch():
             "data": {
                 "apn_name": "lte",
                 "apn_user": "admin",
-                "apn_passwd": "Huawei@12#$",
+                "apn_passwd": "MyStrongPassword",
                 "auth_type": "6",
             },
         },
@@ -56,7 +56,7 @@ def test_lte_patch():
             "data": {
                 "apn_name": "lte",
                 "apn_user": "admin",
-                "apn_passwd": "Huawei@12#$",
+                "apn_passwd": "MyStrongPassword",
                 "auth_type": "0",
             },
         },

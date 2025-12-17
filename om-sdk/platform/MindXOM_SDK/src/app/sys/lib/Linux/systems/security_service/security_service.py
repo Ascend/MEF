@@ -35,7 +35,6 @@ class SecurityService:
     """
     功能描述：证书信息
     接口：NA
-    修改记录：2019-3-20 创建
     """
     SECURITY_LOCK = threading.Lock()
     CertupdateImportFile = "/run/certupdate"
@@ -47,7 +46,6 @@ class SecurityService:
         参数：NA
         返回值：无
         异常描述：NA
-        修改记录：2019-3-20 创建
         """
 
         self.Subject = None

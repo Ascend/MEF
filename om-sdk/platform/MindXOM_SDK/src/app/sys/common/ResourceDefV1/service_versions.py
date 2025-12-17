@@ -12,7 +12,6 @@
 
 """
 功    能：Redfish Server 版本信息资源定义
-修改记录：2016-10-18 创建
 """
 
 from common.ResourceDefV1.resource import RfResource

@@ -353,7 +353,6 @@ class Partition:
         参数：pat_location 设备的位置 为None是获取资源列表
         返回值：无
         异常描述：NA
-        修改记录：2019-4-12 创建
         """
         if pat_name is None:
             self._refresh_cache()

@@ -47,30 +47,24 @@ function make_zip_package()
     local package_dir="${OUTPUT_PATH}/package"
     rm -rf "${package_dir}"
     mkdir -p "${package_dir}"
-    cp "${OUTPUT_PATH}/crldata.crl" "${package_dir}/${om_basename}.tar.gz.crl"
 
     for file in $(find "${OUTPUT_PATH}" -maxdepth 1 -type f | grep "Ascend-mindxedge-om.\{1,\}.tar.gz"); do
         mv "${file}" "${package_dir}"
     done
     mv "${OUTPUT_PATH}/version.xml" "${package_dir}"
-    mv "${OUTPUT_PATH}/version.xml.cms" "${package_dir}"
-    cp "${OUTPUT_PATH}/crldata.crl" "${package_dir}/version.xml.crl"
 
     # 生成并签名vercfg.xml
     local vercfg_xml_path="${OUTPUT_PATH}/vercfg.xml"
     generate_2_vercfg_xml "${vercfg_xml_path}"
-    bash "$(dirname "$(dirname "${ROOT_PATH}")")/CI/CleanCode/script/signature.sh" "MindXOM_SDK"
-
 
     # 打包package目录下的文件
     for file in $(find "${OUTPUT_PATH}" -maxdepth 1 -type f | grep "vercfg.xml"); do
         mv "${file}" "${package_dir}"
     done
-    cp -f "${OUTPUT_PATH}/crldata.crl" "${package_dir}/vercfg.xml.crl"
     cd "${package_dir}"
     zip "${om_basename}.zip" *
     mv "${package_dir}/${om_basename}.zip" "${OUTPUT_PATH}/${om_basename}.zip"
-    [[ -d "${package_dir}" ]] && sudo rm -rf "${package_dir}"
+    [[ -d "${package_dir}" ]] && rm -rf "${package_dir}"
 
     return 0
 }

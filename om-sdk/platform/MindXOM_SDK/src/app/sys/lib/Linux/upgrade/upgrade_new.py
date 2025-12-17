@@ -162,11 +162,6 @@ class Upgrade(Singleton):
     def cms_verify(file: str) -> NoReturn:
         file_cms = f"{file}.cms"
         file_crl = f"{file}.crl"
-        for file_path in (file, file_cms, file_crl):
-            ret = FileCheck.check_path_is_exist_and_valid(file_path)
-            if not ret:
-                Upgrade.upgrade_result = UpgradeResult.ERR_UPGRADE_VERIFY_FAILED
-                raise UpgradeError(f"{os.path.basename(file_path)} check failed: {ret.error}")
 
         lib_path = os.path.join(CommonConstants.OM_WORK_DIR_PATH, "lib", UpgradeConstants.VERIFY_LIB)
         if not verify_cms_file(lib_path, file_cms, file_crl, file):

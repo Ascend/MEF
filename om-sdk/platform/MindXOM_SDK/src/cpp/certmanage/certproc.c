@@ -34,7 +34,6 @@
 #include <sys/types.h>
 #include <regex.h>
 
-#include "security_service.h"
 #include "securec.h"
 #include "log_common.h"
 #include "file_checker.h"
@@ -59,11 +58,6 @@ struct csr_entry {
 #define WORKKEY_LEN (24)
 #define MAX_CERTFILE_PATHLEN (1024)
 #define MAX_INT_VAL (2147483647)
-
-#define DIR_CERTCONF "/home/data/config/default/"
-#define DIR_CERTCONF_CERT (DIR_CERTCONF "server_kmc.cert")
-#define DIR_CERTCONF_PRIV (DIR_CERTCONF "server_kmc.priv")
-#define DIR_CERTCONF_PSD (DIR_CERTCONF "server_kmc.psd")
 
 #define MAX_LINE_LENGTH 256
 #define CERT_VALIDITY_THRESHOLD 90
@@ -106,7 +100,6 @@ struct csr_entry {
 #define CERT_FAULTTIME_CONFIG_FILE_NAME "certWarnTime.ini"
 
 
-KmcConfig kmcConfig;
 const int DEFAULT_PROC_SEM_KEY = 0;
 const int DEFAULT_DOMAIN_COUNT = 2;
 const int DEFAULT_PERMISSION = 0600;
@@ -114,36 +107,6 @@ const int DEFAULT_ROLE = 1;
 const unsigned int DEFAULT_DOMAIN_ID = 0;
 const unsigned int DEFAULT_SDP_ALG_ID = 9;
 const char *SDP_ALG_ID = "sdp_alg_id";
-
-enum SdpAlgType {
-    AES_GCM_128 = 8,
-    AES_GCM_256
-};
-
-enum HmacAlgType {
-    HMAC_SHA384 = 2053,
-    HMAC_SHA512
-};
-
-static int CheckSdpAlgId(const unsigned int sdpAlgId)
-{
-    int ret = (sdpAlgId == AES_GCM_128 || sdpAlgId == AES_GCM_256) ? VOS_OK : VOS_ERR;
-    if (ret != 0) {
-        OM_LOG_WARN("SDP algorithm id in config file is invalid");
-        return VOS_ERR;
-    }
-    return VOS_OK;
-}
-
-static int CheckHmacAlgId(const unsigned int hmacAlgId)
-{
-    int ret = (hmacAlgId == HMAC_SHA384 || hmacAlgId == HMAC_SHA512) ? VOS_OK : VOS_ERR;
-    if (ret != 0) {
-        OM_LOG_WARN("HMAC algorithm id in config file is invalid");
-        return VOS_ERR;
-    }
-    return VOS_OK;
-}
 
 static char *RedefineStrtok(char *str, const char *delim)
 {
@@ -232,61 +195,45 @@ static unsigned int GetAlgIdFromConfig(const char *sectionName, const char *alg_
 
 signed long cert_manage_init(const char *primary_file, const char *standby_file, const char *alg_json_file)
 {
-    if (memset_s(&kmcConfig, sizeof(KmcConfig), '\0', sizeof(KmcConfig)) != 0) {
-        OM_LOG_ERROR("Init KmcConfig failed.");
-        return VOS_ERR;
-    }
     if (check_file_path_valid(primary_file) != COMMON_SUCCESS) {
         OM_LOG_ERROR("KmcConfig primary path not valid.");
-        return VOS_ERR;
-    }
-    if (memcpy_s(kmcConfig.primaryKeyStoreFile, sizeof(kmcConfig.primaryKeyStoreFile),
-        primary_file, strlen(primary_file)) != 0) {
-        OM_LOG_ERROR("Init KmcConfig primary ksf failed.");
         return VOS_ERR;
     }
     if (check_file_path_valid(standby_file) != COMMON_SUCCESS) {
         OM_LOG_ERROR("KmcConfig standby path not valid.");
         return VOS_ERR;
     }
-    if (memcpy_s(kmcConfig.standbyKeyStoreFile, sizeof(kmcConfig.standbyKeyStoreFile),
-        standby_file, strlen(standby_file)) != 0) {
-        OM_LOG_ERROR("Init KmcConfig standby ksf failed.");
-        return VOS_ERR;
-    }
-    const char *HAMC_ALG_ID = "hmac_alg_id";
-    const unsigned int DEFAULT_HMAC_ALG_ID = 2054;
-    kmcConfig.domainCount = 0;
-    kmcConfig.role = DEFAULT_ROLE;
-    kmcConfig.procLockPerm = DEFAULT_PERMISSION;
-    kmcConfig.version = 0;
-    unsigned int sdpAlgId = GetAlgIdFromConfig(SDP_ALG_ID, alg_json_file);
-    if (CheckSdpAlgId(sdpAlgId) != VOS_OK) {
-        OM_LOG_WARN("Use default sdp algorithm");
-        sdpAlgId = DEFAULT_SDP_ALG_ID;
-    }
-    unsigned int hmacAlgId = GetAlgIdFromConfig(HAMC_ALG_ID, alg_json_file);
-    if (CheckHmacAlgId(hmacAlgId) != VOS_OK) {
-        OM_LOG_WARN("Use default hmac algorithm");
-        hmacAlgId = DEFAULT_HMAC_ALG_ID;
-    }
-    kmcConfig.sdpAlgId = sdpAlgId;
-    kmcConfig.hmacAlgId = hmacAlgId;
-    kmcConfig.semKey = DEFAULT_PROC_SEM_KEY;
-    int ret = SeInitialize(&kmcConfig);
-    if (ret != 0) {
-        OM_LOG_ERROR("Init KmcConfig standby ksf failed.");
-        return VOS_ERR;
+
+    // replace the following code to initialize cert management library
+    FILE* fp;
+    struct stat stat_result;
+    int i;
+    const char* filename;
+    const char* keystore_files[] = {primary_file, standby_file, NULL};
+    for (i = 0; ; i++) {
+        filename = keystore_files[i];
+        if (filename == NULL) {
+            break;
+        }
+
+        if (stat(filename, &stat_result) == 0 && stat_result.st_size > 0) {
+            continue;
+        }
+
+        fp = safety_fopen(filename, "w");
+        if (fp == NULL) {
+            OM_LOG_ERROR("open keystore file %s fail", filename);
+            return VOS_ERR;
+        }
+        fwrite("\n", 1, 1, fp);
+        (void)fclose(fp);
     }
     return VOS_OK;
 }
 
 signed long cert_manage_finalize(void)
 {
-    int ret = SeFinalize(&kmcConfig);
-    if (ret != 0) {
-        return VOS_ERR;
-    }
+    // Insert code here to finalize cert management library
     return VOS_OK;
 }
 
@@ -300,8 +247,10 @@ static int SecurityEncrypt(const char *buf,
     if (sdpAlgId == 0) {
         sdpAlgId = DEFAULT_SDP_ALG_ID;
     }
-    unsigned long ret = SdpMemEncryptBase64(DEFAULT_DOMAIN_ID, sdpAlgId, (unsigned char *)buf, bufLen,
-                                            (unsigned char *)bufEnc, bufEncLen);
+    // Replace the following 2 lines to encrypt buf
+    *bufEncLen = bufLen;
+    int ret = memcpy_s(bufEnc, *bufEncLen, buf, bufLen);
+
     if (ret != 0) {
         OM_LOG_ERROR("Encrypt failed, result %d", (int)ret);
         return VOS_ERR;

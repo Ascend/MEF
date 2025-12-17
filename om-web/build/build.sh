@@ -10,11 +10,11 @@
 # See the Mulan PSL v2 for more details.
 set -ex
 
-# 设置npm源
-npm config set registry https://cmc.centralrepo.rnd.huawei.com/artifactory/api/npm/npm-central-repo/
+CUR_DIR=$(dirname "$(readlink -f $0)")
+TOP_DIR=$CUR_DIR/..
 
 # 回到项目根目录
-cd ..
+cd "$TOP_DIR"
 
 # 安装依赖
 npm ci
@@ -23,6 +23,7 @@ npm ci
 npm run build
 
 # 创建output文件夹
+rm -rf output
 mkdir output
 
 # 打包

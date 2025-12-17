@@ -12,7 +12,6 @@
 
 """
 功    能：Redfish Server Systems资源定义
-修改记录：2022-11-14 创建
 """
 
 import os

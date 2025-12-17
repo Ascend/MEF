@@ -30,7 +30,6 @@ class SecurityLoad:
     """
     功能描述：安全登录规则
     接口：NA
-    修改记录：2019-11-26 创建
     """
 
     CHECK_REQUEST_DATA_FAIL = 701
@@ -55,7 +54,6 @@ class SecurityLoad:
          参数：
          返回值：无
          异常描述：NA
-         修改记录：2019-11-26 创建
         """
         self.load_cfg = []
 
@@ -161,7 +159,6 @@ class SecurityLoad:
         参数：
         返回值：无
         异常描述：NA
-        修改记录：2019-11-26 创建
         """
         enable_num = 0
         sec_cfg = LoginRuleManager().get_all()
@@ -188,7 +185,6 @@ class SecurityLoad:
         参数：
         返回值：无
         异常描述：NA
-        修改记录：2019-11-26 创建
         """
         if request_dict is None or not isinstance(request_dict, dict):
             return Result(result=False, err_msg="Request parameter is empty or not dict")
@@ -220,7 +216,6 @@ class SecurityLoad:
         参数：
         返回值：无
         异常描述：NA
-        修改记录：2019-11-27 创建
         """
         if request_dict is None:
             return Result(result=False, err_msg="request parameter is empty")
@@ -273,7 +268,6 @@ class SecurityLoad:
         参数：
         返回值：无
         异常描述：NA
-        修改记录：2019-11-26 创建
         """
         self.load_cfg = LoginRuleManager().get_all()
 
@@ -283,7 +277,6 @@ class SecurityLoad:
         参数：
         返回值：无
         异常描述：NA
-        修改记录：2019-11-26 创建
         """
         if SecurityLoad.SECURITY_LOCK.locked():
             run_log.warning("SecurityLoad modify is busy")
@@ -331,7 +324,6 @@ class SecurityLoad:
         参数：
         返回值：无
         异常描述：NA
-        修改记录：2019-8-14 创建
         """
         if SecurityLoad.SECURITY_LOCK.locked():
             run_log.warning("SecurityLoad modify is busy")

@@ -12,7 +12,6 @@
 
 """
 功    能：Redfish Server公共变量及接口模块
-修改记录：2016-10-18 创建
 """
 
 import glob
@@ -91,7 +90,6 @@ class CommonRedfish(object):
              items 增加的键值对
         返回值：无
         异常描述：NA
-        修改记录：2016-10-19 创建
         """
         if k in adict:
             adict[k].append(items)
@@ -107,10 +105,6 @@ class CommonRedfish(object):
         inputErrInfo为错误描述信息.
         返回值：http response
         异常描述：NA
-        修改记录：2016-11-22 创建
-        修改记录：2016-12-01 返回消息体格式改为json
-        修改记录：2016-12-03 只记录错误描述信息
-        修改记录：2016-12-06 Response类的Content-type默认值已经修改为application/json
         """
 
         # retDict字典中同时包含key(status)和key(message), 且retDict中的status不等于200,
@@ -130,10 +124,6 @@ class CommonRedfish(object):
         参数：retDict字典中正常情况下包含key(status)
         和 key(message)
         inputErrInfo为错误描述信息.
-        修改记录：2016-12-03 错误描述修改,
-        且异常处理都归为错误码500
-        修改记录：2016-12-06 Response类的
-        Content-type默认值已经修改为application/json
         """
 
         # retDict字典中未同时包含key(status)和key(message),记录inputErrInfo为错误描述信息
@@ -157,9 +147,6 @@ class CommonRedfish(object):
         inputErrInfo为错误描述信息.
         返回值：http response
         异常描述：NA
-        修改记录：2016-11-22 创建
-        修改记录：2016-12-06 Response类的
-        Content-type默认值已经修改为application/json
         """
         if ret_dict is None or not isinstance(ret_dict, dict):
             # retDict字典中未同时包含key(status)
@@ -202,9 +189,6 @@ class CommonRedfish(object):
                   prifixId为  Members的@odata.id前缀ID
                          返回值：http response
                          异常描述：NA
-                         修改记录：2016-11-22 创建
-                        修改记录：2016-12-06 Response类的
-                        Content-type默认值已经修改为application/json
         '''
         if ret_dict is None or not isinstance(ret_dict, dict):
             # retDict字典中未同时包含key(status)
@@ -258,7 +242,6 @@ class CommonRedfish(object):
         参数：inputParam 输入参数
         返回值：inputParam 输入参数合法,返回True,否则返回False
         异常描述：NA
-        修改记录：2016-11-26 创建
         """
         reg_str = "^[a-z0-9A-Z_:.]+$"
         pattern_str = re.compile(reg_str)

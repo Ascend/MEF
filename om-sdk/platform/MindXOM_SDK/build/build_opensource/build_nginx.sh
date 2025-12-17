@@ -8,15 +8,12 @@
 # EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
+set -e
+
 CUR_DIR=$(dirname $(readlink -f "$0"))
 CI_DIR=$(readlink -f $CUR_DIR/../)
 TOP_DIR=${CI_DIR}/../../../
 OM_WORK_DIR=/usr/local/mindx/MindXOM
-
-# 编译nginx
-sudo mkdir -p "${OM_WORK_DIR}/software/nginx/sbin"
-sudo chmod -R 755 "${OM_WORK_DIR}"
-sudo chown -R slave1:slave1 "${OM_WORK_DIR}/software/nginx"
 
 if [[ -e "${TOP_DIR}/platform/nginx" ]]; then
     mv "${TOP_DIR}/platform/nginx" "${OM_WORK_DIR}/software/nginx/sbin/"
@@ -45,15 +42,15 @@ if [ -d "${CI_DIR}"/output ];then
     exit 0
 fi
 
-cd ${TOP_DIR}/opensource/pcre && make clean
+cd ${TOP_DIR}/opensource/pcre2
 autoreconf -ivf
 
-cd ${TOP_DIR}/opensource/nginx && make clean
+cd ${TOP_DIR}/opensource/nginx
 chmod +x ./auto/configure
 CFLAG="-Wall -O2 -fstack-protector-strong -fPIE"
 LDFLAG="-Wl,-z,relro,-z,now,-z,noexecstack -pie -s"
 
-./auto/configure --prefix=${OM_WORK_DIR}/software/nginx --with-pcre=$TOP_DIR/opensource/pcre/ \
+./auto/configure --prefix=${OM_WORK_DIR}/software/nginx --with-pcre=$TOP_DIR/opensource/pcre2/ \
         --with-http_ssl_module \
         --with-cc-opt="$CFLAG" --with-ld-opt="$LDFLAG" --without-http_auth_basic_module \
         --without-http_autoindex_module --without-http_map_module --without-http_fastcgi_module \

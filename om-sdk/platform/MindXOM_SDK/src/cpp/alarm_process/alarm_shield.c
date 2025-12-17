@@ -38,9 +38,6 @@ int g_shield_alarm_flag = 0;
 /* ****************************************************************************
  函 数 名  : set_clear_shield_by_fault_info
  功能描述  : 按照告警屏蔽配置文件，配置告警屏蔽位。
- 修改历史      :
-  1.日    期   : 2020年4月18日
-    修改内容   : 新生成函数
 **************************************************************************** */
 static int set_clear_shield_by_fault_info(const ALARM_MSG_FAULT_INFO *p_fault_info, int alarm_option_type)
 {
@@ -71,9 +68,6 @@ static int set_clear_shield_by_fault_info(const ALARM_MSG_FAULT_INFO *p_fault_in
  输入参数  : filename：告警屏蔽配置文件 alarm_option_type：类型
  输出参数  : 无
  返 回 值  : 成功:EDGE_OK 失败：EDGE_ERR
- 修改历史      :
-  1.日    期   : 2020年4月18日
-    修改内容   : 新生成函数
 **************************************************************************** */
 int set_clear_shield_alarm_flag(const char *filename, int alarm_option_type)
 {
@@ -134,9 +128,6 @@ int set_clear_shield_alarm_flag(const char *filename, int alarm_option_type)
  输入参数  : 无
  输出参数  : 无
  返 回 值  : 无
- 修改历史      :
-  1.日    期   : 2020年4月18日
-    修改内容   : 新生成函数
 **************************************************************************** */
 static void unset_clear_shield_alarm_flag()
 {
@@ -223,9 +214,6 @@ static int reset_shield_alarm_func(char *dstbuff, unsigned int buf_len, int *fla
  输入参数  : filename：告警消除或者告警屏蔽配置文件
  输出参数  : flag：告警屏蔽文件更新标记
  返 回 值  : 成功：EDGE_OK 失败：EDGE_ERR
- 修改历史      :
-  1.日    期   : 2020年4月18日
-    修改内容   : 新生成函数
 **************************************************************************** */
 static int inotify_alarm_file(const char *filename, int *flag)
 {
@@ -292,9 +280,6 @@ static int inotify_alarm_file(const char *filename, int *flag)
  输入参数  : 无
  输出参数  : 无
  返 回 值  : 无
- 修改历史      :
-  1.日    期   : 2020年4月18日
-    修改内容   : 新生成函数
 **************************************************************************** */
 void *fault_manager_shield_alarm_thread(void *p_void)
 {

@@ -9,7 +9,6 @@
 # See the Mulan PSL v2 for more details.
 """
 功    能：系统资源模组管理 URL处理模块
-修改记录：2022-11-16 创建
 """
 import json
 
@@ -34,7 +33,6 @@ def rf_get_system_module_collection():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    修改记录：2022-11-16 创建
     """
     message = "Query system module collection failed."
     try:
@@ -58,7 +56,6 @@ def rf_get_system_module_info(module_id):
     参数：module_id 为模组名称
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    修改记录：2022-11-16 创建
     """
     message = "Query system module info failed."
     try:
@@ -89,7 +86,6 @@ def rf_get_system_device_info(module_id, device_id):
     参数：module_id 为模组名称，device_id为设备名称
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    修改记录：2022-11-16 创建
     """
     message = "Query system device info failed."
     try:
@@ -118,7 +114,6 @@ def rf_patch_system_device_info(module_id, device_id):
     参数：module_id 为模组名称，device_id为设备名称
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    修改记录：2022-11-17 创建
     """
     message = "Modify system device info failed."
     try:
@@ -170,7 +165,6 @@ def module_replace_odata_id(resp_json, module_id, device_id):
     参数：resp_json JSON 模板
          module_id and device_id 替换的ID
     异常描述：无
-    修改记录：2022-11-19 创建
     """
     resp_json['Id'] = device_id
     resp_json['@odata.id'] = resp_json['@odata.id'].replace('oDataID1', module_id)

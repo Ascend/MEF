@@ -11,7 +11,6 @@
 # See the Mulan PSL v2 for more details.
 """
 功    能：插件适配，用于RESTful接口调用，通过其发送 Socket 信息给适配层
-修改记录：2017-01-02 创建
 """
 import ast
 import json
@@ -26,7 +25,6 @@ class LibRESTfulAdapter(object):
     """
     功能描述：插件适配
     接口：NA
-    修改记录：2017-01-02 创建
     """
 
     @staticmethod
@@ -45,7 +43,6 @@ class LibRESTfulAdapter(object):
         item4 第四级资源
         返回值：无
         异常描述：NA
-        修改记录：2017-01-02 创建，通过socket进行通讯
         """
         socket_model = RestFullSocketModel("lib_restful_interface", model_name,
                                            request_type, request_data, need_list, item1, item2, item3, item4)
@@ -58,7 +55,6 @@ class LibRESTfulAdapter(object):
         参数：无
         返回值：NA
         异常描述：NA
-        修改记录：2017-01-02 创建
         """
         socket_model = RestFullSocketModel("start_timer", None)
         return LibRESTfulAdapter.send_and_parse_result(socket_model)
@@ -70,7 +66,6 @@ class LibRESTfulAdapter(object):
         参数：sModel socket模型
         返回值：NA
         异常描述：NA
-        修改记录：2017-01-02 创建，通过socket进行通讯
         """
         # 将参数转成字符串
         msg = socket_model.get_socket_info()
@@ -102,6 +97,5 @@ class LibRESTfulAdapter(object):
         参数：retDict字典中包含key(status)和key(message)
         返回值：status为OK,则返回True,否则返回False
         异常描述：NA
-        修改记录：2016-11-15 创建
         """
         return isinstance(ret_dict, dict) and ret_dict.get("status") == AppCommonMethod.OK

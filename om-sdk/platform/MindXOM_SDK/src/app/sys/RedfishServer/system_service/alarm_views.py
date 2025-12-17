@@ -10,7 +10,6 @@
 
 """
 功    能：系统资源 URL处理模块
-修改记录：2022-11-29 创建
 """
 import json
 import threading
@@ -85,7 +84,6 @@ def rf_increase_system_alarm_shield():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    记录：2023-2-17 创建
     """
     if INCREASE_ALARM_SHIELD.locked():
         message = "Increase alarm shield failed because increasing alarm shield is busy."
@@ -158,7 +156,6 @@ def rf_decrease_system_alarm_shield():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    记录：2023-2-17 创建
     """
     if DECREASE_ALARM_SHIELD.locked():
         message = "Decrease alarm shield failed because increasing alarm shield is busy."

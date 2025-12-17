@@ -1,0 +1,51 @@
+diff --git a/src/core/ngx_inet.c b/src/core/ngx_inet.c
+index acb2ef4..9f81e55 100644
+--- a/src/core/ngx_inet.c
++++ b/src/core/ngx_inet.c
+@@ -7,7 +7,7 @@
+ 
+ #include <ngx_config.h>
+ #include <ngx_core.h>
+-
++#include <net/if.h>
+ 
+ static ngx_int_t ngx_parse_unix_domain_url(ngx_pool_t *pool, ngx_url_t *u);
+ static ngx_int_t ngx_parse_inet_url(ngx_pool_t *pool, ngx_url_t *u);
+@@ -989,7 +989,9 @@ static ngx_int_t
+ ngx_parse_inet6_url(ngx_pool_t *pool, ngx_url_t *u)
+ {
+ #if (NGX_HAVE_INET6)
+-    u_char               *p, *host, *port, *last, *uri, *dash;
++    u_char               *p, *host, *port, *last, *uri, *dash, *ifname;
++    char                  name[1024] = { 0 };
++    ngx_uint_t            index = 0;
+     size_t                len;
+     ngx_int_t             n;
+     struct sockaddr_in6  *sin6;
+@@ -1088,11 +1090,25 @@ ngx_parse_inet6_url(ngx_pool_t *pool, ngx_url_t *u)
+     u->host.len = len + 2;
+     u->host.data = host - 1;
+ 
++    /* 解决Nginx无法绑定IPV6链路本地地址的问题 */
++    ifname = ngx_strlchr(host, p, '%');
++    if (ifname != NULL) {
++        len = ifname - host;
++        ngx_memcpy((void *)name, (void *)(ifname + 1), p - ifname - 1);
++    }
++
+     if (ngx_inet6_addr(host, len, sin6->sin6_addr.s6_addr) != NGX_OK) {
+         u->err = "invalid IPv6 address";
+         return NGX_ERROR;
+     }
+ 
++    if (IN6_IS_ADDR_LINKLOCAL(&sin6->sin6_addr) && ifname) {
++        index = if_nametoindex(name);
++        if (index) {
++            sin6->sin6_scope_id = index;
++        }
++    }
++
+     if (IN6_IS_ADDR_UNSPECIFIED(&sin6->sin6_addr)) {
+         u->wildcard = 1;
+     }
+

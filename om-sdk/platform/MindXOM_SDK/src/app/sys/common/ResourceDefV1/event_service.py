@@ -12,7 +12,6 @@
 
 """
 功    能：Redfish Server Event处理模块
-修改记录：2016-10-18 创建
 """
 
 import os
@@ -24,7 +23,6 @@ class RfEventServiceObj(RfResource):
     """
     功能描述：创建EventService资源并导入一级目录模板
     接口：NA
-    修改记录：2016-10-18 创建
     """
     def create_sub_objects(self, base_path, rel_path):
         self.eventColl = \
@@ -41,7 +39,6 @@ class RfEventCollection(RfResource):
     """
     功能描述：创建EventService子对象, 导入实例配置模板
     接口：NA
-    修改记录：2016-10-18 创建
     """
     def create_sub_objects(self, base_path, rel_path):
         self.subscriptions = \

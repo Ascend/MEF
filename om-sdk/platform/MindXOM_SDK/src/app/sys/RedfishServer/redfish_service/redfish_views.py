@@ -10,7 +10,6 @@
 
 """
 功    能：Redfish公共固定资源 URL处理模块
-修改记录：2022-11-1 创建
 """
 import enum
 import json
@@ -175,7 +174,6 @@ def schema_replace_odata_id(resp_json, schema_id):
     参数：resp_json JSON 模板
          schema_id 替换的ID
     异常描述：无
-    修改记录：2022-12-16 创建
     """
     schema_id_no_version = schema_id
     if "." in schema_id:

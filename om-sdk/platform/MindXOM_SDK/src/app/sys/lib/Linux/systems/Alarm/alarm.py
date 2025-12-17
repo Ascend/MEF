@@ -17,7 +17,6 @@ class Alarm:
     """
     功能描述：告警信息
     接口：NA
-    修改记录：2019-3-20 创建
     """
     MAX_ALARM_COUNT = 512
     ALARM_FILE = "/run/all_active_alarm"
@@ -30,7 +29,6 @@ class Alarm:
         参数：NA
         返回值：无
         异常描述：NA
-        修改记录：2019-3-20 创建
         """
         self.AlarMessages = []
 

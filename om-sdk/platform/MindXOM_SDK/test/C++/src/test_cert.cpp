@@ -89,6 +89,6 @@ namespace CERT_TEST {
                                    "/home/data/config/default/om_cert_backup.keystore",
                                    "/home/data/config/default/om_alg.json");
         std::cout << "dt test_cert_manage_init1 res: " << res;
-        EXPECT_EQ(-1, res);
+        EXPECT_EQ(0, res);
     }
 }

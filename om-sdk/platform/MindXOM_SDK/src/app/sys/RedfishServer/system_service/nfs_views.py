@@ -33,7 +33,6 @@ def rf_get_system_nfs_manage():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    记录：2019-8-17 创建
     """
     message = "Query NFS info failed."
     try:
@@ -58,7 +57,6 @@ def rf_mount_system_nfs_manage():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    记录：2023-2-9 创建
     """
     if MOUNT_NFS_LOCK.locked():
         message = "Mount NFS request failed because lock is locked."
@@ -109,7 +107,6 @@ def rf_unmount_system_nfs_manage():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    记录：2023-2-9 创建
     """
     if UNMOUNT_NFS_LOCK.locked():
         message = "Unmount NFS request failed because lock is locked."
