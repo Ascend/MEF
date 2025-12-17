@@ -120,7 +120,6 @@ def get_cert_info(cert_file_path):
     参数：无
     返回值：无
     异常描述：NA
-    修改记录：2019-3-20 创建
     """
     if not check_lib_available(CERT_MANAGE_LIB_NAME):
         raise IOError(f"Check so file {CERT_MANAGE_LIB_NAME} not available.")
@@ -162,7 +161,6 @@ def get_verify_cert_info(cert_file_path):
     参数：无
     返回值：无
     异常描述：NA
-    修改记录：2019-3-20 创建
     """
     if not check_lib_available(CERT_MANAGE_LIB_NAME):
         raise IOError(f"so file {CERT_MANAGE_LIB_NAME} not available.")

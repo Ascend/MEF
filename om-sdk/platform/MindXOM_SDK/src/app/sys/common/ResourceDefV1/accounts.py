@@ -12,7 +12,6 @@
 
 """
 功    能：Redfish Account Service资源定义
-修改记录：2019-1-18 创建
 """
 
 import os.path
@@ -23,7 +22,6 @@ class RfAccountServiceObj(RfResource):
     """
     功能描述：创建AccountService资源对象
     接口：NA
-    修改记录：2022-11-26 创建
     """
     ACCOUNT_SERVICE_RESOURCE_DIR = os.path.normpath("redfish/v1/AccountService")
     ACCOUNTS_RESOURCE_DIR = os.path.normpath("redfish/v1/AccountService/Accounts")

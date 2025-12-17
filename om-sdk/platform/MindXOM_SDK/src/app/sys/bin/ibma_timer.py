@@ -12,7 +12,6 @@
 
 """
 功    能：定时器类，该类主要涉及定时器的成员定义
-修改记录：2016-10-31 创建
 """
 
 import threading
@@ -25,7 +24,6 @@ class IbmaTimer(object):
     """
     功能描述：定时器类
     接口：NA
-    修改记录：2016-10-31 创建
     """
     ALL_TIMERS_INIT_COMPLETE = False
 
@@ -35,8 +33,6 @@ class IbmaTimer(object):
         参数：无
         返回值：无
         异常描述：NA
-        修改记录：2016-10-31 创建
-                2017-01-23 增加循环次数
         """
         super(IbmaTimer, self).__init__()
         self.timer = None
@@ -69,7 +65,6 @@ class IbmaTimer(object):
         参数：flag 是否初始化完成
         返回值：无
         异常描述：NA
-        修改记录：2017-01-07 添加
         """
         IbmaTimer.ALL_TIMERS_INIT_COMPLETE = flag
 
@@ -79,10 +74,6 @@ class IbmaTimer(object):
         参数：无
         返回值：无
         异常描述：NA
-        修改记录：2016-11-05 创建
-                2016-12-30 增加延迟执行支持
-                2017-01-07 增加判断是否需要执行具体的动作；添加中断机制
-                2017-01-23 增加循环次数
         """
         actions = (self._start_timer, self.dowork)
         try:
@@ -100,7 +91,6 @@ class IbmaTimer(object):
         参数：无
         返回值：无
         异常描述：NA
-        修改记录：2016-11-05 创建
         """
         try:
             if self.timer is not None:
@@ -118,7 +108,6 @@ class IbmaTimer(object):
         参数：定时器对象
         返回值：是否有效
         异常描述：NA
-        修改记录：2016-10-31 创建
         """
         # 已经被停止
         if self.interrupt:
@@ -157,8 +146,6 @@ class IbmaTimer(object):
         参数：无
         返回值：无
         异常描述：NA
-        修改记录：2016-11-29 创建
-                2017-01-07 添加停止机制
         """
         self.complete = False
         action = TimerAction()
@@ -222,9 +209,6 @@ class IbmaTimer(object):
              item4 第四级资源
         返回值：无
         异常描述：NA
-        修改记录：2016-11-29 创建
-                2017-01-07 添加中断停止机制
-                2017-01-23 调用时，增加循环次数
         """
         ret = {"status": adapter.CommonMethods.OK, "message": ""}
         if need_list:
@@ -341,7 +325,6 @@ class TimerAction(object):
     """
     功能描述：定义动作类
     接口：NA
-    修改记录：2016-11-29 创建
     """
 
     def __init__(self):
@@ -350,7 +333,6 @@ class TimerAction(object):
         参数：无
         返回值：无
         异常描述：NA
-        修改记录：2016-11-29 创建
         """
         super(TimerAction, self).__init__()
 

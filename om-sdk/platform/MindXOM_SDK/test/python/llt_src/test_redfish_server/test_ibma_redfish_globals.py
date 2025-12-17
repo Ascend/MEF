@@ -1,5 +1,6 @@
 from collections import namedtuple
 from configparser import ConfigParser
+from datetime import datetime, timezone, timedelta
 
 import pytest
 from pytest_mock import MockerFixture
@@ -209,6 +210,9 @@ class TestRedfishGlobals:
     def test_update_alarm_time_stamp_failed(self, model: UpdateJsonOfListCase):
         ret = RedfishGlobals.update_alarm_time_stamp(model.ret_dict)
         if model.excepted:
-            assert model.excepted == model.ret_dict["message"]["AlarMessages"][0]["Timestamp"]
+            time_fmt = "%Y-%m-%d %H:%M:%S"
+            local_time = datetime.strptime(model.ret_dict["message"]["AlarMessages"][0]["Timestamp"], time_fmt)
+            cst_time = datetime.fromtimestamp(local_time.timestamp(), timezone(timedelta(hours=8), "CST"))
+            assert model.excepted == cst_time.strftime(time_fmt)
         else:
             assert ret is None

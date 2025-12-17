@@ -11,7 +11,6 @@
 
 """
 功    能：安全服务资源 URL处理模块
-修改记录：2022-12-05 创建
 """
 import configparser
 import json
@@ -179,7 +178,6 @@ def rf_import_system_puny_dict():
     参数：无
     返回值：http response
     异常描述：NA
-    记录：2023-02-10 创建
     """
     if PUNY_DICT_IMPORT_LOCK.locked():
         message = "Import puny dict failed because SecurityServiceViews import is busy."
@@ -259,7 +257,6 @@ def rf_export_system_puny_dict():
     参数：无
     返回值：http response
     异常描述：NA
-    记录：2023-02-10 创建
     """
     if PUNY_DICT_EXPORT_LOCK.locked():
         run_log.error("Export puny dict is busy.")
@@ -307,7 +304,6 @@ def rf_delete_system_puny_dict():
     参数：无
     返回值：http response
     异常描述：NA
-    记录：2023-02-10 创建
     """
     if PUNY_DICT_DELETE_LOCK.locked():
         message = "Delete puny dict failed because SecurityServiceViews Delete is busy."
@@ -376,7 +372,6 @@ def rf_get_system_https_cert_alarm_time():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    记录：2019-12-23 创建
     """
     message = "Query HttpsCertAlarmTime service failed."
     try:
@@ -404,7 +399,6 @@ def rf_modify_system_https_cert_alarm_time():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    记录：2019-12-23 创建
     """
     if HTTPSCERT_ALARM_TIME_LOCK.locked():
         message = "Set CertAlarmTime failed because SecurityServiceViews modify is busy."
@@ -465,7 +459,6 @@ def rf_download_csr_file():
     参数：无
     返回值：http response
     异常描述：NA
-    记录：2023-03-24 创建
     """
     if DOWNLOAD_CSR_LOCK.locked():
         run_log.error("Download CSR failed because SecurityServiceViews export is busy.")
@@ -505,7 +498,6 @@ def rf_get_security_load_config_info():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    记录：2019-11-27 创建
     """
     message = "Query SecurityLoad info failed."
     try:
@@ -529,7 +521,6 @@ def rf_modify_security_load_config_info():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    记录：2019-11-27 创建
     """
     if SECURITY_LOAD_LOCK.locked():
         message = "Config security load failed because SecurityServiceViews modify is busy."

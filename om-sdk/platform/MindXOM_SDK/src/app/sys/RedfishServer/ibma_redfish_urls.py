@@ -12,7 +12,6 @@
 
 """
 功    能：Redfish Server URL处理模块
-修改记录：2016-10-18 创建
 """
 import functools
 import json
@@ -55,7 +54,6 @@ class RedfishURIs:
     """
     功能描述：HTTP服务的URI路由定义类
     接口：NA
-    修改记录：2016-10-31 创建
     """
     APP = Flask(__name__, static_folder=None)
 
@@ -107,9 +105,6 @@ class RedfishURIs:
         """
         功能描述：启动flask, 对URL进行处理
         接口：NA
-        修改记录：2016-10-18 创建
-        修改记录：2016-12-06 创建Response类的子类,使用自定义的默认值
-        修改记录：2017-01-14 删除对远端地址的限制
         """
         app = RedfishURIs.APP
         app.response_class = ResMimeTypeOfJson
@@ -265,7 +260,6 @@ class ResMimeTypeOfJson(Response):
     功能描述：创建Response类的子类,
     定义自己的默认值(Content-Type默认类型改为application/json)
     接口：NA
-    修改记录：2016-10-31 创建
     """
 
     default_mimetype = 'application/json'

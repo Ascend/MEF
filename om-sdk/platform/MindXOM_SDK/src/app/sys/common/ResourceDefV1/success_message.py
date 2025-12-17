@@ -12,7 +12,6 @@
 
 """
 功    能：Redfish Server Success Message资源定义
-修改记录：2022-11-24 创建
 """
 import os.path
 
@@ -23,7 +22,6 @@ class RfSuccessMessage(RfResource):
     """
     功能描述：创建 Success Message 资源对象, 导入配置模板
     接口：NA
-    修改记录：2022-11-24 创建
     """
     SUCCESS_MESSAGE_REOURCE_DIR = os.path.normpath("redfish/v1/SuccessMessage")
 

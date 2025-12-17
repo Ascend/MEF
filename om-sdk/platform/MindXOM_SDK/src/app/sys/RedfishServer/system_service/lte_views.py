@@ -33,7 +33,6 @@ def rf_get_system_lte():
     参数：无
     返回值 响应字典 资源模板或错误消息
     异常描述：NA
-    记录：2022-11-24 创建
     """
     message = "Query LTE info."
     try:
@@ -53,7 +52,6 @@ def rf_get_system_lte_status_info():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    记录：2019-9-15 创建
     """
     message = "Query LTE status info failed."
     try:
@@ -80,7 +78,6 @@ def rf_patch_system_lte_status_info():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    记录：2019-9-15 创建
     """
     if LTE_STATUS_INFO_LOCK.locked():
         message = "Modify LTE status failed because LteView modify is busy."
@@ -128,7 +125,6 @@ def rf_get_system_lte_config_info():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    记录：2019-10-24 创建
     """
     message = "Query LTE config info failed."
     try:
@@ -157,7 +153,6 @@ def rf_patch_system_lte_config_info():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    记录：2019-10-24 创建
     """
     if LTE_CONFIG_INFO_LOCK.locked():
         message = "Set LTE config info failed because LteView modify is busy."

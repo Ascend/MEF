@@ -10,7 +10,6 @@
 
 """
 功    能：Redfish Server Systems资源定义
-修改记录：2019-1-18 创建
 """
 
 import os
@@ -21,7 +20,6 @@ class RfSessionServiceObj(RfResource):
     """
     功能描述：创建SessionService资源对象
     接口：NA
-    修改记录：2022-12-6 创建
     """
 
     SESSION_SERVICE_RESOURCE_DIR = os.path.normpath("redfish/v1/SessionService")

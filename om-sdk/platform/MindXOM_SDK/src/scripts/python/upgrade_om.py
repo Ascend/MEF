@@ -232,7 +232,6 @@ class OMUpgradeProcessor:
             (("bin",), 0o550, True, False),
             (("software",), 0o755, False, True),
             (("software", "ens"), 0o550, True, False),
-            (("software", "sec_agent"), 0o750, False, True),
             (("config",), 0o600, True, False),
             (("tools",), 0o500, True, False),
             (("version.xml",), 0o644, False, True),
@@ -297,11 +296,10 @@ class OMUpgradeProcessor:
                 if not ret:
                     raise UpgradeOMError(f"chmod {filepath.name} failed, {ret.error}")
 
-        # 将seceye-agent、ensd、nginx设为可执行权限
-        seceye_agent_path = upgrade_dir.joinpath("software", "sec_agent", "seceye-agent").as_posix()
+        # 将ensd、nginx设为可执行权限
         ensd_path = upgrade_dir.joinpath("software", "ens", "bin", "ensd").as_posix()
         nginx_path = upgrade_dir.joinpath("software", "nginx", "sbin", "nginx").as_posix()
-        for path in (seceye_agent_path, ensd_path, nginx_path):
+        for path in (ensd_path, nginx_path):
             ret = Chmod.set_path_permission(path, mode=0o500)
             if not ret:
                 raise UpgradeOMError(f"chmod failed, {ret.error}")

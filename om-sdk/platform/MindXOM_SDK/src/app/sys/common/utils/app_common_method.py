@@ -72,7 +72,6 @@ class AppCommonMethod(object):
         参数：class_obj 类对象
         返回值：JSON文本
         异常描述：NA
-        修改记录：2016-11-09 创建
         """
         ret = {}
         for key, value in vars(class_obj).items():
@@ -103,7 +102,6 @@ class AppCommonMethod(object):
         参数：无
         返回值：工程的绝对路径
         异常描述：NAF
-        修改记录：2016-11-25 创建
         """
         if AppCommonMethod.rootDir is None:
             working_dir = os.path.dirname(os.path.realpath(__file__))
@@ -120,7 +118,6 @@ class AppCommonMethod(object):
         message 错误信息
         返回值：无
         异常描述：NA
-        修改记录：2016-11-12 创建
         """
         ret = dict()
         ret["status"] = default_status

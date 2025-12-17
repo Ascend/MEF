@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+set -e
+
 PYTHON3=$(type -p python3)
 PYTHON_HOME="${PYTHON3%/*}/"
 PIP3=$(type -p pip3)
@@ -38,28 +41,28 @@ echo "$OM_WORK_DIR"
 function install_om()
 {
     echo "install pm pkg start."
-    sudo rm -rf ${OM_WORK_DIR}
-    sudo mkdir -p ${OM_WORK_DIR}
+    rm -rf ${OM_WORK_DIR}
+    mkdir -p ${OM_WORK_DIR}
     if (($? != 0)); then
         echo "[ERROR]mkdir ${OM_WORK_DIR} failed"
         return 1
     fi
 
     cd ${OM_WORK_DIR}
-    sudo unzip -d ${ROOT_PATH}/output ${ROOT_PATH}/output/Ascend-mindxedge-omsdk*.zip
-    sudo cp -f ${ROOT_PATH}/output/Ascend-mindxedge-omsdk*.tar.gz ${OM_WORK_DIR}
+    unzip -od ${ROOT_PATH}/output ${ROOT_PATH}/output/Ascend-mindxedge-omsdk*.zip
+    cp -f ${ROOT_PATH}/output/Ascend-mindxedge-omsdk*.tar.gz ${OM_WORK_DIR}
     if (($? != 0)); then
-        echo "[ERROR]sudo cp -rf ${ROOT_PATH}/output/Ascend-mindxedge-omsdk*.tar.gz ${OM_WORK_DIR} failed"
+        echo "[ERROR]cp -rf ${ROOT_PATH}/output/Ascend-mindxedge-omsdk*.tar.gz ${OM_WORK_DIR} failed"
         return 1
     fi
 
-    sudo tar -zxvf ${OM_WORK_DIR}/Ascend-mindxedge-omsdk*.tar.gz >/dev/null 2>&1
+    tar -zxvf ${OM_WORK_DIR}/Ascend-mindxedge-omsdk*.tar.gz >/dev/null 2>&1
     if (($? != 0)); then
         echo "[ERROR]tar -zxvf ${OM_WORK_DIR}/Ascend-mindxedge-omsdk*.tar.gz"
         return 1
     fi
 
-    sudo rm -rf ${OM_WORK_DIR}/*.gz*
+    rm -rf ${OM_WORK_DIR}/*.gz*
     if (($? != 0)); then
         echo "[ERROR ]rm -rf ${OM_WORK_DIR}/*.gz*"
         return 1
@@ -90,25 +93,23 @@ function safe_replace_os_cmd_conf()
         local file_path="${src_dirpath}/${file}"
         os_name=$(< "${file_path}" grep "OS_NAME" | awk -F "=" '{print $2}' | tr -d '"')
         os_version_id=$(< "${file_path}" grep "OS_VERSION_ID" | awk -F "=" '{print $2}' | tr -d '"')
-        logger_info "os_name is: ${os_name}  os_version_id is: ${os_version_id}"
+        echo "os_name is: ${os_name}  os_version_id is: ${os_version_id}"
 
         # 2、与系统信息进行匹配校验
         if ! check_os_info "${os_name}" "${os_version_id}"; then
             continue
         fi
-        logger_info "os_name is: ${os_name}  os_version_id is: ${os_version_id}"
+        echo "os_name is: ${os_name}  os_version_id is: ${os_version_id}"
 
         # 3、调用拷贝函数进行拷贝
         cp -f "${file_path}" "${dst_filepath}"
-        chmod 644 "${dst_filepath}"
-        logger_info "replace os cmd conf from ${file_path} to ${dst_filepath} success"
+        echo "replace os cmd conf from ${file_path} to ${dst_filepath} success"
         return 0
     done
 
     # 4、如果配置文件匹配失败，则默认将os_cmd_euleros2.0.conf文件内容作为默认的配置
-    logger_error "replace os cmd conf to ${dst_filepath} failed,will replace default"
+    echo "replace os cmd conf to ${dst_filepath} failed,will replace default"
     cp -f "${src_dirpath}"/os_cmd_euleros2.0.conf "${dst_filepath}"
-    chmod 644 "${dst_filepath}"
 
     return 0
 }
@@ -121,26 +122,23 @@ function init_env()
         return 1
     fi
 
-    sudo chmod 755 ${ROOT_PATH}/test/ -R
-    sudo mkdir -p ${LLT_RESULT_COV_DIR}
-    sudo mkdir -p ${LLT_RESULT_XML_DIR}
-    sudo mkdir -p ${LLT_RESULT_HTMLS_DIR}
+    mkdir -p ${LLT_RESULT_COV_DIR}
+    mkdir -p ${LLT_RESULT_XML_DIR}
+    mkdir -p ${LLT_RESULT_HTMLS_DIR}
 
-    sudo rm -rf ${LLT_RESULT_COV_DIR}/*
-    sudo rm -rf ${LLT_RESULT_XML_DIR}/*
-    sudo rm -rf ${LLT_RESULT_HTMLS_DIR}/*
+    rm -rf ${LLT_RESULT_COV_DIR}/*
+    rm -rf ${LLT_RESULT_XML_DIR}/*
+    rm -rf ${LLT_RESULT_HTMLS_DIR}/*
 
     # 文件拷贝
-    sudo mkdir -p /home/data
-    sudo mkdir -p /home/data/ies
-    sudo chmod 755 /home/data -R
-    sudo mkdir -p /home/data/config
-    sudo chmod 644 /home/data/config -R
-    sudo mkdir -p /home/data/minisys
-    sudo cp -rf ${OM_WORK_RUN}/software/ibma/lib/Linux/config/* /home/data/ies/
+    mkdir -p /home/data
+    mkdir -p /home/data/ies
+    mkdir -p /home/data/config
+    mkdir -p /home/data/minisys
+    cp -rf ${OM_WORK_RUN}/software/ibma/lib/Linux/config/* /home/data/ies/
     safe_replace_os_cmd_conf "${OM_WORK_RUN}"/config "/home/data/config/os_cmd.conf"
-    sudo mkdir -p /var/plog/ibma_edge/
-    sudo rm -rf /var/plog/ibma_edge/om_platform_run.log
+    mkdir -p /var/plog/ibma_edge/
+    rm -rf /var/plog/ibma_edge/om_platform_run.log
     echo "init atlas sdk environment finished."
     return 0
 }
@@ -150,9 +148,9 @@ function get_coverage_info()
     cov_dat_file_num=`ls -l .coverage* |wc -l`
     if [[ ${cov_dat_file_num} -gt 1 ]]; then
         echo "More than one coverage files"
-        sudo mv .coverage.`hostname`.*  ${LLT_RESULT_COV_DIR}/.coverage
+        mv .coverage.`hostname`.*  ${LLT_RESULT_COV_DIR}/.coverage
     else
-        sudo mv .coverage ${LLT_RESULT_COV_DIR}
+        mv .coverage ${LLT_RESULT_COV_DIR}
     fi
 
     ls -la
@@ -160,16 +158,14 @@ function get_coverage_info()
     cd ${LLT_RESULT_COV_DIR}
     ls -la
 
-    sudo ${PYTHON_HOME}coverage xml
-
-    sudo chmod -R 755 ${LLT_RESULT_ROOT}
+    ${PYTHON_HOME}coverage xml
 
     echo $(head "${LLT_RESULT_ROOT}/cov_data/coverage.xml" | grep line-rate)
 }
 
 function clean_env()
 {
-     sudo rm -rf ${OM_WORK_DIR}
+     rm -rf ${OM_WORK_DIR}
      echo "rm ${OM_WORK_DIR} finished"
 }
 
@@ -183,7 +179,7 @@ function run_tests_of_mgs()
     fi
 
     echo "******************before:${PYTHON_HOME}*********"
-    sudo ${PIP3} install -r ${MCS_LLT_REQUIREMENTS_FILE_PATH}
+    ${PIP3} install -r ${MCS_LLT_REQUIREMENTS_FILE_PATH}
     echo "******************end:${PYTHON_HOME}*********"
 
     cd ${TEST_ROOT}
@@ -214,7 +210,7 @@ function run_tests_of_mgs()
 
 function cp_so_lib()
 {
-    sudo cp -rf ${ROOT_PATH}/output/lib /usr/local/mindx/MindXOM
+    cp -rf ${ROOT_PATH}/output/lib /usr/local/mindx/MindXOM
     echo "cp lib finished"
 }
 

@@ -11,7 +11,6 @@
 
 """
 功    能：Redfish Server Systems资源定义
-修改记录：2016-10-18 创建
 """
 import os.path
 
@@ -22,7 +21,6 @@ class RfSystemsCollection(RfResource):
     """
     功能描述：创建Systems对象集合, 导入配置模板
     接口：NA
-    修改记录：2016-10-18 创建
     """
     SYSTEM_COLLECTION_RESOURCE_DIR = os.path.normpath("redfish/v1/Systems")
     PROCESSOR_COLLECTION_RESOURCE_DIR = os.path.normpath("redfish/v1/Systems/Processors")

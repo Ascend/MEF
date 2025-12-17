@@ -10,4 +10,3 @@
 import queue
 
 fd_message_que = queue.Queue(maxsize=128)
-hisec_event_message_que = queue.Queue(maxsize=32)

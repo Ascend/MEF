@@ -12,7 +12,6 @@
 
 """
 功    能：system service的工具函數
-修改记录：2022-11-18 创建
 """
 import time
 

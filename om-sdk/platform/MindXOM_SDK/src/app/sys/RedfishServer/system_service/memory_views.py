@@ -27,7 +27,6 @@ def rf_system_memory_summary_collection():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    修改记录：2019-3-18 创建
     """
     input_err_info = "Query memory summary information failed."
     try:

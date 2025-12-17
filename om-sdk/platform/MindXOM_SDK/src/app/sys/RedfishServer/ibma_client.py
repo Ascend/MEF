@@ -32,7 +32,6 @@ class Client:
     """
     功能描述：socket 客户端
     接口：NA
-    修改记录：2017-01-02 创建
     """
     dataLength = 1024
     maxDataLen = 1000 * 1024
@@ -45,7 +44,6 @@ class Client:
         参数：sock Socket请求
         返回值：接收到的数据数据
         异常描述：最大长度超过限制后抛出异常
-        修改记录：2023-07-15 限制消息最大长度
         """
         tmp_ret = []
         total_length = 0

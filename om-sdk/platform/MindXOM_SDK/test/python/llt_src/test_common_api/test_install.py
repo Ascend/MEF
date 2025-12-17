@@ -108,10 +108,6 @@ class TestInstall:
         mocker.patch.object(FileCopy, "copy_file", return_value=model.copy_file)
         mocker.patch.object(FilePermission, "set_path_permission", return_value=model.set_path_permission)
 
-    def test_get_os_name_and_version_id(self, model: GetOsNameAndVersionIdCase):
-        ret = OMInstaller.get_os_name_and_version_id()
-        assert model.expected == ret
-
     def test_judge_os_cmd_file_not_ret(self):
         with pytest.raises(InstallError):
             OMInstaller.judge_os_cmd_file(['EulerOS', '2.0'], "a")

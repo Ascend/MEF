@@ -56,7 +56,6 @@ def rf_event_subscriptions():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    修改记录：2023-1-18 创建
     """
     message = "Query Event Service failed."
     ret_dict = {
@@ -221,7 +220,6 @@ def rf_query_subscription_cert():
     参数：无
     返回值：http response
     异常描述：NA
-    修改记录：2023-03-23
     """
     message = "Query security cert failed."
     resp_json = json.loads(QuerySubscriptionsCertSerializer.service.get_resource())
@@ -253,7 +251,6 @@ def rf_import_root_cert():
     参数：无
     返回值：http response
     异常描述：NA
-    修改记录：2023-03-23
     """
     message = "Import https root cert failed."
     if IMPORT_HTTPS_CRT_LOCK.locked():

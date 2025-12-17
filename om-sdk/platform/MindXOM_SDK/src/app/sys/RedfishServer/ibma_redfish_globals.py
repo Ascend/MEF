@@ -12,7 +12,6 @@
 
 """
 功    能：Redfish Server公共变量及接口模块
-修改记录：2016-10-18 创建
 """
 import configparser
 import functools
@@ -104,7 +103,6 @@ class RedfishGlobals(object):
         参数：请求 操作日志信息
         返回值：http response
         异常描述：NA
-        修改记录：2022-11-18创建
         """
 
         def wrap(fun):
@@ -155,7 +153,6 @@ class RedfishGlobals(object):
         参数：无
         返回值：无
         异常描述：NA
-        修改记录：2016-10-19 创建
         """
         config_parser = configparser.ConfigParser()
         dir_name = AppCommonMethod.get_project_absolute_path()
@@ -315,7 +312,6 @@ class RedfishGlobals(object):
         参数：无
         返回值：rfPort
         异常描述：NA
-        修改记录：2016-10-19 创建
         """
         return RedfishGlobals.rfPort
 
@@ -326,7 +322,6 @@ class RedfishGlobals(object):
         参数：value 设置值
         返回值：无
         异常描述：NA
-        修改记录：2016-10-19 创建
         """
         RedfishGlobals.rfPort = value
         return
@@ -338,7 +333,6 @@ class RedfishGlobals(object):
         参数：无
         返回值：rfNicName
         异常描述：NA
-        修改记录：2017-01-12 创建
         """
         return RedfishGlobals.rfNicName
 
@@ -349,7 +343,6 @@ class RedfishGlobals(object):
         参数：无
         返回值：rfUser
         异常描述：NA
-        修改记录：2017-1-2 创建
         """
         return RedfishGlobals.rfUser
 
@@ -370,7 +363,6 @@ class RedfishGlobals(object):
              items 增加的键值对
         返回值：无
         异常描述：NA
-        修改记录：2016-10-19 创建
         """
         if k in adict:
             adict[k].append(items)
@@ -388,7 +380,6 @@ class RedfishGlobals(object):
              data_id 替换的ID
         返回值：True/False
         异常描述：无
-        修改记录：2016-10-19 创建
         """
         resp_json['Id'] = data_id
         resp_json['@odata.id'] = resp_json['@odata.id'].replace('oDataID', data_id)
@@ -404,7 +395,6 @@ class RedfishGlobals(object):
              TaskPercenttage
         返回值：True/False
         异常描述：无
-        修改记录：2016-10-19 创建
         """
         resp_json["Id"] = data_id
         resp_json['@odata.id'] = resp_json['@odata.id'].replace('oDataID', data_id)
@@ -445,8 +435,6 @@ class RedfishGlobals(object):
              retDict字典中正常情况下包含key(status)和 key(message)
         返回值：http response
         异常描述：NA
-        修改记录：2016-11-22 创建
-        修改记录：2016-12-06 Response类的Content-type默认值已经修改为application/json
         """
         if "message" in ret_dict:
             # 集合类资源更新resp_json的对应数据
@@ -486,7 +474,6 @@ class RedfishGlobals(object):
         参数：inputInfo 输入参数 ,inputStatus HTTP 状态码
         返回值：http response
         异常描述：NA
-        修改记录：2016-11-26 创建
         """
         ret = {}
         ret["status"] = input_status
@@ -503,7 +490,6 @@ class RedfishGlobals(object):
         参数：inputInfo 输入参数 ,inputStatus HTTP 状态码
         返回值：http error response
         异常描述：NA
-        修改记录：2022-10-28 创建
         """
         ret = {}
         ret["status"] = input_status
@@ -518,7 +504,6 @@ class RedfishGlobals(object):
         参数：inputInfo 输入参数 ,inputStatus HTTP 状态码
         返回值：http response
         异常描述：NA
-        修改记录：2016-11-26 创建
         """
         response = jsonify({"status": input_status, "message": input_info})
         response.status_code = input_status
@@ -542,7 +527,6 @@ class RedfishGlobals(object):
         参数：无
         返回值：http response
         异常描述：NA
-        修改记录：2017-1-7 创建
         """
         description = "The requested URL was not found on the server"
         return RedfishGlobals.make_error_response(description, 404)
@@ -555,7 +539,6 @@ class RedfishGlobals(object):
              Id 替换的ID
         返回值：True/False
         异常描述：无
-        修改记录：2019-1-30 创建
         """
         resp_json['Id'] = data_id
         resp_json['@odata.id'] = resp_json['@odata.id'].replace('oDataID', data_id)
@@ -569,7 +552,6 @@ class RedfishGlobals(object):
              inputErrInfo为错误描述信息.
         返回值：http response
         异常描述：NA
-        修改记录：2019-1-31 创建
         """
         resp_json = deepcopy(RedfishGlobals.resp_json)
         resp_collection_json = deepcopy(RedfishGlobals.resp_collection_json)
@@ -642,7 +624,6 @@ class RedfishGlobals(object):
         参数：request_data  request body请求体里的字符串
         返回值：无
         异常描述：NA
-        修改记录：2019-2-1 创建
         """
 
         err_code = RedfishGlobals.inputParamErrCode

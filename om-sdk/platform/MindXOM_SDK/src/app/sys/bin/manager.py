@@ -12,7 +12,6 @@
 
 """
 功    能：Manger类，该类主要涉及进程管理.
-修改记录：2016-11-03 创建
 """
 import signal
 import os
@@ -28,8 +27,6 @@ class Manager(object):
     """
     功能描述：系统 Manager 类.
     接口：NA
-    修改记录：
-    2016-12-14 创建
     """
 
     # Manager 继续运行的标记.
@@ -67,7 +64,6 @@ class Manager(object):
         参数：sig 信号值, frame 栈帧. (暂时都未使用)
         返回值：无.
         异常描述：NA
-        修改记录：2016-12-14 创建
         """
         # 其他情况, 执行退出操作.
         run_log.info("Manager is ready to exit.")
@@ -87,9 +83,6 @@ class Manager(object):
         参数：NA.
         返回值：NA.
         异常描述：NA
-        修改记录：
-        2017-01-05 创建;
-        2017-05-20:如果Monitor在运行, 并且已经注册的时候, 检查HTTP通道;
         """
         while Manager.keepRunning:
             # 这个实际上触发条件是：当检测到内存和CPU的占用率过高时，
@@ -110,8 +103,6 @@ class Manager(object):
         参数：无.
         返回值：无
         异常描述：NA
-        修改记录：2016-12-14 创建
-                2017-01-09 根据检视意见, 将起进程和扫描的放在两个线程里面.
         """
         # 初始化 LibAdapter.
         LibAdapter.init_resources()

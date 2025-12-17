@@ -1,57 +1,40 @@
 cmake_minimum_required(VERSION 3.10)
 project(MindXOM)
 
-# for security
-set(CMAKE_CXX_FLAGS "-fprofile-arcs  -ftest-coverage -std=c++14")
-set(TEST_ON 1)
+# GoogleTest requires at least C++17
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_definitions(-DDT_COMPILE_GCC -D_GLIBCXX_USE_CXX11_ABI=0 -DLLT_TEST)
+set(TOP_DIR ${PROJECT_SOURCE_DIR}/../../..)
+set(OUTPUT_DIR ${PROJECT_SOURCE_DIR}/../output/)
+set(DEP_LIB_DIR ${PROJECT_SOURCE_DIR}/../lib/)
 
-set(DTCENTER /opt/buildtools/dtcenter)
-set(top_path ${PROJECT_SOURCE_DIR}/../../..)
+set(CMAKE_CXX_FLAGS "--coverage")
+SET(CMAKE_C_FLAGS "--coverage")
 
-set(LIBRARY_INC_PATH
-    ${DTCENTER}/include
-    "${top_path}/test/C++/include"
-    "${top_path}/test/C++/include/include"
-    "${top_path}/platform/HuaweiSecureC/include"
-    "${top_path}/platform/cmscbb_csec/include"
-    "${top_path}/src/de/include"
-    "${top_path}/src/cpp/devm"
-    "${top_path}/src/cpp/ens/base"
-    "${top_path}/src/cpp/alarm_process"
-    "${top_path}/src/cpp/fault_check"
-    "${top_path}/src/cpp/certmanage"
-    "${top_path}/src/cpp/cms_lib/src/cmscbb_common"
-    "${top_path}/src/cpp/cms_lib/src/src"
-    "${top_path}/src/cpp/cms_lib/src/include"
-    "${top_path}/src/cpp/cms_lib/src/asn1"
-    "${top_path}/src/cpp/cms_lib/src/cms"
-    "${top_path}/src/cpp/cms_lib/src/pki"
-    "${top_path}/src/cpp/cms_lib/src/x509"
-    "${top_path}/src/cpp/cms_verify"
-    "${top_path}/src/cpp/common"
-    "${top_path}/output/include"
-    "${top_path}/output/include/mbedTLS"
-    "${top_path}/output/include/cmscbb_csec"
-    "${top_path}/src/cpp/lpeblock"
-)
+SET(EXECUTABLE_OUTPUT_PATH ${OUTPUT_DIR})
+SET(LIBRARY_OUTPUT_PATH ${DEP_LIB_DIR})
 
-set(LIBRARY_LIB_PATH
-    ${DTCENTER}/lib
-    "${top_path}/test/C++/lib"
-)
+include_directories(${OUTPUT_DIR})
+link_directories(${DEP_LIB_DIR})
 
-message(${LIBRARY_INC_PATH})
-message(${LIBRARY_LIB_PATH})
+add_subdirectory(${TOP_DIR}/src/cpp ${OUTPUT_DIR}/src)
+add_subdirectory(${TOP_DIR}/opensource/googletest ${OUTPUT_DIR}/googletest)
 
-include_directories(${LIBRARY_INC_PATH})
-link_directories(${LIBRARY_LIB_PATH})
-
-AUX_SOURCE_DIRECTORY("${top_path}/test/C++/src" sources)
-
+AUX_SOURCE_DIRECTORY(${TOP_DIR}/test/C++/src sources)
 ADD_EXECUTABLE(MindXOM_TEST ${sources})
 
-TARGET_LINK_LIBRARIES(MindXOM_TEST dtcenter dmtserver dl pthread ssl crypto certmanage verify kmc securec sdp c_nonshared base common alarm_process lpeblock)
+target_include_directories(MindXOM_TEST
+    PRIVATE
+    ${TOP_DIR}/src/cpp/ens/base
+    ${TOP_DIR}/src/cpp/common
+    ${TOP_DIR}/src/cpp/fault_check
+    ${TOP_DIR}/src/cpp/devm
+    ${TOP_DIR}/src/cpp/certmanage
+    ${TOP_DIR}/src/cpp/alarm_process
+    ${TOP_DIR}/src/cpp/lpeblock
+    ${TOP_DIR}/src/cpp/extend_alarm
+    ${TOP_DIR}/test/C++/include
+)
 
-SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/../output/)
+TARGET_LINK_LIBRARIES(MindXOM_TEST dl pthread ssl crypto certmanage securec base common alarm_process lpeblock gtest gtest_main)

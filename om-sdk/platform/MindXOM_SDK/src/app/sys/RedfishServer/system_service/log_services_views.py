@@ -34,7 +34,6 @@ def rf_system_logservices():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    记录：2019-3-28 创建
     """
     input_err_info = "Query log services failed."
     try:
@@ -81,7 +80,6 @@ def rf_system_log_download():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    记录：2019-3-28 创建
     """
     if LOG_LOCK.locked():
         message = "Collect log failed because lock is locked."

@@ -11,7 +11,6 @@
 
 """
 功    能：Ethernet资源 URL处理模块
-修改记录：2022-10-29 创建
 """
 import json
 import threading
@@ -39,8 +38,6 @@ def rf_get_system_ethernet_collection():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    修改记录：2016-11-22 创建
-    修改记录：2016-12-07 增加TeamAndBridge对应处理
     """
     input_err_info = "Query ethernet interface resources failed."
     try:
@@ -64,7 +61,6 @@ def rf_get_system_ethernet_eth_x(eth_id):
     参数：eth_id
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    修改记录：2016-11-22 创建
     """
     message = "Get ethernet interface info failed."
     try:
@@ -97,8 +93,6 @@ def rf_modify_system_ethernet_eth_x(eth_id):
     参数：eth_id
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    修改记录：2016-11-22 创建
-            2019-3-10 添加 patch 请求
     """
     if MODIFY_ETHERNET_LOCK.locked():
         message = "Modify ethernet failed because EthernetViews modify is busy."

@@ -8,25 +8,15 @@
 # EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
-##############################################################
-#  The entry script of building seimanager
-#
-## @Filename:build_seimanager.sh
-#
-## @Options:
-#
-## @History:
-#
-## @Created:201909241636
-##############################################################
+
+set -e
+
 SCRIPT_NAME=$(basename $0)
 CUR_DIR=$(dirname $(readlink -f $0))
 TOP_DIR=$CUR_DIR/..
 
 OUTPUT_DIR=$TOP_DIR/output/
 OUTPUT_PACKAGE_DIR=$TOP_DIR/output/package
-
-LATEST_TS_VERSION="4.9"
 
 export CFLAGS_ENV="-Wall -fstack-protector-all -fPIC -D_FORTIFY_SOURCE=2 -O2 -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack -s"
 export CXXFLAGS_ENV="-Wall -fstack-protector-all -fPIC -D_FORTIFY_SOURCE=2 -O2 -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack -s"
@@ -45,7 +35,9 @@ else
 fi
 
 ATLASEDGE_VERSION_XMLFILE=${TOP_DIR}/config/version.xml
-version=$(sed "/^  MindXOM:/!d;s/.*: //" "${CUR_DIR}/../../mindxedge/build/conf/config.yaml")
+dos2unix "$ATLASEDGE_VERSION_XMLFILE"
+dos2unix "$TOP_DIR"/../build/service_config.ini
+version=$(awk -F= '{print $2}' "$TOP_DIR"/../build/service_config.ini)
 sed -i "s#{Version}#${version}#g" ${ATLASEDGE_VERSION_XMLFILE}
 ATLASEDGE_RELEASE="Ascend-mindxedge-om_${version}_linux-${ARCH}"
 ATLASEDGE_RELEASE_FILE=${TOP_DIR}/output/${ATLASEDGE_RELEASE}.tar.gz
@@ -66,7 +58,7 @@ sed -i "/<Package>/,/<\/Package>/ s|<ProcessorArchitecture>.*|<ProcessorArchitec
 
 function prepare()
 {
-    local omsdk_zip_path="${TOP_DIR}"/platform/MindXOM_SDK
+    local omsdk_zip_path="${TOP_DIR}"/platform/MindXOM_SDK/output
     local omsdk_tmp_dir="${TOP_DIR}"/output/tmp_omsdk
 
     mkdir -p "${omsdk_tmp_dir}"
@@ -89,6 +81,12 @@ function prepare()
         fi
     fi
 
+    pushd "$TOP_DIR"
+    find . ! -path "./platform/*" ! -path "./output/*" -type f -print0 | while IFS= read -r -d '' f; do
+        dos2unix "$f"
+    done
+    popd
+
     rm -rf "${omsdk_tmp_dir}"
     cp -rf "${TOP_DIR}"/config/version.xml "${OUTPUT_DIR}"
     return 0
@@ -109,7 +107,7 @@ function package_om()
     return 0
 }
 
-function tar_package()
+function zip_package()
 {
     # 将om代码打包成A500-A2-om.tar.gz
     cd "${OUTPUT_PACKAGE_DIR}"
@@ -125,6 +123,8 @@ function tar_package()
     # 删除已经被打包的内容
     rm A500-A2-om.tar.gz
     rm om-sdk.tar.gz
+
+    bash ${CUR_DIR}/package.sh
 
     echo "packet om file successfully!"
     return 0
@@ -145,7 +145,7 @@ function main()
     declare -a build_steps=(
         prepare
         package_om
-        tar_package
+        zip_package
         clear_build)
 
     step_num=${#build_steps[@]}

@@ -53,8 +53,6 @@ class TestRedfishMain:
         mocker.patch.object(RedfishMain, "start_database_monitor_task")
         mocker.patch.object(RedfishMain, "start_monitor_timer")
         mocker.patch.object(MidwareProc, "dispatch_fd_messages")
-        mocker.patch.object(MidwareProc, "start_hisec_event_task")
-        mocker.patch.object(MidwareProc, "pop_and_dispatch_event_task")
         mocker.patch.object(RedfishGlobals, "init_http_server_param")
         mocker.patch.object(RedfishGlobals, "get_http_port")
         mocker.patch.object(RedfishMain, "config_db")

@@ -28,8 +28,6 @@ class NTPService:
     """
     功能描述：NTP配置信息
     接口：NA
-    修改记录：2018-3-20 创建
-            2019-8-16 增加NTP server服务功能
     """
     NTP_LOCK = threading.Lock()
     TIMER_RUN_CNT = 0

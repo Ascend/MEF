@@ -27,7 +27,6 @@ def rf_get_system_simple_storages_collection():
     参数：无
     返回值：http response
     异常描述：NA
-    记录：2019-4-1 创建
     """
     input_err_info = "Query simple storages failed."
     try:
@@ -51,7 +50,6 @@ def rf_get_system_storage_info(storage_id):
     参数：无
     返回值：http response
     异常描述：NA
-    记录：2019-4-1 创建
     """
     input_err_info = "Query simple storages by storage_id failed."
     try:

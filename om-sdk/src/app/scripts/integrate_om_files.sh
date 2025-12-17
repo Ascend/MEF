@@ -40,10 +40,6 @@ function integrate_om_config_dir()
     # 拷贝config/default_capability.json到RedfishServer/config和config
     cp -rf "${TMP_UNPACK_DIR}"/config/default_capability.json "${OM_UNPACK_PATH}"/config/default_capability.json
     cp -rf "${TMP_UNPACK_DIR}"/config/default_capability.json "${OM_UNPACK_PATH}"/software/RedfishServer/config
-    cp -rf "${TMP_UNPACK_DIR}"/config/default_policy.dat "${OM_UNPACK_PATH}"/config/default_policy.dat
-    cp -rf "${TMP_UNPACK_DIR}"/config/default_policy.dat "${OM_UNPACK_PATH}"/software/sec_agent/default_policy.dat
-    cp -rf "${TMP_UNPACK_DIR}"/config/policy.dat "${OM_UNPACK_PATH}"/config/policy.dat
-    cp -rf "${TMP_UNPACK_DIR}"/config/policy.dat "${OM_UNPACK_PATH}"/software/sec_agent/policy.dat
     cp -rf "${TMP_UNPACK_DIR}"/config/version.xml "${OM_UNPACK_PATH}"/config/version.xml
     cp -rf "${TMP_UNPACK_DIR}"/config/nginx.conf "${OM_UNPACK_PATH}"/config/nginx.conf
 }

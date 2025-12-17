@@ -10,7 +10,6 @@
 
 """
 功    能：系统资源 URL处理模块
-修改记录：2022-11-26 创建
 """
 import json
 import sys

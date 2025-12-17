@@ -12,7 +12,6 @@
 
 """
 功能：基础类定义，包含一些公共属性
-修改记录：2016-11-12 创建
 """
 import ast
 import json
@@ -31,7 +30,6 @@ class CommonMethods(object):
     """
     功能描述：公共函数定义类
     接口：NA
-    修改记录：2016-11-12 创建
     """
 
     OK = 200
@@ -56,7 +54,6 @@ class CommonMethods(object):
         message 错误信息
         返回值：无
         异常描述：NA
-        修改记录：2016-11-12 创建
         """
 
         ret = {}
@@ -78,9 +75,6 @@ class CommonMethods(object):
         False：使用正则表达式匹配返回一行信息
         返回值：获取到的字符串值，如果没有找到，则返回 ""
         异常描述：NA
-        修改记录：2016-11-14 创建
-        2016-11-24 增加  is_find 参数
-        2017-02-08 修改 value 为 None,直接返回 None
         """
 
         if not value:
@@ -130,7 +124,6 @@ class CommonMethods(object):
         参数：jsonData json数据
         返回值：是否合法
         异常描述：NA
-        修改记录：2016-12-23 创建
         """
         if json_data is None:
             return [0, json_data]
@@ -163,7 +156,6 @@ class CommonMethods(object):
         参数：jsonData json数据
         返回值：是否合法
         异常描述：键重复时，抛出异常
-        修改记录：2016-12-23 创建
         """
         tmp_dict = {}
         for key, val in lst:
@@ -184,8 +176,6 @@ class CommonMethods(object):
              file 配置文件相对于工程目录的路径
         返回值：值
         异常描述：NA
-        修改记录：2017-01-02创建
-                2017-12-12增加file参数,默认为iBMA.ini
         """
 
         import configparser

@@ -12,7 +12,6 @@
 
 """
 功    能：Redfish Server 父资源定义
-修改记录：2016-10-18 创建
 """
 
 import os
@@ -25,7 +24,6 @@ class RfResource:
     """
     功能描述：父类资源初始化及方法定义
     接口：NA
-    修改记录：2016-10-18 创建
     """
     def __init__(self, base_path, rel_path):
         self.response = None

@@ -8,10 +8,6 @@
 # EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
-"""
-功 能：
-版权信息：华为技术有限公司，版本所有(C) 2021-2029
-"""
 
 
 class Result:

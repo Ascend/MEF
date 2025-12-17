@@ -60,7 +60,6 @@ class SystemInfo:
     """
     功功能描述：查询系统资源信息
     接口：NA
-    修改记录：2018-3-18 创建
     """
     SYSTEM_LOCK = threading.Lock()
     SYSTEM_RESOURCES_LIST = {"HostName", "AssetTag", "DateTime", "DateTimeLocalOffset", "_User", "_Xip"}
@@ -227,8 +226,6 @@ class SystemInfo:
             value, unit 参数中可识别的单位字符串有: K/M/G/T/P/KB/MB/GB/TB/PB（包括小写形式）
         返回值：数值，精度为保留两位小数(如果目标单位为'KB'，则返回整型)
         异常描述：NA
-        修改记录：2016-12-13 创建
-                2017-02-08 修改： 添加支持 Byte 数据处理
         """
 
         _size_map = {
@@ -340,7 +337,6 @@ class SystemInfo:
         返回值：正确返回表示 CPU 状态信息的列表[已使用值,总值]；
         否则，返回 空列表
         异常描述：NA
-        修改记录：2016-12-15 创建
         """
 
         # 初始化返回值
@@ -663,7 +659,6 @@ class SystemInfo:
         参数：无
         返回值：无
         异常描述：NA
-        修改记录：2016-12-06 创建
         """
         # 获取总CPU占用率百分占比
         cpu_usage_temp = self.get_cpu_usage(logical_cpu_id_list=None)
@@ -712,8 +707,6 @@ class SystemInfo:
         使用默认值或者空列表时，获取并返回总CPU占用率百分比
         返回值：正确返回表示 CPU 占用率百分占比的数值；否则，返回 None
         异常描述：NA
-        修改记录：2016-12-06 创建
-        2016-12-10 修改： 传入cpu_id 为列表
         """
         ret1 = self.get_file_content(self._local__CPUStatFile)
         # 间隔 1S，再取值
@@ -744,7 +737,6 @@ class SystemInfo:
         参数：无
         返回值：无
         异常描述: NA
-        修改记录: 2018-04-12 创建
         """
         if self.OSVersion:
             return

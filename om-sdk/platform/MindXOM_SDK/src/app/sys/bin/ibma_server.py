@@ -11,7 +11,6 @@
 # See the Mulan PSL v2 for more details.
 """
 功    能：Socket 客户端
-修改记录：2017-01-02 创建
 """
 import json
 import os
@@ -34,7 +33,6 @@ class Server:
     """
     功能描述：socket 服务端
     接口：NA
-    修改记录：2017-01-02 创建
     """
     stopSocket = False
     socketServerThread = None
@@ -110,7 +108,6 @@ class Server:
         参数：sock Socket请求
         返回值：接收到的数据数据
         异常描述：最大长度超过限制后抛出异常
-        修改记录：2023-07-15 限制消息最大长度
         """
         tmp_ret = []
         total_length = 0
@@ -144,10 +141,6 @@ class Server:
             function 回调函数
         返回值：调用底层接口获取数据并返回
         异常描述：NA
-        修改记录：2017-01-02 创建
-                2017-02-13 增加发送数据的判断，增加结束符
-                2017-05-20 LibAdapter提供给Redfish的数据长度最大限制为38K.
-                2017-06-26 socket close 之前先调用 shutdown.
         """
         try:
             data = Server.receive_socket_message(socket_request)
@@ -206,7 +199,6 @@ class Server:
         参数：port 端口号
         返回值：NA
         异常描述：NA
-        修改记录：2017-01-02 创建
         """
         Server.stopSocket = False
 

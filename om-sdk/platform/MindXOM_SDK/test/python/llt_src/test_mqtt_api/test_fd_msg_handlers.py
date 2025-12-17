@@ -95,12 +95,12 @@ class TestGetJsonInfoObj:
 
     def test_handle_restart_operation_task(self, mocker: MockerFixture):
         mocker.patch.object(MidwareRoute, "view_functions", side_effect=[Result(True), ])
-        mocker.patch.object(FdMsgData, "gen_ws_msg_obj", side_effect=[Result(True), ])
+        mocker.patch.object(FdMsgData, "gen_ws_msg_obj", side_effect=[Result(True), Result(True), ])
         assert not FDMessageHandler.handle_restart_operation_task(TestUtils)
 
     def test_handle_profile_effect_task(self, mocker: MockerFixture):
         mocker.patch.object(MidwareRoute, "view_functions", side_effect=[Result(True), ])
-        mocker.patch.object(FdMsgData, "gen_ws_msg_obj", side_effect=[Result(True), ])
+        mocker.patch.object(FdMsgData, "gen_ws_msg_obj", side_effect=[Result(True), Result(True), ])
         assert not FDMessageHandler.handle_profile_effect_task(TestUtils)
 
     def test_handle_reset_alarm_from_fd_first(self, mocker: MockerFixture):

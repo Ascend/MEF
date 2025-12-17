@@ -34,7 +34,6 @@ def rf_get_account_password_expiration_days():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    修改记录：2019-1-28 创建
     """
     message = "Query password validity failed."
     try:
@@ -65,7 +64,6 @@ def rf_modify_account_password_expiration_days():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    修改记录：2019-1-28 创建
     """
     if ACCOUNT_SERVICE_LOCK.locked():
         message = "Modify user account info failed because AccountViews modify is busy."
@@ -122,7 +120,6 @@ def rf_get_account_info_collection():
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    修改记录：2022-11-14创建
     """
     message = "Query user account collection failed."
     try:
@@ -157,7 +154,6 @@ def rf_get_specified_account_info(member_id):
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    修改记录：2019-1-22 创建
     """
     input_err_info = "Query specified account info failed."
     try:
@@ -192,7 +188,6 @@ def rf_modify_specified_account_info(member_id):
     参数：无
     返回值：响应字典 资源模板或错误消息
     异常描述：NA
-    修改记录：2019-1-24 创建
     """
     if ACCOUNTS_MEMBERS_LOCK.locked():
         message = "Modify specified account info failed because AccountViews modify is busy."

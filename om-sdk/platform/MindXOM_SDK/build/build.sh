@@ -8,17 +8,8 @@
 # EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
-##############################################################
-#  The entry script of building seimanager
-#
-## @Filename:build_seimanager.sh
-#
-## @Options:
-#
-## @History:
-#
-## @Created:201909241636
-##############################################################
+set -e
+
 SCRIPT_NAME=$(basename $0)
 CUR_DIR=$(dirname $(readlink -f $0))
 TOP_DIR=$CUR_DIR/..
@@ -26,8 +17,6 @@ TOP_DIR=$CUR_DIR/..
 BUILD_C_SCRIPT=$CUR_DIR/build_c_package.sh
 OUTPUT_INC=${TOP_DIR}/output/include
 OUTPUT_PACKAGE_DIR=$TOP_DIR/output/package
-
-LATEST_TS_VERSION="4.9"
 
 export CFLAGS_ENV="-Wall -fstack-protector-all -fPIC -D_FORTIFY_SOURCE=2 -O2 -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack -s"
 export CXXFLAGS_ENV="-Wall -fstack-protector-all -fPIC -D_FORTIFY_SOURCE=2 -O2 -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack -s"
@@ -46,7 +35,9 @@ else
 fi
 
 ATLASEDGE_VERSION_XMLFILE=${TOP_DIR}/config/version.xml
-version=$(sed "/^  MindXOM_SDK:/!d;s/.*: //" "${CUR_DIR}/../../mindxedge/build/conf/config.yaml")
+dos2unix "$ATLASEDGE_VERSION_XMLFILE"
+dos2unix "$TOP_DIR"/../../../build/service_config.ini
+version=$(awk -F= '{print $2}' "$TOP_DIR"/../../../build/service_config.ini)
 sed -i "s#{Version}#${version}#g" ${ATLASEDGE_VERSION_XMLFILE}
 ATLASEDGE_RELEASE="Ascend-mindxedge-omsdk_${version}_linux-${ARCH}"
 ATLASEDGE_RELEASE_FILE=${TOP_DIR}/output/${ATLASEDGE_RELEASE}.tar.gz
@@ -99,14 +90,24 @@ function prepare()
     fi
 
     mkdir -p $TOP_DIR/output/opensource/python
+
+    rm -rf "$TOP_DIR/src/build"
+
+    pushd "$TOP_DIR"
+    find . ! -path "./opensource/*" -type f -print0 | while IFS= read -r -d '' f; do
+        dos2unix "$f"
+    done
+    popd
 }
 
 function build_opensource_python()
 {
+    local opensource_dir="${TOP_DIR}"/opensource
+
     declare -a opensource_python=(
         "urllib3/src/urllib3"
         "click/src/click"
-        "jinja2/src/jinja2"
+        "jinja/src/jinja2"
         "werkzeug/src/werkzeug"
         "flask/src/flask"
         "sqlalchemy/lib/sqlalchemy"
@@ -115,15 +116,15 @@ function build_opensource_python()
         "markupsafe"
     )
 
-    mkdir -p "${TOP_DIR}"/opensource/python
-    cd "${TOP_DIR}"/opensource || { echo "${TOP_DIR}/opensource does not exist."; return 3;}
+    mkdir -p "${opensource_dir}"/python
+    cd "${opensource_dir}" || { echo "${opensource_dir} does not exist."; return 3;}
     # flask的依赖使用pip3 install
-    pip3 install -r "${CUR_DIR}"/requirements.txt --no-compile --target="${TOP_DIR}"/opensource
+    pip3 install -r "${CUR_DIR}"/requirements.txt --no-compile --target="${opensource_dir}"
 
     # 检查当前opensource python是否都已经存在
     for ((j = 0; j < "${#opensource_python[@]}"; j++)); do
         if [[ ! -e "${opensource_python[j]}" ]]; then
-            echo "check ${TOP_DIR}/opensource/${opensource_python[j]} does not exist."
+            echo "check ${opensource_dir}/${opensource_python[j]} does not exist."
             return 1
         fi
     done
@@ -136,8 +137,8 @@ function build_opensource_python()
     rm -f click/src/click/_winconsole.py
     cp -arf click/src/click "${TOP_DIR}"/output/opensource/python
 
-    rm -f jinja2/src/jinja2/debug.py
-    cp -arf jinja2/src/jinja2 "${TOP_DIR}"/output/opensource/python
+    rm -f jinja/src/jinja2/debug.py
+    cp -arf jinja/src/jinja2 "${TOP_DIR}"/output/opensource/python
 
     rm -f werkzeug/src/werkzeug/testapp.py
     rm -rf werkzeug/src/werkzeug/debug
@@ -177,14 +178,22 @@ function build_opensource_c_package()
 {
     OPENSOURCE_DIR=$TOP_DIR/opensource
 
-    declare -a opensources=(openssl nginx)
+    declare -a opensources=(openssl nginx libboundscheck)
+
+    # Nginx can't listen the ipv6 link-local address. The following patch solve the issue.
+    if ! grep -q "IN6_IS_ADDR_LINKLOCAL"  "${OPENSOURCE_DIR}"/nginx/src/core/ngx_inet.c ; then
+        pushd "${OPENSOURCE_DIR}"/nginx
+        patch -Np1 < $TOP_DIR/build/patches/0001-Nginx-IPV6.patch
+        popd
+    fi
 
     for taskname in ${opensources[@]}
     do
         mkdir -p $OPENSOURCE_DIR/${taskname}/ascend-ci/build
         cp -f ${CUR_DIR}/build_opensource/build_${taskname}.sh $OPENSOURCE_DIR/${taskname}/ascend-ci/build
         cd $OPENSOURCE_DIR/${taskname}/ascend-ci/build
-        bash $OPENSOURCE_DIR/${taskname}/ascend-ci/build/build_${taskname}.sh
+        local task_script="$OPENSOURCE_DIR/${taskname}/ascend-ci/build/build_${taskname}.sh"
+        bash "$task_script"
         if [[ $? != 0 ]];then
             echo build ${taskname} failed
             exit 1
@@ -216,16 +225,16 @@ function build_c_package()
 function package_sdk()
 {
     cd "${CUR_DIR}"
-    dos2unix package_sdk.sh
     chmod a+x package_sdk.sh
     ./package_sdk.sh
     return 0
 }
 
-function tar_package()
+function zip_package()
 {
     cd "${OUTPUT_PACKAGE_DIR}"
     tar -czf "${ATLASEDGE_RELEASE_FILE}" *
+    bash "${TOP_DIR}"/build/package.sh
     echo "packet MindXOM file successfully!"
     return 0
 }
@@ -233,7 +242,11 @@ function tar_package()
 
 function web_build()
 {
-  local om_web_path="${TOP_DIR}"/platform/MindXOM_Web
+  local web_build_script="${TOP_DIR}/../../../om-web/build/build.sh"
+  dos2unix "$web_build_script"
+  bash "$web_build_script"
+
+  local om_web_path="${TOP_DIR}/../../../om-web/output/"
   local package_name=mindxom-web.zip
   local nginx_path="${TOP_DIR}"/output/package/software/nginx/html/manager
   local temp_web="${TOP_DIR}"/output/web
@@ -280,7 +293,7 @@ function main()
         build_c_package
         package_sdk
         web_build
-        tar_package)
+        zip_package)
 
     step_num=${#build_steps[@]}
 

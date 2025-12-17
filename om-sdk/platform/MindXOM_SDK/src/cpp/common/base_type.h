@@ -8,10 +8,6 @@
    EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
    MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
    See the Mulan PSL v2 for more details.
- * Description: base_type.h
- * modify:
- *  1. 日期     :  2020年12月8号
- *      修改原因    : cleancode修改
  */
 #ifndef _COMMON_BASETYPE_H
 #define _COMMON_BASETYPE_H

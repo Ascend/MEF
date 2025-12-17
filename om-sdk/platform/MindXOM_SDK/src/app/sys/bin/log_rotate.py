@@ -50,7 +50,6 @@ class LogRotate:
         ("ntp_service.log", "", CommonConstants.MONITOR_USER),
         ("om_platform_run.log", "ibma_edge", CommonConstants.MONITOR_USER),
         ("om_scripts_run.log", "ibma_edge", CommonConstants.MONITOR_USER),
-        ("seceye_agent_run.log", "ibma_edge", CommonConstants.MONITOR_USER),
         ("manager_run.log", "manager", CommonConstants.MONITOR_USER),
         ("manager_operate.log", "manager", CommonConstants.MONITOR_USER),
         ("redfish_operate.log", "redfish", CommonConstants.MINDXOM_USER),

@@ -73,7 +73,6 @@ class NfsManage:
         参数：NA
         返回值：无
         异常描述：NA
-        修改记录：2019-8-17 创建
         """
 
         self.nfsList = []
@@ -90,7 +89,6 @@ class NfsManage:
         参数：
         返回值：无
         异常描述：NA
-        修改记录：2019-8-17 创建
         """
         if NfsManage.NFS_MANAGER_LOCK.locked():
             run_log.warning("Nfs modify is busy")

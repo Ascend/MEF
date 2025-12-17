@@ -12,7 +12,6 @@
 
 """
 功    能：Monitor类，该类主要涉及定时器的创建，校验，执行
-修改记录：2016-10-31 创建
 """
 import json
 import os
@@ -24,7 +23,6 @@ import bin.ibma_timer as IbmaTimer
 import bin.lib_adapter as LibAdapter
 import common.common_methods as CommonMethods
 import bin.ibma_server as iBMASocket
-from bin.HiSecAdap import uds
 from bin.environ import Env
 from bin.log_rotate import LogRotate
 from bin.monitor_config import SystemSetting, MonitorBackupRestoreCfg
@@ -45,8 +43,6 @@ class Monitor(object):
     """
     功能描述：Monitor类
     接口：NA
-    修改记录：2016-10-31 创建
-     2017-01-20 调整timer配置文件的存放位置
     """
 
     @staticmethod
@@ -96,10 +92,6 @@ class Monitor(object):
         参数：无
         返回值：Monitor对象
         异常描述：NA
-        修改记录：2016-10-31 创建
-        2017-01-02 添加 Socket初始化代码，
-        把 after timer的调用拆分成其他的函数
-        2017-01-20 调整timer配置文件、定时器的存放位置
         """
         ibma_timers = {}
         i_bma_timers_cfg = LibAdapter.LibAdapter.get_ibma_timers_cfg()
@@ -179,7 +171,6 @@ class Monitor(object):
         参数：cfgActions 配置的动作
         返回值：动作列表
         异常描述：NA
-        修改记录：2016-11-29 创建
         """
         actions = []
 
@@ -217,7 +208,6 @@ class Monitor(object):
         default_value 默认值
         返回值：配置的值
         异常描述：NA
-        修改记录：2016-11-29 创建
         """
         para = cfg_obj.get(para_name, None)
         if para is None:
@@ -254,9 +244,6 @@ def main():
     except Exception as err:
         run_log.error("Load environ info failed, because of %s", err)
         return OperationCode.FAILED_OPERATION
-
-    # 启动主机入侵uds server
-    threading.Thread(target=uds.start_uds).start()
 
     # 需要将hdd的serial_number先存一下
     Event().on_start()

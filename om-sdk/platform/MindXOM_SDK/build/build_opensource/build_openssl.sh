@@ -8,6 +8,8 @@
 # EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
+set -e
+
 CUR_DIR=$(dirname $(readlink -f "$0"))
 CI_DIR=$(readlink -f $CUR_DIR/../)
 OPENSOURCE_DIR=${CI_DIR}/../../
