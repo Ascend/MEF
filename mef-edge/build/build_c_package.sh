@@ -11,43 +11,13 @@
 # Description: Mef  相关c库打包脚本
 
 set -e
+
 CUR_DIR=$(dirname "$(readlink -f "$0")")
-TOP_DIR=$(readlink -f "$CUR_DIR"/../)
-PLATFORM_DIR=$TOP_DIR/platform
-OPENSOURCE_DIR=$TOP_DIR/opensource
-CMS_VERIFY_DIR=$TOP_DIR/MEF_Utils/cmsverifytool
-CMS_VERIFY_GO_DIR=$TOP_DIR/MEF_Utils/cmsverify
-
-function process() {
-    echo "start to build cmsverify tool"
-    cd "$PLATFORM_DIR"/HuaweiSecureC/src
-    make -j8
-    if [ $? != 0 ]; then
-        echo "build secure failed"
-        return 1
-    fi
-    cp -rf "$PLATFORM_DIR"/cmscbb_csec/include/* "$TOP_DIR"/output/include
-    cp -rf "$PLATFORM_DIR"/HuaweiSecureC/include/* "$TOP_DIR"/output/include
-    cp -rf "$PLATFORM_DIR"/HuaweiSecureC/lib/libsecurec.so "$TOP_DIR"/output/lib
-
-    cd "$CMS_VERIFY_DIR"/build
-    cmake CMakeLists.txt
-    make -j8
-    if [ $? != 0 ]; then
-        echo "build cms_verify failed"
-        return 1
-    fi
-    cp "$CMS_VERIFY_DIR"/build/libcms_verify.so "$TOP_DIR"/output/lib
-    cp "$CMS_VERIFY_DIR"/include/* "$TOP_DIR"/output/include
-
-    cp -rf "$TOP_DIR"/output/lib "$CMS_VERIFY_GO_DIR"/
-    cp -rf "$TOP_DIR"/output/include "$CMS_VERIFY_GO_DIR"/
-
-    return 0
-}
+MEF_EDGE_DIR=$(readlink -f "$CUR_DIR"/../)
+OPENSOURCE_DIR=${MEF_EDGE_DIR}/opensource
 
 function prepare() {
-    cd "$TOP_DIR"
+    cd "$MEF_EDGE_DIR"
     if [ ! -d "output/lib" ];then
         mkdir -p "output/lib"
     else
@@ -78,16 +48,15 @@ function build_opensource()
         echo "-----------end build ${taskname} ------------------------"
     done
 
-    cp "$OPENSOURCE_DIR"/openssl/ascend-ci/output/libcrypto.so* "$TOP_DIR"/output/lib -rf
-    cp "$OPENSOURCE_DIR"/openssl/ascend-ci/output/libssl.so* "$TOP_DIR"/output/lib -rf
-    cp "$OPENSOURCE_DIR"/openssl/ascend-ci/output/include/*  "$TOP_DIR"/output/include -rf
+    cp -f -d "$OPENSOURCE_DIR"/openssl/ascend-ci/output/libcrypto.so* "$MEF_EDGE_DIR"/output/lib
+    cp -f -d "$OPENSOURCE_DIR"/openssl/ascend-ci/output/libssl.so* "$MEF_EDGE_DIR"/output/lib
+    cp "$OPENSOURCE_DIR"/openssl/ascend-ci/output/include/*  "$MEF_EDGE_DIR"/output/include -rf
 }
 
 function main()
 {
     prepare
     build_opensource
-    process
 }
 
 main

@@ -12,37 +12,25 @@
 CUR_DIR=$(dirname $(readlink -f "$0"))
 GLIBC_DIR=$(readlink -f ${CUR_DIR}/../../../opensource/glibc)
 BUILD_DIR=$(readlink -f ${CUR_DIR}/../../../build)
-KUBERNETES_FAKE_VERSION="v0.0.0-20250121091921-ee01fe7a87f5"
-KUBERNETES_PACKAGE_PATH='szv-open.codehub.huawei.com/!open!source!center/kubernetes/kubernetes.git'
 KUBERNETES_VERSION="v1.28.1"
-
-pushd ${CUR_DIR}
+pushd "${CUR_DIR}" || exit
 
 mkdir -p ${CUR_DIR}/bin
-
-cat > go.mod << EOF
-module pause-build
-
-go 1.20
-
-replace k8s.io/kubernetes => szv-open.codehub.huawei.com/OpenSourceCenter/kubernetes/kubernetes.git ${KUBERNETES_FAKE_VERSION}
-EOF
-
 go get -v k8s.io/kubernetes@"$KUBERNETES_VERSION"
-PAUSE_DIR="$(go env GOMODCACHE)"/"${KUBERNETES_PACKAGE_PATH}"@"${KUBERNETES_FAKE_VERSION}"/build/pause/linux
+PAUSE_DIR="$(go env GOMODCACHE)/k8s.io/kubernetes@${KUBERNETES_VERSION}/build/pause/linux"
 rm -f go.mod go.sum
 
 cp ${CUR_DIR}/CMakeLists.txt ${CUR_DIR}/bin
 cp ${PAUSE_DIR}/pause.c ${CUR_DIR}/bin
 
-pushd ${CUR_DIR}/bin
+pushd "${CUR_DIR}"/bin || exit
 cmake CMakeLists.txt
 make -j8
 if [[ $? -ne 0 ]]; then
     echo "compile pause failed"
     exit 1
 fi
-popd
+popd || exit
 
 ARCH=$(arch 2>&1)
 

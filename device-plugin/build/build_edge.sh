@@ -71,10 +71,12 @@ function change_mod() {
 }
 
 function main() {
+  echo "------------------------ start build device plugin ------------------------"
   clean
   build_plugin
   mv_file
   change_mod
+  echo "------------------------ end build device plugin ------------------------"
 }
 
 
