@@ -1,6 +1,6 @@
 /*
  * Copyright (c) Huawei Technologies Co., Ltd. 2025-2025. All rights reserved.
-   MindEdge is licensed under Mulan PSL v2.
+   OMSDK is licensed under Mulan PSL v2.
    You can use this software according to the terms and conditions of the Mulan PSL v2.
    You may obtain a copy of Mulan PSL v2 at:
             http://license.coscl.org.cn/MulanPSL2
@@ -11,12 +11,12 @@
  */
 
 import axios from 'axios';
-import { showLoading, hideLoading } from '@/utils/axios/loading';
-import { showErrorAlert } from '@/utils/commonMethods';
+import {hideLoading, showLoading} from '@/utils/axios/loading';
+import {showErrorAlert} from '@/utils/commonMethods';
 import handleResponse from '@/utils/axios/response'
 import handleError from '@/utils/axios/error'
 import setConfig from '@/utils/axios/config'
-import { handleResponseError } from '@/utils/axios/handleResponseError'
+import {handleResponseError} from '@/utils/axios/handleResponseError'
 import i18n from '@/utils/locale';
 
 export let intactRequest = setConfig(axios);

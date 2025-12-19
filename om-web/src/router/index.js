@@ -1,6 +1,6 @@
 /*
  * Copyright (c) Huawei Technologies Co., Ltd. 2025-2025. All rights reserved.
-   MindEdge is licensed under Mulan PSL v2.
+   OMSDK is licensed under Mulan PSL v2.
    You can use this software according to the terms and conditions of the Mulan PSL v2.
    You may obtain a copy of Mulan PSL v2 at:
             http://license.coscl.org.cn/MulanPSL2
@@ -10,7 +10,7 @@
    See the Mulan PSL v2 for more details.
  */
 
-import { createRouter, createWebHistory } from 'vue-router'
+import {createRouter, createWebHistory} from 'vue-router'
 import networkImg from '../assets/img/manager/network.svg'
 import timeImg from '../assets/img/manager/time.svg';
 import diskImg from '../assets/img/manager/disk.svg';
@@ -24,9 +24,8 @@ import safetyImg from '../assets/img/setting/safety.svg';
 import resetImg from '../assets/img/setting/reset.svg';
 import restoreImg from '../assets/img/setting/restore.svg';
 import extendModuleImg from '../assets/img/manager/train.svg';
-import { isA500, isA200 } from '@/utils/commonMethods';
-import { queryAllModules } from '@/api/extendModule';
-import { generateA200Routes } from '@/utils/commonMethods';
+import {generateA200Routes, isA200, isA500} from '@/utils/commonMethods';
+import {queryAllModules} from '@/api/extendModule';
 
 const addA500DynamicRoute = () => {
   const parentRoute = router.options.routes.find(el => el.name === 'setting');

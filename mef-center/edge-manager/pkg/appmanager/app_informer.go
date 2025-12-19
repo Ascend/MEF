@@ -1,5 +1,5 @@
 // Copyright (c) Huawei Technologies Co., Ltd. 2025-2025. All rights reserved.
-// MindEdge is licensed under Mulan PSL v2.
+// MEF is licensed under Mulan PSL v2.
 // You can use this software according to the terms and conditions of the Mulan PSL v2.
 // You may obtain a copy of Mulan PSL v2 at:
 //          http://license.coscl.org.cn/MulanPSL2
@@ -19,7 +19,6 @@ import (
 	"strings"
 	"sync"
 
-	"huawei.com/mindx/common/hwlog"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -28,6 +27,8 @@ import (
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
+
+	"huawei.com/mindx/common/hwlog"
 
 	"edge-manager/pkg/kubeclient"
 
