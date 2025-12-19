@@ -16,7 +16,11 @@ websocketmgr包基于开源的gorilla WebSocket框架，对基础WebSocket通信
 1、在项目go mod文件中引入websocketmgr包  
 ```
 require (
-    codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/websocketmgr
+    huawei.com/mindx/common/websocketmgr v0.0.1
+)
+
+replace (
+    huawei.com/mindx/common/websocketmgr => ../../common-utils/websocketmgr
 )
 ```   
 2、在源码中import导入websocketmgr包以及相关的包，建议遵照公司统一的包名前缀   

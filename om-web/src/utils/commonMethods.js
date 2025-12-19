@@ -1,6 +1,6 @@
 /*
  * Copyright (c) Huawei Technologies Co., Ltd. 2025-2025. All rights reserved.
-   MindEdge is licensed under Mulan PSL v2.
+   OMSDK is licensed under Mulan PSL v2.
    You can use this software according to the terms and conditions of the Mulan PSL v2.
    You may obtain a copy of Mulan PSL v2 at:
             http://license.coscl.org.cn/MulanPSL2
@@ -10,10 +10,10 @@
    See the Mulan PSL v2 for more details.
  */
 
-import { ElMessage, ElMessageBox } from 'element-plus';
+import {ElMessage, ElMessageBox} from 'element-plus';
 import i18n from '@/utils/locale';
 import errorTipMapper from '@/api/errorTipMapper';
-import { fetchJson } from '@/api/common';
+import {fetchJson} from '@/api/common';
 
 export function convertToGB(value) {
   return (value / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
