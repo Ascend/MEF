@@ -67,7 +67,7 @@ class NetManagerCfgFdChecker(ModelChecker):
             FdIpChecker("server_ip"),
             PortChecker("server_port"),
             RegexStringChecker("cloud_user", "^[a-zA-Z0-9-_]{1,256}$"),
-            RegexStringChecker("cloud_pwd", "^[0-9a-zA-Z/+=]{1,256}$"),
+            RegexStringChecker("cloud_pwd", "^.{1,256}$"),
             StringChoicesChecker("status", ("", "connecting", "connected", "ready")),
         )
 
