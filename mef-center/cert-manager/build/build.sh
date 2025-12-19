@@ -16,26 +16,28 @@ TOP_DIR=$(realpath "${CUR_DIR}"/..)
 
 export GO111MODULE="on"
 VER_FILE="${TOP_DIR}"/service_config.ini
-build_version="v3.0.RC3"
+build_version="7.3.0"
 if [ -f "$VER_FILE" ]; then
-  line=$(sed -n '6p' "$VER_FILE" 2>&1)
+  line=$(sed -n '1p' "$VER_FILE" 2>&1)
   #cut the chars after ':'
-  build_version=${line#*:}
+  build_version=${line#*=}
 fi
 
 OUTPUT_NAME="cert-manager"
 DOCKER_FILE_NAME="Dockerfile"
 arch=$(arch 2>&1)
 echo "Build Architecture is" "${arch}"
-sed -i "s/ascend-cert-manager:v1/ascend-cert-manager:${build_version}/" "${TOP_DIR}/build/${OUTPUT_NAME}.yaml"
 
 function clean() {
   rm -rf "${TOP_DIR}/output"
   mkdir -p "${TOP_DIR}/output"
+  cd "${TOP_DIR}" && go mod tidy
 }
 
 function build() {
   cd "${TOP_DIR}/cmd"
+  export GO111MODULE="on"
+  export GONOSUMDB="*"
   export CGO_ENABLED=1
   export CGO_CFLAGS="-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
   export CGO_CPPFLAGS="-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
@@ -53,10 +55,16 @@ function build() {
 
 function mv_file() {
   mv "${TOP_DIR}/cmd/${OUTPUT_NAME}" "${TOP_DIR}/output"
-  cp "${TOP_DIR}/build/${OUTPUT_NAME}".yaml "${TOP_DIR}/output/${OUTPUT_NAME}-${build_version}".yaml
+  cp "${TOP_DIR}/build/${OUTPUT_NAME}".yaml "${TOP_DIR}/output/${OUTPUT_NAME}".yaml
   cp "${TOP_DIR}/build/${DOCKER_FILE_NAME}" "${TOP_DIR}/output"
+  mkdir -p "${TOP_DIR}/output/config"
+  chmod 700 "${TOP_DIR}/output/config"
+  cp -r "${TOP_DIR}/config/"* "${TOP_DIR}/output/config"
   chmod 400 "${TOP_DIR}/output/"*
+  chmod 700 "${TOP_DIR}/output/config"
+  chmod 400 "${TOP_DIR}/output/config/"*
   chmod 500 "${TOP_DIR}/output/${OUTPUT_NAME}"
+  chmod 600 "${TOP_DIR}/output/${OUTPUT_NAME}.yaml"
 }
 
 function main() {

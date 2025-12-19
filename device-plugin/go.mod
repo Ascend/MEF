@@ -3,7 +3,6 @@ module Ascend-device-plugin
 go 1.18
 
 require (
-	github.com/agiledragon/gomonkey/v2 v2.8.0
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/smartystreets/goconvey v1.7.2
 	google.golang.org/grpc v1.57.2
@@ -31,13 +30,10 @@ require (
 )
 
 replace (
-	huawei.com/mindx/common/cache => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/cache v0.0.2
-	huawei.com/mindx/common/fileutils => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/fileutils v0.0.14
-	huawei.com/mindx/common/hwlog => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/hwlog v0.10.15
-	huawei.com/mindx/common/limiter => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/limiter v0.0.10
-	huawei.com/mindx/common/rand => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/rand v0.0.2
-	huawei.com/mindx/common/utils => codehub-dg-y.huawei.com/MindX_DL/AtlasEnableWarehouse/common-utils.git/utils v0.1.26
-	k8s.io/api => szv-open.codehub.huawei.com/OpenSourceCenter/kubernetes/kubernetes.git/staging/src/k8s.io/api v0.0.0-20250121091921-ee01fe7a87f5
-	k8s.io/apimachinery => szv-open.codehub.huawei.com/OpenSourceCenter/kubernetes/kubernetes.git/staging/src/k8s.io/apimachinery v0.0.0-20250121091921-ee01fe7a87f5
-	k8s.io/kubelet => szv-open.codehub.huawei.com/OpenSourceCenter/kubernetes/kubernetes.git/staging/src/k8s.io/kubelet v0.0.0-20250121091921-ee01fe7a87f5
+	huawei.com/mindx/common/cache => ../common-utils/cache
+	huawei.com/mindx/common/fileutils => ../common-utils/fileutils
+	huawei.com/mindx/common/hwlog => ../common-utils/hwlog
+	huawei.com/mindx/common/limiter => ../common-utils/limiter
+	huawei.com/mindx/common/rand => ../common-utils/rand
+	huawei.com/mindx/common/utils => ../common-utils/utils
 )

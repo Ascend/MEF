@@ -17,15 +17,37 @@ TOP_DIR=$(realpath "${CUR_DIR}"/..)
 OUTPUT_NAME="nginx-manager"
 DOCKER_FILE_NAME="Dockerfile"
 VER_FILE="${TOP_DIR}"/service_config.ini
-build_version="5.0.0.RC1"
+build_version="7.3.0"
 if [ -f "$VER_FILE" ]; then
-  line=$(sed -n '6p' "$VER_FILE" 2>&1)
+  line=$(sed -n '1p' "$VER_FILE" 2>&1)
   #cut the chars after ':'
-  build_version=${line#*:}
+  build_version=${line#*=}
 fi
 arch=$(arch 2>&1)
 
+function clean() {
+  rm -rf "${TOP_DIR}/output"
+  mkdir -p "${TOP_DIR}/output"
+  cd "${TOP_DIR}" && go mod tidy
+}
+
 function buildNginx() {
+    cd "${TOP_DIR}/cmd"
+    export GONOSUMDB="*"
+    export CGO_ENABLED=1
+    export CGO_CFLAGS="-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
+    export CGO_CPPFLAGS="-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
+    go build -mod=mod -buildmode=pie -ldflags "-s -linkmode=external -extldflags=-Wl,-z,now \
+            -X main.BuildName=${OUTPUT_NAME} \
+            -X main.BuildVersion=${build_version}_linux-${arch}" \
+            -o ${OUTPUT_NAME} \
+            -trimpath
+    ls ${OUTPUT_NAME}
+    if [ $? -ne 0 ]; then
+      echo "fail to find ${OUTPUT_NAME}"
+      exit 1
+    fi
+
     cd "${TOP_DIR}"/../opensource/pcre2/
     autoreconf -ivf
     ./configure
@@ -64,8 +86,8 @@ function mv_file() {
   cp "${TOP_DIR}/build/nginx_default.conf" "${TOP_DIR}/output/nginx/conf/"
 
   mv "${TOP_DIR}/output/nginx_bin" "${TOP_DIR}/output/nginx/nginx"
-  cp -R "${TOP_DIR}/../../lib" "${TOP_DIR}/output/nginx/lib"
-  cp "${TOP_DIR}"/../output/lib/libssl.so* "${TOP_DIR}/output/nginx/lib"
+  mkdir -p "${TOP_DIR}/output/nginx/lib"
+  cp "$(realpath "${TOP_DIR}"/..)"/output/lib/libssl.so* "${TOP_DIR}/output/nginx/lib"
 
   chmod 700 "${TOP_DIR}"/output/nginx/conf
   chmod 400 "${TOP_DIR}"/output/nginx/conf/*
@@ -80,10 +102,10 @@ function mv_file() {
   chmod 400 "${TOP_DIR}"/output/"${DOCKER_FILE_NAME}"
   chmod 700 "${TOP_DIR}"/output/nginx
 
-  cd "${TOP_DIR}/output/"
 }
 
 function main() {
+  clean
   buildNginx
   mv_file
 }

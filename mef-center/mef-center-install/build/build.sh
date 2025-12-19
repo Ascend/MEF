@@ -14,6 +14,13 @@ CUR_DIR=$(dirname "$(readlink -f "$0")")
 TOP_DIR=$(realpath "${CUR_DIR}"/..)
 
 export GO111MODULE="on"
+VER_FILE="${TOP_DIR}"/service_config.ini
+build_version="7.3.0"
+if [ -f "$VER_FILE" ]; then
+  line=$(sed -n '1p' "$VER_FILE" 2>&1)
+  #cut the chars after ':'
+  build_version=${line#*=}
+fi
 
 OUTPUT_INSTALLER_NAME="MEF-center-installer"
 OUTPUT_CONTROLLER_NAME="MEF-center-controller"
@@ -26,15 +33,16 @@ echo "Build Architecture is" "${arch}"
 function clean() {
   rm -rf "${TOP_DIR}/output"
   mkdir -p "${TOP_DIR}/output"
+  cd "${TOP_DIR}" && go mod tidy
 }
 
 function build_installer() {
   cd "${TOP_DIR}/tools/install"
+  export GONOSUMDB="*"
   export CGO_ENABLED=1
   export CGO_CFLAGS="-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
   export CGO_CPPFLAGS="-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
-  go mod tidy
-  go build -mod=mod -buildmode=pie -ldflags "-s -linkmode=external -extldflags=-Wl,-z,now \
+  go build -x -mod=mod -buildmode=pie -ldflags "-s -linkmode=external -extldflags=-Wl,-z,now \
           -X main.BuildName=${OUTPUT_INSTALLER_NAME} \
           -X main.BuildVersion=${build_version}_linux-${arch}" \
           -o ${OUTPUT_INSTALLER_NAME} \
@@ -48,10 +56,7 @@ function build_installer() {
 
 function build_controller() {
   cd "${TOP_DIR}/tools/control"
-  export CGO_ENABLED=1
-  export CGO_CFLAGS="-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
-  export CGO_CPPFLAGS="-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
-  go build -mod=mod -buildmode=pie -ldflags "-s -linkmode=external -extldflags=-Wl,-z,now \
+  go build -x -mod=mod -buildmode=pie -ldflags "-s -linkmode=external -extldflags=-Wl,-z,now \
           -X main.BuildName=${OUTPUT_CONTROLLER_NAME} \
           -X main.BuildVersion=${build_version}_linux-${arch}" \
           -o ${OUTPUT_CONTROLLER_NAME} \
@@ -65,9 +70,6 @@ function build_controller() {
 
 function build_upgrade() {
   cd "${TOP_DIR}/tools/upgrade"
-  export CGO_ENABLED=1
-  export CGO_CFLAGS="-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
-  export CGO_CPPFLAGS="-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -fPIC -ftrapv"
   go build -mod=mod -buildmode=pie -ldflags "-s -linkmode=external -extldflags=-Wl,-z,now \
           -X main.BuildName=${OUTPUT_UPGRADE_NAME} \
           -X main.BuildVersion=${build_version}_linux-${arch}" \
@@ -81,20 +83,41 @@ function build_upgrade() {
 }
 
 function mv_file() {
-    mkdir -p "${TOP_DIR}/output/mef_center_tools"
-    mkdir -p "${TOP_DIR}/output/mef_center_tools/bin"
-    # 编译测试时暂时使用cp
-    cp -r "${TOP_DIR}/scripts" "${TOP_DIR}/output/mef_center_tools"
-    # 将install.sh放到根目录中
-    mv "${TOP_DIR}/output/mef_center_tools/scripts/install.sh" "${TOP_DIR}/output/"
+    mkdir -p "${TOP_DIR}/output/bin"
+    mv "${TOP_DIR}/tools/install/${OUTPUT_INSTALLER_NAME}" "${TOP_DIR}/output/bin/"
+    mv "${TOP_DIR}/scripts/install.sh" "${TOP_DIR}/output/"
 
-    mv "${TOP_DIR}/tools/install/${OUTPUT_INSTALLER_NAME}" "${TOP_DIR}/output/mef_center_tools/bin"
-    mv "${TOP_DIR}/tools/control/${OUTPUT_CONTROLLER_NAME}" "${TOP_DIR}/output/mef_center_tools/bin"
-    mv "${TOP_DIR}/tools/upgrade/${OUTPUT_UPGRADE_NAME}" "${TOP_DIR}/output/mef_center_tools/bin"
-    chmod 500 "${TOP_DIR}/output/mef_center_tools/${INSTALL_SH_NAME}"
-    chmod 500 "${TOP_DIR}/output/mef_center_tools/bin/${OUTPUT_INSTALLER_NAME}"
-    chmod 500 "${TOP_DIR}/output/mef_center_tools/bin/${OUTPUT_CONTROLLER_NAME}"
-    chmod 500 "${TOP_DIR}/output/mef_center_tools/bin/${OUTPUT_UPGRADE_NAME}"
+    commit_id=$(git --git-dir "$(realpath "${TOP_DIR}"/../..)"/.git rev-parse HEAD)
+    sed -i "s/{commit_id}/${commit_id}/g" "${TOP_DIR}/build/version.xml"
+
+    sed -i "s/{version}/${build_version}/g" "${TOP_DIR}/build/version.xml"
+    sed -i "s/{arch}/${arch}/g" "${TOP_DIR}/build/version.xml"
+
+    mv "${TOP_DIR}/build/version.xml" "${TOP_DIR}/output/"
+    mv "${TOP_DIR}/config" "${TOP_DIR}/output/"
+    mv "${TOP_DIR}/scripts" "${TOP_DIR}/output/"
+    mkdir -p "${TOP_DIR}/output/lib/kmc-lib"
+    mkdir -p "${TOP_DIR}/output/lib/lib"
+
+    chmod 700 "${TOP_DIR}/output/lib"
+    chmod 500 "${TOP_DIR}/output/lib/"*
+    chmod 500 "${TOP_DIR}/output/${INSTALL_SH_NAME}"
+    chmod 700 "${TOP_DIR}/output/bin"
+    chmod 500 "${TOP_DIR}/output/bin/${OUTPUT_INSTALLER_NAME}"
+    chmod 400 "${TOP_DIR}/output/version.xml"
+    chmod 700 "${TOP_DIR}/output/scripts"
+    chmod 500 "${TOP_DIR}/output/scripts/"*
+    chmod 700 "${TOP_DIR}/output/config"
+    chmod 600 "${TOP_DIR}/output/config/"*
+
+    # control
+    chmod 500 "${TOP_DIR}/tools/control/${OUTPUT_CONTROLLER_NAME}"
+    mv "${TOP_DIR}/tools/control/${OUTPUT_CONTROLLER_NAME}" "${TOP_DIR}/output/bin/"
+
+    # upgrade
+    chmod 500 "${TOP_DIR}/tools/upgrade/${OUTPUT_UPGRADE_NAME}"
+    mv "${TOP_DIR}/tools/upgrade/${OUTPUT_UPGRADE_NAME}" "${TOP_DIR}/output/bin/"
+
 }
 function main() {
   clean
