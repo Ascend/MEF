@@ -82,7 +82,8 @@ function prepare()
     fi
 
     pushd "$TOP_DIR"
-    find . ! -path "./platform/*" ! -path "./output/*" -type f -print0 | while IFS= read -r -d '' f; do
+    find . ! -path './platform/*' ! -path './output/*' ! -path './build/web_assets/*' -type f -print0 |\
+        while IFS= read -r -d '' f; do
         dos2unix "$f"
     done
     popd
