@@ -36,8 +36,8 @@ fi
 
 ATLASEDGE_VERSION_XMLFILE=${TOP_DIR}/config/version.xml
 dos2unix "$ATLASEDGE_VERSION_XMLFILE"
-dos2unix "$TOP_DIR"/../build/service_config.ini
-version=$(awk -F= '{print $2}' "$TOP_DIR"/../build/service_config.ini)
+dos2unix "$TOP_DIR"/../../build/service_config.ini
+version=$(awk -F= '{print $2}' "$TOP_DIR"/../../build/service_config.ini)
 sed -i "s#{Version}#${version}#g" ${ATLASEDGE_VERSION_XMLFILE}
 ATLASEDGE_RELEASE="Ascend-mindxedge-om_${version}_linux-${ARCH}"
 ATLASEDGE_RELEASE_FILE=${TOP_DIR}/output/${ATLASEDGE_RELEASE}.tar.gz
