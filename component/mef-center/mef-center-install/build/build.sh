@@ -87,7 +87,7 @@ function mv_file() {
     mv "${TOP_DIR}/tools/install/${OUTPUT_INSTALLER_NAME}" "${TOP_DIR}/output/bin/"
     mv "${TOP_DIR}/scripts/install.sh" "${TOP_DIR}/output/"
 
-    commit_id=$(git --git-dir "$(realpath "${TOP_DIR}"/../..)"/.git rev-parse HEAD)
+    commit_id=$(git --git-dir "$(realpath "${TOP_DIR}"/../../..)"/.git rev-parse HEAD)
     sed -i "s/{commit_id}/${commit_id}/g" "${TOP_DIR}/build/version.xml"
 
     sed -i "s/{version}/${build_version}/g" "${TOP_DIR}/build/version.xml"

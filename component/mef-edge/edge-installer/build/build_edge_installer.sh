@@ -158,7 +158,7 @@ function build_additional_binaries() {
 
 function write_version_info() {
     local commit_id
-    commit_id=$(git --git-dir "${COMPONENT_DIR}/.git" rev-parse HEAD)
+    commit_id=$(git --git-dir "$(realpath "${COMPONENT_DIR}"/..)"/.git rev-parse HEAD)
     sed -i "s/{commit_id}/${commit_id}/g" "${SRC_VERSION_PATH}"
     sed -i "s/{version}/${build_version}/g" "${SRC_VERSION_PATH}"
     sed -i "s/{version}/${build_version}/g" "${SOFTWARE_PATH}"
