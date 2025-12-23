@@ -1,10 +1,10 @@
-# MindEdge
+# MEF&OM SDK
 
 - [最新消息](#最新消息)
 - [简介](#简介)
 - [目录结构](#目录结构)
 - [版本说明](#版本说明)
-- [MindEdge Framework (MEF)](#mindedge-framework-mef)
+- [MEF](#edge-mef)
     - [兼容性信息](#mef-兼容性信息)
     - [环境部署](#mef-环境部署)
     - [快速入门](#mef-快速入门)
@@ -27,13 +27,13 @@
 
 ## 最新消息
 
-- [2025.12.15]：MindEdge版本发布
+- [2025.12.15]：版本发布
 
 ## 简介
 
-MindEdge提供边缘AI业务基础组件管理和边缘AI业务容器的全生命周期管理能力，同时提供节点看管、日志采集等统一运维能力和严格的安全可信保障，使能客户快速构建边缘AI业务。包含MindEdge Framework (MEF)和OM SDK两大组件。
+MEF&OM SDK提供边缘AI业务基础组件管理和边缘AI业务容器的全生命周期管理能力，同时提供节点看管、日志采集等统一运维能力和严格的安全可信保障，使能客户快速构建边缘AI业务。包含MEF和OM SDK两大组件。
 
-- MindEdge Framework (MEF)作为被集成的轻量化端边云协同使能框架，提供边缘节点管理、边缘推理应用生命周期管理等边云协同能力。
+- MEF作为被集成的轻量化端边云协同使能框架，提供边缘节点管理、边缘推理应用生命周期管理等边云协同能力。
 - OM SDK作为开发态组件，使能第三方合作伙伴基于昇腾AI处理器快速搭建智能边缘硬件管理平台，自定义构建设备运维系统，简化设备运维部署。
 
 ![架构图](docs/images/framework.png)
@@ -42,7 +42,7 @@ MindEdge提供边缘AI业务基础组件管理和边缘AI业务容器的全生�
 
 关键目录如下，详细目录介绍参见[项目目录](docs/dir_structure.md)。
 
-	mind-edge				        # 项目根目录
+	edge					        # 项目根目录
     ├── build				        # 构建相关目录
     ├── common-utils				# 公共工具库
     ├── device-plugin				# 设备插件组件
@@ -52,9 +52,9 @@ MindEdge提供边缘AI业务基础组件管理和边缘AI业务容器的全生�
     └── om-web					# OM Web 前端组件代码
 
 ## 版本说明
-MindEdge版本配套详情请参考：[版本配套说明](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/releasenote/edgereleasenote_0002.html)。
+MEF&OM SDK版本配套详情请参考：[版本配套说明](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/releasenote/edgereleasenote_0002.html)。
 
-## <span id="mindedge-framework-mef">MindEdge Framework (MEF)</span>
+## <span id="edge-mef">MEF</span>
 
 ### <span id="mef-兼容性信息">兼容性信息</span>
 
@@ -90,7 +90,7 @@ MindEdge版本配套详情请参考：[版本配套说明](https://www.hiascend.
 
 ### <span id="mef-环境部署">环境部署</span>
 
-在安装和使用前，用户需要了解安装须知、环境准备，具体内容请参考昇腾社区《MindEdge Framework用户指南》文档，"[安装MindEdge Framework](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefug_0006.html)”章节。
+在安装和使用前，用户需要了解安装须知、环境准备，具体内容请参考昇腾社区文档，"[安装MEF](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefug_0006.html)”章节。
 
 ![MEF安装流程图](docs/images/mef_install.png)
 
@@ -99,7 +99,7 @@ MindEdge版本配套详情请参考：[版本配套说明](https://www.hiascend.
     - 将软件包上传至设备任意路径下（建议该目录权限为root且其他用户不可写）
         - 执行以下命令，解压软件包
           ```shell
-          tar -zxvf Ascend-mindxedge-mefcenter_{version}_linux-{arch}.tar.gz
+          tar -zxvf Ascend-mefcenter_{version}_linux-{arch}.tar.gz
           ```
     - 安装MEF Center
         - 进入安装路径。
@@ -133,7 +133,7 @@ MindEdge版本配套详情请参考：[版本配套说明](https://www.hiascend.
     - 将获取到的软件包上传至设备任意路径下（该目录须为root属主，且目录权限为属组及其他用户不可写）
         - 执行以下命令，解压软件包
           ```shell
-          tar -zxvf Ascend-mindxedge-mefedgesdk_{version}_linux-aarch64.tar.gz
+          tar -zxvf Ascend-mefedgesdk_{version}_linux-aarch64.tar.gz
           ```
     - 安装MEF Edge
         - MEF Edge软件的安装可以选择默认安装和指定路径安装
@@ -165,7 +165,7 @@ MindEdge版本配套详情请参考：[版本配套说明](https://www.hiascend.
 
 ### <span id="mef-快速入门">快速入门</span>
 
-云边协同的应用流程主要包括安装MEF、二次开发集成和管理边缘节点及容器应用三部分，具体内容请参考昇腾社区《MindEdge Framework用户指南》文档，“[使用指导](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefug_0025.html)”章节。
+云边协同的应用流程主要包括安装MEF、二次开发集成和管理边缘节点及容器应用三部分，具体内容请参考昇腾社区文档，“[使用指导](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefug_0025.html)”章节。
 
 ![MEF应用流程图](docs/images/mef_application.png)
 
@@ -321,12 +321,12 @@ API请参考"[RESTful接口](https://www.hiascend.com/document/detail/zh/mindedg
 
 - 本代码仓库中包含多个开发分支，这些分支可能包含未完成、实验性或未测试的功能。在正式发布之前，这些分支不应被用于任何生产环境或依赖关键业务的项目中。请务必仅使用我们的正式发行版本，以确保代码的稳定性和安全性。
   使用开发分支所导致的任何问题、损失或数据损坏，本项目及其贡献者概不负责。
-- 正式版本请参考MindEdge正式release版本: https://gitcode.com/Ascend/mind-edge/releases。
+- 正式版本请参考正式release版本: https://gitcode.com/Ascend/mef/releases。
 
 ## License
 
-MindEdge以Mulan PSL v2许可证许可，对应许可证文本可查阅[LICENSE](LICENSE.md)。
+MEF&OM SDK以Mulan PSL v2许可证许可，对应许可证文本可查阅[LICENSE](LICENSE.md)。
 
 ## 建议与交流
 
-欢迎大家为社区做贡献。如果有任何疑问或建议，请提交[issues](https://gitcode.com/Ascend/mind-edge/issues)，我们会尽快回复。感谢您的支持。
+欢迎大家为社区做贡献。如果有任何疑问或建议，请提交[issues](https://gitcode.com/Ascend/mef/issues)，我们会尽快回复。感谢您的支持。
