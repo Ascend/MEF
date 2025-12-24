@@ -16,10 +16,11 @@ readonly CUR_DIR=$(dirname "$(readlink -f "$0")")
 readonly EDGE_INSTALLER_DIR=$(readlink -f "$CUR_DIR"/../)
 readonly MEF_EDGE_DIR=$(readlink -f "$EDGE_INSTALLER_DIR"/../)
 readonly COMPONENT_DIR=$(readlink -f "$MEF_EDGE_DIR"/../)
+readonly GIT_DIR=$(readlink -f "$COMPONENT_DIR"/../../)
 
 # build configuration variables
 build_version="7.3.0"
-version_file="${CUR_DIR}/service_config.ini"
+version_file="${CUR_DIR}"/../../../../build/service_config.ini
 product=""
 arch=$(arch)
 
@@ -158,7 +159,7 @@ function build_additional_binaries() {
 
 function write_version_info() {
     local commit_id
-    commit_id=$(git --git-dir "$(realpath "${COMPONENT_DIR}"/..)"/.git rev-parse HEAD)
+    commit_id=$(git --git-dir "${GIT_DIR}"/.git rev-parse HEAD)
     sed -i "s/{commit_id}/${commit_id}/g" "${SRC_VERSION_PATH}"
     sed -i "s/{version}/${build_version}/g" "${SRC_VERSION_PATH}"
     sed -i "s/{version}/${build_version}/g" "${SOFTWARE_PATH}"
