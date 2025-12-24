@@ -25,7 +25,7 @@ NGINX_MANAGER_DIR_NAME="nginx-manager"
 MEF_CENTER_INSTALL_DIR="mef-center-install"
 C_SCRIPT=${CUR_DIR}/build_c_package.sh
 
-VER_FILE="${TOP_DIR}"/service_config.ini
+VER_FILE="${TOP_DIR}"/../../build/service_config.ini
 if [ -f "$VER_FILE" ]; then
   cp "${VER_FILE}" "${TOP_DIR}/${EDGE_MANAGER_DIR_NAME}/"
   cp "${VER_FILE}" "${TOP_DIR}/${CERT_MANAGER_DIR_NAME}/"

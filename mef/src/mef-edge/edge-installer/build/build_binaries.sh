@@ -17,7 +17,7 @@ readonly EDGE_INSTALLER_DIR=$(readlink -f "$CUR_DIR"/../)
 
 # build configuration variables
 build_version="7.3.0"
-version_file="${CUR_DIR}/service_config.ini"
+version_file="${CUR_DIR}"/../../../../build/service_config.ini
 arch=$(arch)
 build_tag=""
 

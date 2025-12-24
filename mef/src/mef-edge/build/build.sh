@@ -20,7 +20,7 @@ readonly OUTPUT_DIR="${MEF_EDGE_DIR}/output"
 
 # build configuration variables
 build_version="7.3.0"
-version_file="${CUR_DIR}/service_config.ini"
+version_file="${CUR_DIR}"/../../../build/service_config.ini
 product=""
 arch=$(arch)
 
