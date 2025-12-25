@@ -66,14 +66,6 @@ function print_build_info() {
     echo "Build Product is ${product}"
 }
 
-function prepare_dependencies() {
-    local script="${MEF_EDGE_DIR}/build/prepare_dependency.sh"
-    if ! bash "$script"; then
-        echo "Failed to execute script $script"
-        exit 1
-    fi
-}
-
 function run_pre_build_commands() {
     cd "$INSTALLER_DIR" || exit 1
     go mod tidy
@@ -139,7 +131,6 @@ function main() {
     echo "Starting build process for ${product}..."
 
     # perform the build steps
-    prepare_dependencies
     run_pre_build_commands
     build_dependencies
     build_edge_installer
