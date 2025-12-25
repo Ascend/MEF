@@ -24,7 +24,7 @@ sed -i 's/_Static_assert (sizeof (collseqmb) == 256)/_Static_assert (sizeof (col
 sed -i 's/\* Fri June 20 2025 Xie jiamei <xiejiamei@hygon.cn> - 2.34-168/* Fri Jun 20 2025 Xie jiamei <xiejiamei@hygon.cn> - 2.34-168/' "${ROOT_DIR}"/glibc.spec
 
 pushd "${ROOT_DIR}"
-rpmbuild -bp -D "_sourcedir ${ROOT_DIR}" -D "_builddir ${ROOT_DIR}" glibc.spec --nodeps
+rpmbuild -bp -D "_topdir ${ROOT_DIR}/rpmbuild" -D "_sourcedir ${ROOT_DIR}" -D "_builddir ${ROOT_DIR}" glibc.spec --nodeps
 popd
 
 cp -rf "${ROOT_DIR}"/glibc-2.34/* "${ROOT_DIR}"
