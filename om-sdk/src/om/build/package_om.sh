@@ -31,6 +31,7 @@ function package_scripts() {
     local omsdk_tag_gz=$(find "${OUTPUT_DIR}/" -maxdepth 1 -type f | grep "tar.gz$")
     tar -zxf "${omsdk_tag_gz}" -C "${omsdk_tmp_dir}"
     cp "${omsdk_tmp_dir}/scripts/reset_om.sh" "${OUTPUT_DIR}"/scripts
+    cp -rf "${omsdk_tmp_dir}/software/nginx/html/manager/WhiteboxConfig" "${OUTPUT_PACKAGE_DIR}"/web_assets/
     cp "${TOP_DIR}"/src/app/scripts/integrate_om_files.sh "${OUTPUT_DIR}"/scripts
     cp "${TOP_DIR}"/src/app/scripts/upgrade_om.sh "${OUTPUT_DIR}"/scripts
     cp "${TOP_DIR}"/src/app/scripts/install.sh "${OUTPUT_DIR}"/
