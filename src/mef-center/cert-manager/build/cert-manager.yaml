@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ascend-cert-manager
+  namespace: mef-center
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ascend-cert-manager
+  template:
+    metadata:
+      labels:
+        app: ascend-cert-manager
+    spec:
+      nodeSelector:
+        mef-center-node: ""
+      automountServiceAccountToken: false
+      containers:
+        - name: ascend-cert-manager
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: "RuntimeDefault"
+          image: ascend-cert-manager:v1
+          resources:
+            requests:
+              memory: 500Mi
+              cpu: 500m
+            limits:
+              memory: 5000Mi
+              cpu: 6000m
+          env:
+            - name: installed-module
+              value: ${installed_module}
+            - name: POD_IP
+              valueFrom:
+                 fieldRef:
+                   fieldPath: status.podIP
+          imagePullPolicy: Never
+          command: [ "/bin/bash", "-c", "--"]
+          args: [ "LD_LIBRARY_PATH=/home/cert_mgr_lib:${LD_LIBRARY_PATH} ./cert-manager -port=8103" ]
+          volumeMounts:
+            - name: cert-manager-config
+              mountPath: /home/data/config/
+            - name: cert-manager-log
+              mountPath: /var/log/mindx-edge/cert-manager
+            - name: cert-manager-log-backup
+              mountPath: /var/log_backup/mindx-edge/cert-manager
+            - name: localtime
+              mountPath: /etc/localtime
+            - name: root-ca
+              mountPath: /home/data/inner-root-ca/
+            - name: public-config
+              mountPath: /home/data/public-config/
+      volumes:
+        - name: cert-manager-config
+          hostPath:
+            path: ${config}
+            type: Directory
+        - name: cert-manager-log
+          hostPath:
+            path: ${log}
+            type: Directory
+        - name: cert-manager-log-backup
+          hostPath:
+            path: ${log-backup}
+            type: Directory
+        - name: localtime
+          hostPath:
+            path: /etc/localtime
+        - name: root-ca
+          hostPath:
+            path: ${root-ca}
+        - name: public-config
+          hostPath:
+            path: ${public-config}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ascend-cert-manager
+  namespace: mef-center
+  labels:
+    app: ascend-cert-manager
+spec:
+  ports:
+    - name: cert-manager
+      port: 8103
+      targetPort: 8103
+      protocol: TCP
+  selector:
+    app: ascend-cert-manager
+  type: ClusterIP

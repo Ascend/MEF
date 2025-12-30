@@ -1,0 +1,138 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ascend-nginx-manager
+  namespace: mef-center
+spec:
+  selector:
+    matchLabels:
+      app: ascend-nginx-manager
+  template:
+    metadata:
+      labels:
+        app: ascend-nginx-manager
+    spec:
+      nodeSelector:
+        mef-center-node: ""
+      automountServiceAccountToken: false
+      containers:
+        - name: ascend-nginx-manager
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: "RuntimeDefault"
+          image: ascend-nginx-manager:v1
+          resources:
+            requests:
+              memory: 500Mi
+              cpu: 500m
+            limits:
+              memory: 5000Mi
+              cpu: 6000m
+          env:
+            - name: EdgeMgrSvcPort
+              value: "8101"
+            - name: AlarmMgrSvcPort
+              value: "8102"
+            - name: CertMgrSvcPort
+              value: "8103"
+            - name: NginxSslPort
+              value: "8443"
+            - name: AuthPort
+              value: "10001"
+            - name: WebsocketPort
+              value: "10000"
+            - name: installed-module
+              value: ${installed_module}
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+          imagePullPolicy: Never
+          command: [ "/bin/bash", "-c", "--"]
+          args: [ "LD_LIBRARY_PATH=/home/MEFCenter/lib:${LD_LIBRARY_PATH} ./nginx-manager" ]
+          volumeMounts:
+            - name: nginx-manager-log
+              mountPath: /home/MEFCenter/logs/
+            - name: nginx-manager-log-backup
+              mountPath: /home/MEFCenter/logs_backup/
+            - name: root-ca
+              mountPath: /home/data/inner-root-ca/
+            - name: nginx-manager-config
+              mountPath: /home/data/config
+            - name: public-config
+              mountPath: /home/data/public-config/
+            - name: localtime
+              mountPath: /etc/localtime
+      volumes:
+        - name: nginx-manager-config
+          hostPath:
+            path: ${config}
+        - name: root-ca
+          hostPath:
+            path: ${root-ca}
+        - name: nginx-manager-log
+          hostPath:
+            path: ${log}
+        - name: nginx-manager-log-backup
+          hostPath:
+            path: ${log-backup}
+        - name: public-config
+          hostPath:
+            path: ${public-config}
+        - name: localtime
+          hostPath:
+            path: /etc/localtime
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ascend-nginx-manager-external
+  namespace: mef-center
+  labels:
+    app: ascend-nginx-manager
+spec:
+  externalTrafficPolicy: Local
+  ports:
+    - name: port8443
+      port: 8443
+      targetPort: 8443
+      protocol: TCP
+      nodePort: 30035
+    - name: auth-port
+      port: 10001
+      targetPort: 10001
+      protocol: TCP
+      nodePort: 30004
+    - name: websocket-port
+      port: 10000
+      targetPort: 10000
+      protocol: TCP
+      nodePort: 30003
+  selector:
+    app: ascend-nginx-manager
+  type: NodePort
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ascend-nginx-manager
+  namespace: mef-center
+  labels:
+    app: ascend-nginx-manager
+spec:
+  ports:
+    - name: nginx-manager-internal
+      port: 8104
+      targetPort: 8104
+      protocol: TCP
+  selector:
+    app: ascend-nginx-manager
+  type: ClusterIP

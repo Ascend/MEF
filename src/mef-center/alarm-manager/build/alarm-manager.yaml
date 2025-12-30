@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ascend-alarm-manager
+  namespace: mef-center
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ascend-alarm-manager
+  template:
+    metadata:
+      labels:
+        app: ascend-alarm-manager
+    spec:
+      nodeSelector:
+        mef-center-node: ""
+      automountServiceAccountToken: false
+      containers:
+        - name: ascend-alarm-manager
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: "RuntimeDefault"
+          image: ascend-alarm-manager:v1
+          resources:
+            requests:
+              memory: 500Mi
+              cpu: 500m
+            limits:
+              memory: 5000Mi
+              cpu: 6000m
+          env:
+            - name: installed-module
+              value: ${installed_module}
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+          imagePullPolicy: Never
+          command: [ "/bin/bash", "-c", "--"]
+          args: ["LD_LIBRARY_PATH=/home/MEFCenter/lib:${LD_LIBRARY_PATH} ./alarm-manager -port=8102"]
+          volumeMounts:
+            - name: alarm-manager-config
+              mountPath: /home/data/config/
+            - name: alarm-manager-log
+              mountPath: /var/log/mindx-edge/alarm-manager
+            - name: alarm-manager-log-backup
+              mountPath: /var/log_backup/mindx-edge/alarm-manager
+            - name: localtime
+              mountPath: /etc/localtime
+            - name: root-ca
+              mountPath: /home/data/inner-root-ca/
+            - name: public-config
+              mountPath: /home/data/public-config/
+      volumes:
+        - name: alarm-manager-config
+          hostPath:
+            path: ${config}
+            type: Directory
+        - name: alarm-manager-log
+          hostPath:
+            path: ${log}
+            type: Directory
+        - name: alarm-manager-log-backup
+          hostPath:
+            path: ${log-backup}
+            type: Directory
+        - name: localtime
+          hostPath:
+            path: /etc/localtime
+        - name: root-ca
+          hostPath:
+            path: ${root-ca}
+        - name: public-config
+          hostPath:
+            path: ${public-config}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ascend-alarm-manager
+  namespace: mef-center
+  labels:
+    app: ascend-alarm-manager
+spec:
+  ports:
+    - name: alarm-manager
+      port: 8102
+      targetPort: 8102
+      protocol: TCP
+  selector:
+    app: ascend-alarm-manager
+  type: ClusterIP

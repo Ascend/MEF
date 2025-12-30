@@ -1,0 +1,237 @@
+// Copyright (c) Huawei Technologies Co., Ltd. 2025-2025. All rights reserved.
+// MEF is licensed under Mulan PSL v2.
+// You can use this software according to the terms and conditions of the Mulan PSL v2.
+// You may obtain a copy of Mulan PSL v2 at:
+//          http://license.coscl.org.cn/MulanPSL2
+// THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+// EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+// MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+// See the Mulan PSL v2 for more details.
+
+// Package control contains the unique method for start/stop/restart component
+package control
+
+import (
+	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+
+	"huawei.com/mindx/common/envutils"
+	"huawei.com/mindx/common/fileutils"
+	"huawei.com/mindx/common/hwlog"
+
+	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
+)
+
+// SftOperateMgr is a struct that used to start/stop/restart a component
+type SftOperateMgr struct {
+	componentFlag      string
+	operate            string
+	installedComponent []string
+	installPathMgr     *util.InstallDirPathMgr
+	logPathMgr         *util.LogDirPathMgr
+	componentList      []*util.CtlComponent
+}
+
+// DoOperate is the main func to do an Operate handle
+func (scm *SftOperateMgr) DoOperate() error {
+	var controlTasks = []func() error{
+		scm.init,
+		scm.prepareComponentLogDir,
+		scm.prepareComponentLogBackupDir,
+		scm.checkLogDumpDir,
+		scm.dealUpgradeFlag,
+		scm.check,
+		scm.deal,
+	}
+
+	for _, function := range controlTasks {
+		if err := function(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (scm *SftOperateMgr) init() error {
+	// if all, then construct a full componentFlag list. (Does not support batch configuration)
+	if scm.componentFlag == "all" {
+		for _, c := range scm.installedComponent {
+			component := &util.CtlComponent{
+				Name:           c,
+				Operation:      scm.operate,
+				InstallPathMgr: scm.installPathMgr.WorkPathMgr,
+			}
+			scm.componentList = append(scm.componentList, component)
+		}
+	} else {
+		// if just a certain componentFlag, then construct a single-element componentFlag list
+		component := &util.CtlComponent{
+			Name:           scm.componentFlag,
+			Operation:      scm.operate,
+			InstallPathMgr: scm.installPathMgr.WorkPathMgr,
+		}
+		scm.componentList = append(scm.componentList, component)
+	}
+
+	hwlog.RunLog.Info("init componentFlag list successful")
+	return nil
+}
+
+func (scm *SftOperateMgr) prepareComponentLogDir() error {
+	hwlog.RunLog.Info("start to prepare components' log dir")
+	for _, component := range scm.installedComponent {
+		componentMgr := util.GetComponentMgr(component)
+		if err := componentMgr.PrepareLogDir(scm.logPathMgr); err != nil {
+			return err
+		}
+	}
+	hwlog.RunLog.Info("prepare components' log dir successful")
+	return nil
+}
+
+func (scm *SftOperateMgr) prepareComponentLogBackupDir() error {
+	hwlog.RunLog.Info("start to prepare components' log backup dir")
+	for _, component := range scm.installedComponent {
+		componentMgr := util.GetComponentMgr(component)
+		if err := componentMgr.PrepareLogBackupDir(scm.logPathMgr); err != nil {
+			return err
+		}
+	}
+	hwlog.RunLog.Info("prepare components' log backup dir successful")
+	return nil
+}
+
+func (scm *SftOperateMgr) checkLogDumpDir() error {
+	hwlog.RunLog.Info("start to check log dump dir")
+	if _, err := fileutils.RealDirCheck(filepath.Dir(util.LogDumpRootDir), true, false); err != nil {
+		return err
+	}
+
+	uid, gid, err := util.GetMefId()
+	if err != nil {
+		return err
+	}
+	checker := fileutils.NewFileLinkChecker(false)
+	checker.SetNext(fileutils.NewFileOwnerChecker(false, false, uid, gid))
+	checker.SetNext(fileutils.NewFileModeChecker(false, fileutils.DefaultWriteFileMode, true, true))
+	dir, err := os.Open(util.LogDumpRootDir)
+	if err != nil {
+		return fmt.Errorf("failed to open dir %s, %v", util.LogDumpRootDir, err)
+	}
+	defer func() {
+		if err := dir.Close(); err != nil {
+			hwlog.RunLog.Errorf("close dir %s failed, %v", util.LogDumpRootDir, err)
+		}
+	}()
+	if err := checker.Check(dir, util.LogDumpRootDir); err != nil {
+		return err
+	}
+	hwlog.RunLog.Info("check log dump dir successful")
+	return nil
+}
+
+func (scm *SftOperateMgr) check() error {
+	var checkTasks = []func() error{
+		scm.checkUser,
+		util.CheckNecessaryCommands,
+		scm.checkCloudCoreIsRunning,
+	}
+
+	for _, function := range checkTasks {
+		if err := function(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (scm *SftOperateMgr) checkUser() error {
+	hwlog.RunLog.Info("start to check user")
+	if err := envutils.CheckUserIsRoot(); err != nil {
+		fmt.Println("the current user is not root, cannot operate MEF-Center")
+		hwlog.RunLog.Errorf("check user failed: %s", err.Error())
+		return err
+	}
+	hwlog.RunLog.Info("check user successful")
+	return nil
+}
+
+func (scm *SftOperateMgr) checkCloudCoreIsRunning() error {
+	if scm.operate == util.StopOperateFlag {
+		return nil
+	}
+	hwlog.RunLog.Info("start to check cloudcore is running")
+	output, err := envutils.RunCommand(util.Systemctl, envutils.DefCmdTimeoutSec,
+		util.SystemctlIsActive, "cloudcore")
+	if err != nil {
+		hwlog.RunLog.Errorf("check cloudcore is running failed, error:%s", err.Error())
+		return err
+	}
+	if output != util.SystemctlStatusActive {
+		fmt.Println("cloudcore service is not running")
+		hwlog.RunLog.Error("cloudcore service is not running")
+		return errors.New("cloudcore service is not running")
+	}
+	hwlog.RunLog.Info("check cloudcore successfully")
+	return nil
+}
+
+func (scm *SftOperateMgr) dealUpgradeFlag() error {
+	if !fileutils.IsExist(scm.installPathMgr.WorkPathMgr.GetUpgradeFlagPath()) {
+		return nil
+	}
+
+	if scm.operate != util.StartOperateFlag {
+		fmt.Println("the last upgrade was terminated unexpectedly, please use start operation to recovery first")
+		hwlog.RunLog.Error("the last upgrade was terminated unexpectedly, needs to recovery first")
+		return errors.New("needs to recovery environment")
+	}
+
+	fmt.Println("find upgrade flag exist, start to recover environment")
+	hwlog.RunLog.Info("----------find upgrade flag exist, start to recover environment-----------")
+	clearMgr := util.GetUpgradeClearMgr(util.SoftwareMgr{
+		Components:     scm.installedComponent,
+		InstallPathMgr: scm.installPathMgr,
+	}, util.ClearNameSpaceStep, []string{}, []string{})
+	if err := clearMgr.ClearUpgrade(); err != nil {
+		hwlog.RunLog.Errorf("clear upgrade environment failed: %s", err.Error())
+		hwlog.RunLog.Error("----------restore environment failed-----------")
+		fmt.Println("clear environment failed, please recover it manually")
+		return err
+	}
+	fmt.Println("environment has been recovered")
+	hwlog.RunLog.Info("----------restore environment success-----------")
+	return nil
+}
+
+func (scm *SftOperateMgr) deal() error {
+	var failedList []string
+	for _, component := range scm.componentList {
+		if err := component.Operate(); err != nil {
+			fmt.Printf("%s component %s failed\n", component.Operation, component.Name)
+			failedList = append(failedList, component.Name)
+		}
+	}
+	if len(failedList) != 0 {
+		fmt.Printf("%s operation on components %s failed\n", scm.operate, failedList)
+		hwlog.RunLog.Errorf("%s operation on components %s failed", scm.operate, failedList)
+		return fmt.Errorf("%s operation on components %s failed", scm.operate, failedList)
+	}
+	return nil
+}
+
+// InitSftOperateMgr is used to init a SftOperateMgr struct
+func InitSftOperateMgr(component, operate string,
+	installComponents []string, installPathMgr *util.InstallDirPathMgr, logPathMgr *util.LogDirPathMgr) *SftOperateMgr {
+	return &SftOperateMgr{
+		componentFlag:      component,
+		operate:            operate,
+		installedComponent: installComponents,
+		installPathMgr:     installPathMgr,
+		logPathMgr:         logPathMgr,
+	}
+}
