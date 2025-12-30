@@ -1,0 +1,126 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ascend-edge-manager
+  namespace: mef-center
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ascend-edge-manager
+  template:
+    metadata:
+      labels:
+        app: ascend-edge-manager
+    spec:
+      nodeSelector:
+        mef-center-node: ""
+      automountServiceAccountToken: false
+      containers:
+        - name: ascend-edge-manager
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: "RuntimeDefault"
+          image: ascend-edge-manager:v1
+          resources:
+            requests:
+              memory: 500Mi
+              cpu: 500m
+            limits:
+              memory: 10000Mi
+              cpu: 6000m
+          imagePullPolicy: Never
+          command: [ "/bin/bash", "-c", "--" ]
+          # NOTE: HTTPS is enabled by default
+          args: [ "LD_LIBRARY_PATH=/home/MEFCenter/lib:${LD_LIBRARY_PATH} ./edge-manager -port=8101 -wsPort=10000 -maxClientNum=1024" ]
+          volumeMounts:
+            - name: edge-manager-log
+              mountPath: /var/log/mindx-edge/edge-manager
+            - name: edge-manager-log-backup
+              mountPath: /var/log_backup/mindx-edge/edge-manager
+            - name: localtime
+              mountPath: /etc/localtime
+            - name: edge-manager-config
+              mountPath: /home/data/config/
+            - name: public-config
+              mountPath: /home/data/public-config/
+            - name: root-ca
+              mountPath: /home/data/inner-root-ca/
+            - name: log-collect-dir
+              mountPath: /home/MEFCenter/mef_logcollect
+          env:
+            - name: KUBE_CLIENT_QPS
+              value: "1000"
+            - name: KUBE_CLIENT_BURST
+              value: "100"
+            - name: installed-module
+              value: ${installed_module}
+            - name: API_SERVER_ENDPOINT
+              value: ${apiserver_endpoint}
+            - name: LOG_UPLOAD_CONCURRENCY
+              value: "10"
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+      volumes:
+        - name: edge-manager-log
+          hostPath:
+            path: ${log}
+            type: Directory
+        - name: edge-manager-log-backup
+          hostPath:
+            path: ${log-backup}
+            type: Directory
+        - name: localtime
+          hostPath:
+            path: /etc/localtime
+        - name: edge-manager-config
+          hostPath:
+            path: ${config}
+        - name: root-ca
+          hostPath:
+            path: ${root-ca}
+        - name: public-config
+          hostPath:
+            path: ${public-config}
+        - name: log-collect-dir
+          hostPath:
+            path: /var/mef_logcollect
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ascend-edge-manager
+  namespace: mef-center
+  labels:
+    app: ascend-edge-manager
+spec:
+  ports:
+    - name: mindx-edge
+      port: 8101
+      targetPort: 8101
+      protocol: TCP
+    - name: auth-port
+      port: 10001
+      targetPort: 10001
+      protocol: TCP
+    - name: ws-port
+      port: 10000
+      targetPort: 10000
+      protocol: TCP
+    - name: inner-ws-port
+      port: 20000
+      targetPort: 20000
+      protocol: TCP
+  selector:
+    app: ascend-edge-manager
+  type: ClusterIP
