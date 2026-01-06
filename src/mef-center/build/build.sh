@@ -98,6 +98,7 @@ function build_and_zip_component() {
 }
 
 function build_install_bin() {
+    dos2unix ${INSTALL_BUILD_SCRIPT}
     bash ${INSTALL_BUILD_SCRIPT}
 }
 
@@ -121,8 +122,6 @@ function main() {
   build_and_zip_component ${NGINX_MANAGER_DIR_NAME}
   build_install_bin
   mv_file
-
-
 }
 
 main

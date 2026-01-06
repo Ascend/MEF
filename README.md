@@ -102,8 +102,7 @@ golang、gcc、zip、dos2unix、git、autoconf、automake、libtool、libc-dev�
     dos2unix *.sh && chmod +x *.sh
     ./build_all.sh
     ```
-5. 执行完成后，可在/home/MEF/output目录下获取编译完成的软件包。
-6. 此处使用的go版本为1.22.1。
+5. 执行完成后，可在/home/MEF/output目录下获取编译完成的软件包，注意：根据MEF Center和MEF Edge对不同架构的支持情况，AArch64架构下将编译MEF Center和MEF Edge软件包，x86_64架构下将仅编译MEF Center软件包。
 
 ### 安装
 
@@ -116,6 +115,7 @@ golang、gcc、zip、dos2unix、git、autoconf、automake、libtool、libc-dev�
     - 将软件包上传至设备任意路径下（建议该目录权限为root且其他用户不可写）
         - 执行以下命令，解压软件包
           ```shell
+          unzip Ascend-mindxedge-mefcenter_{version}_linux-{arch}.zip
           tar -zxvf Ascend-mindxedge-mefcenter_{version}_linux-{arch}.tar.gz
           ```
     - 安装MEF Center
@@ -150,6 +150,7 @@ golang、gcc、zip、dos2unix、git、autoconf、automake、libtool、libc-dev�
     - 将获取到的软件包上传至设备任意路径下（该目录须为root属主，且目录权限为属组及其他用户不可写）
         - 执行以下命令，解压软件包
           ```shell
+          unzip Ascend-mindxedge-mefedgesdk_{version}_linux-aarch64.zip
           tar -zxvf Ascend-mindxedge-mefedgesdk_{version}_linux-aarch64.tar.gz
           ```
     - 安装MEF Edge

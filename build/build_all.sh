@@ -12,7 +12,22 @@
 CUR_DIR=$(dirname "$(readlink -f "$0")")
 TOP_DIR=$(realpath "${CUR_DIR}"/..)
 OUTPUT_DIR="${TOP_DIR}/output"
-COMPONENTS=("mef-edge" "mef-center")
+COMPONENTS=()
+
+check_arch() {
+    local arch
+    arch=$(arch)
+
+    if [[ "${arch}" == "aarch64" ]]; then
+        COMPONENTS=("mef-edge" "mef-center")
+    elif [[ "${arch}" == "x86_64" ]]; then
+        echo "MEF Edge does not support the x86_64 architecture, will not build corresponding software packages"
+        COMPONENTS=("mef-center")
+    else
+        echo "The current architecture ${arch} is not supported, no software packages will be built"
+        exit 1
+    fi
+}
 
 init_output_dir() {
     rm -rf "${OUTPUT_DIR}"
@@ -56,6 +71,7 @@ build_component() {
 }
 
 main() {
+    check_arch
     init_output_dir
 
     for component in "${COMPONENTS[@]}"; do
