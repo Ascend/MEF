@@ -80,8 +80,13 @@ function build_dependencies() {
 }
 
 function build_edge_installer() {
-    local script="${INSTALLER_DIR}/build/build_edge_installer.sh"
-    cp -rf "${version_file}" "${INSTALLER_DIR}/build/"
+    local build_dir="${INSTALLER_DIR}/build"
+    local script="${build_dir}/build_edge_installer.sh"
+    cp -rf "${version_file}" "${build_dir}"
+    if ! dos2unix "${build_dir}"/*.sh && chmod +x "${build_dir}"/*.sh; then
+        echo "Set permission for scripts in ${build_dir} failed"
+        exit 1
+    fi
     if ! bash "$script" -p "$product"; then
         echo "Failed to execute script $script"
         exit 1
