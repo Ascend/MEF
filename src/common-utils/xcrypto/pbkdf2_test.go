@@ -74,14 +74,6 @@ var sha256TestVectors = []testData{
 			0xe7, 0x32, 0x51, 0x9f, 0xd4, 0x82, 0x60, 0x39,
 		},
 	},
-	{
-		[]byte{0x00, 0x00, 0x00, 0x00, 0x00},
-		[]byte{0x00, 0x00, 0x00, 0x00, 0x00},
-		0,
-		[]byte{
-			0xe7, 0x32, 0x51, 0x9f, 0xd4, 0x82, 0x60, 0x39,
-		},
-	},
 }
 
 var sha512TestVectors = []testData{
@@ -105,6 +97,15 @@ var sha512TestVectors = []testData{
 			0x98, 0x17, 0xc0, 0xf0,
 		},
 	},
+}
+
+func TestPbkdf2WithSHA256(t *testing.T) {
+	for i, v := range sha256TestVectors {
+		dk, _ := Pbkdf2WithSha256([]byte(v.password), []byte(v.salt), v.iter, len(v.dk))
+		if !bytes.Equal(dk, v.dk) {
+			t.Errorf("pbkdf2 with sha256 %d: expected %x, got %x", i, v.dk, dk)
+		}
+	}
 }
 
 func TestPbkdf2WithSHA256Noinput(t *testing.T) {

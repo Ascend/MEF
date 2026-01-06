@@ -43,6 +43,7 @@ func TestAlarmManager(t *testing.T) {
 		ctx:    ctx,
 	}
 	convey.Convey("test alarmWsClient method 'NewAlarmWsClient', 'Name', 'Enable'", t, testAlarmManager)
+	convey.Convey("test alarmWsClient method 'Start'", t, testAlarmMgrStart)
 }
 
 func testAlarmManager() {
@@ -59,12 +60,23 @@ func testAlarmMgrStart() {
 	var p1 = gomonkey.ApplyFuncReturn(initClient, nil).
 		ApplyFuncReturn(modulemgr.ReceiveMessage, msg, nil).
 		ApplyMethodReturn(&websocketmgr.WsClientProxy{}, "Send", nil)
-	defer p1.Reset()
+
 	if wsClient == nil {
 		panic("alarm websocket client is nil")
 	}
-	go wsClient.Start()
+
+	done := make(chan struct{})
+	go func() {
+		wsClient.Start()
+		close(done)
+	}()
+
 	const sleepTime = 200 * time.Millisecond
 	time.Sleep(sleepTime)
 	cancel()
+
+	// wait for the goroutine to completely exit
+	<-done
+
+	p1.Reset()
 }

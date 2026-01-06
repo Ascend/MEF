@@ -190,6 +190,22 @@ func uploadLogsFailed() {
 	convey.So(err, convey.ShouldResemble, errors.New("failed to upload logs"))
 }
 
+func TestPackLogs(t *testing.T) {
+	convey.Convey("failed to create request message", t, func() {
+		p := gomonkey.ApplyFuncReturn(model.NewMessage, nil, test.ErrTest)
+		defer p.Reset()
+		err := process.packLogs()
+		convey.So(err, convey.ShouldResemble, fmt.Errorf("failed to create request message, %v", test.ErrTest))
+	})
+
+	convey.Convey("failed to send request", t, func() {
+		p := gomonkey.ApplyFuncReturn(modulemgr.SendMessage, test.ErrTest)
+		defer p.Reset()
+		err := process.packLogs()
+		convey.So(err, convey.ShouldResemble, fmt.Errorf("failed to send request, %v", test.ErrTest))
+	})
+}
+
 func prepareLogCollectTempFile(file string) error {
 	if err := fileutils.MakeSureDir(file); err != nil {
 		hwlog.RunLog.Errorf("create test log collect temp dir failed, error: %v", err)
