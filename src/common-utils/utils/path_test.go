@@ -291,3 +291,17 @@ func TestGetDriverLibPath(t *testing.T) {
 
 	})
 }
+
+func TestCheckAbsPath(t *testing.T) {
+	convey.Convey("test checkAbsPath", t, func() {
+		convey.Convey("should return abs path given valid path", func() {
+			absPath, err := filepath.Abs("./go.mod")
+			convey.So(err, convey.ShouldBeNil)
+			patch := gomonkey.ApplyFuncReturn(CheckOwnerAndPermission, absPath, nil)
+			defer patch.Reset()
+			res, err := checkAbsPath("./go.mod")
+			convey.So(res, convey.ShouldNotBeEmpty)
+			convey.So(err, convey.ShouldBeNil)
+		})
+	})
+}
