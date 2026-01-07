@@ -99,6 +99,7 @@ function mv_file() {
     mv "${TOP_DIR}/scripts" "${TOP_DIR}/output/"
     mkdir -p "${TOP_DIR}/output/lib/kmc-lib"
     mkdir -p "${TOP_DIR}/output/lib/lib"
+    cp "$(realpath "${TOP_DIR}"/..)"/output/lib/* "${TOP_DIR}/output/lib/kmc-lib/"
 
     chmod 700 "${TOP_DIR}/output/lib"
     chmod 500 "${TOP_DIR}/output/lib/"*

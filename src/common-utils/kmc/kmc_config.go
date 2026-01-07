@@ -89,10 +89,14 @@ func InitKmcCfg(cfgPath string) error {
 
 // EncryptContent encrypt content with kmc
 func EncryptContent(content []byte, kmcCfg *SubConfig) ([]byte, error) {
-	return content, nil
+	res := make([]byte, len(content))
+	copy(res, content)
+	return res, nil
 }
 
 // DecryptContent decrypt content with kmc
 func DecryptContent(encryptByte []byte, kmcCfg *SubConfig) ([]byte, error) {
-	return encryptByte, nil
+	res := make([]byte, len(encryptByte))
+	copy(res, encryptByte)
+	return res, nil
 }
