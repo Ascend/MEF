@@ -28,8 +28,6 @@ import (
 
 type upgradeCmd struct {
 	tarPath     string
-	cmsPath     string
-	crlPath     string
 	delayEffect bool
 }
 
@@ -56,13 +54,9 @@ func (cmd *upgradeCmd) LockFlag() bool {
 // BindFlag command flag binding
 func (cmd *upgradeCmd) BindFlag() bool {
 	flag.StringVar(&(cmd.tarPath), constants.TarFlag, "", "path of the software upgrade tar.gz file")
-	flag.StringVar(&(cmd.cmsPath), constants.CmsFlag, "", "path of the software upgrade tar.gz.cms file")
-	flag.StringVar(&(cmd.crlPath), constants.CrlFlag, "", "path of the software upgrade tar.gz.crl file")
 	flag.BoolVar(&(cmd.delayEffect), "delay", false,
 		"to determine if the software should be effected after upgrade")
 	utils.MarkFlagRequired(constants.TarFlag)
-	utils.MarkFlagRequired(constants.CmsFlag)
-	utils.MarkFlagRequired(constants.CrlFlag)
 	return true
 }
 
@@ -99,8 +93,8 @@ func (cmd *upgradeCmd) Execute(ctx *common.Context) error {
 		return fmt.Errorf("check param failed, %v", err)
 	}
 
-	param := flows.OfflineUpgradeInstallerParam{TarPath: cmd.tarPath, CmsPath: cmd.cmsPath,
-		CrlPath: cmd.crlPath, EdgeDir: ctx.WorkPathMgr.GetMefEdgeDir(), DelayEffect: cmd.delayEffect}
+	param := flows.OfflineUpgradeInstallerParam{TarPath: cmd.tarPath,
+		EdgeDir: ctx.WorkPathMgr.GetMefEdgeDir(), DelayEffect: cmd.delayEffect}
 	flow := flows.OfflineUpgradeInstaller(param)
 	if err := flow.RunTasks(); err != nil {
 		hwlog.RunLog.Errorf("offline upgrade edge-installer failed, error: %v", err)
@@ -111,8 +105,8 @@ func (cmd *upgradeCmd) Execute(ctx *common.Context) error {
 }
 
 func (cmd *upgradeCmd) checkParam() error {
-	if cmd.tarPath == "" || cmd.cmsPath == "" || cmd.crlPath == "" {
-		return errors.New("tar or cms or crl file not input")
+	if cmd.tarPath == "" {
+		return errors.New("tar file not input")
 	}
 
 	validPath, err := cmd.checkSinglePath(cmd.tarPath)
@@ -121,19 +115,5 @@ func (cmd *upgradeCmd) checkParam() error {
 		return fmt.Errorf("check tar path failed: %s", err.Error())
 	}
 	cmd.tarPath = validPath
-
-	validPath, err = cmd.checkSinglePath(cmd.cmsPath)
-	if err != nil {
-		hwlog.RunLog.Errorf("check cms path failed: %s", err.Error())
-		return fmt.Errorf("check cms path failed: %s", err.Error())
-	}
-	cmd.cmsPath = validPath
-
-	validPath, err = cmd.checkSinglePath(cmd.crlPath)
-	if err != nil {
-		hwlog.RunLog.Errorf("check crl path failed: %s", err.Error())
-		return fmt.Errorf("check crl path failed: %s", err.Error())
-	}
-	cmd.crlPath = validPath
 	return nil
 }

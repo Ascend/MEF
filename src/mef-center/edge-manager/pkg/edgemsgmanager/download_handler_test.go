@@ -50,8 +50,6 @@ func TestDownloadInfo(t *testing.T) {
 	convey.Convey("test download software should be failed, invalid sn", t, testDownloadSfwErrSn)
 	convey.Convey("test download software should be failed, invalid softWareName", t, testDownloadSfwErrSfwName)
 	convey.Convey("test download software should be failed, invalid Package", t, testDownloadSfwErrPkg)
-	convey.Convey("test download software should be failed, invalid SignFile", t, testDownloadSfwErrSignFile)
-	convey.Convey("test download software should be failed, invalid CrlFile", t, testDownloadSfwErrCrlFile)
 	convey.Convey("test download software should be failed, invalid UserName", t, testDownloadSfwErrUserName)
 	convey.Convey("test download software should be failed, invalid Password", t, testDownloadSfwErrPwd)
 	convey.Convey("test download software should be failed, new msg error", t, testDownloadErrNewMsg)
@@ -65,8 +63,6 @@ func createDownloadSfwBaseData() SoftwareDownloadInfo {
     "softWarVersion": "1.0",
     "downLoadInfo": {
         "package": "GET https://127.0.0.1/Ascend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz",
-        "signFile": "GET https://127.0.0.1/Ascend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
-        "crlFile": "GET https://127.0.0.1/Ascend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
         "userName": "FileTransferAccount",
         "password": [118,103,56,115,42,98,35,118,120,54,111]
     	}
@@ -204,69 +200,6 @@ func testDownloadSfwErrPkg() {
 
 		resp := downloadSoftware(msg)
 		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
-	}
-}
-
-func testDownloadSfwErrSignFile() {
-	msg, err := model.NewMessage()
-	if err != nil {
-		hwlog.RunLog.Errorf("create message failed, error: %v", err)
-		return
-	}
-
-	req := createDownloadSfwBaseData()
-	failDataCases := []string{
-		"GET ",
-		"https://Ascend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
-		"GET https://A!scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
-		"GET https://A\nscend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
-		"GET https://A$scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
-		"GET https://A\\scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
-		"GET https://A;scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
-		"GET https://A<scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
-		"GET https://A>scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
-		"GET https://Ascend -mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
-		"GET https://A|scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
-		"GET https://A`scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.cms",
-	}
-	for _, dataCase := range failDataCases {
-		req.DownloadInfo.SignFile = dataCase
-		err = msg.FillContent(req)
-		convey.So(err, convey.ShouldBeNil)
-
-		resp := downloadSoftware(msg)
-		convey.So(resp.Status, convey.ShouldNotEqual, common.Success)
-	}
-}
-
-func testDownloadSfwErrCrlFile() {
-	msg, err := model.NewMessage()
-	if err != nil {
-		hwlog.RunLog.Errorf("create message failed, error: %v", err)
-		return
-	}
-
-	req := createDownloadSfwBaseData()
-	failDataCases := []string{
-		"GET ",
-		"https://Ascend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
-		"GET https://A!scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
-		"GET https://A\nscend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
-		"GET https://A$scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
-		"GET https://A\\scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
-		"GET https://A;scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
-		"GET https://A<scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
-		"GET https://A>scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
-		"GET https://Ascend -mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
-		"GET https://A|scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
-		"GET https://A`scend-mindxedge-mefedge_5.0.RC1_linux-aarch64.tar.gz.crl",
-	}
-	for _, dataCase := range failDataCases {
-		req.DownloadInfo.CrlFile = dataCase
-		err = msg.FillContent(req)
-		convey.So(err, convey.ShouldBeNil)
-		resp := downloadSoftware(msg)
-		convey.So(resp.Status, convey.ShouldEqual, common.ErrorParamInvalid)
 	}
 }
 

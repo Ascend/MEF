@@ -147,7 +147,6 @@ func initCmd() {
 	registerCmd(commands.EffectCmd())
 	registerCmd(commands.LogCollectCmd())
 	registerCmd(commands.UpdateKmcCmd())
-	registerCmd(commands.UpdateCrlCmd())
 	initCmdExt()
 }
 

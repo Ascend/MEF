@@ -34,10 +34,6 @@ import (
 var downloadInfoJson = `{"softwareName":"MEFEdge","downloadInfo":{` +
 	`"package":"GET https://xxx.xxx/xxx/?contentType=MEFEdge\u0026version=1.0` +
 	`\u0026fileName=Ascend-mindxedge-mefedgesdk_5.0.RC3_linux-aarch64.tar.gz",` +
-	`"signFile":"GET https://xxx.xxx/xxx/?contentType=MEFEdge\u0026version=1.0` +
-	`\u0026fileName=Ascend-mindxedge-mefedgesdk_5.0.RC3_linux-aarch64.tar.gz.cms",` +
-	`"crlFile":"GET https://xxx.xxx/xxx/?contentType=MEFEdge\u0026version=1.0` +
-	`\u0026fileName=Ascend-mindxedge-mefedgesdk_5.0.RC3_linux-aarch64.tar.gz.crl",` +
 	`"username":"testAccount","password":"dGVzdEZvclV0"}}`
 
 func TestProcessDownloadSoftware(t *testing.T) {
@@ -88,14 +84,13 @@ func testProcessDownloadSfwWithErrorMsg() {
 }
 
 func TestCheckDownloadInfo(t *testing.T) {
-	convey.Convey("invalid download info case", t, func() {
+	convey.Convey("check download info case", t, func() {
 		dp := downloadProcess{}
 		err := json.Unmarshal(model.RawMessage(downloadInfoJson), &dp.sfwDownloadInfo)
 		assertions.ShouldBeNil(err)
 
-		dp.sfwDownloadInfo.DownloadInfo.CrlFile = ""
 		processErr := dp.checkDownloadInfo()
-		convey.So(fmt.Sprintf("%v", processErr), convey.ShouldContainSubstring, "check software download para failed")
+		convey.So(processErr, convey.ShouldBeNil)
 	})
 }
 

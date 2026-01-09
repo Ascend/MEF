@@ -24,7 +24,6 @@ import (
 	"huawei.com/mindx/common/test"
 
 	"edge-installer/pkg/common/util"
-	"edge-installer/pkg/common/veripkgutils"
 	"huawei.com/mindx/mef/common/cmsverify"
 )
 
@@ -33,9 +32,7 @@ var (
 	testExtractPath     = filepath.Join(testOfflineCheckDir, "unpack")
 	testInstallPath     = filepath.Join(testOfflineCheckDir, "MEFEdge")
 	testTarPath         = filepath.Join(testOfflineCheckDir, "test.tar.gz")
-	testCmsPath         = filepath.Join(testOfflineCheckDir, "test.tar.gz.cms")
-	testCrlPath         = filepath.Join(testOfflineCheckDir, "test.tar.gz.crl")
-	offlineChecker      = NewCheckOfflineEdgeInstallerEnv(testTarPath, testCmsPath, testCrlPath,
+	offlineChecker      = NewCheckOfflineEdgeInstallerEnv(testTarPath,
 		testExtractPath, testInstallPath)
 )
 
@@ -44,9 +41,7 @@ func TestCheckOfflineEdgeInstallerEnv(t *testing.T) {
 		ApplyFuncReturn(util.InSamePartition, true, nil).
 		ApplyFuncReturn(envutils.CheckDiskSpace, nil).
 		ApplyFuncReturn(util.CheckNecessaryCommands, nil).
-		ApplyFuncReturn(veripkgutils.PrepareVerifyCrl, true, "", nil).
 		ApplyFuncReturn(cmsverify.VerifyPackage, nil).
-		ApplyFuncReturn(veripkgutils.UpdateLocalCrl, nil).
 		ApplyFuncReturn(fileutils.RealDirCheck, "", nil).
 		ApplyFuncReturn(fileutils.ExtraTarGzFile, nil)
 	defer p.Reset()
@@ -56,7 +51,6 @@ func TestCheckOfflineEdgeInstallerEnv(t *testing.T) {
 	convey.Convey("check offline upgrade env failed, check disk space failed", t, checkDiskSpaceFailed)
 	convey.Convey("check offline upgrade env failed, disk space is not enough", t, diskSpaceNotEnough)
 	convey.Convey("check offline upgrade env failed, check necessary commands failed", t, checkNecessaryCommandsFailed)
-	convey.Convey("check offline upgrade env failed, check package valid failed", t, checkPackageValidFailed)
 	convey.Convey("check offline upgrade env failed, unpack tar package failed", t, unpackUgpTarPackageFailed)
 }
 
@@ -120,29 +114,6 @@ func checkNecessaryCommandsFailed() {
 	defer p1.Reset()
 	err := offlineChecker.Run()
 	convey.So(err, convey.ShouldResemble, errors.New("check necessary commands failed"))
-}
-
-func checkPackageValidFailed() {
-	convey.Convey("prepare crl for verifying package failed", func() {
-		p1 := gomonkey.ApplyFuncReturn(veripkgutils.PrepareVerifyCrl, false, "", test.ErrTest)
-		defer p1.Reset()
-		err := offlineChecker.Run()
-		convey.So(err, convey.ShouldResemble, test.ErrTest)
-	})
-
-	convey.Convey("verify package failed", func() {
-		p1 := gomonkey.ApplyFuncReturn(cmsverify.VerifyPackage, test.ErrTest)
-		defer p1.Reset()
-		err := offlineChecker.Run()
-		convey.So(err, convey.ShouldResemble, errors.New("verify package failed"))
-	})
-
-	convey.Convey("update crl file failed", func() {
-		p1 := gomonkey.ApplyFuncReturn(veripkgutils.UpdateLocalCrl, test.ErrTest)
-		defer p1.Reset()
-		err := offlineChecker.Run()
-		convey.So(err, convey.ShouldResemble, errors.New("update crl file failed"))
-	})
 }
 
 func unpackUgpTarPackageFailed() {

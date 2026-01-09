@@ -191,14 +191,12 @@ type upgradeController struct {
 	operate      string
 	installParam *util.InstallParamJsonTemplate
 	tarPath      string
-	cmsPath      string
-	crlPath      string
 }
 
 func (uc *upgradeController) doControl() error {
 	installedComponents := util.GetCompulsorySlice()
 
-	controlMgr, err := control.GetUpgradePreMgr(uc.tarPath, uc.cmsPath, uc.crlPath, installedComponents)
+	controlMgr, err := control.GetUpgradePreMgr(uc.tarPath, installedComponents)
 	if err != nil {
 		hwlog.RunLog.Errorf("get upgrade pre mgr failed: %v", err)
 		return err
@@ -217,11 +215,7 @@ func (uc *upgradeController) setInstallParam(installParam *util.InstallParamJson
 
 func (uc *upgradeController) bindFlag() bool {
 	flag.StringVar(&(uc.tarPath), tarPathFlag, "", "path of the software upgrade tar.gz file")
-	flag.StringVar(&(uc.cmsPath), cmsPathFlag, "", "path of the software upgrade tar.gz.cms file")
-	flag.StringVar(&(uc.crlPath), crlPathFlag, "", "path of the software upgrade tar.gz.crl file")
 	utils.MarkFlagRequired(tarPathFlag)
-	utils.MarkFlagRequired(cmsPathFlag)
-	utils.MarkFlagRequired(crlPathFlag)
 	return true
 }
 
