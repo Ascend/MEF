@@ -20,11 +20,8 @@ import (
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 
-	"huawei.com/mindx/mef/common/cmsverify"
-
 	"edge-installer/pkg/common/constants"
 	"edge-installer/pkg/common/util"
-	"edge-installer/pkg/common/veripkgutils"
 )
 
 // CheckEnvironmentBase check environment base
@@ -36,7 +33,7 @@ type CheckEnvironmentBase struct {
 }
 
 // NewCheckOfflineEdgeInstallerEnv check environment before upgrade edge installer
-func NewCheckOfflineEdgeInstallerEnv(tarFile, cmsFile, crlFile, extractPath,
+func NewCheckOfflineEdgeInstallerEnv(tarFile, extractPath,
 	installPath string) *CheckOfflineEdgeInstallerEnv {
 	return &CheckOfflineEdgeInstallerEnv{
 		CheckEnvironmentBase: CheckEnvironmentBase{
@@ -46,8 +43,6 @@ func NewCheckOfflineEdgeInstallerEnv(tarFile, cmsFile, crlFile, extractPath,
 			installMinDisk: constants.InstallerUpgradeMin,
 		},
 		tarPath: tarFile,
-		cmsPath: cmsFile,
-		crlPath: crlFile,
 	}
 }
 
@@ -115,8 +110,6 @@ func (ceb CheckEnvironmentBase) checkNecessaryCommands() error {
 type CheckOfflineEdgeInstallerEnv struct {
 	CheckEnvironmentBase
 	tarPath string
-	cmsPath string
-	crlPath string
 }
 
 // Run check edge installer environment task
@@ -125,7 +118,6 @@ func (coe CheckOfflineEdgeInstallerEnv) Run() error {
 		coe.cleanEnv,
 		coe.checkDiskSpace,
 		coe.checkNecessaryCommands,
-		coe.checkPackageValid,
 		coe.unpackUgpTarPackage,
 	}
 	for _, function := range checkFunc {
@@ -133,32 +125,6 @@ func (coe CheckOfflineEdgeInstallerEnv) Run() error {
 			return err
 		}
 	}
-	return nil
-}
-
-func (coe CheckOfflineEdgeInstallerEnv) checkPackageValid() error {
-	needUpdateCrl, verifyCrl, err := veripkgutils.PrepareVerifyCrl(coe.crlPath)
-	if err != nil {
-		hwlog.RunLog.Errorf("prepare crl for verifying package failed, error: %v", err)
-		return err
-	}
-
-	if err = cmsverify.VerifyPackage(verifyCrl, coe.cmsPath, coe.tarPath); err != nil {
-		fmt.Println("verify package failed, the file might be tampered")
-		hwlog.RunLog.Errorf("verify package failed, error: %v", err)
-		return errors.New("verify package failed")
-	}
-
-	if needUpdateCrl {
-		if err = veripkgutils.UpdateLocalCrl(verifyCrl); err != nil {
-			hwlog.RunLog.Errorf("update crl file failed, error: %v", err)
-			return errors.New("update crl file failed")
-		}
-		fmt.Println("update crl success.")
-		hwlog.RunLog.Info("update crl file success")
-	}
-
-	hwlog.RunLog.Info("verify package success")
 	return nil
 }
 

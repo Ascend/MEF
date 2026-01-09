@@ -21,23 +21,18 @@ import (
 	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 
-	"huawei.com/mindx/mef/common/cmsverify"
-
-	"huawei.com/mindxedge/base/common"
 	"huawei.com/mindxedge/base/mef-center-install/pkg/util"
 )
 
 // UpgradePreFlowMgr is a struct that uses to do upgrade, it is executed in the old version
 type UpgradePreFlowMgr struct {
 	tarPath string
-	cmsPath string
-	crlPath string
 	util.SoftwareMgr
 	unpackPath string
 }
 
 // GetUpgradePreMgr is a func to init an UpgradePreFlowMgr
-func GetUpgradePreMgr(tarPath, cmsPath, crlPath string, components []string) (*UpgradePreFlowMgr, error) {
+func GetUpgradePreMgr(tarPath string, components []string) (*UpgradePreFlowMgr, error) {
 	pathMgr, err := util.InitInstallDirPathMgr()
 	if err != nil {
 		return nil, fmt.Errorf("init upgrade pre mgr failed: %v", err)
@@ -48,8 +43,6 @@ func GetUpgradePreMgr(tarPath, cmsPath, crlPath string, components []string) (*U
 			InstallPathMgr: pathMgr,
 		},
 		tarPath: tarPath,
-		cmsPath: cmsPath,
-		crlPath: crlPath,
 	}
 	mgr.unpackPath = mgr.InstallPathMgr.WorkPathMgr.GetTempTarPath()
 
@@ -65,7 +58,6 @@ func (upf *UpgradePreFlowMgr) DoUpgrade() error {
 	var upgradeTasks = []func() error{
 		upf.checkUpgradePaths,
 		upf.prepareUnpackDir,
-		upf.verifyPackage,
 		upf.unzipTarFile,
 		upf.copyInstallJson,
 	}
@@ -136,23 +128,16 @@ func (upf *UpgradePreFlowMgr) checkDiskSpace() error {
 
 func (upf *UpgradePreFlowMgr) checkUpgradePaths() error {
 	const maxFileSize = 512
-	pathMap := map[string]string{
-		"tar file": upf.tarPath,
-		"cms file": upf.cmsPath,
-		"crl file": upf.crlPath,
+	if !fileutils.IsExist(upf.tarPath) {
+		hwlog.RunLog.Errorf("tar file does not exist")
+		fmt.Printf("tar file does not exist\n")
+		return fmt.Errorf("tar file does not exist")
 	}
-	for fileTag, filePath := range pathMap {
-		if !fileutils.IsExist(filePath) {
-			hwlog.RunLog.Errorf("%s does not exist", fileTag)
-			fmt.Printf("%s does not exist\n", fileTag)
-			return fmt.Errorf("%s does not exist", fileTag)
-		}
 
-		if _, err := fileutils.RealFileCheck(filePath, true, false, maxFileSize); err != nil {
-			hwlog.RunLog.Errorf("check %s failed: %v", fileTag, err)
-			fmt.Printf("check %s failed\n", fileTag)
-			return fmt.Errorf("check %s failed", fileTag)
-		}
+	if _, err := fileutils.RealFileCheck(upf.tarPath, true, false, maxFileSize); err != nil {
+		hwlog.RunLog.Errorf("check tar file failed: %v", err)
+		fmt.Printf("check tar file failed\n")
+		return fmt.Errorf("check tar file failed")
 	}
 
 	return nil
@@ -163,33 +148,6 @@ func (upf *UpgradePreFlowMgr) prepareUnpackDir() error {
 		hwlog.RunLog.Errorf("create unpack tar dir failed: %s", err.Error())
 		return errors.New("create unpack tar dir failed")
 	}
-	return nil
-}
-
-func (upf *UpgradePreFlowMgr) verifyPackage() error {
-	fmt.Println("start to verify package")
-	needUpdateCrl, verifyCrl, err := prepareVerifyCrl(upf.crlPath)
-	if err != nil {
-		hwlog.RunLog.Errorf("prepare crl for verifying package failed, error: %v", err)
-		return err
-	}
-
-	if err = cmsverify.VerifyPackage(verifyCrl, upf.cmsPath, upf.tarPath); err != nil {
-		fmt.Println("verify package failed, the zip file might be tampered")
-		hwlog.RunLog.Errorf("verify package failed,error:%v", err)
-		return errors.New("verify package failed")
-	}
-
-	if needUpdateCrl {
-		if err = UpdateLocalCrl(verifyCrl); err != nil {
-			hwlog.RunLog.Errorf("update crl file failed, error: %v", err)
-			return errors.New("update crl file failed")
-		}
-		fmt.Println("update crl file success.")
-		hwlog.RunLog.Info("update crl file success")
-	}
-
-	hwlog.RunLog.Info("verify package succeeds")
 	return nil
 }
 
@@ -259,105 +217,4 @@ func (upf *UpgradePreFlowMgr) newShErrDeal(returnErr error) {
 		}
 		hwlog.RunLog.Info("clear environment success")
 	}
-}
-
-func prepareVerifyCrl(newCrl string) (bool, string, error) {
-	// when two input parameters are the same, the function can be used to check whether the CRL file is valid
-	newCrlStatus, err := cmsverify.CheckCrl(newCrl)
-	if err != nil {
-		fmt.Println("new crl file is invalid")
-		hwlog.RunLog.Errorf("new crl file is invalid, %v", err)
-		return true, "", errors.New("new crl file is invalid")
-	}
-	if newCrlStatus != cmsverify.CompareSame && newCrlStatus != cmsverify.CrlExpiredOnly {
-		fmt.Println("new crl file is invalid")
-		hwlog.RunLog.Error("new crl file is invalid, inconsistency of the same certificate")
-		return true, "", errors.New("new crl file is invalid")
-	}
-	if newCrlStatus == cmsverify.CrlExpiredOnly {
-		fmt.Println("new crl has expired. check it manually")
-		hwlog.RunLog.Warn("new crl has expired. check it manually")
-	}
-
-	const maxCrlSizeInMb = 10
-	if _, err = fileutils.RealFileCheck(
-		util.CrlOnDevicePath, true, false, maxCrlSizeInMb); err != nil {
-		hwlog.RunLog.Warnf("check file [%s] failed, error: %v", util.CrlOnDevicePath, err)
-		return true, newCrl, nil
-	}
-	if err = fileutils.SetPathPermission(util.CrlOnDevicePath, fileutils.Mode600, false,
-		false); err != nil {
-		hwlog.RunLog.Warnf("set crl permission failed, error: %v", err)
-		return true, newCrl, nil
-	}
-	compareStatus, err := cmsverify.CheckCrl(util.CrlOnDevicePath)
-	if err != nil || (compareStatus != cmsverify.CompareSame && compareStatus != cmsverify.CrlExpiredOnly) {
-		hwlog.RunLog.Warnf("the local crl is invalid, use crl in software package to verify")
-		return true, newCrl, nil
-	}
-
-	return compareCrls(newCrl, util.CrlOnDevicePath)
-}
-
-func compareCrls(crlToUpdate, crlOnDevice string) (bool, string, error) {
-	if crlToUpdate == "" || crlOnDevice == "" {
-		hwlog.RunLog.Error("crl is invalid")
-		return false, "", errors.New("crl is invalid")
-	}
-
-	var compareRes cmsverify.CrlCompareStatus
-	var err error
-	needUpdateCrl := true
-	verifyCrl := crlToUpdate
-	compareRes, err = cmsverify.CompareCrls(crlToUpdate, crlOnDevice)
-	if err != nil {
-		hwlog.RunLog.Errorf("compare crls failed, error: %v", err)
-		return false, "", errors.New("compare crls failed")
-	}
-
-	switch int(compareRes) {
-	case util.CompareSame:
-		needUpdateCrl = false
-		verifyCrl = crlOnDevice
-		hwlog.RunLog.Info("the software package crl file is the same as the local crl file, " +
-			"use the local crl file to verify and no update local crl file required")
-	case util.CompareNew:
-		hwlog.RunLog.Info("the software package crl file is newer than the local crl file, " +
-			"use software package crl file to verify and update local crl file")
-	case util.CompareOld:
-		needUpdateCrl = false
-		verifyCrl = crlOnDevice
-		hwlog.RunLog.Info("the software package crl file is older than the local crl file, " +
-			"use the local crl file to verify and no update local crl file required")
-	default:
-		hwlog.RunLog.Error("compare local crl file and the software package crl file failed, " +
-			"use software package crl file to verify and update local crl file")
-	}
-
-	return needUpdateCrl, verifyCrl, nil
-}
-
-// UpdateLocalCrl update local crl file to verify crl
-func UpdateLocalCrl(verifyCrl string) error {
-	crlOnDeviceDir := filepath.Dir(util.CrlOnDevicePath)
-	if err := fileutils.CreateDir(crlOnDeviceDir, common.Mode755); err != nil {
-		hwlog.RunLog.Errorf("create dir [%s] failed, error: %v", crlOnDeviceDir, err)
-		return fmt.Errorf("create dir [%s] failed", crlOnDeviceDir)
-	}
-	if _, err := fileutils.RealDirCheck(crlOnDeviceDir, true, false); err != nil {
-		hwlog.RunLog.Errorf("check dir [%s] failed, error: %v", crlOnDeviceDir, err)
-		return fmt.Errorf("check dir [%s] failed", crlOnDeviceDir)
-	}
-
-	if err := fileutils.CopyFile(verifyCrl, util.CrlOnDevicePath); err != nil {
-		hwlog.RunLog.Errorf("copy crl file to dir [%s] failed, error: %v", crlOnDeviceDir, err)
-		return fmt.Errorf("copy crl file to dir [%s] failed", crlOnDeviceDir)
-	}
-	if err := fileutils.SetPathPermission(util.CrlOnDevicePath, common.Mode600, false,
-		false); err != nil {
-		hwlog.RunLog.Errorf("set new crl permission failed, error: %v", err)
-		return errors.New("set new crl permission failed")
-	}
-
-	return nil
 }

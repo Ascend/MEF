@@ -86,22 +86,6 @@ func TestGetValidUrls(t *testing.T) {
 			"package url is invalid")
 		sfwDownloadInfo.DownloadInfo.Package = temp
 	})
-	convey.Convey("invalid crl file url", t, func() {
-		temp := sfwDownloadInfo.DownloadInfo.CrlFile
-		sfwDownloadInfo.DownloadInfo.CrlFile = ""
-		_, processErr := getValidUrls(sfwDownloadInfo)
-		convey.So(fmt.Sprintf("%v", processErr), convey.ShouldContainSubstring,
-			"crl file url is invalid")
-		sfwDownloadInfo.DownloadInfo.CrlFile = temp
-	})
-	convey.Convey("invalid sign file url", t, func() {
-		temp := sfwDownloadInfo.DownloadInfo.SignFile
-		sfwDownloadInfo.DownloadInfo.SignFile = ""
-		_, processErr := getValidUrls(sfwDownloadInfo)
-		convey.So(fmt.Sprintf("%v", processErr), convey.ShouldContainSubstring,
-			"sign file url is invalid")
-		sfwDownloadInfo.DownloadInfo.SignFile = temp
-	})
 
 }
 

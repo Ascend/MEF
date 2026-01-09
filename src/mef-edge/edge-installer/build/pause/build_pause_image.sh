@@ -9,6 +9,7 @@
 # MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 # See the Mulan PSL v2 for more details.
 
+set -e
 CUR_DIR=$(dirname $(readlink -f "$0"))
 GLIBC_DIR=$(readlink -f ${CUR_DIR}/../../../opensource/glibc)
 BUILD_DIR=$(readlink -f ${CUR_DIR}/../../../build)

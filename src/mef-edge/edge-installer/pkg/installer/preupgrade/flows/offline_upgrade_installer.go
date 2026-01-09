@@ -27,8 +27,6 @@ type offlineUpgradeInstaller struct {
 // OfflineUpgradeInstallerParam offline upgrade edge installer parameter
 type OfflineUpgradeInstallerParam struct {
 	TarPath     string
-	CmsPath     string
-	CrlPath     string
 	EdgeDir     string
 	DelayEffect bool
 }
@@ -43,7 +41,7 @@ func OfflineUpgradeInstaller(param OfflineUpgradeInstallerParam) common.Flow {
 	f := &offlineUpgradeInstaller{}
 	f.edgeDir = param.EdgeDir
 	f.extractPath = filepath.Join(constants.UnpackPath, constants.EdgeInstaller)
-	f.AddTask(tasks.NewCheckOfflineEdgeInstallerEnv(param.TarPath, param.CmsPath, param.CrlPath, f.extractPath,
+	f.AddTask(tasks.NewCheckOfflineEdgeInstallerEnv(param.TarPath, f.extractPath,
 		param.EdgeDir), "check package and environment", progressCheck)
 	if param.DelayEffect {
 		f.AddTask(tasks.UpgradeInstaller(f.edgeDir, constants.Upgrade), "upgrade", common.ProgressSuccess)

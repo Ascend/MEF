@@ -62,8 +62,6 @@ func TestCheckOnlineEdgeInstallerEnv(t *testing.T) {
 
 	p := gomonkey.ApplyPrivateMethod(CheckEnvironmentBase{}, "checkDiskSpace",
 		func(CheckEnvironmentBase) error { return nil }).
-		ApplyPrivateMethod(CheckOfflineEdgeInstallerEnv{}, "checkPackageValid",
-			func(CheckOfflineEdgeInstallerEnv) error { return nil }).
 		ApplyPrivateMethod(CheckOfflineEdgeInstallerEnv{}, "unpackUgpTarPackage",
 			func(CheckOfflineEdgeInstallerEnv) error { return nil })
 	defer p.Reset()

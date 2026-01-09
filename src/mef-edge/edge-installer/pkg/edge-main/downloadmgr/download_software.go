@@ -34,8 +34,6 @@ import (
 
 const (
 	downloadPackageType = "package"
-	downloadCrlType     = "crlFile"
-	downloadSignType    = "signFile"
 	defaultFileSize     = 1 * constants.MB
 	softwarePackageSize = constants.InstallerTarGzSizeMaxInMB * constants.MB
 )
@@ -116,18 +114,6 @@ func getValidUrls(downloadRequire util.SoftwareDownloadInfo) (map[string]string,
 
 	urls[downloadPackageType] = url
 
-	if url, err = parseUrlInfo(downloadRequire.DownloadInfo.CrlFile); err == nil {
-		urls[downloadCrlType] = url
-	} else {
-		return urls, fmt.Errorf("crl file url is invalid because %v", err)
-	}
-
-	if url, err = parseUrlInfo(downloadRequire.DownloadInfo.SignFile); err == nil {
-		urls[downloadSignType] = url
-	} else {
-		return urls, fmt.Errorf("sign file url is invalid because %v", err)
-	}
-
 	return urls, nil
 }
 
@@ -179,10 +165,6 @@ func getTargetFilePath(softwareName string, packageType string) (string, error) 
 	switch packageType {
 	case downloadPackageType:
 		fileName = fmt.Sprintf("%s%s", softwareName, constants.TarGzExt)
-	case downloadCrlType:
-		fileName = fmt.Sprintf("%s%s", softwareName, constants.CrlExt)
-	case downloadSignType:
-		fileName = fmt.Sprintf("%s%s", softwareName, constants.SignExt)
 	default:
 		return "", errors.New("invalid package type")
 

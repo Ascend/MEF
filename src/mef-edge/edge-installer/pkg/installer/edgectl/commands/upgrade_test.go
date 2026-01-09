@@ -29,8 +29,6 @@ import (
 const (
 	testInvalidPath = "/home/data/mefedge/unpack/test.tar.gz"
 	testTarPath     = "/test/test.tar.gz"
-	testCmsPath     = "/test/test.tar.gz.cms"
-	testCrlPath     = "/test/test.tar.gz.crl"
 	testDelayEffect = false
 )
 
@@ -52,13 +50,11 @@ func upgradeCmdMethods() {
 }
 
 func upgradeCmdSuccess() {
-	param := flows.OfflineUpgradeInstallerParam{TarPath: testTarPath, CmsPath: testCmsPath,
-		CrlPath: testCrlPath, EdgeDir: "./", DelayEffect: testDelayEffect}
+	param := flows.OfflineUpgradeInstallerParam{TarPath: testTarPath,
+		EdgeDir: "./", DelayEffect: testDelayEffect}
 	flow := flows.OfflineUpgradeInstaller(param)
 	p := gomonkey.ApplyFuncReturn(UpgradeCmd, &upgradeCmd{
 		tarPath: testTarPath,
-		cmsPath: testCmsPath,
-		crlPath: testCrlPath,
 	}).
 		ApplyPrivateMethod(&upgradeCmd{}, "checkParam", func() error { return nil }).
 		ApplyMethodReturn(flow, "RunTasks", nil)
@@ -77,13 +73,11 @@ func executeUpgradeFailed() {
 	})
 
 	convey.Convey("run offline upgrade edge-installer flow failed", func() {
-		param := flows.OfflineUpgradeInstallerParam{TarPath: testTarPath, CmsPath: testCmsPath,
-			CrlPath: testCrlPath, EdgeDir: "./", DelayEffect: testDelayEffect}
+		param := flows.OfflineUpgradeInstallerParam{TarPath: testTarPath,
+			EdgeDir: "./", DelayEffect: testDelayEffect}
 		flow := flows.OfflineUpgradeInstaller(param)
 		p := gomonkey.ApplyFuncReturn(UpgradeCmd, &upgradeCmd{
 			tarPath: testTarPath,
-			cmsPath: testCmsPath,
-			crlPath: testCrlPath,
 		}).
 			ApplyPrivateMethod(&upgradeCmd{}, "checkParam", func() error { return nil }).
 			ApplyMethodReturn(flow, "RunTasks", test.ErrTest)
@@ -98,10 +92,10 @@ func executeUpgradeFailed() {
 func checkParamFailed() {
 	convey.Convey("tar or cms or crl file not input failed", func() {
 		p := gomonkey.ApplyFuncReturn(UpgradeCmd, &upgradeCmd{
-			tarPath: "", cmsPath: "", crlPath: ""})
+			tarPath: ""})
 		defer p.Reset()
 		err := UpgradeCmd().Execute(ctx)
-		expectErr := errors.New("tar or cms or crl file not input")
+		expectErr := errors.New("tar file not input")
 		convey.So(err, convey.ShouldResemble, fmt.Errorf("check param failed, %v", expectErr))
 	})
 }
@@ -109,8 +103,6 @@ func checkParamFailed() {
 func checkSinglePathFailed() {
 	p := gomonkey.ApplyFuncReturn(UpgradeCmd, &upgradeCmd{
 		tarPath: testTarPath,
-		cmsPath: testCmsPath,
-		crlPath: testCrlPath,
 	})
 	defer p.Reset()
 

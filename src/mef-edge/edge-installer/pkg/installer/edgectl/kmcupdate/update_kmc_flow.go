@@ -15,7 +15,6 @@ import (
 	"errors"
 	"fmt"
 
-	"huawei.com/mindx/common/fileutils"
 	"huawei.com/mindx/common/hwlog"
 	"huawei.com/mindx/common/kmc"
 
@@ -89,14 +88,6 @@ func (ukm *UpdateKmcFlow) initKmcCtx(kmcDir string) (*kmc.Context, error) {
 	if err != nil {
 		hwlog.RunLog.Errorf("Get Kmc Config Failed %v", err.Error())
 		fmt.Println("Get kmc Config failed")
-		return nil, err
-	}
-	if err = fileutils.IsSoftLink(kmcCfg.PrimaryKeyPath); err != nil {
-		hwlog.RunLog.Errorf("check path [%s] failed: %s, cannot initKmc", kmcCfg.PrimaryKeyPath, err.Error())
-		return nil, err
-	}
-	if err = fileutils.IsSoftLink(kmcCfg.StandbyKeyPath); err != nil {
-		hwlog.RunLog.Errorf("check path [%s] failed: %s, cannot initKmc", kmcCfg.StandbyKeyPath, err.Error())
 		return nil, err
 	}
 	config := kmc.NewKmcInitConfig()

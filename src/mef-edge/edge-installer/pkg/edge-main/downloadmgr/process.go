@@ -91,8 +91,6 @@ func (dp *downloadProcess) checkDownloadInfo() error {
 			Required: true,
 			Checker: checker.GetAndChecker(
 				checker.GetHttpsUrlChecker("Package", true, true),
-				checker.GetHttpsUrlChecker("SignFile", true, true),
-				checker.GetHttpsUrlChecker("CrlFile", true, true),
 				checker.GetRegChecker("UserName", "^[a-zA-Z0-9]{6,32}$", true),
 				checker.GetListChecker("Password",
 					checker.GetUintChecker("", 0, math.MaxUint8, true),
