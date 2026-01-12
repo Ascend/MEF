@@ -21,7 +21,7 @@ function call_component_test() {
     cd "${TOP_DIR}"/$1/build
     dos2unix test.sh
     chmod +x test.sh
-    sh -x test.sh "$TEST_MODE"
+    bash -x test.sh "$TEST_MODE"
     if [[ $? -ne 0 ]]; then
         exit 1
     fi
@@ -33,7 +33,7 @@ function call_component_test() {
 
 sudo mkdir -p ${TOP_DIR}/test/results/
 
-sh ${TOP_DIR}/build/build_c_package.sh
+bash ${TOP_DIR}/build/build_c_package.sh
 
 echo "************************************* Start MEF_Edge LLT Test *************************************"
 
