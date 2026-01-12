@@ -6,6 +6,8 @@
 - [版本说明](#版本说明)
 - [兼容性信息](#兼容性信息)
 - [环境部署](#环境部署)
+- [编译流程](#编译流程)
+- [测试用例](#测试用例)
 - [快速入门](#快速入门)
 - [功能介绍](#功能介绍)
 - [API参考](#API参考)
@@ -82,31 +84,15 @@ MEF版本配套详情请参考：[版本配套说明](https://www.hiascend.com/d
 
 ## 环境部署
 
-### 依赖准备
-执行MEF编译前，请保证环境上存在以下依赖：
-golang、gcc、zip、dos2unix、git、autoconf、automake、libtool、libc-dev、cmake、build-essential，其中golang版本为1.22.1。
+### 获取软件包
 
-### 编译
-
-1. 拉取MEF整体源码，例如放在/home目录下。 
-2. 进入/home/MEF/build目录
-    ```shell
-    cd /home/MEF/build
-    ```
-3. 修改组件版本配置文件service_config.ini中mef-version字段值为所需编译版本，默认值如下：
-    ```
-    mef-version=7.3.0
-    ```
-4. 执行以下命令，执行构建脚本：
-    ```shell
-    dos2unix *.sh && chmod +x *.sh
-    ./build_all.sh
-    ```
-5. 执行完成后，可在/home/MEF/output目录下获取编译完成的软件包，注意：根据MEF Center和MEF Edge对不同架构的支持情况，AArch64架构下将编译MEF Center和MEF Edge软件包，x86_64架构下将仅编译MEF Center软件包。
+可通过本项目获取正式版本软件包，或自行编译构建两种方式获取软件包。
+- 正式版本软件包获取: https://gitcode.com/Ascend/MEF/releases
+- 自行编译构建软件包请参考[编译流程](#编译流程)章节
 
 ### 安装
 
-在安装和使用前，用户需要了解安装须知、环境准备，具体内容请参考昇腾社区文档，“[安装MEF](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefug_0006.html)”章节。
+在安装和使用前，用户需要了解安装须知、进行安装环境准备，具体内容请参考昇腾社区文档，“[安装MEF](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefug_0006.html)”章节。
 
 ![MEF安装流程图](docs/images/mef_install.png)
 
@@ -181,6 +167,87 @@ golang、gcc、zip、dos2unix、git、autoconf、automake、libtool、libc-dev�
           Execute [start] command success!
           ```
 
+## 编译流程
+
+本节以Ubuntu20.04系统为例，介绍如何通过源码编译生成MEF软件包。
+
+### 依赖准备
+
+- 执行MEF编译前，需保证系统上安装了必要的编译工具和依赖库，参考安装命令如下：
+  ```shell
+  apt-get update
+  apt-get -y install texinfo gawk libffi-dev zlib1g-dev libssl-dev openssl sqlite3 libsqlite3-dev libnuma-dev numactl libpcre2-dev bison flex build-essential automake autoconf libtool rpm dos2unix libc-dev lcov pkg-config sudo tar git wget unzip zip docker.io python-is-python3 iputils-ping
+  ```
+- 除上述工具和依赖外，还需安装golang、cmake，版本要求如下，建议通过源码安装。
+
+表2 依赖版本要求
+
+| 依赖名称        | 版本建议      | 获取建议 |
+|:------------|:----------| :--- |
+| Golang | 1.22.1    | 建议通过获取源码包编译安装。 |
+| CMake  | 3.16.5及以上 | 建议通过获取源码包编译安装。 |
+
+### 编译MEF
+
+1. 拉取MEF整体源码，例如放在/home目录下。
+2. 进入/home/MEF/build目录
+    ```shell
+    cd /home/MEF/build
+    ```
+3. 修改组件版本配置文件service_config.ini中mef-version字段值为所需编译版本，默认值如下：
+    ```
+    mef-version=7.3.0
+    ```
+4. 执行以下命令，执行构建脚本：
+    ```shell
+    dos2unix *.sh && chmod +x *.sh
+    ./build_all.sh
+    ```
+5. 执行完成后，可在/home/MEF/output目录下获取编译完成的软件包，注意：根据MEF Center和MEF Edge对不同架构的支持情况，AArch64架构下将编译MEF Center和MEF Edge软件包，x86_64架构下将仅编译MEF Center软件包。
+
+### 注意事项
+- 由于软件支持的运行操作系统包括Ubuntu 20.04，且软件构建过程中使用了glibc 2.34源码编译，建议使用Ubuntu 20.04系统进行编译构建，避免系统上的glibc版本过高导致的不兼容问题。
+- 如果在编译过程中遇到问题，请检查错误日志并确保所有依赖库和工具都已正确安装。
+
+## 测试用例
+
+测试用例执行方法参考如下，注：测试用例需要在x86_64架构环境下执行，由于部分测试用例使用了gomonkey进行运行时函数打桩，该技术依赖底层架构相关的汇编指令和GO编译器行为，需要在x86_64架构运行。
+
+1. 执行测试用例前，请参考[依赖准备](#依赖准备)章节进行测试环境准备
+2. 安装依赖用于统计测试覆盖率和生成可视化报告，若最新版本依赖与Golang版本不兼容，可自行安装兼容的版本
+   ```shell
+   go install github.com/axw/gocov/gocov@latest
+   go install github.com/matm/gocov-html/cmd/gocov-html@latest
+   go install gotest.tools/gotestsum@latest
+   export PATH=$PATH:$(go env GOPATH)/bin
+   ```
+3. 本项目下包含多个模块，各个模块的测试用例可分别执行，执行参考如下：
+- 执行common-utils模块下测试用例
+  ```shell
+  cd /home/MEF/src/common-utils/build
+  dos2unix *.sh && chmod +x *.sh
+  bash test.sh
+  ```
+- 执行device-plugin模块下测试用例
+  ```shell
+  cd /home/MEF/src/device-plugin/build
+  dos2unix *.sh && chmod +x *.sh
+  bash test.sh
+  ```
+- 执行mef-center模块下测试用例
+  ```shell
+  cd /home/MEF/src/mef-center/build
+  dos2unix *.sh && chmod +x *.sh
+  bash test.sh
+  ```
+- 执行mef-edge模块下测试用例
+  ```shell
+  cd /home/MEF/src/mef-edge/build
+  dos2unix *.sh && chmod +x *.sh
+  bash prepare_dependency.sh
+  bash test.sh MEF_Edge_SDK
+  ```
+
 ## 快速入门
 
 云边协同的应用流程主要包括安装MEF、二次开发集成和管理边缘节点及容器应用三部分，具体内容请参考昇腾社区文档，“[使用指导](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefug_0025.html)”章节。
@@ -194,7 +261,7 @@ golang、gcc、zip、dos2unix、git、autoconf、automake、libtool、libc-dev�
 - MEF Edge部署在智能边缘设备上，负责与中心网管对接，完成智能推理业务（容器应用）的部署和管理，为算法应用提供服务。
 - MEF Center部署在通用服务器上，负责对边缘节点实现批量管理、业务部署和系统监测。
 
-表2 MEF组件功能介绍
+表3 MEF组件功能介绍
 
 | 功能类型                                                                                               | 详细功能介绍                                                                           |
 |:---------------------------------------------------------------------------------------------------|:---------------------------------------------------------------------------------|
