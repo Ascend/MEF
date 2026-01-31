@@ -34,7 +34,7 @@ Edge和MEF Center进行边云协同管理，用户可通过二次开发，对接
 
 ## 目录结构
 
-关键目录如下，详细目录介绍参见[项目目录](docs/dir_structure.md)。
+关键目录如下，详细目录介绍参见[项目目录](./docs/zh/dir_structure.md)。
 
     MEF					        # 项目根目录
     ├── build				        # 构建相关目录
@@ -94,8 +94,7 @@ MEF版本配套详情请参考：[版本配套说明](https://www.hiascend.com/d
 
 在安装和使用前，用户需要了解安装须知、进行安装环境准备，具体内容请参考昇腾社区文档，“[安装MEF](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefug_0006.html)”章节。
 
-![MEF安装流程图](docs/images/mef_install.png)
-
+![MEF安装流程图](./docs/zh/figures/MindEdge-Framework安装流程图.png)
 - 安装部署MEF Center
     - 以root用户登录准备安装MEF Center的设备环境
     - 将软件包上传至设备任意路径下（建议该目录权限为root且其他用户不可写）
@@ -252,7 +251,7 @@ MEF版本配套详情请参考：[版本配套说明](https://www.hiascend.com/d
 
 云边协同的应用流程主要包括安装MEF、二次开发集成和管理边缘节点及容器应用三部分，具体内容请参考昇腾社区文档，“[使用指导](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefug_0025.html)”章节。
 
-![MEF应用流程图](docs/images/mef_application.png)
+![MEF应用流程图](./docs/zh/figures/MEF-Edge和MEF-Center云边协同应用流程.png)
 
 ## 功能介绍
 
@@ -317,7 +316,8 @@ API参考详见：[接口参考](https://www.hiascend.com/document/detail/zh/min
 
 ## License
 
-MEF以Mulan PSL v2许可证许可，对应许可证文本可查阅[LICENSE](LICENSE.md)。
+MEF以Mulan PSL v2许可证许可，对应许可证文本可查阅[LICENSE](LICENSE.md)。<br>
+介绍MEF docs目录下的文档适用CC-BY 4.0许可证，具体请参见[LICENSE](./docs/LICENSE.md)文件。
 
 ## 贡献声明
 
