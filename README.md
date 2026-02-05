@@ -22,7 +22,7 @@
 
 ## 最新消息
 
-- [2025.12.30]：版本发布
+- [2025.12.30]：🚀 MEF开源发布
 
 ## 简介
 
@@ -32,23 +32,30 @@ Edge和MEF Center进行边云协同管理，用户可通过二次开发，对接
 - MEF Edge部署在智能边缘设备上，负责与中心网管对接，完成智能推理业务（容器应用）的部署和管理，为算法应用提供服务。
 - MEF Center部署在通用服务器上，负责对边缘节点实现批量管理、业务部署和系统监测。
 
+<div align="center">
+
+ [![Zread](https://img.shields.io/badge/Zread-Ask_AI-_.svg?style=flat&color=0052D9&labelColor=000000&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTQuOTYxNTYgMS42MDAxSDIuMjQxNTZDMS44ODgxIDEuNjAwMSAxLjYwMTU2IDEuODg2NjQgMS42MDE1NiAyLjI0MDFWNC45NjAxQzEuNjAxNTYgNS4zMTM1NiAxLjg4ODEgNS42MDAxIDIuMjQxNTYgNS42MDAxSDQuOTYxNTZDNS4zMTUwMiA1LjYwMDEgNS42MDE1NiA1LjMxMzU2IDUuNjAxNTYgNC45NjAxVjIuMjQwMUM1LjYwMTU2IDEuODg2NjQgNS4zMTUwMiAxLjYwMDEgNC45NjE1NiAxLjYwMDFaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik00Ljk2MTU2IDEwLjM5OTlIMi4yNDE1NkMxLjg4ODEgMTAuMzk5OSAxLjYwMTU2IDEwLjY4NjQgMS42MDE1NiAxMS4wMzk5VjEzLjc1OTlDMS42MDE1NiAxNC4xMTM0IDEuODg4MSAxNC4zOTk5IDIuMjQxNTYgMTQuMzk5OUg0Ljk2MTU2QzUuMzE1MDIgMTQuMzk5OSA1LjYwMTU2IDE0LjExMzQgNS42MDE1NiAxMy43NTk5VjExLjAzOTlDNS42MDE1NiAxMC42ODY0IDUuMzE1MDIgMTAuMzk5OSA0Ljk2MTU2IDEwLjM5OTlaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik0xMy43NTg0IDEuNjAwMUgxMS4wMzg0QzEwLjY4NSAxLjYwMDEgMTAuMzk4NCAxLjg4NjY0IDEwLjM5ODQgMi4yNDAxVjQuOTYwMUMxMC4zOTg0IDUuMzEzNTYgMTAuNjg1IDUuNjAwMSAxMS4wMzg0IDUuNjAwMUgxMy43NTg0QzE0LjExMTkgNS42MDAxIDE0LjM5ODQgNS4zMTM1NiAxNC4zOTg0IDQuOTYwMVYyLjI0MDFDMTQuMzk4NCAxLjg4NjY0IDE0LjExMTkgMS42MDAxIDEzLjc1ODQgMS42MDAxWiIgZmlsbD0iI2ZmZiIvPgo8cGF0aCBkPSJNNCAxMkwxMiA0TDQgMTJaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik00IDEyTDEyIDQiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8L3N2Zz4K&logoColor=ffffff)](https://zread.ai/Ascend/MEF)&nbsp;&nbsp;&nbsp;&nbsp;
+ [![DeepWiki](https://img.shields.io/badge/DeepWiki-Ask_AI-_.svg?style=flat&color=0052D9&labelColor=000000&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAyCAYAAAAnWDnqAAAAAXNSR0IArs4c6QAAA05JREFUaEPtmUtyEzEQhtWTQyQLHNak2AB7ZnyXZMEjXMGeK/AIi+QuHrMnbChYY7MIh8g01fJoopFb0uhhEqqcbWTp06/uv1saEDv4O3n3dV60RfP947Mm9/SQc0ICFQgzfc4CYZoTPAswgSJCCUJUnAAoRHOAUOcATwbmVLWdGoH//PB8mnKqScAhsD0kYP3j/Yt5LPQe2KvcXmGvRHcDnpxfL2zOYJ1mFwrryWTz0advv1Ut4CJgf5uhDuDj5eUcAUoahrdY/56ebRWeraTjMt/00Sh3UDtjgHtQNHwcRGOC98BJEAEymycmYcWwOprTgcB6VZ5JK5TAJ+fXGLBm3FDAmn6oPPjR4rKCAoJCal2eAiQp2x0vxTPB3ALO2CRkwmDy5WohzBDwSEFKRwPbknEggCPB/imwrycgxX2NzoMCHhPkDwqYMr9tRcP5qNrMZHkVnOjRMWwLCcr8ohBVb1OMjxLwGCvjTikrsBOiA6fNyCrm8V1rP93iVPpwaE+gO0SsWmPiXB+jikdf6SizrT5qKasx5j8ABbHpFTx+vFXp9EnYQmLx02h1QTTrl6eDqxLnGjporxl3NL3agEvXdT0WmEost648sQOYAeJS9Q7bfUVoMGnjo4AZdUMQku50McDcMWcBPvr0SzbTAFDfvJqwLzgxwATnCgnp4wDl6Aa+Ax283gghmj+vj7feE2KBBRMW3FzOpLOADl0Isb5587h/U4gGvkt5v60Z1VLG8BhYjbzRwyQZemwAd6cCR5/XFWLYZRIMpX39AR0tjaGGiGzLVyhse5C9RKC6ai42ppWPKiBagOvaYk8lO7DajerabOZP46Lby5wKjw1HCRx7p9sVMOWGzb/vA1hwiWc6jm3MvQDTogQkiqIhJV0nBQBTU+3okKCFDy9WwferkHjtxib7t3xIUQtHxnIwtx4mpg26/HfwVNVDb4oI9RHmx5WGelRVlrtiw43zboCLaxv46AZeB3IlTkwouebTr1y2NjSpHz68WNFjHvupy3q8TFn3Hos2IAk4Ju5dCo8B3wP7VPr/FGaKiG+T+v+TQqIrOqMTL1VdWV1DdmcbO8KXBz6esmYWYKPwDL5b5FA1a0hwapHiom0r/cKaoqr+27/XcrS5UwSMbQAAAABJRU5ErkJggg==)](https://deepwiki.com/Ascend/MEF)
+ 
+</div>
+
 ## 目录结构
 
 关键目录如下，详细目录介绍参见[项目目录](./docs/zh/dir_structure.md)。
 
-    MEF					        # 项目根目录
-    ├── build				        # 构建相关目录
-    ├── docs				        # 文档目录
-    │   └── images				        # 图片目录
-    └── src				                # 源码目录
-        ├── common-utils				# 公共工具库
-        ├── device-plugin				# 设备插件组件
-        ├── mef-center				# MEFCenter 中心组件代码
-        └── mef-edge				# MEFEdge 边缘组件代码
+    MEF                             # 项目根目录
+    ├── build                       # 构建相关目录
+    ├── docs                        # 文档目录
+    │   └── zh                      # 中文文档目录
+    └── src                         # 源码目录
+        ├── common-utils            # 公共工具库
+        ├── device-plugin           # 设备插件组件
+        ├── mef-center              # MEFCenter 中心组件代码
+        └── mef-edge                # MEFEdge 边缘组件代码
 
 ## 版本说明
 
-MEF版本配套详情请参考：[版本配套说明](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/releasenote/edgereleasenote_0002.html)。
+MEF版本配套详情请参考：[版本配套说明](docs/zh/release_notes.md#版本配套说明)。
 
 ## 兼容性信息
 
@@ -76,7 +83,7 @@ MEF版本配套详情请参考：[版本配套说明](https://www.hiascend.com/d
         <td>OpenEuler 22.03<br>Ubuntu 22.04</td>
     </tr>
     <tr>
-        <td>Atlas 500 Pro 智能边缘服务器（型号 3000）（插Atlas 300I Pro 推理卡A300I Pro 推理卡）</td>
+        <td>Atlas 500 Pro 智能边缘服务器（型号 3000）（插Atlas 300I Pro 推理卡）</td>
         <td>AArch64</td>
         <td>OpenEuler 22.03</td>
     </tr>
@@ -92,7 +99,7 @@ MEF版本配套详情请参考：[版本配套说明](https://www.hiascend.com/d
 
 ### 安装
 
-在安装和使用前，用户需要了解安装须知、进行安装环境准备，具体内容请参考昇腾社区文档，“[安装MEF](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefug_0006.html)”章节。
+在安装和使用前，用户需要了解安装须知、进行安装环境准备，具体内容请参考“[安装MEF](docs/zh/user_guide/installation_guide.md#安装MEF)”章节文档。
 
 ![MEF安装流程图](./docs/zh/figures/MindEdge-Framework安装流程图.png)
 - 安装部署MEF Center
@@ -249,7 +256,7 @@ MEF版本配套详情请参考：[版本配套说明](https://www.hiascend.com/d
 
 ## 快速入门
 
-云边协同的应用流程主要包括安装MEF、二次开发集成和管理边缘节点及容器应用三部分，具体内容请参考昇腾社区文档，“[使用指导](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefug_0025.html)”章节。
+云边协同的应用流程主要包括安装MEF、二次开发集成和管理边缘节点及容器应用三部分，具体内容请参考“[使用指导](docs/zh/user_guide/usage.md#使用指导)”章节文档。
 
 ![MEF应用流程图](./docs/zh/figures/MEF-Edge和MEF-Center云边协同应用流程.png)
 
@@ -264,32 +271,32 @@ MEF版本配套详情请参考：[版本配套说明](https://www.hiascend.com/d
 
 | 功能类型                                                                                               | 详细功能介绍                                                                           |
 |:---------------------------------------------------------------------------------------------------|:---------------------------------------------------------------------------------|
-| [节点管理](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefapiref_0007.html)   | <ul><li>支持对节点组进行创建、查询、修改和删除操作。</li><li>支持对节点进行纳管、添加、修改、删除、查询等操作。</li></ul>       |
-| [容器应用管理](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefapiref_0029.html) | <ul><li>支持对容器应用进行创建、查询、更新、删除等操作。</li><li>支持容器应用部署到节点组、从节点组卸载、从单个节点上卸载。</li></ol> |
-| [日志收集](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefapiref_0041.html)   | <ul><li>支持收集并导出MEF Edge的日志，实现MEF Edge的日志排查，设备状态监测。</li></ol>                     |
-| [配置管理](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefapiref_0052.html)   | <ul><li>支持导入、查询、删除根证书。</li><li>支持导入吊销列表。</li><li>支持配置镜像下载信息等。</li></ol>          |
-| [告警管理](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefapiref_0046.html)   | <ul><li>支持查询告警或事件信息。</li></ol>                                                   |
-| [软件升级](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefapiref_0061.html)   | <ul><li>支持通过MEF Center软件升级接口进行MEF Edge的在线升级、同版本升级和版本回退。</li></ol>                |
-| [北向接口](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefapiref_0000.html)   | <ul><li>提供APIG服务，实现接受外部访问、对北向接口限流及转发功能。</li></ol>                                |
+| [节点管理](docs/zh/user_guide/RESTful.md#节点管理接口)   | <ul><li>支持对节点组进行创建、查询、修改和删除操作。</li><li>支持对节点进行纳管、添加、修改、删除、查询等操作。</li></ul>       |
+| [容器应用管理](docs/zh/user_guide/RESTful.md#容器应用管理接口) | <ul><li>支持对容器应用进行创建、查询、更新、删除等操作。</li><li>支持容器应用部署到节点组、从节点组卸载、从单个节点上卸载。</li></ol> |
+| [日志收集](docs/zh/user_guide/RESTful.md#日志收集接口)   | <ul><li>支持收集并导出MEF Edge的日志，实现MEF Edge的日志排查，设备状态监测。</li></ol>                     |
+| [配置管理](docs/zh/user_guide/RESTful.md#配置接口)   | <ul><li>支持导入、查询、删除根证书。</li><li>支持导入吊销列表。</li><li>支持配置镜像下载信息等。</li></ol>          |
+| [告警管理](docs/zh/user_guide/RESTful.md#告警事件信息接口)   | <ul><li>支持查询告警或事件信息。</li></ol>                                                   |
+| [软件升级](docs/zh/user_guide/RESTful.md#升级接口)   | <ul><li>支持通过MEF Center软件升级接口进行MEF Edge的在线升级、同版本升级和版本回退。</li></ol>                |
+| [北向接口](docs/zh/user_guide/RESTful.md#接口参考)   | <ul><li>提供APIG服务，实现接受外部访问、对北向接口限流及转发功能。</li></ol>                                |
 
 ## API参考
 
-API参考详见：[接口参考](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefapiref_0000.html)。
+API参考详见：[接口参考](docs/zh/user_guide/RESTful.md#接口参考)。
 
 ## FAQ
 
-相关FAQ详见：[FAQ](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefug_0108.html)。
+相关FAQ详见：[FAQ](docs/zh/user_guide/faq.md#FAQ)。
 
 ## 安全声明
 
-- 请参考[安全加固建议](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefug_0088.html)对系统进行安全加固。
+- 请参考[安全加固建议](docs/zh/user_guide/security_hardening.md#安全加固)对系统进行安全加固。
 - 安全加固建议中的安全加固措施为基本的加固建议项。用户应根据自身业务，重新审视整个系统的网络安全加固措施。用户应按照所在组织的安全策略进行相关配置，包括并不局限于软件版本、口令复杂度要求、安全配置（协议、加密套件、密钥长度等），权限配置、防火墙设置等。必要时可参考业界优秀加固方案和安全专家的建议。
 - 安全加固涉及主机加固和容器应用加固，防止可能出现的安全隐患，用于保障设备和容器应用的安全，请用户根据实际需要进行安全加固操作。
 - 外部下载的软件代码或程序可能存在风险，功能的安全性需由用户保证。
-- 通信矩阵详见：[通信矩阵](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/commumatrix/Communication_matrix_0001.html)
-- 公网地址详见：[公网地址](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefug_0115.html)
-- 环境变量说明详见：[环境变量说明](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefug_0116.html)
-- 用户信息列表详见：[用户信息列表](https://www.hiascend.com/document/detail/zh/mindedge/72rc1/mef/mefug/mefug_0117.html)
+- 通信矩阵详见：[通信矩阵](https://www.hiascend.com/document/detail/zh/mindedge/730/commumatrix/Communication_matrix_0001.html)
+- 公网地址详见：[公网地址](docs/zh/user_guide/appendix.md#公网地址)
+- 环境变量说明详见：[环境变量说明](docs/zh/user_guide/appendix.md#环境变量说明)
+- 用户信息列表详见：[用户信息列表](docs/zh/user_guide/appendix.md#用户信息列表)
 
 ## 分支维护策略
 
@@ -304,9 +311,9 @@ API参考详见：[接口参考](https://www.hiascend.com/document/detail/zh/min
 
 ## 版本维护策略
 
-| 版本       | 维护策略 | 当前状态 | 发布日期       | 后续状态                 | EOL日期      |
-|----------|------|------|------------|----------------------|------------|
-| master   | 长期支持 | 开发   | 在研分支，不发布   | 2025-10-27           | -          |
+| 版本       | 维护策略 | 当前状态 | 发布日期       | 后续状态 | EOL日期      |
+|----------|------|------|------------|------|------------|
+| master   | 长期支持 | 开发   | 在研分支，不发布   | -    | -          |
 
 ## 免责声明
 
