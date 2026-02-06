@@ -1116,74 +1116,82 @@ MEF Center支持导入与MEF Center对接的集成方根证书链的对应吊销
 
         ```text
         # 容器操作系统及TAG，根据实际修改
-        FROM ubuntu:22.04
-        
-        ARG NNRT_PKG
-        ARG DIST_PKG
-        # 本文以/usr/local/Ascend目录为例作为NNRT安装目录，如果您希望安装在其他目录，请修改为您希望的目录
-        ARG ASCEND_BASE=/usr/local/Ascend
-        WORKDIR /home/AscendWork
-        COPY $NNRT_PKG .
+ 	    FROM ubuntu:22.04
+ 	 
+ 	    ARG TOOLKIT_PKG
+ 	    ARG OPS_PKG
+ 	    ARG DIST_PKG
+ 	    # 本文以/usr/local/Ascend目录为例作为CANN安装目录，如果您希望安装在其他目录，请修改为您希望的目录
+ 	    ARG ASCEND_BASE=/usr/local/Ascend
+ 	    WORKDIR /home/AscendWork
+ 	    COPY $TOOLKIT_PKG .
+ 	    COPY $OPS_PKG .
         COPY $DIST_PKG .
-        COPY install.sh .
-        
-        # 推理程序需要使用到底层驱动，底层驱动的运行依赖HwHiAiUser，HwDmUser，HwBaseUser三个用户
-        # 创建运行推理应用的用户及组，以步骤2第1点中查到的HwHiAiUse，HwDmUser，HwBaseUser的UID与GID分别为1000，1101，1102为例
-        RUN umask 0022 && \
-            groupadd  HwHiAiUser -g 1000 && \
-            useradd -d /home/HwHiAiUser -u 1000 -g 1000 -m -s /bin/bash HwHiAiUser && \
-            groupadd HwDmUser -g 1101 && \
-            useradd -d /home/HwDmUser -u 1101 -g 1101 -m -s /bin/bash HwDmUser && \
-            usermod -aG HwDmUser HwHiAiUser && \
-            groupadd HwBaseUser -g 1102 && \
-            useradd -d /home/HwBaseUser -u 1102 -g 1102 -m -s /bin/bash HwBaseUser && \
-            usermod -aG HwBaseUser HwHiAiUser
-           
-        # 安装nnrt,解压推理程序
-        RUN chmod +x $NNRT_PKG && \
-            echo y | ./$NNRT_PKG --quiet --install --install-path=$ASCEND_BASE \
-            --install-for-all --force && \
-            sh install.sh && \
-            chown -R HwHiAiUser:HwHiAiUser /home/AscendWork/ && \
-            rm $NNRT_PKG && \
-            rm $DIST_PKG && \
-            rm install.sh
-        
-        ENV LD_LIBRARY_PATH=/usr/local/Ascend/nnrt/latest/lib64:/usr/local/Ascend/driver/lib64:/usr/lib64
-        ENV LD_PRELOAD=/lib/aarch64-linux-gnu/libc.so.6
-        
-        RUN ln -sf /lib /lib64 && \
-            mkdir /var/dmp && \
-            mkdir /usr/slog && \
-            chown HwHiAiUser:HwHiAiUser /usr/slog && \
-            chown HwHiAiUser:HwHiAiUser /var/dmp
-        
-        # 拷贝日志配置文件
-        COPY --chown=HwHiAiUser:HwHiAiUser slog.conf /etc
-        
-        COPY --chown=HwHiAiUser:HwHiAiUser run.sh /home/AscendWork/run.sh
-        RUN chmod 640 /etc/slog.conf && \
-            chmod +x /home/AscendWork/run.sh
-        
-        # 若用户需要使用AICPU算子，则请用户将如下指令中的注释“#”删除
-        #RUN cp /usr/local/Ascend/nnrt/latest/opp/Ascend/aicpu/Ascend-aicpu_syskernels.tar.gz /home/HwHiAiUser/ && \
-        #    rm -rf /usr/local/Ascend/nnrt/latest/opp/Ascend/aicpu/Ascend-aicpu_syskernels.tar.gz && \
-        #    echo $(wc -c /home/HwHiAiUser/Ascend-aicpu_syskernels.tar.gz|awk ' {print$1} ') > /home/HwHiAiUser/aicpu_package_install.info && \
-        #    tail -c +8449 /home/HwHiAiUser/Ascend-aicpu_syskernels.tar.gz > /home/HwHiAiUser/aicpu.tar.gz && \
-        #    rm -rf /home/HwHiAiUser/Ascend-aicpu_syskernels.tar.gz && \
-        #    chown HwHiAiUser:HwHiAiUser /home/HwHiAiUser/aicpu.tar.gz && \
-        #    mkdir -p /home/HwHiAiUser/aicpu_kernels
-        #RUN tar -xvf /home/HwHiAiUser/aicpu.tar.gz -C /home/HwHiAiUser/ 2>/dev/null;exit 0
-        #RUN rm -rf /home/HwHiAiUser/aicpu.tar.gz && \
-        #    mv /home/HwHiAiUser/aicpu_kernels_device/* /home/HwHiAiUser/aicpu_kernels/ && \
-        #    chown -R HwHiAiUser:HwHiAiUser /home/HwHiAiUser/
-        
-        # 若用户不需要使用AICPU算子，请将如下指令的注释“#”删除
-        #RUN rm -rf /usr/local/Ascend/nnrt/latest/opp/Ascend/aicpu/Ascend-aicpu_syskernels.tar.gz && \
-        #    chown -R HwHiAiUser:HwHiAiUser /home/HwHiAiUser/
-        
-        USER 1000
-        CMD bash /home/AscendWork/run.sh
+ 	    COPY install.sh .
+ 	 
+ 	    # 推理程序需要使用到底层驱动，底层驱动的运行依赖HwHiAiUser，HwDmUser，HwBaseUser三个用户
+ 	    # 创建运行推理应用的用户及组，以步骤2第1点中查到的HwHiAiUse，HwDmUser，HwBaseUser的UID与GID分别为1000，1101，1102为例
+ 	    RUN umask 0022 && \
+ 	        groupadd  HwHiAiUser -g 1000 && \
+ 	        useradd -d /home/HwHiAiUser -u 1000 -g 1000 -m -s /bin/bash HwHiAiUser && \
+ 	        groupadd HwDmUser -g 1101 && \
+ 	        useradd -d /home/HwDmUser -u 1101 -g 1101 -m -s /bin/bash HwDmUser && \
+ 	        usermod -aG HwDmUser HwHiAiUser && \
+ 	        groupadd HwBaseUser -g 1102 && \
+ 	        useradd -d /home/HwBaseUser -u 1102 -g 1102 -m -s /bin/bash HwBaseUser && \
+ 	        usermod -aG HwBaseUser HwHiAiUser
+ 	 
+ 	    # CANN安装依赖python
+ 	    RUN apt-get update && apt-get upgrade -y
+ 	    RUN apt-get install -y python3 python3-pip ca-certificates
+ 	 
+ 	    # 安装CANN,解压推理程序
+ 	    RUN chmod +x $TOOLKIT_PKG && \
+ 	        chmod +x $OPS_PKG && \
+ 	        ./$TOOLKIT_PKG --install --install-path=$ASCEND_BASE --install-for-all --whitelist=nnrt --quiet --force && \
+ 	        ./$OPS_PKG --quiet --install --install-path=$ASCEND_BASE --install-for-all --whitelist=nnrt --quiet --force && \
+ 	        sh install.sh && \
+ 	        chown -R HwHiAiUser:HwHiAiUser /home/AscendWork/ && \
+ 	        rm $TOOLKIT_PKG && \
+ 	        rm $OPS_PKG && \
+ 	        rm $DIST_PKG && \
+ 	        rm install.sh
+ 	 
+ 	    ENV LD_LIBRARY_PATH=/usr/local/Ascend/driver/lib64:/usr/lib64
+ 	    ENV LD_PRELOAD=/lib/aarch64-linux-gnu/libc.so.6
+ 	 
+ 	    RUN ln -sf /lib /lib64 && \
+ 	        mkdir /var/dmp && \
+ 	        mkdir /usr/slog && \
+ 	        chown HwHiAiUser:HwHiAiUser /usr/slog && \
+ 	        chown HwHiAiUser:HwHiAiUser /var/dmp
+ 	 
+ 	    # 拷贝日志配置文件
+ 	    COPY --chown=HwHiAiUser:HwHiAiUser slog.conf /etc
+ 	 
+ 	    COPY --chown=HwHiAiUser:HwHiAiUser run.sh /home/AscendWork/run.sh
+ 	    RUN chmod 640 /etc/slog.conf && \
+ 	        chmod +x /home/AscendWork/run.sh
+ 	 	
+ 	    # 若用户需要使用AICPU算子，则请用户将如下指令中的注释“#”删除
+ 	    #RUN cp /usr/local/Ascend/ascend-toolkit/latest/opp/Ascend/aicpu/Ascend-aicpu_syskernels.tar.gz /home/HwHiAiUser/ && \
+ 	    #    rm -rf /usr/local/Ascend/ascend-toolkit/latest/opp/Ascend/aicpu/Ascend-aicpu_syskernels.tar.gz && \
+ 	    #    echo $(wc -c /home/HwHiAiUser/Ascend-aicpu_syskernels.tar.gz|awk ' {print$1} ') > /home/HwHiAiUser/aicpu_package_install.info && \
+ 	    #    tail -c +8449 /home/HwHiAiUser/Ascend-aicpu_syskernels.tar.gz > /home/HwHiAiUser/aicpu.tar.gz && \
+ 	    #    rm -rf /home/HwHiAiUser/Ascend-aicpu_syskernels.tar.gz && \
+ 	    #    chown HwHiAiUser:HwHiAiUser /home/HwHiAiUser/aicpu.tar.gz && \
+ 	    #    mkdir -p /home/HwHiAiUser/aicpu_kernels
+ 	    #RUN tar -xvf /home/HwHiAiUser/aicpu.tar.gz -C /home/HwHiAiUser/ 2>/dev/null;exit 0
+ 	    #RUN rm -rf /home/HwHiAiUser/aicpu.tar.gz && \
+ 	    #    mv /home/HwHiAiUser/aicpu_kernels_device/* /home/HwHiAiUser/aicpu_kernels/ && \
+ 	    #    chown -R HwHiAiUser:HwHiAiUser /home/HwHiAiUser/
+ 	 
+ 	    # 若用户不需要使用AICPU算子，请将如下指令的注释“#”删除
+ 	    #RUN rm -rf /usr/local/Ascend/ascend-toolkit/latest/opp/Ascend/aicpu/Ascend-aicpu_syskernels.tar.gz && \
+ 	    #    chown -R HwHiAiUser:HwHiAiUser /home/HwHiAiUser/
+ 	 
+ 	    USER 1000
+ 	    CMD bash /home/AscendWork/run.sh
         ```
 
     4. 在创建Dockerfile文件后，执行以下命令修改Dockerfile文件权限。
@@ -1204,13 +1212,15 @@ MEF Center支持导入与MEF Center对接的集成方根证书链的对应吊销
 
         ```shell
         #!/bin/bash
-        mkdir /dev/shm/dmp
-        nohup /var/dmp_daemon -I -M -U 8087 >&/dev/null &
-        /var/slogd -d
+ 	    mkdir /dev/shm/dmp
+ 	    nohup /var/dmp_daemon -I -M -U 8087 >&/dev/null &
+ 	    /var/slogd -d
+ 	    # 导入CANN环境变量，请根据CANN实际安装路径进行调整
+ 	    source /usr/local/Ascend/ascend-toolkit/latest/set_env.sh
         #进入业务推理程序的可执行文件所在目录，用户需根据实际路径修改
-        cd /home/AscendWork/vpc_resnet50_imagenet_classification/out
-        #运行可执行文件，用户需根据实际应用修改
-        ./main
+ 	    cd /home/AscendWork/vpc_resnet50_imagenet_classification/out
+ 	    #运行可执行文件，用户需根据实际应用修改
+ 	    ./main
         ```
 
 3. 进入软件包所在目录，执行以下命令，构建容器镜像。

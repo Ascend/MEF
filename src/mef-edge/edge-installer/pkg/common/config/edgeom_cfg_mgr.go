@@ -25,6 +25,33 @@ import (
 	"edge-installer/pkg/common/util"
 )
 
+var mountWhitelist = []string{
+	"/etc/sys_version.conf",
+	"/etc/hdcBasic.cfg",
+	"/usr/lib64/libaicpu_processer.so",
+	"/usr/lib64/libaicpu_prof.so",
+	"/usr/lib64/libaicpu_sharder.so",
+	"/usr/lib64/libadump.so",
+	"/usr/lib64/libtsd_eventclient.so",
+	"/usr/lib64/libaicpu_scheduler.so",
+	"/usr/lib64/libcrypto.so.1.1.1m",
+	"/usr/lib64/libcrypto.so.3.0.12",
+	"/usr/lib/aarch64-linux-gnu/libcrypto.so.1.1",
+	"/usr/lib/aarch64-linux-gnu/libcrypto.so.3.0.12",
+	"/usr/lib64/libyaml-0.so.2.0.9",
+	"/usr/lib/aarch64-linux-gnu/libyaml-0.so.2.0.6",
+	"/usr/lib64/libdcmi.so",
+	"/usr/lib64/libmpi_dvpp_adapter.so",
+	"/usr/lib64/aicpu_kernels/",
+	"/usr/local/sbin/npu-smi",
+	"/usr/lib64/libstackcore.so",
+	"/usr/lib64/libunified_timer.so",
+	"/usr/lib64/libmmpa.so",
+	"/usr/local/Ascend/driver/lib64",
+	"/var/slogd",
+	"/var/dmp_daemon",
+}
+
 // SmoothEdgeOmContainerConfig smooth edgeom container config to new edgeom config file
 func SmoothEdgeOmContainerConfig(installRootDir string) error {
 	edgeOmContainerConfigPath := pathmgr.NewConfigPathMgr(installRootDir).GetContainerConfigPath()
@@ -53,9 +80,7 @@ func SmoothEdgeOmContainerConfig(installRootDir string) error {
 		return errors.New("unmarshal edgeOmContainerConfig failed")
 	}
 
-	addPaths := []string{"/usr/lib/aarch64-linux-gnu/libcrypto.so.1.1", "/usr/lib64/libcrypto.so.1.1",
-		"/usr/lib/aarch64-linux-gnu/libyaml-0.so.2.0.6", "/var/lib/docker/modelfile"}
-	newPaths := mergeArrayWithoutRepeat(containerConfigData.HostPath, addPaths)
+	newPaths := mergeArrayWithoutRepeat(containerConfigData.HostPath, mountWhitelist)
 	if err = util.SetJsonValue(edgeOmContainerConfig, newPaths, constants.ConfigHostPath); err != nil {
 		hwlog.RunLog.Errorf("set value for hostPath failed, error: %v", err)
 		return errors.New("set value for hostPath failed")
