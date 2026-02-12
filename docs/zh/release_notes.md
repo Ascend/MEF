@@ -10,7 +10,7 @@
 </tr>
 <tr id="zh-cn_topic_0000001938532254_zh-cn_topic_0000001935094108_row255mcpsimp"><th class="firstcol" valign="top" width="25%" id="mcps1.1.3.2.1"><p id="zh-cn_topic_0000001938532254_zh-cn_topic_0000001935094108_p257mcpsimp"><a name="zh-cn_topic_0000001938532254_zh-cn_topic_0000001935094108_p257mcpsimp"></a><a name="zh-cn_topic_0000001938532254_zh-cn_topic_0000001935094108_p257mcpsimp"></a>产品版本</p>
 </th>
-<td class="cellrowborder" valign="top" width="75%" headers="mcps1.1.3.2.1 "><p id="zh-cn_topic_0000001938532254_zh-cn_topic_0000001935094108_p233mcpsimp"><a name="zh-cn_topic_0000001938532254_zh-cn_topic_0000001935094108_p233mcpsimp"></a><a name="zh-cn_topic_0000001938532254_zh-cn_topic_0000001935094108_p233mcpsimp"></a>7.3.0</p>
+<td class="cellrowborder" valign="top" width="75%" headers="mcps1.1.3.2.1 "><p id="zh-cn_topic_0000001938532254_zh-cn_topic_0000001935094108_p233mcpsimp"><a name="zh-cn_topic_0000001938532254_zh-cn_topic_0000001935094108_p233mcpsimp"></a><a name="zh-cn_topic_0000001938532254_zh-cn_topic_0000001935094108_p233mcpsimp"></a>-</p>
 </td>
 </tr>
 <tr id="zh-cn_topic_0000001938532254_zh-cn_topic_0000001935094108_row7259721105019"><th class="firstcol" valign="top" width="25%" id="mcps1.1.3.3.1"><p id="zh-cn_topic_0000001938532254_zh-cn_topic_0000001935094108_p7260182135013"><a name="zh-cn_topic_0000001938532254_zh-cn_topic_0000001935094108_p7260182135013"></a><a name="zh-cn_topic_0000001938532254_zh-cn_topic_0000001935094108_p7260182135013"></a>版本类型</p>
@@ -35,13 +35,11 @@
 
 ## 病毒扫描结果<a name="ZH-CN_TOPIC_0000002524443501"></a>
 
-病毒扫描通过，详细请参见[MEF 7.3.0 virus scan report.docx](./resource/MEF%207.3.0%20virus%20scan%20report.docx)。
+病毒扫描通过，详细请参见[MEF virus scan report.docx](./resource/MEF%207.3.0%20virus%20scan%20report.docx)。
 
 # 版本兼容性说明<a name="ZH-CN_TOPIC_0000002524563471"></a>
 
-**表 1**  软件版本兼容性说明
-
-开源首版本不涉及版本升级。
+开源首版本不涉及版本升级
 
 > [!NOTE] 说明   
 > 软件版本兼容性是指网元软件版本升级时，关联设备、网管和上层OSS不需要联动升级或打补丁，仍然可以支持已有功能。
@@ -90,4 +88,4 @@
 
 # 漏洞修补列表<a name="ZH-CN_TOPIC_0000002492443764"></a>
 
-请参见[MEF 7.3.0 漏洞修补列表.xlsx](./resource/MEF%207.3.0%20漏洞修补列表.xlsx)。
+请参见[MEF 漏洞修补列表.xlsx](./resource/MEF%207.3.0%20漏洞修补列表.xlsx)。

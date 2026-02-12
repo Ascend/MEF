@@ -118,7 +118,7 @@ MEF Center的对外接口需要与第三方平台进行双向证书认证。
 
 3. （可选）配置域名和IP地址的映射关系。
 
-    当调入镜像仓库配置时使用域名，需要在边缘设备的MEF Edge的主机目录“/etc/hosts“中，配置域名和IP地址的映射关系，具体操作请参考[配置本地域名映射](./common_operations.md#配置本地域名映射)。
+    当调入镜像仓库配置时使用域名，需要在边缘设备的MEF Edge的主机目录“/etc/hosts”中，配置域名和IP地址的映射关系，具体操作请参考[配置本地域名映射](./common_operations.md#配置本地域名映射)。
 
     ```bash
     ./run.sh domainconfig -domain=xxx -ip=xxx
@@ -146,7 +146,7 @@ https://{ip}:{port}/certmanager/v1/certificates/import
 
 1. 以root用户登录MEF Edge设备环境。
 2. 获取MEF Center根证书和云边认证token。
-    1. 导出根证书参考[导出根证书](./RESTful.md#导出根证书)，URL参数选择“hub\_svr“。
+    1. 导出根证书参考[导出根证书](./RESTful.md#导出根证书)，URL参数选择“hub\_svr”。
     2. 获取有效的云边认证token参考[获取云边认证token](./RESTful.md#获取云边认证token)，获取的token有效期为7天。
 
 3. 将MEF Center根证书上传至MEF Edge设备任意路径下（该目录权限建议为其他用户不可写）。

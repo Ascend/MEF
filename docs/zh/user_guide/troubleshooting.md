@@ -16,11 +16,11 @@
 
 **原因分析<a name="section77551626153617"></a>**
 
-当前路径的挂载点可能设置了“noexec“参数，导致无法在此路径下执行命令。
+当前路径的挂载点可能设置了“noexec”参数，导致无法在此路径下执行命令。
 
 **解决措施<a name="section157021112307"></a>**
 
-- 方法一：更换至无“noexec“参数的路径下安装软件并运行。
+- 方法一：更换至无“noexec”参数的路径下安装软件并运行。
 - 方法二：可使用**bash**命令执行run\.sh，示例如下。
 
     ```bash
@@ -52,18 +52,18 @@ unset https_proxy
 **run\.sh**命令在有x权限（可被执行权限）时仍执行失败，回显显示“Permission denied”，示例如下。
 
 **图 1**  目录权限<a name="fig6240121814544"></a>  
-![](../figures/目录权限-0.png "目录权限-0")
+![](../figures/目录权限.png "目录权限")
 
 **图 2**  运行./run.sh失败<a name="fig0572103614540"></a>  
-![](../figures/运行-run-sh失败-1.png "运行-run-sh失败-1")
+![](../figures/运行-run-sh失败.png "运行-run-sh失败")
 
 **原因分析<a name="section77551626153617"></a>**
 
-当前路径的挂载点可能设置了“noexec“参数，导致无法在此路径下执行命令。
+当前路径的挂载点可能设置了“noexec”参数，导致无法在此路径下执行命令。
 
 **解决措施<a name="section157021112307"></a>**
 
-- 方法一：更换至无“noexec“参数的路径下安装软件并运行。
+- 方法一：更换至无“noexec”参数的路径下安装软件并运行。
 - 方法二：可使用**bash**命令执行run\.sh，示例如下。
 
     ```bash
@@ -96,7 +96,7 @@ Execute [netconfig] command failed!
 
 **解决措施<a name="section19769112012133"></a>**
 
-1. 打开[MEF Edge安装部署的运行日志](./common_operations.md#运行日志)（默认位置为“/var/alog/MEFEdge\_log/edge\_installer/edge\_installer\_run.log“）。
+1. 打开[MEF Edge安装部署的运行日志](./common_operations.md#运行日志)（默认位置为“/var/alog/MEFEdge\_log/edge\_installer/edge\_installer\_run.log”）。
 2. 查看日志中网管配置失败的原因。
     - 若错误如下，需要检查token正确性。
 

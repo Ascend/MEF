@@ -2,13 +2,13 @@
 
 ## 公网地址<a name="ZH-CN_TOPIC_0000001722375573"></a>
 
-开源代码包含的公网地址请参考[MEF 7.3.0 MEF公网地址.xlsx](../resource/MEF%207.3.0%20MEF公网地址.xlsx)。
+开源代码包含的公网地址请参考[MEF公网地址.xlsx](../resource/MEF%207.3.0%20MEF公网地址.xlsx)。
 
 > [!NOTE] 说明 
 > 
 >- MEF Edge的安装路径下，libcrypto.so.1.1为开源软件OpenSSL的动态链接库，其中的电子邮件地址“appro@openssl.org”是许可声明的一部分，实际并未使用。
 >- MEF Edge的安装路径下，libc.so.6为开源软件edgecore的动态链接库，其中的电子邮件地址“keld@dkuug.dk”是许可声明的一部分，实际并未使用。
->- MEF Edge的安装路径下，“software/edge\_core/bin/edgecore“、"software/device\_plugin/bin/device-plugin", 等目录中为产品使用的开源软件，部分开源软件在以下场景中使用公网URL和IP：1. 在打印日志时会附带网址信息。2. warning提示。3. 异常信息。以上内容均用于信息提示，实际运行时不会访问该网址，没有安全风险。
+>- MEF Edge的安装路径下，“software/edge\_core/bin/edgecore”、"software/device\_plugin/bin/device-plugin", 等目录中为产品使用的开源软件，部分开源软件在以下场景中使用公网URL和IP：1. 在打印日志时会附带网址信息。2. warning提示。3. 异常信息。以上内容均用于信息提示，实际运行时不会访问该网址，没有安全风险。
 >- MEF Edge的安装路径下,"software/edge\_installer/bin/edgectl"等目录文件中包含的www.w3.org为非盈利组织W3C官网，没有安全风险。
 >- MEF Center的安装路径下，libcrypto.so.1.1为开源软件OpenSSL的动态链接库，其中的电子邮件地址“appro@openssl.org”是许可声明的一部分，实际并未使用。
 >- MEF Center的安装路径下，“edge-manager/edge-manager”、"installer/bin/MEF-center-upgrade"、"installer/bin/MEF-center-installer"、"cert-manager/cert-manager"、“nginx-manager/nginx/nginx-manager”、"installer/bin/MEF-center-controller"等目录：
