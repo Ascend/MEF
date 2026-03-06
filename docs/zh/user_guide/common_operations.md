@@ -1226,7 +1226,7 @@ MEF Center支持导入与MEF Center对接的集成方根证书链的对应吊销
 3. 进入软件包所在目录，执行以下命令，构建容器镜像。
 
     ```bash
-    docker build -t image-name:tag --build-arg NNRT_PKG=nnrt-name --build-arg DIST_PKG=distpackage-name .
+    docker build -t image-name:tag --build-arg OPS_PKG=ops-name --build-arg TOOLKITPKG=toolkit-name --build-arg DIST_PKG=distpackage-name .
     ```
 
     当出现“Successfully built xxx”表示镜像构建成功，命令解释如[表2 命令参数说明](#table命令参数说明)所示。
@@ -1239,7 +1239,8 @@ MEF Center支持导入与MEF Center对接的集成方根证书链的对应吊销
     |参数|说明|
     |--|--|
     |*image-name:tag*|镜像名称与标签，用户可自行设置。|
-    |NNRT_PKG|*nnrt-name*为离线推理引擎包名称，注意不要遗漏文件后缀，请用户自行更换。|
+    |TOOLKIT_PKG|*toolkit-name*为离线推理引擎包名称，注意不要遗漏文件后缀，请用户自行更换。|
+    |OPS_PKG|*ops-name*为离线推理引擎算子包名称，注意不要遗漏文件后缀，请用户自行更换。|
     |DIST_PKG|*distpackage-name*为业务推理程序压缩包名称，注意不要遗漏文件后缀，请用户自行更换。|
 
 4. 执行以下命令保存容器镜像到磁盘。
