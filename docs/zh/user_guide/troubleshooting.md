@@ -96,7 +96,7 @@ Execute [netconfig] command failed!
 
 **解决措施<a name="section19769112012133"></a>**
 
-1. 打开[MEF Edge安装部署的运行日志](./common_operations.md#运行日志)（默认位置为“/var/alog/MEFEdge\_log/edge\_installer/edge\_installer\_run.log”）。
+1. 打开[MEF Edge安装部署的运行日志](./common_operations.md#查看日志信息)（默认位置为“/var/alog/MEFEdge\_log/edge\_installer/edge\_installer\_run.log”）。
 2. 查看日志中网管配置失败的原因。
     - 若错误如下，需要检查token正确性。
 
