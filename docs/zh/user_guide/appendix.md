@@ -8,10 +8,10 @@
 > 
 >- MEF Edge的安装路径下，libcrypto.so.1.1为开源软件OpenSSL的动态链接库，其中的电子邮件地址“appro\@openssl.org”是许可声明的一部分，实际并未使用。
 >- MEF Edge的安装路径下，libc.so.6为开源软件edgecore的动态链接库，其中的电子邮件地址“keld\@dkuug.dk”是许可声明的一部分，实际并未使用。
->- MEF Edge的安装路径下，“software/edge\_core/bin/edgecore”、"software/device\_plugin/bin/device-plugin", 等目录中为产品使用的开源软件，部分开源软件在以下场景中使用公网URL和IP：1. 在打印日志时会附带网址信息。2. warning提示。3. 异常信息。以上内容均用于信息提示，实际运行时不会访问该网址，没有安全风险。
->- MEF Edge的安装路径下,"software/edge\_installer/bin/edgectl"等目录文件中包含的www.w3.org为非盈利组织W3C官网，没有安全风险。
+>- MEF Edge的安装路径下，“software/edge\_core/bin/edgecore”、“software/device\_plugin/bin/device-plugin”, 等目录中为产品使用的开源软件，部分开源软件在以下场景中使用公网URL和IP：1. 在打印日志时会附带网址信息。2. warning提示。3. 异常信息。以上内容均用于信息提示，实际运行时不会访问该网址，没有安全风险。
+>- MEF Edge的安装路径下，“software/edge\_installer/bin/edgectl”等目录文件中包含的www.w3.org为非盈利组织W3C官网，没有安全风险。
 >- MEF Center的安装路径下，libcrypto.so.1.1为开源软件OpenSSL的动态链接库，其中的电子邮件地址“appro\@openssl.org”是许可声明的一部分，实际并未使用。
->- MEF Center的安装路径下，“edge-manager/edge-manager”、"installer/bin/MEF-center-upgrade"、"installer/bin/MEF-center-installer"、"cert-manager/cert-manager"、“nginx-manager/nginx/nginx-manager”、"installer/bin/MEF-center-controller"等目录：
+>- MEF Center的安装路径下，“edge-manager/edge-manager”、“installer/bin/MEF-center-upgrade”、“installer/bin/MEF-center-installer”、“cert-manager/cert-manager”、“nginx-manager/nginx/nginx-manager”、“installer/bin/MEF-center-controller”等目录：
 >    - 文件包含的www.w3.org为非盈利组织W3C官网，没有安全风险。
 >    - IP为测试用例中设置，没有安全风险。
 >    - 存在 `https://ascend-ics-manager.mef-center.svc.cluster.local` 和 `https://ascend-ics-cert-manager.mef-center.svc.cluster.local`，为内置访问服务地址，非公网地址，没有安全风险。
