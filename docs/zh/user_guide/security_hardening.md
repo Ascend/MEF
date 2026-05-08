@@ -155,7 +155,7 @@ Kubernetes需要进行如下加固：
     - 在启动参数“--controllers”内添加子项“-serviceaccount-token”，用于禁用命名空间默认服务账号，防止在安装运行MEF时，在mef-user和mef-center命名空间产生不需要使用的服务账号。
 
 - kubelet加强：
-    - 为防止单Pod占用过多进程数，可以开启SupportPodPidsLimit，并设置<b>--pod-max-pids</b>。在kubelet配置文件的KUBELET\_KUBEADM\_ARGS项增加--feature-gates=SupportPodPidsLimit=true --pod-max-pids=<max pid number\>。配置修改后，重启生效。具体可参考[Kubernetes官方文档](https://kubernetes.io/docs/concepts/policy/pid-limiting/)。
+    - 为防止单Pod占用过多进程数，可以开启SupportPodPidsLimit，并设置<b>--pod-max-pids</b>。在kubelet配置文件的KUBELET\_KUBEADM\_ARGS项增加--feature-gates=SupportPodPidsLimit=true --pod-max-pids=\<max pid number\>。配置修改后，重启生效。具体可参考[Kubernetes官方文档](https://kubernetes.io/docs/concepts/policy/pid-limiting/)。
     - 配置启动参数--address或者修改启动配置文件中的address字段，设置值为主机IP。
     - 配置启动参数“**--tls-min-version**”或者修改启动配置文件中的“**tlsMinVersion**”字段，启动配置文件字段取值示例如tlsMinVersion: VersionTLS13，用于配置kubelet时使用TLS1.3安全协议对通信进行加密。
     - 修改或增加启动参数“**--tls-cipher-suites**”，设置它的值如下，避免使用不安全的TLS加密套件带来风险：
@@ -165,7 +165,7 @@ Kubernetes需要进行如下加固：
         suites=TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
         ```
 
-        > [!NOTE] 说明  
+        > [!NOTE]  
         > K8s v1.19及以上版本支持TLS v1.3的加密套件，建议使用高版本的K8s时，加上TLS v1.3的加密套件。
 
 - 若K8s集群使用的OS kernel内核版本大于等于4.6，安装完K8s后手动开启AppArmor或者SELinux。

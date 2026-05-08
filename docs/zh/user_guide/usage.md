@@ -47,7 +47,7 @@ MEF Center的对外接口需要与第三方平台进行双向证书认证。
     安装路径/MEF-Center/mef-center/run.sh exchangeca -export_path MEF根证书文件路径 -import_path 管理平台根证书文件路径
     ```
 
-    > [!NOTE] 说明  
+    > [!NOTE]  
     >- 若对接后需要更新第三方管理平台根证书，MEF Center须在执行证书交换命令后重启nginx-manager，参见[重启MEF Center](./common_operations.md#重启mef-center)。
     >- 根证书的有效期建议大于[证书告警的检测周期](./common_operations.md#mef-center配置和查询证书过期告警)（默认值为7）。
     >- 重复导入根证书会备份之前导入的前一份证书。
@@ -59,7 +59,7 @@ MEF Center的对外接口需要与第三方平台进行双向证书认证。
     |-export_path/--export_path|保存的MEF根证书文件路径，用于第三方模块认证MEF Center，需具体到文件名。该文件路径只支持绝对路径，且不能为已存在文件。|
     |-import_path/--import_path|管理平台根证书文件路径，用于MEF Center认证第三方模块，需具体到文件名。可支持证书链，最多10级，单个证书校验。该文件路径只支持绝对路径。管理平台根证书应符合以下要求：<ul><li>证书需要是PEM格式。</li><li>根CA证书中签名正确。</li><li>根CA证书处于有效期内。</li><li>证书须为X.509 V3数字证书，根CA证书的“基本限制”扩展域须标明为“CA”，“密钥用法”扩展域中须包含“证书签名”。</li><li>密钥要求为RSA算法，长度不小于3072，摘要算法需为SHA256、SHA384、SHA512；或ECDSA，长度不小于256。</li></ul>|
 
-    > [!NOTE] 说明  
+    > [!NOTE]  
     >- export\_path的目录不支持软链接，路径取值长度应小于4096，目录层级小于99层，且同组和其他用户没有写权限，属主为root。
     >- export\_path指定的文件属主须为root，同组和其他用户没有写权限，且大小不超过1MB。
     >- import\_path指定的文件必须存在，属主须为root，同组和其他用户没有写权限，且大小不超过1MB。
@@ -85,7 +85,7 @@ MEF Center的对外接口需要与第三方平台进行双向证书认证。
 
     接口具体信息请参见[查询edge-manager版本](./RESTful.md#查询edge-manager版本)。
 
-    > [!NOTE] 说明    
+    > [!NOTE]    
     > 进行证书交换成功后，需等待1s后确认对接结果。
 
 **后续操作<a name="section1311312511389"></a>**
@@ -166,8 +166,8 @@ https://{ip}:{port}/certmanager/v1/certificates/import
 
     |参数|是否可选|说明|
     |--|--|--|
-    |root_ca|必选|表示导入的MEF Center根证书文件路径，且该路径需要为绝对路径。路径要求其属主为root，属组和其他用户没有写权限，且大小不超过1MB。<div> > [!NOTE] 说明  </div>当证书过期或者被吊销导致设备无法与MEF Center对接时，请重新导入MEF Center根证书文件。|
-    |ip|必选|MEF Center的访问IP地址。<div> > [!NOTE] 说明  </div>仅支持IPv4，不能为全零地址（0.0.0.0），广播地址（255.255.255.255）和本地IP。|
+    |root_ca|必选|表示导入的MEF Center根证书文件路径，且该路径需要为绝对路径。路径要求其属主为root，属组和其他用户没有写权限，且大小不超过1MB。<div><div class="note"><span class="notetitle">[!NOTE] 说明</span><div class="notebody">当证书过期或者被吊销导致设备无法与MEF Center对接时，请重新导入MEF Center根证书文件。</div></div></div>|
+    |ip|必选|MEF Center的访问IP地址。<div><div class="note"><span class="notetitle">[!NOTE] 说明</span><div class="notebody">仅支持IPv4，不能为全零地址（0.0.0.0），广播地址（255.255.255.255）和本地IP。</div></div></div>|
     |port|可选|表示MEF Center的端口号，取值范围为1025~65535。不配置该参数时，使用默认端口30003。如果曾多次配置端口号，以最近一次配置的端口号为准。|
     |net_type|可选|表示网管模式，取值为MEF。不配置该参数时，默认为MEF。|
     |test_connect|可选|表示网管配置时是否对MEF Edge设备与MEF Center的连通性进行测试。测试连接默认值为true，不配置该值会默认进行连通性测试。<ul><li>如果配置该参数且取值配置为true，则会对设备与MEF Center的连通性进行测试，如果测试不通过，则对接MEF Center失败。</li><li>如果配置该参数且取值配置为false，则不会对设备与MEF Center的连通性进行测试，但可能会导致后续对接MEF Center失败。</li></ul>|
@@ -197,7 +197,7 @@ https://{ip}:{port}/certmanager/v1/certificates/import
     Execute [restart] command success!
     ```
 
-> [!NOTE] 说明   
+> [!NOTE]   
 > 
 >- MEF Center不支持迁移容器应用，重新配置网管前，建议用户[卸载已部署的容器](./RESTful.md#卸载容器应用)避免资源残留。
 >- 如需自行配置MEF Center根证书过期告警时间阈值和检测周期，可参考[MEF Edge配置和查询证书过期告警](./common_operations.md#mef-edge配置和查询证书过期告警)。
@@ -207,7 +207,7 @@ https://{ip}:{port}/certmanager/v1/certificates/import
 
 本章节指导开发者根据MEF Center提供的RESTful接口进行容器应用的部署，可按如下[图1](#fig1367012586547)所示操作步骤进行。
 
-> [!NOTE] 说明  
+> [!NOTE]  
 > 建议不要在MEF Center节点上通过命令方式和调用API接口的方式操作集群资源（如容器应用），否则可能导致MEF Center环境异常。
 
 **图 1**  部署容器应用流程图<a id="fig1367012586547"></a>  
@@ -270,7 +270,7 @@ https://{ip}:{port}/certmanager/v1/certificates/import
 <td class="cellrowborder" valign="top" width="20.330000000000002%" headers="mcps1.2.5.1.2 "><p id="p1966111716158"><a name="p1966111716158"></a><a name="p1966111716158"></a>准备容器镜像</p>
 </td>
 <td class="cellrowborder" valign="top" width="35.85%" headers="mcps1.2.5.1.3 "><p id="p1666181741512"><a name="p1666181741512"></a><a name="p1666181741512"></a><span id="ph13170154424716"><a name="ph13170154424716"></a><a name="ph13170154424716"></a>MEF</span>可以通过Docker公共镜像仓库、第三方镜像仓库或<span id="ph3525163816271"><a name="ph3525163816271"></a><a name="ph3525163816271"></a>MEF Edge</span>手动导入镜像三种方式使用容器应用的镜像。</p>
-<p id="p14661517161515"><a name="p14661517161515"></a><a name="p14661517161515"></a>当使用镜像仓库时，用户需要确保安装<span id="ph18301043115713"><a name="ph18301043115713"></a><a name="ph18301043115713"></a>MEF Edge</span>设备和镜像仓库之间的网络连接，以及镜像仓库本身能够使用。</p>> [!NOTE] 说明  <div>部署容器应用时，会使用由第三方镜像仓库下发的镜像仓库账户和密码，该账户和密码由第三方统一管理。</div>
+<p id="p14661517161515"><a name="p14661517161515"></a><a name="p14661517161515"></a>当使用镜像仓库时，用户需要确保安装<span id="ph18301043115713"><a name="ph18301043115713"></a><a name="ph18301043115713"></a>MEF Edge</span>设备和镜像仓库之间的网络连接，以及镜像仓库本身能够使用。</p><div class="note"><span class="notetitle">[!NOTE] 说明</span><div class="notebody">部署容器应用时，会使用由第三方镜像仓库下发的镜像仓库账户和密码，该账户和密码由第三方统一管理。</div></div>
 </td>
 <td class="cellrowborder" valign="top" width="31.119999999999997%" headers="mcps1.2.5.1.4 "><a name="ul362985313248"></a><a name="ul362985313248"></a><ul id="ul362985313248"><li>如果用户在<span id="ph33441146105719"><a name="ph33441146105719"></a><a name="ph33441146105719"></a>MEF Edge</span>设备环境手动导入镜像，可参考Docker命令在任意路径下导入：<strong id="b185143414551"><a name="b185143414551"></a><a name="b185143414551"></a>docker load -i xxxx.tar.gz</strong></li><li>如果用户需要使用第三方镜像仓库获取镜像，使用流程请参见<a href="./RESTful.md#配置接口介绍">配置接口介绍</a>进行操作。</li><li>容器镜像的制作可参考<a href="./common_operations.md#制作推理镜像">制作推理镜像</a>或<span id="ph1126911412338"><a name="ph1126911412338"></a><a name="ph1126911412338"></a>《<a href="https://support.huawei.com/enterprise/zh/doc/EDOC1100423566" target="_blank" rel="noopener noreferrer">Atlas 200I A2 加速模块 昇腾软件快速安装指南</a>》</span>中的<span class="menucascade" id="menucascade856261318102"><a name="menucascade856261318102"></a><a name="menucascade856261318102"></a>“<span class="uicontrol" id="uicontrol17562613171014"><a name="uicontrol17562613171014"></a><a name="uicontrol17562613171014"></a>容器部署场景</span> &gt; <span class="uicontrol" id="uicontrol562491818103"><a name="uicontrol562491818103"></a><a name="uicontrol562491818103"></a>制作容器镜像</span>”</span>章节。</li></ul>
 </td>
@@ -281,7 +281,7 @@ https://{ip}:{port}/certmanager/v1/certificates/import
 </td>
 <td class="cellrowborder" valign="top" width="35.85%" headers="mcps1.2.5.1.3 "><p id="p5264194481514"><a name="p5264194481514"></a><a name="p5264194481514"></a>通过RESTful接口为节点组创建容器应用。</p>
 </td>
-<td class="cellrowborder" rowspan="7" valign="top" width="31.119999999999997%" headers="mcps1.2.5.1.4 "><p id="p2334184885417"><a name="p2334184885417"></a><a name="p2334184885417"></a>容器应用管理接口信息请参见<a href="./RESTful.md#容器应用管理接口">容器应用管理接口</a>。</p>> [!NOTE] 说明 <div>若用户将非MEF Center管理的容器应用部署到设备节点，可能导致容器应用因资源不足无法部署。</div>
+<td class="cellrowborder" rowspan="7" valign="top" width="31.119999999999997%" headers="mcps1.2.5.1.4 "><p id="p2334184885417"><a name="p2334184885417"></a><a name="p2334184885417"></a>容器应用管理接口信息请参见<a href="./RESTful.md#容器应用管理接口">容器应用管理接口</a>。</p><div class="note"><span class="notetitle">[!NOTE] 说明</span><div class="notebody">若用户将非MEF Center管理的容器应用部署到设备节点，可能导致容器应用因资源不足无法部署。</div></div>
 </td>
 </tr>
 <tr id="row59891229102617"><td class="cellrowborder" valign="top" headers="mcps1.2.5.1.1 "><p id="p16989629112612"><a name="p16989629112612"></a><a name="p16989629112612"></a>（可选）查询容器应用列表</p>
@@ -317,5 +317,5 @@ https://{ip}:{port}/certmanager/v1/certificates/import
 </tbody>
 </table>
 
-> [!NOTE] 说明  
+> [!NOTE]  
 > 如需根据MEF Center提供的RESTful接口收集MEF Edge节点设备的日志，请参见[日志收集接口](./RESTful.md#日志收集接口)。若需要直接登录设备环境查看日志，请参见[查看日志信息](./common_operations.md#查看日志信息)。

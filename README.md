@@ -55,7 +55,7 @@ Edge和MEF Center进行边云协同管理，用户可通过二次开发，对接
 
 ## 版本说明
 
-MEF版本配套详情请参考：[版本配套说明](docs/zh/release_notes.md#版本配套说明)。
+MEF版本配套详情请参考：[版本配套说明](docs/zh/release_notes_MEF.md#版本配套说明)。
 
 ## 兼容性信息
 
