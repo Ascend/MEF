@@ -417,7 +417,7 @@ func testQueryCrlFailedCases() {
 	convey.Convey("case: wrong cert name", func() {
 		msg := newMsgWithContentForUT("test name")
 		resp := queryCrl(msg)
-		convey.So(resp.Msg, convey.ShouldResemble, "query crl failed parma is invalid")
+		convey.So(resp.Msg, convey.ShouldResemble, "query crl failed param is invalid")
 	})
 
 	convey.Convey("case: failed to check crl", func() {

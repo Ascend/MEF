@@ -165,7 +165,7 @@ Kubernetes需要进行如下加固：
         suites=TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
         ```
 
-        > [!NOTE]  
+        > [!NOTE]
         > K8s v1.19及以上版本支持TLS v1.3的加密套件，建议使用高版本的K8s时，加上TLS v1.3的加密套件。
 
 - 若K8s集群使用的OS kernel内核版本大于等于4.6，安装完K8s后手动开启AppArmor或者SELinux。

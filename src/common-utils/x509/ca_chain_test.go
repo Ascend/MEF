@@ -80,7 +80,7 @@ func TestGetCerts(t *testing.T) {
 			convey.So(err, convey.ShouldResemble, errors.New("new ca Chain Mgr failed: no PEM cert contains"))
 		})
 
-		convey.Convey("cehck GetCerts failed: wrong cert", func() {
+		convey.Convey("check GetCerts failed: wrong cert", func() {
 			_, err := GetCerts("./testdata/wrong_cert.crt")
 			convey.So(err, convey.ShouldResemble, errors.New("new ca Chain Mgr failed: parse cert failed"))
 		})

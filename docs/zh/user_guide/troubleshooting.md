@@ -8,10 +8,10 @@
 
 **run.sh**命令在有x权限（可被执行权限）时仍执行失败，回显显示“Permission denied”，示例如下。
 
-**图 1**  目录权限<a name="fig6240121814544"></a>  
+**图 1**  目录权限<a name="fig6240121814544"></a>
 ![](../figures/目录权限.png "目录权限")
 
-**图 2**  运行./run.sh失败<a name="fig0572103614540"></a>  
+**图 2**  运行./run.sh失败<a name="fig0572103614540"></a>
 ![](../figures/运行-run-sh失败.png "运行-run-sh失败")
 
 **原因分析<a name="section77551626153617"></a>**
@@ -51,10 +51,10 @@ unset https_proxy
 
 **run\.sh**命令在有x权限（可被执行权限）时仍执行失败，回显显示“Permission denied”，示例如下。
 
-**图 1**  目录权限<a name="fig6240121814544"></a>  
+**图 1**  目录权限<a name="fig6240121814544"></a>
 ![](../figures/目录权限.png "目录权限")
 
-**图 2**  运行./run.sh失败<a name="fig0572103614540"></a>  
+**图 2**  运行./run.sh失败<a name="fig0572103614540"></a>
 ![](../figures/运行-run-sh失败.png "运行-run-sh失败")
 
 **原因分析<a name="section77551626153617"></a>**

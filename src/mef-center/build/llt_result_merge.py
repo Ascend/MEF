@@ -1,3 +1,4 @@
+# pylint: disable=R0801
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
@@ -15,6 +16,7 @@ import json
 import glob
 import argparse
 import os
+import sys
 from xml.etree import ElementTree
 
 
@@ -62,19 +64,17 @@ def merge_xml(src, det, language):
 
 def merger_json(src, det):
     json_flies = glob.glob(os.path.join(src, "*.json"))
-    json_dump = {
-        "Packages": []
-    }
+    json_dump = {"Packages": []}
     for json_file in json_flies:
-        with open(json_file, 'r') as f:
+        with open(json_file, 'r', encoding='utf-8') as f:
             data = f.read()
             json_data = json.loads(data)
             if json_data['Packages'] is None:
-                raise Exception('cannot find package json data, maybe some of the test cases are skipped.')
+                raise ValueError('cannot find package json data, maybe some of the test cases are skipped.')
             for pkg in json_data['Packages']:
                 json_dump['Packages'].append(pkg)
     json_w = json.dumps(json_dump)
-    with open(os.path.join(det, "gocov.json"), 'w') as fw:
+    with open(os.path.join(det, "gocov.json"), 'w', encoding='utf-8') as fw:
         fw.write(json_w)
 
 
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.src == '' or args.det == '':
         print("parameter invalid!!!")
-        exit(1)
+        sys.exit(1)
     merge_xml(args.src, args.det, args.language)
     if args.language == 'go':
         merger_json(args.src, args.det)

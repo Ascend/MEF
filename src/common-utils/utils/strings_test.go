@@ -64,8 +64,8 @@ func TestMaskPrefix(t *testing.T) {
 
 func TestGetSha256Code(t *testing.T) {
 	convey.Convey("test sha256", t, func() {
-		hashs := GetSha256Code([]byte("this is a test sentence"))
-		convey.So(len(hashs), convey.ShouldEqual, byteLength)
+		hashes := GetSha256Code([]byte("this is a test sentence"))
+		convey.So(len(hashes), convey.ShouldEqual, byteLength)
 	})
 }
 

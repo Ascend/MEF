@@ -207,7 +207,7 @@ func testInitAppStatusService() {
 	err = appStatusService.initAppStatusService()
 	convey.So(err, convey.ShouldResemble, fmt.Errorf("create default user namespace failed: %v", test.ErrTest))
 
-	fmt.Println("\ncase: run infomer failed")
+	fmt.Println("\ncase: run informer failed")
 	err = appStatusService.initAppStatusService()
 	convey.So(err, convey.ShouldResemble, errors.New("sync app status service pod caches error"))
 

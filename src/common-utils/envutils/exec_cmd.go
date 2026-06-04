@@ -302,7 +302,7 @@ func (c *command) start() (int, error) {
 	}
 
 	if cmd.Process == nil {
-		return 0, fmt.Errorf("exec cmd %s faild: start process failed", c.name)
+		return 0, fmt.Errorf("exec cmd %s failed: start process failed", c.name)
 	}
 
 	// to release any resource once the cmd ends

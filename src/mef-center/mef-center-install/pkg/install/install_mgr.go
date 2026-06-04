@@ -352,7 +352,7 @@ func (sic *SftInstallCtl) setConfigOwner() error {
 	hwlog.RunLog.Info("start to set owner for mef-center config")
 	if err := util.GetOwnerMgr(sic.InstallPathMgr.ConfigPathMgr).SetConfigOwner(); err != nil {
 		hwlog.RunLog.Errorf("set owner for mef-center config failed: %s", err.Error())
-		return fmt.Errorf("set owner for mef-center config faild, %v", err)
+		return fmt.Errorf("set owner for mef-center config failed, %v", err)
 	}
 	hwlog.RunLog.Info("set owner for mef-center config successful")
 	return nil

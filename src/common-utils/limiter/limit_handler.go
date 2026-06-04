@@ -69,7 +69,7 @@ type HandlerConfig struct {
 	LimitBytes int64
 	// TotalConCurrency set the program total concurrent http request
 	TotalConCurrency int
-	// IPConCurrency set the signle IP concurrent http request "2/1sec"
+	// IPConCurrency set the single IP concurrent http request "2/1sec"
 	IPConCurrency string
 	// CacheSize the local cacheSize
 	CacheSize int

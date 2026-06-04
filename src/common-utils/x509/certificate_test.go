@@ -82,7 +82,7 @@ func TestCheckCaCert(t *testing.T) {
 			_, err := CheckCaCert("", InvalidNum)
 			convey.So(err, convey.ShouldEqual, nil)
 		})
-		convey.Convey("cert file is not exsit", func() {
+		convey.Convey("cert file is not exist", func() {
 			_, err := CheckCaCert("/djdsk.../dsd", InvalidNum)
 			convey.So(err, convey.ShouldNotBeEmpty)
 		})
@@ -287,7 +287,7 @@ func TestGetPrivateKeyLength(t *testing.T) {
 	})
 
 	convey.Convey("get key length of Curve 256", t, func() {
-		// P521 curve key length is 256. the byte lengh is in 256
+		// P521 curve key length is 256. the byte length is in 256
 		const bitLengthP256 = 256
 		cert, keypair := createGetPrivateKeyLengthTestData(elliptic.P256())
 		keyLen, keyType, err := GetPrivateKeyLength(cert, keypair)

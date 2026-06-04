@@ -12,6 +12,7 @@ import json
 import glob
 import argparse
 import os
+import sys
 from xml.etree import ElementTree
 
 
@@ -51,17 +52,14 @@ def merge_xml(src, det):
             for d in data:
                 xml_element_root.append(d)
     pretty_xml(xml_element_root, '\t', '\n')
-    xml_element_tree.write(os.path.join(det, "unit-tests.xml"),
-                           encoding='utf-8', xml_declaration=True)
+    xml_element_tree.write(os.path.join(det, "unit-tests.xml"), encoding='utf-8', xml_declaration=True)
 
 
 def merger_json(src, det):
     json_flies = glob.glob(os.path.join(src, "*.json"))
-    json_dump = {
-        "Packages": []
-    }
+    json_dump = {"Packages": []}
     for json_file in json_flies:
-        with open(json_file, 'r') as f:
+        with open(json_file, 'r', encoding='utf-8') as f:
             data = f.read()
             json_data = json.loads(data)
             if json_data['Packages'] is None:
@@ -69,7 +67,7 @@ def merger_json(src, det):
             for pkg in json_data['Packages']:
                 json_dump['Packages'].append(pkg)
     json_w = json.dumps(json_dump)
-    with open(os.path.join(det, "gocov.json"), 'w') as fw:
+    with open(os.path.join(det, "gocov.json"), 'w', encoding='utf-8') as fw:
         fw.write(json_w)
 
 
@@ -80,7 +78,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.src == '' or args.det == '':
         print("parameter invalid!!!")
-        exit(1)
+        sys.exit(1)
     merge_xml(args.src, args.det)
     merger_json(args.src, args.det)
     print("merger llt result done!")

@@ -34,7 +34,7 @@ type termios struct {
 	lflag  uint32       // local model flag
 	cc     [ccLen]uint8 // control character
 	ispeed uint32       // input baud speed
-	ospeed uint32       // output baud spead
+	ospeed uint32       // output baud speed
 }
 
 // ReadPassword  safe read password, will not echo input on console

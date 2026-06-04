@@ -48,7 +48,7 @@ func (pc *mefPodChecker) checkHostPath(podInfo *types.Pod) error {
 func (pc *mefPodChecker) checkContainersNumber(podInfo *types.Pod) error {
 	podMap, err := statusmanager.GetPodStatusMgr().GetAll()
 	if err != nil {
-		return fmt.Errorf("get depolyed pod failed: %v", err)
+		return fmt.Errorf("get deployed pod failed: %v", err)
 	}
 	containerNumbers := len(podInfo.Spec.Containers)
 	// only allows orphaned pods in the edgecore database in the podpatch response,

@@ -60,14 +60,14 @@ func TestGetTargetInstallDir(t *testing.T) {
 
 	convey.Convey("test func GetTargetInstallDir success, return work_A dir", t, func() {
 		softwareDir, err := GetTargetInstallDir(testInstallRootDir)
-		expRes := NewWorkPathMgr(testInstallRootDir).GetWorkADir()
-		convey.So(softwareDir, convey.ShouldResemble, expRes)
+		expectRes := NewWorkPathMgr(testInstallRootDir).GetWorkADir()
+		convey.So(softwareDir, convey.ShouldResemble, expectRes)
 		convey.So(err, convey.ShouldResemble, nil)
 
 		var p1 = gomonkey.ApplyFuncReturn(fileutils.IsExist, false)
 		defer p1.Reset()
 		softwareDir, err = GetTargetInstallDir(testInstallRootDir)
-		convey.So(softwareDir, convey.ShouldResemble, expRes)
+		convey.So(softwareDir, convey.ShouldResemble, expectRes)
 		convey.So(err, convey.ShouldResemble, nil)
 	})
 
@@ -78,8 +78,8 @@ func TestGetTargetInstallDir(t *testing.T) {
 		defer p1.Reset()
 
 		softwareDir, err := GetTargetInstallDir(testInstallRootDir)
-		expRes := NewWorkPathMgr(testInstallRootDir).GetWorkBDir()
-		convey.So(softwareDir, convey.ShouldResemble, expRes)
+		expectRes := NewWorkPathMgr(testInstallRootDir).GetWorkBDir()
+		convey.So(softwareDir, convey.ShouldResemble, expectRes)
 		convey.So(err, convey.ShouldResemble, nil)
 	})
 

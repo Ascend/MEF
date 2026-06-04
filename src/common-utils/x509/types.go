@@ -42,7 +42,7 @@ type CrlData struct {
 // If both file path and memory content are provided, use memory content first.
 func (cd *CertData) GetCertBytes() ([]byte, error) {
 	if cd == nil {
-		return nil, errors.New("cert data instance is invaid")
+		return nil, errors.New("cert data instance is invalid")
 	}
 	var err error
 	certContent := cd.CertContent
@@ -62,7 +62,7 @@ func (cd *CertData) GetCertBytes() ([]byte, error) {
 // If both file path and memory content are provided, use memory content first.
 func (crl *CrlData) GetCrlBytes() ([]byte, error) {
 	if crl == nil {
-		return nil, errors.New("crl data instance is invaid")
+		return nil, errors.New("crl data instance is invalid")
 	}
 	var err error
 	crlContent := crl.CrlContent

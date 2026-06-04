@@ -39,7 +39,7 @@ var edgeSvcUpdaterInstance edgeSvcUpdater
 
 // StartEdgeSvcCertUpdate  entry for edge service cert update operation
 func StartEdgeSvcCertUpdate(payload *CertUpdatePayload) {
-	// force update way: background updating jod gets the force signal, do force update process
+	// force update way: background updating job gets the force signal, do force update process
 	if continueRun := sendForceUpdateSignal(payload); !continueRun {
 		return
 	}

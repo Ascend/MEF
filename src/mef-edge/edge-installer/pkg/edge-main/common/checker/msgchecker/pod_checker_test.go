@@ -329,7 +329,7 @@ var portTestCase = []portMapTestCase{
 		assert:    convey.ShouldContainSubstring,
 		expected:  "Pod.Spec.Containers[0].Ports[0].HostPort",
 	}, {
-		description: "test port dupicate failed",
+		description: "test port duplicate failed",
 		ports: []types.ContainerPort{
 			{Name: "1", HostPort: 1024, ContainerPort: 1024, Protocol: "TCP", HostIP: "127.0.0.1"},
 			{Name: "1", HostPort: 1024, ContainerPort: 1024, Protocol: "TCP", HostIP: "127.0.0.1"},

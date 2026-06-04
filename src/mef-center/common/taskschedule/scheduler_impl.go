@@ -315,7 +315,7 @@ func startScheduler(ctx context.Context, db *gorm.DB, spec SchedulerSpec) (Sched
 		taskDone:      make(chan struct{}, 1),
 	}
 	if err := scheduler.start(); err != nil {
-		return nil, fmt.Errorf("start sheduler failed, %v", err)
+		return nil, fmt.Errorf("start scheduler failed, %v", err)
 	}
 	return scheduler, nil
 }

@@ -157,7 +157,7 @@ func sendDirReq(req config.DirReq) error {
 func (dp *downloadProcess) checkDownloadDir() error {
 	uid, err := envutils.GetUid(constants.EdgeUserName)
 	if err != nil {
-		return fmt.Errorf("get user id faild, error: %v", err)
+		return fmt.Errorf("get user id failed, error: %v", err)
 	}
 	if _, err = fileutils.CheckOwnerAndPermission(constants.EdgeDownloadPath, constants.ModeUmask077, uid); err != nil {
 		return fmt.Errorf("check download dir failed, check owner and permission error: %v", err)

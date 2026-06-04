@@ -32,7 +32,7 @@ import (
 )
 
 func TestGetMEFNodeStatusForOffline(t *testing.T) {
-	convey.Convey("test GetMEFNodeStatus For Get Lable Err", t, func() {
+	convey.Convey("test GetMEFNodeStatus For Get Label Err", t, func() {
 		hostname := "local"
 		service := &nodeSyncImpl{}
 		patch := gomonkey.ApplyFuncReturn(service.getNode, nil, nil)

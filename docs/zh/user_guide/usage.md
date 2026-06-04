@@ -47,7 +47,7 @@ MEF Center的对外接口需要与第三方平台进行双向证书认证。
     安装路径/MEF-Center/mef-center/run.sh exchangeca -export_path MEF根证书文件路径 -import_path 管理平台根证书文件路径
     ```
 
-    > [!NOTE]  
+    > [!NOTE]
     >- 若对接后需要更新第三方管理平台根证书，MEF Center须在执行证书交换命令后重启nginx-manager，参见[重启MEF Center](./common_operations.md#重启mef-center)。
     >- 根证书的有效期建议大于[证书告警的检测周期](./common_operations.md#mef-center配置和查询证书过期告警)（默认值为7）。
     >- 重复导入根证书会备份之前导入的前一份证书。
@@ -59,7 +59,7 @@ MEF Center的对外接口需要与第三方平台进行双向证书认证。
     |-export_path/--export_path|保存的MEF根证书文件路径，用于第三方模块认证MEF Center，需具体到文件名。该文件路径只支持绝对路径，且不能为已存在文件。|
     |-import_path/--import_path|管理平台根证书文件路径，用于MEF Center认证第三方模块，需具体到文件名。可支持证书链，最多10级，单个证书校验。该文件路径只支持绝对路径。管理平台根证书应符合以下要求：<ul><li>证书需要是PEM格式。</li><li>根CA证书中签名正确。</li><li>根CA证书处于有效期内。</li><li>证书须为X.509 V3数字证书，根CA证书的“基本限制”扩展域须标明为“CA”，“密钥用法”扩展域中须包含“证书签名”。</li><li>密钥要求为RSA算法，长度不小于3072，摘要算法需为SHA256、SHA384、SHA512；或ECDSA，长度不小于256。</li></ul>|
 
-    > [!NOTE]  
+    > [!NOTE]
     >- export\_path的目录不支持软链接，路径取值长度应小于4096，目录层级小于99层，且同组和其他用户没有写权限，属主为root。
     >- export\_path指定的文件属主须为root，同组和其他用户没有写权限，且大小不超过1MB。
     >- import\_path指定的文件必须存在，属主须为root，同组和其他用户没有写权限，且大小不超过1MB。
@@ -85,7 +85,7 @@ MEF Center的对外接口需要与第三方平台进行双向证书认证。
 
     接口具体信息请参见[查询edge-manager版本](./RESTful.md#查询edge-manager版本)。
 
-    > [!NOTE]    
+    > [!NOTE]
     > 进行证书交换成功后，需等待1s后确认对接结果。
 
 **后续操作<a name="section1311312511389"></a>**
@@ -134,7 +134,7 @@ https://{ip}:{port}/certmanager/v1/certificates/import
 
 接口具体信息请参见[导入根证书](./RESTful.md#导入根证书)。
 
-## MEF Center和MEF Edge认证对接<a id="ZH-CN_TOPIC_0000001722295385"></a>  
+## MEF Center和MEF Edge认证对接<a id="ZH-CN_TOPIC_0000001722295385"></a>
 
 获取MEF Center根证书和云边认证token，并在MEF Edge设备上进行网管配置，用于MEF Center和MEF Edge间的双向认证和云边对接。
 
@@ -197,8 +197,8 @@ https://{ip}:{port}/certmanager/v1/certificates/import
     Execute [restart] command success!
     ```
 
-> [!NOTE]   
-> 
+> [!NOTE]
+>
 >- MEF Center不支持迁移容器应用，重新配置网管前，建议用户[卸载已部署的容器](./RESTful.md#卸载容器应用)避免资源残留。
 >- 如需自行配置MEF Center根证书过期告警时间阈值和检测周期，可参考[MEF Edge配置和查询证书过期告警](./common_operations.md#mef-edge配置和查询证书过期告警)。
 >- 重新配置网管参数后，需要重启MEF Edge才能生效。
@@ -207,10 +207,10 @@ https://{ip}:{port}/certmanager/v1/certificates/import
 
 本章节指导开发者根据MEF Center提供的RESTful接口进行容器应用的部署，可按如下[图1](#fig1367012586547)所示操作步骤进行。
 
-> [!NOTE]  
+> [!NOTE]
 > 建议不要在MEF Center节点上通过命令方式和调用API接口的方式操作集群资源（如容器应用），否则可能导致MEF Center环境异常。
 
-**图 1**  部署容器应用流程图<a id="fig1367012586547"></a>  
+**图 1**  部署容器应用流程图<a id="fig1367012586547"></a>
 ![](../figures/部署容器应用流程图.png "部署容器应用流程图")
 
 **部署容器应用流程介绍<a name="section871716499479"></a>**
@@ -317,5 +317,5 @@ https://{ip}:{port}/certmanager/v1/certificates/import
 </tbody>
 </table>
 
-> [!NOTE]  
+> [!NOTE]
 > 如需根据MEF Center提供的RESTful接口收集MEF Edge节点设备的日志，请参见[日志收集接口](./RESTful.md#日志收集接口)。若需要直接登录设备环境查看日志，请参见[查看日志信息](./common_operations.md#查看日志信息)。

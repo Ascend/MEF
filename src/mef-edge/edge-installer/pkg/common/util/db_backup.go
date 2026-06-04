@@ -380,7 +380,7 @@ func (t singleDbBackupTask) prepareSingleDb(filePath string) error {
 	dbFile, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, constants.Mode600)
 	if err != nil {
 		if !errors.Is(err, os.ErrExist) {
-			return fmt.Errorf("failed to create emtpy db, %v", err)
+			return fmt.Errorf("failed to create empty db, %v", err)
 		}
 		linkChecker := fileutils.NewFileLinkChecker(false)
 		linkChecker.SetNext(fileutils.NewFileOwnerChecker(false, false, t.uid, t.gid))

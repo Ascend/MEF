@@ -262,7 +262,7 @@ func dumpEdgeLogs(masterTaskCtx taskschedule.TaskContext, serialNumbers,
 		status := taskschedule.TaskStatus{
 			Progress: uint(float64(common.ProgressMax-progressStartCreateTarGz) *
 				float64(doneCount) / float64(len(serialNumbers))),
-			Message: fmt.Sprintf("receving (%d/%d) files", doneCount, len(serialNumbers)),
+			Message: fmt.Sprintf("receiving (%d/%d) files", doneCount, len(serialNumbers)),
 		}
 		if err = masterTaskCtx.UpdateStatus(status); err != nil {
 			break
@@ -384,7 +384,7 @@ func createTempDirs() error {
 	dirs := []string{constants.LogDumpTempDir, constants.LogDumpPublicDir}
 	for _, dir := range dirs {
 		if err := fileutils.CreateDir(dir, fileutils.Mode700); err != nil {
-			return fmt.Errorf("failed to creatre dir %s, %v", dir, err)
+			return fmt.Errorf("failed to create dir %s, %v", dir, err)
 		}
 
 		if _, err := fileutils.RealDirCheck(dir, true, false); err != nil {

@@ -44,7 +44,7 @@ func checkSingleChain(chain []*x509.Certificate, crl *pkix.CertificateList) erro
 		// root ca can revoke mid ca; mid ca can revoke work cert
 		if cert.CheckCRLSignature(crl) != nil || idx == 0 {
 			// the CRL is not signed by this cert
-			// idx == 0 is the working certificat, it only could be revoked by Issuer
+			// idx == 0 is the working certificate, it only could be revoked by Issuer
 			continue
 		}
 		for _, revoked := range crl.TBSCertList.RevokedCertificates {

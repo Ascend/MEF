@@ -104,15 +104,15 @@ func (l *Logs) Write(d []byte) (int, error) {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 
-	writeLenth := int64(len(d))
-	if writeLenth > l.maxLenth() {
-		return 0, fmt.Errorf("the write lenth %d is greater than the maximum file size %d",
-			writeLenth, l.maxLenth(),
+	writeLength := int64(len(d))
+	if writeLength > l.maxLength() {
+		return 0, fmt.Errorf("the write length %d is greater than the maximum file size %d",
+			writeLength, l.maxLength(),
 		)
 	}
 
 	if l.file == nil {
-		if err := l.openOrCreateFile(writeLenth); err != nil {
+		if err := l.openOrCreateFile(writeLength); err != nil {
 			return 0, err
 		}
 	}
@@ -121,7 +121,7 @@ func (l *Logs) Write(d []byte) (int, error) {
 		return 0, err
 	}
 	l.length = fileInfo.Size()
-	if writeLenth+l.length > l.maxLenth() {
+	if writeLength+l.length > l.maxLength() {
 		if err := l.roll(); err != nil {
 			return 0, err
 		}
@@ -149,7 +149,7 @@ func (l *Logs) Roll() error {
 	return l.roll()
 }
 
-// Close implements io.Closer. It closses the current log file.
+// Close implements io.Closer. It closes the current log file.
 func (l *Logs) Close() error {
 	if l == nil {
 		return fmt.Errorf("logs pointer does not exist")
@@ -175,9 +175,9 @@ func (l *Logs) Flush() error {
 	return l.file.Sync()
 }
 
-// maxLenth return the number of bytes of the maximum log size
+// maxLength return the number of bytes of the maximum log size
 // before rotating.
-func (l *Logs) maxLenth() int64 {
+func (l *Logs) maxLength() int64 {
 	if l.Capacity > 0 && l.Capacity < maxCapacity {
 		return int64(l.Capacity) * int64(mByte)
 	}
@@ -213,7 +213,7 @@ func (l *Logs) openOrCreateFile(writeLen int64) error {
 		return fmt.Errorf("failed to get log file message: %v", err)
 	}
 
-	if writeLen+message.Size() >= l.maxLenth() {
+	if writeLen+message.Size() >= l.maxLength() {
 		return l.roll()
 	}
 
@@ -388,7 +388,7 @@ func (l *Logs) backupFile(src, dst string) error {
 	return os.Remove(src)
 }
 
-// copyFile copys file from src to dst.
+// copyFile copies file from src to dst.
 func (l *Logs) copyFile(src, dst string) (firstErr error) {
 	srcFile, err := os.Open(src)
 	if err != nil {

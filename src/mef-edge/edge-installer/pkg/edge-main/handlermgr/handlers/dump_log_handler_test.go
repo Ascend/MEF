@@ -89,7 +89,7 @@ func parseAndCheckArgsFailed() {
 		}
 		err = handler.Handle(&dumpLogMsg)
 		convey.So(err, convey.ShouldResemble, fmt.Errorf("failed to parse or check args,"+
-			" parma convert error: %v", test.ErrTest))
+			" param convert error: %v", test.ErrTest))
 	})
 
 	convey.Convey("invalid Module argument", func() {

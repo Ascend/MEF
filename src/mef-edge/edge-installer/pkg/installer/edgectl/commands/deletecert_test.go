@@ -63,7 +63,7 @@ func TestNewDeleteCertInfoCmd(t *testing.T) {
 			t.Errorf("create test dir failed: %v", err)
 		}
 		if err := os.WriteFile(TempPreBackupPath, []byte(certToDelete), os.ModeType); err != nil {
-			t.Errorf("create test cert file faild: %v", err)
+			t.Errorf("create test cert file failed: %v", err)
 		}
 	})
 	convey.Convey("test delete unused cert cmd methods", t, deleteCertInfoCmdMethods)

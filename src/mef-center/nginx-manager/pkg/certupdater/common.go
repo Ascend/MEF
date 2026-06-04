@@ -24,7 +24,7 @@ import (
 	"nginx-manager/pkg/nginxmgr"
 )
 
-// cert types and backup file suffix defination
+// cert types and backup file suffix definition
 const (
 	backupFileSuffix       = ".bak"
 	CertTypeEdgeCa         = "EdgeCa"

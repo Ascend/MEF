@@ -393,7 +393,7 @@ func WriteData(filePath string, fileData []byte, checkerParam ...FileChecker) er
 	defer CloseFile(writer)
 
 	if err := syscall.Flock(int(writer.Fd()), syscall.LOCK_EX|syscall.LOCK_NB); err != nil {
-		return fmt.Errorf("accquire file lock failed, %v", err)
+		return fmt.Errorf("acquire file lock failed, %v", err)
 	}
 	defer func() {
 		if err := syscall.Flock(int(writer.Fd()), syscall.LOCK_UN); err != nil {
@@ -536,7 +536,7 @@ func CopyFile(src, dst string, checkerParam ...FileChecker) error {
 	defer CloseFile(dstFile)
 
 	if err := syscall.Flock(int(dstFile.Fd()), syscall.LOCK_EX|syscall.LOCK_NB); err != nil {
-		return fmt.Errorf("accquire file lock failed, %v", err)
+		return fmt.Errorf("acquire file lock failed, %v", err)
 	}
 	defer func() {
 		if err := syscall.Flock(int(dstFile.Fd()), syscall.LOCK_UN); err != nil {

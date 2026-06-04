@@ -56,7 +56,7 @@ func TestRunCommandWithOsStdout(t *testing.T) {
 }
 
 func TestRunCommandWithOptions(t *testing.T) {
-	convey.Convey("test run command wit options", t, func() {
+	convey.Convey("test run command with options", t, func() {
 		result := RunCommandWithOptions(nil, "echo", "123")
 		convey.So(result.Err, convey.ShouldBeNil)
 		convey.So(string(result.Stdout), convey.ShouldEqual, "123")

@@ -132,7 +132,7 @@ func backUpConfigFailed() {
 		p1 := gomonkey.ApplyFuncReturn(util.SetPathOwnerGroupToMEFEdge, test.ErrTest)
 		defer p1.Reset()
 		err := postEffectProcess.Run()
-		convey.So(err, convey.ShouldResemble, fmt.Errorf("set [%s] confg dir owner for backup files failed,"+
+		convey.So(err, convey.ShouldResemble, fmt.Errorf("set [%s] config dir owner for backup files failed,"+
 			" error: %v", constants.EdgeMain, test.ErrTest))
 	})
 }

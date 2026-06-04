@@ -653,7 +653,7 @@ func SetConfigOwnerTest() {
 		patch := gomonkey.ApplyMethodReturn(ownerMgr, "SetConfigOwner", ErrTest)
 		defer patch.Reset()
 		convey.So(ins.setConfigOwner(), convey.ShouldResemble,
-			fmt.Errorf("set owner for mef-center config faild, %v", ErrTest))
+			fmt.Errorf("set owner for mef-center config failed, %v", ErrTest))
 	})
 }
 

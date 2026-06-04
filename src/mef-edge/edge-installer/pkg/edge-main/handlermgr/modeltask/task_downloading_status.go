@@ -92,8 +92,8 @@ func (t *DownloadingStatus) buildRecord(m ModelFileTask) *ModelDBRecord {
 // OnEvent handle the outside event
 func (t *DownloadingStatus) onEvent(event IModelEvent) {
 	if event.GetEventType() == TypeProgress {
-		if pEvent, ok := event.(ProgressEvent); ok {
-			t.Task.DownloadedSize = pEvent.Progress
+		if pe, ok := event.(ProgressEvent); ok {
+			t.Task.DownloadedSize = pe.Progress
 			return
 		}
 		hwlog.RunLog.Errorf("event data not right: %v", event.GetEventType())
@@ -102,7 +102,7 @@ func (t *DownloadingStatus) onEvent(event IModelEvent) {
 		if t.cancelFunc != nil {
 			t.cancelFunc()
 		}
-		pEvent, ok := event.(DownloadFinishEvent)
+		fe, ok := event.(DownloadFinishEvent)
 		if !ok {
 			hwlog.RunLog.Errorf("event data not right: %v", event.GetEventType())
 			return
@@ -111,7 +111,7 @@ func (t *DownloadingStatus) onEvent(event IModelEvent) {
 		if err != nil {
 			hwlog.RunLog.Warnf("get fd ip failed: %s", err.Error())
 		}
-		if pEvent.Success {
+		if fe.Success {
 			hwlog.OpLog.Infof("[%s@%s] %s %s %s, the message is forwarded from [%s:%s]", constants.DeviceOmModule,
 				constants.LocalIp, "download", constants.ResourceTypeModelFile, constants.Success, constants.FD, fdIp)
 			t.Task.DownloadedTime = time.Now().Format(time.RFC3339)
@@ -120,7 +120,7 @@ func (t *DownloadingStatus) onEvent(event IModelEvent) {
 		} else {
 			hwlog.OpLog.Errorf("[%s@%s] %s %s %s, the message is forwarded from [%s:%s]", constants.DeviceOmModule,
 				constants.LocalIp, "download", constants.ResourceTypeModelFile, constants.Failed, constants.FD, fdIp)
-			failStatus := buildFailStatus(t.Task, pEvent.Reason)
+			failStatus := buildFailStatus(t.Task, fe.Reason)
 			t.Task.setCurrentStatus(failStatus)
 			if err := t.Task.start(); err != nil {
 				// currently unreachable branch. The start method of failedStatus always succeeds.

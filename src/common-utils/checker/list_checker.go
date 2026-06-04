@@ -60,7 +60,7 @@ func (lc *ListChecker) checkElement(listValue *reflect.Value) CheckResult {
 	for i := 0; i < listValue.Len(); i++ {
 		checkResult := lc.elementChecker.Check(listValue.Index(i))
 		if !checkResult.Result {
-			return NewFailedResult(fmt.Sprintf("list checker Check faild: %s", checkResult.Reason))
+			return NewFailedResult(fmt.Sprintf("list checker Check failed: %s", checkResult.Reason))
 		}
 	}
 	return NewSuccessResult()

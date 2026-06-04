@@ -473,7 +473,7 @@ func CheckPubKeyLength(cert *x509.Certificate, allowMiddleStrengthRsaPublicKey .
 		}
 	case *ecdsa.PublicKey:
 		if pubKeyAlgo != x509.ECDSA {
-			return errors.New("the public key mismatches the publick key algo")
+			return errors.New("the public key mismatches the public key algo")
 		}
 
 		if params := pub.Params(); params.BitSize < MinEcdsaPubKenLen {

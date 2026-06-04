@@ -166,7 +166,7 @@ func (h *messageForwardingHandler) tryForward(event Event, message *model.Messag
 			return err
 		}
 		if result != constants.OK {
-			return fmt.Errorf("get an unsuccessful resposne: %s", result)
+			return fmt.Errorf("get an unsuccessful response: %s", result)
 		}
 	}
 	return nil

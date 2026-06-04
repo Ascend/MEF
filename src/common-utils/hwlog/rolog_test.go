@@ -112,7 +112,7 @@ func TestWriteTooLong(t *testing.T) {
 		convey.So(err, convey.ShouldNotBeNil)
 		convey.So(0, convey.ShouldEqual, n)
 		convey.So(err.Error(), convey.ShouldEqual, fmt.Sprintf(
-			"the write lenth %d is greater than the maximum file size %d", len(b), l.Capacity))
+			"the write length %d is greater than the maximum file size %d", len(b), l.Capacity))
 		_, err = os.Stat(getLogFile(dir))
 		convey.So(err, shouldNotBeExist)
 	})
@@ -323,7 +323,7 @@ func TestSaveVolumeCase2(t *testing.T) {
 	})
 }
 
-// TestCleanupExistingBackupFiles fot test the clearing the current backup log files
+// TestCleanupExistingBackupFiles for test the clearing the current backup log files
 func TestCleanupExistingBackupFiles(t *testing.T) {
 	convey.Convey("TestCleanupExistingBackupFiles", t, func() {
 		mByte = testMByte
@@ -469,7 +469,7 @@ func TestOldLogFilesList(t *testing.T) {
 func TestExtractTime(t *testing.T) {
 	convey.Convey("TestExtractTime", t, func() {
 		l := &Logs{FileName: "/var/log/myfoo/foo.log"}
-		prefix, extention := l.getPreAndExt()
+		prefix, extension := l.getPreAndExt()
 
 		tests := []struct {
 			fileName string
@@ -484,7 +484,7 @@ func TestExtractTime(t *testing.T) {
 		}
 
 		for _, test := range tests {
-			got, err := l.extractTime(test.fileName, prefix, extention)
+			got, err := l.extractTime(test.fileName, prefix, extension)
 			convey.So(got, convey.ShouldEqual, test.want)
 			convey.So(err != nil, convey.ShouldEqual, test.wantErr)
 		}

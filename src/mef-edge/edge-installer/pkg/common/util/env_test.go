@@ -151,8 +151,8 @@ func TestGetProcName(t *testing.T) {
 		var p1 = gomonkey.ApplyFuncReturn(fileutils.LoadFile, []byte("test proc file data"), nil)
 		defer p1.Reset()
 		procName, err := GetProcName(1)
-		expRes := strings.TrimSuffix(testProcFileData, "\n")
-		convey.So(procName, convey.ShouldResemble, expRes)
+		expectRes := strings.TrimSuffix(testProcFileData, "\n")
+		convey.So(procName, convey.ShouldResemble, expectRes)
 		convey.So(err, convey.ShouldResemble, nil)
 	})
 
