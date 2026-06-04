@@ -153,8 +153,8 @@ func testListParseDataIsCenter() {
 	}
 	ctx.Request = &http.Request{URL: u}
 	res, err := dispatcher.ParseData(ctx)
-	expRes := utils.ListAlarmOrEventReq{PageNum: testPageNum, PageSize: testPageSize, IfCenter: utils.TrueStr}
-	convey.So(res, convey.ShouldResemble, expRes)
+	expectRes := utils.ListAlarmOrEventReq{PageNum: testPageNum, PageSize: testPageSize, IfCenter: utils.TrueStr}
+	convey.So(res, convey.ShouldResemble, expectRes)
 	convey.So(err, convey.ShouldBeNil)
 }
 
@@ -198,9 +198,9 @@ func testListParseDataIsEdge() {
 	}
 	ctx.Request = &http.Request{URL: u}
 	res, err := dispatcher.ParseData(ctx)
-	expRes := utils.ListAlarmOrEventReq{PageNum: testPageNum, PageSize: testPageSize, Sn: testSn, GroupId: testGroupId,
+	expectRes := utils.ListAlarmOrEventReq{PageNum: testPageNum, PageSize: testPageSize, Sn: testSn, GroupId: testGroupId,
 		IfCenter: ""}
-	convey.So(res, convey.ShouldResemble, expRes)
+	convey.So(res, convey.ShouldResemble, expectRes)
 	convey.So(err, convey.ShouldBeNil)
 }
 

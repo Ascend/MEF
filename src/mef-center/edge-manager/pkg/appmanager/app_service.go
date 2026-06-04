@@ -417,11 +417,11 @@ func updateNodeGroupDaemonSet(appInfo *AppInfo, nodeGroups []types.NodeGroupInfo
 	for _, nodeGroup := range nodeGroups {
 		daemonSet, err := initDaemonSet(appInfo, nodeGroup.NodeGroupID)
 		if err != nil {
-			return fmt.Errorf("init daemon set failded: %s", err.Error())
+			return fmt.Errorf("init daemon set failed: %s", err.Error())
 		}
 		daemonSet, err = kubeclient.GetKubeClient().UpdateDaemonSet(daemonSet)
 		if err != nil {
-			return fmt.Errorf("update daemon set failded: %s", err.Error())
+			return fmt.Errorf("update daemon set failed: %s", err.Error())
 		}
 	}
 

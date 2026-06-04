@@ -60,7 +60,7 @@ const (
 	LogUploadMaxSize = 200 * common.MB
 )
 
-// consts fot args in TaskSpec struct
+// consts for args in TaskSpec struct
 const (
 	NodeSnAndIp = "nodeSnAndIp"
 	NodeID      = "nodeID"

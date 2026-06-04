@@ -58,7 +58,7 @@ type localLimitListener struct {
 }
 
 // acquire acquires the limiting semaphore. Returns true if successfully
-// accquired, false if the listener is closed or  reach the max limit
+// acquired, false if the listener is closed or reach the max limit
 func (l *localLimitListener) acquire() bool {
 	select {
 	case l.buckets <- struct{}{}:

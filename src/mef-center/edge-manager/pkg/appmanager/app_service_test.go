@@ -29,6 +29,7 @@ import (
 	"edge-manager/pkg/config"
 	"edge-manager/pkg/kubeclient"
 	"edge-manager/pkg/types"
+
 	"huawei.com/mindxedge/base/common"
 )
 
@@ -550,7 +551,7 @@ func TestUpdateNodeGroupDaemonSet(t *testing.T) {
 			err := updateNodeGroupDaemonSet(appInfo, nodeGroups)
 
 			convey.So(err, convey.ShouldResemble,
-				fmt.Errorf("init daemon set failded: %s", test.ErrTest.Error()))
+				fmt.Errorf("init daemon set failed: %s", test.ErrTest.Error()))
 		})
 
 		convey.Convey("When UpdateDaemonSet fails", func() {
@@ -564,7 +565,7 @@ func TestUpdateNodeGroupDaemonSet(t *testing.T) {
 			err := updateNodeGroupDaemonSet(appInfo, nodeGroups)
 
 			convey.So(err, convey.ShouldResemble,
-				fmt.Errorf("update daemon set failded: %s", test.ErrTest.Error()))
+				fmt.Errorf("update daemon set failed: %s", test.ErrTest.Error()))
 		})
 
 		convey.Convey("When updateNodeGroupDaemonSet success", func() {

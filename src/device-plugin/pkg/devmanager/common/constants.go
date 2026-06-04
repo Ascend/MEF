@@ -14,8 +14,8 @@ package common
 import "math"
 
 const (
-	// InvaidVal InvalidVal for NPU Invalid vaule
-	InvaidVal = 0
+	// InvalidVal InvalidVal for NPU Invalid value
+	InvalidVal = 0
 	// Success for interface return code
 	Success = 0
 	// RetError return error when the function failed

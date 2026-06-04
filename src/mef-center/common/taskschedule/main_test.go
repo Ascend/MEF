@@ -50,7 +50,7 @@ func (tc *TcTaskSchedule) Setup() error {
 		MaxActiveTasks:        thousand,
 		AllowedMaxTasksInDb:   thousand,
 	}); err != nil {
-		return fmt.Errorf("init sheduler failed, %v", err)
+		return fmt.Errorf("init scheduler failed, %v", err)
 	}
 	return nil
 }

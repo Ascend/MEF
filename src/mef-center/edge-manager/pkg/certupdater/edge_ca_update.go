@@ -39,7 +39,7 @@ var edgeCaUpdaterInstance edgeCaUpdater
 
 // StartEdgeCaCertUpdate  entry for edge root ca cert update operation
 func StartEdgeCaCertUpdate(payload *CertUpdatePayload) {
-	// force update way: background updating jod gets the force signal, do force update process
+	// force update way: background updating job gets the force signal, do force update process
 	if continueRun := sendForceUpdateSignal(payload); !continueRun {
 		return
 	}

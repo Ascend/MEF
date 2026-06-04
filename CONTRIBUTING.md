@@ -3,6 +3,7 @@
 感谢您考虑为 MEF 做出贡献！我们欢迎任何形式的贡献，包括错误修复、功能增强、文档改进等，甚至只是反馈。无论您是经验丰富的开发者还是第一次参与开源项目，您的帮助都是非常宝贵的。
 
 您可以通过多种方式支持本项目：
+
 - 通过[Issues](https://gitcode.com/Ascend/MEF/issues)反馈问题，详见[Issue提交指南](https://gitcode.com/Ascend/community/blob/master/docs/contributor/issue-guide.md)。
 - 建议或实现新功能。
 - 改进或扩展文档。
@@ -17,7 +18,7 @@
 
 2. 将Fork到个人仓的代码克隆到本地进行代码开发
 
-   ```
+   ```bash
    git clone https://gitcode.com/<your-username>/MEF.git
    ```
 
@@ -37,7 +38,7 @@
 - 确保测试覆盖主要逻辑分支
 - 测试用例应该具有良好的可读性和维护性
 - 测试用例应该放在源代码同目录下
-- 测试用例开发请遵循测试贡献指南：[Ascend 社区开发者测试贡献指南](https://gitcode.com/Ascend/community/blob/master/docs/contributor/developer-testing-guide.md) 
+- 测试用例开发请遵循测试贡献指南：[Ascend 社区开发者测试贡献指南](https://gitcode.com/Ascend/community/blob/master/docs/contributor/developer-testing-guide.md)
 
 ### 文档开发
 
@@ -70,7 +71,7 @@
 以下为提交流程指导，详细PR提交流程说明请参见：[PR提交指南](https://gitcode.com/Ascend/community/blob/master/docs/contributor/pr-guide.md)
 
 1. **创建本地分支**
-  
+
    ```bash
    git checkout -b <new_branch_name> origin/master
    ```
@@ -90,14 +91,14 @@
 
 4. **创建Pull Request**
 
-   在GitCode上创建Pull Request，并填写： 
-   - 问题/功能描述 
-   - 修改方案描述 
+   在GitCode上创建Pull Request，并填写：
+   - 问题/功能描述
+   - 修改方案描述
    - 开发自检项勾选
 
 5. **代码审查**
 
-   - 提交Pull Request后，您需要通知相关“负责人”（ Reviewers和Committers）进行内容审核。 
+   - 提交Pull Request后，您需要通知相关“负责人”（ Reviewers和Committers）进行内容审核。
    - 您需要根据反馈审核意见修改代码，并重新提交更新。此流程可能涉及多轮迭代，请保持积极响应和沟通。
 
    Pull Request流程中会提示相关的“负责人”，可在Pull Request流程中指定相关“负责人”。

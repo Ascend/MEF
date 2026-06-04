@@ -442,12 +442,12 @@ Commands:
 	upgrade     	-- upgrade MEF Center
 	exchangeca  	-- exchange root ca with MEF Center
 	updatekmc   	-- update kmc keys
-	importcrl   	-- improt crl from the Northbound ca
-	alarmconfig 	-- update alarm used configuration 
+	importcrl   	-- import crl from the Northbound ca
+	alarmconfig 	-- update alarm used configuration
 	getalarmconfig  -- get alarm used configuration
 	getunusedcert   -- list unused certificates
 	deletecert      -- delete unused certificates
-	restorecert     -- restore ca certificates by unused ones 
+	restorecert     -- restore ca certificates by unused ones
 `)
 }
 

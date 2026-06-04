@@ -19,7 +19,7 @@ import (
 // localReader is an io.Reader that reads from a specific file descriptor.
 type localReader int
 
-// Read read specical file from syscall
+// Read read special file from syscall
 func (r localReader) Read(buf []byte) (int, error) {
 	return read(int(r), buf)
 }

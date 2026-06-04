@@ -20,7 +20,7 @@ import (
 	"huawei.com/mindx/common/kmc"
 )
 
-// SelfSignCert self singed cert struct
+// SelfSignCert self signed cert struct
 type SelfSignCert struct {
 	RootCertMgr      *RootCertMgr
 	KmcCfg           *kmc.SubConfig
@@ -30,7 +30,7 @@ type SelfSignCert struct {
 	San              CertSan
 }
 
-// CreateSignCert create a new singed cert for root ca and service cert
+// CreateSignCert create a new signed cert for root ca and service cert
 func (sc *SelfSignCert) CreateSignCert() error {
 	if sc.RootCertMgr == nil {
 		return errors.New("root cert mgr is nil, can not create sign cert")
@@ -53,13 +53,13 @@ func (sc *SelfSignCert) CreateSignCert() error {
 	}
 
 	if err = saveCertWithPem(sc.SvcCertPath, certBytes); err != nil {
-		return errors.New("save self singed cert with pem failed: " + err.Error())
+		return errors.New("save self signed cert with pem failed: " + err.Error())
 	}
 
 	return nil
 }
 
-// CreateSignCertWithBackup create a new singed cert for root ca and service cert, and their backup file.
+// CreateSignCertWithBackup create a new signed cert for root ca and service cert, and their backup file.
 func (sc *SelfSignCert) CreateSignCertWithBackup() error {
 	err := sc.CreateSignCert()
 	if err != nil {

@@ -579,7 +579,7 @@ func InitInstallDirPathMgr(rootPath ...string) (*InstallDirPathMgr, error) {
 	if len(rootPath) == 0 {
 		execPath, err := os.Executable()
 		if err != nil {
-			return nil, fmt.Errorf("get excutable path failed: %v", err)
+			return nil, fmt.Errorf("get executable path failed: %v", err)
 		}
 		rootDir = filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(execPath))))
 	} else {

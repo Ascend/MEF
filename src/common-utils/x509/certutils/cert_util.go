@@ -42,7 +42,7 @@ func CreateCsr(keyPath string, commonNamePrefix string, kmcCfg *kmc.SubConfig, s
 	}
 
 	if err = saveKeyWithPem(keyPath, priv, kmcCfg); err != nil {
-		return nil, errors.New("save self singed key with pem failed: " + err.Error())
+		return nil, errors.New("save self signed key with pem failed: " + err.Error())
 	}
 
 	return csr, nil
@@ -60,7 +60,7 @@ func CreateKubeConfigCsr(keyPath string, commonName string, kmcCfg *kmc.SubConfi
 	}
 
 	if err = saveKeyWithPem(keyPath, priv, kmcCfg); err != nil {
-		return nil, errors.New("save self singed key with pem failed: " + err.Error())
+		return nil, errors.New("save self signed key with pem failed: " + err.Error())
 	}
 
 	return csr, nil

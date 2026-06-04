@@ -49,7 +49,7 @@ func (wcp *WsClientProxy) Start() error {
 	wcp.ProxyCfg.ctx, wcp.ProxyCfg.cancel = context.WithCancel(context.Background())
 	if err := wcp.start(); err != nil {
 		hwlog.RunLog.Errorf("websocket start failed, error: %v", err)
-		return fmt.Errorf("websocket cilent proxy start falied, error: %v", err)
+		return fmt.Errorf("websocket client proxy start failed, error: %v", err)
 	}
 	go wcp.reconnect()
 	return nil

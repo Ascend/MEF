@@ -121,9 +121,9 @@ type exportCaTask struct {
 	exportPath    string
 }
 
-func (ect *exportCaTask) runTask() error {
+func (e *exportCaTask) runTask() error {
 	var checkFunc = []func() error{
-		ect.export,
+		e.export,
 	}
 	for _, function := range checkFunc {
 		if err := function(); err != nil {
@@ -135,11 +135,11 @@ func (ect *exportCaTask) runTask() error {
 	return nil
 }
 
-func (ect *exportCaTask) export() error {
+func (e *exportCaTask) export() error {
 	hwlog.RunLog.Info("start to export ca")
 
-	srcPath := ect.configPathMgr.GetCompInnerRootCertPath(constants.EdgeMain)
-	if err := fileutils.CopyFile(srcPath, ect.exportPath); err != nil {
+	srcPath := e.configPathMgr.GetCompInnerRootCertPath(constants.EdgeMain)
+	if err := fileutils.CopyFile(srcPath, e.exportPath); err != nil {
 		hwlog.RunLog.Errorf("export ca failed: %s", err.Error())
 		return errors.New("export ca failed")
 	}

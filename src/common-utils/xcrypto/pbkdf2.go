@@ -72,7 +72,7 @@ import "C"
 
 const maxKeyLen = 10240
 
-// Pbkdf2WithSha256 impletment of pbkdf2 algorithm with HMAC SHA256
+// Pbkdf2WithSha256 implement of pbkdf2 algorithm with HMAC SHA256
 func Pbkdf2WithSha256(pwd []byte, salt []byte, iter int, keyLen int) ([]byte, error) {
 	if len(pwd) == 0 || len(salt) == 0 || keyLen > maxKeyLen {
 		return nil, errors.New("invalid length")

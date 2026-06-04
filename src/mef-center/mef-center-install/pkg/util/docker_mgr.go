@@ -38,7 +38,7 @@ func GetAscendDockerDealer(componentName string, tag string) DockerDealer {
 	}
 }
 
-// GetDockerDealer inits a DockerDealer with iamge name and tag
+// GetDockerDealer inits a DockerDealer with image name and tag
 func GetDockerDealer(imageName, tag string) DockerDealer {
 	return DockerDealer{
 		imageName: imageName,

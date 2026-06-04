@@ -11,7 +11,7 @@
 // Package common for
 package common
 
-// connnect flag
+// connect flag
 var (
 	ConnFlagEdgehub   bool
 	ConnFlagCloudcore bool

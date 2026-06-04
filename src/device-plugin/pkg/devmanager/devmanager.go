@@ -69,7 +69,7 @@ func AutoInit(dType string) (*DeviceManager, error) {
 	case common.Ascend310, common.Ascend310B:
 		devManager.DcMgr = &A310Manager{}
 	default:
-		return nil, fmt.Errorf("unsupport device type (%s)", devType)
+		return nil, fmt.Errorf("unsupported device type (%s)", devType)
 	}
 	if dType != "" && devType != dType {
 		return nil, fmt.Errorf("the value of dType(%s) is inconsistent with the actual chip type(%s)",

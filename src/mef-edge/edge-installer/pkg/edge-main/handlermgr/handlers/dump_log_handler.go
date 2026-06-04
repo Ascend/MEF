@@ -248,7 +248,7 @@ func (p *dumpLogProcess) feedbackError(dumpErr error) {
 func parseAndCheckArgs(msg *model.Message) (string, error) {
 	var req DumpLogReq
 	if err := msg.ParseContent(&req); err != nil {
-		return "", fmt.Errorf("parma convert error: %v", err)
+		return "", fmt.Errorf("param convert error: %v", err)
 	}
 	if !(req.Module == "edgeNode" && regexpTaskId.MatchString(req.TaskId)) {
 		return "", errors.New("invalid argument")

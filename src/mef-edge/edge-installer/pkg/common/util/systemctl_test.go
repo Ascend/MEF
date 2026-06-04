@@ -183,7 +183,7 @@ func TestCopyServiceFileToSystemd(t *testing.T) {
 		var p1 = gomonkey.ApplyFuncReturn(envutils.GetUid, uint32(0), test.ErrTest)
 		defer p1.Reset()
 		err = CopyServiceFileToSystemd(tempFile, constants.Mode700, currentUser.Username)
-		convey.So(err, convey.ShouldResemble, fmt.Errorf("get user id faild, error: %v", test.ErrTest))
+		convey.So(err, convey.ShouldResemble, fmt.Errorf("get user id failed, error: %v", test.ErrTest))
 	})
 
 	convey.Convey("test func CopyServiceFileToSystemd failed, check owner and permission failed", t, func() {
@@ -288,7 +288,7 @@ func TestReplaceValueInService(t *testing.T) {
 		var p1 = gomonkey.ApplyFuncReturn(envutils.GetUid, uint32(0), test.ErrTest)
 		defer p1.Reset()
 		err = ReplaceValueInService(tempFile.Name(), constants.Mode700, currentUser.Username, replaceDic)
-		expErr := fmt.Errorf("get user id faild, error: %v", test.ErrTest)
+		expErr := fmt.Errorf("get user id failed, error: %v", test.ErrTest)
 		convey.So(err, convey.ShouldResemble, expErr)
 	})
 

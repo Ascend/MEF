@@ -119,7 +119,7 @@ func CopyServiceFileToSystemd(servicePath string, mode uint32, userName string) 
 	}
 	uid, err := envutils.GetUid(userName)
 	if err != nil {
-		return fmt.Errorf("get user id faild, error: %v", err)
+		return fmt.Errorf("get user id failed, error: %v", err)
 	}
 	srcPath, err := fileutils.CheckOwnerAndPermission(servicePath, os.FileMode(mode), uid)
 	if err != nil {
@@ -165,7 +165,7 @@ func RemoveServiceFileInSystemd(name string) error {
 func ReplaceValueInService(servicePath string, mode uint32, userName string, replaceDic map[string]string) error {
 	uid, err := envutils.GetUid(userName)
 	if err != nil {
-		return fmt.Errorf("get user id faild, error: %v", err)
+		return fmt.Errorf("get user id failed, error: %v", err)
 	}
 	validPath, err := fileutils.CheckOwnerAndPermission(servicePath, os.FileMode(mode), uid)
 	if err != nil {

@@ -55,7 +55,7 @@ func (pc *fdPodChecker) checkContainersNumber(podInfo *types.Pod) error {
 
 	podMap, err := statusmanager.GetPodStatusMgr().GetAll()
 	if err != nil {
-		return fmt.Errorf("get depolyed pod failed: %s", err.Error())
+		return fmt.Errorf("get deployed pod failed: %s", err.Error())
 	}
 	var deployedContainerCount int
 	for _, podString := range podMap {

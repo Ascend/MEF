@@ -237,7 +237,7 @@ func getSafeTlsConfigForK8s(tlsCertInfo *certutils.TlsCertInfo, masterURL, confP
 		return nil, errors.New("get tls config failed, root ca is empty")
 	}
 	if tlsCertInfo.CertContent == nil {
-		return nil, errors.New("get tls config failed, client certifaction is empty")
+		return nil, errors.New("get tls config failed, client certification is empty")
 	}
 	if tlsCertInfo.KeyContent == nil {
 		return nil, errors.New("get tls config failed, client key is empty")

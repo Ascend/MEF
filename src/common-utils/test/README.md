@@ -23,7 +23,7 @@
    ```go
    func Test+FuncName(t *testing.T) {
        Convey("func {被测函数名} {预期结果 succeeded}", t, test+被测函数内容)
-   	Convey("func {被测函数名} {预期结果 failed, + 错误原因}", t, test+被测函数内容+Err+简述错误原因)
+       Convey("func {被测函数名} {预期结果 failed, + 错误原因}", t, test+被测函数内容+Err+简述错误原因)
    }
    ```
 
@@ -46,12 +46,12 @@
    <img src="./images/case_order.png"/>
 
 6. 多个用例共用一个初始化/打桩函数，可以通过一个功能测试函数中进行Convey嵌套的方式解决。若无依赖关系，并列即可。测试结果也会分层级显示。
-   
+
    Convey嵌套原则：
 
    每执行一次最内层的Convey都会从最外层开始逐层执行Convey的，且会略过内层已经执行过的Convey。
 
-   e.g. 
+   e.g.
 
    ```go
    func TestConvey(t *testing.T) {
@@ -77,7 +77,7 @@
            })
        })
    }
-   
+
    // 执行结果：
    loop...
    一
@@ -105,9 +105,9 @@
 
    ```go
    func TestMain(m *testing.M) {
-   	patches := gomonkey.ApplyFuncReturn(func1, func2)
-   	tcBase := &test.TcBase{}
-   	test.RunWithPatches(tcBase, m, patches)
+    patches := gomonkey.ApplyFuncReturn(func1, func2)
+    tcBase := &test.TcBase{}
+    test.RunWithPatches(tcBase, m, patches)
    }
    ```
 
@@ -115,13 +115,13 @@
 
    ```go
    func TestMain(m *testing.M) {
-   	tables := make([]interface{}, 0)
-   	tcBaseWithDb := &test.TcBaseWithDb{
-           DbPath: "xxx",
-   		Tables: append(tables, &table1{}, &table1{}),
-   	}
-   	patches := gomonkey.ApplyFunc(func1, func2)
-   	test.RunWithPatches(tcBaseWithDb, m, patches)
+    tables := make([]interface{}, 0)
+    tcBaseWithDb := &test.TcBaseWithDb{
+        DbPath: "xxx",
+        Tables: append(tables, &table1{}, &table1{}),
+    }
+    patches := gomonkey.ApplyFunc(func1, func2)
+    test.RunWithPatches(tcBaseWithDb, m, patches)
    }
    ```
 
@@ -130,16 +130,16 @@
    ```go
    // TcXXX struct for test case base
    type TcXXX struct{}
-    
+
    // Setup pre-processing
    func (tc *TcXXX) Setup() error {
-   	// 自定义setup
-   	return nil
+        // 自定义setup
+        return nil
    }
-    
+
    // Teardown post-processing
    func (tc *TcXXX) Teardown() {
-   	// 自定义teardown
+    // 自定义teardown
    }
    ```
 
@@ -150,15 +150,15 @@
        Convey("func Xxx succeeded", t, func() {
            ...
        })
-    
+
        convey.Convey("func Xxx failed, reason1", t, func() {
            ...
        })
-    
+
        convey.Convey("func Xxx failed, reason2", t, func() {
            ...
        })
-    
+
        convey.Convey("func Xxx failed, reason3", t, func() {
            ...
        })
@@ -167,22 +167,22 @@
 
 10. 导入的Convey包，可以使用别名.代替，简化书写。
 
-   ```go
-   package xxx
-   
-   import (
-       "testing"
-   
-       . "github.com/smartystreets/goconvey/convey"
-   )
-   
-   func TestXxx(t *testing.T) {
-       Convey("func MyFunction success", t, func() {
-           ...
-           So(err, ShouldBeNil)
-       })
-   }
-   ```
+    ```go
+    package xxx
+
+    import (
+        "testing"
+
+        . "github.com/smartystreets/goconvey/convey"
+    )
+
+    func TestXxx(t *testing.T) {
+        Convey("func MyFunction success", t, func() {
+            ...
+            So(err, ShouldBeNil)
+        })
+    }
+    ```
 
 11. 在setup或生成一些用例中需要用到的数据时，出现error不可直接return，需要向上抛异常或者进行error断言。否则，会导致用例被跳过。
 

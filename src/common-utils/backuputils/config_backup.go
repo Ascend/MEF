@@ -27,7 +27,7 @@ import (
 	"huawei.com/mindx/common/hwlog"
 )
 
-// YamlFileType and the followings are files' type extension for backup
+// YamlFileType and the following are files' type extension for backup
 const (
 	YamlFileType = ".yaml"
 	JsonFileType = ".json"

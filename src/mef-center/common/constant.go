@@ -242,7 +242,7 @@ const (
 	TransferEncoding   = "Transfer-Encoding"
 )
 
-// constants fo database backup
+// constants for database backup
 const (
 	BackupDbSuffix = ".backup"
 	DbTestInterval = time.Minute

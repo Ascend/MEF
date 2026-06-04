@@ -97,12 +97,12 @@ func TestCreateResponeMsg(t *testing.T) {
 	newMsg.SetRouter("src", "dst", "update", "pod")
 
 	if respMsg, err = newMsg.NewResponse(); err != nil || respMsg == nil {
-		t.Errorf("create respone message fail")
+		t.Errorf("create response message fail")
 		return
 	}
 
 	if respMsg.GetParentId() != newMsg.GetId() {
-		t.Errorf("respone message parent id is invalid")
+		t.Errorf("response message parent id is invalid")
 		return
 	}
 
@@ -114,7 +114,7 @@ func TestCreateResponeMsg(t *testing.T) {
 
 	if newMsg.GetIsSync() != respMsg.GetIsSync() || newMsg.GetSource() != respMsg.GetDestination() ||
 		newMsg.GetDestination() != respMsg.GetSource() || newMsg.GetResource() != respMsg.GetResource() {
-		t.Errorf("respone message header or router is invalid")
+		t.Errorf("response message header or router is invalid")
 		return
 	}
 }

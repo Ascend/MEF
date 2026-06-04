@@ -21,11 +21,11 @@ import (
 )
 
 func TestMergePatch(t *testing.T) {
-	dateA := []byte(`{"name":"TestMergePatch","date":28}`)
+	expect := []byte(`{"name":"TestMergePatch","date":28}`)
 	dateB := []byte(`{"name":"TestMergePatch","date":27}`)
 
 	convey.Convey("TestMergePatch", t, func() {
-		_, err := MergePatch(dateA, dateB)
+		_, err := MergePatch(expect, dateB)
 		convey.So(err, convey.ShouldResemble, nil)
 	})
 
@@ -33,7 +33,7 @@ func TestMergePatch(t *testing.T) {
 		patchByte, err := json.Marshal("patch string")
 		convey.So(err, convey.ShouldBeNil)
 
-		_, err = MergePatch(dateA, patchByte)
+		_, err = MergePatch(expect, patchByte)
 		convey.So(err, convey.ShouldResemble, errBadPatchType)
 	})
 
@@ -45,17 +45,17 @@ func TestMergePatch(t *testing.T) {
 			{Values: gomonkey.Params{test.ErrTest}},
 		})
 		defer p1.Reset()
-		_, err := MergePatch(dateA, dateB)
+		_, err := MergePatch(expect, dateB)
 		convey.So(err, convey.ShouldResemble, test.ErrTest)
 
-		_, err = MergePatch(dateA, dateB)
+		_, err = MergePatch(expect, dateB)
 		convey.So(err, convey.ShouldResemble, test.ErrTest)
 	})
 
 	convey.Convey("test MergePatch failed, marshal failed", t, func() {
 		var p1 = gomonkey.ApplyFuncReturn(json.Marshal, nil, test.ErrTest)
 		defer p1.Reset()
-		_, err := MergePatch(dateA, dateB)
+		_, err := MergePatch(expect, dateB)
 		convey.So(err, convey.ShouldResemble, test.ErrTest)
 	})
 }

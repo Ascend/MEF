@@ -63,7 +63,7 @@ func TestGetTLSConfigForClient(t *testing.T) {
 		convey.So(cfg, convey.ShouldEqual, nil)
 	})
 
-	convey.Convey("get tlsconfig succuss", t, func() {
+	convey.Convey("get tlsconfig success", t, func() {
 		var pool *x509.CertPool
 		mock := gomonkey.ApplyFunc(LoadCertPair, func(pathMap map[string]string,
 			encryptAlgorithm int) (*tls.Certificate,

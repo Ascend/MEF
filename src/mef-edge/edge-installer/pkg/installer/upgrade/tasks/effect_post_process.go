@@ -88,7 +88,7 @@ func (p *PostEffectProcessTask) backUpConfig() error {
 
 	edgeMainDir := p.ConfigPathMgr.GetCompConfigDir(constants.EdgeMain)
 	if err := util.SetPathOwnerGroupToMEFEdge(edgeMainDir, true, false); err != nil {
-		return fmt.Errorf("set [%s] confg dir owner for backup files failed, error: %v", constants.EdgeMain, err)
+		return fmt.Errorf("set [%s] config dir owner for backup files failed, error: %v", constants.EdgeMain, err)
 	}
 	hwlog.RunLog.Info("create backup files for mef config success")
 	return nil

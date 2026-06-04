@@ -289,7 +289,7 @@ func queryCrl(msg *model.Message) common.RespMsg {
 	}
 	if checkResult := certchecker.NewImportCrlNameChecker().Check(crlName); !checkResult.Result {
 		hwlog.RunLog.Error("the crl name not support")
-		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "query crl failed parma is invalid", Data: nil}
+		return common.RespMsg{Status: common.ErrorParamInvalid, Msg: "query crl failed param is invalid", Data: nil}
 	}
 	if !isExternalCrlImported(crlName) {
 		hwlog.RunLog.Infof("query [%s] crl finished, which is not imported yet", crlName)

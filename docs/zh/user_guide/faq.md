@@ -58,7 +58,7 @@ MEF Edge软件已经启动或停止后，重复执行启动或停止的命令会
 2. 执行以下命令，恢复升级环境。
 
     ```bash
-    run.sh start 
+    run.sh start
     ```
 
 ## MEF Edge升级环境被强制终止后恢复环境操作<a name="ZH-CN_TOPIC_0000001722295469"></a>
@@ -131,6 +131,6 @@ kube-controller-manager未对节点分配CIDR，而edgecore会持续查询节点
     示例：
 
     ```text
-    --cluster-cidr=192.168.0.0/16 
+    --cluster-cidr=192.168.0.0/16
     --allocate-node-cidrs=true
     ```
