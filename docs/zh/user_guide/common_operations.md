@@ -379,11 +379,13 @@ MEF Edge软件安装过程中进程运行日志或者软件的安装日志说明
     |模块名|启动单个模块，一条启动命令只能启动一个模块。<ul><li>cert-manager：证书管理模块</li><li>edge-manager：容器管理模块</li><li>nginx-manager：网关管理模块</li><li>alarm-manager：告警管理模块</li></ul>|
 
     > [!NOTE]
-    > run\.sh start支持的参数格式：
-    >- ./run.sh start 参数可选，不带参数默认启动全部模块。
-    >- ./run.sh start -component=all或者./run.sh start --component=all
-    >- ./run.sh start -component all或者./run.sh start --component all
-    >以上命令格式都可以正常运行，如果run\.sh start命令的参数不带“-”，如./run.sh start all，则会忽略该参数继续执行。
+    >- ./run.sh start不带参数默认启动全部模块。
+    >- 以下命令执行效果等价：
+    >    - ./run.sh start -component=all
+    >    - ./run.sh start --component=all
+    >    - ./run.sh start -component all
+    >    - ./run.sh start --component all
+    >- 如果run\.sh start命令的参数不带“-”，如./run.sh start all，则会忽略该参数继续执行。
 
     回显示例如下，表示操作执行成功。
 
@@ -423,11 +425,13 @@ MEF Edge软件安装过程中进程运行日志或者软件的安装日志说明
     |模块名|重启单个模块，一条重启命令只能重启一个模块。<ul><li>cert-manager：证书管理模块</li><li>edge-manager：容器管理模块</li><li>nginx-manager：网关管理模块</li><li>alarm-manager：告警管理模块</li></ul>|
 
     > [!NOTE]
-    > run\.sh restart支持的参数格式：
-    >- ./run.sh restart 参数可选，不带参数默认重启全部模块。
-    >- ./run.sh restart -component=all或者./run.sh restart --component=all
-    >- ./run.sh restart -component all或者./run.sh restart --component all
-    >以上命令格式都可以正常运行，如果run\.sh restart命令的参数不带“-”，如./run.sh restart all，则会忽略该参数继续执行。
+    >- ./run.sh restart不带参数默认启动全部模块。
+    >- 以下命令执行效果等价：
+    >    - ./run.sh restart -component=all
+    >    - ./run.sh restart --component=all
+    >    - ./run.sh restart -component all
+    >    - ./run.sh restart --component all
+    >- 如果run\.sh restart命令的参数不带“-”，如./run.sh restart all，则会忽略该参数继续执行。
 
     回显示例如下，表示操作执行成功。
 
@@ -467,11 +471,13 @@ MEF Edge软件安装过程中进程运行日志或者软件的安装日志说明
     |模块名|停止单个模块，一条停止命令只能停止一个模块。<ul><li>cert-manager：证书管理模块</li><li>edge-manager：容器管理模块</li><li>nginx-manager：网关管理模块</li><li>alarm-manager：告警管理模块</li></ul>|
 
     > [!NOTE]
-    > run\.sh stop支持的参数格式：
-    >- ./run.sh stop 参数可选，不带参数默认停止全部模块。
-    >- ./run.sh stop -component=all或者./run.sh stop --component=all
-    >- ./run.sh stop -component all或者./run.sh stop --component all
-    >以上命令格式都可以正常运行，如果run\.sh stop命令的参数不带“-”，如./run.sh stop all，则会忽略该参数继续执行。
+    >- ./run.sh stop不带参数默认启动全部模块。
+    >- 以下命令执行效果等价：
+    >    - ./run.sh stop -component=all
+    >    - ./run.sh stop --component=all
+    >    - ./run.sh stop -component all
+    >    - ./run.sh stop --component all
+    >- 如果run\.sh stop命令的参数不带“-”，如./run.sh stop all，则会忽略该参数继续执行。
 
     回显示例如下，表示操作执行成功。
 
