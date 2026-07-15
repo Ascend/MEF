@@ -3,6 +3,7 @@
 感谢您考虑为 MEF 做出贡献！我们欢迎任何形式的贡献，包括错误修复、功能增强、文档改进等，甚至只是反馈。无论您是经验丰富的开发者还是第一次参与开源项目，您的帮助都是非常宝贵的。
 
 您可以通过多种方式支持本项目：
+
 - 通过[Issues](https://gitcode.com/Ascend/MEF/issues)反馈问题，详见[Issue提交指南](https://gitcode.com/Ascend/community/blob/master/docs/contributor/issue-guide.md)。
 - 建议或实现新功能。
 - 改进或扩展文档。
@@ -17,7 +18,7 @@
 
 2. 将Fork到个人仓的代码克隆到本地进行代码开发
 
-   ```
+   ```bash
    git clone https://gitcode.com/<your-username>/MEF.git
    ```
 
