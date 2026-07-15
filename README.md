@@ -95,7 +95,7 @@ MEF版本配套详情请参考：[版本配套说明](docs/zh/release_notes_MEF.
 
 可通过本项目获取正式版本软件包，或自行编译构建两种方式获取软件包。
 
-- 正式版本软件包获取: https://gitcode.com/Ascend/MEF/releases
+- 正式版本软件包获取: <https://gitcode.com/Ascend/MEF/releases>
 - 自行编译构建软件包请参考[编译流程](#编译流程)章节
 
 ### 安装
@@ -273,7 +273,7 @@ API参考详见：[接口参考](docs/zh/user_guide/RESTful.md)。
 
 - 本代码仓库中包含多个开发分支，这些分支可能包含未完成、实验性或未测试的功能。在正式发布之前，这些分支不应被用于任何生产环境或依赖关键业务的项目中。请务必仅使用我们的正式发行版本，以确保代码的稳定性和安全性。
   使用开发分支所导致的任何问题、损失或数据损坏，本项目及其贡献者概不负责。
-- 正式版本请参考正式release版本: https://gitcode.com/Ascend/MEF/releases
+- 正式版本请参考正式release版本: <https://gitcode.com/Ascend/MEF/releases>
 
 ## License
 
